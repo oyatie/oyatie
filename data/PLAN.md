@@ -77,7 +77,8 @@ D1c join + persistence/wire decisions + D1c-WG + D1c-KG
 D1c-C -> D1c-O
 D1c-C -> D1c-KC
 D1c-C + D1c-KC -> D1c-WC
-accepted provider face + D1c-KG -> D1c-KP-S + D1c-KA-S + D1c-KK-S + D1c-KX-S
+accepted provider face + D1c-KG + D1c-KS (therefore D1c-S/WS)
+  -> D1c-KP-S + D1c-KA-S + D1c-KK-S + D1c-KX-S
 D1c-KC + D1c-KP-S -> D1c-KP-C
 D1c-KC + D1c-KA-S -> D1c-KA-C
 D1c-KC + D1c-KK-S -> D1c-KK-C
@@ -1793,12 +1794,28 @@ versions/features/licenses, lock delta, and no-default-feature policy. It MUST
 NOT expose `zeroize`, a Data-visible AEAD key, or a local AES-GCM implementation;
 D1c-KS does not write root manifests or `third-party/**`.
 
-Success is three provider conformance receipts plus the cryptography dependency
-receipt, with no provider-core/internal-API edge and exact Cargo/Buck parity.
-Failure is a guessed provider, raw key/provider client in a Data contract,
-test fake as authority, Data-visible key material/local AES-GCM, an
-unrecoverable opaque handle, fail-open outage, or foreign write hidden in a
-Data PR. Rollback is provider-owned and precedes any
+The Audit amendment additionally owns the trusted publication high-water
+operation used by `SPEC.md`: challenge-bound
+`GetPublicationHighWater(tenant, artifact_locator_id, context_digest,
+challenge)` and idempotent
+`AppendPublicationHighWater(anchor, LocalPublicationCasReceiptV1)`. Audit must
+resolve the exact 200-byte receipt through the trusted publication coordinator
+and refuse a supplied/missing/foreign/mismatched CAS proof before it appends.
+It must return a durable integrity-protected receipt containing the challenge,
+context/anchor/head, sequence, generation, ownership epoch, fence, Audit
+ordinal, provider revision, and expiry; it must refuse equal-sequence-different
+bytes and any rollback, retain a locator tombstone, and remain independent of
+the object-store restore path. An unavailable, stale, unverifiable, or foreign
+high-water is a fail-closed readiness/publication refusal, never permission to
+use the local head. This is a required accepted Audit face, not a Data fake or a
+best-effort event after ACK.
+
+Success is three provider conformance receipts (including the Audit high-water
+receipt) plus the cryptography dependency receipt, with no provider-core/
+internal-API edge and exact Cargo/Buck parity. Failure is a guessed provider,
+raw key/provider client in a Data contract, test fake as authority, Data-visible
+key material/local AES-GCM, an unrecoverable opaque handle, replayable local
+head, fail-open outage, or foreign write hidden in a Data PR. Rollback is provider-owned and precedes any
 Data adapter merge. SLO is 100% fail-closed authority and key-material
 containment; faults cover deny/malformed/stale receipts, provider outage,
 revocation races, crypto feature skew, and missing Buck/Cargo edges.
@@ -1951,13 +1968,18 @@ No keyed crypto or foreign provider reaches core; the AWS-LC digest adapter
 does not depend on Policy, Audit, or Secrets. The lock adds exactly five local
 blocks and D1c-KG-approved direct dependency edges, not a new version. Closure
 is D1c-S/WS plus these packages and the accepted third-party targets; reverse
-closure is empty. Reviewers are Data, security, build/dependency, Cell,
+closure is empty. In particular, `data-audit-sink-draft`,
+`data-record-keys-draft`, `data-record-protection-draft`, and both
+`data-records-app` targets exist before any provider `*-S` manifest names them;
+the Audit package owns the future high-water port types, KK owns acquisition,
+and KX sees only the direct record-keys types. Reviewers are Data, security, build/dependency, Cell,
 Policy/IAM, Audit, Secrets, and architecture. Success is empty/scanner faces,
 exact parity, and zero secret/keyed-algorithm behavior. Failure is content,
 raw-key type in a general records port, a missing `record-keys ->
 record-protection` Cargo/Buck edge for `KeyUseLease`, `ReacquiredOpenLease`,
 and `KeyGenerationBinding`, provider/internal edge, implicit
-keyed-crypto dependency, app route, one-graph edge, or unrelated lock churn. Rollback
+keyed-crypto dependency, missing Audit high-water package/type closure, app
+route, one-graph edge, or unrelated lock churn. Rollback
 removes only these packages/edges. Faults cover scanner parity, forbidden
 provider-core edges, dependency-feature skew, and lock/target canaries.
 
@@ -1987,6 +2009,17 @@ bootstrap, artifact-plan, final-manifest, or commit-record type: its
 `b_manifest.rs` is an engine-neutral unsealed manifest reference only. KC owns
 the canonical record-protection envelope and every encrypted control frame
 after this lane.
+
+The engine-neutral WAL semantic is one nonempty, single-tablet committed
+transaction mutation list: record mutations retain ordered write-set order,
+then metadata and control mutations use their canonical identifiers. Each entry
+must arrive with its validated exact classification/revision from the record or
+authoritative metadata/control definition; read-only transactions emit no WAL,
+and a cross-tablet, empty, expanded-over-1,024, unknown, defaulted, or
+unclassified list is refused before `PREPARED`. This lane deliberately does not
+serialize the classification summary, AAD tag, plan/manifest/commit binding,
+head/anchor, pin, or local-CAS receipt; KC owns those canonical bytes and their
+pre-persist validation.
 `d_classification_identity.rs` passes a
 `data_classification::DataClass` through records-port input, committed version,
 change envelope, opaque security-context attachment, and domain validation
@@ -2027,8 +2060,9 @@ counters; wire and production latency remain unavailable. Fault evidence is
 contract fuzz/property plus fingerprint golden/permutation/collision-domain,
 continuation-state binding, exact/plus-one logical bounds, `u64::MAX`/sum
 overflow, 1,024-by-4-MiB amplification, cancellation, idempotent retry, the
-257th request, and reservation release. Protobuf/frame/encoder faults belong
-to D1c-WC and cryptographic/tamper/key faults to D1c-KC.
+257th request, reservation release, and nonempty/mixed/metadata/control WAL
+semantic refusal before `PREPARED`. Protobuf/frame/encoder faults belong to
+D1c-WC and cryptographic/tamper/key/publication faults to D1c-KC.
 
 ### D1c-KC — Security contracts and owned cryptography behavior
 
@@ -2038,12 +2072,12 @@ exactly:
 ```text
 data/ports/draft/policy-client/src/items/{a_request,b_receipt,c_errors}.rs
 data/ports/draft/policy-client/src/test_items/a_contract.rs
-data/ports/draft/audit-sink/src/items/{a_event,b_receipt,c_errors}.rs
-data/ports/draft/audit-sink/src/test_items/a_contract.rs
+data/ports/draft/audit-sink/src/items/{a_event,b_receipt,c_publication_high_water,d_errors}.rs
+data/ports/draft/audit-sink/src/test_items/{a_contract,b_publication_high_water}.rs
 data/ports/draft/record-keys/src/items/{a_key_purpose,b_key_bootstrap_locator,c_key_generation_binding,d_nonce_lease,e_key_receipt,f_opaque_operation_handle,g_errors}.rs
 data/ports/draft/record-keys/src/test_items/{a_contract,b_state_machine,c_cold_recovery}.rs
-data/ports/draft/record-protection/src/items/{a_digest,b_envelope,c_artifact_commit,d_errors}.rs
-data/ports/draft/record-protection/src/test_items/{a_contract,b_golden_frames,c_artifact_commit}.rs
+data/ports/draft/record-protection/src/items/{a_digest,b_envelope,c_wal_classification,d_artifact_plan,e_artifact_commit,f_publication_state,g_errors}.rs
+data/ports/draft/record-protection/src/test_items/{a_contract,b_golden_frames,c_wal_classification,d_artifact_commit,e_publication_state,f_publication_gc}.rs
 data/adapters/draft/record-digest-awslc/src/items/a_sha256.rs
 data/adapters/draft/record-digest-awslc/src/test_items/a_known_answers.rs
 ```
@@ -2053,36 +2087,58 @@ frozen in `SPEC.md`: receipt binding, exact fingerprint/AAD/token frames,
 SHA-256, opaque KMS key-generation-binding/operation-handle/key-use/
 nonce-reservation types, the authenticated bounded bootstrap-locator/catalog
 grammar, stable errors, the exact classification codepoint table and
-per-purpose ContextAadV1 matrix/formulas, canonical count-one-or-more
-artifact-plan/final-manifest/commit/head grammars, and the pre-use durable
-linearizable nonce state machine. KC owns `CiphertextEnvelopeV1`,
-`ArtifactCommitRecordV1`, and all encrypted-control types before any
-tablet-persistence lane can consume them. It defines the complete request,
+per-purpose ContextAadV1 matrix/formulas, the bounded ordered WAL
+classification-summary and WAL-only mixed sentinel, canonical count-one-or-more
+artifact-plan/final-manifest/commit/head/immutable-context/anchor/pin grammars,
+the coordinator-only local-CAS proof plus Audit high-water request/receipt
+types, and the pre-use durable linearizable nonce state machine. KC owns
+`CiphertextEnvelopeV1`,
+`ArtifactCommitRecordV1`, `ArtifactPublicationAnchorV1`, and all encrypted/
+publication-control types before any tablet-persistence lane can consume them.
+It defines the complete request,
 receipt, and error types that every provider adapter maps; it does not call a
 provider, hold a raw key, perform AES-GCM, persist a record, decode protobuf,
 compose a process, or claim readiness. Every file stays at or below 300
 handwritten lines; scanner outputs and Cargo/Buck target membership are
 identical.
 
+Within that write set, audit-sink
+`c_publication_high_water.rs` owns the typed high-water request/receipt and the
+fixed `LocalPublicationCasReceiptV1`; record-protection
+`f_publication_state.rs` owns the anchor/pin state whose digest fields it names.
+The receipt carries only fixed digests/epochs, so these ports require no new
+cross-port Rust edge; later tablet-persistence content obtains the coordinator
+receipt through the accepted audit-sink/record-protection app composition after
+KC rather than freezing an envelope in D1c-C.
+
 Success is two independent golden-frame encoders, published SHA-256 known-answer
-vectors, byte-exact envelope/token/plan/final-manifest/commit framing,
-purpose-realizable exact/plus-one AAD bounds, opaque-handle containment,
-bootstrap-based DecryptOnly reacquisition, authenticated CAS publication, and
-no nonce reuse. Failure is custom keyed cryptography, algorithm defaulting,
+vectors, byte-exact envelope/token/WAL-summary/plan/final-manifest/commit/
+anchor/local-CAS-receipt/pin framing, purpose-realizable exact/plus-one AAD
+bounds, opaque-handle containment, bootstrap-based DecryptOnly reacquisition,
+authenticated monotonic-CAS/high-water publication, GC-safe pinning, and no
+nonce reuse.
+Failure is custom keyed cryptography, algorithm defaulting,
 raw-key clone/log/serialization, a raw-key-shaped type or async state,
 unchecked counter/length, unknown-field acceptance, plaintext fallback,
-provider edge before KX-C, a D1c-C envelope type, or production claim. Rollback
-removes only these content files. SLO is bounded contract/hash work and zero
-observed opaque-handle/nonce violations. Faults flip every header/AAD/
-ciphertext/tag/bootstrap byte, classification codepoint, plan/final-manifest/
-commit/head field, and chunk order; exercise every purpose exact/plus-one AAD,
-plan, manifest, commit, and bootstrap bound; substitute/replay/truncate/duplicate
-the final manifest and commit; race stale/idempotent CAS heads; exhaust/wrap
-counters; race concurrent CAS allocators; crash at acquire, reserve, local
-checkpoint, allocation CAS/fsync, Seal, persist, final manifest, commit, CAS,
-and ACK; restart into EncryptActive/DecryptOnly/catalog-source loss; then run
-known answers and N/N+1 counters/chunks through Cargo and Buck. KMS AEAD known-
-answer, tamper, zeroization, and terminal-path evidence belong to KX-C.
+provider edge before KX-C, a D1c-C envelope type, caller/default/ranked WAL
+class, local-head freshness guess, unpinned persistence, or production claim.
+Rollback removes only these content files. SLO is bounded contract/hash work and
+zero observed opaque-handle/nonce/publication-rollback violations. Faults flip
+every header/AAD/ciphertext/tag/bootstrap byte, classification codepoint,
+WAL-summary subject/kind/order/pair, plan/final-manifest/commit/head/context/
+anchor/local-CAS-receipt/pin field, and chunk order; exercise every purpose
+exact/plus-one AAD, summary, plan, manifest, commit, anchor, local-CAS receipt,
+pin, and bootstrap bound; substitute/replay/truncate/duplicate uniform/mixed/
+metadata/control WALs, final manifests, commits, anchors, local-CAS and high-
+water receipts; race stale/idempotent CAS heads and pins; replay H0 after H1
+across crash/restore/failover; exhaust/wrap counters; race concurrent CAS
+allocators; interleave GC before/after pin acquire, renew, put, verify, bind,
+CAS, Audit append, finalize, release, and ACK; crash at acquire, renew, reserve,
+local checkpoint, allocation CAS/fsync, Seal, pinned persist, final manifest,
+commit, bind, CAS, durable local-CAS receipt, Audit, finalize, and ACK; restart into
+EncryptActive/DecryptOnly/catalog-source loss; then run known answers and
+N/N+1 counters/chunks through Cargo and Buck. KMS AEAD known-answer, tamper,
+zeroization, and terminal-path evidence belong to KX-C.
 
 ### D1c-WC — Records-v1 schema, codec, and accounting behavior
 
@@ -2125,23 +2181,29 @@ Cargo/Buck codegen canaries.
 
 ### D1c-KA — Real provider adapters
 
-Structure is four serialized sole-lock D-29 sublanes after the corresponding
-provider-owned face has merged and D1c-KG is satisfied. Structure contains only
-the scanner package, manifest, and Cargo/Buck edge; it cannot name/map a
-Data-owned request, receipt, or error before D1c-KC defines those types:
+Structure is four serialized sole-lock D-29 sublanes only after the
+corresponding provider-owned face, D1c-KG, and D1c-KS have merged. D1c-KS
+transitively requires D1c-S and D1c-WS and is the lane that creates the Data
+port/package and `data-records-app` manifest targets these rows name; a
+scheduler must refuse every `*-S` before that prerequisite rather than invent a
+manifest edge. Structure contains only the scanner package, manifest, and
+Cargo/Buck edge; it cannot name/map a Data-owned request, receipt, or error
+before D1c-KC defines those types:
 
-| Lane | Exact new four-file root / package | Exact provider edge | Exact updated consumer |
-|---|---|---|---|
-| `D1c-KP-S` | `data/adapters/draft/policy-client-policy/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-policy-client-policy-draft` | `data-policy-client-draft + policy-check -> adapter` | `data/facade/records-app/{Cargo.toml,BUCK}`, `Cargo.lock` |
-| `D1c-KA-S` | `data/adapters/draft/audit-sink-audit/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-audit-sink-audit-draft` | `data-audit-sink-draft + audit-emission -> adapter` | same app manifests, `Cargo.lock` |
-| `D1c-KK-S` | `data/adapters/draft/record-keys-secrets/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-record-keys-secrets-draft` | `data-record-keys-draft + secrets-kms-use -> adapter` | same app manifests, `Cargo.lock` |
-| `D1c-KX-S` | `data/adapters/draft/record-protection-secrets/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-record-protection-secrets-draft` | `data-record-keys-draft + data-record-protection-draft + secrets-kms-use -> adapter` | same app manifests, `Cargo.lock` |
+| Lane | Mandatory Data precondition | Exact new four-file root / package | Exact provider edge | Exact updated consumer |
+|---|---|---|---|---|
+| `D1c-KP-S` | D1c-KS (therefore S/WS), D1c-KG, accepted Policy face | `data/adapters/draft/policy-client-policy/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-policy-client-policy-draft` | `data-policy-client-draft + policy-check -> adapter` | `data/facade/records-app/{Cargo.toml,BUCK}`, `Cargo.lock` |
+| `D1c-KA-S` | D1c-KS (therefore S/WS), D1c-KG, accepted Audit face | `data/adapters/draft/audit-sink-audit/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-audit-sink-audit-draft` | `data-audit-sink-draft + audit-emission -> adapter` | same app manifests, `Cargo.lock` |
+| `D1c-KK-S` | D1c-KS (therefore S/WS), D1c-KG, accepted KMS face | `data/adapters/draft/record-keys-secrets/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-record-keys-secrets-draft` | `data-record-keys-draft + secrets-kms-use -> adapter` | same app manifests, `Cargo.lock` |
+| `D1c-KX-S` | D1c-KS (therefore S/WS), D1c-KG, accepted KMS face | `data/adapters/draft/record-protection-secrets/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-record-protection-secrets-draft` | `data-record-keys-draft + data-record-protection-draft + secrets-kms-use -> adapter` | same app manifests, `Cargo.lock` |
 
 Each scanner matches D1c-S, each lock delta is one local block plus already
 accepted provider edges, and Cargo/Buck close identically. Exact structure
 build closure is D1c-S/WS/KS, that adapter's Data port, its accepted provider
 target, `data-records-app` library and bin targets, and its codegen include
 root; its reverse closure is only `data-records-app` until KJ-S composes it.
+The corresponding provider receipt plus D1c-KG is insufficient without this
+closure: before KS the named Data package paths and app targets do not exist.
 No lane may substitute the currently forbidden internal packages, write the
 provider tree, or merge beside another lock writer. Content is a D33 lane and
 is schedulable only after **both** its `*-S` structure lane and D1c-KC:
@@ -2159,8 +2221,11 @@ D1c-KX-C: data/adapters/draft/record-protection-secrets/src/items/a_adapter.rs
 
 Content only maps Data-owned requests/receipts/errors to the accepted provider
 contract and preserves revision, integrity, deadline, tenant, purpose,
-generation, opaque-handle containment, durable pre-use nonce reservation, and
-revocation fences. KK-C is the sole mapper of `AcquireOpenHandle` and its
+generation, opaque-handle containment, durable pre-use nonce reservation,
+publication high-water freshness, and revocation fences. KA-C maps both
+publication-high-water operations, including the challenge, coordinator-resolved
+local-CAS proof, and no-rollback receipt; no other adapter may synthesize them.
+KK-C is the sole mapper of `AcquireOpenHandle` and its
 `KeyBootstrapLocatorV1 -> ReacquiredOpenLease` transition. KX-C consumes the
 record-keys binding/operation-handle types through the direct port edge and maps
 only KMS `Seal` and `Open`, never local AES-GCM, handle acquisition, or a raw
@@ -2177,10 +2242,11 @@ hidden fallback, local keyed crypto, raw-key exposure, or provider/API leakage
 into core. Rollback removes one adapter/edge before composition. SLO signals
 are provider latency, deadline/refusal class, receipt age/revision, key/nonce
 lease headroom, and no false allow/ACK. Faults cover malformed/stale/wrong-
-tenant receipts, network loss/timeout/reorder, Audit durability loss, KMS
-crash at reserve/checkpoint/allocation-CAS/Seal/persist/publish/ACK, restart
-and source loss before Open, rotation/revocation between lease and use, raw-key
-containment/zeroization, duplicate-nonce rejection, and provider N/N+1 skew.
+tenant receipts, network loss/timeout/reorder, Audit durability/high-water
+challenge replay/loss, KMS crash at reserve/checkpoint/allocation-CAS/Seal/
+persist/publish/ACK, restart and source loss before Open, rotation/revocation
+between lease and use, raw-key containment/zeroization, duplicate-nonce
+rejection, and provider N/N+1 skew.
 
 ### D1c-O — Parameterized in-memory oracle
 
@@ -2287,27 +2353,31 @@ data/adapters/draft/tablet-persistence-file/src/test_items/{g_reencryption,h_rot
 ```
 
 Implement the one-way generation state machine, fixed-manifest inventory,
-bounded checkpointed re-encryption, verify-before-CAS publication, retirement
-barrier, restore inventory, durable Audit binding, and revocation linearization
-from `SPEC.md` through Data ports only. Work is bounded by a frozen per-cell
-records/bytes/concurrency budget; exhaustion checkpoints and yields. Old
-verified ciphertext remains authoritative until the replacement verifies and
-CAS publishes, so cancellation/failure leaks work or space, never plaintext or
-loss. Contract fixtures can exercise transitions, but only D1c-KP-C,
+bounded checkpointed re-encryption, verify-before-pinned-CAS/Audit-high-water
+publication, retirement barrier, restore inventory, durable Audit binding, and
+revocation linearization from `SPEC.md` through Data ports only. Work is bounded
+by a frozen per-cell records/bytes/concurrency budget; exhaustion checkpoints
+and yields. Old verified ciphertext remains authoritative until the replacement
+has a complete pin, verifies, CASes the head+anchor, and obtains its matching
+high-water receipt, so cancellation/failure leaks work or space, never plaintext
+or loss. Contract fixtures can exercise transitions, but only D1c-KP-C,
 D1c-KA-C, D1c-KK-C, and D1c-KX-C provider conformance plus D1c-KJ may establish
 production evidence.
 
 Success is crash-resumable monotonic progress, exact old-generation inventory,
 zero new encryption after the rotation fence, zero old references before
-retirement, and ciphertext-only restore. Failure is in-place overwrite,
-unchecked counters, mixed authority, lost checkpoint, nonce reuse, decrypt
-after revocation, unaudited transition, or unbounded scan. Rollback pauses the
-worker while preserving the last verified ciphertext/checkpoint; it never
-reverses a revocation. SLO signals are remaining records/bytes, oldest old-key
-age, checkpoint age, retry/refusal, lease headroom, and estimated completion
-under the declared budget. Faults crash every read/seal/flush/verify/CAS/audit
-barrier, revoke/rotate concurrently, corrupt inventory/checkpoint/ciphertext,
-exhaust capacity/nonce lease, restore a stale snapshot, and repeat repair.
+retirement, a matching immutable-context/high-water anchor, and ciphertext-only
+restore. Failure is in-place overwrite, unchecked counters, mixed authority,
+lost checkpoint/pin, nonce reuse, a retained old head accepted after restore,
+decrypt after revocation, unaudited transition, or unbounded scan. Rollback
+pauses the worker while preserving the last verified ciphertext/checkpoint/pin;
+it never reverses a revocation. SLO signals are remaining records/bytes, oldest
+old-key age, checkpoint age, retry/refusal, lease headroom, publication-pin
+age, high-water receipt age, and estimated completion under the declared budget.
+Faults crash every read/seal/flush/pin/verify/bind/CAS/Audit/finalize barrier,
+revoke/rotate concurrently, corrupt inventory/checkpoint/ciphertext/anchor,
+exhaust capacity/nonce lease, replay H0 after H1, delete a pinned object, race
+GC, restore a stale snapshot, and repeat repair.
 
 ### D1c-KJ-S — Production composition/readiness structure
 
@@ -2354,28 +2424,30 @@ engine and real provider adapters, validate compatible contract revisions,
 require verified Policy/Audit/KMS conformance receipts, an encrypt-active
 record and continuation generation, durable nonce headroom, usable Cell
 interval, a valid authenticated bootstrap locator/provider catalog for each
-recoverable generation, clean recovery/quarantine state, and current rotation
-inventory. The library exposes a typed `NotReady` reason and admission gate,
+recoverable generation, fresh matching publication high-water receipts, no
+unresolved publication-pin recovery, clean recovery/quarantine state, and
+current rotation inventory. The library exposes a typed `NotReady` reason and admission gate,
 not a listener; loss or staleness of any prerequisite atomically withdraws
 admission/readiness before new work. Policy deny/outage precedes data-dependent
 work, mutation ACK requires durable Audit, a key/revocation fence is revalidated
 before prepare and visibility, and an artifact is visible only through the
-validated sealed commit/head CAS chain. No fake, in-memory provider, fixture,
+validated sealed commit/head+anchor/pin/Audit-high-water chain. No fake, in-memory provider, fixture,
 or reference oracle can be selected by production composition or count as
 readiness proof.
 
 Success is zero route/readiness while any prerequisite is missing and stable
 recovery after real provider revalidation; failure is false readiness,
 plaintext/unaudited/stale-key fallback, partial provider selection, or a test
-double in the production graph, an unauthenticated commit root, or unavailable
-bootstrap catalog. Rollback withdraws admission and returns to the unrouted
+double in the production graph, an unauthenticated/stale/dangling commit root,
+unavailable bootstrap catalog, or unavailable high-water authority. Rollback withdraws admission and returns to the unrouted
 library; it cannot undo a durable audit/key fence. SLO signals are readiness
 reason/age, provider revision/latency, receipt age, nonce headroom, bootstrap-
-catalog health, quarantine count, and rotation backlog. Provider test plants
-inject deny, timeout, malformed/stale receipt, Audit durability loss, KMS
-outage/rotation/revocation, bootstrap tamper/source loss, time uncertainty,
-nonce exhaustion, corrupt recovery, commit-head stale-CAS/replay, and N/N+1
-skew; each must withdraw before request acceptance. D4 route work is blocked
+catalog health, high-water receipt age, publication-pin age/quarantine count,
+and rotation backlog. Provider test plants inject deny, timeout, malformed/stale
+receipt, Audit durability/high-water loss, KMS outage/rotation/revocation,
+bootstrap tamper/source loss, time uncertainty, nonce exhaustion, corrupt
+recovery, commit-head stale-CAS/H0-after-H1 replay, pinned-object deletion,
+GC race, and N/N+1 skew; each must withdraw before request acceptance. D4 route work is blocked
 until this exact receipt is independently accepted.
 
 ### D1c-WB — Process boot/refusal behavior
@@ -2618,9 +2690,10 @@ clear this gate.
    BF-C reaches only blocked COB-G; its accepted Community amendment enables
    COB-S/C. N-C, O2L, and BR join before D1c. Accepted WG/KG and the persistence
    decisions enable D1c-S; lock writers run S -> WS -> KS. C then enables O,
-   KC, and WC's C/KC join; KP/KA/KK/KX structural lanes serialize after their
-   provider receipts. Every provider content lane additionally waits for KC's
-   Data request/receipt/error types, then may fan out on its unique files.
+   KC, and WC's C/KC join; KP/KA/KK/KX structural lanes serialize only after
+   their provider receipts, KG, and KS (therefore S/WS) have landed. Every
+   provider content lane additionally waits for KC's Data request/receipt/error
+   types, then may fan out on its unique files.
    C/O/KC enable D1d, then D1e; D1e/KC enable KR. WC, all four
    provider-content receipts, D1e, and KR enable KJ-S, then KJ-C and WB. D4
    cannot route before WB.
@@ -2644,7 +2717,8 @@ clear this gate.
    COB-C may fan out after their structure on disjoint unique files. O1/O2T are
    lock-free mechanical preparation and may run beside a disjoint provider
    lane. D1c-S/WS/KS and KP-S/KA-S/KK-S/KX-S are separate lock-writing LSCs
-   and serialize with every other lock writer; C/O/KC/WC, provider content,
+   and serialize with every other lock writer; provider structure never enters
+   the lock queue until KS has created its port/app closure. C/O/KC/WC, provider content,
    D1d/D1e/KR, and KJ-C write unique files and may fan out only after their
    stated joins. D2-S and D3-S may be prepared in parallel but merge one lock
    writer at a time; their content lanes then commute.
@@ -2664,9 +2738,10 @@ record an immutable receipt:
 
 D1c-WG and D1c-KG are additional mandatory immutable receipts, not defaults.
 WG selects the exact protobuf/Connect generator/runtime and Cargo/Buck codegen
-graph. KG accepts exact Policy, Audit, and Secrets opaque-handle AEAD faces,
-plus the unkeyed AWS-LC SHA-256 dependency face. KMS, not Data, carries raw-key
-zeroization evidence. Current internal/core-backed provider packages and
+graph. KG accepts exact Policy, Audit (including publication high-water), and
+Secrets opaque-handle AEAD faces, plus the unkeyed AWS-LC SHA-256 dependency
+face. KMS, not Data, carries raw-key zeroization evidence. Current
+internal/core-backed provider packages and
 transitive-only cryptography dependencies do not satisfy KG.
 
 No fallback is inferred. Connect-only plus Data-internal persistence activates
@@ -2694,8 +2769,10 @@ BF-G/COB-G until exact owner-law, codegen, IAM/Policy, Gateway route, build, and
 review receipts land. Every cross-owner app/Foundry/Gateway/Bus lane needs its
 own named D-29 dispatch; this Data PR grants no foreign write. D1c remains
 blocked until N-C, O2L, BR, the two persistence/wire decisions, D1c-WG, and
-D1c-KG are complete. Once unblocked, S/WS/KS are the structural chain; C, O,
-KC, WC, provider adapters, D1d/e, KR, and KJ follow the exact joins above. No
+D1c-KG are complete. Once unblocked, S/WS/KS are the structural chain; no
+KP/KA/KK/KX structure lane is dispatchable until KS is complete, even with its
+provider receipt. C, O, KC, WC, provider adapters, D1d/e, KR, and KJ then
+follow the exact joins above. No
 stage may substitute a test fake or route before the KJ-C/WB refusal join.
 
 </next_lane>

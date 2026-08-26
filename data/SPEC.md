@@ -497,7 +497,8 @@ Data owns four implementation-free use-case ports:
 
 ```text
 PolicyClient        authorize(canonical request context) -> PolicyReceipt
-AuditSink           append_pre_ack(canonical event) -> DurableAuditReceipt
+AuditSink           append_pre_ack(canonical event) -> DurableAuditReceipt;
+                    append/get challenge-bound publication high-water anchors
 RecordKeySource     reserve/rotate/retire opaque key uses and nonce leases -> KeyUseLease;
                     bootstrap-reacquire an authorized decrypt operation -> ReacquiredOpenLease
 RecordProtection    digest/seal/open using RecordKeySource operation handles, explicit purpose,
@@ -513,7 +514,8 @@ Their draft homes are respectively `data/ports/draft/policy-client`,
 `data/adapters/draft/record-protection-secrets`. The provider adapters cannot
 implement content until their provider owners accept the exact sold faces reserved
 by D1c-KG: `policy/ports/check` (`policy-check`),
-`audit/ports/emission` (`audit-emission`), and
+`audit/ports/emission` (`audit-emission`, including the publication high-water
+authority), and
 `secrets/ports/kms-use` (`secrets-kms-use`), or amend this SPEC with one exact
 replacement each. The current `iam/ports/policy-cedar-api`,
 `audit/ports/emission-api`, `secrets/ports/kms`, and
@@ -615,12 +617,15 @@ interval, expiry, and receipt integrity. Deny, absence, mismatch, stale
 revision, expiry, or Policy outage fails before data-dependent work.
 `DurableAuditReceipt` binds the same fingerprint plus policy receipt digest,
 transaction/snapshot identity, result class, key generation where applicable,
-and durable Audit sequence/digest. Mutations, key-state transitions, tenant
-deletion, export, restore, and policy-designated privileged disclosures do not
-acknowledge without it; an Audit outage aborts before commit/visibility.
-Contract fixtures and known-answer vectors may test these value types, but no
-fake, in-memory double, or reference oracle can satisfy production composition,
-route publication, or readiness.
+and durable Audit sequence/digest. `PublicationHighWaterReceipt` is a separate
+challenge-bound durable Audit receipt with the exact anchor/head/context fields
+specified below; it is the only accepted freshness witness for a publication
+locator. Mutations, key-state transitions, tenant deletion, export, restore,
+publication-anchor advancement, and policy-designated privileged disclosures do
+not acknowledge or become visible without their required receipt; an Audit
+outage aborts before commit/visibility. Contract fixtures and known-answer
+vectors may test these value types, but no fake, in-memory double, or reference
+oracle can satisfy production composition, route publication, or readiness.
 
 ## Ciphertext envelope and key lifecycle
 
@@ -677,7 +682,8 @@ The purpose/domain table is closed: record=`1` and
 `"oyatie.data.record.aad.migration.v1"` (35). The fields are exactly
 `01` tenant ASCII, `02` database ASCII, `03` table ASCII, `04` tablet ASCII,
 `05` ownership epoch U64, `06` schema revision U64, `07` classification code
-ENUM8, `08` classification revision U64, `09` primary-key digest DIGEST32,
+ENUM8, `08` classification revision U64, `09` classification-binding digest
+DIGEST32,
 `0a` commit ordinal U64, `0b` transaction ID ASCII, `0c` artifact generation
 U64, `0d` key ID ASCII, `0e` key generation U64, `0f` artifact role ENUM8,
 `10` artifact chunk ordinal U64, `11` artifact chunk count U64, `12` artifact
@@ -693,14 +699,17 @@ or purpose-inapplicable field before allocation, Open, or publication.
 
 The classification ENUM8 conversion is closed and is not Rust declaration
 order or a `repr` cast. KC implements this exact total match and refuses every
-other byte: `Public=1`, `InternalOnly=2`, `PiiIdentifying=3`, `PiiSensitive=4`,
+other DataClass byte: `Public=1`, `InternalOnly=2`, `PiiIdentifying=3`, `PiiSensitive=4`,
 `Phi=5`, `Pci=6`, `PipaArticle23=7`, `Children=8`, `Financial=9`, `Usage=10`,
 `Secret=11`, `Audit=12`, `PiiQuasiIdentifier=13`,
 `FinancialRegulatedCredit=14`, `BehavioralTenantProduct=15`,
 `BehavioralAds=16`, `DeclaredPreference=17`, `SearchQuery=18`, and
 `SensitivePipaArticle23=19`. Compatibility aliases remain distinct source
 variants and retain the listed byte; a future source variant requires a new
-versioned AAD grammar rather than an unassigned codepoint.
+versioned AAD grammar rather than an unassigned codepoint. `WalTransactionMixed=0`
+is a separate WAL-only control sentinel defined below; it is not a DataClass,
+cannot be emitted by a classification port, and is invalid outside a mixed WAL
+summary with revision zero.
 
 The following table is the complete purpose-applicability rule. `real` means a
 nonzero/current value, `zero` means the listed fixed-width all-zero value or a
@@ -715,12 +724,12 @@ defined immediately after the table. Nothing is omitted.
 | `04` | tablet | real | real | real | real | real | real |
 | `05` | ownership epoch | real | real | real | real | real | real |
 | `06` | schema revision | real | real | real | real | real | real |
-| `07` | classification code | real | real | derived | derived | derived | derived |
-| `08` | classification revision | real | real | derived | derived | derived | derived |
-| `09` | primary-key digest | real | zero | zero | zero | zero | zero |
+| `07` | classification code | real | summary | derived | derived | derived | derived |
+| `08` | classification revision | real | summary | derived | derived | derived | derived |
+| `09` | classification-binding digest | record key | WAL summary | zero | zero | zero | zero |
 | `0a` | commit ordinal | real | real | zero | zero | zero | zero |
 | `0b` | transaction ID | real | real | zero | zero | zero | zero |
-| `0c` | artifact generation | zero | zero | real | real | real | real |
+| `0c` | artifact generation | real | real | real | real | real | real |
 | `0d` | key ID | real | real | real | real | real | real |
 | `0e` | key generation | real | real | real | real | real | real |
 | `0f` | artifact role | phase | phase | phase | phase | phase | phase |
@@ -734,15 +743,84 @@ For `derived`, every contributing record must have the same exact
 pair; an empty or mixed pair is rejected as `AggregateClassificationMixed`
 before plan construction, and mixed data must be partitioned into separate
 artifacts. This is the aggregate-classification rule--there is no rank-based,
-best-effort, or caller-chosen aggregate label. For `zero`, U64 is eight zero
-bytes, DIGEST32 is 32 zero bytes, and transaction ID has length zero. For
-`phase`, every artifact has `chunk_count` in `1..=4,096`, a checked total, and
-one common plan digest: data uses `artifact_role=1` (`single`) iff count is one
-or `2` (`chunk`) iff count is at least two with ordinal `0..count-1`; its final
-manifest uses `3` with ordinal exactly `count`; its commit record uses `4`
-(`commit_record`) with ordinal exactly `count+1`. Record and WAL artifacts are
-therefore not exceptional: both use a one-entry canonical plan, final manifest,
-and commit root. Any other role, ordinal, count, total, or phase combination is
+best-effort, or caller-chosen aggregate label.
+
+`record key` is exactly `SHA-256(0x01 || primary_key_length:u32 ||
+primary_key)` over the opaque canonical record primary-key bytes. `WAL summary`
+is exactly `SHA-256(WalTransactionClassificationSummaryV1)` below. They are
+purpose-specific meanings of the same fixed-width tag: a record never accepts a
+WAL summary, a WAL never accepts a record-key binding, and every aggregate
+purpose requires 32 zero bytes. The outer purpose/domain and the plan,
+manifest, and commit equality rules below make a cross-purpose digest
+substitution fail before Open or publication.
+
+`WalTransactionClassificationSummaryV1` freezes one WAL artifact to the full
+ordered mutation list of exactly one committed, single-tablet transaction. A
+cross-tablet transaction remains unsupported and fails before `PREPARED`; it
+does not split one atomic transaction into separately headed WAL artifacts. A
+read-only transaction has no WAL artifact. A WAL summary with no durable
+record, metadata, or control mutation is invalid rather than an empty default:
+
+```text
+domain_len:u8 = 39
+domain:[u8;39] = "oyatie.data.record.wal-class-summary.v1"
+separator:u8 = 0 | version:u8 = 1
+transaction_id_length:u16 | transaction_id:ASCII(1..=256)
+commit_ordinal:u64
+entry_count:u16 = 1..=1,024
+repeated exactly entry_count times in ascending entry_ordinal order:
+  entry_ordinal:u32 | entry_kind:u8 | subject_digest:[u8;32] |
+  classification_code:ENUM8(1..=19) |
+  classification_revision:u64(1..=u64::MAX)
+```
+
+`entry_kind` is `1` record mutation, `2` metadata mutation, or `3` control
+mutation. The canonical list is record mutations in the original ordered
+write-set order, then metadata mutations by bytewise canonical metadata
+identifier, then control mutations by bytewise canonical control identifier;
+`entry_ordinal` is exactly `0..entry_count-1`. A record `subject_digest` is
+`SHA-256(0x01 || primary_key_length:u32 || primary_key)`; metadata and control
+subjects are respectively `SHA-256(0x02 || identifier_length:u32 ||
+canonical_metadata_identifier)` and `SHA-256(0x03 || identifier_length:u32 ||
+canonical_control_identifier)`. Each record uses its validated exact DataClass
+pair. Each metadata/control item must carry an exact validated DataClass pair
+from its authoritative schema/control definition; there is no inherited,
+ranked, caller-chosen, or default classification. Unknown kinds, missing or
+duplicate subject/ordinal, a noncanonical identifier, an alias spelling in
+place of the canonical ENUM8 conversion, a zero/unknown pair, or a summary not
+equal to the actual canonical WAL body is `WalClassificationMalformed` before
+allocation, provider acquisition, Seal, persistence, or `PREPARED`.
+
+Admission derives this expanded durable-mutation list before `PREPARED` and
+refuses an expansion above `1,024` entries as `WalClassificationMalformed`;
+one request operation cannot create a legal hidden 1,025th metadata or control
+entry. The summary `transaction_id` and `commit_ordinal` are byte-for-byte the
+same as tags `0b` and `0a` of every data, final-manifest, and commit envelope's
+`ContextAadV1`, and as fields `1a` and `19` of the sealed commit below. Thus a
+record artifact's tag `09` commits its one canonical primary key while a WAL
+artifact commits both its exact transaction identity and all of that
+transaction's classified mutations.
+
+The summary's distinct pairs determine the WAL `summary` cells. If all entries
+have one pair, tags `07`/`08` and the plan/manifest/commit carry that pair. If
+there are two or more pairs, those fields are exactly
+`WalTransactionMixed=0`/revision `0`; byte `0` is a WAL-only control sentinel,
+not a DataClass and is forbidden for every record or aggregate purpose. In
+both cases tag `09` and the plan/manifest/commit binding digest are the exact
+summary digest. Thus the fixed AAD grammar stays at 19 fields while a mixed
+transaction has one unique authenticated classification binding. A source
+compatibility alias is converted to its listed canonical DataClass byte before
+the summary is built; it cannot create another serialized class identity.
+
+For `zero`, U64 is eight zero bytes, DIGEST32 is 32 zero bytes, and transaction
+ID has length zero. For `phase`, every artifact has `chunk_count` in
+`1..=4,096`, a checked total, and one common plan digest: data uses
+`artifact_role=1` (`single`) iff count is one or `2` (`chunk`) iff count is at
+least two with ordinal `0..count-1`; its final manifest uses `3` with ordinal
+exactly `count`; its commit record uses `4` (`commit_record`) with ordinal
+exactly `count+1`. Record and WAL artifacts are therefore not exceptional:
+both use a one-entry canonical plan, final manifest, and commit root. Any
+other role, ordinal, count, total, summary, or phase combination is
 purpose-inapplicable and rejected.
 
 `aad_length` is the exact `ContextAadV1` frame length, at most
@@ -762,11 +840,19 @@ The domain/header contribution is `1 + domain_len + 1 + 1 + 2`; the 19 fixed
 field prefixes total `114`; record/WAL have six bounded ASCII fields while the
 four aggregate purposes have five because transaction ID is empty; the nine
 U64s total `72`, two digests `64`, and two ENUM8 values `2`. Hence every legal
-v1 AAD is at most 1,825 bytes, within the 4,096-byte hard ceiling. Independent
-encoder KATs cover each table-row exact maximum and its listed plus-one case
-(a 257-byte otherwise canonical ASCII field), all zero/real/phase combinations,
-and `u64::MAX` checked-length overflow. Each refusal happens before allocation,
-handle acquisition/Open, Seal, or publication.
+v1 AAD is at most 1,825 bytes, within the 4,096-byte hard ceiling. The
+classification-binding digest replaces a fixed 32-byte digest rather than
+adding a field, so the independently checked purpose maxima remain
+`1,825/1,822/1,570/1,571/1,569/1,572`. The summary itself has a `310`-byte
+fixed portion plus `46` bytes per entry, so
+`MAX_WAL_CLASSIFICATION_SUMMARY_BYTES = 310 + (1,024 * 46) = 47,414`; entry
+`1,025` (`47,460` bytes if constructed) and a `47,415`th trailing byte are
+both rejected before allocation or `PREPARED`. Independent encoder KATs cover
+each table-row exact maximum and its listed plus-one case (a 257-byte otherwise
+canonical ASCII field), all zero/real/summary/phase combinations, empty,
+uniform, mixed, metadata, control, alias, and cross-purpose WAL cases, and
+`u64::MAX` checked-length overflow. Each refusal happens before allocation,
+handle acquisition/Open, Seal, persistence, or publication.
 
 `CiphertextEnvelopeV1` seals one bounded artifact chunk, not an unbounded
 stream. `ciphertext_length` is checked before allocation and is at most 4 MiB
@@ -785,19 +871,28 @@ domain_len:u8 = 35
 domain:[u8;35] = "oyatie.data.record.artifact-plan.v1"
 separator:u8 = 0 | version:u8 = 1
 purpose:u8 | artifact_generation:u64 | classification_code:u8 |
-classification_revision:u64 | chunk_count:u64 | total_plaintext_bytes:u64
+classification_revision:u64 | classification_binding_digest:[u8;32] |
+chunk_count:u64 | total_plaintext_bytes:u64
 repeated exactly chunk_count times, ordinal order 0..chunk_count-1:
   ordinal:u64 | plaintext_length:u64
 ```
 
 Count is `1..=4,096`; every ordinal is exactly its zero-based position; the
-classification pair equals the applicable `ContextAadV1` pair; checked
-addition of entry lengths must equal the total; and total is at most 64 GiB.
-The fixed frame is `1 + 35 + 1 + 1 + 1 + 8 + 1 + 8 + 8 + 8 = 72` bytes, so its
-exact maximum is `72 + (4,096 * 16) = 65,608` bytes. A count of one is canonical
-only for the single data envelope plus its final-manifest and commit envelopes;
-it is not an omitted plan. The final manifest is a separately sealed role-`3`
-envelope for every count whose plaintext is this exact
+classification pair and binding digest equal the applicable `ContextAadV1`
+values; checked addition of entry lengths must equal the total; and total is at
+most `min(64 GiB, chunk_count * purpose_chunk_cap)` with checked arithmetic.
+`purpose_chunk_cap` is exactly 4 MiB for record and 16 MiB for WAL, segment,
+snapshot, repair, and migration, so a record plan can never admit an entry that
+its envelope cannot Seal and its maximum total at count 4,096 is 16 GiB. For
+record the binding digest is its record-key digest, for WAL it is its summary
+digest (including the mixed sentinel rule), and for aggregates it is zero. The
+fixed frame is
+`1 + 35 + 1 + 1 + 1 + 8 + 1 + 8 + 32 + 8 + 8 = 104` bytes, so its exact maximum
+is `104 + (4,096 * 16) = 65,640` bytes. A `65,641`-byte trailing form and count
+`4,097` (`65,656` bytes if constructed) are both invalid. A count of one is
+canonical only for the single data envelope plus its final-manifest and commit
+envelopes; it is not an omitted plan. The final manifest is a separately sealed
+role-`3` envelope for every count whose plaintext is this exact
 `ArtifactFinalManifestV1` frame:
 
 ```text
@@ -805,7 +900,8 @@ domain_len:u8 = 39
 domain:[u8;39] = "oyatie.data.record.artifact-manifest.v1"
 separator:u8 = 0 | version:u8 = 1
 purpose:u8 | artifact_generation:u64 | classification_code:u8 |
-classification_revision:u64 | key_id_length:u16 | key_id:[u8;key_id_length] |
+classification_revision:u64 | classification_binding_digest:[u8;32] |
+key_id_length:u16 | key_id:[u8;key_id_length] |
 key_generation:u64 | chunk_count:u64 | total_plaintext_bytes:u64 |
 plan_digest:[u8;32] | final_manifest_aad_digest:[u8;32]
 repeated exactly chunk_count times, ordinal order 0..chunk_count-1:
@@ -813,12 +909,15 @@ repeated exactly chunk_count times, ordinal order 0..chunk_count-1:
   serialized_envelope_digest:[u8;32] | context_aad_digest:[u8;32]
 ```
 
-The fixed portion is `406` bytes and each entry is `112` bytes, so its exact
-maximum is `406 + (4,096 * 112) = 459,158` bytes. The final-manifest envelope's
-own `ContextAadDigest` must equal `final_manifest_aad_digest`; each entry's
-digest must equal the actual data envelope's `ContextAadDigest`. This is not a
-claim about an unframed manifest: both digests are concrete bytes in the stated
-canonical frame.
+The fixed portion is `438` bytes and each entry is `112` bytes, so its exact
+maximum is `438 + (4,096 * 112) = 459,190` bytes. A `459,191`-byte trailing
+form and count `4,097` (`459,302` bytes if constructed) are invalid. The final-
+manifest envelope's own `ContextAadDigest` must equal
+`final_manifest_aad_digest`; its classification-binding digest must equal the
+plan and every role envelope's tag `09`; each entry's digest must equal the
+actual data envelope's `ContextAadDigest`. This is not a claim about an
+unframed manifest: every digest is concrete bytes in the stated canonical
+frame.
 
 The only publishable artifact root is a sealed role-`4`
 `ArtifactCommitRecordV1`. It is a canonical, bounded, versioned tagged frame:
@@ -826,7 +925,7 @@ The only publishable artifact root is a sealed role-`4`
 ```text
 domain_len:u8 = 37
 domain:[u8;37] = "oyatie.data.record.artifact-commit.v1"
-separator:u8 = 0 | version:u8 = 1 | field_count:u16 = 23
+separator:u8 = 0 | version:u8 = 1 | field_count:u16 = 26
 repeated exactly field_count times in increasing-tag order:
   tag:u8 | type:u8 | length:u32 | value:[u8;length]
 where each listed tag occurs exactly once:
@@ -838,24 +937,31 @@ where each listed tag occurs exactly once:
   06 purpose:ENUM8(1..=6)                     12 plan_digest:DIGEST32
   07 ownership_epoch:U64                      13 final_manifest_envelope_digest:DIGEST32
   08 schema_revision:U64                      14 final_manifest_aad_digest:DIGEST32
-  09 classification_code:ENUM8(1..=19)        15 commit_aad_digest:DIGEST32
+  09 classification_code:ENUM8(1..=19; WAL mixed only=0) 15 commit_aad_digest:DIGEST32
   0a classification_revision:U64              16 predecessor_commit_envelope_digest:DIGEST32
   0b artifact_generation:U64                  17 commit_sequence:U64
   0c key_id:ASCII(1..=256)
+  18 classification_binding_digest:DIGEST32
+  19 commit_ordinal:U64
+  1a transaction_id:ASCII(0..=256)
 ```
 
-The header is `42` bytes and 23 prefixes add `138`. Six ASCII values add at
-most `1,536`, nine U64 values `72`, two ENUM8 values `2`, and six DIGEST32
-values `192`, so `MAX_ARTIFACT_COMMIT_RECORD_BYTES = 42 + 138 + 1,536 + 72 +
-2 + 192 = 1,982`. The commit plaintext is encrypted/authenticated in a
+The header is `42` bytes and 26 prefixes add `156`. Seven ASCII values add at
+most `1,792`, ten U64 values `80`, two ENUM8 values `2`, and seven DIGEST32
+values `224`, so `MAX_ARTIFACT_COMMIT_RECORD_BYTES = 42 + 156 + 1,792 + 80 +
+2 + 224 = 2,296`; a `2,297`-byte trailing form is invalid. `transaction_id` is
+real for record/WAL and exactly empty for aggregate purposes; `commit_ordinal`
+is real for record/WAL and zero for aggregates. The commit plaintext is encrypted/authenticated in a
 `CiphertextEnvelopeV1` whose purpose, key ID/generation, bootstrap locator,
-classification, artifact generation, count, total, plan digest, role, and
-ordinal agree with the record. Its `ContextAadDigest` equals field `15`; the
-actual bootstrap bytes hash to field `0f`; field `13` hashes the complete
-serialized final-manifest envelope; and field `14` equals both the final-
-manifest plaintext field and the final-manifest envelope's actual context AAD.
-The final manifest and all data envelopes must agree with the record on every
-common field. A count other than 23, unknown/duplicate/omitted/out-of-order
+classification/binding digest, artifact generation, count, total, plan digest,
+role, and ordinal agree with the record. Its `ContextAadDigest` equals field
+`15`; its tags `09`, `0a`, and `0b` equal fields `18`, `19`, and `1a`; the actual
+bootstrap bytes hash to field `0f`; field `13` hashes the complete serialized
+final-manifest envelope; and field `14` equals both the final-manifest plaintext
+field and the final-manifest envelope's actual context AAD. The final manifest,
+plan, and all data envelopes must agree with the record on every common field,
+including the WAL summary or record-key binding digest and the record/WAL
+transaction identity. A count other than 26, unknown/duplicate/omitted/out-of-order
 tag, wrong type/width, noncanonical ASCII, bad enum, truncation, or trailing
 byte is `ArtifactCommitMalformed` before any head mutation or publication. An
 initial commit uses sequence zero and an all-zero predecessor;
@@ -872,41 +978,194 @@ separator:u8 = 0 | version:u8 = 1 | commit_sequence:u64 |
 serialized_commit_envelope_digest:[u8;32]
 ```
 
-It is exactly 78 bytes. The head is only an authenticated-candidate pointer:
-readers recompute its digest over the fetched complete commit envelope, Open
-that envelope, and require the sealed commit's tenant/locator/sequence and all
-bindings above before treating anything as published. Thus a substituted,
-replayed, or corrupted head cannot publish an unauthenticated artifact.
+It is exactly 78 bytes. The head is an authenticated-candidate pointer, not
+freshness authority: readers recompute its digest over the fetched complete
+commit envelope, Open that envelope, and require the sealed commit's
+tenant/locator/sequence and all bindings below before treating anything as
+published.
 
-Publication first durably writes and verifies all data envelopes, the final
-manifest, and the commit envelope; validates the complete commit chain; then
-performs one atomic CAS from either no head or the exact prior 78-byte head to
-the desired head. For no head, the desired sequence is zero and predecessor is
-all zero. For an existing head `(s,d)`, the desired commit must contain
-`sequence=s+1` and predecessor `d`. If the current head already equals the
-desired head, retry returns the typed idempotent `ArtifactAlreadyPublished`;
-if it differs from the expected head it returns `ArtifactCommitConflict`; no
-weaker overwrite is allowed. A crash before CAS leaves only unreachable,
-garbage-collectable ciphertext; a crash after CAS but before ACK is retried
-against the same desired head; neither state exposes plaintext or a partially
-published artifact.
+`ArtifactPublicationContextV1` freezes the identity that no later publication
+may substitute. It is canonical ASCII and not a caller-provided routing hint:
 
-A reader first fetches and validates the head and sealed commit, then opens the
-final manifest, and finally requires every ordinal `0..count-1` exactly once in
-order. It verifies every serialized-envelope digest, context AAD digest,
-classification/context binding, plaintext length, and checked total. It rejects
-a missing, extra, duplicate, reordered, substituted, replayed, unknown-role,
-unknown-codepoint, wrong-count/total/plan, wrong-locator/key/generation/fence,
-truncated, or uncommitted frame before artifact publication; publishers refuse
-a stale-CAS before changing the head.
-Independent encoders and decoders supply N/N+1 goldens for count one through
-4,096, every purpose, and every plan/final-manifest/commit field/tag/type.
-They cover exact/plus-one plan, manifest, commit, count, total, and bootstrap
-bounds; header/AAD/ciphertext/tag and each digest substitution; delete,
-duplicate, reorder, replay, and cross-tenant/locator/key/purpose vectors;
-stale-CAS/idempotent retry; and every persist/final-manifest/commit/CAS/ACK
-crash-recovery barrier. Malformed frames are rejected before a buffer,
-acquisition/Open, or publication can be reached.
+```text
+domain_len:u8 = 41
+domain:[u8;41] = "oyatie.data.record.publication-context.v1"
+separator:u8 = 0 | version:u8 = 1
+artifact_locator_id_length:u16 | artifact_locator_id:ASCII(1..=256)
+tenant_length:u16 | tenant:ASCII(1..=256)
+database_length:u16 | database:ASCII(1..=256)
+table_length:u16 | table:ASCII(1..=256)
+tablet_length:u16 | tablet:ASCII(1..=256)
+purpose:u8
+```
+
+Its maximum is `44 + (5 * (2 + 256)) + 1 = 1,335` bytes and
+`publication_context_digest = SHA-256(ArtifactPublicationContextV1)`. The
+five ASCII values and purpose are exactly the identically named commit fields;
+an unknown purpose, malformed length, noncanonical ASCII, trailing byte, or a
+digest mismatch is `ArtifactPublicationContextInvalid` before object lookup.
+
+The publication coordinator stores the exact 78-byte head and this fixed
+`ArtifactPublicationAnchorV1` in one linearizable durable CAS tuple under
+`(tenant, artifact_locator_id)`; neither object storage nor a wall-clock
+metadata value is an authority:
+
+```text
+domain_len:u8 = 40
+domain:[u8;40] = "oyatie.data.record.publication-anchor.v1"
+separator:u8 = 0 | version:u8 = 1
+publication_context_digest:[u8;32]
+head:[u8;78]                           # exact ArtifactCommitHeadV1 bytes
+artifact_generation:u64
+ownership_epoch:u64
+fence_sequence:u64
+```
+
+The anchor is exactly `43 + 32 + 78 + 24 = 177` bytes. Genesis requires a
+fresh authenticated `HighWaterAbsent` receipt, commit sequence `0`, all-zero
+predecessor, and artifact generation `1`. Every later CAS verifies the same
+context digest, the predecessor digest and `sequence=prior+1` (refusing
+`u64::MAX`), `artifact_generation > prior`, `ownership_epoch >= prior`, and
+`fence_sequence > prior`; a changed ownership epoch must also equal the current
+authoritative tablet lease. The `(ownership_epoch, fence_sequence)` pair is
+strictly lexicographically increasing: it is either the same epoch with a
+higher fence or a higher epoch with a higher fence; fencing never resets. The current key
+binding, key generation, bootstrap fence, schema/classification binding, count,
+total, plan, final-manifest, and AAD digests must agree with the desired sealed
+commit and all reachable objects. A changed context, nonincreasing generation
+or fence, epoch regression, missing current tablet lease, sequence/generation/
+fence exhaustion, or key-transition refusal is respectively
+`ArtifactPublicationContextMismatch`, `ArtifactGenerationRegression`,
+`ArtifactOwnershipEpochRegression`, `ArtifactFenceRegression`,
+`ArtifactCommitSequenceExhausted`, `ArtifactGenerationExhausted`,
+`ArtifactFenceExhausted`, or `ArtifactKeyTransitionRefused`; no overflow,
+overwrite, or inferred repair is allowed.
+
+`AuditSink` is also the separately accepted durable anti-rollback authority.
+Its D1c-KG contract must provide idempotent
+`AppendPublicationHighWater(anchor, local_cas_receipt)` and challenge-bound
+`GetPublicationHighWater(tenant, artifact_locator_id,
+publication_context_digest, freshness_challenge:[u8;32])`. A high-water receipt
+binds the challenge, context digest, complete anchor digest/head, sequence,
+generation, ownership epoch, fence, durable Audit ordinal, provider revision,
+and expiry/integrity. It advances only to the exact next anchor, returns the
+same receipt for the same anchor, rejects an equal sequence with different
+bytes or any lower value, and retains the latest anchor (or a terminal locator
+tombstone) independently of object-store backup/restore. `HighWaterAbsent` is
+valid only for genesis and only for its challenge. Audit unavailability,
+integrity/freshness failure, a foreign context, or a local head/anchor different
+from the returned high-water is `ArtifactPublicationAnchorUnavailable`,
+`ArtifactPublicationAnchorInvalid`, or `ArtifactHeadRollbackDetected`; it
+quarantines the locator and withdraws affected admission/readiness rather than
+guessing that an older valid head is current.
+
+`LocalPublicationCasReceiptV1` is the coordinator-only durable proof for the
+otherwise cross-authority CAS-to-Audit gap. It is a canonical bounded record in
+the same trusted linearizable coordinator, never an object-store blob or
+caller-provided assertion:
+
+```text
+domain_len:u8 = 45
+domain:[u8;45] = "oyatie.data.record.publication-cas-receipt.v1"
+separator:u8 = 0 | version:u8 = 1
+pin_id:[u8;32] | publication_context_digest:[u8;32]
+expected_anchor_digest:[u8;32] | desired_anchor_digest:[u8;32]
+coordinator_epoch:u64 | cas_index:u64 | gc_epoch:u64
+```
+
+It is exactly `48 + (4 * 32) + (3 * 8) = 200` bytes. The successful atomic
+tuple-CAS is the only operation that creates it; the coordinator durably binds
+it to the current authenticated tuple and makes it retrievable only through its
+authenticated coordinator port by `(pin_id, desired_anchor_digest)`. Audit
+resolves and compares that record to the supplied anchor before accepting
+`AppendPublicationHighWater`; supplied bytes, a missing receipt, mismatched
+context/anchor, or a receipt from another coordinator epoch is
+`ArtifactPublicationAnchorInvalid`. The coordinator retains this receipt for
+every `COMMITTING` pin and every current anchor, so recovery never has to infer
+whether a local CAS happened.
+
+Before the first artifact object is persisted, a publisher durably acquires an
+`ArtifactPublicationPinV1` from that coordinator. The pin is not a best-effort
+GC grace period and uses logical consensus GC epochs, never wall time:
+
+```text
+domain_len:u8 = 37
+domain:[u8;37] = "oyatie.data.record.publication-pin.v1"
+separator:u8 = 0 | version:u8 = 1
+pin_id:[u8;32] | publication_context_digest:[u8;32]
+expected_anchor_digest:[u8;32] | desired_anchor_digest:[u8;32]
+fence_sequence:u64 | lease_epoch:u64 | acquired_gc_epoch:u64 |
+expires_after_gc_epoch:u64 | expected_object_count:u16 | state:u8
+```
+
+It is exactly `40 + (4 * 32) + (4 * 8) + 2 + 1 = 203` bytes.
+`expected_anchor_digest` is all zero only for genesis; `desired_anchor_digest`
+is all zero only in `OPEN=1`. The other states are `BOUND=2`,
+`COMMITTING=3`, `COMMITTED=4`, and `ABORTED=5`. The count is exactly
+`chunk_count + 2`, therefore `3..=4,098`: data ordinals
+`0..chunk_count-1`, final-manifest ordinal `chunk_count`, and commit ordinal
+`chunk_count+1`. Each
+`PutPinnedObject(pin_id, ordinal, immutable serialized envelope bytes)` atomically
+persists the bytes at their SHA-256 content address and writes the unique pinned
+member `(pin_id, ordinal) -> serialized_envelope_digest || put_gc_epoch`; it
+cannot expose an unpinned object to GC. Duplicate, skipped, wrong-digest, or
+out-of-range membership is `ArtifactPublicationPinInvalid` before verification.
+
+Pin acquisition atomically records the current coordinator lease epoch/fence,
+the exact expected anchor digest, and an `expires_after_gc_epoch` strictly above
+the current logical GC epoch (refusing arithmetic exhaustion). A
+`RenewPublicationPin(pin_id, lease_epoch, fence_sequence,
+new_expires_after_gc_epoch)` is linearizable and succeeds only for the current
+owner while the pin is `OPEN`, `BOUND`, or `COMMITTING`; it must preserve pin,
+context, expected/desired-anchor, and membership bytes and strictly advance the
+expiry beyond the current GC epoch. Every Put, verify-to-Bound, tuple CAS, and
+finalize compares that same current lease/fence and unexpired logical epoch.
+Expiry fences an old publisher from further work, but never authorizes GC to
+collect a nonterminal pin; only an authorized successor may reconcile it.
+
+The publisher verifies every pinned envelope, binds the one desired anchor only
+after all `chunk_count+2` members verify, and then atomically CASes the
+head+anchor tuple while changing `BOUND` to `COMMITTING` and creating the exact
+`LocalPublicationCasReceiptV1` in that same transaction. It next appends the
+same anchor with that receipt to Audit and only then makes the pin `COMMITTED`
+and releases its membership. A CAS retry whose desired anchor is already current
+and whose high-water receipt matches is `ArtifactAlreadyPublished`; a different
+current anchor is `ArtifactCommitConflict`. A crash before tuple CAS leaves an
+OPEN or BOUND pin; a crash after tuple CAS but before Audit receipt leaves
+COMMITTING and is not reader-visible; a crash after the receipt is an idempotent
+finalize.
+
+A new lease holder deterministically reconciles a nonterminal pin against both
+the fresh high-water and the local tuple: matching desired high-water and tuple
+finalizes; matching expected high-water and expected local tuple aborts/reclaims;
+matching expected high-water but desired local tuple retries the recorded
+`LocalPublicationCasReceiptV1` append and then finalizes. A missing/foreign
+receipt, a different tuple, a changed context, or unavailable high-water is
+`ArtifactPublicationRecoveryQuarantined` and retains the pin. An aborted pin's
+members become GC-eligible only after this expected-tuple proof. GC may reclaim
+only objects older than its safe logical epoch that are referenced by neither a
+current anchored chain nor any nonterminal pin; cleanup failure leaks space,
+never the visible generation.
+
+A reader first obtains a fresh high-water receipt, then requires the local
+head+anchor tuple to equal it, fetches immutable content-addressed envelopes by
+their exact digests, validates the sealed commit and final manifest, and finally
+requires every data ordinal `0..count-1` exactly once in order. It verifies
+every serialized-envelope digest, context AAD digest, classification-binding
+digest, immutable context, monotonic anchor fields, plaintext length, and
+checked total. A retained valid `H0` after `H1` is
+`ArtifactHeadRollbackDetected`; a missing object is
+`ArtifactPublishedObjectMissing`; and a stale pin, context/key/generation/fence
+substitution, or truncated/extra/duplicate/reordered frame returns its typed
+refusal without falling back to a predecessor and preserves or quarantines the
+current state. Independent encoders, model
+checks, and fault plants cover N/N+1 counts, all purpose/classification cases,
+the new exact/plus-one summary/plan/manifest/commit/pin bounds, H0-after-H1
+crash/restore/failover replay, every monotonicity/exhaustion transition,
+concurrent stale writers, and GC interleavings before/after every pin acquire,
+put, verify, bind, CAS, Audit append, finalize, release, and ACK. Malformed
+frames are rejected before a buffer, acquisition/Open, persistence, or
+publication can be reached.
 
 `NonceLeaseId:u32` is the only lease identity in a nonce and in every receipt,
 checkpoint, error, envelope, and provider call; the AES-GCM nonce is exactly
@@ -952,8 +1211,9 @@ transition exists and exactly one generation per tenant/purpose is
 encrypt-active. Rotation first publishes a new active generation and durable
 Audit fence, then bounded workers scan a fixed manifest snapshot, decrypt with
 the old generation, re-encrypt with a fresh nonce under the new generation,
-verify read-back/AAD/tag, and CAS the sealed artifact publication head from old
-to new. A
+verify read-back/AAD/tag, acquire a new publication pin, and advance the sealed
+head+anchor tuple through the same CAS/Audit-high-water protocol from old to
+new. A
 durable checkpoint contains snapshot generation, last artifact ID, counts,
 byte total, old/new generations, and rolling manifest digest. Crash resumes
 after revalidation. A failed conversion leaks the verified old ciphertext;
@@ -983,8 +1243,17 @@ Other stable failures are `PolicyUnavailable`, `PolicyDenied`,
 `KeyBootstrapMalformed`, `KeyBootstrapIntegrityInvalid`,
 `KeyBootstrapContextMismatch`, `KeyBootstrapCatalogUnavailable`,
 `KeyBootstrapAuthorizationDenied`, `AggregateClassificationMixed`,
+`WalClassificationMalformed`,
 `ArtifactCommitMalformed`, `ArtifactCommitConflict`,
-`ArtifactAlreadyPublished`, `ArtifactCommitHeadInvalid`, `CryptoUnavailable`,
+`ArtifactAlreadyPublished`, `ArtifactCommitHeadInvalid`,
+`ArtifactPublicationContextInvalid`, `ArtifactPublicationContextMismatch`,
+`ArtifactGenerationRegression`, `ArtifactOwnershipEpochRegression`,
+`ArtifactFenceRegression`, `ArtifactCommitSequenceExhausted`,
+`ArtifactGenerationExhausted`, `ArtifactFenceExhausted`,
+`ArtifactKeyTransitionRefused`, `ArtifactPublicationAnchorUnavailable`,
+`ArtifactPublicationAnchorInvalid`, `ArtifactHeadRollbackDetected`,
+`ArtifactPublicationPinInvalid`, `ArtifactPublishedObjectMissing`,
+`ArtifactPublicationRecoveryQuarantined`, `CryptoUnavailable`,
 `CiphertextMalformed`, `AuthenticationFailed`, and `ContextMismatch`. There is
 no plaintext, stale-key, unaudited, or best-effort fallback.
 
@@ -993,17 +1262,21 @@ adapters attest compatible contract revisions, Policy/Audit/KMS are reachable,
 an encrypt-active record and continuation generation plus sufficient durable
 nonce lease, encrypted `KeyGenerationBinding`, and authenticated
 `KeyBootstrapLocatorV1`/provider catalog exist, trusted Cell time is usable,
-recovery has no quarantine, and the latest rotation/inventory audit is within
-its capacity profile. Loss of any condition withdraws admission/readiness
-before accepting new work.
+recovery has no quarantine or unresolved publication pin, every recovered
+publication locator has a fresh matching Audit high-water anchor, and the
+latest rotation/inventory audit is within its capacity profile. Loss of any
+condition withdraws admission/readiness before accepting new work.
 Independent SHA-256 and KMS-AEAD known-answer vectors, independent AAD
 encoders, wrong-AAD/tag/tenant/purpose/key tests, N/N+1 final-manifest tests,
 nonce duplicate/exhaustion/concurrent-CAS refusal, raw-key-containment and
 provider-zeroization evidence, PDP/Audit/KMS outage, rotation/revocation at
 every barrier, restart reacquisition for EncryptActive and DecryptOnly,
 ciphertext-only restore, bootstrap catalog/locator tamper and source loss,
-commit-head substitution/stale-CAS/crash recovery, corrupt backup, and
-readiness-withdrawal campaigns are mandatory before D4.
+commit-head substitution/stale-CAS/crash recovery, H0-after-H1 replay across
+restore/failover, immutable-context/generation/fence regressions, missing
+pinned objects, pin lease/expiry/takeover, and GC races at every put/verify/
+bind/CAS/Audit/finalize barrier, corrupt backup, and readiness-withdrawal
+campaigns are mandatory before D4.
 
 ## Fail-closed request context
 
@@ -1046,6 +1319,16 @@ lower value, but no implementation may raise these maxima:
 | `MAX_REQUEST_FINGERPRINT_FRAME_BYTES` | 4,241,449 bytes | complete server-derived canonical fingerprint preimage after set values become fixed digests |
 | `MAX_SCAN_CONTINUATION_TOKEN_BYTES` | 6,022 bytes | complete authenticated opaque continuation frame |
 | `MAX_RECORD_AAD_BYTES` | 4 KiB | complete canonical ContextAadV1 frame; every legal v1 purpose is at most 1,825 bytes |
+| `MAX_WAL_CLASSIFICATION_SUMMARY_ENTRIES` | 1,024 | complete expanded durable record/metadata/control mutation list before PREPARED |
+| `MAX_WAL_CLASSIFICATION_SUMMARY_BYTES` | 47,414 bytes | complete 1..=1,024-entry canonical WAL mutation-class summary |
+| `MAX_ARTIFACT_PLAN_BYTES` | 65,640 bytes | complete count-one-or-more plan including classification-binding digest |
+| `MAX_ARTIFACT_FINAL_MANIFEST_BYTES` | 459,190 bytes | complete final manifest including classification-binding digest |
+| `MAX_ARTIFACT_COMMIT_RECORD_BYTES` | 2,296 bytes | complete sealed commit control frame including classification-binding and transaction-identity fields |
+| `MAX_ARTIFACT_PUBLICATION_CONTEXT_BYTES` | 1,335 bytes | immutable locator context preimage |
+| `MAX_ARTIFACT_PUBLICATION_ANCHOR_BYTES` | 177 bytes | fixed durable head/high-water anchor |
+| `MAX_ARTIFACT_PUBLICATION_CAS_RECEIPT_BYTES` | 200 bytes | coordinator-only durable CAS-to-Audit proof |
+| `MAX_ARTIFACT_PUBLICATION_PIN_BYTES` | 203 bytes | fixed durable publication-pin state |
+| `MAX_ARTIFACT_PINNED_OBJECTS` | 4,098 | data envelopes plus final-manifest and commit envelopes |
 | `MAX_TRANSACTION_OPERATIONS` | 1,024 | reads plus writes plus conditions |
 | `MAX_TRANSACTION_LOGICAL_BYTES` | 16 MiB | checked sum of every encoded key, value, condition, and schema reference |
 | `MAX_COLLECTION_ITEMS` | 4,096 | any other repeated request collection |

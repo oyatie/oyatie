@@ -66,6 +66,12 @@ facts, not destination endorsements.
 - Acknowledge a write only after the selected durability profile and the
   authoritative commit record are durable. An unsupported profile fails before
   mutation.
+- A D1c WAL artifact represents the complete ordered durable mutation list of
+  one committed single-tablet transaction. A read-only transaction has no WAL;
+  an empty or unclassified record, metadata, or control mutation fails before
+  `PREPARED`. Uniform and mixed classifications are bound by the canonical
+  summary in `SPEC.md`, not chosen, ranked, defaulted, or split into separately
+  visible transaction fragments.
 - Reject cross-cell transactions until a separately specified protocol can
   preserve explicit semantics; no stage may silently weaken them to eventual
   consistency.
@@ -167,9 +173,18 @@ facts, not destination endorsements.
   owner, while record protection consumes its typed lease for Seal/Open. Each
   artifact, including a one-entry record or WAL artifact, has the exact
   purpose-valid 19-field AAD, a count-one-or-more plan, final manifest, sealed
-  commit record, and atomic CAS head; a reader publishes only after that
-  authenticated chain agrees. An uncertain recovered lease/binding/bootstrap is
-  burned and withdraws readiness rather than being reused.
+  commit record, and atomic CAS head; record primary-key and WAL
+  transaction-classification bindings agree through every frame, while WAL
+  transaction identity agrees in each role AAD and the sealed commit root. The
+  head is current only when its immutable-context, strictly
+  monotonic generation/fence anchor matches a fresh durable Audit high-water
+  receipt. A logical-epoch publication pin protects verified chunks, manifest,
+  and commit until CAS and Audit finalization; the trusted coordinator retains a
+  local-CAS receipt so post-CAS recovery can retry Audit without guessing. GC
+  retains any pinned/current chain and recovery quarantines uncertainty rather
+  than returning a valid retained older head. An
+  uncertain recovered lease/binding/bootstrap/publication state is burned or
+  quarantined and withdraws readiness rather than being reused.
   Missing PDP, Audit, KMS, cryptography, active key generation, or trusted-time
   evidence withdraws the affected route and readiness. Plaintext, stale-key,
   unaudited, or fail-open fallback is forbidden.
@@ -224,7 +239,8 @@ Production promotion requires all of the following, not unit-green alone:
 - PostgreSQL workload migration proves semantic and data parity per cohort with
   one write authority and a tested rollback deadline.
 - OLAP and pipeline replay prove no gaps, duplicate publication, partial
-  generations, or unbounded lag under admitted load.
+  generations, stale-head fallback, GC-dangling committed artifacts, or
+  unbounded lag under admitted load.
 
 Success means the owned engine clears these targets and foreign database
 adapters can be removed without changing callers. Failure includes split brain,
