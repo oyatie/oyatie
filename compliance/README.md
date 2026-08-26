@@ -12,6 +12,8 @@ Read the owner law before changing this directory:
 - [SPEC.md](SPEC.md) — behavior and contract
 - [PLAN.md](PLAN.md) — sequenced remaining work
 
-The current tree is pre-product structural debt: typed Rust validation models,
-one retained retention oracle, and unconsumed artifacts. It is not a running
-CaS facade, evidence engine, compliance certification, or production SLO.
+The current tree is pre-product structural debt: typed Rust validation and
+execution models plus unconsumed artifacts. Every current Rust package is
+terminal burn inventory; none is the CaS/evidence-engine seed. It is not a
+running CaS facade, evidence engine, compliance certification, or production
+SLO.

@@ -22,9 +22,10 @@ trust portal, or a GRC application. First-party applications and marketplace
 plugins consume the same CaS contract as every other tenant.
 
 The present tree does not provide that product. It contains typed Rust models
-for mostly off-charter Workspace behavior, a deterministic retention oracle,
-and unconsumed deployment/SLO documents. These are current-state facts, not
-availability or conformance claims.
+for off-charter Workspace behavior, including a retention evaluator that emits
+purge/delete permits through a direct Data-core dependency, plus unconsumed
+deployment/SLO documents. All seven packages are terminal burn inventory;
+these are current-state facts, not availability or conformance claims.
 
 </product_boundary>
 
@@ -50,6 +51,12 @@ availability or conformance claims.
 - Admit only bounded, signed, content-addressed pack envelopes with canonical
   package id, semantic version, schema revision, plane, Cedar-schema projection
   dimensions, payload digest, signer/key generation, and validity interval.
+- Apply the numeric parser, identifier, list, fan-out, queue, idempotency, and
+  export ceilings in `SPEC.md`. Limit-plus-one fails before allocation or
+  mutation; operators may lower but never raise protocol hard maxima.
+- Compute SHA-256 over exact payload bytes and verify Ed25519 over the v1
+  domain-separated canonical binary preimage. Resolve trusted verification
+  keys through the agreed key port; envelope-provided keys are never trust.
 - Support the v1 namespaces `us`, `eu`, `jp`, and `kr`; reject combinatoric
   country ids and unknown namespace, plane, dimension, or schema values.
 - Preserve immutable historical descriptors for evidence verification. A
@@ -75,6 +82,17 @@ availability or conformance claims.
 - A target acknowledgement is idempotent and generation-bound. Missing,
   duplicate, reordered, stale, or foreign-tenant receipts remain visible as
   incomplete rather than being inferred away.
+
+## Data-class registry
+
+- Own immutable, versioned entries keyed by the exact `data-classification`
+  value identity, with aliases, applicability, evidence obligations, source
+  pack/schema/digest, validity, state, and monotonic registry generation.
+- Admit registry changes through compare-and-swap. Duplicate aliases,
+  conflicting values, stale generations, lower/equal conflicting versions,
+  unknown classification values, and unsupported schema fail before mutation.
+- Never copy or wrap the classification types. A provider-identity move remains
+  a separate Data-led D-29 migration across every consumer.
 
 ## Evidence manifests and export
 
@@ -147,6 +165,10 @@ and independent audit evidence measure it.
 Production promotion requires:
 
 - differential pack parsing and canonical digest fixtures;
+- independent golden canonical-preimage, SHA-256, Ed25519, key-revocation, and
+  hard-bound limit/limit-plus-one fixtures;
+- registry compare-and-swap, supersession, replay, alias-conflict, and exact-
+  type compatibility fixtures;
 - deterministic binding/projection replay and stale-generation fencing;
 - default-deny contract tests through the ordinary gateway and Policy path;
 - Audit-gap and target-receipt reconciliation under loss, duplication, reorder,

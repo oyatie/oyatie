@@ -21,7 +21,7 @@ evidence engine has landed.
 |---|---|---|
 | Rust packages | Seven library packages: retention plus DLP, DSR, eDiscovery, retention-DSR, trust portal, and a DSR use-case port | Typed in-memory validation only; no service listener or durable authority |
 | File shape | Nine handwritten Rust files total 9,401 lines; every one exceeds the 300-line budget | Structural preparation is required before feature work |
-| Retention | `core/retention` models Workspace-specific policies, legal holds, record references, and deterministic purge decisions | Useful compatibility oracle; not a pack projection engine or production retention authority |
+| Retention | `core/retention` evaluates legal holds and returns record-delete, KMS-shred, and cold-storage-purge permits while importing `data/core/data-boundary-kernel` directly | Off-charter execution authority and prohibited core edge; terminal burn with the other Workspace packages |
 | Cargo | All seven packages are workspace members; their 61 unit/integration tests pass at the L3a base | Test evidence for existing behavior only |
 | Buck | Package targets use stale deleted `//libs/data-boundary-kernel` labels and root `compliance/BUCK` loads deleted `//governance/corpus/extract:yaml_facts.bzl` | `buck2 targets //compliance/...` fails before target analysis |
 | Packs | Root `packs/` contains 30 tracked entries: 24 Markdown files, three YAML files, two JSON files, and `OWNERS`; no Compliance Rust loader consumes them | Documentation/scaffold data, not the Cedar+IR CaC destination |
@@ -106,6 +106,32 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
 
 </packs_and_policy>
 
+<pack_integrity>
+
+## Decision: canonical signed envelopes, verified off the serving path
+
+- **achieves:** deterministic pack identity and rollback refusal without
+  signing ambiguous protobuf/JSON/YAML bytes or trusting a self-supplied key.
+- **origin:** “signed pack” and “bounded parser” are not implementable contracts
+  unless the preimage, digest, signature, key resolution, and hard ceilings are
+  frozen before admission behavior lands.
+- **rule:** Pack v1 MUST use the canonical length-prefixed binary preimage and
+  limits in `SPEC.md`, SHA-256 content digests, and Ed25519 signatures with the
+  `oyatie.compliance.pack.v1` domain. Verification MUST resolve a trusted key
+  by namespace, key id, and key generation through an agreed port and MUST
+  reject unknown, ambiguous, revoked, expired, or self-asserted keys before
+  catalog mutation. Protobuf is the facade wire contract, not the signing
+  preimage.
+- **ensure:** golden preimages/digests/signatures cross independent encoders;
+  byte, depth, count, identifier, fan-out, and queue boundaries test exact
+  limit and limit-plus-one; a future crypto/key adapter requires Packs,
+  Secrets/IAM security, and architecture review.
+- **overturn_when:** an accepted Packs/Security/Compliance decision replaces
+  the algorithm or canonicalization while preserving deterministic identity,
+  domain separation, key provenance, bounded work, and rollback refusal.
+
+</pack_integrity>
+
 <projection>
 
 ## Decision: project obligations; do not execute owner workflows
@@ -184,16 +210,19 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
 - **achieves:** a lawful CaS seed without preserving off-charter products or
   mixing deletion, lockfile movement, and new behavior in one change.
 - **origin:** every current Rust file exceeds the budget, Buck cannot parse the
-  owner root, and six packages scheduled for removal depend on the retained
-  retention oracle.
-- **rule:** Compliance MUST sequence L3b retention scanner/file-budget prep,
-  L3c exact off-charter deletion with one `Cargo.lock` writer, then L3d CaS
-  contract and evidence/projection behavior. L3b MUST preserve behavior; L3c
-  MUST delete rather than rehome; L3d MUST remain unrouted until its contract,
-  fault evidence, and external-owner reviews pass.
+  owner root, and all seven packages are outside the terminal CaS/evidence
+  engine shape; the former retained retention crate itself executes purge and
+  hold decisions through a prohibited Data-core edge.
+- **rule:** Compliance MUST first burn all seven current packages and
+  unconsumed artifacts in one exact lock-writing structural deletion. It MUST
+  then land empty/scanner CaS package structure and dependencies separately
+  from contract, admission, registry, engine, and facade behavior. The oracle
+  stages MUST remain unrouted; production proto, persistence, owner adapters,
+  restore, and generated-SLO promotion MUST each have an explicit later gate.
 - **ensure:** `PLAN.md` fixes the path/build envelope and success/failure for
-  each hop; D-41 scanners make later behavior unique-file additions; Cargo and
-  Buck close on every merged stage.
+  each hop; no current retention type is rehomed or copied; D-41 scanners make
+  later behavior unique-file additions; one lock writer and exact Cargo/Buck
+  closures hold at every structural stage.
 - **overturn_when:** an independently reviewed dependency graph proves another
   order is smaller while preserving behavior, lock serialization, review
   jurisdiction, and rollback.
@@ -204,6 +233,7 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
 
 - Compliance as a DLP, DSR, eDiscovery, trust-portal, breach-notification, or
   generic GRC application suite.
+- A retention/hold/purge evaluator retained or renamed inside Compliance.
 - A second Merkle log, retention store, policy evaluator, or pack-algebra
   runtime.
 - Root `packs/` copied under Compliance or fetched on the serving Check path.
