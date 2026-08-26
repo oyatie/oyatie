@@ -23,11 +23,13 @@ Shared ontology consumers bind an implementation-free Foundry port or sold
 facade, never Foundry/Data core. The Bus outbox port contains portable contract
 semantics only; SQL, transaction batches, protocol conversion, and delivery
 runtimes remain provider-matching adapters behind agreed ports.
-First-party apps do not link Data or Gateway ports in-process: each app owns
-its business/substrate port, with one adapter for the sold Connect/protobuf
-facade and at least one declared commodity adapter. A source-compatibility
-alias may target that app-owned package only; it cannot launder a cloud port
-into an app graph.
+First-party apps do not link the core, Rust ports, or implementation adapters
+of any cloud capability in-process; Data, Gateway, and Bus are examples, not an
+exception list. Each app owns its business/substrate port, with one app-owned
+adapter for the generated client of the sold Connect/protobuf facade and at
+least one app-owned commodity adapter. A source-compatibility alias may target
+that app-owned package only; it cannot launder any cloud Rust package into an
+app graph.
 
 The present repository does not yet supply that product. PostgreSQL 16/SQLx is
 the live relational compatibility path and is not horizontally scaled as
@@ -82,9 +84,12 @@ facts, not destination endorsements.
 - Bound admission, queues, background work, and repair so one tenant or failed
   rack cannot consume a cell without limit.
 - Treat v1 request/key/value/transaction/collection/decode/concurrency and
-  in-flight-byte maxima as observable contract semantics. Enforce checked
-  arithmetic and the ordered validation/refusal matrix in `SPEC.md`; a
-  deployment profile may lower but never raise those hard bounds.
+  result/response-frame/encode-allocation/in-flight-byte maxima as observable
+  contract semantics. Enforce checked arithmetic, response-credit
+  backpressure, and the ordered validation/refusal matrix in `SPEC.md`; a
+  deployment profile may lower but never raise those hard bounds. A mutating
+  transaction sizes and reserves its complete response before preparation so
+  it cannot commit and then fail a deterministic result bound.
 
 ## OLAP and record pipelines
 
@@ -116,6 +121,10 @@ facts, not destination endorsements.
 - Use IAM/PDP, trusted Cell time, packs, audit, secrets/KMS, and telemetry only
   through agreed fail-closed ports. Direct cross-owner core dependencies are
   forbidden.
+- App adapters that select an Oyatie cloud SKU consume only the generated
+  public-facade client and canonical proto. They never depend on a cloud Rust
+  core, port, or provider implementation; commodity adapters implement the same
+  app-owned contract and remain independently selectable.
 
 ## Security, deletion, and operations
 

@@ -19,12 +19,14 @@ types are defined by the agreed Foundry port, and outbox contract/domain,
 PostgreSQL command construction, SQLx drain, and Gateway-envelope conversion
 remain separate Bus faces. Compatibility aliases may preserve caller spelling
 but never resolve to another application's core. An app compatibility alias
-also cannot resolve to a Data/Gateway port: the app defines its own portable
-contract and its cloud adapter translates through the sold Connect/protobuf
-facade, while a separate commodity adapter implements the same app port. Every
-Data adapter identifies and implements a matching Data port; no orphan adapter
-becomes a contract by convention. Agreed ports contain no mutable store,
-recording executor, transport normalization, or backend behavior.
+cannot resolve to any cloud Rust core, port, or implementation adapter,
+including Data, Gateway, or Bus. The app defines its own portable contract; one
+app-owned adapter consumes only the generated client of the sold
+Connect/protobuf facade, while a separate app-owned commodity adapter
+implements the same port. Every Data adapter identifies and implements a
+matching Data port; no orphan adapter becomes a contract by convention. Agreed
+ports contain no mutable store, recording executor, transport normalization,
+or backend behavior.
 
 </maturity>
 
@@ -250,10 +252,15 @@ lower value, but no implementation may raise these maxima:
 | `MAX_TRANSACTION_LOGICAL_BYTES` | 16 MiB | checked sum of every encoded key, value, condition, and schema reference |
 | `MAX_COLLECTION_ITEMS` | 4,096 | any other repeated request collection |
 | `MAX_SCAN_PAGE_RECORDS` | 1,000 | records requested or emitted in one page |
-| `MAX_SCAN_PAGE_BYTES` | 16 MiB | encoded records in one response page |
+| `MAX_SCAN_PAGE_BYTES` | 16 MiB | logical record bytes in one response page before frame overhead |
+| `MAX_TRANSACTION_RESULT_ITEMS` | 1,024 | non-scan result entries returned by one transaction |
+| `MAX_TRANSACTION_RESULT_LOGICAL_BYTES` | 16 MiB | checked sum of canonical key, value/tombstone, ordinal, status, and metadata bytes across those results |
+| `MAX_RESPONSE_FRAME_BYTES` | 32 MiB | complete canonical uncompressed protobuf response frame, including envelope overhead |
 | `MAX_DECODE_ALLOCATION_BYTES` | 32 MiB | cumulative heap capacity newly reserved while decoding one request |
+| `MAX_RESPONSE_ENCODE_ALLOCATION_BYTES` | 8 MiB | cumulative heap capacity newly reserved by the chunk-reusing response encoder |
 | `MAX_CONCURRENT_REQUESTS_PER_TENANT` | 256 | admitted, not-yet-terminal requests in one cell |
 | `MAX_IN_FLIGHT_REQUEST_BYTES_PER_TENANT` | 64 MiB | checked sum of declared frame bytes for those requests |
+| `MAX_IN_FLIGHT_RESPONSE_BYTES_PER_TENANT` | 64 MiB | checked sum of precomputed response frame bytes reserved but not fully delivered |
 
 All counters and byte accumulators use checked `u64` arithmetic before any
 conversion to `usize`, `Duration`, or allocator capacity. Overflow is never
@@ -267,13 +274,33 @@ saturation or wraparound. Validation order is observable and fixed:
    reserves from an untrusted count alone.
 3. Validate canonical identifier and primary-key byte lengths, then each value
    length, then repeated-item counts.
-4. Accumulate transaction logical bytes, scan-page bytes, and decode allocation
-   with checked addition; reject the first exceeded limit or arithmetic
-   overflow.
+4. Accumulate transaction logical bytes and decode allocation with checked
+   addition; reject the first exceeded limit or arithmetic overflow.
 5. Validate canonical encoding, schema, tenant/context, authorization/audit
    evidence, revisions/epochs, idempotency fingerprint, and durability profile
-   in that order. No `PREPARED` state or adapter call occurs before all
-   applicable checks pass.
+   in that order. No `PREPARED` state or data-dependent evaluation occurs before
+   all request-side checks pass.
+6. Using that authorized immutable MVCC snapshot, but before `PREPARED`, a
+   mutating/durable adapter call, or externally visible mutation, run the
+   deterministic size-only response pass. In order, it uses checked `u64`
+   addition for transaction-result items, transaction-result logical bytes,
+   emitted scan records and bytes, the complete canonical response frame, and
+   response-encoder allocation. It converts to `usize` only after the relevant
+   maximum passes. It then reserves the exact precomputed frame bytes against
+   the tenant response-credit budget. The snapshot revision, request
+   fingerprint, result digest, computed lengths, and reservation form one
+   prepare input; a revision conflict releases the reservation and repeats this
+   entire step. Authorization therefore precedes result sizing, while every
+   deterministic result refusal precedes mutation.
+7. Execution may start only after that reservation. The encoder reuses bounded
+   chunks and cannot buffer the complete frame merely because the frame limit is
+   larger than its allocation limit. Transport backpressure retains at most the
+   reserved credit; cancellation or terminal delivery releases it exactly once.
+   A mutating transaction cannot discover a size/allocation refusal after
+   commit. A read-only scan stops before the next record would cross its logical
+   or frame bound and returns a continuation token without publishing a partial
+   record. Optional compression neither changes accounting nor permits a larger
+   pre-compression frame.
 
 Stable resource refusals are:
 
@@ -288,22 +315,37 @@ ResourceLimitError::TransactionLogicalBytes
 ResourceLimitError::CollectionItems
 ResourceLimitError::ScanPageRecords
 ResourceLimitError::ScanPageBytes
+ResourceLimitError::TransactionResultItems
+ResourceLimitError::TransactionResultLogicalBytes
+ResourceLimitError::ResponseFrameBytes
 ResourceLimitError::DecodeAllocationBytes
+ResourceLimitError::ResponseEncodeAllocationBytes
+ResourceLimitError::InFlightResponseBytes
 ResourceLimitError::ArithmeticOverflow
 ```
 
 Each non-overflow refusal carries `limit`, `observed`, and `unit`.
 `ArithmeticOverflow` instead carries the operation and accumulator name because
 no truthful observed total exists. Saturation is retryable and all other
-request-shape violations are non-retryable until the request changes.
+request-shape or deterministic result-shape violations are non-retryable until
+the request or selected result changes. `InFlightResponseBytes` is retryable
+backpressure and cannot consume a transaction ordinal.
 
-The conformance matrix accepts every exact bound when the request is otherwise
-valid and refuses bound plus one. It also covers `u64::MAX` length/count
-prefixes, multi-field sum overflow, a small frame that would amplify beyond
-the decode-allocation cap, operation-count and logical-byte limits exceeded in
-opposite orders, the 257th tenant request, and an in-flight addition above
-64 MiB. Every refusal releases any acquired slot/byte reservation and leaves
-records, idempotency, ordinal, audit, and adapter state unchanged.
+The conformance matrix accepts every exact bound when the request and result are
+otherwise valid and refuses bound plus one. It covers `u64::MAX` length/count
+prefixes, multi-field sum overflow, a small request frame that amplifies beyond
+the decode-allocation cap, 1,025 result items, a 16-MiB-plus-one logical result,
+a 32-MiB-plus-one encoded response, an encoder-allocation request above 8 MiB,
+and a tenant response-credit addition above 64 MiB. It also forces operation/
+request/result limits in opposite orders, proves authorization refusal wins
+before any data-dependent sizing result, and exercises 1,024 valid 4-MiB result
+values without permitting roughly 4 GiB of returned data. Independent
+size-only and streaming encoders must agree on exact frame bytes while sharing
+no accumulation implementation. Scan continuation, transport cancellation,
+idempotent retry after committed delivery failure, and encode-amplification
+fixtures prove bounded backpressure. Every refusal releases any acquired slot
+or byte reservation and leaves records, idempotency, ordinal, audit, and adapter
+state unchanged.
 
 </security_and_isolation>
 

@@ -55,20 +55,25 @@ tests.
   Foundry/Data core. The Bus outbox port MUST remain free of SQL, database,
   Gateway, and delivery-runtime implementation; those dependencies belong in
   provider-matching adapters behind agreed ports. An app MUST NOT replace a
-  cloud-core dependency with an in-process cloud-port dependency. App business
-  types and substrate needs belong to app-owned ports; an app adapter translates
-  them either to the sold Connect/protobuf facade or to a declared commodity
-  backend. Compatibility aliases inside an app MAY preserve source spelling but
-  MUST resolve only to that app's package, never `data/ports/**` or
-  `gateway/ports/**`.
+  dependency on any cloud capability's core with an in-process dependency on
+  that capability's port or implementation adapter. This applies to Data,
+  Gateway, Bus, and every other cloud capability without a tenant-zero
+  exception. App business types and substrate needs belong to app-owned ports;
+  one app-owned adapter translates them to the sold Connect/protobuf facade and
+  another app-owned adapter targets a declared commodity backend. The cloud
+  adapter may consume only the versioned sold-facade client generated from the
+  canonical proto, never a cloud Rust core, port, or implementation adapter.
+  Compatibility aliases inside an app MAY preserve source spelling but MUST
+  resolve only to that app's package.
 - **ensure:** new Data core packages model records, transactions, queries,
   projections, or dataset transforms; dependency review rejects app-domain,
   generic blob, search, and broker behavior in Data core. Transfer review
   proves all reverse consumers leave old cores, every adapter name identifies
   the port and backend it implements, and Cargo/Buck enforce port-to-consumer
   rather than port-to-core edges. Cross-owner census explicitly separates
-  cloud-capability consumers from apps, and app lanes prove both sold-facade
-  and commodity-adapter conformance before removing an illegal cloud edge.
+  cloud-capability consumers from apps, rejects every app-to-cloud Rust edge,
+  and app lanes prove both sold-facade-client and commodity-adapter conformance
+  before removing an illegal cloud edge.
 - **overturn_when:** a founder-accepted owner-boundary decision updates every
   affected owner's four law files in the same change.
 
@@ -171,15 +176,18 @@ tests.
 - **origin:** prose requiring bounded requests, bytes, collections,
   concurrency, and in-flight memory left adapters free to choose incompatible
   maxima, unchecked arithmetic, and allocation order.
-- **rule:** records-contract v1 MUST freeze hard byte/count/concurrency maxima,
-  accounting units, checked-overflow behavior, validation order, and stable
-  refusal identities before semantic implementation. An adapter MAY configure
-  a lower admitted profile but MUST NOT raise a hard maximum or acknowledge
-  work before all applicable bounds and authority evidence pass.
+- **rule:** records-contract v1 MUST freeze request and response/result hard
+  byte/count/concurrency maxima, accounting units, checked-overflow behavior,
+  validation order, response-credit backpressure, and stable refusal identities
+  before semantic implementation. A mutating transaction MUST size and reserve
+  its complete result before `PREPARED`; it MUST NOT commit and then discover
+  that the result cannot be represented within the contract. An adapter MAY
+  configure a lower admitted profile but MUST NOT raise a hard maximum or
+  acknowledge work before all applicable bounds and authority evidence pass.
 - **ensure:** `SPEC.md` is the single v1 bounds table; D1c contract suites run
   exact-limit, limit-plus-one, malicious length/count, arithmetic-overflow,
-  decode-amplification, concurrency-saturation, and in-flight-byte matrices
-  through Cargo and Buck for every adapter.
+  decode/encode-amplification, result-sizing, response-credit saturation, and
+  in-flight-byte matrices through Cargo and Buck for every adapter.
 - **overturn_when:** a versioned Data contract replaces the limits with
   measured values and preserves bounded work, stable compatibility/refusal,
   tenant isolation, and an explicit migration window.
