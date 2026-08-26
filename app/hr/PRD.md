@@ -112,6 +112,12 @@ workflow/payroll/audit delivery, no recovery campaign, and no measured SLO.
   pages, backups, logs, and metrics. A mutation is acknowledged only after its
   SQLite commit authorization is linearly ordered with key-generation
   rotation/revocation and resolved committed by the key authority.
+- Derive replay equality only from the HR-owned canonical-request format and
+  bind commit authorization only to the HR-owned staged-write descriptor. A
+  transport/provider field order, unknown field, omitted effect, implicit
+  default, or provider-local normalization MUST NOT change either protected
+  preimage. New format writers remain disabled until every cohort reader admits
+  N/N+1 and stored byte-golden compatibility.
 
 ## Durability and portability
 
@@ -120,6 +126,13 @@ workflow/payroll/audit delivery, no recovery campaign, and no measured SLO.
 - Ship a SQLite v1 adapter with atomic mutation/idempotency/outbox semantics and
   format migrations. It requires the selected record-encryption port before it
   opens a production database. A tenant uses one active adapter per port.
+- Complete normal key rotation through a bounded, durable repository rekey job:
+  scan old-generation references, re-encrypt and generation-reindex them with
+  compare-and-swap, checkpoint each committed page, resume after a hard close,
+  and prove zero references plus zero unresolved earlier authorizations before
+  revocation. Provider or repository outage, stale epoch/cursor, exhausted CAS
+  contention, corrupt envelope, missing key, and nonzero references are typed
+  fail-closed states, never reasons to skip a row or fall back to plaintext.
 - Run the same behavioral and fault contract against the in-memory reference,
   SQLite, and each promoted commodity or Oyatie-cloud adapter.
 - Keep app core free of database, network, IAM, Data, Storage, Gateway, and
@@ -135,6 +148,13 @@ workflow/payroll/audit delivery, no recovery campaign, and no measured SLO.
 - Provide readiness only when the selected adapter is open, migrations are
   admitted, installed-pack and encryption/key authorities are usable, and
   required policy/audit paths satisfy the operation's fail-closed contract.
+- Bound one rekey page and one reconciler step by item count, ciphertext bytes,
+  provider calls, pages, and CAS attempts. A new cohort is unready while a
+  rotation job is incomplete; an already-routed cohort may continue normal
+  reads during a healthy normal drain only while the source generation remains
+  readable, new writes use the target generation, and durable progress remains
+  within its declared SLO. Emergency drain or a non-progressing/corrupt job
+  withdraws the affected cohort.
 - Bound queues and in-flight work; reject retryably before unbounded memory or
   lock contention. Background delivery may not starve foreground reads/writes.
 - Evaluate expiry/effective-window boundaries from a trusted interval. If the
@@ -158,6 +178,10 @@ For an admitted home-cell tenant at no more than 70% declared capacity:
   declared durability profile after process restart;
 - idempotent replay: **100%** of same-key/same-canonical-request retries return
   the original committed outcome without a second business effect;
+- while a healthy normal rotation has work, p99 one bounded rekey step is
+  **5 seconds** and the durable-checkpoint age is at most **60 seconds**; no
+  step exceeds its item/byte/page/provider-call/CAS ceilings and foreground
+  read/commit objectives remain satisfied;
 - unauthorized sensitive disclosure objective: **zero**.
 
 These become advertised SLOs only after HR-owned telemetry, load envelopes,
@@ -195,6 +219,17 @@ objectives as unqualified rather than manufacturing availability evidence.
   by its tenant/key-scoped blind index or authenticated ciphertext. Fresh boot
   fences the prior repository epoch and resolves every bounded provider-side
   pending receipt before readiness.
+- Canonical-request and staged-write-descriptor goldens are identical through
+  Cargo and Buck and across N/N+1 readers. A same semantic request with reordered
+  transport fields or explicit/default-equivalent optionals replays; a changed
+  semantic field conflicts. Every committed employee, lifecycle,
+  idempotency/outcome, and audit/outbox effect appears exactly once in the
+  authenticated staged descriptor.
+- A normal rotation hard-closes at every scan/open/seal/reindex/page-CAS/
+  checkpoint/zero-count/revoke boundary and a fresh process deterministically
+  resumes from the last committed page. Old-generation ciphertext and blind-
+  index references reach zero before the provider reports `Revoked`; page and
+  whole-step work remain inside the declared hard limits.
 - Success and error responses, stored replay outcomes, returned strings, and
   repeated fields stay within exact hard ceilings under checked accounting;
   oversized state produces no partial response or sensitive fallback error.
@@ -221,6 +256,11 @@ objectives as unqualified rather than manufacturing availability evidence.
   fingerprint, declares revocation complete with an outstanding earlier
   authorization, or stays ready after its required key generation is
   unavailable/revoked or its trusted runtime context is unavailable.
+- Two admitted binaries produce different protected preimages for one semantic
+  request, accept an unknown same-version field, omit/reorder a staged effect
+  without a commit-binding mismatch, skip a rekey row, advance a checkpoint
+  after a failed page CAS, loop without a work bound, or revoke with any old-
+  generation repository reference.
 - A health endpoint claims durability, delivery, or SLO qualification absent
   corresponding evidence.
 
@@ -256,5 +296,14 @@ objectives as unqualified rather than manufacturing availability evidence.
   value or a typed fail-closed result—never plaintext, an unkeyed equality token,
   mixed generations without metadata, a completed revocation with pending
   authorization, or an implicit fallback key.
+- Exercise canonical-request and descriptor byte goldens with transport-field
+  reordering, absent versus explicit defaults, changed fields, same-version
+  unknowns, descriptor effect omission/duplication/reordering, N/N+1 readers,
+  and every exact/limit-plus-one byte/count ceiling. During rotation inject a
+  stale repository epoch, stale/corrupt/non-progressing cursor, page CAS race,
+  retry exhaustion, source/target-key loss, database busy/full, provider outage,
+  crash after page commit and after provider revoke, and a terminal nonzero
+  reference; fresh-process recovery either advances one durable checkpoint or
+  returns the specified typed refusal without acknowledgement or revocation.
 
 </acceptance>

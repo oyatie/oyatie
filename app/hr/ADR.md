@@ -162,13 +162,18 @@ over-budget files are debt, not precedent.
   commit-authorization values; it does not own a cipher or KMS. Request replay
   comparison MUST persist only a tenant, operation, idempotency-key, schema,
   and key-generation-scoped blind index or keep the comparison material inside
-  authenticated ciphertext; an unkeyed digest is forbidden. Production use is
-  non-dispatchable until L2i.0d accepts one authenticated-encryption
+  authenticated ciphertext; an unkeyed digest is forbidden. The canonical
+  request and staged-write descriptor are HR-owned, versioned byte contracts;
+  a key provider authenticates those bytes but MUST NOT choose, reorder, omit,
+  or normalize their semantic fields. Production use is non-dispatchable until
+  L2i.0d accepts one authenticated-encryption
   implementation and one commodity or sold key-service facade with exact
   dependencies, key custody, nonce, rotation, revocation, outage, and
-  `authorize_commit`/idempotent `resolve_commit` semantics, and L2i.0f freezes
-  the corresponding HR port/repository/SQLite protocol before adapter
-  behavior. Provider authorization, repository-epoch fencing, and generation
+  `authorize_commit`/idempotent `resolve_commit` semantics, L2i.0f prepares the
+  closed protocol/rekey file set, L2i.0g freezes the corresponding HR port/
+  repository/SQLite commit protocol, and L2i.0h implements bounded repository
+  rekey/recovery before adapter behavior. Provider authorization, repository-
+  epoch fencing, and generation
   transitions MUST share one linearizable order: a transition denies new
   authorizations immediately but cannot become `Revoked` until every earlier
   authorization is durably resolved as committed or aborted. SQLite stores the
@@ -199,6 +204,45 @@ over-budget files are debt, not precedent.
   behavior and replaces the port/adapter sequence in the same wave.
 
 </data_at_rest>
+
+<protected_preimages_and_rekey>
+
+## Decision: HR owns protected preimages and bounded rekey completion
+
+- **achieves:** retries and authenticated commits retain one meaning across
+  rolling versions, while normal rotation can actually remove every old-key
+  repository reference before revocation.
+- **origin:** a keyed blind index over vaguely "canonical" bytes can classify
+  the same retry differently across binaries, an unnamed staged-write
+  descriptor can omit an employee, lifecycle, idempotency, or outbox effect,
+  and a key adapter with no repository edge cannot scan or re-encrypt SQLite.
+- **rule:** HR MUST own the exact versioned canonical-request and staged-write-
+  descriptor encodings in its repository port. Their semantic fields, order,
+  normalization, bounds, domain tags, optional/default behavior, and upgrade
+  window are fixed in `SPEC.md`; provider code receives bounded bytes and
+  authenticates them without reinterpretation. Normal rotation MUST execute
+  through a provider-neutral HR rekey contract and the selected repository:
+  after the provider drain fence, a bounded cursor scan opens old-generation
+  envelopes, seals under the active generation, recomputes generation-scoped
+  blind indexes, and atomically CAS-replaces each observed record plus a
+  durable checkpoint. Revocation requires a terminal zero-reference receipt,
+  zero earlier unresolved commit authorizations, and fresh-process recovery.
+  Structure/file admission, commit-format behavior, and rekey behavior remain
+  separate L2i.0f, L2i.0g, and L2i.0h changes.
+- **ensure:** byte goldens and N/N+1 tests cover semantic equivalence, changed
+  fields, unknown/omitted/reordered descriptor fields, and every exact/limit-
+  plus-one bound. Real-file SQLite tests interrupt scan, open, seal, reindex,
+  page CAS, checkpoint, zero-count, provider revoke, and completion recording;
+  a fresh process resumes from the last committed checkpoint, and stale epochs,
+  CAS exhaustion, missing keys, provider/repository outages, corrupt cursors,
+  and nonzero references produce closed typed outcomes with no key fallback or
+  premature readiness.
+- **overturn_when:** an independently reviewed repository or encrypted-SQLite
+  design proves equivalent cross-version replay identity, complete staged-
+  effect authentication, bounded crash-resumable re-encryption, and
+  linearizable zero-reference revocation with a smaller owner-local contract.
+
+</protected_preimages_and_rekey>
 
 <policy_and_privacy>
 
@@ -261,8 +305,10 @@ over-budget files are debt, not precedent.
   surfaces. Production serving then requires decision-gated Packs/install,
   Policy/IAM authorization-evidence, Audit/outbox, authenticated record-
   encryption/key-service, and trusted runtime-context provider contracts; an
-  intervening content-only encryption commit-fence protocol; D-28/D-30-correct
-  draft adapter faces while their HR ports remain draft; content-only adapter
+  intervening D-33 structural commit/rekey file-slot lane, content-only
+  canonical commit-fence protocol, and separate bounded repository rekey/
+  recovery lane; D-28/D-30-correct draft adapter faces while their HR ports
+  remain draft; content-only adapter
   behavior; structural composition edges; content-only composition; and a
   separately gated main/route activation before any tenant cohort. No live
   route or production-readiness promotion may precede the zero-inverse-edge
