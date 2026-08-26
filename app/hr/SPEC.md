@@ -66,7 +66,7 @@ The first port set is:
 | Port | Required semantic boundary |
 |---|---|
 | employee repository | atomic employee/lifecycle/idempotency outcome read and write |
-| record encryption | seal/open sensitive values, derive tenant/key-scoped blind indexes and opaque commit bindings, and linearly authorize/resolve repository commits against key-generation transitions without exposing provider types |
+| record encryption | seal/open sensitive values, derive generation-scoped opaque idempotency locators and non-replay field indexes plus opaque commit bindings, and linearly authorize/resolve repository commits against key-generation transitions without exposing provider types |
 | installed HR overlay | resolve admitted pack-id to verified HR rule content and generation |
 | authorization evidence | supply verified principal/tenant/action/resource/PDP provenance, never caller allow fields |
 | audit/outbox | durably bind pre-ack evidence or intent and retry delivery |
@@ -270,12 +270,14 @@ command must explicitly consume a `Ready` result and its evidence generation.
 
 The SQLite schema is adapter-private and versioned. At minimum it persists
 employee state, lifecycle events, idempotency outcomes, audit/outbox intent,
-commit authorization, and bounded rekey progress. The repository port owns the
-canonical request and staged-write descriptor byte formats below. The adapter
-asks the record-encryption port for a repository, tenant, operation,
-idempotency-key, schema, format, and key-generation-scoped blind index and
-persists the canonical request only inside authenticated ciphertext. It never
-computes or stores an unkeyed request digest. The SQLite adapter's only runtime dependencies
+commit authorization, bounded rekey progress, and decommission-fence/scan state.
+The repository port owns the canonical request and staged-write descriptor byte
+formats below. The adapter asks the record-encryption port for a
+generation-scoped opaque idempotency locator bound only to repository, tenant,
+operation, and idempotency key; schema, format, and canonical-request bytes do
+not enter that locator. It persists the canonical request only inside
+authenticated ciphertext and never computes or stores an unkeyed request digest.
+The SQLite adapter's only runtime dependencies
 are `hr-employment-repository-draft`, `hr-record-encryption-draft`, and
 `rusqlite.workspace = true`. Its only dev-dependencies are
 `hr-employment-repository-memory-draft` and `tempfile.workspace = true`;
@@ -286,6 +288,13 @@ The logical idempotency key is:
 ```text
 (tenant_id, operation_kind, idempotency_key)
 ```
+
+`IdempotencySlotV1` is the repository-scoped typed lookup input
+`{ repository_id: OpaqueBytes<=256, tenant_id: CanonicalAscii<=8KiB,
+operation_kind: u16be, idempotency_key: CanonicalAscii<=8KiB }`. It represents
+that logical key at one repository boundary; it never includes legal-entity,
+schema, format, or mutable canonical-request fields. Only the provider returns
+its per-generation opaque locator.
 
 ### HR canonical request v1
 
@@ -329,39 +338,37 @@ normalize to the same typed command. An unknown, duplicate, omitted, out-of-
 order, overlong, or trailing same-version field is `CanonicalFormatInvalid`,
 not ignored.
 
-The sole V1 replay purpose is `CanonicalRequestReplayV1`, encoded as the
-fixed `u16be(1)` `purpose_tag`. It means only “key-generation-scoped equality
-for this exact HR canonical request in its logical replay slot”; it is not a
-field label, a caller input, a provider-selected value, or a reusable
-cross-generation equality token. The purpose is already versioned by both its
-name and the V1 domain below. No other V1 purpose tag is admitted. This is the
-single law for every `blind_index` caller, including the repository port,
-SQLite adapter, rekey worker, Cargo vectors, and Buck vectors.
+The sole V1 lookup purpose is `IdempotencyLocatorV1`, encoded as fixed
+`u16be(1)` `purpose_tag`. It means only “a generation-scoped opaque locator for
+one logical HR idempotency slot”; it is not a field label, caller input,
+provider-selected value, request-equality token, or reusable cross-generation
+token. No other V1 lookup purpose is admitted. The repository port, SQLite
+adapter, rekey worker, Cargo vectors, and Buck vectors use this one law; direct
+`blind_index` replay lookup is forbidden.
 
-The blind-index full preimage is exactly the literal ASCII domain bytes
-`hr.people.blind-index/canonical-request/v1\0` (no length prefix), followed by
-the following nine components in this order: `u16be(1)` purpose tag;
+The idempotency-locator full preimage is exactly literal ASCII domain bytes
+`hr.people.idempotency-locator/v1\0` (no length prefix), followed by six
+components in this order: `u16be(1)` purpose tag;
 `u32be(length) || repository_id` (at most 256 opaque bytes, no normalization);
 `u32be(length) || tenant_id` (at most 8 KiB, its validated canonical ASCII
 bytes unchanged); `u16be(operation_kind)`; `u32be(length) || idempotency_key`
-(at most 8 KiB, its validated canonical ASCII bytes unchanged);
-`u32be(request_schema_version)`; `u16be(canonical_request_format_version)`;
-`u64be(key_generation)`; and `u32be(length) || CanonicalRequestV1` (at most
-256 KiB, its already-valid exact bytes unchanged). There is no component count
-because the count is permanently nine for this V1 preimage; variable component
-lengths, integer widths, order, domains, bounds, and normalization are exactly
-those stated here. Checked `u64` accounting rejects an overlong component or a
-complete preimage over 288 KiB before any PRF call. The accepted L2i.0d PRF
-authenticates these bytes without parsing or rewriting them.
+(at most 8 KiB, its validated canonical ASCII bytes unchanged); and
+`u64be(key_generation)`. There is no component count because the count is
+permanently six for this V1 preimage. Canonical-request bytes, request schema
+version, and canonical-format version are deliberately absent. Variable
+component lengths, integer widths, order, domains, bounds, and normalization
+are exactly those stated here. Checked `u64` accounting rejects an overlong
+component or a complete preimage over 24 KiB before any PRF call. The accepted
+L2i.0d PRF authenticates these bytes without parsing or rewriting them.
 
 The executable baseline admits and writes only format `u16be(1)`.
 `ReplayGenerationSetV1.active_writer_format` is therefore exactly `1`, and each
 returned generation entry has exactly `[1]` as its sorted canonical-format list.
 Before any row lookup, the repository encodes the typed semantic command once as
-`CanonicalRequestV1` and obtains one candidate per active/draining generation
-from that entry's returned opaque authority. Two generations therefore permit at
-most two V1 derivations; the broader two-formats/four-derivations ceiling is not
-enabled by V1. A missing, duplicate, unreadable, or non-V1 format is a closed
+`CanonicalRequestV1` and obtains one idempotency locator per active/draining
+generation from that entry's returned opaque authority. Two generations therefore
+permit at most two V1 locator derivations regardless of future reader-format
+count. A missing, duplicate, unreadable, or non-V1 format is a closed
 `CanonicalFormatUnsupported` refusal, never a guessed equality or a zero-match
 creation.
 
@@ -375,10 +382,12 @@ active-writer-format and reader-cohort admission values; bounded format-admissio
 CAS and repository migration evidence; an authenticated per-repository format-
 retirement receipt; and the exact Cargo/Buck paths/tests. That future decision may
 admit only V1+one new format, requires an N+1 reader to retain the V1 reader
-through the admitted overlap, and may retire V1 only after every snapshot-bound
-repository proves no retained V1 canonical request or V1 blind index, every
-epoch-eligible reader admits the successor, and the provider issues the matching
-retirement receipt. A third format remains prohibited until the oldest retired
+  through the admitted overlap, and may retire V1 only after every snapshot-bound
+  repository proves no retained V1 canonical request/envelope, every epoch-
+  eligible reader admits the successor, and the provider issues the matching
+  retirement receipt. The generation-scoped idempotency locator remains format-
+  independent and is never a format-retirement equality token. A third format
+  remains prohibited until the oldest retired
 format has that complete evidence. Golden vectors fix every V1 byte above and
 prove transport-field reordering and absent/default-equivalent optionals produce
 the same bytes, while every changed semantic field produces different bytes.
@@ -399,10 +408,11 @@ exact ordered top-level fields:
 | 6 | `idempotency_key` | validated canonical ASCII bytes |
 | 7 | `request_schema_version` | `u32be` |
 | 8 | `canonical_request_format_version` | `u16be` |
-| 9 | `blind_index_key_generation` | `u64be` |
-| 10 | `blind_index` | fixed-width provider-authenticated bytes |
-| 11 | `effect_count` | `u16be`; exactly four in v1 |
-| 12 | `effects` | one length-delimited concatenation of exactly four effect entries |
+| 9 | `repository_admission_epoch` | `u64be`; current open write-admission epoch |
+| 10 | `idempotency_locator_key_generation` | `u64be` |
+| 11 | `idempotency_locator` | fixed-width provider-authenticated bytes |
+| 12 | `effect_count` | `u16be`; exactly four in v1 |
+| 13 | `effects` | one length-delimited concatenation of exactly four effect entries |
 
 Effect entries are ordered by `(effect_kind, opaque_row_identity)` with the
 fixed kinds employee=1, lifecycle=2, idempotency-outcome=3, audit-outbox=4.
@@ -425,6 +435,11 @@ Each blind-index entry begins with `u16be(3)` and contains tag 1
 `purpose_tag: u16be`, tag 2 `key_generation: u64be`, and tag 3 `bytes`; entries
 are ordered by `(purpose_tag, key_generation, bytes)`. In semantic shorthand,
 an effect is therefore:
+
+`IdempotencyLocatorV1` is not one of these generic per-effect entries: it is the
+top-level slot locator above, and no generic field-index purpose may reuse its
+`u16be(1)` purpose tag. The idempotency-outcome effect therefore carries its
+generation/locator identity only through the top-level fields.
 
 ```text
 effect_kind
@@ -456,7 +471,7 @@ omitted while satisfying the commit contract.
 
 `CommitBinding` authenticates one complete V1 outer preimage. It is the literal
 ASCII domain bytes `hr.people.commit-binding/staged-write/v1\0` (no length
-prefix), `u16be(8)` component count, then exactly eight ascending-tag
+prefix), `u16be(9)` component count, then exactly nine ascending-tag
 components. Each component is `u16be(tag) || u32be(payload_length) || payload`:
 
 | Tag | Semantic component | Exact payload and bound |
@@ -469,6 +484,7 @@ components. Each component is `u16be(tag) || u32be(payload_length) || payload`:
 | 6 | `descriptor_format_version` | exactly `u16be`, payload length 2 |
 | 7 | `key_generation` | exactly `u64be`, payload length 8 |
 | 8 | `StagedWriteDescriptorV1` | exact already-valid descriptor bytes unchanged; at most 64 KiB |
+| 9 | `repository_admission_epoch` | exactly `u64be`, payload length 8 |
 
 The count, tags, component order, lengths, fixed widths, domains, bounds, and
 normalization above are part of the V1 byte contract. Components cannot be
@@ -486,12 +502,12 @@ schema N/N+1 dispatch, a reordered or omitted outer component, and every exact a
 limit-plus-one component and total bound; deliberately divergent typed input or
 encoder output must fail the independent-vector comparison.
 
-The stored entry binds the blind-index bytes and generation, encrypted canonical
-request and outcome bytes/version, canonical and descriptor format versions,
-repository epoch, commit binding, authorization receipt, and commit generation.
-Its blind-index row is located only by the V1 generation-scoped candidate index;
-there is no stable cross-generation equality locator and no cleartext replay
-key. Processing is:
+The stored entry binds the idempotency-locator bytes and generation, encrypted
+canonical request and outcome bytes/version, canonical and descriptor format
+versions, repository epoch, repository admission epoch, commit binding,
+authorization receipt, and commit generation. Its row is located only by the V1
+generation-scoped idempotency locator; there is no stable cross-generation
+equality locator and no cleartext replay key. Processing is:
 
 1. Validate syntax, tenant binding, verified authorization, and overlay
    generation without mutation.
@@ -506,39 +522,40 @@ key. Processing is:
    arbitrary historical generation. A missing, revoked, malformed, stale,
    unregistered, or oversized set is `ReplayGenerationSetUnavailable` and
    admits no mutation.
-4. Before opening SQLite, call `derive_replay_candidate_v1` once for every
-   returned generation, passing that generation's opaque authority and the
-   already-encoded V1 bytes. The repository supplies no raw PRF authority,
-   caller-selected generation, or caller-selected format to `blind_index`.
-   The hard V1 bound is two derivations and two fixed-width candidates; both are
-   derived before any candidate is selected. Begin one `BEGIN IMMEDIATE` SQLite
-   writer transaction, validate repository epoch, lease, matrix digest,
-   rotation-fence id, membership snapshot id/version, and active writer format,
-   and query only these candidates. The query reads at most five rows solely to
-   distinguish zero, one, and multiple matches; it opens no row while multiple
-   candidates match.
+4. Before opening SQLite, call `derive_idempotency_locator_v1` once for every
+   returned generation, passing that generation's opaque authority and only the
+   logical slot `(repository_id, tenant_id, operation_kind, idempotency_key)`.
+   The repository supplies no raw PRF authority, caller-selected generation, or
+   mutable request/schema/format input. The hard V1 bound is two derivations and
+   two fixed-width locators; both are derived before any locator is selected.
+   Begin one `BEGIN IMMEDIATE` SQLite writer transaction, validate repository
+   epoch, open repository-admission epoch, lease, matrix digest, rotation-fence
+   id, membership snapshot id/version, and active writer format, then query only
+   those locators. The query reads at most five rows solely to distinguish zero,
+   one, and multiple matches; it opens no row while multiple candidates match.
 5. Zero matches may reserve a new entry only with the lease's active-generation
-   V1 candidate. Exactly one match must authenticate
-   and open its envelope using recorded generation and associated data, select
-   the request's candidate bytes for that row's recorded format, then constant-
-   time compare complete canonical plaintext bytes in memory. Ciphertext bytes,
-   including nonce/tag/randomized ciphertext, are never compared for equality
-   and no plaintext is persisted. Equal bytes return the original outcome;
-   unequal bytes return `IdempotencyConflict` without mutation. More than one
-   candidate row is `ReplayCandidateCollision`; a matrix/candidate/row format
-   divergence is `ReplayCandidateDivergence`; an unreadable source, generation/
-   index mismatch, or lost source key is `ReplaySourceUnavailable`. Every one
+   V1 locator. Exactly one match must authenticate and open its envelope using
+   recorded generation and associated data, then constant-time compare complete
+   canonical plaintext bytes in memory. Ciphertext bytes, including nonce/tag/
+   randomized ciphertext, are never compared for equality and no plaintext is
+   persisted. Equal bytes return the original outcome; unequal bytes return
+   `IdempotencyConflict` without mutation. More than one locator row is
+   `IdempotencyLocatorCollision`; a matrix/locator/row generation or format
+   mismatch is `IdempotencyLocatorDivergence`; an unreadable source, generation/
+   locator mismatch, or lost source key is `ReplaySourceUnavailable`. Every one
    fails closed and releases the transaction without a new business effect. No
    code reads an entry to discover a generation before locating it.
 6. For a zero-match reservation, seal every sensitive employee,
    lifecycle, request/outcome, and audit/outbox value through
-   `hr-record-encryption-draft`, derive required blind indexes, and stage the
-   authenticated envelopes plus the idempotency entry in the same transaction.
+   `hr-record-encryption-draft`, derive any non-replay field indexes required by
+   their own contract, and stage the authenticated envelopes plus the active
+   idempotency locator in the same transaction.
 7. Enumerate that exact staged row set, encode `StagedWriteDescriptorV1`, derive
    one opaque commit binding over it, and call
    `authorize_commit` with tenant, the current repository-epoch lease, a stable
-   commit-authorization id, key generation, blind-index identity, and that
-   binding. Store the returned authorization receipt inside the same SQLite
+   commit-authorization id, key generation, active repository-admission epoch,
+   idempotency-locator identity, and that binding. Store the returned
+   authorization receipt inside the same SQLite
    transaction.
 8. Commit durably according to the adapter profile, then call idempotent
    `resolve_commit(Committed { binding })`. Only the provider's resolved receipt
@@ -571,30 +588,30 @@ adapters, not dual-write.
 
 The SQLite format permits cleartext only for schema/migration version, opaque
 row identity, bounded timestamps and counters, ciphertext-envelope metadata,
-and keyed blind indexes. Employee, person, manager, evidence, policy, pack,
+and keyed non-replay field indexes plus opaque idempotency locators. Employee,
+person, manager, evidence, policy, pack,
 lifecycle, canonical request, stored outcome, and audit/outbox payload values
 are sensitive and must never be stored as cleartext. The final
 `hr-record-encryption-draft` port exposes bounded `seal`, `open`, `blind_index`,
 `commit_binding`, `acquire_repository_epoch`, `acquire_replay_generation_set_v1`,
-`derive_replay_candidate_v1`, keyring-membership operations, `list_unresolved`,
-`authorize_commit`, and idempotent `resolve_commit` plus
+`derive_idempotency_locator_v1`, keyring-membership and decommission operations,
+`list_unresolved`, `authorize_commit`, and idempotent `resolve_commit` plus
 `begin_normal_rotation_v1`, `list_incomplete_rotations`, `bind_rekey_checkpoint`,
 `verify_rekey_checkpoint`, and `authorize_zero_reference_revocation` over
 HR-owned values. Its envelope contains an algorithm identifier, provider/key
 reference, monotonically ordered key generation, unique nonce, ciphertext, and
-authentication tag; provider or cipher types do not cross the port. A blind
-index is a fixed-width keyed PRF output scoped exactly to the detailed
-`(repository, tenant, operation kind, idempotency key, schema version,
-canonical-format version, key generation)` order plus the fixed
-`CanonicalRequestReplayV1 = u16be(1)` purpose tag and
-`hr.people.blind-index/canonical-request/v1\0` domain above, with the canonical-
-request bytes as the PRF message. The exact full preimage is the nine-component
-SPEC grammar, not an adapter-specific field label. Length-prefixing and domain
-separation are canonical; it permits equality only inside that logical replay
-slot and never permits cross-tenant, cross-operation, or cross-idempotency-key
-matching. After L2i.0g, a repository MUST NOT invoke `blind_index` directly for
-replay lookup: `derive_replay_candidate_v1` is the only replay-candidate edge.
-The accepted primitive, encoding, and width are decision-gated at L2i.0d.
+authentication tag; provider or cipher types do not cross the port.
+`IdempotencyLocatorV1` is a fixed-width keyed PRF output scoped exactly to
+`(repository, tenant, operation kind, idempotency key, key generation)` under
+the fixed `u16be(1)` purpose tag and
+`hr.people.idempotency-locator/v1\0` domain above. Its exact six-component
+preimage is the SPEC grammar, not an adapter-specific field label; it excludes
+canonical-request/schema/format bytes. Length-prefixing and domain separation
+are canonical; it locates one logical slot inside one generation and never
+permits a stable cross-generation token. After L2i.0g, a repository MUST NOT
+invoke `blind_index` directly for replay lookup:
+`derive_idempotency_locator_v1` is the only returned-authority-bound locator
+edge. The accepted primitive, encoding, and width are decision-gated at L2i.0d.
 
 `AcquireReplayGenerationSetV1` is the sole executable provider-truth edge for
 replay; its Rust port method is `acquire_replay_generation_set_v1`. Its exact request is
@@ -628,37 +645,41 @@ in SQLite or reused after response loss, retry, restart, lease/fence change, or
 membership change. Each retry reacquires a set; a stale authority/set/lease is
 the corresponding closed result and cannot fall through to zero-match creation.
 
-`derive_replay_candidate_v1` is the Rust port method for the
-`DeriveReplayCandidateV1` domain operation. It has request
+`derive_idempotency_locator_v1` is the Rust port method for the
+`DeriveIdempotencyLocatorV1` domain operation. It has request
 `{ generation_authority: ReplayGenerationAuthorityV1, repository_id,
-tenant_id, operation_kind, idempotency_key, request_schema_version,
-canonical_request_v1: OpaqueBytes<=256KiB }` and result
-`ReplayCandidateV1 { generation: u64, canonical_format: u16be(1),
-bytes: FixedBytes<=64, matrix_digest: FixedBytes<=64,
-provider_authenticator: OpaqueBytes<=512 }`. `FixedBytes<=64` is an
-immutable exact-length value whose width is fixed by the accepted L2i.0d port
-decision and cannot vary by row, generation, or request. `generation_authority` is the
-opaque value returned by the same unexpired `AcquireReplayGenerationSetV1`
-result; callers cannot construct, substitute, replay across a repository/epoch/
-matrix digest, or inspect its PRF authority. The adapter validates that binding,
-uses its opaque authority for the exact nine-component V1 preimage, and returns
-only the bounded provider-authenticated candidate. Its closed error is
-`ReplayCandidateDerivationError::{AuthorityNotFromGenerationSet,
-AuthoritySetStale, RepositoryEpochStale, LeaseStale, CanonicalFormatUnsupported,
-CanonicalFormatInvalid, CandidateLimitExceeded, ProviderUnavailable,
-ProviderCorrupt}`. This operation, rather than a frozen caller-selected
-`blind_index` input, is the real repository-to-port-to-provider traversal.
+tenant_id, operation_kind, idempotency_key }` and result
+`IdempotencyLocatorV1 { generation: u64, bytes: FixedBytes<=64,
+matrix_digest: FixedBytes<=64, provider_authenticator: OpaqueBytes<=512 }`.
+`FixedBytes<=64` is an immutable exact-length value whose width is fixed by the
+accepted L2i.0d port decision and cannot vary by row, generation, or request.
+`generation_authority` is the opaque value returned by the same unexpired
+`AcquireReplayGenerationSetV1` result; callers cannot construct, substitute,
+replay across a repository/epoch/matrix digest, or inspect its PRF authority.
+The adapter validates that binding, uses its opaque authority for the exact
+six-component V1 preimage, and returns only the bounded provider-authenticated
+locator. Its closed error is
+`IdempotencyLocatorDerivationError::{AuthorityNotFromGenerationSet,
+AuthoritySetStale, RepositoryEpochStale, LeaseStale, IdempotencySlotInvalid,
+LocatorLimitExceeded, ProviderUnavailable, ProviderCorrupt}`. This operation,
+rather than a frozen caller-selected `blind_index` input, is the real
+repository-to-port-to-provider traversal.
 
 `KeyringMembershipSnapshotV1` is
 `{ keyring_id: OpaqueBytes<=128, membership_snapshot_id: OpaqueBytes<=128,
 membership_version: u64, members: [KeyringRepositoryMemberV1; 1..=4096],
 provider_authenticator: OpaqueBytes<=512 }`, where members are strictly
 sorted/distinct by `(repository_id, member_instance_id)` and each value is
-`{ repository_id: OpaqueBytes<=256, member_instance_id: OpaqueBytes<=128 }`.
-The authenticator covers every field and its member ordering. The domain
-operations `RegisterKeyringRepositoryV1`, `AcquireKeyringMembershipSnapshotV1`,
-and `RemoveKeyringRepositoryV1` are exposed as the Rust port methods
-`register_keyring_repository_v1`, `acquire_keyring_membership_snapshot_v1`, and
+`{ repository_id: OpaqueBytes<=256, member_instance_id: OpaqueBytes<=128,
+state: Active | Decommissioning, admission_epoch: u64 }`. The authenticator
+covers every field and its member ordering. The domain operations
+`RegisterKeyringRepositoryV1`, `AcquireKeyringMembershipSnapshotV1`,
+`BeginRepositoryDecommissionV1`, `GetRepositoryDecommissionV1`,
+`IssueDecommissionProofV1`, `AbortRepositoryDecommissionV1`, and
+`RemoveKeyringRepositoryV1` are exposed as Rust port methods
+`register_keyring_repository_v1`, `acquire_keyring_membership_snapshot_v1`,
+`begin_repository_decommission_v1`, `get_repository_decommission_v1`,
+`issue_decommission_proof_v1`, `abort_repository_decommission_v1`, and
 `remove_keyring_repository_v1`.
 
 `RegisterKeyringRepositoryV1` accepts `{ keyring_id, repository_id,
@@ -666,57 +687,155 @@ repository_epoch, expected_membership_version, operation_id: OpaqueBytes<=128 }`
 and returns `KeyringMembershipMutationResultV1 { member_instance_id, snapshot:
 KeyringMembershipSnapshotV1 }`. `AcquireKeyringMembershipSnapshotV1` accepts
 `{ keyring_id }` and returns the current provider-authenticated snapshot.
-`DecommissionProofV1` is `{ keyring_id, repository_id, member_instance_id,
+`BeginRepositoryDecommissionV1` accepts `{ keyring_id, repository_id,
+member_instance_id, repository_epoch, expected_membership_snapshot_id,
+expected_membership_version, expected_admission_epoch, operation_id }` and CASes
+that active member to `Decommissioning`, returning
+`DecommissionAdmissionFenceV1 { keyring_id, repository_id, member_instance_id,
 repository_epoch, membership_snapshot_id, membership_version,
-live_generation_digest, durable_ciphertext_references: u64be(0),
-durable_blind_index_references: u64be(0), unresolved_authorizations: u64be(0),
-provider_authenticator }`; `live_generation_digest` commits to every non-revoked
-generation in sorted order. `RemoveKeyringRepositoryV1` accepts `{ keyring_id,
-repository_id, member_instance_id, repository_epoch, expected_membership_version,
-decommission_proof: DecommissionProofV1, operation_id }` and returns the new
-`KeyringMembershipSnapshotV1`. Register and remove are one provider CAS and are
-refused whenever any normal or emergency drain exists.
+rotation_fence_id: OpaqueBytes<=128, live_generation_digest: FixedBytes<=64,
+decommission_fence_id: OpaqueBytes<=128, admission_epoch: u64,
+provider_authenticator }`. It denies new replay-set, locator-derivation, seal,
+and commit authorization for that member/fence while still allowing only status,
+unresolved-resolution, proof, abort, and removal operations.
+
+`DecommissionObservationV1` is `{ keyring_id, repository_id,
+member_instance_id, repository_epoch, membership_snapshot_id,
+membership_version, rotation_fence_id, live_generation_digest,
+decommission_fence_id, admission_epoch, terminal_write_sequence,
+scan_checkpoint_digest, unresolved_receipt_digest,
+durable_ciphertext_references: u64be(0), durable_locator_references: u64be(0),
+unresolved_authorizations: u64be(0) }`. `IssueDecommissionProofV1` accepts
+`{ observation: DecommissionObservationV1, operation_id }` and returns the
+provider-authenticated `DecommissionProofV1` below. `GetRepositoryDecommissionV1`
+accepts `{ keyring_id, repository_id, member_instance_id, repository_epoch }`
+and returns exactly `NotStarted | IntentPending { operation_id } | Fenced {
+DecommissionAdmissionFenceV1 } | ProofIssued { DecommissionProofV1 } | Removed`.
+`AbortRepositoryDecommissionV1` accepts the same member/epoch plus exact fence,
+snapshot/version, and `operation_id`, and returns the current signed snapshot
+only if no proof was issued. These operations have no implicit timeout success.
+
+`DecommissionProofV1` is `{ keyring_id, repository_id, member_instance_id,
+repository_epoch, membership_snapshot_id, membership_version, rotation_fence_id,
+live_generation_digest, decommission_fence_id, admission_epoch,
+terminal_write_sequence, scan_checkpoint_digest, unresolved_receipt_digest,
+durable_ciphertext_references: u64be(0), durable_locator_references: u64be(0),
+unresolved_authorizations: u64be(0), provider_authenticator }`.
+`RemoveKeyringRepositoryV1` accepts `{ keyring_id, repository_id,
+member_instance_id, repository_epoch, expected_membership_snapshot_id,
+expected_membership_version, decommission_fence_id, admission_epoch,
+decommission_proof: DecommissionProofV1, operation_id }` and atomically
+rechecks every proof field before removing the member and returning the new
+`KeyringMembershipSnapshotV1`. Register, begin, abort, and remove are refused
+whenever any normal or emergency drain exists. `BeginNormalRotationV1` also
+refuses a snapshot containing `Decommissioning` so a member cannot disappear
+from the global no-overlap obligation.
+
+The repository-owned producer domain operation is `ProduceDecommissionProofV1`,
+exposed as `produce_decommission_proof_v1` on
+`hr-employment-repository-draft` and implemented by the SQLite adapter. Its exact
+request is `{ keyring_id, repository_id, member_instance_id, repository_epoch,
+expected_membership_snapshot_id, expected_membership_version,
+expected_admission_epoch, operation_id }`; its exact success result is
+`DecommissionProofProductionV1 { admission_fence:
+DecommissionAdmissionFenceV1, observation: DecommissionObservationV1,
+proof: DecommissionProofV1 }`. Its closed result is
+`DecommissionProofProductionError::{RepositoryNotRegistered, MemberInstanceStale,
+MembershipVersionStale, MembershipSnapshotStale, RepositoryEpochStale,
+RepositoryAdmissionEpochStale, DecommissionPending, DecommissionFenceStale,
+DecommissionScanIncomplete, DecommissionObservationStale,
+DecommissionProofAlreadyIssued, MembershipOperationConflict, ProviderUnavailable,
+ProviderCorrupt}`. It first commits
+`DecommissionIntentV1 { operation_id, expected_membership_snapshot_id,
+expected_membership_version, next_admission_epoch }` under `BEGIN IMMEDIATE` in
+the SQLite metadata row shared by every durable write. That intent closes new
+writes before the provider call. After the provider fence is durably recorded,
+`scan_decommission_references_v1` walks every sensitive-table generation and
+idempotency-locator column in stable row order: at most 64 rows/8 MiB per page,
+8 pages/512 rows/64 MiB per step, with checked `u64` counters and a persisted
+checkpoint. A terminal `BEGIN IMMEDIATE` observation binds the same local
+admission epoch, fence, current repository/member/epoch, membership
+snapshot/version, rotation fence, live-generation digest, terminal SQLite write
+sequence, zero ciphertext/locator references, and zero unresolved receipts.
+Only then does the repository call `issue_decommission_proof_v1` with that
+observation. The provider rechecks its current fence, snapshot/version,
+generation digest, and unresolved count before returning the authenticated proof.
+The provider CAS is therefore ordered before the terminal observation, and its
+fence persists through `remove_keyring_repository_v1`; removal never opens an
+old admission epoch. After a successful remove, SQLite durably records `Removed`
+with the proof digest before any recovery/readiness work. If the remove response
+is lost, `get_repository_decommission_v1` returns `Removed` with the same proof
+and SQLite converges to that closed state; it never retries a fresh registration
+or write under the old member instance.
+
+Every durable transaction reads this same metadata row under `BEGIN IMMEDIATE`,
+requires `state = Active` and the current admission epoch before provider
+authorization, and rechecks both at commit. The intent write therefore
+linearizes after any older committing writer and before every later writer; the
+provider fence closes the matching remote authorization interval. Boot observes
+a pending intent through `get_repository_decommission_v1` and restores the
+closed state before readiness or recovery work.
 
 An operation is idempotent only for byte-identical payload and `operation_id`;
-after response loss, repeating that exact call returns its original result, while
-a changed reuse returns `MembershipOperationConflict`. A
+after response loss, repeating that exact call returns its original result,
+while a changed reuse returns `MembershipOperationConflict`. A
 `MembershipVersionStale`, `MembershipSnapshotStale`, `RepositoryEpochStale`,
-`MembershipMutationBlocked`, or provider-unavailable result changes no state:
-the caller must reacquire the current signed snapshot and, where applicable, a
-fresh repository epoch and decommission proof before a new attempt. It cannot
-retry removal from a stale proof or silently omit a member. The closed error is
+`MembershipMutationBlocked`, `DecommissionFenceStale`,
+`DecommissionObservationStale`, or provider-unavailable result changes no
+provider membership state. The caller must reacquire the current signed snapshot
+and, where applicable, the exact recovered decommission state before a new
+attempt. It cannot retry removal from a stale proof or silently omit a member.
+A pending local intent remains write-closed until
+`get_repository_decommission_v1` resolves it; a crash resumes from that exact
+state before readiness. If the begin call is known not to have changed provider
+state, `get_repository_decommission_v1` returns `NotStarted` and the exact
+intent may be aborted; an unknown response remains closed until status proves
+the result. `abort_repository_decommission_v1` is legal only before proof
+issuance and reopens the local gate only after the provider CAS proves the same
+fence was aborted. The closed error is
 `KeyringMembershipError::{MembershipVersionStale, MembershipSnapshotStale,
 RepositoryAlreadyRegistered, RepositoryNotRegistered, MemberInstanceStale,
-MembershipMutationBlocked, RepositoryEpochStale, DecommissionProofMissing,
-DecommissionProofInvalid, MembershipOperationConflict, ProviderUnavailable,
-ProviderCorrupt}`. A partitioned, omitted, or stale member cannot be removed to
-evade a drain; a later rejoin receives a new member instance only after its
-prior instance has been removed by a valid proof.
+MembershipMutationBlocked, RepositoryEpochStale, DecommissionFenceStale,
+DecommissionPending, DecommissionProofMissing, DecommissionProofInvalid,
+DecommissionProofAlreadyIssued, DecommissionScanIncomplete,
+MembershipOperationConflict, ProviderUnavailable, ProviderCorrupt}`. A
+partitioned, omitted, or stale member cannot be removed to evade a drain; after
+removal the old member remains fenced and a later rejoin receives a new member
+instance and epoch only through a fresh registration.
 
 `ZeroReferenceReceiptV1` is `{ keyring_id, source_generation: u64,
 rotation_fence_id: OpaqueBytes<=128, membership_snapshot_id,
 membership_version, repository_id, member_instance_id, repository_epoch,
-terminal_checkpoint_digest: FixedBytes<=64, durable_ciphertext_references: u64be(0),
-durable_blind_index_references: u64be(0), unresolved_authorizations: u64be(0),
-provider_authenticator }`. `RetirementReceiptV1` is `{ keyring_id,
+repository_admission_epoch: u64, repository_admission_state: Active,
+terminal_checkpoint_digest: FixedBytes<=64, unresolved_receipt_digest,
+durable_ciphertext_references: u64be(0), durable_locator_references: u64be(0),
+unresolved_authorizations: u64be(0), provider_authenticator }`.
+`RetirementReceiptV1` is `{ keyring_id,
 source_generation: u64, rotation_fence_id, membership_snapshot_id,
 membership_version, member_receipt_digests: [FixedBytes<=64; 1..=4096 in exact
 snapshot-member order], provider_unresolved_authorizations: u64be(0), state: Revoked,
 provider_authenticator }`. The provider issues the latter only after it verifies
 one exact former receipt from every frozen snapshot member; neither receipt can
-be reused across fence, snapshot, member instance, source generation, or epoch.
+be reused across fence, snapshot, member instance, source generation, epoch,
+admission epoch/state, or unresolved receipt digest. A decommission proof is
+never interchangeable with a normal-rotation zero-reference receipt.
 
 `NormalRotationBlocked` carries
 `{ source_generation: u64, reason: NormalRotationBlockReason }`, where
 `NormalRotationBlockReason::{DrainingGenerationPresent, EmergencyDrainPresent,
 IncompleteRekey, DurableReferencesRemain, UnresolvedAuthorization,
 ZeroReferenceReceiptMissing, MembershipTerminalReceiptMissing,
-RetirementReceiptMissing, MembershipSnapshotStale, SourceUnavailable}`.
-`ReplayCandidateCollision` carries the bounded matched-row count; a candidate
-query exceeding five row reads returns `ReplayCandidateLimitExceeded`;
-`ReplayCandidateDivergence` carries only generation/format identifiers and never
-ciphertext or plaintext. These are closed typed outcomes, not diagnostic strings
-or retry-to-create hints.
+RetirementReceiptMissing, MembershipSnapshotStale, RepositoryDecommissioning,
+SourceUnavailable}`.
+`IdempotencyConflict` is the closed no-payload replay outcome for a located row
+whose authenticated canonical plaintext differs from the submitted
+`CanonicalRequestV1`; it creates no reservation, mutation, or second business
+effect and exposes neither locator bytes, ciphertext, nor plaintext.
+`IdempotencyLocatorCollision` carries the bounded matched-row count; a locator
+query exceeding five row reads returns `IdempotencyLocatorLimitExceeded`;
+`IdempotencyLocatorDivergence` carries only generation/format identifiers and
+never ciphertext or plaintext. These are closed typed outcomes, not diagnostic
+strings or retry-to-create hints.
 
 `BeginNormalRotationV1` is the provider CAS operation, exposed by
 `begin_normal_rotation_v1`:
@@ -739,11 +858,12 @@ snapshot and a new operation id, never an automatic successor attempt. This
 operator, not repository narration, owns global keyring transition truth.
 
 `CommitBinding` is a fixed-width provider-authenticated value over the exact
-eight-component outer preimage and canonical staged-write descriptor specified
-above, domain-separated by tenant, repository, epoch, authorization id, schema,
-and key generation. Neither it nor `CommitAuthorizationId` is an unkeyed request
-digest: the authorization id is an opaque repository-unique transaction
-identity, and neither value is a telemetry label or cross-slot equality token.
+nine-component outer preimage and canonical staged-write descriptor specified
+above, domain-separated by tenant, repository, repository/admission epoch,
+authorization id, schema, and key generation. Neither it nor
+`CommitAuthorizationId` is an unkeyed request digest: the authorization id is an
+opaque repository-unique transaction identity, and neither value is a telemetry
+label or cross-slot equality token.
 
 Associated data canonically binds tenant, legal entity, logical table and
 field, opaque row identity, schema version, and record generation. Every size
@@ -759,17 +879,19 @@ L2i.0d is a non-dispatchable decision gate until it names the exact accepted
 authenticated-encryption primitive/library and commodity or sold key-service
 facade, versions/features/licenses, generated client and Cargo/Buck targets,
 key custody and zeroization boundary, nonce source, retry/deadline bounds,
-  blind-index PRF, exact `AcquireReplayGenerationSetV1` and
-  `derive_replay_candidate_v1` request/result/error and signature/lease validation,
-  V1-only active-writer format, future-format evolution barrier, exact keyring
-  enrollment/removal/snapshot/decommission semantics, global normal-rotation
-  CAS/refusal semantics, generation and commit-authorization linearization
-  semantics, bounded unresolved-receipt enumeration, repository-epoch fencing,
-  recovery/administrative resolution, and removal path. L2i.0d.1 must first admit
+  idempotency-locator PRF, exact `AcquireReplayGenerationSetV1` and
+  `derive_idempotency_locator_v1` request/result/error and signature/lease
+  validation, V1-only active-writer format, future-format evolution barrier,
+  exact keyring enrollment/decommission/remove/snapshot semantics, global
+  normal-rotation CAS/refusal semantics, generation and commit-authorization
+  linearization semantics, bounded unresolved-receipt enumeration, repository-
+  epoch and admission-fence fencing, recovery/administrative resolution, and
+  removal path. L2i.0d.1 must first admit
   the key-service adapter structure; L2i.0f must then prepare the exact unique
   port/repository/SQLite/adapter file slots; L2i.0g.0 freezes only the typed port
   contract; L2i.0g.1 implements and tests the provider adapter; L2i.0g.2 only
-  then freezes repository/SQLite behavior; and L2i.0h implements bounded
+  then freezes repository/SQLite behavior and its executable dev-only
+  composition target; and L2i.0h implements bounded
   repository rekey/recovery before production composition is dispatchable. The
 selected adapter is owner-local and remains
 `app/hr/adapters/draft/record-encryption-key-service` /
@@ -778,7 +900,8 @@ selected adapter is owner-local and remains
 The HR error type is closed as
 `CommitFenceError::{GenerationNotActive, AuthorizationDenied,
 AuthorizationUnresolved, CommitBindingMismatch, RepositoryEpochStale,
-ResolutionConflict, ProviderUnavailable, ProviderCorrupt}`. A successful
+RepositoryAdmissionEpochStale, RepositoryDecommissioning, ResolutionConflict,
+ProviderUnavailable, ProviderCorrupt}`. A successful
 resolution is exactly `CommittedBeforeFence` or `AbortedBeforeCommit`; neither
 is inferred from a timeout, disconnect, clock, or missing row. Pending-page
 results are capped by the L2i.0d accepted item/byte limits and carry an opaque
@@ -787,8 +910,9 @@ reordered, oversized, or non-progressing continuation fails closed.
 
 The provider state machine is
 `Active -> Draining | EmergencyDraining -> Revoked`. `authorize_commit`,
-`AcquireReplayGenerationSetV1`, `derive_replay_candidate_v1`, membership CAS, and
-those transitions share one provider-side linearization order. Authorization
+`AcquireReplayGenerationSetV1`, `derive_idempotency_locator_v1`, membership CAS,
+decommission admission fences, and those transitions share one provider-side
+linearization order. Authorization
 is allowed only in `Active` and returns an opaque single-use receipt bound to
 the repository epoch, transaction id, generation, and commit binding. A
 rotation/revocation request that wins first denies authorization. An
@@ -806,7 +930,7 @@ per-keyring CAS rule: it may transition `Active(G)` to
 is still current. The successful CAS freezes that snapshot, disallows enrollment,
 removal, and rejoin until terminal retirement, and binds it to both the rotation
 fence and every zero-reference receipt. A normal `G+2` request while G is
-draining, has an incomplete rekey, durable ciphertext/blind-index reference,
+draining, has an incomplete rekey, durable ciphertext/locator reference,
 unresolved earlier authorization, missing snapshot-member receipt, missing
 zero-reference receipt, or missing provider retirement receipt returns
 `NormalRotationBlocked` and changes nothing. The provider may issue the G
@@ -882,16 +1006,18 @@ exclusive repository epoch, validates the checkpoint binding and provider
 fence, and either resumes the exact next page or returns a typed refusal.
 
 For one page, SQLite deterministically scans every sensitive table and every
-generation-scoped blind-index column in `(logical_table_tag,
-opaque_row_identity)` order for `source_generation`. Outside a transaction the
-adapter opens each observed envelope under the source generation, validates
-associated data, seals the identical semantic plaintext under the active target
-with a new provider nonce, and recomputes every target-generation blind index
-from the stored authenticated `CanonicalRequestV1` when applicable. It then
-starts one `BEGIN IMMEDIATE` transaction and CAS-checks every row against row
-identity, observed revision, source generation, envelope commitment, and old
-blind-index set. The transaction atomically replaces ciphertext, generation,
-blind indexes and revision for the entire page and advances the checkpoint. A
+generation-scoped idempotency-locator column (plus any non-replay field-index
+column) in `(logical_table_tag, opaque_row_identity)` order for
+`source_generation`. Outside a transaction the adapter opens each observed
+envelope under the source generation, validates associated data, seals the
+identical semantic plaintext under the active target with a new provider nonce,
+and recomputes the target-generation idempotency locator from the stored logical
+slot—not from canonical-request bytes—plus any non-replay field indexes under
+their own contracts. It then starts one `BEGIN IMMEDIATE` transaction and
+CAS-checks every row against row identity, observed revision, source generation,
+envelope commitment, and old locator/index set. The transaction atomically
+replaces ciphertext, generation, locators/indexes and revision for the entire
+page and advances the checkpoint. A
 single mismatch aborts the whole page and leaves its prior checkpoint durable.
 The reconciler retries that same cursor in stable row order; each conflict
 durably increments the cursor's counter, and the fourth attempt returns
@@ -900,13 +1026,14 @@ or spinning.
 
 Replay and rekey share that single SQLite writer order. A replay first obtains
 its provider-authenticated V1 generation set and derives every one-to-two V1
-candidate indexes through `derive_replay_candidate_v1` before `BEGIN IMMEDIATE`;
+idempotency locators through `derive_idempotency_locator_v1` before
+`BEGIN IMMEDIATE`;
 inside that transaction it validates epoch, lease, digest, fence, and membership
 snapshot before either zero-match reservation or authenticated open. A page rekey
 enters the same writer before it replaces an idempotency row's source-generation
-indexes with target-generation indexes. If replay wins, rekey observes its
-committed row/revision on the next scan; if rekey wins, the already-derived target
-generation V1 candidate locates the same row. The global no-overlap CAS returns
+locator with its target-generation locator. If replay wins, rekey observes its
+committed row/revision on the next scan; if rekey wins, the already-derived
+target-generation V1 locator locates the same row. The global no-overlap CAS returns
 at most active G+1 plus draining G; G+2 is refused until G is zero-reference,
 all frozen-snapshot members have terminal receipts, and G is revoked. A rotation
 that wins before a new request invalidates a stale matrix rather than allowing
@@ -916,15 +1043,16 @@ before, during, or after page CAS either returns the original outcome or a typed
 unavailable/corruption result, never a second employee, lifecycle, idempotency,
 or outbox effect. Response loss and hard close repeat the complete matrix lookup
 after exclusive-epoch recovery. If a draining source is lost before its row
-rekeys, the provider cannot authenticate the matrix/lease, or format candidates
-diverge from a located row, readiness withdraws and `ReplaySourceUnavailable`,
-`ReplayGenerationSetUnavailable`, or `ReplayCandidateDivergence` is returned;
+rekeys, the provider cannot authenticate the matrix/lease, or a locator/row
+binding diverges, readiness withdraws and `ReplaySourceUnavailable`,
+`ReplayGenerationSetUnavailable`, or `IdempotencyLocatorDivergence` is returned;
 a new reservation is forbidden. Source revocation occurs only after terminal
-count includes every source candidate-index column at zero, so post-revoke
+count includes every source locator column at zero, so post-revoke
 retry locates the rekeyed target row without a cross-generation token.
 
 After an end-of-keyspace page, one SQLite transaction repeats the complete
-source-generation reference count across ciphertext and blind-index columns.
+source-generation reference count across ciphertext and idempotency-locator
+columns plus any non-replay field-index columns.
 Because the provider drain fence forbids new source-generation seals and commit
 authorizations, a zero count is monotonic under the fenced repository epoch.
 That transaction writes a provider-authenticated `ZeroReferenceReceiptV1` bound
@@ -950,21 +1078,24 @@ to success, conflict-free replay, key fallback, or completed revocation.
 
 The replay result/error vocabulary is closed as
 `ReplayLookupError::{ReplayGenerationSetUnavailable, ReplayGenerationSetMalformed,
-ReplayFormatMatrixInvalid, ReplayCandidateLimitExceeded, ReplayCandidateCollision,
-ReplayCandidateDivergence, ReplaySourceUnavailable, ReplayLeaseStale,
+ReplayFormatMatrixInvalid, IdempotencyLocatorLimitExceeded,
+IdempotencyLocatorCollision, IdempotencyLocatorDivergence,
+ReplaySourceUnavailable, ReplayLeaseStale, RepositoryDecommissioning,
 RotationFenceStale, NormalRotationBlocked}`. A collision, stale lease/fence,
 source loss, malformed/oversized set, incompatible format matrix, provider loss,
-or source-generation/index mismatch never falls through to zero-match creation.
+or source-generation/locator mismatch never falls through to zero-match creation.
 Contract and real-file recovery evidence must independently exercise Cargo and
   Buck full-preimage vectors; every active-only and active-plus-draining V1 set;
   V1 replay after response loss, rotation/page CAS, hard close, rekey, and fresh
-  restart; changed-purpose conflict; encrypted-canonical plaintext equality under
-different nonce/generation; ciphertext/tag/associated-data tampering; attempted
+  restart; same-slot changed-canonical conflict; encrypted-canonical plaintext
+  equality under different nonce/generation; ciphertext/tag/associated-data
+  tampering; attempted
   G+2 during G drain; emergency drain/source loss; stale matrix/fence/membership
   snapshot; concurrent enrollment/removal/rejoin/partition; and replay versus
   rekey immediately before/during/after page CAS and zero-reference revocation.
-  Each schedule proves the same semantic retry returns its original outcome or a
-  closed typed refusal and no second effect commits.
+  Each schedule proves the same semantic retry returns its original outcome, a
+  changed canonical request returns `IdempotencyConflict`, or a closed typed
+  refusal, and no second effect commits.
 
 Before a first cohort, readiness is false while any normal rekey job is
 incomplete. For an already-routed cohort, normal rotation may keep reads ready
@@ -987,7 +1118,8 @@ to a real SQLite file, checkpoints and copies the backup, and proves neither
 artifact contains a sentinel. It hard-closes every encryption, SQL, commit,
 rotation-CAS, and reply boundary; reopens with a fresh process and provider
 client; verifies authenticated reads and idempotent replay; detects ciphertext,
-tag, nonce, associated-data, and blind-index tampering; rotates under concurrent
+tag, nonce, associated-data, idempotency-locator, and non-replay field-index
+tampering; rotates under concurrent
 reads/writes; and exercises normal plus emergency revocation and provider loss
 before boot and mid-transaction. It separately races provider authorization,
 SQLite commit, provider resolution, rotation/drain, hard close, and exclusive-
@@ -1011,8 +1143,8 @@ failure.
 | validation | malformed identifier/date/evidence, invalid checklist, changed payload on reused key | none |
 | unauthenticated | missing, invalid, expired, or unbound principal proof | none |
 | forbidden | PDP deny, tenant mismatch, absent legal basis, stale/conflicting overlay | none |
-| conflict | employee version mismatch, duplicate identity, idempotency blind-index mismatch, commit-resolution conflict, bounded rekey page CAS conflict | none |
-| unavailable | SQLite busy/full/unopenable, Packs/Policy/IAM/Audit/key/runtime-context precondition unavailable, commit authorization unresolved, selected adapter unhealthy, key generation draining/revoked, source/target key outage, membership partition, rekey retry exhaustion | none acknowledged; eligible required-authority failure burns availability budget |
+| conflict | employee version mismatch, duplicate identity, changed canonical plaintext at an idempotency locator, commit-resolution conflict, bounded rekey page CAS conflict | none |
+| unavailable | SQLite busy/full/unopenable, Packs/Policy/IAM/Audit/key/runtime-context precondition unavailable, commit authorization unresolved, selected adapter unhealthy, key generation draining/revoked, source/target key outage, membership partition, decommission pending, rekey retry exhaustion | none acknowledged; eligible required-authority failure burns availability budget |
 | internal/corrupt | schema/preimage incompatibility, corrupt stored outcome, invalid canonical request or staged descriptor, stale/corrupt rekey cursor/checkpoint/fence/membership snapshot, ciphertext/tag/nonce/generation/commit-binding mismatch, impossible state | fail closed; readiness false |
 
 Wire adapters map these typed classes to their protocol without making status
@@ -1031,9 +1163,12 @@ the in-memory reference and SQLite; promoted Postgres/Data/on-prem adapters join
 the same suite. It proves:
 
 - create/read and lifecycle visibility are tenant and legal-entity scoped;
-- same-key/same-canonical-request replay returns byte-equivalent semantic outcome and does
-  not duplicate employee, lifecycle, audit/outbox, workflow, or payroll intent;
-- same-key/different-canonical-request replay returns conflict without mutation;
+- same-key/same-canonical-request replay returns byte-equivalent semantic outcome
+  and does not duplicate employee, lifecycle, audit/outbox, workflow, or payroll
+  intent across active-only, active-plus-draining, response-loss, page-rekey,
+  hard-close, and restart schedules;
+- same-key/different-canonical-request replay reaches the same generation-scoped
+  locator and returns conflict without mutation or a second reservation;
 - domain, authorization, overlay, encryption/key, and adapter failures preserve
   no partial state, plaintext persistence, or sensitive disclosure;
 - schema N/N+1 open, migrate, reopen, and supported rollback boundaries are
@@ -1042,7 +1177,8 @@ the same suite. It proves:
   fixed V1 bytes, exact bounds, semantic default/reordering equivalence,
   changed-field conflict, current V1-only format admission, and rejection of
   unknown, omitted, duplicated, or reordered same-version fields are explicit;
-- bounded rekey pages atomically replace envelope plus all blind indexes,
+- bounded rekey pages atomically replace envelope plus all idempotency locators
+  and non-replay field indexes,
   advance no checkpoint on CAS failure, resume from the last committed cursor,
   and produce a snapshot/member-instance-bound zero-reference receipt before
   normal revocation;
@@ -1050,6 +1186,12 @@ the same suite. It proves:
   partition preserve an immutable rotation snapshot; G+2 stays refused until each
   exact snapshot member produces its terminal receipt and the provider has zero
   unresolved authorizations;
+- decommission first writes the local intent/admission epoch, then provider
+  fence, each bounded scan checkpoint, terminal zero observation, authenticated
+  proof, and atomic removal. Authorization/commit immediately before and after
+  each edge, changed-operation replay, response loss, partition, crash/restart,
+  stale live-generation digest, concurrent rotation, abort/resume, and rejoin
+  prove no durable reference can commit after the observation or removal;
 - an eligible request whose required provider is unavailable preserves no mutation
   or disclosure and increments the availability denominator, authority-failure,
   and error-budget signals until recovery or router-withdrawal acknowledgement.
@@ -1072,14 +1214,15 @@ produce an acknowledgement.
 
 Rekey fault injection pauses before/after enrollment, membership snapshot,
 incomplete-rotation discovery, job
-creation, page scan, source open, target seal, blind-index derivation, page CAS,
+creation, page scan, source open, target seal, idempotency-locator derivation,
+page CAS,
 checkpoint commit, terminal reference count, provider revoke, and local
 completion. It then hard-closes all connections, constructs a new repository
 and provider client, fences the older epoch, and resumes. Exact/limit-plus-one
 items, bytes, pages, calls, cursor and checkpoint sizes; stale epochs/fences;
 three conflicts plus the refused fourth attempt; full/busy media; source/target
 key and provider loss; duplicate/missing/partitioned/rejoining snapshot members;
-and nonzero ciphertext or blind-index references all produce the closed result/
+and nonzero ciphertext or locator references all produce the closed result/
 error vocabulary without skipping a row, advancing a failed checkpoint, silently
 removing a member, or reporting `Revoked`.
 
@@ -1117,8 +1260,9 @@ schema is outside the supported window, the active encryption key generation
 cannot seal/open/authorize/resolve or is draining/revoked, trusted interval or
 bounded telemetry health is unavailable, policy authority is unusable, or a
   required pre-ack audit path cannot satisfy the request class, the repository is
-  not an admitted current membership instance, or its frozen rotation snapshot
-  cannot be authenticated. It is also false
+  not an admitted current membership instance, its local/provider decommission
+  fence is pending or active, or its frozen rotation snapshot cannot be
+  authenticated. It is also false
 for a first cohort with an incomplete rekey job and for a routed cohort whose
 normal rekey checkpoint exceeds the PRD 60-second objective, exhausts its CAS
   budget, loses either generation/provider/repository, or detects a required-

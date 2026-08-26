@@ -112,8 +112,10 @@ workflow/payroll/audit delivery, no recovery campaign, and no measured SLO.
   pages, backups, logs, and metrics. A mutation is acknowledged only after its
   SQLite commit authorization is linearly ordered with key-generation
   rotation/revocation and resolved committed by the key authority.
-- Derive replay equality only from the HR-owned canonical-request format and
-bind commit authorization only to the HR-owned staged-write descriptor. A
+- Derive replay semantic equality only by authenticated open and constant-time
+  comparison of the HR-owned canonical-request format; derive its opaque lookup
+  locator only from the logical idempotency slot. Bind commit authorization only
+  to the HR-owned staged-write descriptor. A
 transport/provider field order, unknown field, omitted effect, implicit
   default, or provider-local normalization MUST NOT change either protected
   preimage. The executable baseline writes CanonicalRequestV1 only. A new-format
@@ -123,14 +125,19 @@ transport/provider field order, unknown field, omitted effect, implicit
   does not claim V2 behavior.
 - During normal rotation, resolve replay only through the record-encryption
   port's provider-authenticated repository/epoch/fence/membership-bound active-
-  plus-draining generation set. From one typed semantic command, use each
-  returned generation-scoped opaque authority to derive the V1 candidate for each
-  returned generation before one SQLite writer lookup. The bounded lookup authenticates/decrypts
-  the one located ciphertext envelope, then constant-time compares matching
-  canonical plaintext in memory; it never uses randomized ciphertext equality
-  and never persists plaintext or a stable cross-generation token. Matrix/format
-  divergence, collision, stale lease, source loss, tampering, or provider loss
-  fail closed without a second business effect.
+  plus-draining generation set. Before one SQLite writer lookup, use every
+  returned generation-scoped opaque authority to derive the V1 idempotency
+  locator for exactly `(repository, tenant, operation kind, idempotency key)`.
+  The locator excludes request schema, canonical format, and mutable canonical
+  request bytes, changes with its generation, and is never cleartext or a stable
+  cross-generation equality token. Thus the same logical key locates its row
+  even when a semantic request field changes; the bounded lookup
+  authenticates/decrypts the one located ciphertext envelope and constant-time
+  compares canonical plaintext in memory to choose replay or
+  `IdempotencyConflict`. It never uses randomized ciphertext equality or
+  persists plaintext. Matrix/locator divergence, collision, stale lease, source
+  loss, tampering, or provider loss fail closed without a reservation or second
+  business effect.
 
 ## Durability and portability
 
@@ -147,15 +154,24 @@ transport/provider field order, unknown field, omitted effect, implicit
   contention, corrupt envelope, missing key, and nonzero references are typed
   fail-closed states, never reasons to skip a row or fall back to plaintext.
   Globally for one keyring, normal G+2 activation is refused until G has no
-  durable ciphertext or blind-index reference, no incomplete rekey or earlier
+  durable ciphertext or idempotency-locator reference (and no remaining
+  non-replay field-index reference), no incomplete rekey or earlier
   unresolved authorization, and a provider retirement receipt marks G revoked.
   The retirement receipt is bound to the immutable keyring-membership snapshot
   captured with the rotation fence and includes every enrolled repository
   instance's terminal zero-reference receipt. A repository can enroll, remove,
-  or rejoin only through provider-versioned CAS; removal needs a zero-reference,
-  zero-unresolved-authorization decommission proof across live generations and
-  is refused during a drain. Emergency drain, source loss, or partition withdraws
-  readiness and blocks normal rotation; it is never a route around this invariant.
+  or rejoin only through provider-versioned CAS. The repository-port's
+  `ProduceDecommissionProofV1` first durably closes a repository write-admission
+  epoch, then CASes the matching provider decommission fence; the fenced SQLite
+  scan must prove zero references for every live generation and zero unresolved
+  authorizations before the provider issues an authenticated proof. Removal
+  atomically rechecks that proof, the
+  membership snapshot/version, repository/member instance/epoch, and admission
+  fence, and leaves the old member closed through removal. A response loss,
+  crash, partition, or rejoin has a typed resume/abort/refusal outcome, never a
+  path that can omit a referenced member. Removal is refused during a drain.
+  Emergency drain, source loss, or partition withdraws readiness and blocks
+  normal rotation; it is never a route around this invariant.
 - Run the same behavioral and fault contract against the in-memory reference,
   SQLite, and each promoted commodity or Oyatie-cloud adapter.
 - Keep app core free of database, network, IAM, Data, Storage, Gateway, and
@@ -182,9 +198,10 @@ transport/provider field order, unknown field, omitted effect, implicit
   within its declared SLO. Emergency drain or a non-progressing/corrupt job
   withdraws the affected cohort.
 - Bound the executable V1 replay path to two generations, one format (V1) per
-  generation, two PRF derivations, five candidate-row reads, and one authenticated
-  open. Two formats/four derivations are a future hard ceiling only after a
-  separately accepted format lifecycle; no V2/V3 writer is admitted by this plan.
+  generation, two returned-authority idempotency-locator derivations, five
+  locator-row reads, and one authenticated open. A future format lifecycle may
+  add separately bounded reader work but does not add locator derivations, because
+  the locator is format-independent; no V2/V3 writer is admitted by this plan.
 - Bound queues and in-flight work; reject retryably before unbounded memory or
   lock contention. Background delivery may not starve foreground reads/writes.
 - Evaluate expiry/effective-window boundaries from a trusted interval. If the
@@ -256,9 +273,11 @@ objectives as unqualified rather than manufacturing availability evidence.
 - Real-file and backup inspection finds none of the injected sensitive
   sentinels; fresh-process reopen, key rotation/re-encryption, planned and
   emergency revocation, commit-authorization recovery, and replay preserve the
-  declared durability contract. The blind index only locates a candidate:
-  equality authenticates/decrypts its ciphertext then constant-time compares
-  matching canonical plaintext in memory; ciphertext equality is forbidden.
+  declared durability contract. The generation-scoped opaque idempotency locator
+  only locates the logical key slot; equality authenticates/decrypts its
+  ciphertext then constant-time compares matching canonical plaintext in memory.
+  Ciphertext equality is forbidden, and a changed request under the same key
+  conflicts rather than reserving a second effect.
   Fresh boot fences the prior repository epoch and resolves every bounded
   provider-side pending receipt before readiness.
 - Canonical-request and staged-write-descriptor goldens are identical through
@@ -268,22 +287,27 @@ transport fields or explicit/default-equivalent optionals replays; a changed
 semantic field conflicts. Every committed employee, lifecycle,
 idempotency/outcome, and audit/outbox effect appears exactly once in the
 authenticated staged descriptor.
-- Independent Cargo and Buck encoders assert exact complete blind-index and
-  commit-binding preimages, including domains, purpose, component count, tags,
-  lengths, fixed widths, omission/reordering, and exact/limit-plus-one bounds.
-  Replay scheduled before/during/after page CAS, response loss, hard close,
-  source drain/loss, revocation, and schema N/N+1 restart returns the original outcome
-  or a typed refusal and never commits a second effect.
+- Independent Cargo and Buck encoders assert exact complete idempotency-locator
+  and commit-binding preimages, including domains, purpose, component count,
+  tags, lengths, fixed widths, omission/reordering, and exact/limit-plus-one
+  bounds. Replay scheduled before/during/after page CAS, response loss, hard
+  close, source drain/loss, revocation, and schema N/N+1 restart returns the
+  original outcome or a typed refusal; a changed request under the same logical
+  key returns conflict and never commits a second effect.
 - A normal rotation hard-closes at every scan/open/seal/reindex/page-CAS/
   checkpoint/zero-count/revoke boundary and a fresh process deterministically
-  resumes from the last committed page. Old-generation ciphertext and blind-
-  index references reach zero before the provider reports `Revoked`; page and
+  resumes from the last committed page. Old-generation ciphertext and
+  idempotency-locator references (and any non-replay field-index references)
+  reach zero before the provider reports `Revoked`; page and
   whole-step work remain inside the declared hard limits.
 - Keyring membership evidence registers two repositories, freezes their exact
   membership instances in a G-to-G+1 fence, refuses a concurrent
   enroll/remove/rejoin or G+2 request, and permits revocation only after both
   snapshot-bound terminal zero-reference receipts and provider unresolved counts
-  reach zero. A partitioned or omitted repository has no receipt and therefore
+  reach zero. Decommission evidence persists an intent and write fence before
+  provider fencing, races authorization/commit/proof/removal at every boundary,
+  and proves that an observed or removed member cannot commit a durable
+  reference. A partitioned or omitted repository has no receipt and therefore
   cannot be removed or let G advance to G+2.
 - Success and error responses, stored replay outcomes, returned strings, and
   repeated fields stay within exact hard ceilings under checked accounting;
@@ -316,6 +340,10 @@ authenticated staged descriptor.
   without a commit-binding mismatch, skip a rekey row, advance a checkpoint
   after a failed page CAS, loop without a work bound, or revoke with any old-
   generation repository reference.
+- A decommission proof is produced without a current provider/local admission
+  fence, does not bind the repository/member/epoch/snapshot/rotation state and
+  terminal write sequence, or permits a durable write after its observation or
+  removal.
 - A health endpoint claims durability, delivery, or SLO qualification absent
   corresponding evidence.
 - An eligible request is removed from the availability denominator because a
@@ -328,7 +356,11 @@ authenticated staged descriptor.
   lifecycle/audit-outbox write, and immediately before/after commit; reopen the
   same database after each point.
 - Lose the successful response after commit and replay the request; then replay
-  the key with a changed canonical request.
+  the same logical key with a changed canonical request under active-only,
+  active-plus-draining, post-page-rekey, hard-close, and fresh-process schedules.
+  Every schedule derives both bounded generation locators before lookup and
+  proves exactly one stored effect: same plaintext replays and changed plaintext
+  conflicts.
 - Inject corrupt/old schema versions, full disk, busy/locked database, expired
   pack/PDP proof, cross-tenant input, downstream timeout, and outbox redelivery.
 - Kill the adapter during migration and prove it reopens at either the prior
@@ -369,9 +401,21 @@ authenticated staged descriptor.
   returns the specified typed refusal without acknowledgement or revocation.
 - Register duplicate/missing repositories, race enrollment/removal/rotation,
   partition one enrolled repository, retry after crash, and attempt a rejoin with
-  a stale membership version or decommission proof. Each schedule preserves the
-  frozen fence snapshot; a zero-reference or retirement receipt from another
-  snapshot, member instance, generation set, or unresolved-authorization count
-  is rejected.
+  a stale membership version or decommission proof. For decommission, race an
+  authorization immediately before and after the durable intent, provider fence,
+  each bounded SQLite scan page, terminal zero observation, proof issuance, and
+  atomic removal; inject response loss, provider partition, process crash, stale
+  live-generation digest, concurrent rotation, and changed-operation-id replay.
+  A resumed operation either returns its identical result or a typed refusal;
+  the old member remains write-closed and cannot rejoin until a fresh registration.
+  Each schedule preserves the frozen fence snapshot; a zero-reference,
+  unresolved-authorization, decommission, or retirement receipt from another
+  snapshot, member instance, generation set, fence/epoch, or unresolved count is
+  rejected.
+- Execute the dev-only key-service composition target against a real SQLite file
+  and the accepted provider contract server. It must exercise
+  `AcquireReplayGenerationSetV1`, returned-authority locator derivation, typed
+  stale/replayed/changed-request/provider-loss outcomes, and the reverse-edge
+  scan that permits repository/SQLite dependencies only in that test target.
 
 </acceptance>
