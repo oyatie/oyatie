@@ -1,4 +1,4 @@
-//! Inner owner grammar for ADR-0719 D-8.
+//! Inner owner grammar. Provenance: ADR-0719 D-8.
 
 use super::payload::{validate_cedar, validate_iac};
 use super::test_fixture::validate_test_tree;

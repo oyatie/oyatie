@@ -1,5 +1,5 @@
 # TAP presubmit (ADR-0719 D-9/D-10). Occupant of the required context: job `presubmit`.
-# Graph: trusted D-8 layout + occupancy (pull_request only) + lint + clippy
+# Graph: trusted repository layout + occupancy (pull_request only) + lint + clippy
 # + deny + test (nextest workspace) + path-gated live Postgres.
 name: presubmit
 
@@ -21,7 +21,7 @@ env:
 
 jobs:
   layout:
-    name: layout (D-8)
+    name: repository layout
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
