@@ -113,11 +113,17 @@ workflow/payroll/audit delivery, no recovery campaign, and no measured SLO.
   SQLite commit authorization is linearly ordered with key-generation
   rotation/revocation and resolved committed by the key authority.
 - Derive replay equality only from the HR-owned canonical-request format and
-  bind commit authorization only to the HR-owned staged-write descriptor. A
-  transport/provider field order, unknown field, omitted effect, implicit
-  default, or provider-local normalization MUST NOT change either protected
-  preimage. New format writers remain disabled until every cohort reader admits
-  N/N+1 and stored byte-golden compatibility.
+bind commit authorization only to the HR-owned staged-write descriptor. A
+transport/provider field order, unknown field, omitted effect, implicit
+default, or provider-local normalization MUST NOT change either protected
+preimage. New format writers remain disabled until every cohort reader admits
+N/N+1 and stored byte-golden compatibility.
+- During normal rotation, resolve replay only through a provider-authenticated
+  set of at most active plus immediately prior draining generations; derive all
+  generation-scoped candidates before one SQLite writer lookup, compare only
+  encrypted canonical bytes, and fail closed on collision, stale lease, source
+  loss, or provider loss. This preserves original-outcome replay without a
+  stable cross-generation equality token or a second business effect.
 
 ## Durability and portability
 
@@ -220,11 +226,17 @@ objectives as unqualified rather than manufacturing availability evidence.
   fences the prior repository epoch and resolves every bounded provider-side
   pending receipt before readiness.
 - Canonical-request and staged-write-descriptor goldens are identical through
-  Cargo and Buck and across N/N+1 readers. A same semantic request with reordered
-  transport fields or explicit/default-equivalent optionals replays; a changed
-  semantic field conflicts. Every committed employee, lifecycle,
-  idempotency/outcome, and audit/outbox effect appears exactly once in the
-  authenticated staged descriptor.
+Cargo and Buck and across N/N+1 readers. A same semantic request with reordered
+transport fields or explicit/default-equivalent optionals replays; a changed
+semantic field conflicts. Every committed employee, lifecycle,
+idempotency/outcome, and audit/outbox effect appears exactly once in the
+authenticated staged descriptor.
+- Independent Cargo and Buck encoders assert exact complete blind-index and
+  commit-binding preimages, including domains, purpose, component count, tags,
+  lengths, fixed widths, omission/reordering, and exact/limit-plus-one bounds.
+  Replay scheduled before/during/after page CAS, response loss, hard close,
+  source drain/loss, revocation, and N/N+1 restart returns the original outcome
+  or a typed refusal and never commits a second effect.
 - A normal rotation hard-closes at every scan/open/seal/reindex/page-CAS/
   checkpoint/zero-count/revoke boundary and a fresh process deterministically
   resumes from the last committed page. Old-generation ciphertext and blind-

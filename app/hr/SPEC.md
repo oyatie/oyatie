@@ -329,19 +329,37 @@ normalize to the same typed command. An unknown, duplicate, omitted, out-of-
 order, overlong, or trailing same-version field is `CanonicalFormatInvalid`,
 not ignored.
 
-The blind-index input is the literal ASCII domain
-`hr.people.blind-index/canonical-request/v1\0`, followed by this exact
-length-prefixed scope in order: repository id, tenant id, operation kind,
-idempotency key, request schema version, canonical format version, key
-generation, and `CanonicalRequestV1` bytes. Every variable-width component is
-`u32be(length) || bytes`; fixed integers retain the widths above. The accepted
-L2i.0d PRF authenticates that preimage without parsing or rewriting it. The
-complete domain/scope/message preimage is capped at 288 KiB.
+The sole V1 replay purpose is `CanonicalRequestReplayV1`, encoded as the
+fixed `u16be(1)` `purpose_tag`. It means only “key-generation-scoped equality
+for this exact HR canonical request in its logical replay slot”; it is not a
+field label, a caller input, a provider-selected value, or a reusable
+cross-generation equality token. The purpose is already versioned by both its
+name and the V1 domain below. No other V1 purpose tag is admitted. This is the
+single law for every `blind_index` caller, including the repository port,
+SQLite adapter, rekey worker, Cargo vectors, and Buck vectors.
+
+The blind-index full preimage is exactly the literal ASCII domain bytes
+`hr.people.blind-index/canonical-request/v1\0` (no length prefix), followed by
+the following nine components in this order: `u16be(1)` purpose tag;
+`u32be(length) || repository_id` (at most 256 opaque bytes, no normalization);
+`u32be(length) || tenant_id` (at most 8 KiB, its validated canonical ASCII
+bytes unchanged); `u16be(operation_kind)`; `u32be(length) || idempotency_key`
+(at most 8 KiB, its validated canonical ASCII bytes unchanged);
+`u32be(request_schema_version)`; `u16be(canonical_request_format_version)`;
+`u64be(key_generation)`; and `u32be(length) || CanonicalRequestV1` (at most
+256 KiB, its already-valid exact bytes unchanged). There is no component count
+because the count is permanently nine for this V1 preimage; variable component
+lengths, integer widths, order, domains, bounds, and normalization are exactly
+those stated here. Checked `u64` accounting rejects an overlong component or a
+complete preimage over 288 KiB before any PRF call. The accepted L2i.0d PRF
+authenticates these bytes without parsing or rewriting them.
 
 V1 writers remain the only writers until a later accepted V2 decision records
 a format barrier. An N+1 reader MUST read V1 plus its own V2; an N reader seeing
 V2 returns `CanonicalFormatUnsupported` and never guesses equality. The stored
-format version selects the reader and blind-index derivation on replay. No V2
+format version selects the authenticated canonical reader and comparison on
+replay; the provider-authenticated generation set selects all candidate
+derivations before any row is read. No V2
 writer may enter a cohort until every process that can acquire its repository
 epoch advertises V2 read support. Golden vectors fix every byte above and prove
 transport-field reordering and absent/default-equivalent optionals produce the
@@ -418,42 +436,85 @@ is `StagedDescriptorInvalid` and aborts before provider authorization. Thus the
 employee, lifecycle, idempotency/outcome, and audit/outbox effects cannot be
 omitted while satisfying the commit contract.
 
-`CommitBinding` authenticates the literal ASCII domain
-`hr.people.commit-binding/staged-write/v1\0`, followed in order by
-length-prefixed tenant id, repository id, repository epoch, authorization id,
-request schema version, descriptor format version, key generation, and the
-exact descriptor bytes. The provider treats the bytes as opaque. The SQLite
-row stores descriptor format/version and binding with its receipt; the complete
-domain/scope/descriptor preimage is capped at 96 KiB. N/N+1 read
-and writer-barrier rules match `CanonicalRequestV1`; an unsupported descriptor
-keeps recovery and readiness closed. Goldens cover exact bytes, all four
-effects, each changed field, omission, duplication, reordering, unknown tags,
-and exact/limit-plus-one sizes.
+`CommitBinding` authenticates one complete V1 outer preimage. It is the literal
+ASCII domain bytes `hr.people.commit-binding/staged-write/v1\0` (no length
+prefix), `u16be(8)` component count, then exactly eight ascending-tag
+components. Each component is `u16be(tag) || u32be(payload_length) || payload`:
+
+| Tag | Semantic component | Exact payload and bound |
+|---:|---|---|
+| 1 | `tenant_id` | validated canonical ASCII bytes unchanged; at most 8 KiB |
+| 2 | `repository_id` | opaque bytes unchanged; at most 256 bytes |
+| 3 | `repository_epoch` | exactly `u64be`, payload length 8 |
+| 4 | `commit_authorization_id` | opaque bytes unchanged; at most 128 bytes |
+| 5 | `request_schema_version` | exactly `u32be`, payload length 4 |
+| 6 | `descriptor_format_version` | exactly `u16be`, payload length 2 |
+| 7 | `key_generation` | exactly `u64be`, payload length 8 |
+| 8 | `StagedWriteDescriptorV1` | exact already-valid descriptor bytes unchanged; at most 64 KiB |
+
+The count, tags, component order, lengths, fixed widths, domains, bounds, and
+normalization above are part of the V1 byte contract. Components cannot be
+omitted, duplicated, reordered, padded, or normalized; fixed-width payloads
+with any other length fail `CommitBindingFormatInvalid` before provider
+authorization. Checked `u64` accounting rejects a complete preimage over 96
+KiB. The provider treats the complete bytes as opaque. SQLite stores descriptor
+format/version and binding with its receipt. N/N+1 reader and writer barriers
+match `CanonicalRequestV1`; an unsupported descriptor keeps recovery and
+readiness closed. Independent Cargo and Buck encoders share only typed semantic
+inputs and fixed vector fixtures, never a preimage encoder: both assert exact
+full-preimage bytes (including domain, count, tags, lengths, and payloads), not
+only descriptor bytes. Their vectors cover every component, changed purpose,
+N/N+1 dispatch, a reordered or omitted outer component, and every exact and
+limit-plus-one component and total bound; deliberately divergent typed input or
+encoder output must fail the independent-vector comparison.
 
 The stored entry binds the blind-index bytes and generation, encrypted canonical
 request and outcome bytes/version, canonical and descriptor format versions,
 repository epoch, commit binding, authorization receipt, and commit generation.
-Processing is:
+Its blind-index row is located only by the V1 generation-scoped candidate index;
+there is no stable cross-generation equality locator and no cleartext replay
+key. Processing is:
 
 1. Validate syntax, tenant binding, verified authorization, and overlay
    generation without mutation.
 2. Evaluate the deterministic domain command.
-3. Begin one SQLite transaction and inspect the idempotency entry.
-4. If the entry is committed, derive the blind index in its recorded admitted
-   generation and compare it in constant time. A match returns the stored
-   outcome; a mismatch returns `IdempotencyConflict` without mutation. A key
-   outage or revoked generation is `Unavailable`, never an unkeyed fallback.
-5. Otherwise encode `CanonicalRequestV1`, seal every sensitive employee,
+3. Encode `CanonicalRequestV1`, then obtain a provider-authenticated,
+   repository-epoch-bound `ReplayGenerationSetV1`. It contains the active
+   generation and, only during normal drain, its immediately prior draining
+   generation; it is sorted ascending by generation, contains one or two
+   distinct `u64be` values, and is capped at two values. A provider-signed
+   rotation-fence id and generation state accompany the set. The provider
+   returns neither a stable locator nor an arbitrary historical generation.
+   A missing, revoked, malformed, stale, or more-than-two set is
+   `ReplayGenerationSetUnavailable` and admits no mutation.
+4. Before opening SQLite, derive one candidate with `CanonicalRequestReplayV1`
+   for every returned generation, in set order, using the exact full preimage
+   above. Thus a normal drain costs at most two PRF calls and two fixed-width
+   candidates; derivation is performed for the complete returned set before any
+   candidate is selected. Begin one `BEGIN IMMEDIATE` SQLite writer transaction,
+   validate its repository epoch and rotation-fence id against the lease, and
+   query only those one or two candidate indexes. The query reads at most three
+   rows solely to distinguish zero, one, and multiple matches.
+5. Zero matches may reserve a new entry only with the lease's active-generation
+   candidate. Exactly one match must open that row's encrypted canonical request
+   using its recorded generation and compare the complete canonical bytes in
+   constant time. Equal bytes return its original outcome; unequal bytes return
+   `IdempotencyConflict` without mutation. More than one candidate row is
+   `ReplayCandidateCollision`; an unreadable source, generation/index mismatch,
+   or lost source key is `ReplaySourceUnavailable`. Both fail closed and release
+   the transaction without a new business effect. No code reads an entry to
+   discover a generation before locating it.
+6. For a zero-match reservation, seal every sensitive employee,
    lifecycle, request/outcome, and audit/outbox value through
    `hr-record-encryption-draft`, derive required blind indexes, and stage the
    authenticated envelopes plus the idempotency entry in the same transaction.
-6. Enumerate that exact staged row set, encode `StagedWriteDescriptorV1`, derive
+7. Enumerate that exact staged row set, encode `StagedWriteDescriptorV1`, derive
    one opaque commit binding over it, and call
    `authorize_commit` with tenant, the current repository-epoch lease, a stable
    commit-authorization id, key generation, blind-index identity, and that
    binding. Store the returned authorization receipt inside the same SQLite
    transaction.
-7. Commit durably according to the adapter profile, then call idempotent
+8. Commit durably according to the adapter profile, then call idempotent
    `resolve_commit(Committed { binding })`. Only the provider's resolved receipt
    authorizes acknowledgement. If SQLite rolls back, recovery calls
    `resolve_commit(Aborted)` instead. A caller disconnect after commit does not
@@ -498,19 +559,21 @@ generation, unique nonce, ciphertext, and authentication tag; provider or
 cipher types do not cross the port. A blind index is a fixed-width keyed PRF
 output scoped exactly to the detailed
 `(repository, tenant, operation kind, idempotency key, schema version,
-canonical-format version, key generation)` order and
+canonical-format version, key generation)` order plus the fixed
+`CanonicalRequestReplayV1 = u16be(1)` purpose tag and
 `hr.people.blind-index/canonical-request/v1\0` domain above, with the canonical-
-request bytes as the PRF message. Length-prefixing and domain separation are canonical; it
+request bytes as the PRF message. The exact full preimage is the nine-component
+SPEC grammar, not an adapter-specific field label. Length-prefixing and domain separation are canonical; it
 permits equality only inside that logical replay slot and never permits cross-
 tenant, cross-operation, or cross-idempotency-key matching. The accepted
 primitive, encoding, and width are decision-gated at L2i.0d.
 
-`CommitBinding` is a fixed-width provider-authenticated value over a canonical,
-length-prefixed staged-write descriptor, domain-separated by tenant,
-repository, epoch, authorization id, schema, and key generation. Neither it nor
-`CommitAuthorizationId` is an unkeyed request digest: the authorization id is an
-opaque repository-unique transaction identity, and neither value is a telemetry
-label or cross-slot equality token.
+`CommitBinding` is a fixed-width provider-authenticated value over the exact
+eight-component outer preimage and canonical staged-write descriptor specified
+above, domain-separated by tenant, repository, epoch, authorization id, schema,
+and key generation. Neither it nor `CommitAuthorizationId` is an unkeyed request
+digest: the authorization id is an opaque repository-unique transaction
+identity, and neither value is a telemetry label or cross-slot equality token.
 
 Associated data canonically binds tenant, legal entity, logical table and
 field, opaque row identity, schema version, and record generation. Every size
@@ -642,6 +705,26 @@ durably increments the cursor's counter, and the fourth attempt returns
 `RekeyCasRetryExhausted` until a new operator-admitted run, rather than skipping
 or spinning.
 
+Replay and rekey share that single SQLite writer order. A replay holding its
+provider-authenticated `ReplayGenerationSetV1` lease first derives both (or the
+one) candidate indexes and then enters `BEGIN IMMEDIATE`; a page rekey enters
+the same writer before it replaces an idempotency row's source-generation index
+with its target-generation index. If replay wins, rekey observes its committed
+row/revision on the next scan; if rekey wins, the already-derived active-plus-
+draining candidate set finds the target row. A rotation that wins before a new
+request returns both generations until zero-reference revocation; a request
+that wins authorization before the transition has its receipt resolved before
+the transition barrier. Consequently a retry immediately before, during, or
+after page CAS either returns the original outcome or a typed unavailable/
+corruption result, never a second employee, lifecycle, idempotency, or outbox
+effect. Response loss and hard close repeat this lookup after exclusive-epoch
+recovery. If a draining source is lost before its row rekeys, or the provider
+cannot authenticate the set/lease, readiness withdraws and
+`ReplaySourceUnavailable`/`ReplayGenerationSetUnavailable` is returned; a new
+reservation is forbidden. Source revocation occurs only after the terminal
+count includes every source candidate-index column at zero, so a post-revoke
+retry locates the rekeyed target row without retaining a cross-generation token.
+
 After an end-of-keyspace page, one SQLite transaction repeats the complete
 source-generation reference count across ciphertext and blind-index columns.
 Because the provider drain fence forbids new source-generation seals and commit
@@ -663,6 +746,17 @@ CanonicalFormatUnsupported, StagedDescriptorInvalid, RekeyCasConflict,
 RekeyCasRetryExhausted, ReferencesRemain, AuthorizationUnresolved,
 RepositoryUnavailable, ProviderUnavailable, ProviderCorrupt}`. None is mapped
 to success, conflict-free replay, key fallback, or completed revocation.
+
+The replay result/error vocabulary is closed as
+`ReplayLookupError::{ReplayGenerationSetUnavailable, ReplayCandidateCollision,
+ReplaySourceUnavailable, ReplayLeaseStale}`. A collision, stale lease, source
+loss, malformed set, provider loss, or source-generation/index mismatch never
+falls through to zero-match creation. Contract and real-file recovery evidence
+must independently exercise Cargo and Buck full-preimage vectors, one/two
+generation lookup, changed-purpose conflict, replay versus rekey immediately
+before/during/after page CAS, response loss, hard close, source drain/loss,
+zero-reference revocation, and N/N+1 restart. Each schedule proves the same
+semantic retry returns its original outcome and no second effect commits.
 
 Before a first cohort, readiness is false while any normal rekey job is
 incomplete. For an already-routed cohort, normal rotation may keep reads ready

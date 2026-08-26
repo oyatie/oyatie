@@ -509,14 +509,18 @@ associated-data, key-generation, and typed failure values plus `seal`, `open`,
 and `blind_index`; `seal` returns the envelope and its bounded commitment. Its
 blind-index input
 requires repository, tenant, operation kind, idempotency key, schema, canonical
-format version, field label, key generation, the fixed HR domain tag, and the
-already-encoded bounded canonical bytes; the output is opaque and fixed-width.
-The provider does not parse or normalize those bytes. An unkeyed request digest
-is not part of the port. It chooses no primitive, key provider, nonce source,
-cache, commit fence, or production adapter. No other owner may consume this
-draft port; L2i.0d must accept the production implementation and L2i.0f must add
-the structural slots, L2i.0g must freeze the provider-supported commit protocol,
-and L2i.0h must complete repository rekey before production adapter behavior.
+format version, the fixed `CanonicalRequestReplayV1 = u16be(1)` purpose tag,
+key generation, the fixed HR domain tag, and the already-encoded bounded
+canonical bytes; the output is opaque and fixed-width. The purpose tag is
+neither a caller input nor an alternative law. The literal nine-component full-preimage grammar,
+every component width/order/bound/normalization, and the 288-KiB cap are
+exactly SPEC-owned; this port receives typed components and must neither parse
+nor normalize the resulting bytes. An unkeyed request digest is not part of the
+port. It chooses no primitive, key provider, nonce source, cache, commit fence,
+or production adapter. No other owner may consume this draft port; L2i.0d must
+accept the production implementation and L2i.0f must add the structural slots,
+L2i.0g must freeze the provider-supported commit protocol, and L2i.0h must
+complete repository rekey before production adapter behavior.
 
 The only existing source paths that may be rewritten are the ten exact L2b.1
 domain items, the four L2c.1 use-case items,
@@ -1407,11 +1411,21 @@ operations are `acquire_repository_epoch`, `list_unresolved`,
 `authorize_commit`, and idempotent `resolve_commit`. It accepts only the exact
 bounded `StagedWriteDescriptorV1` bytes and fixed domain/scope from the
 repository port; it cannot parse, reorder, normalize, or omit effects. The
-repository item defines exclusive epoch acquisition and commit-state lookup.
-The SQLite item/migration stores canonical and descriptor format versions,
-repository identity/epoch, descriptor-derived binding, and opaque authorization
-receipt in the same transaction as the exact employee/lifecycle/idempotency/
-outbox rows.
+repository item defines exclusive epoch acquisition, commit-state lookup, and
+the provider-authenticated `ReplayGenerationSetV1` lookup lease. The lease
+returns only active plus immediately prior draining generations (one or two
+sorted distinct `u64` values) and its rotation fence; replay derives every
+generation-scoped candidate before SQLite and never reads a row to discover its
+generation. The SQLite item/migration stores canonical and descriptor format
+versions, repository identity/epoch, descriptor-derived binding, opaque
+authorization receipt, and generation-scoped idempotency index in the same
+transaction as the exact employee/lifecycle/idempotency/outbox rows. One
+`BEGIN IMMEDIATE` writer validates the lease/fence, reads at most three
+candidate rows, opens and constant-time compares the encrypted canonical bytes,
+and returns `IdempotencyConflict`, `ReplayCandidateCollision`,
+`ReplaySourceUnavailable`, or `ReplayLeaseStale` without reservation as
+appropriate. A zero match reserves only with the lease active generation;
+there is no stable cross-generation equality token.
 
 The linearization rule remains provider authorization ordered with
 `Active -> Draining | EmergencyDraining -> Revoked`. A transition that wins
@@ -1430,14 +1444,18 @@ frozen. Each Rust file is at most 300 lines. Build closure and reviewers are the
 L2i.0f closure plus external API/format compatibility and fault injection.
 Success is byte-golden parity, N/N+1 replay, one complete descriptor-derived
 binding and resolved receipt per durable transaction, no acknowledgement before
-resolution, and no completed revocation with an earlier receipt pending.
+resolution, no completed revocation with an earlier receipt pending, and
+authoritative one/two-generation replay lookup with no duplicate effect.
 Failure is provider-selected preimage semantics, an omitted/reordered effect,
 unknown same-version field, unkeyed equality, receipt outside SQLite, implicit
 expiry/abort, stale epoch, or frozen-path edit. Unrouted rollback removes the
 one migration and restores the empty structural files. After format admission,
 rollback for any non-scratch database requires a reader that preserves V1 rows;
 it never deletes receipts or downgrades formats. Faults include every format
-exact/limit-plus-one and N/N+1
+exact/limit-plus-one and N/N+1 full-preimage golden (including domain, purpose,
+outer count, tags, lengths, fixed widths, omission and reordering), plus replay
+before/during/after rotation and response-loss/hard-close recovery; they use
+independent Cargo and Buck encoders sharing only typed inputs and vectors.
 golden plus pause-before/after authorize, commit, resolve, drain, process kill,
 and exclusive recovery.
 
@@ -1491,7 +1509,13 @@ and reseals outside SQL, recomputes canonical-request blind indexes, then one
 `BEGIN IMMEDIATE` transaction CAS-checks row identity/revision/source
 generation/envelope commitment/old indexes and atomically installs the complete
 page plus checkpoint. A mismatch aborts the page; the deterministic same-cursor
-counter refuses the fourth attempt. Terminal reference counting covers every
+counter refuses the fourth attempt. Replay uses that same SQLite writer: it
+obtains a provider-authenticated active-plus-draining set, derives all one/two
+generation-scoped candidates before lookup, and either returns the one
+encrypted-canonical constant-time match or refuses collision/source-loss/stale
+lease without a reservation. If replay commits first, the page retries its same
+cursor; if rekey commits first, the target candidate locates the same row. No
+stable cross-generation locator exists. Terminal reference counting covers every
 ciphertext and blind-index generation column and produces a provider-
 authenticated receipt; provider revoke also requires zero earlier unresolved
 authorizations. Fresh-process epoch fencing discovers a provider rotation whose
@@ -1526,7 +1550,11 @@ formats; it cannot reactivate an old generation or downgrade/delete rekey state.
 Faults hard-close before/after rotation discovery, job creation, scan, open,
 seal, reindex, page CAS, checkpoint, terminal count, provider revoke, and local
 completion; cover every bound and typed error; reopen with a new process/client;
-and prove the last committed checkpoint is the only resume point.
+and prove the last committed checkpoint is the only resume point. The matrix
+adds same semantic replay immediately before/during/after page CAS, response
+loss, hard close, source drain/loss, terminal revocation, and N/N+1 restart;
+every schedule returns the original outcome or the closed refusal and proves no
+second employee/lifecycle/idempotency/outbox effect commits.
 
 ## L2i.1a through L2i.1e — Admit production authority adapter structures
 

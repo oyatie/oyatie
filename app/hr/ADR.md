@@ -217,10 +217,15 @@ over-budget files are debt, not precedent.
   descriptor can omit an employee, lifecycle, idempotency, or outbox effect,
   and a key adapter with no repository edge cannot scan or re-encrypt SQLite.
 - **rule:** HR MUST own the exact versioned canonical-request and staged-write-
-  descriptor encodings in its repository port. Their semantic fields, order,
-  normalization, bounds, domain tags, optional/default behavior, and upgrade
-  window are fixed in `SPEC.md`; provider code receives bounded bytes and
-  authenticates them without reinterpretation. Normal rotation MUST execute
+descriptor encodings in its repository port. Their semantic fields, order,
+normalization, bounds, domain tags, optional/default behavior, and upgrade
+window are fixed in `SPEC.md`; provider code receives bounded bytes and
+authenticates them without reinterpretation. `CanonicalRequestReplayV1` is the
+sole fixed purpose tag for the generation-scoped replay PRF; no undefined field
+label or stable cross-generation equality token exists. Replay first obtains a
+provider-authenticated bounded active-plus-draining generation set, derives all
+candidate indexes, and serializes its encrypted canonical comparison with rekey
+under the repository's SQLite writer. Normal rotation MUST execute
   through a provider-neutral HR rekey contract and the selected repository:
   after the provider drain fence, a bounded cursor scan opens old-generation
   envelopes, seals under the active generation, recomputes generation-scoped
@@ -230,13 +235,17 @@ over-budget files are debt, not precedent.
   Structure/file admission, commit-format behavior, and rekey behavior remain
   separate L2i.0f, L2i.0g, and L2i.0h changes.
 - **ensure:** byte goldens and N/N+1 tests cover semantic equivalence, changed
-  fields, unknown/omitted/reordered descriptor fields, and every exact/limit-
-  plus-one bound. Real-file SQLite tests interrupt scan, open, seal, reindex,
-  page CAS, checkpoint, zero-count, provider revoke, and completion recording;
-  a fresh process resumes from the last committed checkpoint, and stale epochs,
-  CAS exhaustion, missing keys, provider/repository outages, corrupt cursors,
-  and nonzero references produce closed typed outcomes with no key fallback or
-  premature readiness.
+fields, unknown/omitted/reordered descriptor fields, each full outer
+`CommitBinding` preimage component, and every exact/limit-plus-one bound.
+Independent Cargo and Buck encoders share typed inputs but not an encoder.
+Real-file SQLite tests interrupt scan, open, seal, reindex,
+page CAS, checkpoint, zero-count, provider revoke, and completion recording;
+a fresh process resumes from the last committed checkpoint, and stale epochs,
+CAS exhaustion, missing keys, provider/repository outages, corrupt cursors,
+and nonzero references produce closed typed outcomes with no key fallback or
+premature readiness. Replay schedules immediately before/during/after rekey
+CAS, response loss, hard close, source loss/drain, revocation, and N/N+1 restart
+return the original outcome or a typed refusal without a second effect.
 - **overturn_when:** an independently reviewed repository or encrypted-SQLite
   design proves equivalent cross-version replay identity, complete staged-
   effect authentication, bounded crash-resumable re-encryption, and
