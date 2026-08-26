@@ -201,14 +201,21 @@ over-budget files are debt, not precedent.
   attempts see its admission epoch; the matching provider CAS then fences new
   replay, seal, and commit authorization. The bounded proof authenticates a
   complete all-live-generation scan and separate zero ciphertext, locator, and
-  non-replay-index counts. After proof and before provider removal, the
-  repository persists an immutable plan carrying the proof/fences, disposition/
-  manifest, and every provider/local side-effect id/request. It then performs
-  typed provider removal, local completion, status, and recovery only from that
-  plan: provider membership removal is the global linearization point and returns
-  a signed proof-and-plan-bound terminal receipt, while SQLite remains fenced
-  through plan/handoff/`Retiring`/disposition and the matching local
-  `BEGIN IMMEDIATE` completion CAS. This is not narrated as a distributed
+  non-replay-index counts. Before Remove, the repository persists an immutable
+  known-input plan carrying proof/fences, disposition/manifest, stable
+  provider/local ids, and the exact Remove request only. A sole-member provider
+  result durably exposes its authenticated `RetirementHandoffReady` value; SQLite
+  persists that exact handoff, then a separate immutable post-handoff/pre-Begin
+  plan containing the handoff bytes/authenticator, reserved Begin/fence ids, and
+  exact Begin request/digest before Begin. It likewise writes a post-Begin
+  Complete plan, then post-terminal disposition and post-storage completion
+  plans before each later side effect. It performs typed provider removal, local
+  completion, status, and recovery only from those records: the provider
+  non-last-member removal CAS or sole-member terminal-retirement CAS is the
+  global linearization point and returns a signed proof-and-plan-bound terminal
+  receipt, while SQLite remains fenced through
+  plan/handoff/Begin-plan/`Retiring`/Complete-plan/disposition/completion and the
+  matching local `BEGIN IMMEDIATE` CAS. This is not narrated as a distributed
   transaction. A local drain/delete/quarantine fault leaves a plan-and-receipt-
   bound recoverable state rather than reopening admission.
   The matching HR adapter remains draft while the port is draft. Plaintext fallback,
@@ -301,32 +308,42 @@ over-budget files are debt, not precedent.
 
   After that proof but before any provider side effect,
   `RemoveRepositoryDecommissionV1` durably CASes an immutable
-  `RepositoryDecommissionRemovalPlanV1`. The plan binds the proof/fences,
-  `Quarantine` or `Delete` disposition and manifest, a preallocated retirement-
-  fence id, and pairwise-distinct provider-remove, Begin-retirement,
-  Complete-retirement, local-disposition, and local-completion operation ids with
-  every request digest. A later
-  cardinality result therefore cannot choose or change an id or disposition.
+  `RepositoryDecommissionRemovalPlanV1`. That pre-Remove plan binds the
+  proof/fences, `Quarantine` or `Delete` disposition and manifest, a
+  preallocated retirement-fence id, distinct scoped provider and local operation
+  ids, and only the exact Remove request/digest whose inputs already exist. A
+  later cardinality result cannot choose or change an id or disposition, but it
+  can return a provider-authenticated handoff whose bytes did not exist before
+  Remove. SQLite must persist that handoff and an immutable
+  `RepositoryDecommissionRetirementBeginPlanV1` before Begin, then persist an
+  immutable `RepositoryDecommissionRetirementCompletePlanV1` before Complete;
+  later provider-terminal and storage receipts similarly precede immutable local
+  disposition and completion plans.
   `RemoveKeyringRepositoryV1` rechecks its plan digest together with the proof
   before membership change. A non-last removal yields a proof-and-plan-bound
-  receipt; a sole member first durably records its handoff, then provider
-  `Retiring`, then a terminal retirement receipt. `CompleteKeyringRetirementV1`
+  receipt; a sole member first receives provider `RetirementHandoffReady`,
+  durably records that exact handoff and Begin plan, then provider `Retiring`,
+  then a Complete plan and terminal retirement receipt. `CompleteKeyringRetirementV1`
   verifies the same all-generation zero ciphertext/locator/non-replay-index
   checkpoint and counts before it revokes every generation.
 
   The local status type has `ProofIssuePlanned`, `RemovalPlanned`,
-  `RetirementHandoff`, `Retiring`,
-  provider-terminal-pending-disposition, disposition-in-progress,
-  disposition-applied, and receipt-carrying `Removed`/`KeyringRetired` variants.
+  `RetirementHandoffPersisted`, `RetirementBeginPlanned`, `Retiring`,
+  `RetirementCompletePlanned`, provider-terminal-pending-disposition,
+  disposition-planned/in-progress/applied, completion-planned, and
+  receipt-carrying `Removed`/`KeyringRetired` variants.
   `CompleteRepositoryDecommissionV1` accepts only the stored plan digest and
   stored local-completion id: it never accepts a caller-provided receipt or new
   disposition. `GetRepositoryDecommissionStatusV1` validates the corresponding
   provider state before reporting it. `RecoverRepositoryDecommissionV1` reads
-  the plan and repeats only its stored Remove, Begin, Complete, disposition, or
-  completion step; its response id cannot become a side-effect id. Thus every
-  crash/lost-response edge after plan write, handoff, Begin, Retiring, Complete,
-  terminal receipt, drain/disposition, or local CAS converges without inventing
-  an id, re-registering, or reopening the old epoch. The provider CAS/terminal
+  the plans and repeats only its stored Remove, Begin, Complete, disposition, or
+  completion step; before each later side effect it writes that step's exact
+  request plan, and its response id cannot become a side-effect id. Thus every
+  crash/lost-response edge after plan write, provider handoff, handoff
+  persistence, Begin-plan persistence, Begin, `Retiring`, Complete-plan
+  persistence, Complete, terminal receipt, disposition/completion planning and
+  execution, or local CAS converges without inventing an id, re-registering, or
+  reopening the old epoch. The provider CAS/terminal
   receipt is the global removal linearization point; local plan/intermediate/
   terminal CASes are independently atomic and deliberately fenced across the
   remote/local gap.
@@ -340,6 +357,14 @@ over-budget files are debt, not precedent.
   reopened-admission epoch before local admission can reopen. A recovery-response
   id is never a provider-operation id, so a delayed original begin cannot
   resurrect that `NotStarted` race.
+  Provider operation ids are explicitly kind-scoped and their canonical request
+  digests include that kind and its operation-specific authority tuple; local
+  response/disposition/completion ids live in separate namespaces. g.0 freezes named exhaustive
+  `ProviderDecommissionStatusV1`, provider Abort and membership-mutation result
+  sums, and repository Abort/Remove/Complete result sums. Port, key-adapter, and
+  SQLite implementations match every status/error branch without a wildcard;
+  `DecommissionObservationStale` is a named provider error and maps unchanged
+  into the proof/removal paths that can observe it.
   A non-last remove yields the successor snapshot. A last remove instead yields
   a typed retirement handoff; `BeginKeyringRetirementV1` fences all writers and
   exposes `Retiring`, while `CompleteKeyringRetirementV1` produces the distinct

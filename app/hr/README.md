@@ -41,29 +41,40 @@ an old generation is revoked. Repository decommission first closes a durable
 SQLite write-admission fence and the matching provider admission fence, then
 produces a bounded, authenticated proof of zero ciphertext, locator, and
 non-replay field-index references across every live generation plus zero
-unresolved authorizations. Before any provider removal/retirement side effect,
-SQLite durably records an immutable removal plan that binds the proof/fences,
-fixed `Quarantine` or `Delete` disposition and manifest, a preallocated
-retirement-fence id, and distinct Remove/Begin/Complete/disposition/completion
-ids and request bytes. The
-repository subsequently performs typed provider removal, local completion,
-status, and recovery operations only from that plan. Its local status includes
-planned, handoff, `Retiring`, provider-terminal-pending-disposition,
-disposition-in-progress/applied, and receipt-carrying terminals; the provider
-receipt also binds the plan. Response loss, crash, local drain/delete/quarantine
-failure, or partition therefore repeats only the stored step and converges
-without inventing an id/disposition, reopening, or re-registering an old member.
+unresolved authorizations. Before Remove, SQLite durably records an immutable
+known-input removal plan that binds proof/fences, fixed `Quarantine` or `Delete`
+disposition and manifest, preallocated retirement fence, distinct scoped
+provider/local ids, and the exact Remove request. A sole-member provider result
+is `RetirementHandoffReady`, a durable, queryable signed handoff; SQLite
+persists that handoff and a separate post-handoff Begin plan with exact handoff
+bytes/authenticator, Begin id, fence id, and request digest before it calls
+Begin. It similarly persists
+post-Begin Complete, post-terminal disposition, and post-storage completion
+plans before each later side effect. The repository performs typed provider
+removal, local completion, status, and recovery only from those records. Its
+local status includes planned, handoff-persisted, Begin-planned, `Retiring`,
+Complete-planned, provider-terminal-pending-disposition,
+disposition-planned/in-progress/applied, completion-planned, and receipt-
+carrying terminals; the provider receipt also binds the parent plan. Response
+loss, crash, local drain/delete/quarantine failure, or partition therefore
+repeats only the stored step and converges without inventing bytes, an
+id/disposition, reopening, or re-registering an old member.
 The `Removed` status carries removal, storage, and local-completion receipts; it
 is never a bare terminal label. A sole member receives a typed retirement
-handoff rather than an impossible empty membership snapshot: retirement fences
-all writers, reports `Retiring`, and revokes every generation only after the
+handoff rather than an impossible empty membership snapshot: it persists the
+exact Begin plan, retirement fences all writers, reports `Retiring`, and revokes
+every generation only after the
 same authenticated all-generation zero-reference/unresolved proof, ending in a
 separate no-member `Retired` keyring state. A begin operation has a provider-
 side abort tombstone; the durable intent preallocates distinct Begin, Issue-
 proof, and abort provider ids before Begin, then the terminal fenced scan writes
 the exact Issue request digest in `ProofIssuePlanned` before it calls Issue.
 Recovery sends only the persisted tuple through the tombstone CAS. A recovery
-response id never becomes a provider side-effect id, so `NotStarted` is not
+response id never becomes a provider side-effect id. Provider ids are
+operation-kind-scoped, and g.0 freezes named exhaustive provider status/Abort/
+membership-mutation and local Abort/Remove/Complete result sums; every status
+and error branch is explicitly matched in port/adapter/SQLite tests, including
+`DecommissionObservationStale`. Thus `NotStarted` is not
 permission to reopen and a late begin cannot resurrect a locally aborted fence.
 Minimal concrete
 key-adapter open/seal, authorization/resolution, and decommission-fence behavior

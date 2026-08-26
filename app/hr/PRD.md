@@ -167,13 +167,19 @@ transport/provider field order, unknown field, omitted effect, implicit
   locator, and non-replay field-index references across every live generation,
   plus zero unresolved authorizations, before the provider issues a proof.
   Before its first provider removal side effect,
-  `RemoveRepositoryDecommissionV1` writes a durable immutable removal plan that
-  binds that proof/fence, `Quarantine` or `Delete` local disposition and manifest,
-  and preallocated retirement-fence plus distinct provider Remove/Begin/Complete
-  and local disposition/completion ids plus their request bytes. The plan is the
-  sole source of those values on
-  retry or recovery; a changed id reuse is a typed
-  `MembershipOperationConflict`, not a new attempt.
+  `RemoveRepositoryDecommissionV1` writes a durable immutable pre-Remove plan
+  that binds that proof/fence, `Quarantine` or `Delete` local disposition and
+  manifest, preallocated retirement fence, and distinct scoped provider/local
+  ids plus only the exact Remove request whose inputs already exist. The plan is
+  the sole source of those values on retry or recovery; a changed id reuse is a
+  typed `MembershipOperationConflict`, not a new attempt. A sole-member Remove
+  returns provider `RetirementHandoffReady`, an authenticated, queryable handoff;
+  SQLite first durably
+  stores that handoff, then a separate immutable Begin plan containing exact
+  handoff bytes/authenticator, Begin id, fence id, and Begin request digest
+  before Begin. It persists a corresponding post-Begin Complete plan before
+  Complete, and post-terminal/disposition-receipt local plans before the later
+  local side effects.
 
   The earlier durable decommission intent likewise preallocates distinct Begin,
   Issue-proof, and abort provider-operation ids before the Begin call. Its
@@ -181,6 +187,12 @@ transport/provider field order, unknown field, omitted effect, implicit
   exact Issue request digest before Issue-proof. Abort and recovery response ids
   identify only their local response records; they cannot select, replace, or
   become any provider side-effect id.
+  Provider side-effect ids are kind-scoped, and their canonical digest binds the
+  kind plus its operation-specific authority tuple. The implementation baseline freezes named,
+  exhaustive provider status/Abort/membership-mutation results and repository
+  Abort/Remove/Complete results; every provider status/error is explicitly
+  matched by port, adapter, and SQLite tests. `DecommissionObservationStale` is
+  a provider error and stays that exact typed error in proof/removal paths.
 
   The repository then uses typed `AbortRepositoryDecommissionIntentV1`,
   `RemoveRepositoryDecommissionV1`, `CompleteRepositoryDecommissionV1`,
@@ -188,23 +200,25 @@ transport/provider field order, unknown field, omitted effect, implicit
   operations. Provider removal atomically rechecks proof, plan digest,
   snapshot/version, repository/member instance/epoch, and admission fence and
   returns a signed proof-and-plan-bound receipt. The local state is observable
-  as proof-issue-planned, planned, retirement-handoff, `Retiring`, provider-terminal-pending-
-  disposition, disposition-in-progress/applied, or receipt-carrying terminal
-  state. `CompleteRepositoryDecommissionV1` consumes only the stored plan and
-  terminal receipt, applies the bound local disposition, then records `Removed`
-  or `KeyringRetired` by matching atomic completion CAS. A lost response, crash,
+  as proof-issue-planned, planned, handoff-persisted, Begin-planned, `Retiring`,
+  Complete-planned, provider-terminal-pending-disposition,
+  disposition-planned/in-progress/applied, completion-planned, or receipt-
+  carrying terminal state. `CompleteRepositoryDecommissionV1` consumes only the
+  stored plans and terminal receipt, applies the bound local disposition, then
+  records `Removed` or `KeyringRetired` by matching atomic completion CAS. A lost response, crash,
   partition, or local drain/delete/quarantine failure is a plan/receipt-bound
   recovery state with readiness withdrawn, never a path that can omit a
   referenced member, invent an id/disposition, or reopen its old epoch.
-  Recovery replays only plan-bound steps after plan write, handoff, Begin,
-  `Retiring`, Complete, provider terminal receipt, local disposition, or local
-  completion. A delayed begin cannot resurrect after abort because the provider
+  Recovery replays only plan-bound steps after pre-Remove plan, provider
+  handoff, handoff persistence, Begin-plan, Begin, `Retiring`, Complete-plan,
+  Complete, provider terminal receipt, disposition-plan/disposition,
+  completion-plan/completion. A delayed begin cannot resurrect after abort because the provider
   atomically persists a begin-operation tombstone and SQLite CASes a strictly
   greater reopened admission epoch before local admission reopens. Recovery
   treats provider `NotStarted` for a persisted intent only as input to that
   stored Begin/abort-tuple tombstone CAS; it never opens from the observation
   alone or uses a recovery-response id for the provider abort.
-  Removing a sole member returns a typed retirement handoff rather than
+  Removing a sole member returns a typed, provider-queryable retirement handoff rather than
   an empty snapshot; provider retirement fences all writers, reports
   `Retiring`, verifies the proof's all-generation zero ciphertext/locator/
   non-replay-index checkpoint before revocation, and ends in a separate
@@ -344,15 +358,17 @@ authenticated staged descriptor.
   enroll/remove/rejoin or G+2 request, and permits revocation only after both
   snapshot-bound terminal zero-reference receipts and provider unresolved counts
   reach zero. Decommission evidence persists an intent and write fence before
-  provider fencing; persists a pre-provider plan; races authorization/commit/
-  proof/plan/provider-removal/handoff/Begin/`Retiring`/Complete/terminal/
-  disposition/local-completion/recovery at every boundary; and proves that an
+  provider fencing; persists a known-only pre-Remove plan; races authorization/
+  commit/proof/plan/provider-removal/provider-handoff/handoff-persistence/
+  Begin-plan/Begin/`Retiring`/Complete-plan/Complete/terminal/
+  disposition-plan/disposition/completion-plan/local-completion/recovery at every
+  boundary; and proves that an
   observed, provider-removed, or locally terminal member cannot commit a durable
   reference. A lost response or local storage drain/delete/quarantine fault
   resumes only from the signed proof-and-plan-bound terminal receipt and stored
-  disposition/id. It exercises the begin-tombstone race so a delayed begin
+  exact plan/id for the next step. It exercises the begin-tombstone race so a delayed begin
   cannot resurrect after abort. A sole-member removal returns a typed retirement
-  handoff and reaches a no-member `Retired` state only after every generation is
+  handoff, persists an exact Begin plan, and reaches a no-member `Retired` state only after every generation is
   revoked with all-zero ciphertext/locator/non-replay-index/unresolved evidence. A
   partitioned or omitted repository has no receipt and therefore cannot be
   removed or let G advance to G+2.
@@ -453,8 +469,11 @@ authenticated staged descriptor.
   authorization immediately before and after the durable intent, provider fence,
   each bounded SQLite ciphertext/locator/non-replay-index scan page, terminal
   zero observation, proof issuance, pre-provider removal-plan persistence,
-  provider removal, retirement handoff, Begin, `Retiring`, Complete, provider
-  terminal receipt, local drain/disposition, local completion, and recovery;
+  provider removal, provider retirement handoff, handoff persistence,
+  post-handoff Begin-plan persistence, Begin, `Retiring`, post-Begin
+  Complete-plan persistence, Complete, provider terminal receipt,
+  post-terminal disposition-plan persistence, local drain/disposition,
+  post-storage completion-plan persistence, local completion, and recovery;
   inject response loss before/after each provider/local boundary, provider
   partition, process crash, database busy/full/I/O/commit/quarantine/delete
   faults, stale live-generation digest, concurrent rotation, plan/receipt/count
