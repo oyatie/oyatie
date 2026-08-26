@@ -7449,6 +7449,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "secrets-kms"
+version = "0.1.0"
+dependencies = [
+ "secrets-kms-domain",
+]
+
+[[package]]
 name = "secrets-kms-api"
 version = "0.1.0"
 dependencies = [
@@ -8258,7 +8265,7 @@ dependencies = [
  "compute-resource",
  "data-classification",
  "network-residency",
- "secrets-kms-domain",
+ "secrets-kms",
  "storage-provider-draft",
 ]
 
@@ -8279,7 +8286,7 @@ dependencies = [
  "compute-resource",
  "data-classification",
  "network-residency",
- "secrets-kms-domain",
+ "secrets-kms",
  "storage-domain",
 ]
 
@@ -8312,7 +8319,7 @@ dependencies = [
  "compute-resource",
  "data-classification",
  "network-residency",
- "secrets-kms-domain",
+ "secrets-kms",
 ]
 
 [[package]]

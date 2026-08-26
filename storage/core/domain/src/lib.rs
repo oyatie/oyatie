@@ -17,7 +17,7 @@ use compute_resource::{CloudResourceError, PrincipalId, ResourceId, ResourceKind
 use data_classification::{Classified, DataClass, PrivacyDataClass};
 pub use network_residency::ResidencyClass;
 use network_residency::residency_class_allows_home_region_label;
-use secrets_kms_domain::{
+use secrets_kms::{
     CiphertextRef, DestructionProofRef, KmsKeyId, KmsKeyOrigin, KmsPurpose, KmsUseEventId,
     MaterialRef,
 };
