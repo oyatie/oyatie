@@ -1,17 +1,27 @@
-# HR microservice
+# HR
 
-Service: `hr`
-Owner: `axis-enterprise`
-Status: foundation-slice-in-progress
+Owner: `app/hr`
 
-This flat microservice owns employee/employment records, organizational reporting seams, labor-compliance obligation detection, and HR evidence carriers. It is not an Tenant RBAC boundary; Tenant RBAC view and Tenant RBAC view are tenant/product-surface metadata layered over this HR service.
+Status: portable-app migration; domain foundation only
 
-## Current landed slice
+HR is the tenant-portable People and employment application. It owns employee
+and employment records, organization/manager relations, onboarding readiness,
+leave policy projections, labor-compliance decisions, sensitive-read policy,
+and HR evidence references.
 
-- `core/employment-domain` (`hr-employment-domain`): pure Rust domain invariants for legal-entity-scoped employment records, audit-backed lifecycle events, and Korea-first rules-of-employment / labor-management-council threshold obligations.
+The landed Rust domain and in-process adapters are test foundations. They do
+not yet constitute a durable service, sold network facade, installed-pack
+integration, downstream delivery path, or measured SLO. The current direct
+Data/Gateway dependencies and volatile storage are migration debt.
 
-## Does not own
+Canonical owner law:
 
-- Payroll gross-to-net, statutory payroll export, or disbursement; those belong to `payroll`.
-- Double-entry posting, VAT workflow, AP/AR, or financial close; those belong to `accounting`.
-- Workflow execution, audit-chain persistence, tenant identity, storage, REST/gRPC, or cloud adapters.
+- [ADR.md](ADR.md) — decisions and portability boundaries
+- [PRD.md](PRD.md) — product requirements, acceptance, and SLO objectives
+- [SPEC.md](SPEC.md) — current contract and target transaction/fault semantics
+- [PLAN.md](PLAN.md) — L2a through L2f implementation sequence
+
+HR does not own payroll calculation/disbursement, accounting, workflow
+execution, audit-chain persistence, IAM/PDP, Data/Storage/Gateway engines,
+notification delivery, or deployment infrastructure. Those effects cross
+HR-owned ports and replaceable adapters.
