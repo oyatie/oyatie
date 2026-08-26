@@ -321,20 +321,41 @@ tests.
   re-attest/append that already-successful receipt or terminally release a
   decidable pin; it cannot Put, Bind, renew, CAS, rebase, or publish. Only
   one current terminal-recovery row exists per nonterminal pin and fenced
-  takeover replaces it rather than creating a recovery list. Every transition
-  to `RELEASED` atomically writes or validates its immutable decision and
-  terminal cause, records the release epoch, detaches all members, and deletes
-  that active terminal row in the same cell consensus transaction. A released
-  pin has no terminal-row or tombstone authority. The retained pin decision,
-  receipt, and accepted-history proof answer a lost response through the next
-  safe-GC proof; after compaction an old terminal credential still fails
-  because `pin_id` is a coordinator-minted, never-reused allocation and the
-  terminal operation requires an exact current row for a nonterminal pin. The
-  durable allocation high-water survives restore and compaction, so deletion
-  cannot recreate publishing power. Active terminal rows are charged one-for-
-  one to nonterminal admission and are bounded at 8/64/256 per locator,
-  tenant-cell, and cell (1,840/14,720/58,880 bytes); no terminal row survives
-  release. Only
+  takeover replaces it rather than creating a recovery list. Its active-row
+  accounting is a checked cell-consensus relation, not a best-effort counter:
+  an absent row to present row charges exactly `+1`/`+230`, an exact present row
+  to higher-fenced replacement charges `+0`/`+0`, an exact terminal-row release
+  to absent charges `-1`/`-230`, and a normal-owner release that proves the row
+  is absent charges `+0`/`+0`. `CommitNormalPublicationRelease` is the latter
+  work-lease-only path for normal CAS loss, Audit finalization, and safe abandon;
+  `CommitTerminalRecoveryRelease` is the exact-row-only terminal path. Both
+  prove their mutually exclusive relation condition in the same transaction, so
+  a normal-versus-terminal race, counter/row mismatch, underflow, overflow, or
+  stale credential changes no pin, member, row, or counter. Every transition to
+  `RELEASED` atomically writes or validates its immutable decision and terminal
+  cause, records the release epoch, detaches all members, and applies that exact
+  branch in the same cell consensus transaction. A released pin has no
+  terminal-row or tombstone authority. The retained pin decision, receipt, and
+  accepted-history proof answer a lost response through the next safe-GC proof.
+  A versioned, Audit-authenticated `PublicationRecoveryAuthorityV1` is the
+  independent anti-rollback source outside every restorable Cell pin snapshot:
+  it binds the cell/context locator, current namespace/incarnation, issued-index
+  high-water, retired-incarnation high-water, monotonic authority fence/revision,
+  predecessor digest, and integrity tag. The namespace is exactly the first 24
+  bytes of every coordinator-minted `pin_id`; the remaining eight bytes are its
+  strictly increasing allocation index. Before snapshot import or full-cell
+  recovery can make any pin current, the Audit source atomically retires the
+  restored locator/context incarnation and creates a higher fresh namespace
+  incarnation. The snapshot is then recovery-quarantined: old work and terminal
+  credentials fail, old pins may only be boundedly terminalized, and only
+  externally authenticated current state plus fresh allocations may re-enter
+  service. This is intentionally not a claim that all allocation indexes below
+  a high-water are terminal. The authority is reacquired through its authenticated
+  bootstrap locator from the independent Audit control-plane quorum; missing,
+  tampered, rolled-back, foreign, or exhausted authority fails closed rather than
+  recreating a pin. Active terminal rows are charged one-for-one to nonterminal
+  admission and are bounded at 8/64/256 per locator, tenant-cell, and cell
+  (1,840/14,720/58,880 bytes); no terminal row survives release. Only
   genuinely undecidable recovery is retained under bounded pin/byte/backlog
   admission. Aggregate pin quotas use only aggregate-legal maxima: migration
   AAD `1,572`, envelope overhead `3,156`, empty-transaction commit `2,040`,
@@ -357,10 +378,11 @@ tests.
   total-plus-one plan vectors while retaining the `65,640`-byte aggregate plan,
   `459,190`-byte manifest, general `2,296`-byte commit and aggregate-only
   `2,040`-byte commit, 177-byte anchor, 200-byte local-CAS receipt, 226-byte
-  accepted-history row, 266-byte pin-decision, 203-byte pin, and 230-byte
-  durable terminal-recovery lease; it also fixes the `3,156` aggregate envelope
-  overhead, exact derived pin quotas, and active-terminal-row count/byte
-  quotas. It supplies request/receipt/error
+  accepted-history row, 266-byte pin-decision, 203-byte pin, 230-byte durable
+  terminal-recovery lease, 142-byte recovery-authority locator, and 278-byte
+  out-of-snapshot recovery authority; it also fixes the `3,156` aggregate
+  envelope overhead, exact derived pin quotas, and active-terminal-row count/
+  byte quotas. It supplies request/receipt/error
   fields and the bootstrap/acquire/reserve/pin-renew/takeover/terminal-recovery/
   CAS/Audit/seal/persist/publish/release/ACK/reacquire crash matrix.
   `PLAN.md` puts KC's
@@ -368,7 +390,9 @@ tests.
   persistence content, makes KS (and transitive S/WS) a prerequisite of every
   provider structure lane, inserts the coordinator structural/content lanes
   before Audit callback, durable persistence, records-app readiness, D1e,
-  and D1c-KR, and
+  and D1c-KR, gives the Audit operation port an explicit one-way
+  `record-protection -> audit-sink` Cargo/Buck import for KC-owned recovery
+  frames, and
   gives KK--not KX--the sole acquisition mapping over the direct Cargo/Buck
   edge. Conformance scans reject raw-key-shaped Data
   values and test malformed/tampered/replayed/truncated/substituted frames,
@@ -377,9 +401,11 @@ tests.
   successor takeover, delayed loser H1-to-H2, H0-to-H1 pre-Audit recovery and
   ordered H1/H2 append, `+1,023/+1,024/+1,025` horizon fencing, coordinator
   epoch re-attestation, cell-local snapshot refresh, pin/GC races,
-  terminal-release atomic delete, response-loss retry, stale terminal
-  credentials before and after safe-GC, and N/N+1 sequential horizon recovery
-  across crash/restore and failed cleanup,
+  terminal-release atomic delete, all four active-row accounting branches,
+  response-loss retry, stale terminal credentials before and after safe-GC, and
+  N/N+1 sequential horizon recovery across crash/restore and failed cleanup,
+  snapshot-before-release then safe-GC then old-snapshot recovery for every
+  decision outcome, external-authority source loss/tamper/rollback/exhaustion,
   aggregate purpose/AAD/transaction quota exact-plus-one boundaries,
   stale/idempotent CAS, every crash boundary, concurrent
   allocation, N/N+1 counter/chunk, lease burn, bootstrap catalog source loss,

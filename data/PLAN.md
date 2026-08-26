@@ -77,14 +77,14 @@ D1c join + persistence/wire decisions + D1c-WG + D1c-KG
 D1c-C -> D1c-O
 D1c-C -> D1c-KC
 D1c-KS -> D1c-PC-S
-D1c-KC + D1c-PC-S -> D1c-PC-C
+D1c-KC + D1c-PC-S -> D1c-PC-C  # Data port/core/cell mirror and atomic pin accounting
 D1c-C + D1c-KC -> D1c-WC
 accepted provider face + D1c-KG + D1c-KS + D1c-PC-S (therefore D1c-S/WS)
   -> D1c-KP-S + D1c-KK-S + D1c-KX-S
 accepted Audit face + D1c-KG + D1c-KS + D1c-PC-S
   -> D1c-KA-S
 D1c-KC + D1c-KP-S -> D1c-KP-C
-D1c-KC + D1c-PC-C + D1c-KA-S -> D1c-KA-C
+D1c-KC + D1c-PC-C + D1c-KA-S -> D1c-KA-C  # real Audit recovery-authority source mapping
 D1c-KC + D1c-KK-S -> D1c-KK-C
 D1c-KC + D1c-KX-S -> D1c-KX-C
 D1c-C + D1c-O + D1c-KC -> D1d
@@ -1967,6 +1967,7 @@ Exact graph parity is:
 policy-client + audit-sink + record-keys + record-protection
   -> data-records-domain
 record-keys -> record-protection
+record-protection -> audit-sink  # Audit requests import KC-owned recovery-authority frames
 record-keys + record-protection -> data-tablet-persistence-draft
 record-keys + record-protection -> data-tablet-persistence-file-draft
 record-protection + approved aws-lc-rs (SHA-256 only)
@@ -1981,8 +1982,10 @@ is D1c-S/WS plus these packages and the accepted third-party targets; reverse
 closure is empty. In particular, `data-audit-sink-draft`,
 `data-record-keys-draft`, `data-record-protection-draft`, and both
 `data-records-app` targets exist before any provider `*-S` manifest names them;
-the Audit package owns the future high-water port types, KK owns acquisition,
-and KX sees only the direct record-keys types. Reviewers are Data, security, build/dependency, Cell,
+the Audit package owns high-water/recovery-authority operation request/receipt
+shapes but imports the KC-owned fixed recovery-authority frames through the
+explicit `record-protection -> audit-sink` edge; KK owns acquisition, and KX
+sees only the direct record-keys types. Reviewers are Data, security, build/dependency, Cell,
 Policy/IAM, Audit, Secrets, and architecture. Success is empty/scanner faces,
 exact parity, and zero secret/keyed-algorithm behavior. Failure is content,
 raw-key type in a general records port, a missing `record-keys ->
@@ -2020,6 +2023,7 @@ The package names are `data-artifact-publication-draft`,
 graph is:
 
 ```text
+data-record-protection-draft -> data-audit-sink-draft
 data-record-protection-draft + data-audit-sink-draft
   -> data-artifact-publication-draft
 data-artifact-publication-draft -> data-artifact-publication-domain
@@ -2034,13 +2038,17 @@ data-artifact-publication-domain + data-artifact-publication-cell-draft
 
 The port is Data-owned and internal: it is the sole shape for tuple CAS,
 pin/member, decision/receipt/accepted-high-water history, safe-GC, bounded
-enumeration, normal and terminal-only fenced takeover, and read-snapshot
-operations. Its durable terminal-recovery type is non-renewable and not usable
-where the work-lease type is required. It also carries the read-only retained
-terminal-outcome query and the internal terminal-release transition that deletes
-an active terminal row; it contains no provider mapping,
-encrypted frame definition, tuple value, storage call, Audit call, listener,
-route, or fake.
+enumeration, normal and terminal-only fenced takeover, read-snapshot operations,
+and the `PublicationRecoveryAuthorityLocatorV1`/
+`PublicationRecoveryAuthorityV1` values and requests. Its durable terminal-
+recovery type is non-renewable and not usable where the work-lease type is
+required. It carries the read-only retained terminal-outcome and recovery-
+authority queries, `ReservePublicationPinAllocation`, recovery-incarnation
+rotation, the internal normal release, and the exact-row terminal release. The
+port contains no provider mapping, encrypted frame definition, tuple value,
+storage call, Audit call, listener, route, or fake. The Cell adapter owns only
+the consensus relation/counters and local authority mirror; the real external
+source is introduced later by KA-C through this port, never by a Cell snapshot.
 The Cell adapter is the only future persistent implementation and is constrained
 to the same tablet-consensus/durable-persistence authority; object storage,
 wall time, and a test oracle cannot implement it. The lock adds exactly three
@@ -2064,56 +2072,66 @@ Class: content-only after D1c-KC and D1c-PC-S; no manifest/build/lock/route
 change. Write exactly:
 
 ```text
-data/ports/draft/artifact-publication/src/items/{a_capability,b_coordinator,c_read_snapshot,d_errors,e_audit_barrier,f_terminal_recovery}.rs
-data/ports/draft/artifact-publication/src/test_items/{a_contract,b_callback_auth}.rs
-data/core/artifact-publication-domain/src/items/{a_pin,b_decision,c_reconciliation,d_safe_gc,e_read_snapshot,f_audit_history,g_terminal_recovery}.rs
-data/core/artifact-publication-domain/src/test_items/{a_state_machine,b_losing_cas,c_takeover,d_gc,e_snapshot,f_predecessor_barrier,g_terminal_recovery,h_aggregate_quota}.rs
-data/adapters/draft/artifact-publication-cell/src/items/{a_consensus_store,b_tuple_cas,c_receipt_resolution,d_gc_epoch,e_enumeration,f_audit_history,g_terminal_recovery}.rs
-data/adapters/draft/artifact-publication-cell/src/test_items/{a_durable_transitions,b_failover,c_callback_auth,d_fault_matrix,e_ordered_audit,f_terminal_recovery}.rs
-data/facade/records-app/src/items/e_publication_coordinator.rs
-data/facade/records-app/src/test_items/e_publication_coordinator.rs
+data/ports/draft/artifact-publication/src/items/{a_capability,b_coordinator,c_read_snapshot,d_errors,e_audit_barrier,f_terminal_recovery,g_recovery_authority}.rs
+data/ports/draft/artifact-publication/src/test_items/{a_contract,b_callback_auth,c_recovery_authority}.rs
+data/core/artifact-publication-domain/src/items/{a_pin,b_decision,c_reconciliation,d_safe_gc,e_read_snapshot,f_audit_history,g_terminal_recovery,h_recovery_authority}.rs
+data/core/artifact-publication-domain/src/test_items/{a_state_machine,b_losing_cas,c_takeover,d_gc,e_snapshot,f_predecessor_barrier,g_terminal_recovery,h_aggregate_quota,i_recovery_authority}.rs
+data/adapters/draft/artifact-publication-cell/src/items/{a_consensus_store,b_tuple_cas,c_receipt_resolution,d_gc_epoch,e_enumeration,f_audit_history,g_terminal_recovery,h_recovery_authority}.rs
+data/adapters/draft/artifact-publication-cell/src/test_items/{a_durable_transitions,b_failover,c_callback_auth,d_fault_matrix,e_ordered_audit,f_terminal_recovery,g_recovery_authority}.rs
+data/facade/records-app/src/items/{e_publication_coordinator,f_publication_recovery_authority}.rs
+data/facade/records-app/src/test_items/{e_publication_coordinator,f_publication_recovery_authority}.rs
 ```
 
 Implement the exact KC-owned anchor, pin, local-CAS receipt, pin-decision,
-accepted-high-water-history, durable terminal-recovery lease, and typed-error
-values through one capability-authenticated Data port. The core owns
+accepted-high-water-history, durable terminal-recovery lease, recovery-authority
+locator/authority, and typed-error values through one capability-authenticated
+Data port. The core owns
 `AcquirePin`, member insertion, bind, predecessor-Audit gating, one-shot CAS,
 `FinalizePublicationAudit`, current-owner `ReconcilePin`, safe abandon, normal
 lease-epoch/fence takeover, durable terminal-only takeover/reconciliation,
 bounded reconciliation/enumeration, safe-GC epoch, and publication-read-
 snapshot validation, plus coordinator-authenticated
-`ReadPublicationTerminalOutcome` and its internal-only
-`CommitTerminalRelease`. The Cell adapter persists every transition and
+`ReadPublicationTerminalOutcome`, read-only recovery-authority lookup,
+source-reserved allocation, recovery-incarnation reconciliation, and its two
+internal-only release operations `CommitNormalPublicationRelease` and
+`CommitTerminalRecoveryRelease`. The Cell adapter persists every transition and
 pin/member/receipt/decision/accepted-history/terminal-lease relation in the
 tablet consensus log, including `coordinator_epoch`, `cas_index`, terminal
-release epoch, nonreusable pin-allocation high-water, and each retained
+release epoch, active-terminal relation/counters, recovery-authority mirror,
+nonreusable current-incarnation allocation high-water, and each retained
 accepted-predecessor proof; it never infers a CAS from an object or a
 caller-supplied receipt. `records-app` mints the scoped
 work lease, the durable fenced non-renewable terminal-recovery authority, and
 the Audit-only callback capability. The Audit callback can resolve/re-attest a
 recorded receipt by `(pin_id, desired_anchor_digest)` but cannot mutate a tuple,
 pin, or member; stale term/capability and foreign tenant/context are refused.
+PC-C defines the Data-owned authority port/type and its Cell mirror, while KA-C
+is the sole real Audit adapter that can read, reserve, initialize, or rotate the
+external source. The core has no Audit/provider implementation edge; records-app
+uses the port at allocation and Cell recovery, not on an ordinary artifact read.
 
 The exact Cell adapter operations are `InsertOrReplaceTerminalRecoveryLease`,
-`CommitTerminalRelease`, `ReadPublicationTerminalOutcome`, and
-`AdvanceSafeGcAndCompactReleasedPublicationState`. The first writes at most one
-230-byte current row per nonterminal pin and atomically replaces it only with a
-higher terminal fence. `CommitTerminalRelease` reads the current pin,
-authorizing work or terminal lease, immutable decision/receipt/history proof,
-member set, coordinator epoch, and GC epoch; in one consensus transaction it
-writes or validates the terminal decision/cause and release epoch, sets
-`RELEASED`, detaches every member, decrements active-terminal counters, and
-deletes the exact active terminal row. A terminal caller must match every row
-field; a normal caller must match its work pair and cannot race a newer terminal
-owner. An abort writes none of those values, leaving exactly one current row
-and a nonterminal pin. `ReadPublicationTerminalOutcome` is same-context,
-coordinator-capability-only and read-only; it takes `(pin_id,
-publication_context_digest)` and returns only the retained immutable decision
-digest plus `RELEASED`/release epoch or `NotRetained`, never a lease. Safe-GC may compact the released
-pin/decision/receipt/history only after its existing anchored-chain and epoch
-proof; it never retains a terminal-row/tombstone and it preserves the monotonic
-pin-allocation high-water. Thus deletion cannot reissue a pin or resurrect a
-terminal credential as publishing authority.
+`CommitNormalPublicationRelease`, `CommitTerminalRecoveryRelease`,
+`ReadPublicationRecoveryAuthority`, `ReservePublicationPinAllocation`,
+`RotatePublicationRecoveryAuthority`, `ReconcileRestoredPublicationState`,
+`ReadPublicationTerminalOutcome`, and
+`AdvanceSafeGcAndCompactReleasedPublicationState`. The release operations are
+mutually exclusive, exact-cell-consensus branches: absent row -> first exact
+230-byte row is `+1`/`+230`; present exact row -> higher-fenced replacement is
+`+0`/`+0`; exact terminal-row release -> absent is `-1`/`-230`; exact current
+normal work lease plus serializable absent-row proof -> absent is `+0`/`+0`.
+Before each branch the adapter independently enumerates the bounded relation and
+checks all affected locator/tenant-cell/cell counters equal its cardinality and
+`230 * cardinality`. Counter/row mismatch, checked under/overflow, quota excess,
+stale exact terminal row, or normal-versus-terminal race aborts all writes;
+normal CAS loss/Audit finalization/abandon can therefore never decrement an
+absent row, while fenced replacement cannot drift capacity. `ReadPublication-
+TerminalOutcome` and `ReadPublicationRecoveryAuthority` are same-context,
+bounded, read-only operations that mint no lease. The first returns only the
+retained immutable outcome; the second returns only the authenticated external
+authority frame. Safe-GC compacts released local pin/control state only after
+its existing anchored-chain/epoch proof, never retains a terminal row/tombstone,
+and never creates an external authority from a local snapshot.
 
 The precise behavior is SPEC's table: A/B and N writers from H0 get one CAS per
 pin only after their expected anchor is locally current, fresh Audit
@@ -2121,8 +2139,9 @@ high-water/accepted history, and has no successful `COMMITTING` predecessor.
 The winner H0-to-H1 that crashes before Audit is recovered/re-attested,
 appended, history-recorded, and finalized before any H1-to-H2 CAS; deferred
 successors cannot deadlock its recovery or reorder Audit. A losing CAS
-atomically records `CAS_LOST(H1)`, `SUPERSEDED`, member detachment, and
-`RELEASED`, so a delayed client observing H2 cannot make it quarantine. A
+atomically records `CAS_LOST(H1)`, `SUPERSEDED`, member detachment, and its
+normal-release absent-row proof, then reaches `RELEASED` through the `+0`/`+0`
+branch, so a delayed client observing H2 cannot make it quarantine. A
 durable success retries Audit across a term rollover only after current-term
 re-attestation; an ancestor-proven success terminalizes after its successor;
 and only missing/foreign/unavailable proof remains bounded quarantine. At the
@@ -2135,11 +2154,12 @@ acquires a fresh snapshot/pin; it never rewrites an old desired tuple. This
 lane owns no Audit provider call; KA-C maps the callback on the already-created
 port. The Cell adapter stores one active terminal lease row per nonterminal pin and
 atomically replaces it with a higher fenced row on takeover, but
-`CommitTerminalRelease` deletes it in the same transaction as terminal
-decision/cause, member detach, release epoch, and `RELEASED`. Active terminal
-rows are explicitly bounded at 8/64/256 per locator/tenant-cell/cell and
-1,840/14,720/58,880 bytes (`230` each), charged one-for-one to nonterminal
-pins; a released pin has zero such rows/bytes. A stale terminal credential
+`CommitTerminalRecoveryRelease` deletes it in the same transaction as terminal
+decision/cause, member detach, release epoch, `RELEASED`, and exact `-1`/`-230`
+accounting. A normal completion has an exactly absent relation and preserves its
+zero counters. Active terminal rows are explicitly bounded at 8/64/256 per
+locator/tenant-cell/cell and 1,840/14,720/58,880 bytes (`230` each), charged
+one-for-one to nonterminal pins; a released pin has zero such rows/bytes. A stale terminal credential
 requires an exact current row and is `ArtifactPublicationTerminalRecoveryLeaseLost`
 both before and after safe-GC, while the retained read-only outcome makes a
 lost terminal response idempotently observable.
@@ -2153,8 +2173,20 @@ cell-local serving rule, not a per-read Audit dependency.
 
 Cargo/Buck closure is PC-S plus KC, records domain, tablet consensus/persistence,
 record protection, audit-sink port, records-app, and the D1c-WG generated
-include root; KA-C joins only after this lane. Required tests independently
-encode decision/pin/accepted-history/terminal-lease frames; model A/B/N-writer
+include root; KA-C joins only after this lane. The direct graph is
+`data-record-protection-draft -> data-audit-sink-draft` for the KC-owned
+recovery-authority frames, then `data-audit-sink-draft +
+data-record-protection-draft -> data-artifact-publication-draft ->
+data-artifact-publication-domain`, with
+`data-artifact-publication-draft + data-record-protection-draft +
+data-tablet-persistence-draft + data-tablet-consensus-domain ->
+data-artifact-publication-cell-draft` and domain+cell -> records-app. KA-C is
+the reverse adapter edge `data-audit-sink-draft +
+data-artifact-publication-draft + audit-emission ->
+data-audit-sink-audit-draft -> records-app`; PC-C never depends on that provider
+adapter or an Audit core. Required tests independently encode decision/pin/
+accepted-history/terminal-lease/recovery-authority-locator/recovery-authority
+frames; model A/B/N-writer
 loss, stale CAS, rebase limit, each crash edge, lease/term takeover, pre/post-
 CAS Audit partition, forged or supplied receipt, callback authentication loss,
 H0-to-H1 pre-Audit crash with refused/deferred H1-to-H2 and ordered recovery,
@@ -2174,9 +2206,20 @@ successful release leaves zero terminal rows/bytes for that pin; a failed
 atomic release leaks only its one active 230-byte row and nonterminal pin
 inside the 1,840/14,720/58,880-byte bound; no T1..TN released-row list exists;
 the allocation high-water prevents pin-ID reuse; and old terminal credentials
-are rejected both before and after compaction. Success is a durable bounded state machine with no immortal
-normal loser, no skipped Audit predecessor, durable terminal-only recovery,
-and no remote Audit read hit; failure is local-head freshness guessing, receipt
+are rejected both before and after compaction. It proves every four-branch
+counter transition after every committed step by independent relation
+enumeration: normal CAS loss/Audit finalization/abandon use absent `+0`/`+0`,
+first insert `+1`/`+230`, higher-fence replacement `+0`/`+0`, and exact terminal
+release `-1`/`-230`; under/overflow, mismatch, and stale normal/terminal races
+commit nothing. It then executes snapshot-before-release -> release -> safe-GC
+-> full Cell/device loss -> old-snapshot restore for NOT_CAS/CAS_LOST/
+CAS_SUCCEEDED, fences every old-incarnation credential, refuses recreation/
+takeover, permits only fresh allocation after external rotation, and exercises
+source loss/tamper/rollback, context substitution, initialization/rotation/index/
+fence exhaustion, and concurrent restore/acquire/release/GC. Success is a
+durable bounded state machine with no immortal normal loser, no skipped Audit
+predecessor, durable terminal-only recovery, no stale snapshot authority, and no
+remote Audit read hit; failure is local-head freshness guessing, receipt
 forgery, term-blind retry, mutable pin tuple, unfenced stale worker, a terminal
 lease accepted as work authority, unbounded state, object-store authority,
 provider call in core, or route/readiness claim.
@@ -2271,8 +2314,8 @@ exactly:
 ```text
 data/ports/draft/policy-client/src/items/{a_request,b_receipt,c_errors}.rs
 data/ports/draft/policy-client/src/test_items/a_contract.rs
-data/ports/draft/audit-sink/src/items/{a_event,b_receipt,c_publication_high_water,d_errors}.rs
-data/ports/draft/audit-sink/src/test_items/{a_contract,b_publication_high_water}.rs
+data/ports/draft/audit-sink/src/items/{a_event,b_receipt,c_publication_high_water,d_publication_recovery_authority,e_errors}.rs
+data/ports/draft/audit-sink/src/test_items/{a_contract,b_publication_high_water,c_publication_recovery_authority}.rs
 data/ports/draft/record-keys/src/items/{a_key_purpose,b_key_bootstrap_locator,c_key_generation_binding,d_nonce_lease,e_key_receipt,f_opaque_operation_handle,g_errors}.rs
 data/ports/draft/record-keys/src/test_items/{a_contract,b_state_machine,c_cold_recovery}.rs
 data/ports/draft/record-protection/src/items/{a_digest,b_envelope,c_wal_classification,d_artifact_plan,e_artifact_commit,f_publication_state,g_errors}.rs
@@ -2290,8 +2333,9 @@ per-purpose ContextAadV1 matrix/formulas, the bounded ordered WAL
 classification-summary and WAL-only mixed sentinel, purpose-specific
 record/WAL count-one and aggregate count-1..4,096 artifact-plan/final-manifest/
 commit/head/immutable-context/anchor/pin grammars, the coordinator-only
-local-CAS, accepted-history, pin-decision, and terminal-recovery-lease frames
-plus Audit high-water request/receipt types, and the pre-use durable
+local-CAS, accepted-history, pin-decision, terminal-recovery-lease, recovery-
+authority-locator, and recovery-authority frames plus Audit high-water and
+recovery-authority request/receipt types, and the pre-use durable
 linearizable nonce state machine. KC owns
 `CiphertextEnvelopeV1`,
 `ArtifactCommitRecordV1`, `ArtifactPublicationAnchorV1`, and all encrypted/
@@ -2305,12 +2349,15 @@ identical.
 
 Within that write set, audit-sink
 `c_publication_high_water.rs` owns the typed high-water request/receipt and the
-fixed `LocalPublicationCasReceiptV1`; record-protection
+fixed `LocalPublicationCasReceiptV1`; audit-sink
+`d_publication_recovery_authority.rs` owns only the typed external-source
+read/reserve/rotate request/receipt and maps no Audit provider; record-protection
 `f_publication_state.rs` owns the anchor/pin/accepted-history/pin-decision/
-terminal-recovery-lease state whose digest fields it names, including the
-coordinator-minted never-reused pin-ID allocation high-water, the active-only
-230-byte lease relation, and the rule that `RELEASED` is represented by the
-pin decision/release epoch rather than a terminal lease or tombstone. KC defines
+terminal-recovery-lease/recovery-authority state whose digest fields it names,
+including the coordinator-minted never-reused pin-ID allocation high-water,
+the 142-byte locator, 278-byte out-of-snapshot authority, active-only 230-byte
+lease relation, and the rule that `RELEASED` is represented by the pin decision/
+release epoch rather than a terminal lease or tombstone. KC defines
 values only: D1c-PC-C, not tablet persistence,
 owns their durable coordinator operations, term re-attestation, takeover,
 release, and in-cell snapshot behavior through the new direct port edges. This
@@ -2319,8 +2366,9 @@ from inventing a coordinator or an Audit callback.
 
 Success is two independent golden-frame encoders, published SHA-256 known-answer
 vectors, byte-exact envelope/token/WAL-summary/plan/final-manifest/commit/
-anchor/local-CAS-receipt/accepted-history/pin-decision/pin/terminal-lease
-framing, record/WAL count-one, count-two rejection, purpose-total exact/plus-
+anchor/local-CAS-receipt/accepted-history/pin-decision/pin/terminal-lease/
+recovery-authority-locator/recovery-authority framing, record/WAL count-one,
+count-two rejection, purpose-total exact/plus-
 one totals and AAD bounds, aggregate-only `3,156`/`2,040` and pinned-byte quota
 boundaries, active-terminal 8/64/256-row and 1,840/14,720/58,880-byte quota
 boundaries, opaque-handle containment, bootstrap-based DecryptOnly
@@ -2335,10 +2383,12 @@ zero observed opaque-handle/nonce/publication-rollback violations. Faults flip
 every header/AAD/ciphertext/tag/bootstrap byte, classification codepoint,
 WAL-summary subject/kind/order/pair, record/WAL count-two and total-plus-one,
 aggregate count-4,097/total-plus-one, plan/final-manifest/commit/head/context/
-anchor/local-CAS-receipt/accepted-history/pin-decision/pin/terminal-lease field,
-and chunk order; exercise every purpose exact/plus-one AAD, summary, plan,
-manifest, commit, anchor, local-CAS receipt, accepted history, decision, pin,
-terminal lease, pin-allocation high-water, and bootstrap bound; substitute/replay/truncate/
+anchor/local-CAS-receipt/accepted-history/pin-decision/pin/terminal-lease/
+recovery-authority-locator/recovery-authority field, and chunk order; exercise
+every purpose exact/plus-one AAD, summary, plan, manifest, commit, anchor,
+local-CAS receipt, accepted history, decision, pin, terminal lease, external
+authority namespace/incarnation/index/fence/revision, and bootstrap bound;
+substitute/replay/truncate/
 duplicate uniform/mixed/metadata/control WALs, final manifests, commits,
 anchors, local-CAS and high-water receipts; race stale/idempotent CAS heads and
 pins; replay H0 after H1 across crash/restore/failover; exhaust/wrap counters;
@@ -2441,9 +2491,16 @@ generation, opaque-handle containment, durable pre-use nonce reservation,
 publication high-water freshness, and revocation fences. KA-C maps both
 publication-high-water operations, including the challenge, the
 facade-capability-authenticated coordinator receipt resolution/current-term
-re-attestation, and the no-rollback receipt; it cannot accept supplied receipt
-bytes or invoke a tuple/pin/member mutation. No other adapter may synthesize
-those operations. KK-C is the sole mapper of `AcquireOpenHandle` and its
+re-attestation, and the no-rollback receipt. It is also the sole mapper of
+`ReadPublicationRecoveryAuthority`, `ReservePublicationPinAllocation`, and
+`RotatePublicationRecoveryAuthority` to the accepted Audit control-plane quorum:
+it verifies the fixed 142-byte locator and 278-byte authority frame, integrity
+tag, predecessor digest, cell/context, Cell recovery generation, monotonic
+fence/revision, and source CAS result. Its read operation is bounded and cannot
+mint a Data lease; reserve/rotate return only an authenticated source result to
+records-app, which must still perform PC-C's local consensus transition. KA-C
+cannot accept supplied receipt bytes or invoke a tuple/pin/member mutation. No
+other adapter may synthesize those operations. KK-C is the sole mapper of `AcquireOpenHandle` and its
 `KeyBootstrapLocatorV1 -> ReacquiredOpenLease` transition. KX-C consumes the
 record-keys binding/operation-handle types through the direct port edge and maps
 only KMS `Seal` and `Open`, never local AES-GCM, handle acquisition, or a raw
@@ -2462,7 +2519,10 @@ are provider latency, deadline/refusal class, receipt age/revision, key/nonce
 lease headroom, and no false allow/ACK. Faults cover malformed/stale/wrong-
 tenant receipts, network loss/timeout/reorder, Audit durability/high-water
 challenge replay/loss, forged/supplied receipt and coordinator callback/term
-loss, KMS crash at reserve/checkpoint/allocation-CAS/Seal/persist/publish/ACK,
+loss, recovery-authority locator/frame tamper, source loss/rollback/revision
+regression, stale Cell recovery generation, incarnation/index/fence exhaustion,
+and source-CAS crash/reply loss before local reconciliation, KMS crash at
+reserve/checkpoint/allocation-CAS/Seal/persist/publish/ACK,
 restart and source loss before Open, rotation/revocation between lease and use,
 raw-key containment/zeroization, duplicate-nonce rejection, and provider N/N+1
 skew.
@@ -2662,9 +2722,10 @@ engine and real provider adapters, validate compatible contract revisions,
 require verified Policy/Audit/KMS conformance receipts, an encrypt-active
 record and continuation generation, durable nonce headroom, usable Cell
 interval, a valid authenticated bootstrap locator/provider catalog for each
-recoverable generation, a current coordinator term with no over-capacity
-reconciliation backlog, and a fresh matching publication read snapshot for
-each served locator. An undecidable pin withdraws that locator while the
+recoverable generation, an externally authenticated current
+`PublicationRecoveryAuthorityV1` for each served locator/context, a current
+coordinator term with no over-capacity reconciliation backlog, and a fresh
+matching publication read snapshot for each served locator. An undecidable pin withdraws that locator while the
 successor worker holds its bounded reconciliation slot; a normal CAS loser
 must reach terminal superseded/released state and cannot withdraw global
 readiness. The library exposes a typed `NotReady` reason and admission gate,
@@ -2680,14 +2741,16 @@ Success is zero route/readiness while any prerequisite is missing and stable
 recovery after real provider revalidation; failure is false readiness,
 plaintext/unaudited/stale-key fallback, partial provider selection, or a test
 double in the production graph, an unauthenticated/stale/dangling commit root,
-unavailable bootstrap catalog, unavailable high-water refresh, stale
-coordinator term/snapshot, or unbounded pin state. Rollback withdraws admission
+unavailable bootstrap catalog, unavailable/high-water/rolled-back recovery
+authority source, stale coordinator term/snapshot, or unbounded pin state.
+Rollback withdraws admission
 and returns to the unrouted library; it cannot undo a durable audit/key fence.
 SLO signals are readiness reason/age, provider revision/latency, receipt age,
 nonce headroom, bootstrap-catalog health, snapshot age/refresh outcome,
 publication-pin age/terminalization/backlog, and rotation backlog. Provider
 test plants inject deny, timeout, malformed/stale receipt, Audit durability/
-high-water loss, coordinator/Audit partition and callback-auth loss, KMS outage/
+high-water loss, coordinator/Audit partition and callback-auth loss, recovery-
+authority locator/frame source loss/tamper/rollback/rotation, KMS outage/
 rotation/revocation, bootstrap tamper/source loss, time uncertainty, nonce
 exhaustion, corrupt recovery, A/B/N-writer stale-CAS/H0-after-H1 replay,
 pinned-object deletion, takeover/release/GC race, snapshot expiry/term change,

@@ -194,18 +194,50 @@ facts, not destination endorsements.
   already-successful Audit receipt; it cannot put, bind, renew, CAS, rebase, or
   publish. There is one current terminal-recovery row per nonterminal pin; a
   fenced successor replaces it rather than accumulating recovery state. The
-  terminal consensus transition atomically validates or writes its immutable
-  decision/cause, records `released_gc_epoch`, detaches all members, marks
-  `RELEASED`, and deletes that active terminal row. It leaves no released-row
-  or tombstone authority. The retained decision/receipt/history proof makes a
-  lost reply observable until safe GC; both before and after that compaction an
-  old terminal credential is rejected because an exact active row for a
-  nonterminal, never-reused coordinator-minted pin ID is required. The durable
-  pin-allocation high-water survives restore and compaction, so deleting a row
-  cannot recreate publication authority. Active terminal rows are charged
-  one-for-one to the existing 8/64/256 locator/tenant-cell/cell nonterminal
-  limits and therefore cap at 1,840/14,720/58,880 bytes; no terminal row
-  survives a successful release. Only genuinely undecidable recovery remains
+  coordinator keeps a checked active-row relation and its three scope counters
+  identical: absent-to-present is `+1` row/`+230` bytes, exact higher-fenced
+  replacement is `+0`/`+0`, exact terminal release is `-1`/`-230`, and normal
+  owner release with a serializable proof of no terminal row is `+0`/`+0`.
+  `CommitNormalPublicationRelease` handles ordinary CAS loss, Audit finalization,
+  and safe abandon; `CommitTerminalRecoveryRelease` requires the complete exact
+  terminal row. Underflow, overflow, row/counter mismatch, stale terminal token,
+  or a normal release racing a terminal row fails atomically and cannot strand a
+  lawful normal loser. The terminal consensus transition atomically validates or
+  writes its immutable decision/cause, records `released_gc_epoch`, detaches all
+  members, marks `RELEASED`, and applies only its lawful relation branch. It
+  leaves no released-row or tombstone authority. The retained decision/receipt/
+  history proof makes a lost reply observable until safe GC.
+
+  A bounded versioned `PublicationRecoveryAuthorityV1`, authenticated by the
+  independently durable Audit control plane and excluded from all restorable
+  Cell pin snapshots, prevents deleted authority from being recreated. It binds
+  the exact cell/context bootstrap locator, a fresh 16-byte namespace nonce,
+  current and retired-incarnation high-waters, current-incarnation allocation
+  high-water, monotonic fence/revision, predecessor digest, and integrity tag.
+  The bootstrap locator and authority are fixed canonical 142-byte and 278-byte
+  frames; the authority also repeats the authenticated Audit root and
+  non-restorable Cell recovery generation from its locator before its integrity
+  tag is verified.
+  A `pin_id` contains that 16-byte nonce, its 8-byte authority incarnation, and
+  its 8-byte allocation index. Before any snapshot import or full cell/device
+  recovery accepts a pin, a Cell recovery attestation source-CAS rotates the
+  external locator/context incarnation, retires the old one, and only then
+  recovery-quarantines every old row. It can then reconstruct only externally
+  authenticated current publication state and issue fresh pins in the new
+  namespace; an old work or terminal credential can neither take over nor
+  recreate a released pin. This rotation, rather than an invalid inference that
+  every index below one high-water is retired, closes old-snapshot replay after
+  terminal release and safe-GC compaction. A live replay uses only the current
+  local authority mirror; ordinary artifact reads remain cell-local. Missing,
+  tampered, rolled-back, foreign, or exhausted external authority withdraws
+  affected publication admission/readiness, and the read-only terminal-outcome
+  query never mints recovery or publication authority. Full Cell loss
+  reacquires the bootstrap locator and the independently durable Audit-quorum
+  source in that order; absence of either refuses rather than initializing from
+  a restored pin snapshot. Active terminal rows are
+  charged one-for-one to the existing 8/64/256 locator/tenant-cell/cell
+  nonterminal limits and therefore cap at 1,840/14,720/58,880 bytes; no terminal
+  row survives a successful release. Only genuinely undecidable recovery remains
   safely quarantined under bounded pin/byte/backlog admission. Aggregate
   publication admission charges
   the aggregate-legal migration maximum only: `3,156` envelope overhead,

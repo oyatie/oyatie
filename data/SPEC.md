@@ -516,6 +516,12 @@ The first four draft homes are respectively `data/ports/draft/policy-client`,
 `data/adapters/draft/artifact-publication-cell`, and
 `data/facade/records-app` is the sole production composition owner. It is not
 a sold cross-owner provider, object-store adapter, or in-memory authority.
+`AuditSink` owns the high-water and recovery-authority operation request/reply
+shapes but imports the fixed `PublicationRecoveryAuthorityLocatorV1` and
+`PublicationRecoveryAuthorityV1` values from `RecordProtection` through the
+direct Cargo/Buck edge `data-record-protection-draft -> data-audit-sink-draft`.
+KC therefore remains the only grammar owner; no reverse Audit-to-protection
+edge or provider/core edge is permitted.
 Data provider adapters for the first four ports are
 `data/adapters/draft/policy-client-policy`,
 `data/adapters/draft/audit-sink-audit`,
@@ -1045,9 +1051,11 @@ metadata value is an authority. Its exact authenticated port operations are
 `CompareAndSwapAnchor`, `FinalizePublicationAudit`, `TakeOverAndReconcile`,
 `AcquireTerminalRecoveryLease`, `RecoverTerminalPin`, `ReconcilePin`,
 `AbandonPin`, `AdvanceSafeGcEpoch`, `EnumerateNonterminalPins`,
-`ReadAcceptedAnchorHistory`,
-`ReadPublicationSnapshot`, `ReadPublicationTerminalOutcome`, and the Audit-only
-`ResolveLocalPublicationCasReceipt`. A publisher receives only a scoped work
+  `ReadAcceptedAnchorHistory`, `ReadPublicationSnapshot`,
+  `ReadPublicationRecoveryAuthority`, `ReservePublicationPinAllocation`,
+  `RotatePublicationRecoveryAuthority`, `ReconcileRestoredPublicationState`,
+  `ReadPublicationTerminalOutcome`, and the Audit-only
+  `ResolveLocalPublicationCasReceipt`. A publisher receives only a scoped work
 lease; Audit receives only a facade-issued callback capability; no operation
 accepts a caller-supplied tuple, receipt, member list, history, or current-head
 claim:
@@ -1098,8 +1106,112 @@ valid only for genesis and only for its challenge. Audit unavailability,
 integrity/freshness failure, a foreign context, or a local head/anchor different
 from the returned high-water is `ArtifactPublicationAnchorUnavailable`,
 `ArtifactPublicationAnchorInvalid`, or `ArtifactHeadRollbackDetected`; it
-quarantines the locator and withdraws affected admission/readiness rather than
-guessing that an older valid head is current.
+  quarantines the locator and withdraws affected admission/readiness rather than
+  guessing that an older valid head is current.
+
+`PublicationRecoveryAuthorityLocatorV1` is the immutable, authenticated
+bootstrap locator for the *separate* Audit control-plane recovery authority; it
+is supplied by the Cell recovery configuration, never by a pin snapshot or
+caller, and contains no network endpoint, secret, work lease, or terminal
+credential:
+
+```text
+domain_len:u8 = 60
+domain:[u8;60] = "oyatie.data.record.publication-recovery-authority-locator.v1"
+separator:u8 = 0 | version:u8 = 1
+cell_id:[u8;16] | publication_context_digest:[u8;32] |
+authority_root_id:[u8;16] | cell_recovery_generation:u64 |
+minimum_authority_fence:u64
+```
+
+It is exactly `62 + 16 + 32 + 16 + 8 + 8 = 142` bytes. `authority_root_id`
+selects an Audit-owned quorum/attestation root through the already accepted
+Audit port; `cell_recovery_generation` is a Cell-authenticated non-restorable
+recovery generation, not time; and `minimum_authority_fence` is a nonzero
+monotonic floor supplied by that control plane. Unknown fields, zero IDs, a foreign
+cell/context, noncanonical bytes, a stale Cell recovery generation, or a
+locator that cannot authenticate against its root is
+`ArtifactPublicationRecoveryAuthorityContextMismatch` or
+`ArtifactPublicationRecoveryAuthorityIntegrityInvalid` before a snapshot row,
+pin, or buffer is accepted.
+
+The Audit source stores this fixed, versioned
+`PublicationRecoveryAuthorityV1` independently of Cell/tablet snapshots. The
+Cell adapter may persist only a cache/mirror whose digest is advisory; no local
+restore can create or overwrite this source of truth:
+
+```text
+domain_len:u8 = 52
+domain:[u8;52] = "oyatie.data.record.publication-recovery-authority.v1"
+separator:u8 = 0 | version:u8 = 1
+recovery_authority_locator_digest:[u8;32] | cell_id:[u8;16] |
+publication_context_digest:[u8;32] | authority_root_id:[u8;16] |
+cell_recovery_generation:u64 | authority_namespace_nonce:[u8;16] |
+current_incarnation:u64 | retired_incarnation_high_water:u64 |
+issued_pin_allocation_high_water:u64 | authority_fence:u64 | audit_revision:u64 |
+previous_authority_digest:[u8;32] | integrity_tag:[u8;32]
+```
+
+It is exactly `54 + 32 + 16 + 32 + 16 + 8 + 16 + (5 * 8) + 32 + 32 =
+278` bytes.
+`integrity_tag` authenticates every preceding byte through the Audit port; Data
+holds neither an Audit signing key nor a raw secret. Initialization is the
+idempotent exact-absent transition to `(current_incarnation=1,
+retired_incarnation_high_water=0, issued_pin_allocation_high_water=0,
+authority_fence=locator.minimum_authority_fence, audit_revision=1,
+previous_authority_digest=zero)` with a
+fresh nonzero 16-byte namespace nonce and the exact bootstrap locator's root
+and recovery generation. The source is keyed by `(authority_root_id, cell_id,
+publication_context_digest)` and refuses a different cell/context/root, a
+locator-digest/root/recovery-generation mismatch, non-increasing fence or
+revision, a bad predecessor digest/tag, a zero/current-incarnation
+inconsistency, a retired high-water other than exactly
+`current_incarnation-1`, or any `u64` wrap. `authority_fence` and
+`audit_revision` advance on every accepted source mutation; exhaustion is
+`ArtifactPublicationRecoveryAuthorityExhausted`, not reuse or saturation.
+
+`ReadPublicationRecoveryAuthority(locator)` is bounded, same-context, and
+read-only: it returns only this authenticated frame when its locator digest,
+root, recovery generation, and fence satisfy that exact locator, or a typed
+failure; it never mints a work lease, terminal lease, callback capability, or
+publication right.
+`ReservePublicationPinAllocation` is a source CAS for the *current*
+incarnation: after checking the exact locator, integrity, incarnation, and
+fence, it advances `issued_pin_allocation_high_water` once and returns the
+updated authenticated authority plus that one index. `AcquirePin` can then
+write the pin and work lease in one local consensus transaction only if its
+namespace/incarnation/index exactly match that result; a source-reserved index
+whose local transaction crashes is burned. This is bounded control-path work,
+not an artifact read-hit dependency.
+
+On a Cell snapshot import, quorum/device loss, or Cell-authenticated recovery
+generation change, restore admission first obtains the non-restorable Cell
+recovery attestation and its next locator; it cannot load the snapshot without
+that event. `RotatePublicationRecoveryAuthority` then source-CASes the exact
+current frame: it requires the same root/cell/context, a strictly higher
+Cell-attested recovery generation, and a locator digest matching that next
+locator, then writes that digest/root/generation with a fresh nonzero namespace
+nonce, `retired_incarnation_high_water=old.current_incarnation`,
+`current_incarnation=old.current_incarnation+1`,
+`issued_pin_allocation_high_water=0`, `previous_authority_digest` equal to the
+old frame digest, and strictly higher fence/revision satisfying the new locator
+floor. Only after that durable external result may
+`ReconcileRestoredPublicationState` write the new mirror and examine the
+restored consensus snapshot. It fences every pin and terminal row bearing the
+retired namespace/incarnation before it can become current; it reconstructs a
+published head only from the existing authenticated Audit high-water/accepted
+history and terminalizes or quarantines old pins in bounded batches. It never
+treats an allocation index below a high-water as proof of terminality. A crash
+before the local reconciliation repeats from the already rotated source; a crash
+after it already has the source proof. Thus there is no cross-authority success
+cycle or authority window. The Audit quorum persists the current fixed locator/
+authority pair under its authenticated `authority_root_id`, independently of
+Cell snapshots; after full Cell loss records-app reacquires the Cell bootstrap
+locator, then reads that source through the accepted Audit port. Loss of either
+root/source, a missing recovery attestation, tampering, rollback, foreign root,
+stale generation, or exhaustion fails closed: no pin acquisition, takeover,
+terminal recovery, publication, or readiness for that locator, and no fresh
+local source may be initialized from a snapshot or raw-key/local-state fallback.
 
 `LocalPublicationCasReceiptV1` is the coordinator-only durable proof for the
 otherwise cross-authority CAS-to-Audit gap. It is a canonical bounded record in
@@ -1163,8 +1275,10 @@ safe terminal release, compaction retains the one current-anchor checkpoint and
 removes the older prefix only after the same safe-GC proof; history therefore
 does not grow with every published generation.
 `FinalizePublicationAudit` validates that the returned high-water is the
-pin's desired current anchor, persists this row, records `COMMITTED`, and
-detaches members/releases the pin in one consensus transition. Thus a later
+pin's desired current anchor, persists this row, records `COMMITTED`, and then
+uses `CommitNormalPublicationRelease` only after its same transaction proves
+there is no active terminal row; it detaches members/releases the pin with the
+absent-to-absent `+0` branch. Thus a later
 publisher never has to infer whether a predecessor reached Audit.
 
 For every pin that reaches a CAS decision, the coordinator also writes exactly
@@ -1199,14 +1313,25 @@ expires_after_gc_epoch:u64 | expected_object_count:u16 | state:u8
 ```
 
 It is exactly `40 + (4 * 32) + (4 * 8) + 2 + 1 = 203` bytes.
-`pin_id` is coordinator-minted, never caller-chosen, and is exactly the
-cell's durable globally unique 24-octet allocation namespace followed by its
-strictly increasing `pin_allocation_index:u64`. The consensus allocator writes
-the next representable index and the new pin in one transaction; a committed
-index is never decremented, reused, or restored from backup. The allocation
-high-water is retained independently of released-pin safe-GC compaction, so a
-deleted pin or terminal lease can never name a later pin. Exhaustion rejects
-before pin or object allocation with `ArtifactPublicationPinAllocationExhausted`.
+`pin_id` is coordinator-minted and never caller-chosen. Its exact 32 octets are
+`authority_namespace_nonce:[u8;16] || authority_incarnation:u64 ||
+pin_allocation_index:u64`: the first 24 octets must equal the current externally
+authenticated authority's `(authority_namespace_nonce, current_incarnation)`
+pair. At acquisition the final index
+must equal the source CAS's newly returned current-incarnation high-water; on
+every later takeover, terminal recovery, release, or reconciliation it must be
+in `1..=issued_pin_allocation_high_water` for that unchanged namespace/
+incarnation. The source-reservation CAS precedes the local pin transaction; the
+local consensus allocator then writes that exact index and pin together. A
+committed or merely source-reserved index is never decremented, reused, or
+restored from backup. An old
+namespace/incarnation, index mismatch, source regression, or unavailable source
+is a typed anti-rollback refusal before object allocation; index exhaustion is
+`ArtifactPublicationPinAllocationExhausted` or
+`ArtifactPublicationRecoveryAuthorityExhausted`, never a wrap or a new local
+namespace. The allocation authority remains independent of released-pin
+safe-GC compaction, so a deleted pin or terminal lease can never name a later
+pin.
 `expected_anchor_digest` is all zero only for genesis; `desired_anchor_digest`
 is all zero only in `OPEN=1`. The states are `OPEN=1`, `BOUND=2`,
 `COMMITTING=3`, `COMMITTED=4`, `ABORTED=5`, `CONFLICTED=6`,
@@ -1287,22 +1412,45 @@ publication attempt. If those existing proofs are insufficient it returns
 `ArtifactPublicationRecoveryQuarantined`; a later newer fenced terminal row
 may retry the same lookup/append without growing state.
 
-Every terminal completion uses the coordinator/Cell adapter's internal
-`CommitTerminalRelease` consensus operation; it is not a separately callable
-publisher capability. In one transaction it validates or writes the immutable
-CAS decision and terminal cause, records `released_gc_epoch`, sets the pin to
-`RELEASED`, detaches every member, and deletes the exact active
-`TerminalRecoveryLeaseV1` row. A terminal recovery invocation additionally
-requires equality with its complete terminal-lease row; a normal owner release
-requires its current work lease and cannot race a newer terminal owner. The
-transaction is all-or-nothing: a failed cleanup leaves the old nonterminal pin
-and its one current 230-byte terminal row, never a `RELEASED` pin with a live
-terminal row. No terminal-lease row or terminal-lease tombstone represents a
-released pin. A stale, foreign, superseded, or deleted terminal credential is
-therefore rejected as `ArtifactPublicationTerminalRecoveryLeaseLost` before
-and after safe-GC compaction. Expiry fences an old publisher from further work,
-but never authorizes GC to collect a nonterminal pin or lets any successor
-change its expected/desired tuple.
+The Cell adapter has three internal, capability-authenticated consensus
+operations: `InsertOrReplaceTerminalRecoveryLease`,
+`CommitNormalPublicationRelease`, and `CommitTerminalRecoveryRelease`; none is
+a separately callable publisher capability. Before mutating any one of the
+three scope counters, the transaction enumerates the bounded active relation
+(at most 8/64/256 rows for locator/tenant-cell/cell), proves
+`active_terminal_row_count == cardinality(relation)` and
+`active_terminal_row_bytes == 230 * cardinality(relation)` for every affected
+scope with checked arithmetic, and verifies the pin's namespace/incarnation
+against the current recovery-authority mirror. Its complete mutually exclusive
+branch table is:
+
+| operation and exact precondition | relation transition | checked counter transition |
+|---|---|---|
+| `InsertOrReplaceTerminalRecoveryLease`, no active row for this nonterminal pin and all scope quotas admit it | absent -> exact new row | `+1` row, `+230` bytes |
+| `InsertOrReplaceTerminalRecoveryLease`, exact current row exists and a permitted successor has strictly higher terminal fence/epoch | present -> exact higher-fenced row | `+0` row, `+0` bytes |
+| `CommitTerminalRecoveryRelease`, caller supplies the complete exact current terminal row and immutable decision/cause proof | present -> absent | `-1` row, `-230` bytes |
+| `CommitNormalPublicationRelease`, caller supplies the exact current work lease and the transaction serializably observes no active terminal row | absent -> absent | `+0` row, `+0` bytes |
+
+The normal operation is the only completion path for ordinary `CAS_LOST`,
+normal `FinalizePublicationAudit`, and safe `AbandonPin`; the terminal operation
+is the only completion path for `RecoverTerminalPin`. Both atomically validate
+or write the immutable decision/cause, record `released_gc_epoch`, set the pin
+to `RELEASED`, detach every member, and apply exactly the table branch. A normal
+release whose relation read races an insertion/replacement aborts with
+`ArtifactPublicationTerminalRecoveryRequired`; a terminal caller whose exact
+row changed or disappeared gets
+`ArtifactPublicationTerminalRecoveryLeaseLost`. Underflow, overflow, quota
+overflow, row/counter inequality, foreign/current-authority mismatch, or any
+other branch mismatch is
+`ArtifactPublicationTerminalRecoveryLeaseAccountingInvalid` (or its declared
+quota/exhaustion refusal) and commits none of the pin, member, relation, or
+counter writes. Thus a crash before commit retains the original nonterminal
+state and precisely its old relation/counters; a crash after commit leaves the
+selected terminal outcome and exactly its post-branch counters even if the
+reply is lost. No terminal-lease row or terminal-lease tombstone represents a
+released pin. Expiry fences an old publisher from further work, but never
+authorizes GC to collect a nonterminal pin or lets any successor change its
+expected/desired tuple.
 
 Publication admission is bounded before pin acquisition or object persistence.
 `MAX_PUBLICATION_NONTERMINAL_PINS_PER_LOCATOR=8`,
@@ -1318,14 +1466,19 @@ one-for-one to its nonterminal pin: the exact active limits are
 `MAX_PUBLICATION_ACTIVE_TERMINAL_RECOVERY_LEASES_PER_TENANT_PER_CELL=64`, and
 `MAX_PUBLICATION_ACTIVE_TERMINAL_RECOVERY_LEASES_PER_CELL=256`, or exactly
 `8 * 230 = 1,840`, `64 * 230 = 14,720`, and `256 * 230 = 58,880` durable
-bytes. `AcquireTerminalRecoveryLease` increments those counters in its same
-consensus transaction and refuses a saturated or inconsistent relation as
-`ArtifactPublicationTerminalRecoveryLeaseQuotaExceeded`; `CommitTerminalRelease`
-decrements it while deleting the row. Thus the original horizon is the pin's
-checked `H`, not an accumulating terminal-row retention horizon: after a
-successful release the durable terminal-row count and bytes are exactly zero
-for that pin, while an undecidable pin consumes at most one 230-byte row inside
-the declared nonterminal limits. A maximum-envelope byte overhead is
+bytes. The branch table above is the only way those counters change: first
+insert charges once, every lawful higher-fenced replacement preserves count and
+bytes, terminal release decrements once, and normal completion never decrements
+an absent row. A saturated relation is
+`ArtifactPublicationTerminalRecoveryLeaseQuotaExceeded`; a relation/counter
+inequality or impossible checked addition/subtraction is
+`ArtifactPublicationTerminalRecoveryLeaseAccountingInvalid`. Therefore the
+original horizon is the pin's checked `H`, not an accumulating terminal-row
+retention horizon: after a successful terminal release the durable
+terminal-row count and bytes are exactly zero for that pin, while a normal
+release had zero both before and after, and an undecidable pin consumes at most
+one 230-byte row inside the declared nonterminal limits. A maximum-envelope byte
+overhead is
 `1 + 26 + 1 + 1 + 1 + 1 + 2 + 256 + 8 + 12 + 2 + 1,245 + 4 + 1,572 + 8 + 16 =
 3,156` bytes. This is deliberately the aggregate-purpose maximum: migration
 has the largest legal aggregate AAD (`1,572`), while the record-only `1,825`
@@ -1377,8 +1530,10 @@ Once the gate passes, a successful attempt atomically changes `BOUND` to
 `LocalPublicationCasReceiptV1`, and writes a `CAS_SUCCEEDED` decision. A losing
 attempt changes no tuple but in that same consensus transaction writes
 `CAS_LOST` with its observed anchor, records the `SUPERSEDED` terminal cause,
-sets `released_gc_epoch`, detaches every member, and leaves the pin
-`RELEASED`. It therefore cannot be stranded merely because its recorded H1
+and invokes `CommitNormalPublicationRelease` with its serializable proof that
+no terminal row exists; that `+0` branch sets `released_gc_epoch`, detaches
+every member, and leaves the pin `RELEASED`. It therefore cannot be stranded
+merely because its recorded H1
 later becomes the accepted predecessor of H2: the durable loss proof remains
 idempotently terminal for every later history lookup. Releasing the pin only
 removes its pin reference; it never deletes an object or bypasses the separate
@@ -1419,21 +1574,23 @@ fresh high-water; each link proves an Audit-accepted predecessor.
 
 | Fresh Audit high-water and local tuple | durable pin decision/history | exact action |
 |---|---|---|
-| `H_expected`, `H_expected` | no decision or `NOT_CAS` | atomically write `NOT_CAS` if needed, transition `ABORTED`, then release members. |
-| `H_other`, `H_other` | no decision while the pin is `OPEN` or `BOUND` | the atomic-decision invariant proves this pin never CASed; write `NOT_CAS` with `H_other`, record `SUPERSEDED`, then release members. |
-| `H_desired`, `H_desired` | `CAS_SUCCEEDED` with the matching receipt | resolve/re-attest the receipt; validate/persist the H-desired accepted-history row; record `COMMITTED`, then release members. |
-| `H_expected`, `H_desired` | `CAS_SUCCEEDED` with the matching receipt | retry the resolved/re-attested H-desired Audit append, persist its accepted-history row, then record `COMMITTED` and release members. |
-| `H_current`, `H_current` | `CAS_LOST` recorded H1, where H1 is `H_current` or an accepted ancestor of it | this is already the atomic loss terminal path: preserve the `CAS_LOST`/`SUPERSEDED` history and return idempotent `RELEASED`; H1-to-H2 cannot reopen or quarantine it. |
-| `H_other`, `H_other` | `CAS_SUCCEEDED` and `H_desired` is an accepted ancestor of `H_other` | record `COMMITTED` as a successfully published, later superseded pin, then release members. |
+| `H_expected`, `H_expected` | no decision or `NOT_CAS` | atomically write `NOT_CAS` if needed, transition `ABORTED`, then `CommitNormalPublicationRelease` after proving no active terminal row. |
+| `H_other`, `H_other` | no decision while the pin is `OPEN` or `BOUND` | the atomic-decision invariant proves this pin never CASed; write `NOT_CAS` with `H_other`, record `SUPERSEDED`, then normal-release after the same absent-row proof. |
+| `H_desired`, `H_desired` | `CAS_SUCCEEDED` with the matching receipt | resolve/re-attest the receipt; validate/persist the H-desired accepted-history row; record `COMMITTED`, then normal-release after the same absent-row proof. |
+| `H_expected`, `H_desired` | `CAS_SUCCEEDED` with the matching receipt | retry the resolved/re-attested H-desired Audit append, persist its accepted-history row, then record `COMMITTED` and normal-release after the same absent-row proof. |
+| `H_current`, `H_current` | `CAS_LOST` recorded H1, where H1 is `H_current` or an accepted ancestor of it | this is already the atomic normal-loss `+0` terminal path: preserve the `CAS_LOST`/`SUPERSEDED` history and return idempotent `RELEASED`; H1-to-H2 cannot reopen or quarantine it. |
+| `H_other`, `H_other` | `CAS_SUCCEEDED` and `H_desired` is an accepted ancestor of `H_other` | record `COMMITTED` as a successfully published, later superseded pin, then normal-release after the same absent-row proof. |
 | any mismatch, missing authenticated decision/history, changed context, or unavailable fresh high-water | insufficient proof | retain the pin, return `ArtifactPublicationRecoveryQuarantined`, and enqueue bounded successor reconciliation; it cannot be reclaimed or silently reused. |
 
-The coordinator's `CommitTerminalRelease` writes or validates the terminal
-cause/decision, `released_gc_epoch`, every member detachment, and deletion of
-the active terminal-lease row atomically; the state becomes `RELEASED` only
-after that transaction. A crash before commit leaves the original nonterminal
-pin and one current terminal row for its exact holder or a higher-fenced
-replacement; a crash after commit leaves `RELEASED` with no terminal row even
-if the caller lost the reply. The latter is idempotently observable through
+`CommitTerminalRecoveryRelease` writes or validates the terminal cause/decision,
+`released_gc_epoch`, every member detachment, exact active-terminal-row deletion,
+and the checked `-1`/`-230` counter change atomically; the state becomes
+`RELEASED` only after that transaction. `CommitNormalPublicationRelease` writes
+the same pin/member terminal outcome with the independently proved absent-row
+`+0`/`+0` branch. A crash before either commit leaves the original nonterminal
+pin and exactly its old active-row relation; a crash after commit leaves
+`RELEASED` with no terminal row and the exact post-branch counters even if the
+caller lost the reply. The latter is idempotently observable through
 `ReadPublicationTerminalOutcome(pin_id, publication_context_digest)` only to a
 same-context coordinator capability while the pin decision is retained. Its
 only retained result is the existing immutable decision digest plus
@@ -1452,12 +1609,15 @@ H1/H2 anchored chain. A current anchor's receipt is retained; a nonterminal pin
 retains its receipt/decision/history; terminal release retains those proofs
 through the next safe-GC proof and then deterministically compacts the released
 pin/control records. It never compacts an active terminal row because terminal
-release already deleted it. The cell retains the independent monotonic
-pin-allocation high-water across that compaction; `AcquirePin` cannot recreate
-the old ID and `AcquireTerminalRecoveryLease` requires a current nonterminal
-pin. Thus a stale terminal credential has no publishing power before or after
-compaction and fails `ArtifactPublicationTerminalRecoveryLeaseLost`; a stale
-work credential fails `ArtifactPublicationPinLeaseLost`. Thus a normal loser
+release already deleted it. The Cell retains only a recovery-authority mirror;
+the independent Audit source retains the namespace/incarnation and issued
+allocation high-water. Any snapshot import rotates the external incarnation
+before the mirror is accepted, so `AcquirePin` cannot recreate an old ID and
+`AcquireTerminalRecoveryLease` requires a current-incarnation nonterminal pin.
+Thus a stale terminal credential has no publishing power before or after
+compaction and fails `ArtifactPublicationTerminalRecoveryLeaseLost` or
+`ArtifactPublicationRecoveryAuthorityIncarnationLost`; a stale work credential
+fails `ArtifactPublicationPinLeaseLost` or that same incarnation refusal. Thus a normal loser
 has a finite terminal path, and an actually undecidable recovery remains safe
 but consumes a bounded pin, byte, and reconciliation slot rather than immortal
 state. Readiness withdrawal for an undecidable pin is locator-scoped; it does
@@ -1491,7 +1651,8 @@ refusal without falling back to a predecessor and preserves or quarantines the
 current state. Independent encoders, model checks, and fault plants cover
 N/N+1 counts, all purpose/classification cases, record/WAL count-one and
 total-plus-one refusal, aggregate count-4,096 maxima, the exact/plus-one
-summary/plan/manifest/commit/pin/decision/history/terminal-lease bounds, and
+summary/plan/manifest/commit/pin/decision/history/terminal-lease/recovery-
+authority-locator/recovery-authority bounds, and
 the independent migration aggregate arithmetic: accept exactly
 `64 GiB + 459,190 + 2,040 + (4,098 * 3,156) = 68,732,871,254` and reject its
 plus-one plus the locator/tenant/cell quota plus-ones; reject a record
@@ -1510,7 +1671,7 @@ still names it. For each scope, `N` is its active-terminal-row limit (8, 64,
 or 256): tests admit exactly N current 230-byte terminal rows, refuse N+1,
 then run N+1 **sequential** `+1,024` horizon recoveries with a crash/restore
 and lost-reply case on every cycle. After each successful
-`CommitTerminalRelease`, the released pin has zero durable terminal rows and
+`CommitTerminalRecoveryRelease`, the released pin has zero durable terminal rows and
 zero terminal-row bytes; an injected release-cleanup transaction abort leaves
 only its one active 230-byte row and a nonterminal pin, then a retry or fenced
 successor completes it. The campaigns verify no T1..TN released-row list, no
@@ -1519,7 +1680,29 @@ refusal both before and after safe-GC compaction, and durable
 pin-allocation-high-water non-reuse. They crash at each losing-CAS, takeover,
 Audit, finalize, release, epoch-rollover, snapshot-refresh, restore, and GC
 edge; verify every safely decidable pin becomes terminal, uncertain pins stay
-safe and bounded, and no read-hit path needs a remote Audit call.
+safe and bounded, and no read-hit path needs a remote Audit call. They also
+exercise all four relation/counter branches independently: normal `CAS_LOST`,
+normal Audit finalization, and normal abandon begin and end with zero active
+rows/bytes; the first terminal row is `+1`/`+230`; every higher-fenced
+replacement is `+0`/`+0`; and an exact terminal release is `-1`/`-230`.
+At each N=`8`, `64`, and `256` scope limit, repeated same-pin replacement and
+terminal release must leave independently enumerated `rows == relation
+cardinality` and `bytes == 230 * rows`; N+1 and plus-one-byte attempts refuse.
+The fault matrix injects underflow, overflow, row/counter mismatch, stale normal
+and terminal callers, normal-versus-terminal races, and crashes/lost replies
+before/after every branch, and proves no partial terminalization.
+
+The anti-rollback campaign performs snapshot-before-release -> release ->
+safe-GC -> full Cell/device loss -> old-snapshot restore independently for
+`NOT_CAS`, `CAS_LOST`, and `CAS_SUCCEEDED`. It accepts neither an old work nor
+terminal credential, cannot take over/recreate any old-incarnation pin, and
+permits fresh allocation only after external authority rotation and local
+reconciliation. It independently encodes the 142-byte locator and 278-byte
+authority, rejects every field/tag/context/fence/revision/incarnation/index
+tamper or truncation, tests initialization/rotation/index/fence exhaustion and
+source loss/tamper/rollback, and races restore with acquire/release/GC. The
+read-only authority and terminal-outcome queries prove they cannot mint a
+credential or change a counter.
 Malformed frames are rejected before a buffer, acquisition/Open, persistence,
 or publication can be reached.
 
@@ -1616,7 +1799,14 @@ Other stable failures are `PolicyUnavailable`, `PolicyDenied`,
 `ArtifactPublicationPredecessorAuditPending`,
 `ArtifactPublicationTerminalRecoveryRequired`,
 `ArtifactPublicationTerminalRecoveryLeaseLost`,
+`ArtifactPublicationTerminalRecoveryLeaseAccountingInvalid`,
 `ArtifactPublicationTerminalRecoveryLeaseQuotaExceeded`,
+`ArtifactPublicationRecoveryAuthorityUnavailable`,
+`ArtifactPublicationRecoveryAuthorityIntegrityInvalid`,
+`ArtifactPublicationRecoveryAuthorityContextMismatch`,
+`ArtifactPublicationRecoveryAuthorityRollbackDetected`,
+`ArtifactPublicationRecoveryAuthorityIncarnationLost`,
+`ArtifactPublicationRecoveryAuthorityExhausted`,
 `ArtifactPublicationContentionExhausted`,
 `ArtifactPublicationReconciliationBacklogExceeded`,
 `ArtifactPublicationReadSnapshotStale`, `CryptoUnavailable`,
@@ -1628,9 +1818,10 @@ adapters attest compatible contract revisions, Policy/Audit/KMS are reachable,
 an encrypt-active record and continuation generation plus sufficient durable
 nonce lease, encrypted `KeyGenerationBinding`, and authenticated
 `KeyBootstrapLocatorV1`/provider catalog exist, trusted Cell time is usable,
-the Data-owned publication coordinator has a current term and bounded
-reconciliation backlog, and every served publication locator has a fresh
-matching cell-local read snapshot. An undecidable pin withdraws only that
+the Data-owned publication coordinator has a current term, a fresh exact
+externally authenticated recovery-authority mirror, and bounded reconciliation
+backlog, and every served publication locator has a fresh matching cell-local
+read snapshot. An undecidable pin withdraws only that
 locator while its bounded successor-reconciliation slot remains; a normal lost
 CAS is terminal and cannot keep global readiness withdrawn. The latest
 rotation/inventory audit must be within its capacity profile. Loss of any
@@ -1642,7 +1833,9 @@ provider-zeroization evidence, PDP/Audit/KMS outage, rotation/revocation at
 every barrier, restart reacquisition for EncryptActive and DecryptOnly,
 ciphertext-only restore, bootstrap catalog/locator tamper and source loss,
 commit-head substitution/stale-CAS/crash recovery, H0-after-H1 replay across
-restore/failover, immutable-context/generation/fence regressions, missing
+restore/failover, old-snapshot terminal-row/pin resurrection after safe-GC,
+recovery-authority locator/frame source loss/tamper/rollback/rotation and
+current-incarnation checks, immutable-context/generation/fence regressions, missing
 pinned objects, pin lease/expiry/takeover, A/B/N-writer lost-CAS terminal
 release, coordinator epoch re-attestation, Audit callback authentication,
 cell-local snapshot expiry/refresh, and GC races at every put/verify/bind/CAS/
