@@ -168,18 +168,22 @@ transport/provider field order, unknown field, omitted effect, implicit
   plus zero unresolved authorizations, before the provider issues a proof.
   Before its first provider removal side effect,
   `RemoveRepositoryDecommissionV1` writes a durable immutable pre-Remove plan
-  that binds that proof/fence, `Quarantine` or `Delete` local disposition and
-  manifest, preallocated retirement fence, and distinct scoped provider/local
-  ids plus only the exact Remove request whose inputs already exist. The plan is
-  the sole source of those values on retry or recovery; a changed id reuse is a
-  typed `MembershipOperationConflict`, not a new attempt. A sole-member Remove
+  that binds that proof reference/fence, `Quarantine` or `Delete` local
+  disposition and manifest, preallocated retirement fence, and distinct scoped
+  provider/local ids. Each plan has a fixed domain-separated canonical
+  tagged-field preimage and digest that excludes itself and every subsequently
+  derived request byte/digest; a sibling exact-request journal is atomically
+  derived and persisted only after the plan digest, before that side effect.
+  The plan/journal pair is the sole source of values on retry or recovery; a
+  changed id reuse is a typed `MembershipOperationConflict`, not a new attempt.
+  A sole-member Remove
   returns provider `RetirementHandoffReady`, an authenticated, queryable handoff;
   SQLite first durably
-  stores that handoff, then a separate immutable Begin plan containing exact
-  handoff bytes/authenticator, Begin id, fence id, and Begin request digest
-  before Begin. It persists a corresponding post-Begin Complete plan before
-  Complete, and post-terminal/disposition-receipt local plans before the later
-  local side effects.
+  stores that handoff, then a separate immutable Begin plan and exact Begin
+  journal containing the handoff bytes/authenticator, Begin id, fence id, and
+  already-derived Begin request digest before Begin. It persists corresponding
+  post-Begin Complete, post-terminal disposition, and post-storage completion
+  plan/journal pairs before the later local side effects.
 
   The earlier durable decommission intent likewise preallocates distinct Begin,
   Issue-proof, and abort provider-operation ids before the Begin call. Its
@@ -193,6 +197,16 @@ transport/provider field order, unknown field, omitted effect, implicit
   Abort/Remove/Complete results; every provider status/error is explicitly
   matched by port, adapter, and SQLite tests. `DecommissionObservationStale` is
   a provider error and stays that exact typed error in proof/removal paths.
+  The provider also retains an authenticated immutable
+  `DecommissionProofReferenceV1` lookup for the full proof through
+  exact-operation replay and terminal-receipt GC; Remove and Complete resolve
+  that bounded reference and reject missing, mismatch, or bad-authenticator
+  variants without a membership transition. Provider Begin atomically commits
+  its idempotency cell, Decommissioning member state, and signed `Fenced` value,
+  so provider status has no `IntentPending` variant. SQLite `IntentPending` is
+  exclusively a write-closed local pre-Begin state: Get/Begin response loss
+  converges to `NotStarted`, signed `Aborted`, or signed closed status, with
+  only the persisted Abort CAS permitted from `NotStarted`.
 
   The repository then uses typed `AbortRepositoryDecommissionIntentV1`,
   `RemoveRepositoryDecommissionV1`, `CompleteRepositoryDecommissionV1`,
@@ -479,7 +493,16 @@ authenticated staged descriptor.
   faults, stale live-generation digest, concurrent rotation, plan/receipt/count
   mismatch, and changed-operation-id replay.
   Exercise `NotStarted` plus abort-tombstone plus delayed-begin delivery and
-  prove the delayed begin cannot mutate membership after local reopen. Exercise
+  prove the delayed begin cannot mutate membership after local reopen. For all
+  five plan kinds, freeze minimum and maximum canonical byte/digest vectors,
+  assert the exact tag order/domain/u16 accounting, mutate every field/id/parent
+  and reject max-plus-one, then compare an independent encoder against the
+  port, key-adapter, and SQLite encoders. Crash before/after plan persistence,
+  journal persistence, and the side effect; recovery must replay only the
+  matching journal. Exercise provider Begin/Abort serialization and response
+  loss in a fresh process: no provider IntentPending may be returned, and local
+  IntentPending may only abort a persisted NotStarted tuple or install the exact
+  signed Fenced/Aborted/closed status. Exercise
   both a multi-member removal and a sole-member typed retirement handoff, then
   fail its all-generation-zero ciphertext/locator/non-replay-index reference or
   unresolved preconditions. A resumed operation either returns its identical

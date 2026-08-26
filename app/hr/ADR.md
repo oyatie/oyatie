@@ -202,14 +202,16 @@ over-budget files are debt, not precedent.
   replay, seal, and commit authorization. The bounded proof authenticates a
   complete all-live-generation scan and separate zero ciphertext, locator, and
   non-replay-index counts. Before Remove, the repository persists an immutable
-  known-input plan carrying proof/fences, disposition/manifest, stable
-  provider/local ids, and the exact Remove request only. A sole-member provider
-  result durably exposes its authenticated `RetirementHandoffReady` value; SQLite
-  persists that exact handoff, then a separate immutable post-handoff/pre-Begin
-  plan containing the handoff bytes/authenticator, reserved Begin/fence ids, and
-  exact Begin request/digest before Begin. It likewise writes a post-Begin
-  Complete plan, then post-terminal disposition and post-storage completion
-  plans before each later side effect. It performs typed provider removal, local
+  known-input plan carrying proof/fences, disposition/manifest, and stable
+  provider/local ids. Every plan digest is a domain-separated canonical
+  tagged-field preimage that excludes itself and all later request bytes/digests;
+  SQLite then derives and atomically persists a sibling exact-request journal
+  before that plan's side effect. A sole-member provider result durably exposes
+  its authenticated `RetirementHandoffReady` value; SQLite persists that exact
+  handoff, then a separate immutable post-handoff/pre-Begin plan and journal
+  before Begin. It likewise writes a post-Begin Complete plan/journal, then
+  post-terminal disposition and post-storage completion plan/journal pairs
+  before each later side effect. It performs typed provider removal, local
   completion, status, and recovery only from those records: the provider
   non-last-member removal CAS or sole-member terminal-retirement CAS is the
   global linearization point and returns a signed proof-and-plan-bound terminal
@@ -310,16 +312,29 @@ over-budget files are debt, not precedent.
   `RemoveRepositoryDecommissionV1` durably CASes an immutable
   `RepositoryDecommissionRemovalPlanV1`. That pre-Remove plan binds the
   proof/fences, `Quarantine` or `Delete` disposition and manifest, a
-  preallocated retirement-fence id, distinct scoped provider and local operation
-  ids, and only the exact Remove request/digest whose inputs already exist. A
+  preallocated retirement-fence id, and distinct scoped provider and local
+  operation ids. Its exact canonical Removal digest contains only those stable
+  inputs; only after it exists may the sibling Remove request journal bind
+  materialized request bytes/digest. A
   later cardinality result cannot choose or change an id or disposition, but it
   can return a provider-authenticated handoff whose bytes did not exist before
   Remove. SQLite must persist that handoff and an immutable
-  `RepositoryDecommissionRetirementBeginPlanV1` before Begin, then persist an
-  immutable `RepositoryDecommissionRetirementCompletePlanV1` before Complete;
-  later provider-terminal and storage receipts similarly precede immutable local
-  disposition and completion plans.
-  `RemoveKeyringRepositoryV1` rechecks its plan digest together with the proof
+  `RepositoryDecommissionRetirementBeginPlanV1` plus its journal before Begin,
+  then persist an immutable `RepositoryDecommissionRetirementCompletePlanV1`
+  plus its journal before Complete; later provider-terminal and storage receipts
+  similarly precede immutable local disposition and completion plan/journal
+  pairs. The provider-owned durable proof ledger returns
+  `DecommissionProofReferenceV1`, a bounded authenticated lookup for the
+  immutable full proof; Remove and Complete resolve and reauthenticate that
+  reference rather than serialize an unbounded full proof. It is retained through
+  replay and terminal-receipt GC, and Missing/Mismatch/AuthenticatorInvalid are
+  typed fail-closed results.
+  The canonical plan codecs have fixed domain tags, ascending required field
+  tags, u16 lengths, and a 4,096-byte body ceiling whose maximum typed
+  Removal/Begin/Complete/Disposition/Completion plans and request journals are
+  proven by fixed minimum/maximum vectors, plus-one, mutation, parent, and
+  independent-rederivation tests.
+  `RemoveKeyringRepositoryV1` rechecks its plan digest together with that proof
   before membership change. A non-last removal yields a proof-and-plan-bound
   receipt; a sole member first receives provider `RetirementHandoffReady`,
   durably records that exact handoff and Begin plan, then provider `Retiring`,
@@ -347,6 +362,14 @@ over-budget files are debt, not precedent.
   receipt is the global removal linearization point; local plan/intermediate/
   terminal CASes are independently atomic and deliberately fenced across the
   remote/local gap.
+  Provider Begin and Abort serialize through one provider transaction: Begin
+  commits its idempotency cell, member Decommissioning state, and signed Fenced
+  value atomically, so provider status is never IntentPending. Before that
+  commit Get is NotStarted; after it, Get and exact Begin replay are Fenced.
+  Abort-first writes the signed Aborted tombstone and tombstones delayed Begin;
+  Begin-first makes Abort return the exact closed status. Repository-local
+  IntentPending is only the persisted pre-Begin SQLite state and remains
+  write-closed until one of those signed outcomes is installed.
   Each durable intent preallocates distinct Begin, Issue-proof, and abort
   provider-operation ids before its first provider call. The terminal fenced
   scan then durably records a `ProofIssuePlanned` observation plus the exact

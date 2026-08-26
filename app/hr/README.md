@@ -42,15 +42,19 @@ SQLite write-admission fence and the matching provider admission fence, then
 produces a bounded, authenticated proof of zero ciphertext, locator, and
 non-replay field-index references across every live generation plus zero
 unresolved authorizations. Before Remove, SQLite durably records an immutable
-known-input removal plan that binds proof/fences, fixed `Quarantine` or `Delete`
-disposition and manifest, preallocated retirement fence, distinct scoped
-provider/local ids, and the exact Remove request. A sole-member provider result
+known-input removal plan that binds a bounded authenticated proof
+reference/fences, fixed `Quarantine` or `Delete` disposition and manifest,
+preallocated retirement fence, and distinct scoped provider/local ids. Every
+Removal/Begin/Complete/disposition/completion plan digest has a fixed
+domain-separated tagged-field preimage that excludes itself and all later
+request bytes/digests; SQLite atomically derives a sibling exact-request journal
+only after that digest and before its side effect. A sole-member provider result
 is `RetirementHandoffReady`, a durable, queryable signed handoff; SQLite
-persists that handoff and a separate post-handoff Begin plan with exact handoff
-bytes/authenticator, Begin id, fence id, and request digest before it calls
-Begin. It similarly persists
-post-Begin Complete, post-terminal disposition, and post-storage completion
-plans before each later side effect. The repository performs typed provider
+persists that handoff and a separate post-handoff Begin plan/journal with exact
+handoff bytes/authenticator, Begin id, fence id, and request digest before it
+calls Begin. It similarly persists post-Begin Complete, post-terminal
+disposition, and post-storage completion plan/journal pairs before each later
+side effect. The repository performs typed provider
 removal, local completion, status, and recovery only from those records. Its
 local status includes planned, handoff-persisted, Begin-planned, `Retiring`,
 Complete-planned, provider-terminal-pending-disposition,
@@ -76,6 +80,18 @@ membership-mutation and local Abort/Remove/Complete result sums; every status
 and error branch is explicitly matched in port/adapter/SQLite tests, including
 `DecommissionObservationStale`. Thus `NotStarted` is not
 permission to reopen and a late begin cannot resurrect a locally aborted fence.
+The full proof is retained in the provider's durable ledger under a bounded
+authenticated `DecommissionProofReferenceV1` through exact-operation replay and
+terminal-receipt GC; Remove/Complete fail closed on Missing, Mismatch, or bad
+authenticator rather than carrying an unbounded proof. Provider Begin atomically
+commits its replay cell, Decommissioning membership state, and signed `Fenced`
+result, so provider status never exposes `IntentPending`. That name is solely
+the write-closed SQLite pre-Begin state: response loss resolves by Get/exact
+replay to `NotStarted`, signed `Aborted`, or a signed closed state, and only the
+stored Abort tuple may act on `NotStarted`. g.0/g.1/g.2 tests freeze minimum and
+maximum plan/request byte vectors, every field/id/parent mutation, max-plus-one,
+independent rederivation, and crashes before/after plan, journal, and side
+effect persistence.
 Minimal concrete
 key-adapter open/seal, authorization/resolution, and decommission-fence behavior
 is implemented and reviewed before the dev-only real
