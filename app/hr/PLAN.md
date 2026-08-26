@@ -298,42 +298,46 @@ or reverse-consumer break. Rollback reverts only this split. Fault evidence
 includes malformed credentials, cross-tenant requests, route errors, and D-41
 add/rename/remove canaries in both graphs.
 
-## L2c.0 — Admit canonical use-case and compatibility-facade faces
+## L2c.0 — Admit the canonical use-case face
 
 Class: serialized structural package/build mutation; depends on L2b.3.
 
-Create exact packages `app/hr/core/employment-usecase` and
-`app/hr/facade/employment-compat-app`. Each gets only `Cargo.toml`, `BUCK`,
+Create only `app/hr/core/employment-usecase`. It receives `Cargo.toml`, `BUCK`,
 `build.rs`, stable `src/lib.rs`, `src/items/a_face.rs`,
 `src/test_items/a_face.rs`, stable `tests/contract.rs`, and
 `tests/items/a_face.rs`. The scanner sorts the two item directories into
 `OUT_DIR`; Buck models identical membership. `hr-employment-usecase` declares
-only the domain dependency; `hr-employment-compat-app` declares use-case, domain,
-Serde, and Serde JSON dependencies.
+only the domain dependency.
 
-To keep the current packages green for the later content move, this lane may add
-only the new canonical path dependencies to these exact existing graph files:
+No new compatibility facade is admitted. In particular,
+`facade/employment-compat-app` MUST NOT exist: D-8 reserves `facade/*-app` for a
+process with a compiler-required `src/main.rs`, while JSON/Serde translation is
+adapter behavior. The existing `employment-app` remains migration debt and is
+retired at L2h; creating a second illegal face is not a repair.
+
+To keep the current package green for the later content move, this lane may add
+only the new canonical path dependency to this exact existing graph pair:
 
 ```text
 app/hr/facade/employment-app/{Cargo.toml,BUCK}
-app/hr/ports/employment-api/{Cargo.toml,BUCK}
 Cargo.lock
 ```
 
 No existing Rust/test file changes and no item behavior lands. Root
-`Cargo.toml` remains frozen because its accepted globs enroll both packages.
-The five IAM directories are read-only. Build closure is both empty new faces,
-all current HR packages, and all five IAM packages. Required review is HR,
-Build/architecture, API, and IAM because the old externally consumed surfaces
-are being prepared as compatibility shims.
+`Cargo.toml` remains frozen because its accepted globs enroll the new package.
+The five IAM directories are read-only. Build closure is the empty new core
+face, all current HR packages, and all five IAM packages. Required review is
+HR, Build/architecture, API, and IAM because the old externally consumed
+surface is being prepared as a compatibility shim.
 
-Success: both new faces build through Cargo/Buck with stable membership while
-every current result stays unchanged. Failure is role behavior, a generated or
-manual index, root-member edit, unrelated lock churn, or IAM break. Rollback
-removes the two empty faces, their predeclared old-package edges, and only their
-lock entries.
+Success: the new core face builds through Cargo/Buck with stable membership
+while every current result stays unchanged and no new facade process/library is
+created. Failure is role behavior, creation of a `facade/*-app` without
+structural main, a generated or manual index, root-member edit, unrelated lock
+churn, or IAM break. Rollback removes the empty core face, its predeclared old-
+package edge, and only its lock entry.
 
-## L2c.1 — Move behavior into the frozen canonical roles
+## L2c.1 — Move use-case behavior into the frozen core role
 
 Class: content-only behavior-preserving refactor; depends on L2c.0.
 
@@ -345,31 +349,25 @@ core/employment-usecase/src/test_items/b_contract.rs
 core/employment-usecase/tests/items/b_parity.rs
 ```
 
-Implement the existing JSON/wire translation only in:
-
-```text
-facade/employment-compat-app/src/items/{b_error,c_onboarding,d_compliance,e_leave,f_sensitive}.rs
-facade/employment-compat-app/src/test_items/b_contract.rs
-facade/employment-compat-app/tests/items/b_serialization.rs
-```
-
 Turn exactly `facade/employment-app/src/lib.rs` and
 `facade/employment-app/tests/{app_envelopes,leave,privacy}.rs` into
-parity-checked compatibility re-exports. Turn exactly
-`ports/employment-api/src/items/{a_error,b_onboarding,c_compliance,d_leave,e_sensitive,f_dto}.rs`
-and `ports/employment-api/tests/contracts.rs` into the equivalent compatibility
-facade. Those paths plus the new unique paths above are the complete write set.
-All manifests, BUCK/build scripts, parent indexes, lock/root files, adapters,
-domain files, IAM files, and new semantics are frozen.
+parity-checked compatibility re-exports of the core use case. The existing
+`ports/employment-api` JSON/Serde implementation is frozen in this lane; its
+semantic translation moves only in L2d.1 after the matching transport
+compatibility adapter exists. Those four legacy facade paths plus the new
+unique core paths above are the complete write set. All manifests, BUCK/build
+scripts, parent indexes, lock/root files, adapters, domain/API files, IAM files,
+and new semantics are frozen.
 
-Build closure is both new packages plus all HR and five IAM packages. Required
-review is HR, API/architecture, and IAM compatibility. Success means use cases
-live in core, DTO/codec behavior lives in facade, old public identities and
-serialized outputs remain compatible, and no I/O or feature behavior changes.
-Failure is duplicate canonical ownership, persistence in facade, an adapter type
-in core, or compatibility drift. Rollback removes only the new content and
-restores old content; the empty structural faces remain. Fault evidence is
-before/after domain, facade, serialization, authorization, and IAM parity.
+Build closure is the new use-case package plus all HR and five IAM packages.
+Required review is HR, API/architecture, and IAM compatibility. Success means
+use cases live in core, the old facade only preserves public compatibility, all
+serialized/API outputs remain unchanged, and no I/O or feature behavior
+changes. Failure is duplicate canonical ownership, codec/transport behavior in
+the new core, persistence in facade, an adapter type in core, or compatibility
+drift. Rollback removes only the new content and restores old facade content;
+the empty structural core remains. Fault evidence is before/after domain,
+facade, serialization, authorization, and IAM parity.
 
 ## L2d.0 — Admit draft I/O ports and compatibility adapters
 
@@ -403,7 +401,24 @@ graphs before behavior moves:
 | Adapter | Cargo runtime dependencies | Buck library dependencies |
 |---|---|---|
 | `hr-employment-repository-memory-draft` | `hr-employment-repository-draft` | `//app/hr/ports/draft/employment-repository:hr-employment-repository-draft` |
-| `hr-transport-employment-compat-draft` | `hr-transport-draft`, `hr-authorization-evidence-draft`, `hr-runtime-context-draft`, `hr-employment-compat-app` | `//app/hr/ports/draft/transport:hr-transport-draft`, `//app/hr/ports/draft/authorization-evidence:hr-authorization-evidence-draft`, `//app/hr/ports/draft/runtime-context:hr-runtime-context-draft`, `//app/hr/facade/employment-compat-app:hr-employment-compat-app` |
+| `hr-transport-employment-compat-draft` | `hr-transport-draft`, `hr-authorization-evidence-draft`, `hr-runtime-context-draft`, `hr-employment-usecase`, `hr-employment-domain`, frozen `hr-employment-api`, `serde.workspace`, `serde_json.workspace` | the matching six HR labels plus `third-party//:serde` and `third-party//:serde_json` |
+
+The six literal HR labels in the compatibility transport row are:
+
+```text
+//app/hr/ports/draft/transport:hr-transport-draft
+//app/hr/ports/draft/authorization-evidence:hr-authorization-evidence-draft
+//app/hr/ports/draft/runtime-context:hr-runtime-context-draft
+//app/hr/core/employment-usecase:hr-employment-usecase
+//app/hr/core/employment-domain:hr-employment-domain
+//app/hr/ports/employment-api:hr-employment-api
+```
+
+This adapter, not a facade process, is the sole executable endpoint for the
+temporary JSON/Serde translation. The legacy `employment-api` remains the
+frozen DTO/conversion source it already is; the dependency points adapter to
+legacy port, never port to adapter. Both remain unrouted compatibility code and
+are deleted together at L2h.
 
 Their library, unit, and integration-test targets carry the same direct HR
 edges; no transitive dependency is treated as a declared edge. There are no
@@ -425,10 +440,11 @@ business/effect draft port edges; the record-encryption port is consumed only
 by the later SQLite adapter. The old storage adapter receives only
 `employment-repository` plus `employment-repository-memory`; and the old
 infrastructure adapter receives `authorization-evidence`, `transport`,
-`runtime-context`, and `transport-employment-compat`. This mapping remains
-frozen when the later accepted Connect lane adds the second matching transport
-adapter; an additional existing-package consumer stops the lane for a new
-structural envelope.
+`runtime-context`, and `transport-employment-compat`. The old `employment-api`
+graph remains frozen and is consumed only by the compatibility adapter. This
+mapping remains frozen when the later accepted Connect lane adds the second
+matching transport adapter; an additional existing-package consumer stops the
+lane for a new structural envelope.
 
 Root membership is unchanged because accepted globs already enroll the faces.
 No trait, value, implementation, schema, route, auth, storage, or readiness
@@ -460,28 +476,38 @@ ports/draft/runtime-context/src/{items,test_items}/b_contract.rs
 adapters/draft/employment-repository-memory/src/items/b_repository.rs
 adapters/draft/employment-repository-memory/src/test_items/b_contract.rs
 adapters/draft/employment-repository-memory/tests/items/b_parity.rs
-adapters/draft/transport-employment-compat/src/items/b_transport.rs
-adapters/draft/transport-employment-compat/src/items/c_authority.rs
+adapters/draft/transport-employment-compat/src/items/{b_error,c_onboarding,d_compliance,e_leave,f_sensitive,g_authority}.rs
 adapters/draft/transport-employment-compat/src/test_items/b_contract.rs
-adapters/draft/transport-employment-compat/tests/items/b_parity.rs
+adapters/draft/transport-employment-compat/tests/items/{b_parity,c_serialization}.rs
 ```
 
 Every file is at most 300 lines.
 
 `record-encryption/b_contract.rs` defines only bounded HR-owned plaintext,
 ciphertext-envelope, blind-index, associated-data, key-generation, and typed
-failure values plus `seal`, `open`, and `blind_index`. It chooses no primitive,
-key provider, nonce source, cache, or production adapter. No other owner may
-consume this draft port; L2i.0d must accept the production implementation.
+failure values plus `seal`, `open`, and `blind_index`. Its blind-index input
+requires tenant, operation kind, idempotency key, schema, field label, and key
+generation; the output is opaque and fixed-width. An unkeyed request digest is
+not part of the port. It chooses no primitive, key provider, nonce source,
+cache, commit fence, or production adapter. No other owner may consume this
+draft port; L2i.0d must accept the production implementation and L2i.0f must add
+the provider-supported commit protocol before production adapter behavior.
 
 The only existing source paths that may be rewritten are the ten exact L2b.1
-domain items, the four L2c.1 use-case items, the five L2c.1 compatibility-facade
-items, `adapters/employment-storage-inmemory/{src/lib.rs,tests/storage.rs}`, and
-the exact L2b.3 infrastructure item/test paths. They replace Data-classified
-values with HR-owned semantic values, use the new repository/authority/effect
-ports, and delegate old storage/HTTP identities to the new compatibility
-adapters. Authorization still requires verified, request-bound evidence;
-transport remains in-process compatibility only.
+domain items, the four L2c.1 use-case items,
+`ports/employment-api/src/items/{a_error,b_onboarding,c_compliance,d_leave,e_sensitive,f_dto}.rs`,
+`ports/employment-api/tests/contracts.rs`,
+`adapters/employment-storage-inmemory/{src/lib.rs,tests/storage.rs}`, and the
+exact L2b.3 infrastructure item/test paths. The six old API items retain only
+their frozen Serde DTO/error identities; semantic request/result conversion
+moves into `hr-transport-employment-compat-draft`, whose unique files become the
+sole executable translation endpoint, never a facade, and parity-test every
+frozen DTO/result. No old API source imports or re-exports the adapter. The
+remaining paths replace Data-classified values with HR-owned semantic values,
+use the new repository/authority/effect ports, and delegate old storage/HTTP
+identities to the new compatibility adapters. Authorization still requires
+verified, request-bound evidence; transport remains in-process compatibility
+only.
 
 All manifests, BUCK/build scripts, stable parent indexes, root/lock/generated
 files, proto, IAM paths, and feature behavior are frozen. Build closure is all
@@ -491,12 +517,15 @@ adapter-parity reviewers.
 
 Success: core/use-case tests compile against HR-owned values and ports, the
 in-memory reference passes the same repository contract, removing an adapter
-requires no domain source edit, and all existing outputs stay equal. Failure is
-an adapter/provider type inward, caller-asserted authority, copied Data/Gateway
-engine behavior, trusted-tenant shortcut, or frozen structural edit. Rollback
-removes the new items and restores the exact compatibility source paths; no data
-format exists. Fault evidence covers every forbidden edge, forged/cross-tenant
-proof, adapter unavailability, and no partial mutation/disclosure.
+requires no domain source edit, semantic JSON/Serde translation executes only
+in the matching adapter while the legacy API retains DTO compatibility, and all
+existing outputs stay equal. Failure is an adapter/provider type inward, an old
+API-to-adapter edge, translation in a facade/core, caller-asserted authority,
+copied Data/Gateway engine behavior, trusted-tenant shortcut, or frozen
+structural edit. Rollback removes the new items and restores the exact
+compatibility source paths; no data format exists. Fault evidence covers every
+forbidden edge, forged/cross-tenant proof, byte-for-byte serialization, adapter
+unavailability, and no partial mutation/disclosure.
 
 ## L2d.2 — Remove direct Data/Gateway graph edges
 
@@ -592,7 +621,6 @@ Its exact Cargo dependency sections are:
 hr-employment-repository-draft = { path = "../../../ports/draft/employment-repository" }
 hr-record-encryption-draft = { path = "../../../ports/draft/record-encryption" }
 rusqlite = { workspace = true }
-sha2 = { workspace = true }
 
 [dev-dependencies]
 hr-employment-repository-memory-draft = { path = "../employment-repository-memory" }
@@ -602,7 +630,7 @@ tempfile = { workspace = true }
 The Buck library depends exactly on
 `//app/hr/ports/draft/employment-repository:hr-employment-repository-draft`,
 `//app/hr/ports/draft/record-encryption:hr-record-encryption-draft`,
-`third-party//:rusqlite`, and `third-party//:sha2`. The contract test adds
+and `third-party//:rusqlite`. The contract test adds
 `:hr-employment-repository-sqlite-draft`, the matching memory-adapter target,
 and `third-party//:tempfile`; the recovery test adds the SQLite library, the
 repository port, and `third-party//:tempfile` and does **not** substitute the
@@ -671,13 +699,20 @@ contract/recovery targets, all HR, and five IAM packages. Required review is HR
 plus independent Data durability, security/audit, migration, and fault-
 injection reviewers.
 
+The request comparison token comes only from the test encryption-port oracle's
+tenant/key-scoped `blind_index`; SQLite contains no unkeyed SHA-256 or other
+canonical-request fingerprint. This unrouted lane does not claim a production
+rotation/revocation fence: L2i.0d must accept it and L2i.0f must add the exact
+port/repository/SQLite protocol before provider adapter behavior.
+
 Success: acknowledged mutation survives hard close/reopen; every persisted
 sensitive sentinel is absent from the SQLite file and backup; every pre-commit
 interruption exposes no effect; post-commit response loss replays the stored
-outcome; changed digest conflicts; memory/SQLite semantics match. Failure is
-page-cache success called durable, plaintext sensitive state, nonce reuse,
-split idempotency/employee/outbox state, hybrid migration, two authorities,
-file-budget breach, or frozen-path edit.
+outcome; a changed canonical request conflicts; memory/SQLite semantics match.
+Failure is page-cache success called durable, plaintext sensitive state, an
+unkeyed request fingerprint, nonce reuse, split idempotency/employee/outbox
+state, a production-fence claim from the test oracle, hybrid migration, two
+authorities, file-budget breach, or frozen-path edit.
 
 Rollback at this stage is **unrouted and test-only**: remove the unique behavior
 and migration files and discard only scratch test databases. No tenant has been
@@ -1113,7 +1148,6 @@ workspace-package entries in `Cargo.lock`:
 
 ```text
 app/hr/facade/employment-app
-app/hr/facade/employment-compat-app
 app/hr/ports/employment-api
 app/hr/adapters/employment-storage-inmemory
 app/hr/adapters/employment-infrastructure
@@ -1148,7 +1182,7 @@ hr-employment-repository-memory-draft
   -> hr-employment-repository-draft
 
 hr-employment-repository-sqlite-draft
-  -> hr-employment-repository-draft + hr-record-encryption-draft + rusqlite + sha2
+  -> hr-employment-repository-draft + hr-record-encryption-draft + rusqlite
 
 hr-transport-connect-draft
   -> hr-transport-draft + the exact generated Connect targets accepted at L2f.0a
@@ -1166,13 +1200,13 @@ hr-people-app
   -> hr-transport-connect-draft
 ```
 
-At L2h this graph is intentionally **not routable**: the four mandatory
+At L2h this graph is intentionally **not routable**: the five mandatory
 production authority adapters have not yet been admitted. The People test graph
 adds only the memory repository oracle and `tempfile`;
 its recovery target still links SQLite directly. The terminal scan must find no
 `employment-app`, `employment-api`, `employment-storage-inmemory`,
-`employment-infrastructure`, `employment-compat-app`, or
-`transport-employment-compat` package/name/label/path; no adapter is allowed to
+`employment-infrastructure`, or `transport-employment-compat`
+package/name/label/path; no adapter is allowed to
 survive without a matching provider port and at least one named build-graph
 consumer. It also re-proves zero IAM-to-HR direct and transitive edges.
 
@@ -1183,20 +1217,20 @@ label/name/path and no orphan adapter.
 Required D-29 review is HR, IAM, Build/architecture, API, Data, Gateway, and
 security. Success is deletion with the full replacement closure green; failure
 is a residual consumer, moved behavior, root/generated edit, or route/readiness
-claim. Rollback restores the six complete package trees and lock entries; no
+claim. Rollback restores the five complete package trees and lock entries; no
 SQLite format or live route changes.
 
-## L2i.0a through L2i.0d — Accept four production authority contracts
+## L2i.0a through L2i.0e — Accept five production authority contracts
 
-Class: four fail-closed D-29 provider decisions; depends on L2h. These are not
-implementation dispatches and may be reviewed independently, but all four must
+Class: five fail-closed D-29 provider decisions; depends on L2h. These are not
+implementation dispatches and may be reviewed independently, but all five must
 accept before L2j.0.
 
 The current tree does not provide an automatically acceptable production
 contract for any of these HR ports. Existing Packs files, IAM/Policy internals,
-Audit ports, Secrets/KMS surfaces, and crypto dependencies are evidence to
-review, not permission for HR to import another owner's core, port, adapter, or
-in-process facade. The four gates are:
+Audit ports, Secrets/KMS surfaces, Cell/Observability ports, and crypto
+dependencies are evidence to review, not permission for HR to import another
+owner's core, port, adapter, or in-process facade. The five gates are:
 
 - **L2i.0a — Packs/install:** accept one sold install-authority contract that
   resolves `(tenant, pack_id)` to signed content digest, overlay generation,
@@ -1211,10 +1245,26 @@ in-process facade. The four gates are:
 - **L2i.0d — Record encryption/key service:** accept one authenticated-
   encryption implementation and one commodity or sold key-service facade for
   `hr-record-encryption-draft`. It fixes the algorithm, nonce source, key
-  custody/zeroization, associated-data encoding, blind-index primitive, key-
-  generation receipt/fence, cache lifetime, rotation/re-encryption and normal
-  plus emergency revocation semantics. It must support fresh-process SQLite
-  reopen without making a process-local or caller key authoritative.
+  custody/zeroization, associated-data encoding, tenant/key-scoped blind-index
+  PRF/encoding/width, domain-separated provider-authenticated commit binding,
+  opaque authorization-id construction, provider-side linearization of
+  repository-epoch acquisition, bounded `list_unresolved`, `authorize_commit`/
+  `resolve_commit`, and generation transitions; pending-page item/byte/cursor
+  bounds; cache lifetime; rotation/re-encryption; normal/emergency drain; crash
+  resolution; and administrative recovery. Neither binding nor authorization
+  id may be an unkeyed sensitive-request digest or telemetry equality token. It
+  must support fresh-process SQLite reopen without making a process-local or
+  caller key authoritative. It must also prove the provider can fence an old
+  writer before classifying missing local receipts and hold `Revoked` behind
+  unresolved earlier receipts; provider selection alone is not permission to
+  claim an adapter-only fence.
+- **L2i.0e — Runtime context:** accept the exact sold Cell trusted-interval and
+  Observability signal/health facades consumed by an HR-owned
+  `hr-runtime-context-oyatie-draft` adapter. The decision fixes interval units
+  and uncertainty, source generation, boundary-straddling refusal, correlation
+  and cardinality rules, bounded buffering/backpressure, outage/readiness
+  behavior, and generated consumer targets. Process/system time, log-only
+  telemetry, and a test fake are not fallbacks.
 
 Each accepted decision and same-wave HR law amendment must name exact provider
 owner, sold proto/facade path, semantic package, generated consumer target,
@@ -1228,9 +1278,79 @@ consumer translation. A missing field, internal provider import, JSON/second
 codec, or test fake rejects the gate. Rejection changes no repository path and
 keeps People unrouted.
 
-## L2i.1a through L2i.1d — Admit production authority adapter structures
+## L2i.0f — Freeze the commit-authorization protocol across port and SQLite
 
-Class: four serialized structural package/dependency/build/lock lanes; each
+Class: content-only HR protocol lane after accepted L2i.0d and before L2i.1d or
+any production composition. It adds exactly:
+
+```text
+app/hr/ports/draft/record-encryption/src/items/c_commit_authorization.rs
+app/hr/ports/draft/record-encryption/src/test_items/c_commit_authorization.rs
+app/hr/ports/draft/employment-repository/src/items/c_commit_authorization.rs
+app/hr/ports/draft/employment-repository/src/test_items/c_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/migrations/0002_commit_authorization.sql
+app/hr/adapters/draft/employment-repository-sqlite/src/items/i_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/e_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/c_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/l_commit_authorization.rs
+```
+
+The encryption item defines HR-owned `CommitAuthorizationId`, `CommitBinding`,
+`CommitAuthorization`, `CommitResolution::{Committed,Aborted}`,
+`CommitFenceResolution::{CommittedBeforeFence,AbortedBeforeCommit}`,
+`CommitFenceReceipt`, `RepositoryEpochLease`, bounded pending-receipt pages,
+generation state, and the closed
+`CommitFenceError::{GenerationNotActive,AuthorizationDenied,
+AuthorizationUnresolved,CommitBindingMismatch,RepositoryEpochStale,
+ResolutionConflict,ProviderUnavailable,ProviderCorrupt}`. Its provider-neutral
+operations are `acquire_repository_epoch`, `list_unresolved`,
+`authorize_commit`, and idempotent `resolve_commit`. The repository item defines
+the exclusive epoch acquisition and commit-state lookup extension. The SQLite
+item/migration stores the repository identity/epoch and opaque authorization
+receipt/binding in the same transaction as employee/lifecycle/idempotency/
+outbox state.
+
+The linearization rule is fixed: provider authorization and
+`Active -> Draining | EmergencyDraining -> Revoked` transitions share one
+order. A transition that wins denies new authorization. An authorization that
+wins binds one repository epoch/transaction/generation/commit binding and keeps
+the transition from reaching `Revoked` until idempotently resolved. After local
+commit, provider `CommittedBeforeFence` resolution is required before
+acknowledgement; after rollback, a fresh process holding the exclusive
+repository recovery epoch resolves `Aborted`. No timeout guesses the outcome.
+Emergency drain immediately rejects new admissions and drops readiness but does
+not retroactively invalidate the earlier linearization point. On boot, the
+exclusive SQLite writer acquires epoch N+1 through provider CAS, which fences
+all N authorizations before recovery. It drains `list_unresolved` under exact
+item/byte/page bounds: an exact committed local receipt resolves
+`CommittedBeforeFence`; local absence resolves `AbortedBeforeCommit` only after
+the old epoch is fenced; binding mismatch is `ProviderCorrupt`. Duplicate pages
+and resolutions are idempotent, while skipped/reordered/non-progressing cursors
+fail closed. Readiness stays false until the scan converges.
+
+All manifests, Buck/build scripts, stable parents, lock/root/generated,
+provider adapter, other HR/IAM/provider paths, routes, and readiness behavior
+are frozen. The D-41 scanners discover the unique files. Build closure is both
+ports, SQLite library/contract/recovery targets, full HR, the accepted
+key-service contract, and zero-edge IAM proof through Cargo/Buck. Required
+review is HR, key provider, Data/SQLite durability, security/cryptography,
+architecture, fault injection, and operability.
+
+Success is the SPEC order with a keyed request blind index, one resolved receipt
+per durable transaction, no acknowledgement before resolution, and no completed
+revocation with an earlier receipt pending. Failure is unkeyed equality,
+adapter-only revalidation, a receipt outside the SQLite transaction, implicit
+expiry/abort, unresolved acknowledgement, stale repository epoch, or frozen-
+path edit. Rollback removes the nine unique files/migration while the adapter
+remains unrouted and no production key provider has been composed. Faults pause
+before/after authorize, commit, resolve, rotation/emergency drain, process kill,
+and exclusive recovery—including authorize-before-local-receipt durability—and
+cover every ordering plus stale epochs, duplicate/missing/reordered and exact/
+limit-plus-one pending pages, and provider outage.
+
+## L2i.1a through L2i.1e — Admit production authority adapter structures
+
+Class: five serialized structural package/dependency/build/lock lanes; each
 depends on its matching accepted L2i.0 gate and exact owner-law amendment. They
 serialize on `Cargo.lock` and any root/generated dependency faces and contain no
 provider request, validation, retry, policy, audit, route, or readiness behavior.
@@ -1241,6 +1361,11 @@ provider request, validation, retry, policy, audit, route, or readiness behavior
 | L2i.1b | `app/hr/adapters/draft/authorization-evidence-policy` | `hr-authorization-evidence-policy-draft` | `hr-authorization-evidence-draft` |
 | L2i.1c | `app/hr/adapters/draft/audit-outbox-audit` | `hr-audit-outbox-audit-draft` | `hr-audit-outbox-draft` |
 | L2i.1d | `app/hr/adapters/draft/record-encryption-key-service` | `hr-record-encryption-key-service-draft` | `hr-record-encryption-draft` |
+| L2i.1e | `app/hr/adapters/draft/runtime-context-oyatie` | `hr-runtime-context-oyatie-draft` | `hr-runtime-context-draft` |
+
+L2i.1d additionally depends on completed L2i.0f. L2i.1e's non-HR inputs are
+only the exact generated Cell/Observability consumer targets accepted at
+L2i.0e; it may not path-depend either provider's Rust core or port.
 
 D-28/D-30 are explicit: every matching HR port is still owner-local and
 unagreed, so each adapter remains under `adapters/draft/` and carries the
@@ -1270,9 +1395,9 @@ placeholder/transitive-only dependency, cross-owner internal edge, manual
 index, over-budget file, unrelated lock churn, or readiness fiction. Rollback
 removes only that empty adapter and exact dependency closure.
 
-## L2i.2a through L2i.2d — Implement production authority adapters
+## L2i.2a through L2i.2e — Implement production authority adapters
 
-Class: four content-only adapter behavior lanes; each depends on its matching
+Class: five content-only adapter behavior lanes; each depends on its matching
 L2i.1 structure. Their changed paths are disjoint, but the fixed full-HR
 verification closure overlaps, so implementation dispatches serialize; review
 and read-only recon may run concurrently.
@@ -1292,9 +1417,13 @@ app/hr/adapters/draft/audit-outbox-audit/src/items/{b_emit_outbox,c_redelivery}.
 app/hr/adapters/draft/audit-outbox-audit/src/test_items/b_contract.rs
 app/hr/adapters/draft/audit-outbox-audit/tests/items/{b_parity,c_outages}.rs
 
-app/hr/adapters/draft/record-encryption-key-service/src/items/{b_envelope,c_blind_index,d_key_generation,e_rotation}.rs
+app/hr/adapters/draft/record-encryption-key-service/src/items/{b_envelope,c_blind_index,d_key_generation,e_commit_authorization,f_rotation}.rs
 app/hr/adapters/draft/record-encryption-key-service/src/test_items/b_contract.rs
-app/hr/adapters/draft/record-encryption-key-service/tests/items/{b_parity,c_rotation,d_outages}.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/{b_parity,c_commit_order,d_rotation,e_outages}.rs
+
+app/hr/adapters/draft/runtime-context-oyatie/src/items/{b_trusted_interval,c_signal_emission,d_correlation,e_health}.rs
+app/hr/adapters/draft/runtime-context-oyatie/src/test_items/b_contract.rs
+app/hr/adapters/draft/runtime-context-oyatie/tests/items/{b_parity,c_boundary_uncertainty,d_outages}.rs
 ```
 
 Every file is at most 300 lines and is discovered by the installed D-41
@@ -1308,9 +1437,12 @@ evidence fails before mutation/disclosure, while an allowed asynchronous class
 commits one durable outbox intent and redelivers without a second effect.
 Record encryption implements only the accepted primitive/key-service contract,
 binds canonical associated data, produces unique nonces and bounded blind
-indexes, fences generation receipts at commit, and supports idempotent
-re-encryption plus fail-closed revocation. It never supplies a plaintext or
-process-local fallback.
+indexes, implements the L2i.0f provider-serialized authorization/resolution
+order, and supports idempotent re-encryption plus fail-closed revocation. It
+never supplies a plaintext or process-local fallback. Runtime context
+translates only the accepted generated Cell/Observability clients into trusted
+intervals, typed uncertainty, bounded signal receipts, and provider health; it
+never reads system/process time or silently drops to logs.
 
 Each lane builds its adapter/port/provider contract plus full HR through Cargo
 and Buck. Required review is HR, matching provider, security/privacy, fault/
@@ -1318,15 +1450,19 @@ retry, and adapter-parity reviewers. Success is semantic parity and bounded
 translation against the accepted contract. Failure is cached allow on outage,
 unsigned/stale pack use, cross-tenant proof, lost/duplicate audit effect,
 provider type leaking inward, plaintext persistence, nonce reuse, stale or
-revoked key use, unbounded retry/buffer, or frozen-path edit.
+revoked key use, an unresolved acknowledgement, false time precision, unbounded
+retry/buffer, or frozen-path edit.
 Fault evidence removes the provider before and during a call, injects malformed,
 stale, revoked, replayed, delayed, and duplicate responses, and proves typed
 fail-closed results, bounded queues, cancellation, and no unauthorized mutation
-or disclosure.
+or disclosure. Runtime-context vectors straddle every policy/overlay/key/legal
+time boundary, regress/widen the interval, saturate signal buffers, and remove
+Cell and Observability independently; each refuses without a wall-clock or
+log-only fallback.
 
 ## L2j.0 — Admit the production People composition graph
 
-Class: serialized structural composition dependency lane; depends on all four
+Class: serialized structural composition dependency lane; depends on all five
 L2i.2 lanes. It changes only:
 
 ```text
@@ -1339,7 +1475,8 @@ The `hr-people-app` runtime Cargo graph becomes exactly the existing ten HR
 dependencies (including `hr-record-encryption-draft`) plus
 `hr-installed-overlay-packs-draft`,
 `hr-authorization-evidence-policy-draft`, `hr-audit-outbox-audit-draft`, and
-`hr-record-encryption-key-service-draft`. Its fourteen Buck
+`hr-record-encryption-key-service-draft`, plus
+`hr-runtime-context-oyatie-draft`. Its fifteen Buck
 runtime labels are exactly:
 
 ```text
@@ -1357,14 +1494,15 @@ runtime labels are exactly:
 //app/hr/adapters/draft/authorization-evidence-policy:hr-authorization-evidence-policy-draft
 //app/hr/adapters/draft/audit-outbox-audit:hr-audit-outbox-audit-draft
 //app/hr/adapters/draft/record-encryption-key-service:hr-record-encryption-key-service-draft
+//app/hr/adapters/draft/runtime-context-oyatie:hr-runtime-context-oyatie-draft
 ```
 
 Dev/test edges remain exactly the memory repository oracle and `tempfile`; no
 provider fake or mock is a runtime edge. All Rust, proto, build scripts, root
 dependency declarations, generated files, IAM/provider paths, deployment,
-route, and behavior are frozen. Build closure is the fourteen-edge facade,
+route, and behavior are frozen. Build closure is the fifteen-edge facade,
 provider adapters/contracts, full HR, and inverse scans through both graphs.
-Required review is HR, all four providers, Build/architecture, security, and
+Required review is HR, all five providers, Build/architecture, security, and
 Data durability. Success is exact graph parity with main still `Unrouted`.
 Failure is source behavior, transitive-only edge, test fake in runtime, extra
 provider dependency, lock churn outside the people-app package entry, or a
@@ -1381,35 +1519,44 @@ app/hr/facade/people-app/src/items/g_production_composition.rs
 app/hr/facade/people-app/src/items/h_authority_barrier.rs
 app/hr/facade/people-app/src/items/i_audit_delivery.rs
 app/hr/facade/people-app/src/items/n_encryption_barrier.rs
+app/hr/facade/people-app/src/items/o_runtime_context.rs
 app/hr/facade/people-app/src/test_items/e_composition.rs
 app/hr/facade/people-app/src/test_items/f_provider_outages.rs
 app/hr/facade/people-app/src/test_items/i_encryption.rs
+app/hr/facade/people-app/src/test_items/j_runtime_context.rs
 app/hr/facade/people-app/tests/items/g_production_composition.rs
 app/hr/facade/people-app/tests/items/h_provider_outages.rs
 app/hr/facade/people-app/tests/items/l_encryption.rs
+app/hr/facade/people-app/tests/items/m_runtime_context.rs
 ```
 
 The D-41 scanner discovers these bounded files without an index edit. The
 composition constructor requires concrete SQLite, record-encryption/key-service,
 Packs/install, Policy/IAM, Audit/outbox, and generated-Connect adapters; it
-injects the concrete encryption adapter into SQLite, and its production type
-cannot accept the memory oracle or a provider/key fake. It enforces provider
-health, active key-generation fencing, and the audit operation-class matrix
-before dispatch. `src/main.rs` and `a_unrouted.rs` remain
-unchanged, so no process can instantiate the composition or bind a listener.
+also requires `hr-runtime-context-oyatie-draft`. It injects the concrete
+encryption adapter into SQLite, the concrete runtime context into every
+authority/effective-window and telemetry call, and its production type cannot
+accept the memory oracle or any provider/key/time/telemetry fake. It enforces
+provider health, L2i.0f commit authorization/resolution, active key-generation
+fencing, trusted-interval boundary refusal, bounded signal delivery, and the
+audit operation-class matrix before dispatch. `src/main.rs` and
+`a_unrouted.rs` remain unchanged, so no process can instantiate the composition
+or bind a listener.
 All manifests/build/root/lock/generated/proto, adapters, provider paths, and
 deployment files are frozen.
 
 Success is a fully constructed but unreachable production composition with
-typed fail-closed authority and encryption barriers. Failure is an optional
-authority, fake runtime/key, plaintext persistence, direct provider internal
-import, route/bind, partial provider result, unbounded retry, or sensitive
-telemetry. Fault evidence independently and jointly removes Packs, Policy/IAM,
-Audit, encryption/key service, and SQLite before construction and at every
-pre-seal/SQL/commit/disclosure boundary; rotates and revokes the key generation;
-requests fail closed, durable outbox semantics follow the accepted matrix,
-reservations drain, and no listener exists. Rollback removes only these ten
-unique files.
+typed fail-closed authority, encryption/commit, and runtime-context barriers.
+Failure is an optional authority, fake runtime/key/time/telemetry source,
+unresolved commit acknowledgement, plaintext persistence, direct provider
+internal import, route/bind, partial provider result, unbounded retry, or
+sensitive telemetry. Fault evidence independently and jointly removes Packs,
+Policy/IAM, Audit, encryption/key service, runtime context, and SQLite before
+construction and at every pre-seal/authorize/SQL/commit/resolve/disclosure
+boundary; rotates and revokes the key generation; widens trusted-time intervals
+across expiry/effective boundaries; requests fail closed, durable outbox
+semantics follow the accepted matrix, reservations drain, and no listener
+exists. Rollback removes only these thirteen unique files.
 
 ## L2k.0 — Accept the listener, deployment, and cohort contract
 
@@ -1424,9 +1571,11 @@ generated outputs, deployment desired-state/IaC paths, Cargo/Buck dependencies,
 root/lock/generated/fixups, health/readiness semantics, drain/shutdown contract,
 capacity profile, rollout and rollback barrier, and reviewers. It must prove
 that listener identity is not an IAM-to-HR Rust edge and that the provider
-adapters from L2i—including record encryption/key service—remain the only
-authority implementations. It also fixes the boot-time active key-generation
-receipt, rotation/revocation readiness barrier, and cohort withdrawal signal.
+adapters from L2i—including record encryption/key service and runtime
+context—remain the only authority/runtime implementations. It also fixes the
+boot-time active key-generation receipt, commit-authorization reconciliation,
+trusted-time/telemetry health, rotation/revocation readiness barrier, and
+cohort withdrawal signal.
 Placeholder paths,
 handwritten HTTP, a global/all-tenant default, mutable CLI activation, or a
 second codec rejects the gate and leaves main `Unrouted`.
@@ -1451,8 +1600,8 @@ blocks L2k.2.
 All admitted structural files are at most 300 lines unless they are generated
 by the accepted owner tool; generated faces are materialized, never hand edited,
 and two consecutive materializations are byte-identical. Cargo and Buck carry
-the same listener/config/telemetry inputs and retain the fourteen HR composition
-edges. Build closure is the exact listener/deployment graph, full HR, all four
+the same listener/config/telemetry inputs and retain the fifteen HR composition
+edges. Build closure is the exact listener/deployment graph, full HR, all five
 providers, and current cell/Gateway/IAM/Observability/IaC consumers. Required
 review is every affected owner plus Architecture, Build, security, SRE, and
 privacy. Success is inert structure with main still `Unrouted`. Failure is
@@ -1483,21 +1632,23 @@ frozen production composition. D-41 discovers every new item; no parent module
 index changes, and every file is at most 300 lines. The process may bind only
 the accepted listener with an empty/default-deny cohort, generated Connect
 routes, concrete production adapters, bounded request/response accounting, and
-readiness false until all mandatory authorities and the active encryption key
-generation are healthy. It cannot serve a
-tenant yet. All manifests, build scripts, lock/root/generated, proto, adapters,
-provider code, and cohort/deployment values are frozen.
+readiness false until all mandatory authorities, trusted runtime context, and
+the active encryption key generation/commit-resolution path are healthy. It
+cannot serve a tenant yet. All manifests, build scripts, lock/root/generated,
+proto, adapters, provider code, and cohort/deployment values are frozen.
 
 Success is boot/bind/drain evidence with zero routable tenants and exact
 generated routes. Failure is a fake adapter, implicit tenant, authority bypass,
 partial response, unbounded shutdown, handwritten protocol, or false readiness.
 Fault evidence removes each provider at boot and mid-request, rotates and
-revokes encryption generations, tampers with ciphertext and blind indexes,
-corrupts cohort input, saturates request and response budgets, interrupts encode
-before headers, and kills the process during seal/commit/drain; no unauthorized
-mutation/disclosure, plaintext persistence, or partial response occurs and
-fresh-process restart/replay converges. Rollback restores the
-typed `Unrouted` main; no tenant cohort or format downgrade is involved.
+revokes encryption generations, races commit authorization/resolution, tampers
+with ciphertext and blind indexes, removes/widens runtime-context time and
+telemetry, corrupts cohort input, saturates request and response budgets,
+interrupts encode before headers, and kills the process during seal/commit/
+resolve/drain; no unauthorized mutation/disclosure, plaintext persistence, or
+partial response occurs and fresh-process restart/replay converges. Rollback
+restores the typed `Unrouted` main; no tenant cohort or format downgrade is
+involved.
 
 ## L2k.3 — Promote the first bounded tenant cohort
 
@@ -1511,13 +1662,14 @@ and generated outputs are frozen.
 The first cohort is one named home-cell tenant within the declared capacity
 profile. Promotion requires healthy concrete Packs, Policy/IAM, Audit, record-
 encryption/key service, SQLite, Connect, telemetry, drain, encrypted backup/
-fresh-process reopen, rotation/revocation, and rollback evidence; request and
+fresh-process reopen, commit-fence resolution, trusted interval/runtime-context,
+rotation/revocation, and rollback evidence; request and
 response exact/limit-plus-one campaigns; zero IAM-to-HR graph edges; no
 compatibility packages; and measured SLO signals without advertising the
-objective early. Provider or required key-generation outage removes the cohort
-before retry traffic can
-exhaust queues. Rollback sets the cohort empty and drains before binary or
-format rollback; committed SQLite records remain readable and replayable.
+objective early. Provider, runtime-context, or required key-generation outage
+removes the cohort before retry traffic can exhaust queues. Rollback sets the
+cohort empty and drains before binary or format rollback; committed SQLite
+records remain readable and replayable.
 Success is one bounded cohort with qualified evidence. Failure is all-tenant
 activation, fake authority/key, stale policy/pack, audit bypass, plaintext
 storage, failed rotation/revoke/reopen proof, missing telemetry, unbounded work,
@@ -1542,14 +1694,15 @@ content paths.
 
 L2g.0a, L2g.0b, and L2g.1 are IAM-owner lanes: the scanner/file-budget split
 serializes before the eight content paths, four graph files, and `Cargo.lock`;
-L2h returns to the HR owner. The four L2i.0 decisions may be reviewed
-independently. L2i.1a-d are structurally disjoint except for `Cargo.lock` and
-any ratified root/generated dependency hub,
-so those structural writers serialize. L2i.2a-d have disjoint changed paths but
-share the mandatory all-HR practical build closure, so their implementation
-dispatches also serialize while their independent review/recon can overlap.
-L2j.0 serializes the shared People graph, L2j.1 adds only unique composition
-items, and L2k.0 holds all route work closed.
+L2h returns to the HR owner. The five L2i.0 provider decisions may be reviewed
+independently. L2i.0f is the single content-only encryption-port/repository/
+SQLite join after L2i.0d and before the encryption adapter. L2i.1a-e are
+structurally disjoint except for `Cargo.lock` and any ratified root/generated
+dependency hub, so those structural writers serialize. L2i.2a-e have disjoint
+changed paths but share the mandatory all-HR practical build closure, so their
+implementation dispatches also serialize while their independent review/recon
+can overlap. L2j.0 serializes the shared People graph, L2j.1 adds only unique
+composition items, and L2k.0 holds all route work closed.
 L2k.1 serializes admitted route/deployment structure; L2k.2 exclusively changes
 main and route content with an empty cohort; L2k.3 changes only the ratified
 cohort/desired-state envelope.

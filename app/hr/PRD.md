@@ -100,11 +100,18 @@ workflow/payroll/audit delivery, no recovery campaign, and no measured SLO.
   Installed-pack resolution, Policy/IAM authorization evidence, and Audit/
   outbox delivery each require an accepted provider contract and a production
   HR-owned adapter whose outage behavior fails closed for the operation class.
+  Trusted interval time and correlation-safe telemetry likewise require the
+  production `hr-runtime-context-oyatie-draft` adapter implementing
+  `hr-runtime-context-draft`; a process/system clock or facade-local emitter is
+  not a production implementation.
 - Encrypt durable sensitive fields through an HR-owned record-encryption port
   and an accepted authenticated-encryption/key-service adapter. Persist no
   employee, person, evidence, lifecycle, request, outcome, or outbox plaintext;
-  prevent secrets, keys, credentials, raw sensitive values, or policy proofs
-  from entering database pages, backups, logs, and metrics.
+  persist no unkeyed canonical-request fingerprint; and prevent secrets, keys,
+  credentials, raw sensitive values, or policy proofs from entering database
+  pages, backups, logs, and metrics. A mutation is acknowledged only after its
+  SQLite commit authorization is linearly ordered with key-generation
+  rotation/revocation and resolved committed by the key authority.
 
 ## Durability and portability
 
@@ -130,6 +137,9 @@ workflow/payroll/audit delivery, no recovery campaign, and no measured SLO.
   required policy/audit paths satisfy the operation's fail-closed contract.
 - Bound queues and in-flight work; reject retryably before unbounded memory or
   lock contention. Background delivery may not starve foreground reads/writes.
+- Evaluate expiry/effective-window boundaries from a trusted interval. If the
+  interval straddles a policy, overlay, key-authorization, or legal-effective
+  boundary, refuse rather than selecting a favorable point estimate.
 
 </requirements>
 
@@ -146,8 +156,8 @@ For an admitted home-cell tenant at no more than 70% declared capacity:
   workflow/payroll delivery;
 - acknowledged mutation durability: **zero loss** within the selected adapter's
   declared durability profile after process restart;
-- idempotent replay: **100%** of same-key/same-digest retries return the original
-  committed outcome without a second business effect;
+- idempotent replay: **100%** of same-key/same-canonical-request retries return
+  the original committed outcome without a second business effect;
 - unauthorized sensitive disclosure objective: **zero**.
 
 These become advertised SLOs only after HR-owned telemetry, load envelopes,
@@ -175,11 +185,16 @@ objectives as unqualified rather than manufacturing availability evidence.
   promotion.
 - The production process composes concrete Packs/install, Policy/IAM evidence,
   Audit/outbox, authenticated record-encryption/key service, SQLite, and
-  generated-Connect adapters; each provider outage is proven before route
-  activation and before a non-empty tenant cohort.
+  generated-Connect adapters plus the accepted trusted-time/telemetry runtime-
+  context adapter; each provider outage is proven before route activation and
+  before a non-empty tenant cohort.
 - Real-file and backup inspection finds none of the injected sensitive
   sentinels; fresh-process reopen, key rotation/re-encryption, planned and
-  emergency revocation, and replay preserve the declared durability contract.
+  emergency revocation, commit-authorization recovery, and replay preserve the
+  declared durability contract. Canonical-request equality is represented only
+  by its tenant/key-scoped blind index or authenticated ciphertext. Fresh boot
+  fences the prior repository epoch and resolves every bounded provider-side
+  pending receipt before readiness.
 - Success and error responses, stored replay outcomes, returned strings, and
   repeated fields stay within exact hard ceilings under checked accounting;
   oversized state produces no partial response or sensitive fallback error.
@@ -188,8 +203,8 @@ objectives as unqualified rather than manufacturing availability evidence.
 
 - An acknowledged employee mutation disappears or becomes partially visible
   after interruption or reopen.
-- The same idempotency key creates two effects, or a different payload reuses it
-  without conflict.
+- The same idempotency key creates two effects, or a different canonical request
+  reuses it without conflict.
 - A stale/forged PDP or overlay proof, cross-tenant body, missing legal basis,
   or audit outage reaches mutation or sensitive disclosure.
 - HR core requires a Data/Gateway/cloud crate, adapter-specific schema, or
@@ -198,12 +213,14 @@ objectives as unqualified rather than manufacturing availability evidence.
   trailer-dependent, malformed, unbounded, second-codec, or HR-handwritten
   Connect traffic.
 - A routed cohort uses an in-memory/test authority, omits a required production
-  provider adapter, emits a partial oversized response, truncates a collection,
-  or interpolates sensitive state into an error.
+  provider adapter—including runtime context—emits a partial oversized response,
+  truncates a collection, or interpolates sensitive state into an error.
 - SQLite or its backup contains a sensitive plaintext sentinel, reuses a nonce,
   accepts a caller/process-local fallback key, acknowledges with an unsealed
-  field, or stays ready after its required key generation is unavailable or
-  revoked.
+  field or unresolved commit authorization, persists an unkeyed request
+  fingerprint, declares revocation complete with an outstanding earlier
+  authorization, or stays ready after its required key generation is
+  unavailable/revoked or its trusted runtime context is unavailable.
 - A health endpoint claims durability, delivery, or SLO qualification absent
   corresponding evidence.
 
@@ -213,7 +230,7 @@ objectives as unqualified rather than manufacturing availability evidence.
   lifecycle/audit-outbox write, and immediately before/after commit; reopen the
   same database after each point.
 - Lose the successful response after commit and replay the request; then replay
-  the key with a changed request digest.
+  the key with a changed canonical request.
 - Inject corrupt/old schema versions, full disk, busy/locked database, expired
   pack/PDP proof, cross-tenant input, downstream timeout, and outbox redelivery.
 - Kill the adapter during migration and prove it reopens at either the prior
@@ -224,13 +241,20 @@ objectives as unqualified rather than manufacturing availability evidence.
   encode failure before headers; every case fails before repository mutation
   or partial response.
 - Independently remove Packs/install, Policy/IAM, Audit, and encryption/key-
-  service reachability before process boot and during an admitted request;
-  readiness drops, required operations fail closed, reservations drain, and no
-  cohort is routed on a fake.
+  service reachability plus trusted time and telemetry before process boot and
+  during an admitted request; readiness drops, required operations fail closed,
+  reservations drain, and no cohort is routed on a fake or system-clock
+  fallback. Inject interval uncertainty that straddles every effective/expiry
+  boundary and require the stable refusal.
 - Crash before and after ciphertext persistence and each key-rotation CAS;
   reopen from the same database and backup with a fresh process, replay the
-  request, revoke the old generation at zero and nonzero reference counts, and
-  prove either one authenticated value or a typed fail-closed result—never
-  plaintext, mixed generations without metadata, or an implicit fallback key.
+  request, race provider `authorize_commit` and idempotent `resolve_commit`
+  against SQLite commit, normal rotation, emergency drain, and crash recovery,
+  revoke the old generation at zero and nonzero reference/authorization counts,
+  inject a stale recovery epoch plus duplicate/missing/reordered and exact/
+  limit-plus-one unresolved-receipt pages, and prove either one authenticated
+  value or a typed fail-closed result—never plaintext, an unkeyed equality token,
+  mixed generations without metadata, a completed revocation with pending
+  authorization, or an implicit fallback key.
 
 </acceptance>

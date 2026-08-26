@@ -66,14 +66,14 @@ The first port set is:
 | Port | Required semantic boundary |
 |---|---|
 | employee repository | atomic employee/lifecycle/idempotency outcome read and write |
-| record encryption | seal/open sensitive values, derive bounded blind indexes, and carry authenticated key-generation metadata without exposing provider types |
+| record encryption | seal/open sensitive values, derive tenant/key-scoped blind indexes and opaque commit bindings, and linearly authorize/resolve repository commits against key-generation transitions without exposing provider types |
 | installed HR overlay | resolve admitted pack-id to verified HR rule content and generation |
 | authorization evidence | supply verified principal/tenant/action/resource/PDP provenance, never caller allow fields |
 | audit/outbox | durably bind pre-ack evidence or intent and retry delivery |
 | workflow dispatch | idempotently deliver labor/onboarding workflow intent |
 | payroll-impact dispatch | idempotently deliver HR-owned payroll-impact intent, never payroll calculation |
 | transport | versioned request/result/error values independent of Gateway core/runtime |
-| observability/clock | correlation-safe signals and trusted time where policy requires it |
+| observability/clock | trusted time intervals plus bounded correlation-safe signal emission and health; no process-clock or facade-local production fallback |
 
 Port values use HR-owned identifiers and classification vocabulary. A Data or
 Gateway adapter performs explicit translation at its outer edge. Between-app
@@ -270,41 +270,65 @@ command must explicitly consume a `Ready` result and its evidence generation.
 
 The SQLite schema is adapter-private and versioned. At minimum it persists
 employee state, lifecycle events, idempotency outcomes, and audit/outbox intent.
-The repository port supplies a versioned canonical request byte sequence; the
-adapter stores its SHA-256 digest plus a record-encryption envelope for the
-versioned outcome bytes. The SQLite adapter's only runtime dependencies are
-`hr-employment-repository-draft`, `hr-record-encryption-draft`,
-`rusqlite.workspace = true`, and `sha2.workspace = true`. Its only
-dev-dependencies are `hr-employment-repository-memory-draft` and
-`tempfile.workspace = true`; recovery targets use the real SQLite adapter and
-`tempfile`, never the memory oracle or `:memory:`.
+The repository port supplies a versioned canonical request byte sequence. The
+adapter asks the record-encryption port for a tenant, operation,
+idempotency-key, schema, and key-generation-scoped blind index and persists the
+canonical request only inside authenticated ciphertext. It never computes or
+stores an unkeyed request digest. The SQLite adapter's only runtime dependencies
+are `hr-employment-repository-draft`, `hr-record-encryption-draft`, and
+`rusqlite.workspace = true`. Its only dev-dependencies are
+`hr-employment-repository-memory-draft` and `tempfile.workspace = true`;
+recovery targets use the real SQLite adapter and `tempfile`, never the memory
+oracle or `:memory:`.
 The logical idempotency key is:
 
 ```text
 (tenant_id, operation_kind, idempotency_key)
 ```
 
-The stored entry binds a canonical request digest, outcome bytes/version, and
-commit generation. Processing is:
+The stored entry binds the blind-index bytes and generation, encrypted canonical
+request and outcome bytes/version, repository epoch, commit binding,
+authorization receipt, and commit generation. Processing is:
 
 1. Validate syntax, tenant binding, verified authorization, and overlay
    generation without mutation.
 2. Evaluate the deterministic domain command.
 3. Begin one SQLite transaction and inspect the idempotency entry.
-4. If the entry is committed with the same digest, return its stored outcome.
-   If its digest differs, return `IdempotencyConflict` without mutation.
+4. If the entry is committed, derive the blind index in its recorded admitted
+   generation and compare it in constant time. A match returns the stored
+   outcome; a mismatch returns `IdempotencyConflict` without mutation. A key
+   outage or revoked generation is `Unavailable`, never an unkeyed fallback.
 5. Otherwise seal every sensitive employee, lifecycle, request/outcome, and
    audit/outbox value through `hr-record-encryption-draft`, derive required
-   blind indexes, and write the authenticated envelopes plus the idempotency
+   blind indexes, and stage the authenticated envelopes plus the idempotency
    entry in the same transaction.
-6. Commit durably according to the adapter profile, then acknowledge. A caller
-   disconnect after commit does not undo the transaction.
+6. After all local writes are staged, derive one opaque commit binding and call
+   `authorize_commit` with tenant, the current repository-epoch lease, a stable
+   commit-authorization id, key generation, blind-index identity, and that
+   binding. Store the returned authorization receipt inside the same SQLite
+   transaction.
+7. Commit durably according to the adapter profile, then call idempotent
+   `resolve_commit(Committed { binding })`. Only the provider's resolved receipt
+   authorizes acknowledgement. If SQLite rolls back, recovery calls
+   `resolve_commit(Aborted)` instead. A caller disconnect after commit does not
+   undo the transaction.
 
-The adapter never exposes `PREPARED` state. Interruption before commit rolls all
-four effects back. Interruption after commit recovers all four. Cleanup or
-delivery failure may leave a retryable outbox entry, never a missing employee or
-second business effect. SQLite-to-cloud transition is cohort cutover between
-single active adapters, not dual-write.
+The adapter never exposes `PREPARED` or a pending authorization as success. On
+boot, an exclusive SQLite writer first acquires a provider-serialized
+`RepositoryEpochLease`; that operation fences authorization from every older
+epoch. Before readiness, it drains bounded pages from `list_unresolved` for the
+repository. An exact committed SQLite receipt/binding resolves `Committed`; an
+absent receipt resolves `Aborted` only after the older epoch is fenced; a
+mismatched receipt/binding is corruption and keeps readiness false. Thus a
+crash after provider authorization but before SQLite commit is recoverable even
+though the local transaction never persisted the receipt. Interruption before
+commit rolls all four business effects back. Interruption after commit recovers
+all four effects and resolves the stored receipt as committed before replay can
+acknowledge. Provider loss leaves the cohort unavailable and the receipt
+unresolved; it is never guessed from a deadline. Cleanup or delivery failure
+may leave a retryable outbox entry, never a missing employee or second business
+effect. SQLite-to-cloud transition is cohort cutover between single active
+adapters, not dual-write.
 
 </durable_transaction>
 
@@ -317,11 +341,26 @@ row identity, bounded timestamps and counters, ciphertext-envelope metadata,
 and keyed blind indexes. Employee, person, manager, evidence, policy, pack,
 lifecycle, canonical request, stored outcome, and audit/outbox payload values
 are sensitive and must never be stored as cleartext. The
-`hr-record-encryption-draft` port exposes bounded `seal`, `open`, and
-`blind_index` operations over HR-owned values. Its envelope contains an
+final `hr-record-encryption-draft` port exposes bounded `seal`, `open`,
+`blind_index`, `commit_binding`, `acquire_repository_epoch`,
+`list_unresolved`, `authorize_commit`, and idempotent `resolve_commit`
+operations over HR-owned values. Its envelope contains an
 algorithm identifier, provider/key reference, monotonically ordered key
 generation, unique nonce, ciphertext, and authentication tag; provider or
-cipher types do not cross the port.
+cipher types do not cross the port. A blind index is a fixed-width keyed PRF
+output scoped to `(tenant, operation kind, idempotency key, schema version,
+"canonical-request/v1", key generation)`, with the canonical-request bytes as
+the PRF message. Length-prefixing and domain separation are canonical; it
+permits equality only inside that logical replay slot and never permits cross-
+tenant, cross-operation, or cross-idempotency-key matching. The accepted
+primitive, encoding, and width are decision-gated at L2i.0d.
+
+`CommitBinding` is a fixed-width provider-authenticated value over a canonical,
+length-prefixed staged-write descriptor, domain-separated by tenant,
+repository, epoch, authorization id, schema, and key generation. Neither it nor
+`CommitAuthorizationId` is an unkeyed request digest: the authorization id is an
+opaque repository-unique transaction identity, and neither value is a telemetry
+label or cross-slot equality token.
 
 Associated data canonically binds tenant, legal entity, logical table and
 field, opaque row identity, schema version, and record generation. Every size
@@ -337,19 +376,50 @@ L2i.0d is a non-dispatchable decision gate until it names the exact accepted
 authenticated-encryption primitive/library and commodity or sold key-service
 facade, versions/features/licenses, generated client and Cargo/Buck targets,
 key custody and zeroization boundary, nonce source, retry/deadline bounds,
-generation receipt and fencing semantics, and removal path. The selected
-adapter is owner-local and remains
+blind-index PRF, generation and commit-authorization linearization semantics,
+bounded unresolved-receipt enumeration, repository-epoch fencing, recovery/
+administrative resolution, and removal path. L2i.0f must then freeze those
+semantics into exact HR port, repository, and SQLite unique files before the
+selected adapter behavior or production composition is dispatchable. The
+selected adapter is owner-local and remains
 `app/hr/adapters/draft/record-encryption-key-service` /
 `hr-record-encryption-key-service-draft` while its port is draft.
 
-Rotation is generation-fenced: one generation is active for new seals, and a
-bounded admitted read set may contain the immediately prior generation while
-rows are transactionally compare-and-swapped to the new envelope. Each row
-records its generation. Re-encryption is idempotent across restart and never
-acknowledges an envelope whose generation receipt became stale before commit.
-Normal revocation is admitted only after a zero-reference scan and fresh-process
-reopen proof. Emergency revocation immediately makes affected reads and the
-serving cohort unavailable; it never falls back or silently discards data.
+The HR error type is closed as
+`CommitFenceError::{GenerationNotActive, AuthorizationDenied,
+AuthorizationUnresolved, CommitBindingMismatch, RepositoryEpochStale,
+ResolutionConflict, ProviderUnavailable, ProviderCorrupt}`. A successful
+resolution is exactly `CommittedBeforeFence` or `AbortedBeforeCommit`; neither
+is inferred from a timeout, disconnect, clock, or missing row. Pending-page
+results are capped by the L2i.0d accepted item/byte limits and carry an opaque
+continuation; duplicate pages and resolutions are idempotent, while a skipped,
+reordered, oversized, or non-progressing continuation fails closed.
+
+The provider state machine is
+`Active -> Draining | EmergencyDraining -> Revoked`. `authorize_commit` and
+those transitions share one provider-side linearization order. Authorization
+is allowed only in `Active` and returns an opaque single-use receipt bound to
+the repository epoch, transaction id, generation, and commit binding. A
+rotation/revocation request that wins first denies authorization. An
+authorization that wins first remains pending and orders that one commit before
+the transition barrier; the transition cannot become `Revoked` until the
+receipt is idempotently resolved committed or aborted. Resolution never expires
+into an assumed outcome. Repository-epoch acquisition and unresolved-receipt
+enumeration participate in the same provider authority: acquiring epoch N+1
+fences N before the new writer may classify N's pending receipts.
+
+One generation is active for new seals. Normal rotation activates the next
+generation and leaves the immediately prior one `Draining` for bounded reads
+and transactionally compare-and-swapped re-encryption, but issues no new seals
+or commit authorizations under it. Normal revocation requires a zero-reference
+scan, zero unresolved authorizations, and fresh-process reopen proof. Emergency
+drain immediately denies new seal/open/authorization admissions and makes the
+affected serving cohort unready; provider resolution remains available only to
+settle already ordered receipts. Such a receipt may acknowledge only after
+`resolve_commit` proves `CommittedBeforeFence`. Final `Revoked` still waits for
+zero unresolved receipts, so "immediate" means admission/readiness withdrawal,
+not retroactive invalidation of an earlier linearization point. There is no
+fallback or silent discard.
 
 Contract evidence injects unique sentinels into every sensitive field, commits
 to a real SQLite file, checkpoints and copies the backup, and proves neither
@@ -358,10 +428,16 @@ rotation-CAS, and reply boundary; reopens with a fresh process and provider
 client; verifies authenticated reads and idempotent replay; detects ciphertext,
 tag, nonce, associated-data, and blind-index tampering; rotates under concurrent
 reads/writes; and exercises normal plus emergency revocation and provider loss
-before boot and mid-transaction. Success exposes either the one committed
-authenticated value or no acknowledged effect. Partial plaintext, nonce reuse,
-mixed state without generation metadata, stale-generation acknowledgement, or
-fallback material is failure.
+before boot and mid-transaction. It separately races provider authorization,
+SQLite commit, provider resolution, rotation/drain, hard close, and exclusive-
+epoch recovery in every order, including a kill after authorization but before
+the SQLite receipt becomes durable. It injects duplicate/missing/reordered and
+limit/limit-plus-one pending pages and a stale repository epoch. Success exposes
+either the one committed, resolved authenticated value or no acknowledged
+effect. Partial plaintext, unkeyed request equality, nonce reuse, mixed state
+without generation metadata, acknowledgement without a resolved receipt,
+completed revocation with a pending earlier receipt, or fallback material is
+failure.
 
 </data_at_rest>
 
@@ -374,9 +450,9 @@ fallback material is failure.
 | validation | malformed identifier/date/evidence, invalid checklist, changed payload on reused key | none |
 | unauthenticated | missing, invalid, expired, or unbound principal proof | none |
 | forbidden | PDP deny, tenant mismatch, absent legal basis, stale/conflicting overlay | none |
-| conflict | employee version mismatch, duplicate identity, idempotency digest mismatch | none |
-| unavailable | SQLite busy/full/unopenable, audit/key precondition unavailable, selected adapter unhealthy, required key generation revoked | none acknowledged |
-| internal/corrupt | schema incompatibility, corrupt stored outcome, ciphertext/tag/nonce/generation mismatch, impossible state | fail closed; readiness false |
+| conflict | employee version mismatch, duplicate identity, idempotency blind-index mismatch, commit-resolution conflict | none |
+| unavailable | SQLite busy/full/unopenable, audit/key/runtime-context precondition unavailable, commit authorization unresolved, selected adapter unhealthy, key generation draining/revoked | none acknowledged |
+| internal/corrupt | schema incompatibility, corrupt stored outcome, ciphertext/tag/nonce/generation/commit-binding mismatch, impossible state | fail closed; readiness false |
 
 Wire adapters map these typed classes to their protocol without making status
 codes the domain model. Logs carry class, operation, correlation id, policy and
@@ -394,9 +470,9 @@ the in-memory reference and SQLite; promoted Postgres/Data/on-prem adapters join
 the same suite. It proves:
 
 - create/read and lifecycle visibility are tenant and legal-entity scoped;
-- same-key/same-digest replay returns byte-equivalent semantic outcome and does
+- same-key/same-canonical-request replay returns byte-equivalent semantic outcome and does
   not duplicate employee, lifecycle, audit/outbox, workflow, or payroll intent;
-- same-key/different-digest replay returns conflict without mutation;
+- same-key/different-canonical-request replay returns conflict without mutation;
 - domain, authorization, overlay, encryption/key, and adapter failures preserve
   no partial state, plaintext persistence, or sensitive disclosure;
 - schema N/N+1 open, migrate, reopen, and supported rollback boundaries are
@@ -410,6 +486,14 @@ graceful cleanup, reopens the database, checks invariants, and performs an
 idempotent replay. In-memory tests are semantic reference evidence, not crash
 durability evidence.
 
+Commit-fence fault injection pauses before/after `authorize_commit`, before/
+after SQLite commit, and before/after `resolve_commit`; concurrently requests
+normal rotation and emergency drain, kills the process, then takes an exclusive
+repository recovery epoch. The fresh process must resolve exactly one stored
+receipt state. A provider transition cannot report `Revoked` while an earlier
+receipt is unresolved, and an unresolved or provider-unavailable receipt cannot
+produce an acknowledgement.
+
 </conformance_and_faults>
 
 <observability>
@@ -421,10 +505,21 @@ generation age, selected adapter, transaction phase/latency, replay/conflict,
 outbox lag/redelivery, reopen/migration result, and saturation. Cardinality is
 bounded; employee, person, evidence, and idempotency values are not labels.
 
+Production implements `hr-runtime-context-draft` only through
+`hr-runtime-context-oyatie-draft`, an HR-owned consumer adapter for the accepted
+Cell trusted-interval and Observability signal facades. Its time value is
+`[earliest, latest]` plus source generation and uncertainty; it is not a scalar
+wall-clock timestamp. If the interval straddles a policy expiry, overlay
+effective boundary, key/legal effective boundary, the operation returns typed
+`TimeUncertain`. Provider outage returns `RuntimeContextUnavailable`; system/
+process time and discard-to-log are not fallbacks. Signal emission is bounded,
+correlation-safe, and contains no HR identity or payload.
+
 Readiness is false when the selected durable adapter cannot open or commit, its
 schema is outside the supported window, the active encryption key generation
-cannot seal/open or is revoked, policy authority is unusable, or a required
-pre-ack audit path cannot satisfy the request class. Health does not
+cannot seal/open/authorize/resolve or is draining/revoked, trusted interval or
+bounded telemetry health is unavailable, policy authority is unusable, or a
+required pre-ack audit path cannot satisfy the request class. Health does not
 claim durable, network, or downstream capability merely because pure domain
 tests pass. The PRD SLO remains unqualified until these signals and the declared
 load envelope are exercised in promotion evidence.

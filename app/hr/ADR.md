@@ -136,7 +136,7 @@ over-budget files are debt, not precedent.
 - **ensure:** backend conformance interrupts every transaction boundary,
   reopens the database, and replays the same idempotency key; pre-commit faults
   expose no mutation, post-commit reply loss returns the stored result, and the
-  same key with a different request digest fails closed.
+  same key with a different canonical request fails closed.
 - **overturn_when:** a replacement local adapter demonstrates equal offline
   packaging, atomicity, recovery, migration, and commodity/cloud parity, and a
   same-wave decision records its exit path.
@@ -151,26 +151,48 @@ over-budget files are debt, not precedent.
   employee, person, evidence, lifecycle, request, outcome, or outbox payloads,
   while HR remains portable across key providers.
 - **origin:** the PRD requires encrypted durable sensitive fields, but the
-  initial SQLite graph contains only the repository port, `rusqlite`, and
-  `sha2`; that graph can otherwise reach production while persisting plaintext
-  personal data and has no key rotation or revocation contract.
+  initial SQLite plan paired the repository with an unkeyed SHA-256 request
+  fingerprint and only three encryption operations. That shape leaks equality
+  across sensitive canonical requests and cannot order a separate SQLite
+  commit against provider rotation or revocation.
 - **rule:** SQLite and every promoted durable repository MUST pass sensitive
   values through the owner-local `hr-record-encryption-draft` port before
   persistence. The port owns bounded ciphertext-envelope, blind-index, key-
-  generation, and associated-data values; it does not own a cipher or KMS.
-  Production use is non-dispatchable until L2i.0d accepts one authenticated-
-  encryption implementation and one commodity or sold key-service facade with
-  exact dependencies, key custody, nonce, rotation, revocation, and outage
-  semantics. The matching HR adapter remains draft while the port is draft.
-  Plaintext fallback, caller-provided keys, process-local production keys,
-  provider-internal imports, and logging key/plaintext material are forbidden.
+  generation, associated-data, opaque commit-binding, and provider-serialized
+  commit-authorization values; it does not own a cipher or KMS. Request replay
+  comparison MUST persist only a tenant, operation, idempotency-key, schema,
+  and key-generation-scoped blind index or keep the comparison material inside
+  authenticated ciphertext; an unkeyed digest is forbidden. Production use is
+  non-dispatchable until L2i.0d accepts one authenticated-encryption
+  implementation and one commodity or sold key-service facade with exact
+  dependencies, key custody, nonce, rotation, revocation, outage, and
+  `authorize_commit`/idempotent `resolve_commit` semantics, and L2i.0f freezes
+  the corresponding HR port/repository/SQLite protocol before adapter
+  behavior. Provider authorization, repository-epoch fencing, and generation
+  transitions MUST share one linearizable order: a transition denies new
+  authorizations immediately but cannot become `Revoked` until every earlier
+  authorization is durably resolved as committed or aborted. SQLite stores the
+  opaque authorization receipt in the same transaction and no mutation is
+  acknowledged before the provider resolves its committed receipt. A new
+  exclusive repository epoch fences older writers, then enumerates bounded
+  provider-side pending receipts so a crash before the local receipt becomes
+  durable resolves aborted and a durable exact receipt resolves committed;
+  absence is never classified before fencing. The matching HR adapter remains
+  draft while the port is draft. Plaintext fallback, caller-provided keys,
+  process-local production keys, provider-internal imports, and logging key/
+  plaintext material are forbidden.
 - **ensure:** SQLite stores only approved nonsensitive schema metadata, opaque
   identifiers, blind indexes, and authenticated ciphertext envelopes. Contract
   and real-file tests scan database and backup bytes for injected sentinels,
   hard-close/reopen with a fresh adapter, rotate and re-encrypt with idempotent
   restart, revoke old generations, remove the key provider before boot and
-  mid-transaction, and prove no acknowledgement, disclosure, partial plaintext,
-  nonce reuse, or fallback key.
+  mid-transaction, and race authorization, local receipt durability, commit,
+  resolution, repository-epoch takeover, rotation, normal/emergency drain, and
+  crash recovery in every order. Bounded pending-page exact/limit-plus-one,
+  duplicate, missing, reordered, stale-epoch, and non-progressing cases fail
+  closed. Tests prove no unkeyed equality token, acknowledgement without a
+  resolved receipt, disclosure, partial plaintext, nonce reuse, fallback key,
+  or completed revocation with an unresolved earlier authorization.
 - **overturn_when:** an independently reviewed encrypted-SQLite binding or
   storage adapter proves equivalent full-file confidentiality, key separation,
   rotation/revocation, crash recovery, portability, and provider-outage failure
@@ -228,21 +250,24 @@ over-budget files are debt, not precedent.
   crash proof; a fail-closed Connect generator/runtime decision
   gate; structural empty codegen/package/build admission; a separate schema-only
   People contract; a content-only fail-closed `Unrouted` process state; and then
-  a content-only generated-Connect onboarding slice.
+  a content-only generated-Connect onboarding slice. The temporary JSON/Serde
+  translation MUST move into `transport-employment-compat`; no new
+  `*-app` library-only compatibility facade may be created.
   A mandatory D-29 IAM consumer sequence MUST first install D-35/D-41 stable
   membership in its oversized tenant-workload-manifest crate, then delete
   IAM-local HR composition and remove every
   IAM Cargo/Buck/Rust edge into `app/hr` without substituting an HR client,
   after which a separate HR structural lane MUST retire the compatibility
   surfaces. Production serving then requires decision-gated Packs/install,
-  Policy/IAM authorization-evidence, Audit/outbox, and authenticated record-
-  encryption/key-service provider contracts; D-28/D-30-correct draft adapter
-  faces while their HR ports remain draft; content-only adapter behavior;
-  structural composition edges; content-only composition; and a separately gated
-  main/route activation before any tenant cohort. No live route or production-
-  readiness promotion may precede the zero-inverse-edge proof or those
-  production authorities. Structural lanes MUST preserve public behavior and
-  make no durability, network, or readiness claim.
+  Policy/IAM authorization-evidence, Audit/outbox, authenticated record-
+  encryption/key-service, and trusted runtime-context provider contracts; an
+  intervening content-only encryption commit-fence protocol; D-28/D-30-correct
+  draft adapter faces while their HR ports remain draft; content-only adapter
+  behavior; structural composition edges; content-only composition; and a
+  separately gated main/route activation before any tenant cohort. No live
+  route or production-readiness promotion may precede the zero-inverse-edge
+  proof or those production authorities. Structural lanes MUST preserve public
+  behavior and make no durability, network, or readiness claim.
 - **ensure:** each lane has an exact changed-path envelope, Cargo and Buck build
   closure, reviewer jurisdiction, rollback, before/after tests, no generated
   hand edits, and a protected PR. SQLite behavior begins only after the pinned
@@ -307,5 +332,13 @@ over-budget files are debt, not precedent.
   through an HR-owned client adapter.
 - A non-draft adapter path or package implementing an HR `ports/draft/*`
   contract without a preceding D-28/D-29 port promotion.
+- A newly created `facade/*-app` with no compiler-only `src/main.rs`, or a
+  facade process used as an in-process JSON/compatibility translation library.
+- An unkeyed digest of canonical request material, an adapter-only key fence,
+  or revocation declared complete while an earlier commit authorization remains
+  unresolved.
+- A production People composition that supplies runtime time/telemetry from a
+  test fake, the facade, or process/system clocks instead of the selected
+  `hr-runtime-context-oyatie-draft` provider adapter.
 - Plaintext sensitive HR values in SQLite, backups, page images, logs, or
   fallback process-local keys when the selected encryption/key provider fails.
