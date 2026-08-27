@@ -19,12 +19,24 @@ date: 2026-08-27
   Buck graph.
 - Fourteen port-engine packages, partial toolchain/cache definitions, and one
   image recipe exist under Build.
+- Root Rust declarations and hosted workflows name 1.98.0, while the Buck
+  toolchain and distroless image still name 1.97.1. The local floating nightly
+  observed on 2026-08-27 is 1.100.0-nightly at rustc commit `bff8e12ff`.
+- Several standards still narrate 1.97.1 as current or require the MSRV to equal
+  the production pin; those claims are drift to reconcile, not live pin truth.
+- `Cargo.lock`, `deny.toml`, and a nonblocking weekly cargo-deny workflow exist;
+  the documented `deps.toml`, owned bump bot, and owned supply-chain audit gate
+  do not exist at this base.
+- An exact 1.100-nightly all-target workspace check passes but reports three
+  future-incompatible transitive packages across the application frontend and
+  intelligence/Valkey closures; no owner/disposition automation records them.
 
 No supported regeneration entrypoint, complete fixup/overlay inventory,
-deterministic double-run gate, validation kernel, atomic publisher, provenance
-receipt, or freshness graph action has landed. The two documented regeneration
-paths are absent. The port engine remains frozen. The broader semantic Build
-extension is not adopted.
+deterministic double-run gate, validation kernel, qualified publisher,
+provenance identity/receipt, or consumer-neutral freshness contract has landed.
+The two documented regeneration paths are absent. The port engine remains
+frozen. Build's reusable migration-machinery provider boundary is adopted; its
+exact semantic contracts are not.
 
 </baseline>
 
@@ -37,7 +49,8 @@ Class: documentation/authority only; this is the active lane.
 - Add `build/{ADR,PRD,SPEC,PLAN}.md` from exact `origin/dev`.
 - Record inherited Build boundaries, current declaration truth, the
   deterministic reconciliation destination, explicit success/failure/SLO and
-  fault criteria, and the nonbinding semantic proposal.
+  fault criteria, the adopted migration-provider and toolchain/dependency
+  lifecycle boundaries, and their nonbinding contract details.
 - Keep all code, manifests, lockfiles, Reindeer configuration, fixups,
   generated files, port-engine files, and other owners read-only.
 
@@ -47,9 +60,9 @@ Success: the four files agree with ADR-0719 and observed source, every strict
 normative rule sits inside a five-field decision, proposed extensions are visibly
 nonbinding, and targeted owner-law/layout checks pass.
 
-Failure: the lane claims the reconciler exists, adopts semantic ownership,
-prescribes Pipeline behavior, edits a shared declaration, or unfreezes the
-port engine.
+Failure: the lane claims the reconciler exists, treats proposed semantic
+schemas as adopted, prescribes Pipeline contract details, edits a shared
+declaration, or unfreezes the port engine.
 
 Rollback: revert only the four new documents; no executable state changes.
 
@@ -101,15 +114,18 @@ Class: structural design and shared-path escalation; depends on L1b.
   command before code changes.
 - Prefer `build/dependency-declarations/{core,ports,adapters,facade}`; verify the
   live layout grammar, workspace globs, package naming, and parent-index rules.
-  If admission changes are needed, split them into their Pipeline-owned PR.
-- Freeze public request/result/error/receipt schemas, v1 bounds, the nine-
-  platform set, and fake-generator/fault-filesystem test seams.
+  Route any admission need to Pipeline owner planning; it is outside this
+  Build implementation path.
+- Ratify the Reindeer pin and freeze public request/result/error schemas, v1
+  bounds, exact Rust triples and Buck configuration mappings, read-only Cargo
+  source snapshot, environment/sandbox/validator/publisher profiles, stable
+  generation identity, publication-attempt receipt, and fake adapter seams.
 - Assign one serialized structural worker for shared `Cargo.toml`, `Cargo.lock`,
   `reindeer.toml`, `third-party/BUCK`, fixup, or workspace/Buck declarations.
 
 No provisional write envelope becomes executable authority until the plan is
-approved. Build code and any Pipeline admission change occupy separate PRs;
-shared declaration paths get one named writer.
+approved. Build stops at its consumer-neutral facade and receipts; shared
+declaration paths get one named writer.
 
 Success: the plan is implementable file by file, respects the 300-line/unique-
 item rules, has no port-engine edge, and receives independent Build,
@@ -129,8 +145,8 @@ root-level dump, hand-maintained parent index, and cross-owner draft edge.
 Class: behavior, test-driven; depends on L1c structural merge.
 
 - Start with failing tests for request admission, digest/canonical ordering,
-  two-run mismatch, generated-graph validation, bounds, stable failures, and
-  deterministic receipt construction.
+  two-run mismatch, generated-graph validation, bounds, stable failures,
+  generation identity, and publication-attempt receipt construction.
 - Implement only pure values and state transitions. No process, filesystem,
   network, Git, Pipeline, Buck execution, or wall-clock access enters core.
 - Use one primary item per file and generated/globbed membership established by
@@ -140,8 +156,8 @@ Closed write envelope and target names come from the approved L1c plan and are
 limited to new core items/tests.
 
 Success: red-green-refactor receipts demonstrate every rule and property test,
-arbitrary admitted inputs do not panic, and repeated requests serialize to the
-same semantic result.
+arbitrary admitted inputs do not panic, and repeated generation requests
+serialize to the same semantic result and generation identity.
 
 Failure: adapters leak into core, output order depends on maps/host paths, an
 unbounded input is accepted, or a test is written after its behavior.
@@ -152,24 +168,28 @@ Fault evidence: arbitrary bytes/Unicode, maximum+one dimensions, digest
 collision fixtures, mismatched pass A/B, duplicate/dangling rules, and every
 stable failure class.
 
-## L1e — Add Reindeer and atomic-publication adapters
+## L1e — Add Reindeer and qualified-publication adapters
 
 Class: behavior at owned ports; depends on L1d.
 
-- Implement the process adapter for the pinned Reindeer, explicit environment,
-  offline/locked/stdout generation, time/output bounds, and process reaping.
-- Implement the same-directory atomic filesystem publisher with preimage
-  conflict detection, file and parent sync, restart cleanup, and no symlink
-  following.
+- Implement the process adapter for the ratified Reindeer, explicit read-only
+  Cargo source snapshot and environment, offline/locked/stdout generation,
+  time/output bounds, and process reaping.
+- Implement only qualified filesystem capability profiles, using an exclusive
+  destination lease or genuine compare-and-swap, directory-relative no-follow
+  operations, same-directory atomic replacement, file/parent sync, and restart
+  cleanup. Refuse unsupported profiles before staging.
 - Wire an internal facade that generates twice, validates, publishes, and emits
-  the deterministic receipt. It is not a user-facing CLI.
+  the stable generation identity and publication-attempt receipt. It is not a
+  user-facing CLI.
 
 Closed write envelope and build targets come from L1c; shared generator/config/
 fixup paths remain a separate serialized L1e structural sublane.
 
-Success: fake adapters and real pinned-Reindeer fixtures pass; unchanged and
-replaced outcomes are distinct; every injected failure exposes only the prior
-or new complete destination and reports uncertain durability honestly.
+Success: fake adapters and real pinned-Reindeer fixtures pass; unsupported
+profiles refuse; unchanged and replaced attempt receipts are distinct; and on
+qualified profiles every injected failure exposes only the prior or new
+complete destination and reports uncertain durability honestly.
 
 Failure: network or ambient environment affects output, a shell wrapper enters
 the path, output is semantically patched, or a partial file becomes visible.
@@ -177,13 +197,14 @@ the path, output is semantically patched, or a partial file becomes visible.
 Rollback: withdraw the unrouted facade/adapters while retaining the pure core;
 the checked dependency graph remains unchanged.
 
-Fault evidence: nonzero/timeout/signal/oversized generator, environment poison,
-input race, stage create/write/sync, pre-rename, rename, directory sync,
+Fault evidence: nonzero/timeout/signal/oversized generator, source-cache or
+environment poison, unsupported profile, lease acquisition/loss or CAS
+conflict, stage create/write/sync, pre-rename, rename, directory sync,
 abandoned temp, and symlink substitution.
 
-## L1f — Replace the broken seam and add freshness execution
+## L1f — Replace the broken seam and publish a freshness contract
 
-Class: serialized shared declarations followed by Pipeline-owned graph wiring;
+Class: serialized shared declarations plus consumer-neutral Build handoff;
 depends on L1e.
 
 - Convert every live semantic overlay into reviewed fixup/config behavior,
@@ -192,34 +213,34 @@ depends on L1e.
 - Update `reindeer.toml`, required `third-party/fixups/**`, and the generated
   output in one serialized Build/shared-declaration PR. Never hand-edit the
   generated face.
-- In a separate Pipeline-owned PR, add one hermetic freshness action using the
-  Build facade's check-only contract. Do not create a JSON census, second gate
-  fleet, or Build-owned scheduler.
+- Publish and contract-test a consumer-neutral check-only facade with explicit
+  inputs, results, failures, and receipts. Stop at the Build boundary; Pipeline
+  owner law decides whether and how to schedule or admit it.
 
 Shared write envelope is fixed by L1b/L1c and names every fixup. The generated
-file is tool-materialized. Pipeline paths never share the Build PR.
+file is tool-materialized. No Pipeline path or behavior enters this sequence.
 
 Success: the old wrapper references disappear, check-only is the same engine as
-materialization, a deliberate one-byte/input drift fails, and protected graph
-execution reports one semantic freshness result.
+materialization, and contract tests prove a deliberate one-byte/input drift
+returns one typed, receipt-bound freshness failure without modifying the tree.
 
-Failure: a hidden post-step survives, Pipeline reimplements generation,
-generated output is manually repaired, or freshness can skip on a relevant
-input change.
+Failure: a hidden post-step survives, Build prescribes Pipeline wiring,
+generated output is manually repaired, or check-only misses a relevant input
+change.
 
-Rollback: revert graph wiring first, then restore the prior complete generated
-file and configuration as one serialized change; no partially converted seam.
+Rollback: restore the prior complete generated file and configuration as one
+serialized change; no partially converted seam or cross-owner rollback exists.
 
-Fault evidence: each input class is changed alone, freshness action is skipped/
-cancelled, generator is unavailable, output is stale/corrupt, and candidate PR
-content attempts to substitute the checker.
+Fault evidence: each input class is changed alone, generator is unavailable,
+output is stale/corrupt, and check-only is invoked against an incompatible
+generation or validation profile.
 
 ## L1g — Qualify reproducibility and Buck consumption
 
 Class: verification/promotion; depends on L1f.
 
 - From two clean isolated roots, run the same pinned generator and reconciler;
-  compare bytes and receipt identity.
+  compare bytes and generation identity.
 - Build and cquery representative AWS-LC, PSM, optional-alias, proc-macro,
   generated-source, Windows, Linux GNU/musl, macOS, and WebAssembly targets.
 - Record the warm-cache performance profile and qualify SLO language only if
@@ -227,14 +248,14 @@ Class: verification/promotion; depends on L1f.
 - Prove check-only is clean after generation and red for each admitted input
   mutation without changing the destination.
 
-Success: byte identity is 100%, all nine platform families validate, Buck2
-consumes representative targets, network and partial publication counts are
-zero, and the protected PR merges with independent approval and required green
-admission.
+Success: byte identity is 100%, every ratified platform mapping validates,
+Buck2 consumes representative targets, network and partial publication counts
+are zero, and the protected PR merges with independent approval and required
+green admission.
 
-Failure: any platform depends on host inference/manual repair, receipts diverge,
-freshness misses drift, a target cannot consume generated rules, or an
-unmeasured latency objective is advertised.
+Failure: any platform depends on host inference/manual repair, generation
+identities diverge, freshness misses drift, a target cannot consume generated
+rules, or an unmeasured latency objective is advertised.
 
 Rollback: restore the last qualified pin/config/fixup/generated tuple through
 the reconciler; never edit generated output or downgrade a lockfile ad hoc.
@@ -243,16 +264,122 @@ Fault evidence: repeat every L1e fault on clean roots plus platform removal,
 alias removal, native symbol mismatch, build-script output corruption, and
 freshness false-negative canaries.
 
+## L2a — Reconcile toolchain/dependency lifecycle truth
+
+Class: read-heavy owner design; depends on L1a and may run alongside L1b when
+its scratch work and path-set remain disjoint.
+
+- Inventory declared MSRV, stable/beta/nightly identities, every compiler/Cargo/
+  component/target/LLVM pin surface, dependency-update policy, advisory source,
+  updater claim, Cargo future-incompatibility report and inverse closure, and
+  actual enforcement at exact `dev`.
+- Route owner-reviewed amendments for `code-style-rust.md`,
+  `dependency-policy.md`, `lts-versions-verified.md`, and
+  `observability-slo.md`, whose current pin/coupling claims are stale or equate
+  MSRV with production stable. The replacements preserve each contract
+  separately.
+- Complete the Rust 1.96–1.100 item ledger from immutable upstream release data,
+  marking unreleased 1.99/1.100 content provisional.
+- Route Security/CNA and Pipeline contract needs to their owners; Build records
+  only its ports and does not prescribe their schemas or execution.
+
+Success: every current pin and upstream item has one provenance-bound owner,
+state, disposition, acceptance path, and drift finding; no executable or shared
+file changes occur.
+
+Failure: a floating channel is treated as identity, 1.99/1.100 is described as
+final, MSRV silently follows stable, missing `deps.toml` is narrated as live, or
+Build claims security disclosure/CNA/campaign ownership.
+
+Fault evidence: same semantic version with a different commit, a withdrawn or
+modified advisory, duplicate CVE/OSV/RustSec aliases, and one intentionally
+omitted release-note item all fail completeness.
+
+## L2b — Implement pure intake, graph-impact, and disposition kernels
+
+Class: test-driven Build behavior; depends on an independently reviewed L2a
+implementation plan and L1 declaration contracts.
+
+- Begin with failing tests for channel identity, MSRV independence, release-item
+  completeness, advisory alias/withdrawal handling, dependency role/feature
+  closure, publication quarantine, and deterministic candidate grouping.
+- Keep network, SCM, Pipeline, security policy, clocks, registries, and process
+  execution behind ports. The core consumes immutable release, registry,
+  advisory, audit, build, and semantic facts.
+- Refuse incomplete or conflicting facts instead of inventing a safe bump.
+
+Success: identical facts yield the same dispositions, affected closure,
+candidate groups, and refusal set; arbitrary bounded records do not panic.
+
+Failure: the kernel scrapes prose at decision time, collapses aliases by string
+guessing, executes `cargo update`, assigns severity, or accepts an unowned
+release item.
+
+Fault evidence: feed rollback, checksum/source substitution, malicious build
+script, owner transfer, yanked fixed version, MSRV-incompatible transitive
+resolution, dependency cycle, and missing target configuration.
+
+## L2c — Add mirrored-source adapters and candidate rendering
+
+Class: Build adapters and deterministic transformation; depends on L2b.
+
+- Materialize signed/digested release, registry, RustSec/OSV/CVE/upstream,
+  audit, and toolchain-distribution snapshots in a separately refreshed mirror;
+  qualification itself remains locked and offline.
+- Render atomic candidate ChangeSets for toolchain/component pin surfaces or
+  dependency manifests/lock/fixups/generated BUCK, using the L1 reconciler for
+  declarations and never hand-editing generated output.
+- Preserve MSRV unless the request contains a separately accepted MSRV change.
+  Produce rollback, SBOM/provenance, release-item, and graph-impact receipts.
+
+Success: a candidate is complete across its declared pin/graph closure,
+byte-reproducible, reviewable, and reversible without a competing updater.
+
+Failure: discovery network reaches qualification, a pin surface is missed,
+Cargo and Buck graphs diverge, a new build script escapes analysis, or one
+candidate mixes an unapproved MSRV/product-semantic change.
+
+Fault evidence: mirror truncation, stale modified timestamp, registry deletion,
+new transitive native input, feature default change, lockfile race, and partial
+candidate publication.
+
+## L2d — Qualify stable and run preview shadows
+
+Class: verification and consumer-neutral handoff; depends on L2c.
+
+- Canary the exact stable candidate, then test declared MSRV and stable as
+  separate matrices across Cargo, representative Buck targets, generated
+  declarations, supported platforms, symbolization, FFI/WASM, proc macros/build
+  scripts, performance, SLOs, and affected product acceptance.
+- Run exact dated beta/nightly identities as non-mutating differential shadows;
+  classify compiler, diagnostics, formatting, dependency, cache, and runtime
+  differences and feed useful stable features into normal reviewed migrations.
+- Emit a campaign-ready candidate and receipts. Pipeline alone decides rollout,
+  protected-review, retries, and merge order.
+
+Success: latest stable is qualified or has a typed blocker, MSRV remains green,
+every release item is disposed, preview findings are reproducible, and rollback
+restores the last qualified tuple.
+
+Failure: nightly output becomes production authority, algebraic floating point
+enters deterministic/financial paths, symbol or ABI drift is ignored, a
+compiler-fix bump omits rebuild impact, or Build opens/merges campaign PRs.
+
+Fault evidence: stable compiler miscompile, nightly-only accepted syntax,
+Polonius/trait-solver diagnostic delta, v0 demangler failure, WASM undefined
+symbol, GPU baseline mismatch, cache poisoning, and rollback after canary.
+
 </sequence>
 
 <parallelism>
 
 L1a–L1g are sequential gates because each freezes the next declaration and
-publication contract. Read-only Pipeline reconnaissance may proceed, but no
-Build PR prescribes Pipeline behavior. Shared manifests, `Cargo.lock`,
-`reindeer.toml`, fixups, and `third-party/BUCK` have one serialized writer.
-Port-engine remains read-only throughout. Other owner work may proceed only
-when its changed paths and practical Cargo/Buck closures do not overlap the
-active lane.
+publication contract. L2a read-only analysis may overlap L1b, but L2 behavior
+waits for the L1 declaration contract and serializes every shared toolchain,
+manifest, lock, Reindeer, fixup, generated BUCK, workflow, Buck, and image pin.
+Read-only Pipeline reconnaissance may proceed, but no Build PR prescribes
+Pipeline behavior. Port-engine remains read-only throughout. Other owner work
+may proceed only when its changed paths and practical Cargo/Buck closures do
+not overlap the active lane.
 
 </parallelism>
