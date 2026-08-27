@@ -1,17 +1,21 @@
-# Payroll microservice
+# Payroll
 
-Service: `payroll`
-Owner: `axis-enterprise`
-Status: foundation-slice-in-progress
+Owner: `app/payroll`
 
-This flat microservice owns payroll-run close invariants, payee payroll classification, wage-ledger evidence, statutory-export evidence envelopes, rollback-first close promotion, and payroll-to-accounting journal drafts. It is separate from HR and Accounting and composes by metadata-only refs/events.
+Status: portable-app migration; validation foundation only
 
-## Current landed slice
+Payroll owns deterministic gross-to-net calculation, pay-run gates and close,
+balanced accounting intent, and its jurisdiction overlay content.
 
-- `core/run-domain` (`payroll-run-domain`): pure Rust domain invariants for trial close, legal-entity group rollup, statutory export evidence, payroll journal balancing, and rollback-first promotion decisions.
+The landed Rust packages validate supplied wage ledgers and evidence; they do
+not yet calculate statutory payroll or provide durable lifecycle, installed
+pack integration, encrypted SQLite, downstream delivery, a sold generated-
+Connect process, deployment, or measured production SLO. Current cloud-core,
+volatile-storage, and REST/JSON links are migration debt.
 
-## Does not own
+Canonical owner law:
 
-- HR employment records; those belong to `hr`.
-- Persisted double-entry ledger and financial close; those belong to `accounting`.
-- Tax-rate calculation, statutory filing transport, disbursement rails, storage, REST/gRPC, Workflow execution, or cloud adapters.
+- [ADR.md](ADR.md) — decisions and portability boundaries
+- [PRD.md](PRD.md) — requirements, failures, and SLO objectives
+- [SPEC.md](SPEC.md) — current behavior and target contracts
+- [PLAN.md](PLAN.md) — remaining semantic lanes and exact path sets
