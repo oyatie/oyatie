@@ -148,8 +148,9 @@ and every target claim to an explicit future lane.
 Class: serialized D-29 build-graph repair; prerequisite to L2b.1.
 
 This is a separate multi-owner build lane, not part of an HR source split. It
-replaces only stale labels and creates the three missing Gateway BUCK targets.
-Its closed write set is:
+replaces only stale labels and creates the five missing producer BUCK targets:
+the three Gateway packages plus the two IAM shared-kernel packages. Its closed
+write set is:
 
 ```text
 app/hr/core/employment-domain/BUCK
@@ -166,6 +167,8 @@ iam/core/tenant-rbac-usecase/BUCK
 iam/ports/tenant-rbac-api/BUCK
 iam/adapters/tenant-rbac-storage-inmemory/BUCK
 iam/facade/tenant-rbac-app/BUCK
+iam/core/shared-pdp-kernel/BUCK
+iam/core/platform-contracts-kernel/BUCK
 gateway/core/http-router-kernel/BUCK
 gateway/core/http-middleware-kernel/BUCK
 gateway/adapters/http-runtime-hyper/BUCK
@@ -176,10 +179,9 @@ Every `//libs/data-boundary-kernel:*` edge in that set becomes
 becomes, according to the matching Cargo package, exactly
 `//gateway/core/http-router-kernel:http-router-kernel`,
 `//gateway/core/http-middleware-kernel:http-middleware-kernel`, or
-`//gateway/adapters/http-runtime-hyper:http-runtime-hyper-adapter`; the three
-new Gateway BUCK files model
-their current Cargo manifests and source globs without source changes. The two
-old IAM shared-kernel labels become
+`//gateway/adapters/http-runtime-hyper:http-runtime-hyper-adapter`; all five
+new producer BUCK files model only their existing Cargo manifests and source
+globs without source changes. The two old IAM shared-kernel labels become
 `//iam/core/shared-pdp-kernel:shared-pdp-kernel` and
 `//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel`.
 
@@ -189,12 +191,21 @@ under `<verification_closures>` and their Cargo-resolved Payroll, Billing, Data,
 Gateway, and IAM dependencies. Required review is Build/architecture plus Data,
 Gateway, HR, IAM, Payroll, and Billing owners.
 
-Success: the closed closure contains no `//libs/` label; Cargo remains
-unchanged; Buck builds and tests all HR and five IAM targets; and target labels
-match current package paths. Failure is any source/behavior change, invented
-alias, omitted reverse consumer, or discovered missing target. Rollback restores
-only the BUCK files because no runtime or data format changes. Fault evidence
-includes a deleted-label fixture and builds from a fresh Buck daemon/cache.
+Success: the exact 19-path closed closure contains no `//libs/` label; Cargo
+remains unchanged; all five canonical producer labels
+(`//gateway/core/http-router-kernel:http-router-kernel`,
+`//gateway/core/http-middleware-kernel:http-middleware-kernel`,
+`//gateway/adapters/http-runtime-hyper:http-runtime-hyper-adapter`,
+`//iam/core/shared-pdp-kernel:shared-pdp-kernel`, and
+`//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel`)
+resolve from those package BUCK files; Buck builds and tests all HR and five IAM
+targets; and target labels match current package paths. Failure is any
+source/behavior change, invented alias, omitted reverse consumer, or further
+missing target outside the exact 19-file envelope; that missing target fails
+closed and requires a new authority correction, never lane self-widening.
+Rollback restores only the BUCK files because no runtime or data format changes.
+Fault evidence includes a deleted-label fixture and builds from a fresh Buck
+daemon/cache.
 
 ## L2b.1 — Split the domain files
 
