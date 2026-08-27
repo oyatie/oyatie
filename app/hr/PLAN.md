@@ -1,0 +1,2767 @@
+---
+doc_class: Owner-PLAN
+owner: app/hr
+status: Active
+date: 2026-08-26
+---
+
+# HR remaining work
+
+<baseline>
+
+## What has landed
+
+- Pure domain decisions for employment lifecycle, Korea labor thresholds,
+  leave/payroll-impact and balance projections, onboarding readiness, sensitive
+  reads, and statutory source manifests.
+- Facade functions that create metadata-only audit/workflow/payroll/sensitive-
+  read envelopes.
+- Serde request/response conversions and an in-process HTTP authorization test
+  adapter.
+- A volatile in-memory record fixture with idempotency reserve/put/get/list
+  behavior and honest non-production capability flags.
+
+None of this is a durable People service, a sold versioned facade, an installed-
+pack integration, downstream delivery, adapter portability proof, or measured
+SLO. Core/facade still import Data core types, infrastructure imports Gateway
+core/runtime types, and the storage trait lives inside its adapter.
+
+Exactly eight hand-written Rust files exceed ADR-0719's 300-line budget at the
+reviewed L2a head:
+
+| Exact path | Lines | Serialized L2b slice |
+|---|---:|---|
+| `core/employment-domain/src/lib.rs` | 1,600 | L2b.1 domain |
+| `core/employment-domain/tests/leave_balance.rs` | 440 | L2b.1 domain |
+| `core/employment-domain/tests/leave_carryover_forfeiture.rs` | 383 | L2b.1 domain |
+| `core/employment-domain/tests/onboarding.rs` | 360 | L2b.1 domain |
+| `ports/employment-api/src/lib.rs` | 484 | L2b.2 compatibility API |
+| `adapters/employment-infrastructure/src/authz.rs` | 448 | L2b.3 infrastructure |
+| `adapters/employment-infrastructure/src/lib.rs` | 372 | L2b.3 infrastructure |
+| `adapters/employment-infrastructure/tests/runtime.rs` | 512 | L2b.3 infrastructure |
+
+The Cargo graph is green, but the corresponding Buck graph is not. HR BUCK
+files still name deleted `//libs/*` labels. The live Data target is
+`//data/core/data-boundary-kernel:data-boundary-kernel`; the three Gateway Cargo
+packages now live at `gateway/{core,adapters}/...` but have no BUCK files. As a
+result, `buck2 targets //app/hr/...` discovers targets while
+`buck2 build //app/hr/...` fails first at
+`//libs/data-boundary-kernel:data-boundary-kernel`. L2b cannot truthfully claim
+Cargo/Buck parity until L2b.0 repairs that build closure.
+
+</baseline>
+
+<verification_closures>
+
+## Fixed reverse build closures
+
+Every HR migration slice compiles and tests the applicable changed package plus
+the complete HR package set:
+
+```text
+hr-employment-domain
+hr-employment-app
+hr-employment-api
+hr-employment-storage-inmemory
+hr-employment-infrastructure
+```
+
+Until L2g.1 proves their HR-internal edges are zero, it also compiles and tests
+these exact five IAM packages through Cargo and Buck:
+
+```text
+iam-tenant-rbac-local-runtime-composition
+iam-tenant-rbac-local-inmemory-harness
+iam-tenant-rbac-listener-gateway
+iam-tenant-rbac-listener-runtime-evidence
+iam-tenant-rbac-readiness-gate
+```
+
+The corresponding Buck closures are the exact recursive target sets under the
+five current `app/hr/{core,ports,facade,adapters}` package directories and the
+five exact `iam/facade/tenant-rbac-*` directories above. A slice that creates a
+new package names its library plus unit/contract/integration targets in its
+BUCK file and adds that package to this closure. Target discovery alone is not a
+build result. Cargo evidence is locked/offline; Buck is local hermeticity under
+ADR-0716, and both graphs must model the same source membership.
+
+</verification_closures>
+
+<known_reverse_consumers>
+
+## Mandatory IAM compatibility retirement
+
+The exact locked inverse graph at reviewed head
+`2467e77442ff7764851237252dea38db18540028` contains these five IAM consumers:
+
+| IAM path | Current illegal HR relationship |
+|---|---|
+| `iam/facade/tenant-rbac-local-runtime-composition` | Direct `hr-employment-infrastructure` dependency and route call |
+| `iam/facade/tenant-rbac-local-inmemory-harness` | Direct HR domain, app, and in-memory adapter dependencies and calls |
+| `iam/facade/tenant-rbac-listener-gateway` | Transitive HR dependency through local runtime composition |
+| `iam/facade/tenant-rbac-listener-runtime-evidence` | Transitive HR dependency through listener gateway |
+| `iam/facade/tenant-rbac-readiness-gate` | Transitive HR dependency through both HR-bearing IAM paths |
+
+The compatibility surfaces used by those packages are temporary migration
+devices, not a supported cross-owner architecture. L2b through L2f.1 keep the
+five IAM directories read-only and preserve their behavior. L2g.0a, L2g.0b,
+and L2g.1 are mandatory D-29 IAM-owner PRs: structurally prepare the oversized
+workload-manifest crate, delete the HR route/store rehearsal from IAM, then
+remove every Cargo/Buck/Rust edge from the complete IAM cone into
+`app/hr/`. IAM MUST NOT replace those internal edges with an HR client crate:
+cloud IAM authenticates/authorizes a separately deployed tenant product; it is
+not an HR product shell or a lawful consumer-side home for People composition.
+L2h is then a mandatory HR-owner structural retirement of the old compatibility
+packages. No live route, deployment, readiness, or SLO promotion may precede
+the terminal zero-IAM-to-HR proof plus L2h.
+
+One PR never writes both owner cones. HR compatibility preservation is not a
+reason to skip the IAM migration, and a failed migration blocks promotion
+rather than making the compatibility surface immortal.
+
+</known_reverse_consumers>
+
+<sequence>
+
+## L2a — Establish HR owner law
+
+Class: documentation/authority only.
+
+- Add the four canonical owner files and reconcile `README.md`.
+- Record current implementation truth, D-23/D-25 boundaries, D-24 SQLite v1,
+  target transaction/replay semantics, SLO objectives, and ordered lanes.
+- Do not edit code, manifests, generated files, dependencies, or root law.
+
+Success: all four owner files agree on current versus target state, and
+path/docs admission plus the unchanged HR test fleet pass.
+
+Failure: the documents claim durable/network/SLO behavior that does not exist,
+endorse direct cloud-core coupling, or omit crash/reopen/idempotent-replay proof.
+
+Rollback: revert these owner-law files; no runtime or format state changes.
+
+Fault evidence: hostile document review traces every landed claim to code/tests
+and every target claim to an explicit future lane.
+
+## L2b.0 — Repair the exact HR plus IAM Buck closure
+
+Class: serialized D-29 build-graph repair; prerequisite to L2b.1.
+
+This is a separate multi-owner build lane, not part of an HR source split. It
+replaces only stale labels and creates the three missing Gateway BUCK targets.
+Its closed write set is:
+
+```text
+app/hr/core/employment-domain/BUCK
+app/hr/facade/employment-app/BUCK
+app/hr/adapters/employment-infrastructure/BUCK
+app/payroll/core/run-domain/BUCK
+app/payroll/facade/run-app/BUCK
+app/payroll/adapters/run-infrastructure/BUCK
+billing/core/accounting-app/BUCK
+billing/core/accounting-journal/BUCK
+billing/adapters/accounting-http/BUCK
+iam/core/tenant-rbac-domain/BUCK
+iam/core/tenant-rbac-usecase/BUCK
+iam/ports/tenant-rbac-api/BUCK
+iam/adapters/tenant-rbac-storage-inmemory/BUCK
+iam/facade/tenant-rbac-app/BUCK
+gateway/core/http-router-kernel/BUCK
+gateway/core/http-middleware-kernel/BUCK
+gateway/adapters/http-runtime-hyper/BUCK
+```
+
+Every `//libs/data-boundary-kernel:*` edge in that set becomes
+`//data/core/data-boundary-kernel:data-boundary-kernel`. Every old HTTP edge
+becomes, according to the matching Cargo package, exactly
+`//gateway/core/http-router-kernel:http-router-kernel`,
+`//gateway/core/http-middleware-kernel:http-middleware-kernel`, or
+`//gateway/adapters/http-runtime-hyper:http-runtime-hyper-adapter`; the three
+new Gateway BUCK files model
+their current Cargo manifests and source globs without source changes. The two
+old IAM shared-kernel labels become
+`//iam/core/shared-pdp-kernel:shared-pdp-kernel` and
+`//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel`.
+
+No Rust source, Cargo manifest/lock, owner law, or generated file may change.
+Build closure is all five current HR packages plus the five exact IAM packages
+under `<verification_closures>` and their Cargo-resolved Payroll, Billing, Data,
+Gateway, and IAM dependencies. Required review is Build/architecture plus Data,
+Gateway, HR, IAM, Payroll, and Billing owners.
+
+Success: the closed closure contains no `//libs/` label; Cargo remains
+unchanged; Buck builds and tests all HR and five IAM targets; and target labels
+match current package paths. Failure is any source/behavior change, invented
+alias, omitted reverse consumer, or discovered missing target. Rollback restores
+only the BUCK files because no runtime or data format changes. Fault evidence
+includes a deleted-label fixture and builds from a fresh Buck daemon/cache.
+
+## L2b.1 — Split the domain files
+
+Class: structural file-budget and D-41 scanner lane; depends on L2b.0.
+
+Add `core/employment-domain/build.rs`; make `src/lib.rs` a stable generated
+include; and split production into exactly these bounded files:
+
+```text
+src/items/a_identifiers.rs
+src/items/b_employment.rs
+src/items/c_compliance.rs
+src/items/d_leave_payroll.rs
+src/items/e_sensitive_read.rs
+src/items/f_rulepack.rs
+src/items/g_leave_balance.rs
+src/items/h_leave_carryover.rs
+src/items/i_onboarding.rs
+src/items/z_validation.rs
+```
+
+The three over-budget test roots become stable generated includes over exactly:
+
+```text
+tests/leave_balance_items/{a_projection,b_invalid}.rs
+tests/leave_carryover_forfeiture_items/{a_projection,b_invalid}.rs
+tests/onboarding_items/{a_readiness,b_invalid}.rs
+```
+
+The scanner sorts direct Rust entries and writes `lib.generated.rs` plus the
+three named test membership files to `OUT_DIR`. Buck's `buildscript_run` stages
+the same four directories and supplies the same outputs. Closed write envelope
+is `app/hr/core/employment-domain/{build.rs,src/**,tests/**,BUCK}` only; its
+Cargo manifest, lockfile, dependency direction, behavior, and all other paths
+are frozen.
+
+Build closure is the domain library and every existing domain test plus all HR
+and five IAM packages under `<verification_closures>`. Required review is HR,
+Build, IAM compatibility, and an independent domain reviewer.
+
+Success: the four originals and every new hand-written file are at most 300
+lines, public paths/results are identical, and add/rename/remove canaries compile
+through Cargo and Buck without a parent edit. Failure is behavior drift, a
+manual/tracked index, graph mismatch, or IAM break. Rollback reverts this one
+split. Fault evidence includes before/after domain vectors and scanner negative
+fixtures.
+
+## L2b.2 — Split the compatibility API file
+
+Class: structural file-budget and D-41 scanner lane; depends on L2b.1.
+
+Add `ports/employment-api/build.rs`, retain one stable generated include in
+`src/lib.rs`, and split the existing body into exactly:
+
+```text
+src/items/a_error.rs
+src/items/b_onboarding.rs
+src/items/c_compliance.rs
+src/items/d_leave.rs
+src/items/e_sensitive.rs
+src/items/f_dto.rs
+```
+
+Closed write envelope is
+`app/hr/ports/employment-api/{build.rs,src/**,BUCK}` only. The scanner and Buck
+rule use the same direct item glob and `employment_api.generated.rs`; the Cargo
+manifest, integration test, lock, behavior, serialization, and other paths are
+frozen. Build closure is the API library/contract test plus all HR and five IAM
+packages. Required review is HR, Build/API, and IAM compatibility.
+
+Success: wire values, error mapping, serialization, and public paths remain
+byte-for-byte compatible while every touched file is at most 300 lines and both
+graphs discover the same items. Failure, rollback, and scanner fault evidence
+match L2b.1.
+
+## L2b.3 — Split infrastructure and authorization files
+
+Class: structural file-budget and D-41 scanner lane; depends on L2b.2.
+
+Add `adapters/employment-infrastructure/build.rs`; retain stable generated crate
+and runtime-test roots; and split only into:
+
+```text
+src/items/{a_types,b_routes,c_handlers,d_responses,e_authority,f_middleware,z_exports}.rs
+src/test_items/{a_routes,b_authority}.rs
+tests/items/{a_dispatch,b_authorization,c_health}.rs
+```
+
+The scanner writes `lib.generated.rs`, `tests.generated.rs`, and
+`runtime.generated.rs` to `OUT_DIR`; Buck stages the identical directories.
+Closed write envelope is
+`app/hr/adapters/employment-infrastructure/{build.rs,src/**,tests/**,BUCK}`.
+Its manifest, lock, routes, validation order, authorization semantics, and all
+other paths are frozen.
+
+Build closure is every infrastructure library/unit/runtime target plus all HR
+and five IAM packages. Required review is HR, Build, IAM, Gateway, and security.
+Success is unchanged routes/auth/results with every touched file at most 300
+lines and graph parity. Failure is an authorization/order drift, manual index,
+or reverse-consumer break. Rollback reverts only this split. Fault evidence
+includes malformed credentials, cross-tenant requests, route errors, and D-41
+add/rename/remove canaries in both graphs.
+
+## L2c.0 — Admit the canonical use-case face
+
+Class: serialized structural package/build mutation; depends on L2b.3.
+
+Create only `app/hr/core/employment-usecase`. It receives `Cargo.toml`, `BUCK`,
+`build.rs`, stable `src/lib.rs`, `src/items/a_face.rs`,
+`src/test_items/a_face.rs`, stable `tests/contract.rs`, and
+`tests/items/a_face.rs`. The scanner sorts the two item directories into
+`OUT_DIR`; Buck models identical membership. `hr-employment-usecase` declares
+only the domain dependency.
+
+No new compatibility facade is admitted. In particular,
+`facade/employment-compat-app` MUST NOT exist: D-8 reserves `facade/*-app` for a
+process with a compiler-required `src/main.rs`, while JSON/Serde translation is
+adapter behavior. The existing `employment-app` remains migration debt and is
+retired at L2h; creating a second illegal face is not a repair.
+
+To keep the current package green for the later content move, this lane may add
+only the new canonical path dependency to this exact existing graph pair:
+
+```text
+app/hr/facade/employment-app/{Cargo.toml,BUCK}
+Cargo.lock
+```
+
+No existing Rust/test file changes and no item behavior lands. Root
+`Cargo.toml` remains frozen because its accepted globs enroll the new package.
+The five IAM directories are read-only. Build closure is the empty new core
+face, all current HR packages, and all five IAM packages. Required review is
+HR, Build/architecture, API, and IAM because the old externally consumed
+surface is being prepared as a compatibility shim.
+
+Success: the new core face builds through Cargo/Buck with stable membership
+while every current result stays unchanged and no new facade process/library is
+created. Failure is role behavior, creation of a `facade/*-app` without
+structural main, a generated or manual index, root-member edit, unrelated lock
+churn, or IAM break. Rollback removes the empty core face, its predeclared old-
+package edge, and only its lock entry.
+
+## L2c.1 — Move use-case behavior into the frozen core role
+
+Class: content-only behavior-preserving refactor; depends on L2c.0.
+
+Implement the current use-case behavior only in:
+
+```text
+core/employment-usecase/src/items/{b_onboarding,c_compliance,d_leave,e_sensitive}.rs
+core/employment-usecase/src/test_items/b_contract.rs
+core/employment-usecase/tests/items/b_parity.rs
+```
+
+Turn exactly `facade/employment-app/src/lib.rs` and
+`facade/employment-app/tests/{app_envelopes,leave,privacy}.rs` into
+parity-checked compatibility re-exports of the core use case. The existing
+`ports/employment-api` JSON/Serde implementation is frozen in this lane; its
+semantic translation moves only in L2d.1 after the matching transport
+compatibility adapter exists. Those four legacy facade paths plus the new
+unique core paths above are the complete write set. All manifests, BUCK/build
+scripts, parent indexes, lock/root files, adapters, domain/API files, IAM files,
+and new semantics are frozen.
+
+Build closure is the new use-case package plus all HR and five IAM packages.
+Required review is HR, API/architecture, and IAM compatibility. Success means
+use cases live in core, the old facade only preserves public compatibility, all
+serialized/API outputs remain unchanged, and no I/O or feature behavior
+changes. Failure is duplicate canonical ownership, codec/transport behavior in
+the new core, persistence in facade, an adapter type in core, or compatibility
+drift. Rollback removes only the new content and restores old facade content;
+the empty structural core remains. Fault evidence is before/after domain,
+facade, serialization, authorization, and IAM parity.
+
+## L2d.0 — Admit draft I/O ports and compatibility adapters
+
+Class: serialized structural port/adapter/build mutation; depends on L2c.1.
+
+Create these exact owner-local draft packages:
+
+```text
+app/hr/ports/draft/employment-repository
+app/hr/ports/draft/record-encryption
+app/hr/ports/draft/installed-overlay
+app/hr/ports/draft/authorization-evidence
+app/hr/ports/draft/audit-outbox
+app/hr/ports/draft/workflow-dispatch
+app/hr/ports/draft/payroll-impact-dispatch
+app/hr/ports/draft/transport
+app/hr/ports/draft/runtime-context
+app/hr/adapters/draft/employment-repository-memory
+app/hr/adapters/draft/transport-employment-compat
+```
+
+Each package receives only `Cargo.toml`, `BUCK`, `build.rs`, stable
+`src/lib.rs`, `src/items/a_face.rs`, `src/test_items/a_face.rs`, stable
+`tests/contract.rs`, and `tests/items/a_face.rs`. Cargo and Buck run the same
+sorted direct-item scanner. Package names are respectively
+`hr-<leaf>-draft`; no other owner may consume them.
+
+The two new adapters predeclare these exact provider-port edges in both build
+graphs before behavior moves:
+
+| Adapter | Cargo runtime dependencies | Buck library dependencies |
+|---|---|---|
+| `hr-employment-repository-memory-draft` | `hr-employment-repository-draft` | `//app/hr/ports/draft/employment-repository:hr-employment-repository-draft` |
+| `hr-transport-employment-compat-draft` | `hr-transport-draft`, `hr-authorization-evidence-draft`, `hr-runtime-context-draft`, `hr-employment-usecase`, `hr-employment-domain`, frozen `hr-employment-api`, `serde.workspace`, `serde_json.workspace` | the matching six HR labels plus `third-party//:serde` and `third-party//:serde_json` |
+
+The six literal HR labels in the compatibility transport row are:
+
+```text
+//app/hr/ports/draft/transport:hr-transport-draft
+//app/hr/ports/draft/authorization-evidence:hr-authorization-evidence-draft
+//app/hr/ports/draft/runtime-context:hr-runtime-context-draft
+//app/hr/core/employment-usecase:hr-employment-usecase
+//app/hr/core/employment-domain:hr-employment-domain
+//app/hr/ports/employment-api:hr-employment-api
+```
+
+This adapter, not a facade process, is the sole executable endpoint for the
+temporary JSON/Serde translation. The legacy `employment-api` remains the
+frozen DTO/conversion source it already is; the dependency points adapter to
+legacy port, never port to adapter. Both remain unrouted compatibility code and
+are deleted together at L2h.
+
+Their library, unit, and integration-test targets carry the same direct HR
+edges; no transitive dependency is treated as a declared edge. There are no
+adapter dev-dependencies in this hop. A missing extra edge stops the lane and
+requires a new structural envelope rather than being smuggled into L2d.1.
+
+This structural lane predeclares the new path dependencies, without using them,
+only in:
+
+```text
+app/hr/core/employment-usecase/{Cargo.toml,BUCK}
+app/hr/adapters/employment-storage-inmemory/{Cargo.toml,BUCK}
+app/hr/adapters/employment-infrastructure/{Cargo.toml,BUCK}
+Cargo.lock
+```
+
+The existing-consumer mapping is fixed: `employment-usecase` receives the eight
+business/effect draft port edges; the record-encryption port is consumed only
+by the later SQLite adapter. The old storage adapter receives only
+`employment-repository` plus `employment-repository-memory`; and the old
+infrastructure adapter receives `authorization-evidence`, `transport`,
+`runtime-context`, and `transport-employment-compat`. The old `employment-api`
+graph remains frozen and is consumed only by the compatibility adapter. This
+mapping remains frozen when the later accepted Connect lane adds the second
+matching transport adapter; an additional existing-package consumer stops the
+lane for a new structural envelope.
+
+Root membership is unchanged because accepted globs already enroll the faces.
+No trait, value, implementation, schema, route, auth, storage, or readiness
+behavior lands. Build closure is all eleven empty faces plus all HR and five IAM
+packages. Required review is HR, Build/architecture, IAM compatibility, Data,
+Gateway, and security.
+
+Success: eleven empty draft faces compile with identical Cargo/Buck membership and
+all old behavior remains green. Failure is behavior in an `a_face`, cross-owner
+draft use, root/generated churn, or a missing reverse consumer. Rollback removes
+the faces, predeclared edges, and only their lock entries.
+
+## L2d.1 — Implement ports and invert source dependencies
+
+Class: content-only behavior-preserving dependency inversion; depends on L2d.0.
+
+The new-file write set is exactly:
+
+```text
+ports/draft/employment-repository/src/{items,test_items}/b_contract.rs
+ports/draft/employment-repository/src/{items,test_items}/c_canonical_request.rs
+ports/draft/employment-repository/src/{items,test_items}/d_staged_write_descriptor.rs
+ports/draft/record-encryption/src/{items,test_items}/b_contract.rs
+ports/draft/installed-overlay/src/{items,test_items}/b_contract.rs
+ports/draft/authorization-evidence/src/{items,test_items}/b_contract.rs
+ports/draft/audit-outbox/src/{items,test_items}/b_contract.rs
+ports/draft/workflow-dispatch/src/{items,test_items}/b_contract.rs
+ports/draft/payroll-impact-dispatch/src/{items,test_items}/b_contract.rs
+ports/draft/transport/src/{items,test_items}/b_contract.rs
+ports/draft/runtime-context/src/{items,test_items}/b_contract.rs
+adapters/draft/employment-repository-memory/src/items/b_repository.rs
+adapters/draft/employment-repository-memory/src/test_items/b_contract.rs
+adapters/draft/employment-repository-memory/tests/items/b_parity.rs
+adapters/draft/employment-repository-memory/src/test_items/c_canonical_formats.rs
+adapters/draft/employment-repository-memory/tests/items/c_canonical_formats.rs
+adapters/draft/transport-employment-compat/src/items/{b_error,c_onboarding,d_compliance,e_leave,f_sensitive,g_authority}.rs
+adapters/draft/transport-employment-compat/src/test_items/b_contract.rs
+adapters/draft/transport-employment-compat/tests/items/{b_parity,c_serialization}.rs
+```
+
+Every file is at most 300 lines.
+
+The repository port's two uniquely named format items freeze the SPEC byte
+contracts before either durable adapter can create a row.
+`c_canonical_request.rs` owns `CanonicalRequestV1`, its fourteen semantic
+fields, fixed tags/order/encoding, validation-without-trim/case-fold/Unicode
+rewrite, optional-manager representation, 256-KiB/field/aggregate bounds,
+domain tag, version dispatch, and closed format errors.
+`d_staged_write_descriptor.rs` owns the fixed four-effect onboarding
+descriptor, effect/index ordering, expected/result revisions, envelope
+commitments, 64-KiB/count/width bounds, version dispatch, and closed omission/
+duplication/order errors. Their test items and the two memory parity paths fix
+byte goldens, transport-field reordering, absent/default equivalence, every
+changed semantic field, unknown/omitted/duplicate/out-of-order/trailing fields,
+  descriptor-effect omission, V1 reader/writer behavior, and unadmitted-format
+  refusal. They expose
+bounded bytes to the encryption port; neither port chooses a cipher/PRF or
+imports the other.
+
+`record-encryption/b_contract.rs` defines only bounded HR-owned plaintext,
+ciphertext-envelope, provider-authenticated envelope-commitment, non-replay
+field blind-index, associated-data, key-generation, and typed failure values
+plus `seal`, `open`, and `blind_index`; `seal` returns the envelope and its
+bounded commitment. That generic blind-index input is never an idempotency or
+replay selector. It chooses no primitive, key provider, nonce source, cache,
+commit fence, or production adapter. The later replay-generation item instead
+owns the dedicated returned-authority-bound `derive_idempotency_locator_v1`
+operation: its `IdempotencySlotV1` contains only repository, tenant, operation
+kind, and idempotency key; it deliberately excludes schema, format, and canonical
+request bytes. `IdempotencyLocatorV1` is opaque, generation-scoped, fixed-width,
+and has no cleartext or stable cross-generation equality representation. The
+fixed `u16be(1)` locator purpose tag, six-component full-preimage grammar,
+component width/order/bounds, and 24-KiB cap are exactly SPEC-owned; the port
+receives typed slot components and must neither parse nor normalize them. An
+unkeyed request digest is not part of either operation. No other owner may
+consume this draft port; L2i.0d must accept the production implementation,
+L2i.0d.1 must admit the adapter face, L2i.0f must add the structural slots,
+L2i.0g.0 must freeze typed replay/decommission/membership contracts, L2i.0g.1
+must implement provider behavior, L2i.0g.1a must implement the minimal concrete
+key-adapter behavior, L2i.0g.2 must then freeze repository/SQLite behavior, and
+L2i.0h must complete repository rekey before production composition.
+
+The only existing source paths that may be rewritten are the ten exact L2b.1
+domain items, the four L2c.1 use-case items,
+`ports/employment-api/src/items/{a_error,b_onboarding,c_compliance,d_leave,e_sensitive,f_dto}.rs`,
+`ports/employment-api/tests/contracts.rs`,
+`adapters/employment-storage-inmemory/{src/lib.rs,tests/storage.rs}`, and the
+exact L2b.3 infrastructure item/test paths. The six old API items retain only
+their frozen Serde DTO/error identities; semantic request/result conversion
+moves into `hr-transport-employment-compat-draft`, whose unique files become the
+sole executable translation endpoint, never a facade, and parity-test every
+frozen DTO/result. No old API source imports or re-exports the adapter. The
+remaining paths replace Data-classified values with HR-owned semantic values,
+use the new repository/authority/effect ports, and delegate old storage/HTTP
+identities to the new compatibility adapters. Authorization still requires
+verified, request-bound evidence; transport remains in-process compatibility
+only.
+
+All manifests, BUCK/build scripts, stable parent indexes, root/lock/generated
+files, proto, IAM paths, and feature behavior are frozen. Build closure is all
+new ports/adapters, all HR packages, and all five IAM packages. Required review
+is HR plus independent architecture, Data, Gateway, IAM, privacy/security, and
+adapter-parity reviewers.
+
+Success: core/use-case tests compile against HR-owned values and ports, the
+in-memory reference passes the same repository contract, removing an adapter
+requires no domain source edit, semantic JSON/Serde translation executes only
+in the matching adapter while the legacy API retains DTO compatibility, and all
+existing outputs stay equal. Both build graphs also emit identical canonical/
+descriptor goldens and reject every exact-bound-plus-one vector. Failure is an adapter/provider type inward, an old
+API-to-adapter edge, translation in a facade/core, caller-asserted authority,
+copied Data/Gateway engine behavior, trusted-tenant shortcut, or frozen
+structural edit. Rollback removes the new items and restores the exact
+compatibility source paths; no data format exists. Fault evidence covers every
+forbidden edge, forged/cross-tenant proof, byte-for-byte serialization, adapter
+unavailability, and no partial mutation/disclosure.
+
+## L2d.2 — Remove direct Data/Gateway graph edges
+
+Class: serialized structural dependency cleanup; depends on L2d.1.
+
+The complete write set is:
+
+```text
+app/hr/core/employment-domain/{Cargo.toml,BUCK}
+app/hr/facade/employment-app/{Cargo.toml,BUCK}
+app/hr/adapters/employment-storage-inmemory/{Cargo.toml,BUCK}
+app/hr/adapters/employment-infrastructure/{Cargo.toml,BUCK}
+Cargo.lock
+```
+
+Remove `data-boundary-kernel`, `http-router-kernel`,
+`http-middleware-kernel`, and `http-runtime-hyper-adapter` edges; retain only
+the L2d HR-owned port/adapter dependencies required by the already-landed
+content. No Rust/test/root/generated/IAM file changes.
+
+Build closure is all L2d packages, all HR, and all five IAM packages. Required
+review is HR, Build/architecture, Data, Gateway, and IAM. Success is a Cargo and
+Buck inverse scan proving HR core/use cases have no SQLite/HTTP/IAM/Data/
+Storage/Gateway/other-app dependency and adapter edges do not import cloud
+core/ports. Failure is any forbidden edge or behavior change. Rollback restores
+only dependency metadata; no format exists. Fault evidence includes
+compile-fail fixtures for each forbidden dependency family.
+
+## L2e.0a — Admit the exact SQLite dependency
+
+Class: serialized shared dependency/generated-graph mutation; depends on L2d.2.
+
+The selected temporary binding is exactly:
+
+```toml
+rusqlite = { version = "=0.40.1", default-features = false, features = ["bundled"] }
+```
+
+`rusqlite` 0.40.1 is MIT from crates.io/upstream
+`github.com/rusqlite/rusqlite`; `bundled` selects `libsqlite3-sys` 0.38.1 and
+the bundled SQLite 3.53.2 source, avoids a runtime system-SQLite dependency and
+runtime download, and does not enable build-time bindgen. The direct resolved
+runtime closure is `rusqlite`, `libsqlite3-sys`, `bitflags`,
+`fallible-iterator`, `fallible-streaming-iterator`, and `smallvec`; the bundled
+build closure includes `cc`. Exact transitive versions and checksums are frozen
+by `Cargo.lock`. The native SQLite code is a temporary dependency behind the HR
+repository port and requires supply-chain/native-code review; rejection blocks
+this lane rather than silently selecting a second binding.
+
+Closed write envelope is root `Cargo.toml`, `Cargo.lock`, generated
+`third-party/BUCK`, and new
+`third-party/fixups/libsqlite3-sys/fixups.toml`. The fixup admits only the
+`libsqlite3-sys` bundled-C build script; it may not add source, flags, features,
+or runtime downloads beyond that frozen dependency. The workspace direct edge
+materializes public Buck alias `third-party//:rusqlite` and version targets
+`rusqlite-0.40` plus `libsqlite3-sys-0.38`. Run the configured Reindeer
+generation twice; bare or overlaid generation that is non-idempotent, deletes
+existing semantic fixups, or produces unrelated churn fails closed. No
+`app/hr/**` file changes in this hop.
+
+Build closure is locked/offline metadata, license/source/native-code policy,
+the generated rusqlite/libsqlite3 targets, and unchanged all-HR plus five-IAM
+tests. Required review is workspace/Build, supply chain, native-code/security,
+Data durability, and HR. Success is one exact dependency closure and idempotent
+generated Buck graph. Failure is a runtime download, extra feature/default,
+hand edit, unrelated lock churn, or behavior change. Rollback removes the one
+workspace dependency and its exact lock/generated/fixup closure before an
+adapter or schema exists.
+
+## L2e.0b — Create the frozen SQLite adapter face
+
+Class: serialized structural package/build mutation; depends on L2e.0a.
+
+Create `app/hr/adapters/draft/employment-repository-sqlite` with only:
+
+```text
+Cargo.toml
+BUCK
+build.rs
+src/lib.rs
+src/items/a_face.rs
+src/test_items/a_face.rs
+tests/contract.rs
+tests/contract_items/a_face.rs
+tests/recovery.rs
+tests/recovery_items/a_face.rs
+```
+
+Its exact Cargo dependency sections are:
+
+```toml
+[dependencies]
+hr-employment-repository-draft = { path = "../../../ports/draft/employment-repository" }
+hr-record-encryption-draft = { path = "../../../ports/draft/record-encryption" }
+rusqlite = { workspace = true }
+
+[dev-dependencies]
+hr-employment-repository-memory-draft = { path = "../employment-repository-memory" }
+tempfile = { workspace = true }
+```
+
+The Buck library depends exactly on
+`//app/hr/ports/draft/employment-repository:hr-employment-repository-draft`,
+`//app/hr/ports/draft/record-encryption:hr-record-encryption-draft`,
+and `third-party//:rusqlite`. The contract test adds
+`:hr-employment-repository-sqlite-draft`, the matching memory-adapter target,
+and `third-party//:tempfile`; the recovery test adds the SQLite library, the
+repository port, and `third-party//:tempfile` and does **not** substitute the
+memory adapter for recovery. Unit tests use the library dependency set. The
+scanner accepts empty direct `src/items`, `src/test_items`,
+`tests/contract_items`, and `tests/recovery_items`, emits four named files under
+`OUT_DIR`, and Buck stages the same globs. `migrations/*.sql` is predeclared as
+a later resource glob but no migration exists.
+
+Closed write envelope is the ten files above plus only the new workspace-package
+entry in `Cargo.lock`. Root Cargo, generated third party, port/memory packages,
+other HR, IAM, schema, and behavior are frozen. Build closure is the SQLite
+library/empty tests, repository port/memory oracle, all HR, and five IAM
+packages. Required review is HR, Build, Data durability, and security/audit.
+
+Success: one empty unrouted adapter face and all three exact Buck target classes
+build through both graphs with stable membership and no durability/readiness
+claim. Failure is schema/store/transaction behavior, a missing/extra runtime or
+dev edge, graph mismatch, manual index, or frozen-path edit. Rollback removes
+the empty face and its lock entry; no format or runtime state exists. Fault
+evidence includes add/rename/remove scanner canaries and missing-port,
+memory-oracle, and real-file-test dependency fixtures.
+
+## L2e — Implement SQLite durability in bounded unique files
+
+Class: content-only behavioral durability; depends on L2e.0b.
+
+The complete write set is:
+
+```text
+app/hr/adapters/draft/employment-repository-sqlite/migrations/0001_hr_repository.sql
+app/hr/adapters/draft/employment-repository-sqlite/src/items/b_connection.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/c_schema.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/d_repository.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/e_transaction.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/f_idempotency.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/g_outbox.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/h_encryption.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/i_canonical_request.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/j_staged_write_descriptor.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/b_contract.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/c_errors.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/d_encryption.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/e_canonical_request.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/f_staged_write_descriptor.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/b_parity.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/c_canonical_formats.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/b_begin.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/c_idempotency.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/d_employee.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/e_lifecycle.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/f_outbox.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/g_commit_reply.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/h_migration.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/i_media_faults.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/j_key_reopen.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/k_ciphertext_tamper.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/l_canonical_formats.rs
+```
+
+Every hand-written Rust file is at most 300 lines. Together they implement the
+SPEC transaction, idempotency, employee/lifecycle, audit/outbox, record-
+encryption, blind-index, migration, and recovery contract. The real-file tests
+use a test-owned port implementation only as a semantic/fault oracle; no test
+key implementation is constructible by a production composition. All
+manifests, BUCK/build scripts, stable parents,
+`a_face.rs` items, root/lock/generated files, ports, memory adapter, other HR,
+and IAM paths are frozen. One tenant selects one adapter; no dual write.
+
+Build closure is the repository port, memory oracle, SQLite library/unit/
+contract/recovery targets, all HR, and five IAM packages. Required review is HR
+plus independent Data durability, security/audit, migration, and fault-
+injection reviewers.
+
+The test-only pre-L2i comparison oracle may use an opaque fixture-local locator
+only to exercise a V1 storage row; it is not backed by a provider authority,
+never accepts mutable canonical-request bytes as a lookup key, and cannot become
+a production replay selector. SQLite contains no unkeyed SHA-256 or other
+canonical-request fingerprint. After L2i.0g.2, replay lookup comes only from the
+returned-authority-bound `derive_idempotency_locator_v1` port operation and then
+from authenticated canonical-plaintext comparison. This unrouted lane does not
+claim a production rotation/revocation fence: L2i.0d must accept it, L2i.0d.1 must admit
+the adapter structure, L2i.0f must prepare the exact slots, L2i.0g.0 must freeze
+the port, L2i.0g.1 must implement provider behavior, L2i.0g.1a must first accept
+minimal concrete adapter behavior, L2i.0g.2 must add repository/SQLite behavior,
+and L2i.0h must add bounded rekey behavior.
+
+The two format items consume only the frozen repository-port codecs from
+L2d.1. SQLite stores their explicit versions, builds the staged descriptor by
+enumerating the actual four-row write set, and refuses an unrepresentable,
+omitted, duplicate, or reordered effect before commit. It uses the fixture-local
+opaque locator only to populate a V1 row; production lookup later receives a
+provider-authenticated generation-scoped locator and never serializes from a map
+or provider type. Contract/recovery evidence runs the repository and SQLite
+  goldens in both graphs, reopens stored V1 with the V1 reader, refuses every
+  unadmitted format, proves transport-order/default equivalence and changed-field
+  conflict, and covers every exact/limit-plus-one request/descriptor bound. No
+  V2 encoder, writer, retry, or migration behavior is claimed in this lane.
+
+Success: acknowledged mutation survives hard close/reopen; every persisted
+sensitive sentinel is absent from the SQLite file and backup; every pre-commit
+interruption exposes no effect; post-commit response loss replays the stored
+outcome; a changed canonical request conflicts; memory/SQLite semantics match.
+The persisted canonical and descriptor versions select the exact frozen reader,
+and one staged effect cannot be omitted without aborting before commit. Failure
+is page-cache success called durable, plaintext sensitive state, an
+unkeyed request fingerprint, nonce reuse, split idempotency/employee/outbox
+state, implementation-selected field ordering/normalization, an unknown same-
+version field accepted, a production-fence claim from the test oracle, hybrid
+migration, two
+authorities, file-budget breach, or frozen-path edit.
+
+Rollback at this stage is **unrouted and test-only**: remove the unique behavior
+and migration files and discard only scratch test databases. No tenant has been
+routed and no production database or reader compatibility promise exists.
+Format-barrier rollback rules begin only in a later, separately reviewed routed
+promotion after L2g.1 and L2h; they are not claimed here.
+
+Fault evidence interrupts after begin, idempotency insert, employee write,
+lifecycle write, outbox write, before commit, and after commit-before-response;
+each case hard-closes, reopens, checks invariants, and replays. Also inject full
+disk, busy lock, corrupt/old schema, ciphertext/tag/nonce/associated-data or
+blind-index tampering, encryption-port outage, migration interruption, and
+duplicate outbox delivery. `tests/recovery.rs` and its generated item set always create a
+real SQLite file inside `tempfile::TempDir`, invoke the SQLite adapter through
+`hr-employment-repository-draft`, drop every live connection without a graceful
+adapter shutdown at the selected failpoint, construct a new adapter/connection
+and fresh encryption-port oracle from the same path, and then assert state plus
+authenticated idempotent replay. A memory-only,
+`:memory:`, mocked-connection, or same-live-connection test is not recovery
+evidence.
+
+## L2f.0a — Accept a generated Connect generator/runtime
+
+Class: fail-closed D-29 protocol decision gate; depends on L2e. This is not an
+implementation dispatch.
+
+The reviewed repository has no accepted Connect generator or runtime target.
+`prost-build`, `tonic-prost-build`, and hand-written HTTP/protobuf/error framing
+do not satisfy ADR-0719 D-4. Therefore L2f.0b, L2f.0c, L2f.0d, and L2f.1 are
+explicitly **NON-DISPATCHABLE** until a protocol-owner/architecture/Build
+decision lands and this owner law is amended at a new exact head.
+
+The gate must name all of the following, without placeholders:
+
+- the owning capability and exact generator/runtime package paths, Cargo package
+  names, versions/features, licenses, source provenance, and removal/owned-stack
+  destination;
+- exact Cargo runtime/build dependencies and Buck targets, including the
+  protobuf compiler, IDL/import roots, generated Rust outputs under `OUT_DIR`,
+  stable D-41 membership, and Cargo/Buck parity;
+- generated unary Connect service/handler, request/response, status/error, and
+  no-trailer behavior; HR code may implement a generated service trait but may
+  not parse or frame Connect itself;
+- bounded deadline, request and response header/body/decode/encode, queue,
+  active-request, in-flight-byte, returned-field/repeated-entry, stored-outcome,
+  redacted-error, cancellation, and malformed/error hooks sufficient to enforce
+  SPEC;
+- exact byte-golden, gRPC-prefix, streaming, `grpc-*`, trailer, timeout,
+  limit/limit-plus-one, saturation, and cancellation tests in both build graphs;
+  and
+- an explicit ban on tonic/gRPC runtime/service generation and on a second SDK
+  or product codec.
+
+Success is an accepted, built, fault-tested target plus an HR owner-law
+amendment that replaces every formerly unknown dependency/build path below with
+exact names. Failure is choosing a message-only generator, bespoke HR framing,
+an unowned crate, a Cargo-only target, or leaving any dependency/output
+implicit. Rollback is rejection of the decision; no HR/proto/root/build path
+changes and no runtime state exist at this gate.
+
+## L2f.0b — Admit empty Connect codegen/package/build structure
+
+Class: serialized structural dependency/package/build/lock mutation; depends on
+successful L2f.0a and its exact owner-law amendment. It contains no proto schema
+or API behavior.
+
+The fixed HR identity is:
+
+```text
+app/hr/facade/proto/hr/people/v1/{BUCK,OWNERS}
+app/hr/adapters/draft/transport-connect     # hr-transport-connect-draft
+app/hr/facade/people-app                    # hr-people-app
+```
+
+The proto BUCK rule declares the accepted semantic package root but tolerates
+an absent `people_service.proto`. The adapter package receives only:
+
+```text
+Cargo.toml
+BUCK
+build.rs
+src/lib.rs
+src/test_items/a_face.rs
+tests/contract.rs
+tests/items/a_face.rs
+```
+
+The D-8 facade process package receives only:
+
+```text
+Cargo.toml
+BUCK
+build.rs
+src/main.rs
+src/lib.rs
+src/test_items/a_face.rs
+tests/contract.rs
+tests/items/a_face.rs
+```
+
+`src/main.rs` is only the compiler-required empty `fn main() {}` process
+entrypoint; it declares no state, marker, boot result, handler, route, listener,
+or readiness value. Both packages run the owned sorted D-41 scanner over absent
+or empty `src/items` plus their structural test items. The adapter build graph
+runs the L2f.0a-accepted generator with an empty schema set and writes only its
+declared empty/generated indexes under `OUT_DIR`; Cargo and Buck stage identical
+inputs and outputs. A generator or scanner that cannot tolerate absent schema
+and content items fails this structural lane.
+
+The known HR-side dependency graph is exact:
+
+| Target | Cargo direct dependencies | Buck direct dependencies |
+|---|---|---|
+| `hr-transport-connect-draft` runtime | `hr-transport-draft` plus the exact accepted generated-Connect runtime/service targets recorded by L2f.0a | `//app/hr/ports/draft/transport:hr-transport-draft` plus accepted runtime/service Buck targets |
+| `hr-transport-connect-draft` build | exact accepted generator/compiler targets from L2f.0a | matching accepted generator/compiler Buck targets |
+| `hr-people-app` runtime | `hr-employment-usecase`, `hr-employment-repository-draft`, `hr-record-encryption-draft`, `hr-installed-overlay-draft`, `hr-authorization-evidence-draft`, `hr-audit-outbox-draft`, `hr-transport-draft`, `hr-runtime-context-draft`, `hr-employment-repository-sqlite-draft`, `hr-transport-connect-draft` | the ten literal HR labels below |
+| `hr-people-app` dev | `hr-employment-repository-memory-draft`, `tempfile.workspace = true` | `//app/hr/adapters/draft/employment-repository-memory:hr-employment-repository-memory-draft`, `third-party//:tempfile` |
+
+The ten `hr-people-app` Buck runtime labels are exactly:
+
+```text
+//app/hr/core/employment-usecase:hr-employment-usecase
+//app/hr/ports/draft/employment-repository:hr-employment-repository-draft
+//app/hr/ports/draft/record-encryption:hr-record-encryption-draft
+//app/hr/ports/draft/installed-overlay:hr-installed-overlay-draft
+//app/hr/ports/draft/authorization-evidence:hr-authorization-evidence-draft
+//app/hr/ports/draft/audit-outbox:hr-audit-outbox-draft
+//app/hr/ports/draft/transport:hr-transport-draft
+//app/hr/ports/draft/runtime-context:hr-runtime-context-draft
+//app/hr/adapters/draft/employment-repository-sqlite:hr-employment-repository-sqlite-draft
+//app/hr/adapters/draft/transport-connect:hr-transport-connect-draft
+```
+
+The L2f.0a amendment must replace the accepted-target descriptions in the first
+two rows with literal package/label names before dispatch; this table is a gate
+condition, not current dependency authority. No tonic/gRPC target is allowed.
+The facade recovery target directly includes the SQLite adapter, repository
+port, and `tempfile`; byte tests directly include the generated Connect adapter
+and accepted runtime. No transitive edge counts as declared.
+
+The eventual closed structural write set is the two proto directory metadata
+files, the seven adapter files and eight process files above, the exact root
+dependency/lock/generated/fixup files named by L2f.0a, and nothing else. Until
+those root/generated paths are literal, this lane remains non-dispatchable.
+Existing draft packages, SQLite behavior/schema, all IAM paths, every proto
+schema, and every HR runtime value are frozen. No `Unrouted` marker, boot
+refusal, handler, listener, route, authority, storage behavior, deployment,
+readiness, or SLO claim lands. Every hand-written structural file, including
+Cargo, Buck, build scripts, entrypoints, and tests, is at most 300 physical
+lines; generated `OUT_DIR` outputs are not tracked.
+
+Build closure is the accepted generator/runtime, both empty packages, draft
+transport, full L2d/L2e closure, all HR, and five IAM packages through Cargo and
+Buck. Required D-29 review is protocol owner, HR, architecture/API, Build,
+Gateway, IAM, security, supply chain, and Data durability. Success is exact
+D-8-complete empty structure and graph parity with a canonical process main,
+no semantic runtime value, no schema or request served, and every hand-written
+file within budget. Failure is an `Unrouted` or other behavior value, missing
+`src/main.rs`, placeholder dependency, schema, gRPC symbol, cross-owner draft
+edge, over-budget file, manual index, or unrelated generated/lock churn.
+Rollback removes only the empty packages/directory metadata and exact admitted
+dependency closure; no wire or format exists.
+
+## L2f.0c — Land the semantic People schema only
+
+Class: content-only external-contract/API lane; depends on L2f.0b.
+
+The complete write set is the one new file:
+
+```text
+app/hr/facade/proto/hr/people/v1/people_service.proto
+```
+
+It declares package `hr.people.v1`, service `PeopleService`, unary methods
+`OnboardEmployee` and `GetEmployee`, and only their versioned request/response
+messages. Generated routes are exactly
+`/hr.people.v1.PeopleService/OnboardEmployee` and
+`/hr.people.v1.PeopleService/GetEmployee`. No literal `api` package segment,
+`draft`, JSON/REST, streaming, second IDL, deployment, or behavior is admitted.
+All BUCK/OWNERS, manifests, build scripts, lock/root/generated inputs, Rust,
+SQLite, IAM, and stable indexes are frozen. Generated output changes only under
+`OUT_DIR` and is never tracked. The schema file itself is at most 300 physical
+lines; exceeding the D-35 budget or splitting it through a second IDL fails the
+lane.
+
+Build closure is proto lint plus the accepted generated service/message output,
+both empty L2f packages, full HR, and five IAM packages through Cargo/Buck.
+Required review is HR, external API/AIP, protocol owner, architecture, Build,
+security/privacy, and future consumer representatives. Success is one semantic
+package/path with byte-stable generated symbols in both graphs. Failure is a
+path/package mismatch, schema plus structural edit, second codec, unbounded
+repeated/string field, or behavior claim. Rollback deletes only the schema; the
+empty structural/codegen faces remain.
+
+## L2f.0d — Install the fail-closed unrouted process state
+
+Class: content-only boot behavior; depends on L2f.0c.
+
+The complete write set is:
+
+```text
+app/hr/facade/people-app/src/main.rs
+app/hr/facade/people-app/src/items/a_unrouted.rs
+app/hr/facade/people-app/src/test_items/z_unrouted.rs
+app/hr/facade/people-app/tests/items/z_unrouted.rs
+```
+
+This is the one planned conversion of the compiler-only structural main into
+the stable process entrypoint; after this hop `src/main.rs` is frozen until the
+separately gated production route-activation lane. The D-41 scanner discovers
+the three new unique content items without an index edit. `a_unrouted.rs`
+defines the typed `Unrouted` boot state and a deterministic, redacted non-zero
+refusal. The process binds no socket, constructs no provider adapter, exposes no
+handler or health endpoint, and cannot be made ready by arguments, environment,
+or a test fake. Every file is at most 300 lines.
+
+All manifests, BUCK/build scripts, lock/root/generated files, proto, adapter,
+SQLite, IAM, and structural test items are frozen. Build closure is
+`hr-people-app`, its structural dependencies, full HR, and five IAM packages in
+both graphs. Required review is HR, Build, security, Gateway/protocol, and
+operability. Success is a D-8 process that always refuses boot with typed
+`Unrouted` and no network effect. Failure is an empty-success exit presented as
+readiness, any bind/route/provider construction, a parent-index edit, sensitive
+diagnostic, or structural-path change. Rollback restores the compiler-only main
+and removes only the three unique content items; no request or format exists.
+Fault evidence executes the binary with valid-looking config, fake provider
+addresses, inherited sockets, and cancellation and proves the same bounded
+non-zero refusal with zero opened listeners.
+
+## L2f.1 — Implement one unrouted People slice on generated Connect
+
+Class: content-only feature behavior; depends on L2f.0d.
+
+The complete write set is:
+
+```text
+app/hr/facade/people-app/src/items/b_onboard.rs
+app/hr/facade/people-app/src/items/c_read.rs
+app/hr/facade/people-app/src/items/d_authority.rs
+app/hr/facade/people-app/src/items/e_service_dispatch.rs
+app/hr/facade/people-app/src/items/f_readiness.rs
+app/hr/facade/people-app/src/test_items/b_contract.rs
+app/hr/facade/people-app/src/test_items/c_authority.rs
+app/hr/facade/people-app/src/test_items/d_readiness.rs
+app/hr/facade/people-app/tests/items/b_onboarding.rs
+app/hr/facade/people-app/tests/items/c_recovery.rs
+app/hr/facade/people-app/tests/items/d_overload.rs
+app/hr/facade/people-app/tests/items/e_observability.rs
+app/hr/adapters/draft/transport-connect/src/items/b_generated_service.rs
+app/hr/adapters/draft/transport-connect/src/items/c_port_translation.rs
+app/hr/adapters/draft/transport-connect/src/items/d_status_mapping.rs
+app/hr/adapters/draft/transport-connect/src/test_items/b_contract.rs
+app/hr/adapters/draft/transport-connect/tests/items/b_wire.rs
+app/hr/adapters/draft/transport-connect/tests/items/c_malformed.rs
+app/hr/adapters/draft/transport-connect/tests/items/d_no_grpc_trailers.rs
+```
+
+Every Rust file is at most 300 lines. Use the already-landed onboarding domain
+behavior and L2e repository to bind verified principal/PDP, installed-overlay
+generation, correlation/idempotency identity, one lifecycle event, and durable
+audit/outbox intent. Creating a record never silently marks onboarding ready or
+dispatches unowned work.
+
+The adapter implements the accepted generated `hr.people.v1.PeopleService`
+service/handler trait and translates generated values/status classes to and
+from `hr-transport-draft`; `people-app` performs use-case dispatch. The accepted
+runtime—not HR—owns paths, headers, bare-message decode/encode, Connect JSON
+error serialization, and trailer rejection. HR may supply the SPEC limit
+configuration and typed status mapping but may not parse HTTP, frame protobuf,
+or serialize a Connect envelope. There is no client, listener, socket, tonic
+service, gRPC envelope, or fake transport claimed as wire proof.
+
+All proto, manifests, BUCK/build scripts, stable parents, generated message and
+item indexes, `src/main.rs`, `a_unrouted.rs`, root/lock/generated files, schema,
+other HR, and IAM paths are frozen. The process remains `Unrouted`; this slice
+supplies no listener, deployment, readiness, or advertised SLO.
+
+`people-app/tests/items/c_recovery.rs` is wired to the runtime
+`hr-employment-repository-sqlite-draft` edge and `tempfile`, creates a real
+file, loses the response at the selected post-commit failpoint, drops all live
+connections, opens a new SQLite adapter at the same path, and replays through
+the People service. The memory dev adapter is used only by parity tests; it
+cannot satisfy recovery. The byte and malformed targets directly depend on the
+generated Connect adapter/runtime accepted in L2f.0a.
+
+Build closure is both L2f packages, accepted generated service/runtime, the full
+port/SQLite closure, all HR, and five IAM packages. Required review is HR plus
+independent security, protocol, durability, overload/performance, privacy,
+observability, and byte-compatibility reviewers.
+
+Success: an authorized command commits exactly one employee, lifecycle event,
+idempotency outcome, and audit/outbox intent; read/replay after restart returns
+the same tenant-scoped result within the PRD test objective; exact golden bytes
+prove a Connect request, success, and error without gRPC framing or trailers.
+Failure is duplicate/cross-tenant effect, stale authority/overlay, unqualified
+active/readiness state, unbounded work, tonic/gRPC behavior, sensitive
+telemetry, or frozen-path edit. Rollback removes only these unique items; the
+unrouted structural faces and SQLite format remain.
+
+Fault evidence covers every transaction interruption, response loss/replay,
+authority expiry, every request and response SPEC exact-limit/limit-plus-one
+case (including returned fields, repeated entries, stored outcomes, and
+redacted errors), tenant/cell request/response queue and byte saturation,
+cancellation with exactly-once reservation release, encode failure before
+headers, and outbox redelivery. Wire negative tests inject truncated/overlong
+protobuf, a gRPC
+five-byte prefix, two concatenated messages, wrong path/content/version,
+streaming content type, unsupported compression, `grpc-status`/`grpc-message`,
+attempted trailers, deadline grammar/expiry, and oversized headers/body; every
+case fails before repository mutation.
+
+## L2g.0a — Prepare the IAM workload-manifest file budget
+
+Class: mandatory IAM-owned D-29/D-35/D-41 structural split; depends on L2f.1.
+Owner and writer are IAM, not HR. The immutable input
+`iam/core/tenant-rbac-tenant-workload-manifest/src/lib.rs` is 618 physical
+lines, so no content retirement may touch that crate first.
+
+The complete structural envelope is exactly:
+
+```text
+iam/core/tenant-rbac-tenant-workload-manifest/build.rs
+iam/core/tenant-rbac-tenant-workload-manifest/BUCK
+iam/core/tenant-rbac-tenant-workload-manifest/src/lib.rs
+iam/core/tenant-rbac-tenant-workload-manifest/src/items/a_contract.rs
+iam/core/tenant-rbac-tenant-workload-manifest/src/items/b_manifest.rs
+iam/core/tenant-rbac-tenant-workload-manifest/src/items/c_validation.rs
+iam/core/tenant-rbac-tenant-workload-manifest/src/items/d_text_safety.rs
+```
+
+`src/lib.rs` retains only crate documentation/attributes and one stable
+`include!(concat!(env!("OUT_DIR"), "/manifest.generated.rs"))`. The owned
+scanner sorts direct `src/items/*.rs` and writes that one index under `OUT_DIR`;
+Buck adds the matching build-script binary, staged glob/manifest directory,
+`buildscript_run`, and identical `OUT_DIR` environment to library and existing
+integration test. Cargo auto-discovers the new root `build.rs`; the existing
+`Cargo.toml`, including its `doctest = false` setting and D-30-compatible crate
+identity, is frozen. No tracked generated file or manual `mod` inventory exists.
+Every hand-written file is at most 300 physical lines.
+
+All public identities, values, ordering, validation, error classes, exact four
+workload rows—including the HR row—and the 162-line existing integration test
+remain byte/behavior compatible. Cargo.toml, Cargo.lock, all other IAM/HR paths,
+and every behavior are frozen. Build closure is this library/test and all five
+IAM reverse consumers through Cargo and Buck. Required review is IAM, Build,
+architecture, HR boundary, and the Payroll/Accounting consumers. Success is
+identical behavior and Cargo/Buck membership with add/rename/remove scanner
+canaries. Failure is changed output, removed HR row, over-budget file, parent
+index edit, Cargo-only membership, or behavior mixed into the split. Rollback
+removes `build.rs` and `src/items/`, restores the single 618-line `src/lib.rs`
+and original BUCK rule, and changes no runtime or format state.
+
+## L2g.0b — Delete HR product composition from IAM
+
+Class: mandatory D-29 IAM content-only retirement; depends on L2g.0a. Owner is
+IAM, not HR.
+
+The complete write envelope is exactly:
+
+```text
+iam/facade/tenant-rbac-local-runtime-composition/src/lib.rs
+iam/facade/tenant-rbac-local-runtime-composition/tests/composition.rs
+iam/facade/tenant-rbac-local-inmemory-harness/src/lib.rs
+iam/facade/tenant-rbac-local-inmemory-harness/tests/harness.rs
+iam/core/tenant-rbac-tenant-workload-manifest/src/items/a_contract.rs
+iam/core/tenant-rbac-tenant-workload-manifest/src/items/b_manifest.rs
+iam/core/tenant-rbac-tenant-workload-manifest/src/items/c_validation.rs
+iam/core/tenant-rbac-tenant-workload-manifest/tests/tenant_workload_manifest.rs
+```
+
+Delete HR route aggregation, HR in-memory store/error/snapshot/methods and HR
+test fixtures from the two IAM-local composition packages. Remove the complete
+HR workload row/kind, its four-workload minimum/required-kind assertion, and the
+hard-coded `app/hr/adapters/employment-infrastructure` implementation path from
+the IAM manifest and its existing test; future tenant desired state identifies
+a sold workload, not an app-internal Rust package. Preserve every IAM, Payroll,
+Accounting, workflow, identity, and honest non-production flag behavior. The
+remaining exact workload count is three. Do not add an HR client,
+proto import, Connect fake, route replacement, or network/readiness claim.
+
+All Cargo/BUCK/build/lock files, stable parent indexes, every HR path, and all
+other IAM files are frozen;
+the now-unused HR graph edges remain until L2g.1. Build closure is both direct
+IAM packages, the workload-manifest package, and all five reverse-consumer
+packages. Required review is IAM, HR boundary, architecture/API, security, and
+the affected Payroll/Accounting owners.
+
+Success: IAM behavior and tests contain no HR product route/store composition
+or app-internal implementation path while all non-HR outputs remain equal.
+Failure is an HR client/fake substitution, lost IAM/Payroll/Accounting behavior,
+new cross-owner call, structural edit, over-budget file, or readiness fiction.
+Rollback restores these eight content files while the old graph edges still
+exist. Fault evidence
+proves the remaining composition handles duplicate non-HR routes/store errors
+and that absence of HR cannot grant, mutate, or serve an HR request.
+
+## L2g.1 — Remove every IAM-to-HR graph and source edge
+
+Class: mandatory serialized D-29 IAM structural cleanup; depends on L2g.0b.
+
+Remove every HR package edge from exactly:
+
+```text
+iam/facade/tenant-rbac-local-runtime-composition/{Cargo.toml,BUCK}
+iam/facade/tenant-rbac-local-inmemory-harness/{Cargo.toml,BUCK}
+Cargo.lock
+```
+
+No source, HR, root manifest, generated, or other IAM file changes. Build and
+test all five IAM reverse consumers and scan the complete `iam/**` Cargo, Buck,
+and Rust graph. The terminal proof rejects every `path` into `app/hr`, every
+`//app/hr` label, every `app/hr/` implementation literal, and every Rust import
+or extern edge for an HR workspace crate. It also proves none of the five
+packages reaches HR transitively. HR-related principal/resource vocabulary in
+an IAM-owned policy contract is not an executable package edge and is reviewed
+separately; it cannot name an app implementation path.
+
+Success is **zero IAM-to-`app/hr` dependency**, direct or transitive. There is
+no exception for `hr-transport-connect-draft`, `hr-people-app`, or any future HR
+client: cloud IAM provides its sold identity/authorization service and does not
+compose the tenant product. Any residual graph/source edge is failure and
+blocks L2h and every routing lane. Required review is IAM, HR,
+Build/architecture, API/protocol, and security. Rollback restores the old,
+unused graph edges only; full rollback then reverts L2g.0b and L2g.0a. No
+behavior or data-format changes in this structural hop.
+
+## L2h — Retire HR compatibility packages
+
+Class: mandatory serialized HR structural retirement; depends on L2g.1.
+
+After the zero-inverse proof, delete exactly these old package trees and their
+workspace-package entries in `Cargo.lock`:
+
+```text
+app/hr/facade/employment-app
+app/hr/ports/employment-api
+app/hr/adapters/employment-storage-inmemory
+app/hr/adapters/employment-infrastructure
+app/hr/adapters/draft/transport-employment-compat
+```
+
+The canonical domain, use-case, HR-owned ports, repository memory/SQLite
+adapters, generated Connect adapter, People facade/proto, and all non-
+compatibility behavior remain unchanged. Root membership needs no edit because
+the existing globs stop matching deleted directories. No source is moved or
+feature changed in this lane.
+
+The post-compatibility, pre-production-provider direct graph is frozen and
+proved in both Cargo and Buck:
+
+```text
+hr-employment-usecase
+  -> hr-employment-domain
+  -> hr-employment-repository-draft
+  -> hr-installed-overlay-draft
+  -> hr-authorization-evidence-draft
+  -> hr-audit-outbox-draft
+  -> hr-workflow-dispatch-draft
+  -> hr-payroll-impact-dispatch-draft
+  -> hr-transport-draft
+  -> hr-runtime-context-draft
+
+hr-record-encryption-draft
+  -> no provider or cryptographic implementation
+
+hr-employment-repository-memory-draft
+  -> hr-employment-repository-draft
+
+hr-employment-repository-sqlite-draft
+  -> hr-employment-repository-draft + hr-record-encryption-draft + rusqlite
+
+hr-transport-connect-draft
+  -> hr-transport-draft + the exact generated Connect targets accepted at L2f.0a
+
+hr-people-app
+  -> hr-employment-usecase
+  -> hr-employment-repository-draft
+  -> hr-record-encryption-draft
+  -> hr-installed-overlay-draft
+  -> hr-authorization-evidence-draft
+  -> hr-audit-outbox-draft
+  -> hr-transport-draft
+  -> hr-runtime-context-draft
+  -> hr-employment-repository-sqlite-draft
+  -> hr-transport-connect-draft
+```
+
+At L2h this graph is intentionally **not routable**: the five mandatory
+production authority adapters have not yet been admitted. The People test graph
+adds only the memory repository oracle and `tempfile`;
+its recovery target still links SQLite directly. The terminal scan must find no
+`employment-app`, `employment-api`, `employment-storage-inmemory`,
+`employment-infrastructure`, or `transport-employment-compat`
+package/name/label/path; no adapter is allowed to
+survive without a matching provider port and at least one named build-graph
+consumer. It also re-proves zero IAM-to-HR direct and transitive edges.
+
+Build closure is every remaining HR package and all five IAM consumers through
+Cargo and Buck, plus inverse scans proving no old/compatibility package
+label/name/path and no orphan adapter.
+
+Required D-29 review is HR, IAM, Build/architecture, API, Data, Gateway, and
+security. Success is deletion with the full replacement closure green; failure
+is a residual consumer, moved behavior, root/generated edit, or route/readiness
+claim. Rollback restores the five complete package trees and lock entries; no
+SQLite format or live route changes.
+
+## L2i.0a through L2i.0e — Accept five production authority contracts
+
+Class: five fail-closed D-29 provider decisions; depends on L2h. These are not
+implementation dispatches and may be reviewed independently, but all five must
+accept before L2j.0.
+
+The current tree does not provide an automatically acceptable production
+contract for any of these HR ports. Existing Packs files, IAM/Policy internals,
+Audit ports, Secrets/KMS surfaces, Cell/Observability ports, and crypto
+dependencies are evidence to review, not permission for HR to import another
+owner's core, port, adapter, or in-process facade. The five gates are:
+
+- **L2i.0a — Packs/install:** accept one sold install-authority contract that
+  resolves `(tenant, pack_id)` to signed content digest, overlay generation,
+  effective window, revocation state, and bounded HR overlay bytes.
+- **L2i.0b — Policy/IAM:** accept one sold authentication/authorization contract
+  that returns verified channel principal plus tenant/action/resource/request-
+  bound PDP provenance, expiry, policy revision, purpose, and legal-basis
+  evidence. A caller-supplied allow bit is never an input authority.
+- **L2i.0c — Audit:** accept one sold idempotent audit-emission contract and an
+  operation-class matrix distinguishing pre-disclosure/pre-commit evidence from
+  asynchronously deliverable durable outbox intent.
+- **L2i.0d — Record encryption/key service:** accept one authenticated-
+  encryption implementation and one commodity or sold key-service facade for
+  `hr-record-encryption-draft`. It fixes the algorithm, nonce source, key
+  custody/zeroization, associated-data encoding, tenant/key-scoped non-replay
+  blind-index PRF/encoding/width, domain-separated provider-authenticated commit
+  binding, opaque authorization-id construction, provider-side linearization of
+  repository-epoch acquisition, bounded `list_unresolved`, `authorize_commit`/
+  `resolve_commit`, and generation transitions; pending-page item/byte/cursor
+  bounds; immutable normal-rotation fence plus bounded incomplete-rotation
+  discovery; provider-authenticated rekey checkpoint and zero-reference receipt
+  operations. It accepts exact `AcquireReplayGenerationSetV1` and the returned-
+  authority-bound `DeriveIdempotencyLocatorV1` request/result/error: an opaque
+  per-generation locator over `(repository_id, tenant, operation_kind,
+  idempotency_key)` only, with no schema/version/canonical-request input and no
+  stable cross-generation equality token. It fixes repository/epoch/lease/fence/
+  membership binding, signature/lease validation, cache lifetime, typed keyring
+  repository register/snapshot/remove CAS, and a complete decommission protocol:
+  typed begin/get/issue-proof/abort/remove plus begin-tombstone, proof-and-plan-
+  bound removal receipt, provider-queryable last-member handoff,
+  post-handoff Begin-plan/`Retiring`/post-Begin Complete-plan/fence/receipt,
+  and repository remove/local-complete/status/recover operations. It fixes a
+  pre-Remove immutable SQLite plan binding known proof/fences, disposition/
+  manifest, and every distinct provider/local operation id plus the only
+  then-known exact Remove request; a complete
+  bounded all-live-generation checkpoint with separate zero ciphertext, locator,
+  and non-replay-index counts; provider decommission admission before that
+  observation; and provider removal/retirement as global linearization with
+  matching local plan/intermediate/terminal CASes while admission remains
+  closed. It fixes idempotent response-loss/local-drain-delete-quarantine
+  recovery, including provider-handoff persistence, Begin-plan/Begin/
+  `Retiring`/Complete-plan/Complete/terminal/disposition-plan/disposition/
+  completion-plan edges,
+  and stale/partition/rejoin/crash refusal. It must make `Removed` carry its
+  proof/plan/storage/completion receipt identity, make a delayed Begin fail after
+  abort tombstoning, return a typed retirement handoff instead of a zero-member
+  `KeyringMembershipSnapshotV1`, and reject changed operation reuse as the shared
+  closed `MembershipOperationConflict`. `BeginNormalRotationV1` remains snapshot-bound CAS with global
+  per-keyring no-overlapping-normal-rotation refusal and a future-only format-
+  evolution barrier (not a V2 codec claim); rotation/re-encryption; normal/emergency
+  drain;
+  crash resolution; and administrative recovery. It accepts the HR-owned
+  canonical/descriptor/checkpoint/zero-reference domain bytes as opaque bounded
+  inputs and may not choose their semantic fields. Neither binding nor
+  authorization
+  id may be an unkeyed sensitive-request digest or telemetry equality token. It
+  must support fresh-process SQLite reopen without making a process-local or
+  caller key authoritative. It must also prove the provider can fence an old
+  writer before classifying missing local receipts and hold `Revoked` behind
+  unresolved earlier receipts. It must refuse G+2 until G has zero ciphertext,
+  locator, and non-replay-index references, every member instance in the
+  immutable rotation snapshot has durable terminal evidence, and G is revoked;
+  it must forbid membership mutation during that drain and require a repository-
+  produced, provider-issued complete-scan zero-ciphertext/locator/non-replay-
+  index/zero-unresolved decommission proof before removal or rejoin. Emergency
+  drain/source loss/partition must withdraw
+  readiness rather than bypassing this fence. Provider selection alone is not
+  permission to claim an adapter-only fence.
+- **L2i.0e — Runtime context:** accept the exact sold Cell trusted-interval and
+  Observability signal/health facades consumed by an HR-owned
+  `hr-runtime-context-oyatie-draft` adapter. The decision fixes interval units
+  and uncertainty, source generation, boundary-straddling refusal, correlation
+  and cardinality rules, bounded buffering/backpressure, outage/readiness
+  behavior, and generated consumer targets. Process/system time, log-only
+  telemetry, and a test fake are not fallbacks.
+
+Each accepted decision and same-wave HR law amendment must name exact provider
+owner, sold proto/facade path, semantic package, generated consumer target,
+Cargo package/version/features, literal Buck labels, transport/authentication,
+timeouts/retry/idempotency, hard request/response bounds, source/license,
+removal/owned-stack destination, and the exact root/lock/generated/fixup paths
+needed to consume it. It must also name provider-specific malformed, stale,
+revoked, cross-tenant, replay, timeout, disconnect, and outage vectors in Cargo
+and Buck. No standing client may live in the provider; each HR adapter owns its
+consumer translation. A missing field, internal provider import, JSON/second
+codec, or test fake rejects the gate. Rejection changes no repository path and
+keeps People unrouted.
+
+## L2i.0d.1 — Admit the key-service adapter graph before replay behavior
+
+Class: serialized D-33 structural adapter lane; depends only on accepted L2i.0d
+and precedes L2i.0f. It admits the key-service structure early because no
+repository/SQLite lane may claim a provider traversal before the selected adapter
+exists in both build graphs. Its complete write set is:
+
+```text
+app/hr/adapters/draft/record-encryption-key-service/Cargo.toml
+app/hr/adapters/draft/record-encryption-key-service/BUCK
+app/hr/adapters/draft/record-encryption-key-service/build.rs
+app/hr/adapters/draft/record-encryption-key-service/src/lib.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/a_face.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/contract.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/a_face.rs
+Cargo.lock
+```
+
+The runtime edge is exactly `hr-record-encryption-draft` plus the literal accepted
+key-service facade/client targets. `Cargo.toml` creates only the dev-only
+`[[test]]` target `contract` at `tests/contract.rs`; its dev-dependencies are
+exactly `hr-employment-repository-draft`,
+`hr-employment-repository-sqlite-draft`, and `tempfile.workspace = true`. `BUCK`
+creates the matching dev-only
+`:hr-record-encryption-key-service-contract` `rust_test` whose direct deps are
+`:hr-record-encryption-key-service-draft`,
+`//app/hr/ports/draft/record-encryption:hr-record-encryption-draft`,
+`//app/hr/ports/draft/employment-repository:hr-employment-repository-draft`,
+`//app/hr/adapters/draft/employment-repository-sqlite:hr-employment-repository-sqlite-draft`,
+and `third-party//:tempfile`. No production target names any repository or
+SQLite package/label.
+
+The target's owned scanner admits `tests/items/*.rs`, emits empty stable `OUT_DIR`
+membership before item slots exist, and is the only target that may later traverse
+SQLite -> record-encryption port -> key-service adapter. L2i.0f creates its
+minimal `b_envelope.rs`/`e_commit_authorization.rs` structural slots and
+`b_parity.rs`/`c_commit_order.rs` test slots as well as its
+`k_sqlite_replay_composition.rs` and `m_sqlite_decommission_composition.rs`
+slots. L2i.0g.1 leaves the five g.1a-owned adapter slots empty; L2i.0g.1a implements and
+reviews the minimal adapter slots without executing this dev-only target;
+L2i.0g.2 alone writes and executes the composition slots after that behavior
+exists. No request
+translation, PRF, membership, SQLite, repository, readiness, or provider behavior
+appears in this structural lane.
+`cargo tree -p hr-record-encryption-key-service-draft --edges normal` and Buck
+runtime-dependency inspection must contain neither `hr-employment-repository-*`
+nor its SQLite label, while the named dev-only targets contain both direct edges.
+Rollback removes only this empty face and its accepted dependency closure.
+
+## L2i.0f — Prepare commit-fence, replay, decommission, membership, and rekey file membership
+
+Class: serialized D-33 structural/D-41 file-slot lane after accepted L2i.0d and
+completed L2i.0d.1 adapter structure.
+It creates only these compiler-visible empty unique files inside already-
+admitted scanner-owned faces:
+
+```text
+app/hr/ports/draft/record-encryption/src/items/c_commit_authorization.rs
+app/hr/ports/draft/record-encryption/src/test_items/c_commit_authorization.rs
+app/hr/ports/draft/record-encryption/src/items/e_replay_generation_set.rs
+app/hr/ports/draft/record-encryption/src/test_items/e_replay_generation_set.rs
+app/hr/ports/draft/record-encryption/src/items/f_keyring_membership.rs
+app/hr/ports/draft/record-encryption/src/test_items/f_keyring_membership.rs
+app/hr/ports/draft/record-encryption/src/items/j_decommission.rs
+app/hr/ports/draft/record-encryption/src/test_items/j_decommission.rs
+app/hr/ports/draft/record-encryption/src/items/d_rekey_generation.rs
+app/hr/ports/draft/record-encryption/src/test_items/d_rekey_generation.rs
+app/hr/ports/draft/employment-repository/src/items/e_commit_authorization.rs
+app/hr/ports/draft/employment-repository/src/test_items/e_commit_authorization.rs
+app/hr/ports/draft/employment-repository/src/items/g_replay_generation_set.rs
+app/hr/ports/draft/employment-repository/src/test_items/g_replay_generation_set.rs
+app/hr/ports/draft/employment-repository/src/items/h_keyring_membership.rs
+app/hr/ports/draft/employment-repository/src/test_items/h_keyring_membership.rs
+app/hr/ports/draft/employment-repository/src/items/i_decommission.rs
+app/hr/ports/draft/employment-repository/src/test_items/i_decommission.rs
+app/hr/ports/draft/employment-repository/src/items/f_rekey_repository.rs
+app/hr/ports/draft/employment-repository/src/test_items/f_rekey_repository.rs
+app/hr/core/employment-usecase/src/items/f_rekey_reconciler.rs
+app/hr/core/employment-usecase/src/test_items/c_rekey_reconciler.rs
+app/hr/core/employment-usecase/tests/items/c_rekey_reconciler.rs
+app/hr/adapters/draft/employment-repository-memory/src/items/c_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-memory/src/test_items/d_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-memory/tests/items/d_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-memory/src/items/d_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-memory/src/test_items/e_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-memory/tests/items/e_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-memory/src/items/e_decommission.rs
+app/hr/adapters/draft/employment-repository-memory/src/test_items/f_decommission.rs
+app/hr/adapters/draft/employment-repository-memory/tests/items/f_decommission.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/k_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/l_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/m_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/n_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/o_decommission.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/g_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/h_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/i_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/j_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/k_decommission.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/d_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/e_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/f_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/g_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/h_decommission.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/m_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/n_rekey_restart.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/o_rekey_faults.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/p_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/q_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/r_decommission.rs
+app/hr/adapters/draft/record-encryption-key-service/src/items/b_envelope.rs
+app/hr/adapters/draft/record-encryption-key-service/src/items/e_commit_authorization.rs
+app/hr/adapters/draft/record-encryption-key-service/src/items/h_replay_generation_set.rs
+app/hr/adapters/draft/record-encryption-key-service/src/items/i_keyring_membership.rs
+app/hr/adapters/draft/record-encryption-key-service/src/items/j_decommission.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/b_contract.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/e_replay_generation_set.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/f_keyring_membership.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/g_decommission.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/b_parity.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/c_commit_order.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/i_replay_generation_set.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/j_keyring_membership.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/k_sqlite_replay_composition.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/l_decommission.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/m_sqlite_decommission_composition.rs
+```
+
+Each file is empty except for a package-private structural marker when rustc
+requires one and is at most 20 lines. The existing owned scanners and Buck
+`buildscript_run` rules discover the identical sorted sets without a parent,
+manifest, BUCK, build-script, root, lock, generated, migration, provider, route,
+or runtime edit. In particular `migrations/*.sql` was already admitted as a
+resource glob at L2e.0b; semantic migrations remain absent here.
+
+Build closure is the employment use case, both ports, memory repository, SQLite
+library/unit/contract/recovery targets, the already-admitted key-service adapter
+face, full HR, accepted key-service contract, and zero-edge IAM proof through
+Cargo and Buck. Required review is
+HR, Build/D-41, architecture, Data/SQLite durability, and security. Success is
+unchanged behavior with exact Cargo/Buck membership and add/rename/remove
+canaries. Any type, operation, SQL, test assertion, dependency, format,
+readiness value, or parent-index edit is failure. Rollback removes only these
+empty files; no schema or runtime state exists.
+
+## L2i.0g.0 — Freeze typed commit, replay, decommission, and membership port contracts
+
+Class: content-only HR contract lane; depends on L2i.0f. The complete write set
+is only the following already-admitted port files:
+
+```text
+app/hr/ports/draft/record-encryption/src/items/c_commit_authorization.rs
+app/hr/ports/draft/record-encryption/src/test_items/c_commit_authorization.rs
+app/hr/ports/draft/record-encryption/src/items/e_replay_generation_set.rs
+app/hr/ports/draft/record-encryption/src/test_items/e_replay_generation_set.rs
+app/hr/ports/draft/record-encryption/src/items/f_keyring_membership.rs
+app/hr/ports/draft/record-encryption/src/test_items/f_keyring_membership.rs
+app/hr/ports/draft/record-encryption/src/items/j_decommission.rs
+app/hr/ports/draft/record-encryption/src/test_items/j_decommission.rs
+app/hr/ports/draft/employment-repository/src/items/e_commit_authorization.rs
+app/hr/ports/draft/employment-repository/src/test_items/e_commit_authorization.rs
+app/hr/ports/draft/employment-repository/src/items/g_replay_generation_set.rs
+app/hr/ports/draft/employment-repository/src/test_items/g_replay_generation_set.rs
+app/hr/ports/draft/employment-repository/src/items/h_keyring_membership.rs
+app/hr/ports/draft/employment-repository/src/test_items/h_keyring_membership.rs
+app/hr/ports/draft/employment-repository/src/items/i_decommission.rs
+app/hr/ports/draft/employment-repository/src/test_items/i_decommission.rs
+```
+
+The encryption items define HR-owned `CommitAuthorizationId`, `CommitBinding`,
+`CommitAuthorization`, `CommitResolution::{Committed,Aborted}`,
+`CommitFenceResolution::{CommittedBeforeFence,AbortedBeforeCommit}`,
+`CommitFenceReceipt`, `RepositoryEpochLease`, bounded pending-receipt pages,
+`ReplayGenerationSetV1`, `ReplayGenerationAuthorityV1`,
+`IdempotencySlotV1`, `IdempotencyLocatorV1`, active-keyring
+`KeyringMembershipSnapshotV1`, terminal `KeyringMembershipStateV1`, member-
+instance, decommission-admission-fence, begin-tombstone, observation/proof with
+separate zero ciphertext/locator/non-replay-index counts plus a complete scan
+checkpoint, proof-and-plan-bound removal receipt, retirement-handoff/fence/
+`Retiring`/receipt, and their closed SPEC errors. Their provider-neutral
+operations are `acquire_repository_epoch`, `acquire_replay_generation_set_v1`,
+`derive_idempotency_locator_v1`, `register_keyring_repository_v1`,
+`acquire_keyring_membership_snapshot_v1`, `begin_repository_decommission_v1`,
+`get_repository_decommission_v1`, `issue_decommission_proof_v1`,
+`abort_repository_decommission_v1`, `remove_keyring_repository_v1`,
+`begin_keyring_retirement_v1` (`BeginKeyringRetirementV1`),
+`complete_keyring_retirement_v1` (`CompleteKeyringRetirementV1`),
+`begin_normal_rotation_v1`, `list_unresolved`, `authorize_commit`, and idempotent
+`resolve_commit`. They accept exact bounded V1 bytes and fixed domain/scope from
+the repository port; they cannot parse, reorder, normalize, or omit effects.
+
+The replay item freezes an exact V1-only set: one active and optional one
+draining generation, `active_writer_format = 1`, `[1]` for every entry, and only
+one returned opaque authority per generation. The repository operation accepts
+that returned authority as an unconstructible typed value and exposes no raw
+generation, format, or PRF parameter. It derives a locator from the logical
+idempotency slot alone, then requires authenticated open and constant-time
+canonical-plaintext comparison of a located row; changed bytes are therefore an
+`IdempotencyConflict`, never a zero-match reservation. The membership item freezes
+versioned register/snapshot/remove CAS, immutable rotation snapshots, and exact
+decommission protocol signatures. The repository-port item owns
+`ProduceDecommissionProofV1`, `DecommissionProofProductionV1`, its closed typed
+error, `DecommissionIntentV1`, `AbortRepositoryDecommissionIntentV1`,
+`DecommissionProofIssuePlanV1`, `DecommissionAbortTombstoneReceiptV1`,
+`RemoveRepositoryDecommissionV1`,
+`CompleteRepositoryDecommissionV1`, `GetRepositoryDecommissionStatusV1`,
+`RecoverRepositoryDecommissionV1`, `RepositoryDecommissionRecoveryError`, local terminal-receipt/storage-disposition
+values, `RepositoryDecommissionRemovalPlanV1`/receipt,
+`ProviderDecommissionTerminalReceiptV1`, storage receipt, exact local status
+variants, bounded all-reference scan/checkpoint, and the local admission-epoch
+  write fence; the encryption-port item owns `ProviderOperationKindV1`,
+  `ProviderOperationIdV1`, provider fence, begin-tombstone,
+  `DecommissionProofV1`, `DecommissionProofReferenceV1`,
+  `DecommissionProofIssuanceV1`, the exhaustive
+  `IssueDecommissionProofResultV1::Issued { issuance:
+  DecommissionProofIssuanceV1 }` result, and `ProofIssued { issuance:
+  DecommissionProofIssuanceV1 }` status; `CanonicalDecommissionWireEncodingV1`,
+  `CanonicalDecommissionPlanEncodingV1`,
+  named provider status/Abort/membership-mutation result sums, issue/get/abort/
+  remove, and last-member-retirement binding. The repository item owns distinct
+  local-operation and response-id namespaces; named exhaustive repository
+  Abort/Remove/Complete result sums; `RepositoryDecommissionRemovalPlanV1`,
+  `RepositoryDecommissionRetirementBeginPlanV1`,
+  `RepositoryDecommissionRetirementCompletePlanV1`, local disposition/completion
+  plans; `DecommissionPlanKindV1` and `DecommissionPlanRequestJournalV1`; and
+  every progress/status variant. Each immutable plan has its fixed
+  domain-separated tag order, u16 field lengths, 4,096-byte ceiling, and
+  non-self-referential digest. It carries preallocated retirement-fence and
+  scoped Remove/Begin/Complete/local ids plus immutable disposition/manifest,
+  but excludes itself and all later request bytes/digests. The sibling journal
+  derives/stores exact request bytes/digest only after the plan digest and is
+  committed with the plan before its side effect. A provider
+  `RetirementHandoffReady` response is first persisted byte-for-byte; only then
+  may SQLite atomically write the post-handoff Begin plan/journal with that
+  exact signed handoff/authenticator and Begin id/fence/plan digest. The typed
+  Begin request, provider idempotency cell, `Retiring` status, and signed fence
+  carry that same digest. It records `Retiring`,
+  then atomically writes the post-Begin Complete plan/journal before Complete.
+  A provider terminal receipt similarly precedes disposition and completion
+  plan/journal pairs; every later effect uses only its already-durable journal. A
+  recovery response id is explicitly not a side-effect id. Before its own first Begin call,
+`DecommissionIntentV1` likewise stores distinct Begin, Issue-proof, and abort
+provider ids plus the canonical Begin/abort request digests. The terminal fenced
+observation transaction then writes `DecommissionProofIssuePlanV1` with the
+reserved Issue id and exact Issue request digest before the provider Issue call.
+The recovery operation uses the stored plan and, only for an unplanned intent,
+that persisted Begin/abort tuple to invoke the tombstone CAS on a provider
+`NotStarted`.
+The proof binds repository/member-instance/admission epoch, membership
+snapshot/version, rotation fence, terminal write sequence, complete scan
+checkpoint, all three zero-reference counts, and unresolved receipts. This lane
+freezes provider removal/retirement as the global linearization point, while only
+matching SQLite plan/intermediate/completion CASes may finish local
+removal/retirement; it never claims a distributed transaction. This lane declares
+only values and trait signatures. It does not call a provider, derive a locator,
+open SQLite, create a migration, or claim a repository-to-adapter traversal.
+It freezes `DecommissionCanonicalWireKindV1` once. The existing bytes remain
+Removal `0x01`, Begin `0x02`, Complete `0x03`, LocalDisposition `0x04`,
+LocalCompletion `0x05`, receipt `0x06`, and proof/reference/issuance/
+observation/Issue request/receipt-binding `0x07`/`0x08`/`0x09`/`0x0a`/`0x0b`/
+`0x0c`. The additive assignments are `KeyringRetirementHandoff = 0x0d`,
+`KeyringRetirementFence = 0x0e`, `DecommissionRemovalReceipt = 0x0f`, and
+`KeyringRetirementReceipt = 0x10`; `0x00` and unassigned `0x11..=0xff` are
+invalid. The global decoder recognizes exactly `0x01..=0x10`; plan decoders
+continue to accept only `0x01..=0x05`, returning a typed known-wrong-kind for
+recognized `0x06..=0x10` and a distinct unknown-kind for `0x00`/`0x11..=0xff`.
+
+`ProviderOperationKindV1` freezes the listed order as
+`RegisterKeyringRepository=0x01`, `BeginRepositoryDecommission=0x02`,
+`IssueDecommissionProof=0x03`, `AbortRepositoryDecommission=0x04`,
+`RemoveKeyringRepository=0x05`, `BeginKeyringRetirement=0x06`,
+`CompleteKeyringRetirement=0x07`, and `BeginNormalRotation=0x08`.
+The proof and reference signing literals are
+`hr.decommission.proof-authenticator.v1` and
+`hr.decommission.proof-reference-authenticator.v1`; their external digest
+domains remain unchanged.
+
+Every authenticated record uses the published 16-byte header and ascending TLV
+rules: encode header plus non-authenticator tags as the body; sign
+`ASCII(literal_authentication_domain) || 0x00 || body_wire`; append the
+authenticator last in the same-kind final wire; then derive an external digest
+over the exact final bytes. External digests are never tags, and durable replay
+returns retained final bytes without decoded reserialization. The additive
+body/final ledger is:
+
+| kind | exact body tags | final tag | authentication / external digest domain | body/final maximum |
+| --- | --- | --- | --- | --- |
+| `KeyringRetirementHandoff = 0x0d` | `1 keyring_id`; `2 repository_id`; `3 member_instance_id`; `4 repository_epoch`; `5 decommission_proof_digest`; `6 membership_snapshot_id`; `7 membership_version`; `8 rotation_fence_id`; `9 live_generation_digest`; `10 removal_plan_digest` | `11 authenticator` | `hr.decommission.keyring-retirement-handoff-authenticator.v1` / `hr.decommission.keyring-retirement-handoff.v1` | `926` / `1,441` |
+| `KeyringRetirementFence = 0x0e` | `1 exact final handoff wire`; `2 retirement_fence_id`; `3 retirement_begin_operation_id`; `4 begin_plan_digest` | `5 authenticator` | `hr.decommission.keyring-retirement-fence-authenticator.v1` / `hr.decommission.keyring-retirement-fence.v1` | `1,758` / `2,273` |
+| `DecommissionRemovalReceipt = 0x0f` | `1 keyring_id`; `2 repository_id`; `3 member_instance_id`; `4 repository_epoch`; `5 decommission_proof_digest`; `6 prior_membership_snapshot_id`; `7 prior_membership_version`; `8 successor_membership_snapshot_id`; `9 successor_membership_version`; `10 removal_operation_id`; `11 removal_plan_digest` | `12 authenticator` | `hr.decommission.removal-receipt-authenticator.v1` / terminal digest only | `1,034` / `1,549` |
+| `KeyringRetirementReceipt = 0x10` | `1 keyring_id`; `2 repository_id`; `3 member_instance_id`; `4 repository_epoch`; `5 decommission_proof_digest`; `6 membership_snapshot_id`; `7 membership_version`; `8 rotation_fence_id`; `9 retirement_fence_id`; `10 removal_plan_digest`; `11 retirement_begin_operation_id`; `12 retirement_complete_operation_id`; `13 all_generation_digest`; `14 scan_checkpoint_digest`; `15 durable_ciphertext_references`; `16 durable_locator_references`; `17 durable_non_replay_index_references`; `18 unresolved_authorizations`; `19 state` | `20 authenticator` | `hr.decommission.keyring-retirement-receipt-authenticator.v1` / terminal digest only | `1,404` / `1,919` |
+
+Tags 15 through 18 of kind `0x10` are exact `u64be(0)`. `Retired=0x01` is
+the only accepted tag-19 state byte; `0x00` and every other byte fail closed.
+`ProviderDecommissionTerminalReceiptV1` is only the logical sum of final
+kind-`0x0f` `Removed` or final kind-`0x10` `KeyringRetired`; it has no outer
+wire, and the signed header kind is the variant discriminator. Both derive
+`provider_terminal_receipt_digest` after their final wire under
+`hr.decommission.provider-terminal-receipt.v1`.
+
+The kind-`0x0e` fence, Begin plan, and Begin request contain the exact final
+kind-`0x0d` wire; the Complete plan contains the exact final kind-`0x0e` wire;
+the disposition plan contains the exact final kind-`0x0f` or `0x10` wire.
+Wrong kind/header/schema, body/final confusion, variant substitution,
+count/tag/order/length/domain/authenticator/digest mutation, or nested
+reserialization is a typed refusal. g.0, g.1, and g.2 each freeze independent
+minimum, maximum, and maximum-plus-one body/final goldens plus response-loss
+and fresh-process byte-identical replay.
+
+The independently recomputed ledger preserves proof `1,805`, reference
+`1,265`, issuance `3,092`, observation `1,123`, Issue request `1,274`, plan
+maxima `3,096/1,793/3,832/2,179/253`, request maxima
+`2,267/1,758/2,184/292/288`, local receipt/binding `870/1,246`, the `4,096`
+ceiling, and `264` bytes of Complete-plan headroom. Receipt field sets do not
+expand: chain assurance for omitted historical fields rests on retained
+provider state and byte-identical exact-operation replay, not a claim that the
+omitted fields are directly authenticated.
+
+Binding tag 8 is derived after terminal verification, never from caller input:
+kind `0x0f` supplies `removal_operation_id` with provider-operation kind
+`0x05`; kind `0x10` supplies `retirement_complete_operation_id` with kind
+`0x07`. Any branch/id-kind mismatch is the matching typed Mismatch. Because the
+retired receipt omits `begin_plan_digest`, `complete_plan_digest`, and
+`retirement_fence_digest`, its verifier composes the exact retained operation
+cells/plans with the retained handoff/fence ledgers. Exact auxiliary final
+wires, operation cells/plans, proof issuance, and the authenticator-envelope-
+selected verification-key epoch remain together through Get/replay/recovery and
+the bounded local-terminal GC horizon. Neither caller nor response selects the
+epoch, and atomic terminal cleanup is their only collection path.
+
+Both `KeyringMembershipError` and `RepositoryDecommissionRemovalError` add
+`RetirementHandoff{Missing,Mismatch,Corrupt,AuthenticatorInvalid}`,
+`KeyringRetirementFence{Missing,Mismatch,Corrupt,AuthenticatorInvalid}`, and
+`ProviderTerminalReceipt{Missing,Mismatch,Corrupt,AuthenticatorInvalid}`.
+Missing means no retained row; Corrupt means bad framing/kind/count/tag/order/
+length/bound/state byte/nested kind or missing authenticator tag; Mismatch means
+wrong canonical identity/parent/digest/status/terminal branch; and
+AuthenticatorInvalid means a present envelope with an invalid key/signature.
+`KeyringRetirementFenceStale` and `KeyringRetirementPreconditionFailed` remain
+separate semantic errors. g.0 and recovery preserve every branch by name and
+remove the former generic terminal-invalid branch.
+
+It also freezes proof tags `1..=20`, reference tags `1..=8`, and issuance tags
+`{1 proof_final_wire, 2 reference_final_wire}`. Both signed records follow the
+same body/sign/final/external-digest construction, and issuance nests those
+exact final wires. Independent g.0/g.1/g.2 codecs therefore produce identical
+proof/reference/issuance bytes, and Issue/Get never reserializes an issuance.
+
+It also freezes the receipt-addressed completion plan:
+`CanonicalDecommissionStorageReceiptEncodingV1` owns the fixed `0x06` receipt
+header, twelve tag order, non-self metadata-commit digest, and 870-byte maximum
+for `LocalDecommissionStorageReceiptV1`. `LocalDecommissionStorageReceiptBindingV1`
+is kind `0x0c`, tags `1..=17`, has a 1,179-byte no-authenticator body and
+1,246-byte final wire, and carries the canonical receipt lookup, expected
+receipt digest, all identity/parent/terminal/local-operation/disposition/
+manifest/admission fields, metadata key id/epoch, and the final detached
+authenticator. g.0 `record-encryption/src/items/j_decommission.rs` owns
+`RepositoryMetadataCommitAuthenticatorV1` sign/verify request/result/error
+types; g.1 `record-encryption-key-service/src/items/j_decommission.rs`
+implements active-signing plus retained verification-only key epochs; g.2
+injects that port into SQLite. The normal Cargo/Buck edge is SQLite repository
+-> record-encryption port -> key-service adapter, with no g.0-to-SQLite or
+adapter-to-repository runtime edge. Before `LocalDispositionApplied`, g.2 must
+atomically persist receipt plus binding/status after signature verification;
+recovery verifies those exact bytes/digests/parents/key epoch/signature before
+deriving `LocalDecommissionCompletionPlanV1`, which encodes only the receipt
+digest. Contract tests prove all receipt/binding/plan min/max/plus-one,
+kind-substitution/unknown-kind, field/id/parent/receipt mutation, independent
+rederivation, response-loss/crash, and named missing/mismatch/corrupt/
+authenticator-invalid refusal before g.1/g.2 implement behavior.
+
+## L2i.0g.1 — Implement provider replay, decommission, and membership behavior before repository use
+
+Class: content-only key-service-adapter lane; depends on L2i.0g.0 and writes only:
+
+```text
+app/hr/adapters/draft/record-encryption-key-service/src/items/h_replay_generation_set.rs
+app/hr/adapters/draft/record-encryption-key-service/src/items/i_keyring_membership.rs
+app/hr/adapters/draft/record-encryption-key-service/src/items/j_decommission.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/e_replay_generation_set.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/f_keyring_membership.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/g_decommission.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/i_replay_generation_set.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/j_keyring_membership.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/l_decommission.rs
+```
+
+The adapter translates only the accepted provider facade into the exact V1 port
+contract. It validates signed repository/epoch/lease/fence/membership bindings,
+returns one active and optional one draining V1 authority, and derives a locator
+only from that returned authority plus `IdempotencySlotV1`. It implements
+membership CAS, snapshot-bound normal-rotation refusal, and the provider half of
+decommission: begin/get/issue-proof/abort/remove with CAS on the membership
+snapshot/version and admission epoch. Begin and Abort serialize in one provider
+transaction: Begin atomically commits its replay cell, Decommissioning member
+state, and signed `Fenced` result, so provider Get never returns IntentPending;
+Abort-first records the exact begin-operation tombstone even from `NotStarted`,
+and a delayed matching Begin is `DecommissionBeginTombstoned`. Begin-first makes
+Abort return the exact signed closed status. The adapter durably owns one
+immutable `DecommissionProofIssuanceV1` ledger value containing the full proof
+and bounded authenticated `DecommissionProofReferenceV1`, keyed and retained
+through exact Issue/Remove/Complete/Get/recovery replay and terminal-receipt
+GC. It writes exactly one kind-`0x09` issuance wire whose two nested values are
+the final kind-`0x07` proof and kind-`0x08` reference wires; Issue, exact Issue
+replay, and `ProofIssued` Get return those byte-identical 3,092-bounded bytes,
+not independently encoded structs. The adapter verifies the proof/reference
+body-authenticator-final-wire-external-digest construction and maps missing,
+mismatch, corrupt proof, corrupt reference, proof-authenticator-invalid, and
+reference-authenticator-invalid by their named closed errors. The repository
+only persists or validates that value and never mints it. Remove
+accepts/rechecks a pre-persisted plan digest with that reference and
+  returns a proof-and-plan-bound signed receipt for a non-last member and, for a
+  sole member, atomically stores and returns named
+  `KeyringMembershipMutationResultV1::RetirementHandoffReady` without constructing
+  an empty snapshot. Get must return that same exact signed handoff after crash
+  or lost Remove response. Begin retirement records an observable signed
+  `Retiring` fence only from that stored handoff using the Begin plan's stored
+  Begin id, preallocated fence id, and `begin_plan_digest`; its exact typed
+  Begin bytes/idempotency digest and returned fence carry the same plan digest.
+  Complete rechecks the same plan digest,
+preallocated fence and complete ids, all-live-
+generation scan checkpoint, and separate zero ciphertext/locator/non-replay-
+index/unresolved counts before it revokes. It refuses an issue attempt unless the
+provider admission fence predates the bound local terminal observation; it keeps
+that fence through removal/retirement and rejects stale retry, duplicate changed-
+  operation, partition, crash, and rejoin calls with typed outcomes. It compiles
+  exhaustive no-wildcard matches for `ProviderDecommissionStatusV1`,
+  `ProviderDecommissionAbortResultV1`, `KeyringMembershipMutationResultV1`, and
+  every `KeyringMembershipError`, including `DecommissionObservationStale`.
+  Tests cover valid active-
+only and active+draining sets; malformed, duplicate, oversized, stale, replayed,
+and provider-loss inputs; returned-authority substitution and prohibited cross-
+retry/SQLite caching; active-writer format other than V1; duplicate/missing/stale
+membership; concurrent register/remove/rotate; response loss with same-operation
+idempotent replay versus changed-id conflict; stale-CAS refresh/fencing;
+partition, crash/retry, and rejoin; G+2 refusal; emergency/source loss; the two-
+locator/five-row/one-open limits; every decommission response-loss/fence
+boundary; plan-digest mismatch; provider-remove receipt replay;
+`NotStarted`/abort-tombstone/delayed-begin races, including recovery invoking
+  abort from the persisted Begin/abort tuple rather than opening from `NotStarted`
+or substituting its response id; proof-issue-plan persistence and Issue
+same-replay versus changed-id conflict; and
+  provider-handoff-ready/handoff-persistence/Begin-plan/Begin/`Retiring`/
+  Complete-plan/Complete response-loss; Issue initial/lost-response/fresh-Get
+  issuance identity and proof/reference missing/mismatch/corrupt/authenticator
+  failures; canonical proof/reference/issuance/observation/Issue request and all
+  five plan/request golden vectors, exact max and max-plus-one wire accounting,
+  kind substitution/unknown-kind, field/id/parent/receipt mutations, and
+  independent-encoder rederivation; exact handoff/authenticator and
+  request-journal tamper; operation-kind scoped same-replay versus changed-id/
+  changed-bytes conflict; checkpoint/count mismatch; and no-revoke-with-
+  non-replay-index-reference cases.
+The
+adapter's runtime graph still has only the record-encryption port plus accepted
+provider client. Its repository/SQLite dev edges are not exercised in this lane:
+`tests/items/k_sqlite_replay_composition.rs` and
+`tests/items/m_sqlite_decommission_composition.rs` remain empty L2i.0f-admitted
+slots until L2i.0g.2, so L2i.0g.1 claims no repository traversal.
+`cargo tree -p hr-record-encryption-key-service-draft --edges normal` and Buck
+runtime dependency inspection reject any adapter runtime edge to repository or
+SQLite.
+
+## L2i.0g.1a — Implement minimal concrete key-adapter behavior before SQLite composition
+
+Class: content-only key-service-adapter lane; depends on L2i.0g.1 and writes
+only the following L2i.0f-admitted slots:
+
+```text
+app/hr/adapters/draft/record-encryption-key-service/src/items/b_envelope.rs
+app/hr/adapters/draft/record-encryption-key-service/src/items/e_commit_authorization.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/b_contract.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/b_parity.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/c_commit_order.rs
+```
+
+This lane implements the minimal concrete accepted-facade translation that g.2
+will actually call: V1 envelope seal/open with associated-data authentication and
+tamper refusal; provider `authorize_commit` and idempotent `resolve_commit`; and
+the decommission-fence check that denies new seal/authorization after a matching
+begin fence. It does not implement a repository, SQLite access, locator lookup,
+or the dev-only composition target. Its Cargo/Buck contract tests use the
+accepted provider-contract server and prove byte/nonce/envelope parity, open and
+tamper rejection, authorization-before-commit/resolution ordering, stale/replayed
+receipt refusal, provider loss, and no authorization after a decommission fence.
+They must pass as `cargo test -p hr-record-encryption-key-service-draft --test contract`
+and `buck2 test //app/hr/adapters/draft/record-encryption-key-service:hr-record-encryption-key-service-contract`
+before g.2 may write either SQLite composition item. The dev-only target's
+direct Cargo and Buck repository/SQLite edges were admitted only in L2i.0d.1;
+this lane edits neither manifest nor BUCK, and normal dependency scans still
+forbid any adapter-to-repository/SQLite runtime edge. Its successful review is a
+hard prerequisite, not a later L2i.2d backfill.
+
+## L2i.0g.2 — Freeze canonical commit, replay, decommission, and membership behavior across repository and SQLite
+
+Class: content-only HR repository/SQLite lane; depends on accepted L2i.0g.1a.
+Its complete
+write set is the following frozen files plus one additive semantic migration:
+
+```text
+app/hr/adapters/draft/employment-repository-sqlite/migrations/0002_commit_authorization.sql
+app/hr/adapters/draft/employment-repository-sqlite/src/items/k_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/m_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/n_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/o_decommission.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/g_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/i_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/j_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/k_decommission.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/d_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/f_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/g_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/h_decommission.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/m_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/p_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/q_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/r_decommission.rs
+app/hr/adapters/draft/employment-repository-memory/src/items/d_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-memory/src/test_items/e_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-memory/tests/items/e_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-memory/src/items/e_decommission.rs
+app/hr/adapters/draft/employment-repository-memory/src/test_items/f_decommission.rs
+app/hr/adapters/draft/employment-repository-memory/tests/items/f_decommission.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/k_sqlite_replay_composition.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/m_sqlite_decommission_composition.rs
+```
+
+Migration `0002_commit_authorization.sql` adds generation-scoped opaque locator
+columns and their uniqueness constraints, `repository_admission_state` and
+monotonic `repository_admission_epoch`, plus durable decommission intent,
+provider-fence, bounded scan-checkpoint, terminal-observation, proof receipt,
+proof-issue-plan/Issue-id/request-digest,
+immutable pre-Remove plan plus its sibling Remove-request journal/scoped-
+operation-id/manifest, provider-handoff-ready and persisted-handoff,
+post-handoff Begin-plan plus journal, `Retiring`, post-Begin Complete-plan plus
+journal, provider-terminal-receipt, post-terminal local-disposition-plan plus
+journal/receipt plus trusted receipt-binding/metadata-key-epoch, post-storage
+local-completion-plan plus journal/completion, and
+intent-owned Begin/abort-id/request-digest plus
+begin-abort-tombstone linkage tables. The
+removal-plan table has a canonical plan digest unique per repository/member/
+epoch and records exactly one immutable disposition plus distinct scoped stable
+ids and its canonical non-self-referential plan digest. Its request journal is
+derived only after the plan digest and committed before the provider mutation.
+Each later table has a parent-plan/receipt digest uniqueness key plus exactly one
+matching journal, and is inserted once before its named side effect; a retained
+terminal tombstone keeps the full chain recoverable across `Delete`. SQLite
+persists canonical/descriptor V1 versions, repository/member-
+instance, membership snapshot/version, descriptor-derived binding, opaque
+authorization receipt, locator generation/bytes, and admission epoch atomically
+with employee, lifecycle, idempotency, and outbox rows. Before first replay it
+registers through the port; it cannot open or reserve when unregistered.
+
+For a retry the repository creates `IdempotencySlotV1` from repository, tenant,
+operation kind, and logical idempotency key, calls the real adapter through
+`hr-record-encryption-draft`, and passes each returned opaque authority only to
+`derive_idempotency_locator_v1`. It derives one or two V1 locators before
+`BEGIN IMMEDIATE`; schema, format, and mutable canonical-request bytes never
+participate in locator derivation. The transaction validates epoch, lease, matrix
+digest, rotation fence, membership snapshot, and the current local admission
+epoch; it reads at most five locator rows, opens exactly one envelope, and
+constant-time compares recorded V1 canonical plaintext. A same logical key with
+changed canonical plaintext deterministically returns `IdempotencyConflict`,
+including active-only, active+draining, response-loss, restart, and rekey
+schedules; it can neither reserve through a zero match nor create a second
+effect. A zero match reserves only with the active-generation V1 locator.
+`IdempotencyLocatorCollision` or `IdempotencyLocatorDivergence`, source loss,
+stale membership/lease/fence/admission epoch, unregistered repository, or
+provider loss is a typed refusal without reservation or a second effect.
+
+Every SQLite durable mutation first reads the singleton repository admission row
+in the same `BEGIN IMMEDIATE` transaction, requires `Active` and the recorded
+epoch, obtains provider authorization while that epoch is current, and rechecks
+it immediately before commit. `produce_decommission_proof_v1` first changes that
+row to `Decommissioning(next_epoch)` and records `DecommissionIntentV1` in a
+durable transaction with distinct Begin/Issue-proof/abort provider ids and
+exact Begin/abort request digests; only then does it call
+`begin_repository_decommission_v1`, persist the returned provider admission
+fence, scan all admitted ciphertext/locator/non-replay-index generations in
+bounded `(table,row,kind,column)` pages, and record a terminal zero-count/
+zero-unresolved observation plus `DecommissionProofIssuePlanV1` with the
+reserved Issue id and exact request digest before it calls Issue. The provider
+issues the proof only when fence,
+repository/member instance/epoch, snapshot/version, rotation fence, terminal
+write sequence, complete scan checkpoint, separate ciphertext/locator/non-
+replay-index counts, unresolved receipt, and exact Issue request are identical;
+SQLite then matches the returned proof's Issue id/digest to its local
+proof-issue plan without an adapter-to-repository runtime edge. The g.2 SQLite
+state named `IntentPending` is only that committed local pre-Begin intent. The
+g.1 provider Begin/Abort transaction has no such observable provider status:
+Get/exact Begin returns only NotStarted before commit, then the signed Fenced
+result (or a later signed closed result), while Abort-first returns the exact
+tombstone and tombstones delayed Begin. g.2 recovery sends the exact persisted
+Abort tuple only for NotStarted, installs the exact returned
+Fenced/Aborted/closed evidence otherwise, and cannot reopen from an observation.
+
+`remove_repository_decommission_v1` first writes the immutable known-input
+`RepositoryDecommissionRemovalPlanV1` under `BEGIN IMMEDIATE`, CASing only from
+the matching proof-issued row while admission stays closed. It contains its fixed
+`Quarantine | Delete` manifest, bounded proof-reference/fence binding,
+preallocated retirement fence, and distinct scoped Remove/Begin/Complete/local
+ids. Its canonical tagged plan digest excludes itself and every future request
+byte/digest; only after it exists does SQLite derive and commit the matching
+Remove request journal, and no provider call can occur before both records
+commit. A non-last provider result must carry that plan digest and becomes
+`ProviderTerminalPendingLocalDisposition`. For a sole member the provider first
+durably exposes `RetirementHandoffReady`; SQLite records the exact signed
+handoff, CASes `RetirementHandoffPersisted` to a
+`RepositoryDecommissionRetirementBeginPlanV1` plus its journal, and only then
+calls Begin. It records the matching signed `Retiring` fence, writes a
+`RepositoryDecommissionRetirementCompletePlanV1` plus its journal, and only
+then calls Complete.
+Only matching proof/plan/handoff/fence/checkpoint/count-bound terminal retirement
+receipts may become `ProviderTerminalPendingLocalDisposition`.
+`complete_repository_decommission_v1` accepts the stored plan digest and local
+completion id only; it writes the canonical post-terminal disposition plan plus
+its journal before starting the stored disposition, records a storage receipt,
+derives its external 32-byte digest, obtains the metadata-commit signature over
+the fixed 16-tag binding body, and in the one `BEGIN IMMEDIATE` transition that
+publishes `LocalDispositionApplied` retains the receipt, canonical lookup,
+1,246-byte binding, and binding key epoch. A signer/transaction failure leaves
+only recoverable pre-applied state and readiness withdrawn. Fresh recovery
+resolves that receipt and binding, verifies receipt bytes/digest, all parent
+fields, key epoch and detached signature, and only then writes the canonical
+253-byte post-storage completion plan plus its journal before the matching
+terminal CAS. If provider
+removal/retirement succeeds but local drain, delete,
+quarantine, or completion fails, the database retains the exact
+plan/receipt/intermediate chain, remains unready and write-closed, and
+`recover_repository_decommission_v1` repeats only the already-planned next step.
+It never supplies a receipt, id, request byte sequence, or disposition from the
+recovery request. Subsequent stale writers, old-process retries, omission,
+partition/rejoin, and response loss cannot commit or re-register the old member.
+A fresh registration receives a new member instance and epoch only on a new
+active keyring. Abort is
+permitted only before proof issue; `abort_repository_decommission_intent_v1`
+requires the provider begin-tombstone CAS and a greater local reopened-admission-
+epoch CAS before local admission can reopen, so a late original Begin cannot
+resurrect it. If the process dies after provider abort but before that local CAS,
+`recover_repository_decommission_v1` repeats only the same tombstone/reopened-
+epoch transition. A `NotStarted` provider status for a persisted intent first
+drives that same stored Begin/abort-tuple tombstone CAS; it never treats
+`NotStarted` as permission to reopen or lets a recovery-response id become the
+provider abort id.
+
+`get_repository_decommission_status_v1` returns the exact durable state and
+verifies its paired provider status/receipt. `recover_repository_decommission_v1`
+uses its request id only for its response record. For `RemovalPlanned` it queries
+and, while provider status is `Fenced`, resumes only the bounded scan or repeats
+the stored Issue from `ProofIssuePlanned`; only when provider status is still
+`ProofIssued` does it repeat stored Remove. If the provider instead reports its
+stored `RetirementHandoffReady`, recovery persists that exact handoff before any
+Begin plan; if it reports matching `Removed`, recovery records only that terminal
+receipt. For
+`RetirementHandoffPersisted` it requires the identical provider
+`RetirementHandoffReady` then writes the Begin plan; for `RetirementBeginPlanned`
+it replays only stored Begin; for `Retiring` it writes the Complete plan; for
+`RetirementCompletePlanned` it replays only stored Complete. For a provider
+terminal it writes only the disposition plan; for a planned/in-progress local
+  disposition it repeats only the stored disposition; for disposition-applied it
+  resolves and verifies the retained storage receipt and trusted binding before
+  writing the completion plan; and for completion-planned it re-resolves and
+  verifies both before repeating only stored local completion. Missing, duplicate,
+  corrupt, changed, or unauthenticated local receipt/binding is
+  `LocalDispositionReceiptInvalid` and remains closed. It returns
+  stored terminal receipts unchanged. A
+`NotStarted` result with a plan is a typed provider-status mismatch rather than
+an abort/open path. Recovery tests hard-close after intent persistence, Begin
+mutation/response, bounded scan checkpoint, proof-issue-plan persistence, Issue
+mutation/response, pre-Remove plan persistence, Remove request mutation/response,
+provider handoff mutation/response, handoff persistence, Begin-plan persistence,
+retirement Begin mutation/response, `Retiring` persistence, Complete-plan
+persistence, Complete mutation/response, terminal receipt persistence,
+disposition-plan persistence/mutation/receipt, completion-plan persistence, and
+local completion CAS; each fresh process proves identical ids,
+disposition, proof/plan binding, no post-proof durable write, and readiness
+withdrawal until the stored terminal result.
+
+The memory adapter implements the same membership/decommission state machine only
+as a semantic conformance oracle; the real zero-reference/decommission/restart
+proof uses SQLite and the concrete key-service adapter.
+
+Within this admitted write set, `record-encryption/src/items/j_decommission.rs`
+and its `test_items/j_decommission.rs` own the provider request/result/error
+types, including kind-scoped provider ids, exhaustive provider status/Abort/
+membership-mutation matches, `RetirementHandoffReady`, `Retiring`,
+`DecommissionObservationStale`, `DecommissionProofV1`,
+`DecommissionProofReferenceV1`, `DecommissionProofIssuanceV1`, canonical
+wire-kind/codec/tag/size types, the metadata-commit signer/verify port and
+closed issuance/proof/reference/receipt-binding errors, atomic Begin/Abort status routing,
+plan-digest binding, and all-reference proof fields;
+`record-encryption-key-service/src/items/j_decommission.rs` plus
+`test_items/g_decommission.rs` and `tests/items/l_decommission.rs` own their
+provider proof-issuance ledger retention/reference validation, exact Issue
+initial/replay/Get byte identity, provider attestation and metadata-commit
+active/draining verification-key behavior, exact Begin/Abort/Complete/receipt
+replay cases, and no-provider-IntentPending tests.
+`employment-repository/src/items/i_decommission.rs` and its test item own the
+known-input pre-Remove plan plus journal, post-handoff Begin, post-Begin
+Complete, post-terminal disposition, and post-storage completion plan/journal
+pairs; exhaustive local
+  Abort/Remove/Complete result matches; local status; canonical local-storage
+  receipt/binding lookup/retention/digest/signature validation;
+  storage/completion receipts; and recovery port types.
+  `employment-repository-sqlite/src/items/o_decommission.rs` owns their
+SQLite CAS/journal implementation; `src/test_items/k_decommission.rs` and
+`tests/contract_items/h_decommission.rs` own type/operation, fixed-vector,
+max-plus-one, mutation, independent-encoder, issuance/status identity, Begin
+digest/fence binding, all five kind/header rejection, local receipt/binding
+lookup, key-rotation/signature failure, and plan/journal-binding contract tests;
+`tests/recovery_items/r_decommission.rs` owns every listed fresh-process
+crash/response-loss/plan-journal/disposition and Begin/Abort serialization
+schedule, including crash after local disposition but before/after receipt,
+binding signature, binding transaction, and completion-plan persistence. The matching memory
+`src/items/e_decommission.rs`, test item, and integration test are conformance
+oracle evidence only. `record-encryption-key-service/tests/items/m_sqlite_decommission_composition.rs`
+owns the real forward SQLite -> port -> adapter
+traversal. No listed implementation test may use a newly added manifest, BUCK,
+or adapter-to-repository runtime edge.
+
+The required real-file composition is repository/SQLite -> record-encryption
+port -> key-service adapter -> accepted provider facade. It is permitted only
+because L2i.0g.1a already accepted concrete open/seal, authorization/resolution,
+and decommission-fence behavior. L2i.0g.2 alone writes
+`record-encryption-key-service/tests/items/k_sqlite_replay_composition.rs` and
+`record-encryption-key-service/tests/items/m_sqlite_decommission_composition.rs`.
+Each opens a real SQLite file through the concrete SQLite repository adapter,
+constructs the concrete key-service record-encryption adapter, and uses the
+accepted provider-contract server. The first traverses `AcquireReplayGenerationSetV1` plus
+`DeriveIdempotencyLocatorV1`, real authenticated open, and tamper refusal; the
+second traverses local intent/admission-epoch fencing, the pre-provider durable
+known-input plan, Begin/IssueProof/provider Remove, provider HandoffReady,
+durable handoff, post-handoff Begin plan/Begin/`Retiring`, post-Begin Complete
+plan/Complete retirement, provider terminal receipt, post-terminal disposition
+plan/disposition, atomically persisted receipt plus metadata-commit binding,
+post-storage completion plan/completion, and Status/Recover through the same
+port and adapter. It asserts the SQLite scan's authenticated zero ciphertext/
+locator/non-replay-index counts, named result/status/error variants, exact
+request bytes/digests, issuance bytes, all kind/header bytes, and
+plan/receipt/binding identities at every edge. They run
+as `sqlite_replay_composition` and `sqlite_decommission_composition` under
+`cargo test -p hr-record-encryption-key-service-draft --test contract`, and both
+run under `buck2 test //app/hr/adapters/draft/record-encryption-key-service:hr-record-encryption-key-service-contract`.
+The Cargo/Buck target direct dev edges were admitted in L2i.0d.1; this lane edits
+neither manifests nor BUCK. Runtime reverse scans must prove no
+key-adapter -> repository path, while the named dev-only test target proves the
+forward traversal. Every retry/restart reacquires its provider-authenticated set
+and cannot reuse a prior set, authority, or locator from SQLite or memory.
+
+Tests cover response loss, page-CAS/hard-close/restart, stale/malformed/replayed
+set, provider loss, V1 active/draining locator lookup, locator/work bounds,
+ciphertext/AD tamper, same-key changed-request conflict, collision/divergence,
+and membership enroll/remove/partition/rejoin races. The decommission schedules
+race durable write authorization/commit with local intent, provider-fence return,
+zero-reference scan, proof-issue-plan persistence, proof Issue, pre-Remove plan
+persistence, provider membership CAS/remove, provider HandoffReady, handoff
+persistence, Begin-plan persistence/Begin, `Retiring`, Complete-plan
+persistence/Complete, provider terminal receipt, disposition-plan/local
+drain-disposition, completion-plan/local completion, recovery, response loss, crash, and
+rejoin; they prove an in-flight write cannot commit after the local intent fences
+admission and no durable write can commit after the proof observation, provider
+removal, or terminal local completion. They inject busy/full/I/O/commit/
+quarantine/delete faults and prove only plan-and-receipt-bound terminal recovery,
+never reactivation or a new id/disposition. They exercise
+`NotStarted` -> abort-tombstone -> delayed Begin and prove a late Begin cannot
+mutate membership or replace the stored abort id with a recovery-response id;
+they also prove Issue response loss repeats only the intent-reserved Issue id
+and its persisted proof-issue request digest;
+they also crash after the provider tombstone but before the
+greater local reopened-epoch CAS and prove recovery performs only that CAS. They
+also crash before receipt construction, after receipt digest, after binding
+body/signature, and before/after the atomic receipt+binding+
+`LocalDispositionApplied` transaction; each fresh process resolves only the
+canonical retained lookup and verifies expected digest, parent fields, key epoch,
+and detached signature before deriving completion. Substituted receipt or binding
+bytes, unknown/old key epochs, signer outage, and duplicate rows stay closed.
+They also prove a member cannot be removed without all-live-generation zero
+ciphertext/locator/non-replay-index-reference and zero-unresolved proof; stale
+or orphaned non-replay indexes and a checkpoint/count mismatch prevent proof or
+revoke. A sole member follows the typed retirement handoff and reaches `Retired`
+only after all generations are revoked; and a rotation fence binds an immutable
+member snapshot. All L2i.0f structural paths other than the
+explicitly deferred L2i.0h rekey files, plus manifests, Buck/build scripts,
+parents, lock/root/generated, routes, and readiness implementation, are frozen.
+
+Provider authorization, replay acquisition/locator derivation, membership CAS, and
+`Active -> Draining | EmergencyDraining -> Revoked` share one order. A transition
+that wins denies new authorization and freezes membership; an authorization that
+wins keeps `Revoked` blocked until resolved. `CommittedBeforeFence` is required
+before acknowledgement; a fresh recovery epoch resolves an absent receipt only
+after fencing. Exact local V1 descriptor/binding/receipt resolves committed;
+mismatch or unadmitted format is corrupt. G+2 remains blocked until G has zero
+durable ciphertext, locator, and non-replay field-index references, every frozen-
+snapshot member instance submits its exact zero-reference receipt, the provider
+unresolved count is zero,
+and G is revoked/retired; no normal successor can overlap G's durable reference
+window. Emergency drain, source loss, or membership partition returns no replay
+set and withdraws readiness; none activates a normal successor.
+
+Success is V1 byte-golden parity, one complete descriptor-derived binding and
+resolved receipt per durable transaction, no acknowledgement before resolution,
+no completed revocation with an earlier receipt pending, authoritative one/two-
+generation V1 locator replay with no duplicate effect, deterministic changed-
+request conflict, a decommission proof that fences durable writes, and an
+executable forward-only provider adapter traversal. Failure is provider-selected
+locator preimage semantics, caller-selected PRF authority, omitted/reordered
+effect, unkeyed equality, receipt outside SQLite, stale membership/epoch,
+undefined V2 behavior, a reverse adapter runtime edge, or a frozen-path edit.
+Unrouted rollback removes `0002` and restores the empty structural files. Faults
+include all V1 exact/limit-plus-one locator vectors, replay before/during/after
+rotation, response-loss/hard-close recovery, decommission fence races, and
+membership snapshot races; Cargo and Buck use independent V1 encoders sharing
+only typed inputs and fixed vectors.
+
+## L2i.0h — Implement bounded repository rekey and zero-reference revocation
+
+Class: content-only HR durability behavior; depends on L2i.0g.2. The complete
+write set is:
+
+```text
+app/hr/ports/draft/record-encryption/src/items/d_rekey_generation.rs
+app/hr/ports/draft/record-encryption/src/test_items/d_rekey_generation.rs
+app/hr/ports/draft/employment-repository/src/items/f_rekey_repository.rs
+app/hr/ports/draft/employment-repository/src/test_items/f_rekey_repository.rs
+app/hr/core/employment-usecase/src/items/f_rekey_reconciler.rs
+app/hr/core/employment-usecase/src/test_items/c_rekey_reconciler.rs
+app/hr/core/employment-usecase/tests/items/c_rekey_reconciler.rs
+app/hr/adapters/draft/employment-repository-memory/src/items/c_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-memory/src/test_items/d_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-memory/tests/items/d_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-sqlite/migrations/0003_rekey_checkpoint.sql
+app/hr/adapters/draft/employment-repository-sqlite/src/items/l_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/h_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/e_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/n_rekey_restart.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/o_rekey_faults.rs
+```
+
+The encryption item owns immutable rotation-fence discovery, target/source
+generation operations, checkpoint authentication, frozen membership-snapshot
+binding, and zero-reference revocation receipt values; the repository item owns bounded scan/CAS/
+checkpoint/result/error values; the use case owns the provider-neutral
+reconciler; the memory adapter remains only semantic reference evidence; and
+SQLite owns the real scan, page transaction, persistence, resume, and reference
+count. No provider adapter receives a repository dependency.
+
+The exact repository-port calls are `begin_or_resume_rekey`,
+`scan_rekey_page`, `compare_and_swap_rekey_page`,
+`count_generation_references`, `record_revocation_authorized`, and
+`complete_rekey`; the usecase exposes bounded `advance_rekey`. The encryption
+port supplies `acquire_replay_generation_set_v1`, `list_incomplete_rotations`,
+`bind_rekey_checkpoint`,
+`verify_rekey_checkpoint`, and `authorize_zero_reference_revocation` alongside
+its already frozen idempotency-locator, membership, open/seal/non-replay-
+blind-index/commit
+operations. Every call accepts
+one bounded value/page and returns the closed SPEC result/error vocabulary;
+none leaks a SQLite or provider type.
+
+The SPEC hard bounds are literal policy: 64 rows/8 MiB per page; 8 pages,
+512 rows, 64 MiB and 2,048 provider calls per step; 256 KiB per envelope;
+512-byte cursor; 4-KiB checkpoint; and three consecutive page-CAS restarts.
+The SQLite scan order is `(logical_table_tag, opaque_row_identity)`. It opens
+and reseals outside SQL, recomputes each generation-scoped idempotency locator
+from the stored logical slot (and separately any non-replay field blind indexes), then one
+`BEGIN IMMEDIATE` transaction CAS-checks row identity/revision/source
+generation/envelope commitment/old indexes and atomically installs the complete
+page plus checkpoint. A mismatch aborts the page; the deterministic same-cursor
+counter refuses the fourth attempt. Replay uses that same SQLite writer: it calls
+the encryption port for the authenticated V1 generation set, passes each returned
+opaque authority to `derive_idempotency_locator_v1`, derives one or two V1
+locators from one typed command before lookup, authenticates/opens at most one
+located envelope, and constant-time compares matching canonical plaintext rather
+than ciphertext. It refuses collision/divergence/source-loss/stale lease or
+membership snapshot without reservation. If replay commits first, the page retries
+its same cursor; if rekey commits first, the target-generation V1 locator
+locates the same row. G+2 is refused until G has zero ciphertext, locator, and
+non-replay-index references, every frozen member instance has a terminal receipt,
+and G is revoked; no stable cross-generation locator exists. Terminal reference
+counting covers every ciphertext, idempotency-locator, and admitted non-replay
+field-index generation column and produces a provider-authenticated receipt
+bound to the fence, membership snapshot/version, member instance, source
+generation, zero ciphertext/locator/non-replay-index references, and zero
+unresolved authorizations; provider revoke
+also requires its own zero earlier unresolved authorizations. Fresh-process epoch
+fencing discovers a provider rotation whose local job was never created, resumes
+the last durable checkpoint, and reconciles revoke-before-local-completion
+without guessing.
+
+All L2i.0g paths are frozen. Apart from the additive `0003` migration, every
+manifest/BUCK/build/root/lock/generated path, provider adapter, composition,
+main, route, and readiness implementation is frozen. Every Rust file is at
+most 300 lines.
+The L2i.0h rekey/replay fault matrix consumes, but does not alter, the frozen
+g.0/g.1/g.2 decommission codec: it carries the same independent
+Removal/Begin/Complete/disposition/completion plan and request-journal vectors,
+max-plus-one and parent/fence/reference/receipt mutation refusal, explicit
+Issue-issuance/Get byte identity, Begin-digest/fence binding, and verifies that a
+rekey/decommission race never changes a stored journal. It also runs the
+fresh-process atomic Begin/Abort response-loss schedules against its provider
+oracle: provider status cannot be IntentPending, while repository-local
+IntentPending remains write-closed and resolves only through its persisted
+NotStarted Abort tuple or exact signed Fenced/Aborted/closed evidence. This is
+test consumption only; no h target gains an adapter-to-repository runtime edge.
+Build closure is the use case, encryption/repository ports, memory adapter,
+SQLite library/unit/contract/recovery targets, accepted key-service contract,
+full HR, and zero-edge IAM proof through Cargo/Buck. Required review is HR,
+key-provider contract, Data/SQLite durability, Build/D-41, security/
+cryptography, migration/format compatibility, fault injection, and SRE/
+operability.
+
+Success is bounded forward progress, atomic envelope plus idempotency-locator
+replacement (and any separate non-replay field-index replacement), durable
+checkpoint/resume, and provider `Revoked` only after every
+frozen-snapshot member instance supplies the exact terminal zero-ciphertext/
+locator/non-replay-index/zero-unresolved receipt and provider unresolved count
+is zero. At the PRD
+load envelope, evidence also holds p99 bounded-step latency to five seconds and
+checkpoint age to sixty seconds without violating foreground objectives; these
+remain unqualified test objectives until L2k promotion. Failure is a
+skipped row, checkpoint advance on failed CAS, unbounded page/retry/call work,
+stale/corrupt cursor/epoch/fence/membership snapshot accepted, unavailable
+source/target/provider/repository or partitioned member treated as progress,
+plaintext/fallback, or nonzero-reference revocation. Before routing, rollback removes `0003` and restores the empty
+files using only scratch databases. After `0003` opens any non-scratch database
+or a rotation fence is admitted, rollback
+is forward-only through a schema-compatible reader that retains the checkpoint
+and current V1 format; it cannot reactivate an old generation or downgrade/delete
+rekey state. Faults hard-close before/after membership snapshot, rotation discovery, job creation, scan, open,
+seal, reindex, page CAS, checkpoint, terminal count, provider revoke, and local
+completion; cover every bound and typed error; reopen with a new process/client;
+and prove the last committed checkpoint is the only resume point. The matrix
+adds same semantic V1 replay immediately before/during/after page CAS, response
+loss, hard close, source drain/loss, terminal revocation, membership partition/
+rejoin, and schema-compatible restart;
+every schedule returns the original outcome or the closed refusal and proves no
+second employee/lifecycle/idempotency/outbox effect commits.
+
+## L2i.1a, L2i.1b, L2i.1c, and L2i.1e — Admit the remaining production authority adapter structures
+
+Class: four serialized structural package/dependency/build/lock lanes; each
+depends on its matching accepted L2i.0 gate and exact owner-law amendment. They
+serialize on `Cargo.lock` and any root/generated dependency faces and contain no
+provider request, validation, retry, policy, audit, route, or readiness behavior.
+
+| Lane | Exact package path | Cargo package | Matching HR port |
+|---|---|---|---|
+| L2i.1a | `app/hr/adapters/draft/installed-overlay-packs` | `hr-installed-overlay-packs-draft` | `hr-installed-overlay-draft` |
+| L2i.1b | `app/hr/adapters/draft/authorization-evidence-policy` | `hr-authorization-evidence-policy-draft` | `hr-authorization-evidence-draft` |
+| L2i.1c | `app/hr/adapters/draft/audit-outbox-audit` | `hr-audit-outbox-audit-draft` | `hr-audit-outbox-draft` |
+| L2i.1e | `app/hr/adapters/draft/runtime-context-oyatie` | `hr-runtime-context-oyatie-draft` | `hr-runtime-context-draft` |
+
+The record-encryption adapter structure is completed at L2i.0d.1, its replay/
+membership/decommission behavior at L2i.0g.1, and its minimal concrete
+open/seal/authorization behavior at L2i.0g.1a before repository/SQLite behavior
+at L2i.0g.2; those paths are frozen here. L2i.1e's non-HR inputs are
+only the exact generated Cell/Observability consumer targets accepted at
+L2i.0e; it may not path-depend either provider's Rust core or port.
+
+D-28/D-30 are explicit: every matching HR port is still owner-local and
+unagreed, so each adapter remains under `adapters/draft/` and carries the
+`-draft` package suffix even when selected for production composition. A
+non-draft adapter identity is illegal unless a preceding, separately reviewed
+structural D-28/D-29 lane promotes its matching port and atomically renames the
+adapter path/package in both build graphs; this plan authorizes no such
+promotion.
+
+Each package receives exactly `Cargo.toml`, `BUCK`, `build.rs`, stable
+`src/lib.rs`, `src/test_items/a_face.rs`, stable `tests/contract.rs`, and
+`tests/items/a_face.rs`. Its only HR runtime edge is the matching port above;
+all other runtime/build/dev Cargo and Buck edges must be the literal accepted
+provider targets recorded by its L2i.0 amendment. Each owned D-41 scanner
+tolerates absent `src/items`, emits only stable membership under `OUT_DIR`, and
+has identical Cargo/Buck inputs. Root membership remains unchanged under the
+accepted globs. The complete write envelope for each lane is its seven files,
+its exact workspace-package lock entry, and only the root/generated dependency
+files named by the matching gate. Every hand-written file is at most 300 lines.
+
+Build closure is each new empty adapter, matching HR port, accepted provider
+client/contract targets, all remaining HR, and the zero-edge IAM proof through
+Cargo and Buck. Required review is HR, the provider owner, Architecture/API,
+Build, security/privacy, supply chain, and operability. Success is four empty
+adapters with exact graph parity and no runtime value. Failure is behavior,
+placeholder/transitive-only dependency, cross-owner internal edge, manual
+index, over-budget file, unrelated lock churn, or readiness fiction. Rollback
+removes only that empty adapter and exact dependency closure.
+
+## L2i.2a through L2i.2e — Implement production authority adapters
+
+Class: five content-only adapter behavior lanes. L2i.2a, L2i.2b, L2i.2c, and
+L2i.2e each depend on their matching L2i.1 structure; L2i.2d depends on the
+already-complete L2i.0h replay/membership/rekey sequence. Their changed paths
+are disjoint, but the fixed full-HR verification closure overlaps, so
+implementation dispatches serialize; review and read-only recon may run
+concurrently.
+
+The complete unique-file envelopes are:
+
+```text
+app/hr/adapters/draft/installed-overlay-packs/src/items/{b_resolve_install,c_overlay_verification}.rs
+app/hr/adapters/draft/installed-overlay-packs/src/test_items/b_contract.rs
+app/hr/adapters/draft/installed-overlay-packs/tests/items/{b_parity,c_outages}.rs
+
+app/hr/adapters/draft/authorization-evidence-policy/src/items/{b_authorization_evidence,c_request_binding}.rs
+app/hr/adapters/draft/authorization-evidence-policy/src/test_items/b_contract.rs
+app/hr/adapters/draft/authorization-evidence-policy/tests/items/{b_parity,c_outages}.rs
+
+app/hr/adapters/draft/audit-outbox-audit/src/items/{b_emit_outbox,c_redelivery}.rs
+app/hr/adapters/draft/audit-outbox-audit/src/test_items/b_contract.rs
+app/hr/adapters/draft/audit-outbox-audit/tests/items/{b_parity,c_outages}.rs
+
+app/hr/adapters/draft/record-encryption-key-service/src/items/{c_blind_index,d_key_generation,f_rotation,g_rekey_generation}.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/{c_preimage_goldens,d_rekey}.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/{d_rotation,e_outages,f_preimage_goldens,g_rekey_sqlite,h_rekey_outages}.rs
+
+app/hr/adapters/draft/runtime-context-oyatie/src/items/{b_trusted_interval,c_signal_emission,d_correlation,e_health}.rs
+app/hr/adapters/draft/runtime-context-oyatie/src/test_items/b_contract.rs
+app/hr/adapters/draft/runtime-context-oyatie/tests/items/{b_parity,c_boundary_uncertainty,d_outages}.rs
+```
+
+Every file is at most 300 lines and is discovered by the installed D-41
+scanner; stable parents, manifests, Buck/build scripts, root/lock/generated,
+other adapters, People composition, main, routes, IAM, and provider paths are
+frozen. Packs verifies signature/content/generation and never falls back to
+repository defaults. Policy/IAM verifies channel principal, tenant/resource/
+action/request binding, expiry, revision, purpose, and legal basis. Audit uses
+stable idempotency and obeys the accepted operation matrix: required pre-ack
+evidence fails before mutation/disclosure, while an allowed asynchronous class
+commits one durable outbox intent and redelivers without a second effect.
+Record encryption implements only the accepted primitive/key-service contract,
+binds canonical associated data, produces unique nonces and bounded non-replay
+field indexes, preserves the already-owned L2i.0g.1 generation-set,
+idempotency-locator, membership, and decommission behavior and the L2i.0g.1a
+concrete `b_envelope`/`e_commit_authorization` behavior without reopening those
+frozen files. This later lane owns only the remaining key-generation/rotation/
+rekey behavior and supports idempotent re-encryption plus fail-closed
+revocation. It authenticates
+the exact HR-owned canonical-request, staged-descriptor, checkpoint, and zero-
+reference domain bytes without parsing or rewriting them and never supplies a
+plaintext or process-local fallback. Its `g_rekey_sqlite.rs` integration item is
+strictly a later rekey/checkpoint test: it may use the L2i.0d.1-admitted dev edges
+but neither supplies nor replaces the L2i.0g.2-owned
+`k_sqlite_replay_composition.rs` or `m_sqlite_decommission_composition.rs`
+traversals. It exercises the exact SPEC page/step
+bounds and crash/reopen sequence, and proves the key adapter itself has no
+repository runtime edge. Runtime context
+translates only the accepted generated Cell/Observability clients into trusted
+intervals, typed uncertainty, bounded signal receipts, and provider health; it
+never reads system/process time or silently drops to logs.
+
+Each lane builds its adapter/port/provider contract plus full HR through Cargo
+and Buck. Required review is HR, matching provider, security/privacy, fault/
+retry, and adapter-parity reviewers. Success is semantic parity and bounded
+translation against the accepted contract. For L2i.2d that includes Cargo/Buck
+byte-golden parity for both protected preimages; V1 replay after response loss,
+page-CAS, hard close, rekey, and restart; authenticated-open constant-time
+plaintext equality under different nonce/generation; normal rotation to zero
+references; attempted G+2, frozen-membership receipt mismatch, emergency drain/
+source loss/partition, malformed/stale/replayed V1 set, and provider-loss refusal
+against the already-accepted L2i.0g.2 real SQLite composition target; and a
+provider revoke receipt matching the repository checkpoint and frozen membership
+snapshot. It may run that frozen target as full-HR verification but cannot supply
+or revise its prerequisite adapter behavior. V2 remains non-dispatchable until its
+separate codec/lifecycle decision. Failure is cached allow on outage,
+unsigned/stale pack use, cross-tenant proof, lost/duplicate audit effect,
+provider type leaking inward, plaintext persistence, nonce reuse, stale or
+revoked key use, an unresolved acknowledgement, false time precision, unbounded
+retry/buffer, or frozen-path edit.
+Fault evidence removes the provider before and during a call, injects malformed,
+stale, revoked, replayed, delayed, and duplicate responses, and proves typed
+fail-closed results, bounded queues, cancellation, and no unauthorized mutation
+or disclosure. Runtime-context vectors straddle every policy/overlay/key/legal
+time boundary, regress/widen the interval, saturate signal buffers, and remove
+Cell and Observability independently; each refuses without a wall-clock or
+log-only fallback.
+
+## L2j.0 — Admit the production People composition graph
+
+Class: serialized structural composition dependency lane; depends on all five
+L2i.2 lanes. It changes only:
+
+```text
+app/hr/facade/people-app/Cargo.toml
+app/hr/facade/people-app/BUCK
+Cargo.lock
+```
+
+The `hr-people-app` runtime Cargo graph becomes exactly the existing ten HR
+dependencies (including `hr-record-encryption-draft`) plus
+`hr-installed-overlay-packs-draft`,
+`hr-authorization-evidence-policy-draft`, `hr-audit-outbox-audit-draft`, and
+`hr-record-encryption-key-service-draft`, plus
+`hr-runtime-context-oyatie-draft`. Its fifteen Buck
+runtime labels are exactly:
+
+```text
+//app/hr/core/employment-usecase:hr-employment-usecase
+//app/hr/ports/draft/employment-repository:hr-employment-repository-draft
+//app/hr/ports/draft/record-encryption:hr-record-encryption-draft
+//app/hr/ports/draft/installed-overlay:hr-installed-overlay-draft
+//app/hr/ports/draft/authorization-evidence:hr-authorization-evidence-draft
+//app/hr/ports/draft/audit-outbox:hr-audit-outbox-draft
+//app/hr/ports/draft/transport:hr-transport-draft
+//app/hr/ports/draft/runtime-context:hr-runtime-context-draft
+//app/hr/adapters/draft/employment-repository-sqlite:hr-employment-repository-sqlite-draft
+//app/hr/adapters/draft/transport-connect:hr-transport-connect-draft
+//app/hr/adapters/draft/installed-overlay-packs:hr-installed-overlay-packs-draft
+//app/hr/adapters/draft/authorization-evidence-policy:hr-authorization-evidence-policy-draft
+//app/hr/adapters/draft/audit-outbox-audit:hr-audit-outbox-audit-draft
+//app/hr/adapters/draft/record-encryption-key-service:hr-record-encryption-key-service-draft
+//app/hr/adapters/draft/runtime-context-oyatie:hr-runtime-context-oyatie-draft
+```
+
+Dev/test edges remain exactly the memory repository oracle and `tempfile`; no
+provider fake or mock is a runtime edge. All Rust, proto, build scripts, root
+dependency declarations, generated files, IAM/provider paths, deployment,
+route, and behavior are frozen. Build closure is the fifteen-edge facade,
+provider adapters/contracts, full HR, and inverse scans through both graphs.
+Required review is HR, all five providers, Build/architecture, security, and
+Data durability. Success is exact graph parity with main still `Unrouted`.
+Failure is source behavior, transitive-only edge, test fake in runtime, extra
+provider dependency, lock churn outside the people-app package entry, or a
+route/readiness claim. Rollback restores only these three graph files.
+
+## L2j.1 — Compose concrete production authorities while remaining unrouted
+
+Class: content-only composition behavior; depends on L2j.0.
+
+The complete write set is:
+
+```text
+app/hr/facade/people-app/src/items/g_production_composition.rs
+app/hr/facade/people-app/src/items/h_authority_barrier.rs
+app/hr/facade/people-app/src/items/i_audit_delivery.rs
+app/hr/facade/people-app/src/items/n_encryption_barrier.rs
+app/hr/facade/people-app/src/items/o_runtime_context.rs
+app/hr/facade/people-app/src/items/p_rekey_reconciler.rs
+app/hr/facade/people-app/src/test_items/e_composition.rs
+app/hr/facade/people-app/src/test_items/f_provider_outages.rs
+app/hr/facade/people-app/src/test_items/i_encryption.rs
+app/hr/facade/people-app/src/test_items/j_runtime_context.rs
+app/hr/facade/people-app/src/test_items/k_rekey.rs
+app/hr/facade/people-app/tests/items/g_production_composition.rs
+app/hr/facade/people-app/tests/items/h_provider_outages.rs
+app/hr/facade/people-app/tests/items/l_encryption.rs
+app/hr/facade/people-app/tests/items/m_runtime_context.rs
+app/hr/facade/people-app/tests/items/n_rekey.rs
+```
+
+The D-41 scanner discovers these bounded files without an index edit. The
+composition constructor requires concrete SQLite, record-encryption/key-service,
+Packs/install, Policy/IAM, Audit/outbox, and generated-Connect adapters; it
+also requires `hr-runtime-context-oyatie-draft`. It injects the concrete
+encryption adapter into SQLite, the concrete runtime context into every
+authority/effective-window and telemetry call, and its production type cannot
+accept the memory oracle or any provider/key/time/telemetry fake. It enforces
+provider health, L2i.0g.1a commit authorization/resolution, L2i.0h bounded rekey
+resume/zero-reference completion, active key-generation fencing, trusted-
+interval boundary refusal, bounded signal delivery, and the
+audit operation-class matrix before dispatch. `src/main.rs` and
+`a_unrouted.rs` remain unchanged, so no process can instantiate the composition
+or bind a listener.
+
+The composition also owns the future listener's availability-accounting input:
+every syntactically valid, capacity-admitted operation remains an eligible
+observation once it reaches the authority barrier. A required Packs, Policy/IAM,
+Audit, encryption/key-service, SQLite, or runtime-context failure is a typed
+security-correct refusal **and** an availability failure; retries, readiness
+changes, and later recovery cannot delete it from the denominator. Only an
+available authority may identify a caller-caused invalid/unauthenticated/
+forbidden request before it is counted. The composition emits the bound outcome
+and outage interval needed for the route layer to terminate burn only after
+provider recovery or an observed router-withdrawal acknowledgement.
+All manifests/build/root/lock/generated/proto, adapters, provider paths, and
+deployment files are frozen.
+
+Success is a fully constructed but unreachable production composition with
+typed fail-closed authority, encryption/commit, and runtime-context barriers.
+Failure is an optional authority, fake runtime/key/time/telemetry source,
+unresolved commit acknowledgement, plaintext persistence, direct provider
+internal import, route/bind, partial provider result, unbounded retry, or
+sensitive telemetry. Fault evidence independently and jointly removes Packs,
+Policy/IAM, Audit, encryption/key service, runtime context, and SQLite before
+construction and at every pre-seal/authorize/SQL/commit/resolve/disclosure
+boundary; hard-closes at each rekey page/checkpoint/revoke boundary, rotates and
+revokes the key generation only after zero references; widens trusted-time intervals
+across expiry/effective boundaries; requests fail closed, durable outbox
+semantics follow the accepted matrix, reservations drain, and no listener
+exists. Each required-authority campaign separately asserts the security refusal
+and the eligible-denominator, required-authority-failure, and error-budget-burn
+signals; the burn ends only on recovery or a route-layer withdrawal acknowledgement,
+never a readiness flip. Rollback removes only these sixteen unique files.
+
+## L2k.0 — Accept the listener, deployment, and cohort contract
+
+Class: fail-closed D-29 production-route decision; depends on L2j.1. This is not
+an implementation dispatch.
+
+Before any route lane, a protocol/Gateway/IAM/Observability/IaC decision and
+same-wave HR law amendment must name the exact generated-Connect listener and
+route-registration targets, mTLS/channel-principal source, configuration and
+secret interfaces, cell/tenant cohort authority, OpenTelemetry/SLO source and
+generated outputs, deployment desired-state/IaC paths, Cargo/Buck dependencies,
+root/lock/generated/fixups, health/readiness semantics, drain/shutdown contract,
+capacity profile, rollout and rollback barrier, and reviewers. It must prove
+that listener identity is not an IAM-to-HR Rust edge and that the provider
+adapters from L2i—including record encryption/key service and runtime
+context—remain the only authority/runtime implementations. It also fixes the
+boot-time active key-generation receipt, commit-authorization reconciliation,
+trusted-time/telemetry health, canonical/descriptor reader-version barrier,
+incomplete-rekey checkpoint/progress SLO, rotation/revocation readiness
+barrier, and cohort withdrawal signal. It MUST additionally freeze the monthly
+facade-availability numerator as successful eligible operations and its
+denominator as every syntactically valid, capacity-admitted operation except
+one classified caller-caused invalid/unauthenticated/forbidden by an available
+required authority. It names the exact emitted eligible, good,
+required-authority-failure, error-budget-burn, readiness-transition, and
+router-withdrawal-acknowledgement signals; required Packs, Policy/IAM, Audit,
+encryption/key-service, SQLite, or runtime-context unavailability remains in
+the denominator. The decision fixes the outage interval from first eligible
+failure through provider recovery or observed router acknowledgement; readiness
+false, queue shedding, retry, and later recovery are not retroactive exclusion.
+Placeholder paths,
+handwritten HTTP, a global/all-tenant default, mutable CLI activation, or a
+second codec rejects the gate and leaves main `Unrouted`.
+
+## L2k.1 — Admit route/deployment structure without activation
+
+Class: serialized structural dependency/deployment lane; depends on accepted
+L2k.0 and its literal owner-law amendment. Its fixed HR graph paths are
+`app/hr/facade/people-app/{Cargo.toml,BUCK}` plus `Cargo.lock`; the amendment
+must add the exact HR observability/IaC source/generated paths and any accepted
+root dependency/generated/fixup paths before this lane becomes dispatchable.
+No Rust behavior, main edit, route, listener bind, provider construction,
+non-empty cohort, readiness result, or SLO claim lands.
+
+If the ratified structural envelope creates any multi-file Rust or test face,
+L2k.1 also creates that face's owned sorted `build.rs` scanner, stable
+`include!(OUT_DIR/...)` root, and Cargo/Buck rules with identical discovered
+membership. A tracked generated index, manual `mod` inventory, missing Buck
+scanner input/output, or scanner introduced later with behavior fails D-41 and
+blocks L2k.2.
+
+All admitted structural files are at most 300 lines unless they are generated
+by the accepted owner tool; generated faces are materialized, never hand edited,
+and two consecutive materializations are byte-identical. Cargo and Buck carry
+the same listener/config/telemetry inputs and retain the fifteen HR composition
+edges. Build closure is the exact listener/deployment graph, full HR, all five
+providers, and current cell/Gateway/IAM/Observability/IaC consumers. Required
+review is every affected owner plus Architecture, Build, security, SRE, and
+privacy. Success is inert structure with main still `Unrouted`. Failure is
+behavior, unknown path, hand-generated output, graph mismatch, implicit cohort,
+or readiness fiction. Rollback removes only the admitted structure/dependencies.
+
+## L2k.2 — Activate main and routes with an empty cohort
+
+Class: content-only process/route behavior; depends on L2k.1.
+
+The fixed HR content envelope is:
+
+```text
+app/hr/facade/people-app/src/main.rs
+app/hr/facade/people-app/src/items/j_process_composition.rs
+app/hr/facade/people-app/src/items/k_connect_routes.rs
+app/hr/facade/people-app/src/items/l_readiness.rs
+app/hr/facade/people-app/src/items/m_shutdown.rs
+app/hr/facade/people-app/src/test_items/g_route_activation.rs
+app/hr/facade/people-app/src/test_items/h_outages.rs
+app/hr/facade/people-app/tests/items/i_boot.rs
+app/hr/facade/people-app/tests/items/j_outages.rs
+app/hr/facade/people-app/tests/items/k_empty_cohort.rs
+```
+
+This is the single planned main transition from typed `Unrouted` refusal to the
+frozen production composition. D-41 discovers every new item; no parent module
+index changes, and every file is at most 300 lines. The process may bind only
+the accepted listener with an empty/default-deny cohort, generated Connect
+routes, concrete production adapters, bounded request/response accounting, and
+readiness false until all mandatory authorities, trusted runtime context, and
+the active encryption key generation/commit-resolution path are healthy, every
+stored preimage format is readable, and no initial-cohort rekey job is
+incomplete. It records the frozen eligible/good/required-authority-failure/
+error-budget-burn signals even while the cohort is empty, and it cannot use an
+empty cohort, readiness false, or a provider failure to omit a syntactically
+valid capacity-admitted fault-injection request from those signals. It
+cannot serve a tenant yet. All manifests, build scripts, lock/root/generated,
+proto, adapters, provider code, and cohort/deployment values are frozen.
+
+Success is boot/bind/drain evidence with zero routable tenants and exact
+generated routes. Failure is a fake adapter, implicit tenant, authority bypass,
+partial response, unbounded shutdown, handwritten protocol, or false readiness.
+Fault evidence removes each provider at boot and mid-request, rotates and
+revokes encryption generations, races commit authorization/resolution, tampers
+  with ciphertext, idempotency locators, and non-replay field indexes,
+  removes/widens runtime-context time and
+telemetry, corrupts cohort input, saturates request and response budgets,
+interrupts encode before headers, and kills the process during seal/commit/
+resolve/drain; no unauthorized mutation/disclosure, plaintext persistence, or
+partial response occurs and fresh-process restart/replay converges. Every
+required-authority outage proves both the closed response and the continued
+availability/error-budget burn until provider recovery or the observed router
+withdrawal acknowledgement; readiness alone is insufficient. Rollback
+restores the typed `Unrouted` main; no tenant cohort or format downgrade is
+involved.
+
+## L2k.3 — Promote the first bounded tenant cohort
+
+Class: deployment/promotion content only; depends on independent approval of
+L2k.2 fault evidence and green protected admission. The complete write envelope
+must be the exact cohort, observability, and desired-state paths ratified at
+L2k.0; if those paths are not literal in an amended plan, this lane is
+non-dispatchable. Rust, proto, Cargo/Buck/build, lock/root dependency, adapter,
+and generated outputs are frozen.
+
+The first cohort is one named home-cell tenant within the declared capacity
+profile. Promotion requires healthy concrete Packs, Policy/IAM, Audit, record-
+encryption/key service, SQLite, Connect, telemetry, drain, encrypted backup/
+fresh-process reopen, commit-fence resolution, trusted interval/runtime-context,
+canonical/descriptor schema reader compatibility and the current V1-only
+canonical-request format, bounded rekey checkpoint/resume,
+zero-reference rotation/revocation, and rollback evidence; request and
+response exact/limit-plus-one campaigns; zero IAM-to-HR graph edges; no
+compatibility packages; and measured SLO signals without advertising the
+objective early. A future second canonical format requires its separately
+accepted codec/active-writer/reader-admission/migration/oracle/retirement
+evidence before this lane can rely on it. Provider, runtime-context, or required
+key-generation outage produces user-visible required-authority availability
+failures and burns the error budget until recovery or observed router withdrawal;
+the cohort is then removed before retry traffic can exhaust queues, but removal
+does not erase already eligible failures. Rollback sets the
+cohort empty and drains before binary or format rollback; committed SQLite
+records remain readable and replayable.
+Success is one bounded cohort with qualified evidence. Failure is all-tenant
+activation, fake authority/key, stale policy/pack, audit bypass, plaintext
+storage, failed rotation/revoke/reopen proof, missing telemetry, unbounded work,
+or rollback that risks acknowledged data.
+
+</sequence>
+
+<parallelism>
+
+The HR chain is sequential because each slice freezes the paths used by the
+next. L2b.0 is a separate multi-owner build prerequisite. L2e.0a is the sole
+root dependency/lock/generated-third-party writer; L2e.0b is the sole adapter-
+face/lock writer. L2f.0a is a non-implementation protocol decision gate and
+holds every People RPC lane closed. After its exact amendment, L2f.0b is the
+sole accepted Connect dependency/package/build/lock writer; L2f.0c writes only
+the semantic proto schema; L2f.0d performs the first of exactly two planned
+`src/main.rs` transitions (compiler shell to typed `Unrouted`); and L2f.1 writes
+only the named unique behavior/test items. The second and final main transition
+is L2k.2 (`Unrouted` to the concrete empty-cohort process), after which main is
+frozen. L2e and L2f.1 release shared hubs and write only their named unique
+content paths.
+
+L2g.0a, L2g.0b, and L2g.1 are IAM-owner lanes: the scanner/file-budget split
+serializes before the eight content paths, four graph files, and `Cargo.lock`;
+L2h returns to the HR owner. The five L2i.0 provider decisions may be reviewed
+independently. L2i.0d.1 first admits the key-service adapter structure;
+L2i.0f is then the single structural scanner/file-slot join; L2i.0g.0 freezes
+only port contracts; L2i.0g.1 implements provider replay/membership/decommission
+behavior; L2i.0g.1a accepts the minimal concrete open/seal, authorization/
+resolution, and decommission-fence behavior; L2i.0g.2 alone performs the
+repository/SQLite traversal and additive `0002`; and L2i.0h fills only the
+disjoint rekey/recovery paths plus additive `0003`. That order is mandatory: no
+repository or SQLite claim of real provider replay/open/authorization,
+opaque-authority derivation, or membership fencing may precede L2i.0g.1a.
+L2i.1a, L2i.1b, L2i.1c, and L2i.1e are
+structurally disjoint except for `Cargo.lock` and any ratified root/generated
+dependency hub, so those structural writers serialize. L2i.2a-e have disjoint
+changed paths but share the mandatory all-HR practical build closure, so their
+implementation dispatches also serialize while their independent review/recon
+can overlap. L2j.0 serializes the shared People graph, L2j.1 adds only unique
+composition items, and L2k.0 holds all route work closed.
+L2k.1 serializes admitted route/deployment structure; L2k.2 exclusively changes
+main and route content with an empty cohort; L2k.3 changes only the ratified
+cohort/desired-state envelope.
+
+Other owners may advance concurrently only when both changed paths and practical
+Cargo/Buck build closures are disjoint from the exact sets above. Read-only
+review/recon may fan out. D-36 owner law has one writer, observation is not
+APPROVE, and no worker widens a lane after discovering a missing dependency.
+
+</parallelism>
