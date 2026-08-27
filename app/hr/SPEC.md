@@ -691,10 +691,11 @@ Rust port methods `register_keyring_repository_v1`,
 `abort_repository_decommission_v1`, `remove_keyring_repository_v1`,
 `begin_keyring_retirement_v1`, and `complete_keyring_retirement_v1`.
 
-`ProviderOperationKindV1` is exactly `RegisterKeyringRepository |
-BeginRepositoryDecommission | IssueDecommissionProof |
-AbortRepositoryDecommission | RemoveKeyringRepository |
-BeginKeyringRetirement | CompleteKeyringRetirement | BeginNormalRotation`.
+`ProviderOperationKindV1` is exactly `RegisterKeyringRepository=0x01 |
+BeginRepositoryDecommission=0x02 | IssueDecommissionProof=0x03 |
+AbortRepositoryDecommission=0x04 | RemoveKeyringRepository=0x05 |
+BeginKeyringRetirement=0x06 | CompleteKeyringRetirement=0x07 |
+BeginNormalRotation=0x08`; `0x00` and every unassigned byte are invalid.
 Every provider-side
 `operation_id` below is the closed value `ProviderOperationIdV1 { kind:
 ProviderOperationKindV1, opaque_id: OpaqueBytes<=128 }`; the method rejects an
@@ -744,12 +745,19 @@ remaining width.
 `LocalDispositionPlan = 0x04`, `LocalCompletionPlan = 0x05`,
 `LocalStorageReceipt = 0x06`, `DecommissionProof = 0x07`,
 `DecommissionProofReference = 0x08`, `DecommissionProofIssuance = 0x09`,
-`DecommissionObservation = 0x0a`, `IssueDecommissionProofRequest = 0x0b`, and
-`LocalStorageReceiptBinding = 0x0c`. The five values `0x01..=0x05` are the
-only legal `DecommissionPlanKindV1` bytes; `0x00` and `0x0d..=0xff` are
+`DecommissionObservation = 0x0a`, `IssueDecommissionProofRequest = 0x0b`,
+`LocalStorageReceiptBinding = 0x0c`, `KeyringRetirementHandoff = 0x0d`,
+`KeyringRetirementFence = 0x0e`, `DecommissionRemovalReceipt = 0x0f`, and
+`KeyringRetirementReceipt = 0x10`. Assignments `0x01..=0x0c` retain their
+published bytes without reinterpretation. The five values `0x01..=0x05` are
+the only legal `DecommissionPlanKindV1` bytes; `0x00` and `0x11..=0xff` are
 rejected as `DecommissionCanonicalWireKindInvalid` by port, key-service,
 memory, and SQLite encoders/decoders before persistence or a side effect. A
-nested value is the exact final canonical wire of its declared kind, not a
+nested or top-level global decoder recognizes exactly `0x01..=0x10`; a plan
+decode site accepts only `0x01..=0x05`. At a plan site, recognized non-plan
+`0x06..=0x10` is a typed known-wrong-kind refusal, whereas `0x00` or unassigned
+`0x11..=0xff` is the distinct unknown-kind refusal above; the two never
+collapse. A nested value is the exact final canonical wire of its declared kind, not a
 re-encoded struct or a byte prefix; its outer TLV length is that complete nested
 wire length. This rule makes a plan-kind substitution, an unknown kind, and a
 kind-valid body under the wrong header distinct typed refusals.
@@ -764,20 +772,65 @@ fence authenticator covers the already-derived `begin_plan_digest` as well as
 the full previously authenticated handoff, so it binds the accepted Begin plan
 without a recursive plan preimage.
 
-Authenticated proof and reference construction has one non-recursive order.
-First the provider encodes the named **body wire** with the immutable header,
-the body tag count, and every listed tag except its authenticator. It signs that
-body only. It then encodes the **final wire** with the same kind, the count that
-includes the authenticator tag, the same body tags, and the authenticator as the
-last tag. Only after that does it compute an external digest over the final
-wire. No digest is a field in its own body or final wire, and neither phrase
-means a wire that includes its later external digest. The provider attestation
-preimage is exactly `ASCII(auth_domain) || 0x00 || body_wire`; its bounded
-`provider_authenticator` is the key-service's detached provider-attestation
-envelope. The adapter's `ProviderDecommissionAttestationKeyRegistryV1` selects
-the verification key from the retained provider key epoch for the keyring and
-retains a verification-only draining key through the corresponding issuance GC
-horizon. Missing key, corrupt envelope, or failed verification is fail closed.
+Every authenticated decommission record has one non-recursive construction
+order. First the provider encodes the named **body wire** with the immutable
+16-byte header, the body tag count, and every listed tag except its
+authenticator. It signs exactly `ASCII(the literal authentication domain) ||
+0x00 || body_wire`. It then encodes the **final wire** with the same kind, the
+count that includes the authenticator tag, the same body tags, and the
+authenticator as the last tag. Only after that does it compute any external
+digest over the exact final wire. External digests are never tags. Persistence
+and replay retain and return those exact final bytes; decoded reserialization,
+including reserialization of a nested final wire, is invalid.
+
+The proof authentication domain is exactly
+`hr.decommission.proof-authenticator.v1`, and the reference authentication
+domain is exactly `hr.decommission.proof-reference-authenticator.v1`. Their
+existing external digest domains remain `hr.decommission.proof.v1` and
+`hr.decommission.proof-reference.v1`, respectively. The four auxiliary codecs
+are frozen as follows; every field name is the exact ascending tag order:
+
+| wire | body tags | final authenticator tag | authentication domain | external digest domain | body/final maximum |
+| --- | --- | --- | --- | --- | --- |
+| `KeyringRetirementHandoff = 0x0d` | `1 keyring_id`, `2 repository_id`, `3 member_instance_id`, `4 repository_epoch`, `5 decommission_proof_digest`, `6 membership_snapshot_id`, `7 membership_version`, `8 rotation_fence_id`, `9 live_generation_digest`, `10 removal_plan_digest` | `11 provider_authenticator` | `hr.decommission.keyring-retirement-handoff-authenticator.v1` | `hr.decommission.keyring-retirement-handoff.v1` | `926` / `1,441` |
+| `KeyringRetirementFence = 0x0e` | `1 exact final handoff wire`, `2 retirement_fence_id`, `3 retirement_begin_operation_id`, `4 begin_plan_digest` | `5 provider_authenticator` | `hr.decommission.keyring-retirement-fence-authenticator.v1` | `hr.decommission.keyring-retirement-fence.v1` | `1,758` / `2,273` |
+| `DecommissionRemovalReceipt = 0x0f` | `1 keyring_id`, `2 repository_id`, `3 member_instance_id`, `4 repository_epoch`, `5 decommission_proof_digest`, `6 prior_membership_snapshot_id`, `7 prior_membership_version`, `8 successor_membership_snapshot_id`, `9 successor_membership_version`, `10 removal_operation_id`, `11 removal_plan_digest` | `12 provider_authenticator` | `hr.decommission.removal-receipt-authenticator.v1` | none other than the terminal digest below | `1,034` / `1,549` |
+| `KeyringRetirementReceipt = 0x10` | `1 keyring_id`, `2 repository_id`, `3 member_instance_id`, `4 repository_epoch`, `5 decommission_proof_digest`, `6 membership_snapshot_id`, `7 membership_version`, `8 rotation_fence_id`, `9 retirement_fence_id`, `10 removal_plan_digest`, `11 retirement_begin_operation_id`, `12 retirement_complete_operation_id`, `13 all_generation_digest`, `14 scan_checkpoint_digest`, `15 durable_ciphertext_references`, `16 durable_locator_references`, `17 durable_non_replay_index_references`, `18 unresolved_authorizations`, `19 state` | `20 provider_authenticator` | `hr.decommission.keyring-retirement-receipt-authenticator.v1` | none other than the terminal digest below | `1,404` / `1,919` |
+
+For tags 15 through 18 of kind `0x10`, the only canonical value is exact
+`u64be(0)`. For tag 19, `Retired=0x01`; `0x00` and every other state byte are
+invalid. The size ledger is exact checked arithmetic: handoff values total
+`880`, so `16 + 10*3 + 880 = 926` and `926 + 3 + 512 = 1,441`; fence values
+total `1,730`, so `16 + 4*3 + 1,730 = 1,758` and the final is `2,273`;
+removed-receipt values total `985`, so `16 + 11*3 + 985 = 1,034` and the
+final is `1,549`; retirement-receipt values total `1,331`, so
+`16 + 19*3 + 1,331 = 1,404` and the final is `1,919`.
+
+`ProviderDecommissionTerminalReceiptV1` is the closed logical sum of exactly
+final kind `0x0f` as `Removed` and final kind `0x10` as `KeyringRetired`. It
+has no outer wire; the signed header kind is the variant discriminator. A
+terminal branch is selected only after the matching same-kind final wire and
+authenticator verify. Both variants derive `provider_terminal_receipt_digest`
+only after the final wire as
+`H(ASCII("hr.decommission.provider-terminal-receipt.v1") || 0x00 ||
+exact_final_terminal_wire)`; `hr.decommission.provider-terminal-receipt.v1`
+is an external digest domain and never a tag.
+
+Nested-wire locations are immutable: a kind-`0x0e` fence, the Begin plan, and
+the Begin request take the exact final kind-`0x0d` handoff wire; the Complete
+plan takes the exact final kind-`0x0e` fence wire; and the disposition plan
+takes exactly one final kind-`0x0f` or kind-`0x10` terminal wire. Wrong kind,
+header, schema, body/final form, count, tag, order, length, bound, domain,
+authenticator, external digest, nested reserialization, or terminal-variant
+selection fails closed with the typed classification below before persistence
+or a side effect.
+
+The provider authenticator is the key-service's bounded detached
+provider-attestation envelope. The adapter's
+`ProviderDecommissionAttestationKeyRegistryV1` selects the verification key
+from the retained provider key epoch for the keyring and retains a
+verification-only draining key through the corresponding issuance GC horizon.
+Missing key, corrupt envelope, or failed verification is fail closed.
 
 The proof codec is kind `0x07`, tags `1..=20` in this exact order:
 `keyring_id`, `repository_id`, `member_instance_id`, `repository_epoch`,
@@ -791,6 +844,8 @@ The proof codec is kind `0x07`, tags `1..=20` in this exact order:
 the body; tag `20` is a `<=512` authenticator. Its body maximum is
 `16 + 19*3 + 128+256+128+8+128+8+128+32+128+8+8+32+32+129+32+8+8+8+8 =
 1,290`; its final maximum is `16 + 20*3 + 1,729 = 1,805`; and
+the provider signs `ASCII("hr.decommission.proof-authenticator.v1") || 0x00 ||
+body_proof_wire`. Then
 `decommission_proof_digest = H(ASCII("hr.decommission.proof.v1") || 0x00 ||
 final_proof_wire)` is computed only after the final wire exists. The reference
 codec is kind `0x08`, tags `1..=8` in order: `keyring_id`, `repository_id`,
@@ -798,6 +853,9 @@ codec is kind `0x08`, tags `1..=8` in order: `keyring_id`, `repository_id`,
 `issue_proof_operation_id`, `issue_proof_request_digest`, and
 `provider_authenticator`. Its body is tags `1..=7`, maximum `750`; its final
 maximum is `16 + 8*3 + 1,225 = 1,265`; and
+the provider signs
+`ASCII("hr.decommission.proof-reference-authenticator.v1") || 0x00 ||
+body_reference_wire`. Then
 `decommission_proof_reference_digest = H(ASCII("hr.decommission.proof-reference.v1")
 || 0x00 || final_reference_wire)`. The reference body binds the proof digest,
 lookup identity, and exact Issue request digest before it is signed.
@@ -848,6 +906,8 @@ Remove `2,267`, Begin `1,758`, Complete `2,184`, Disposition `292`, and
 Completion `288` bytes. Begin remains `1,758` because its already-frozen
 four-record request wire always carried the plan digest; this revision makes
 that same fourth record part of the typed provider request and signed fence.
+The largest plan is Complete at `3,832`, leaving exactly
+`4,096 - 3,832 = 264` bytes of ceiling headroom.
 The adapter and SQLite independently rederive these sums and reject a wire
 whose declared count, field length, total, domain, or byte vector differs. The
 hash is always `H(ASCII(domain) || 0x00 || canonical_wire)`; no plan digest
@@ -1367,12 +1427,26 @@ Every provider-visible intermediate has a durable local counterpart; no terminal
 receipt, handoff, request byte sequence, or request digest is invented after
 response loss.
 
-`ProviderDecommissionTerminalReceiptV1` is exactly `Removed {
-removal_receipt: DecommissionRemovalReceiptV1 } | KeyringRetired {
-retirement_receipt: KeyringRetirementReceiptV1 }`. Before local completion,
+`ProviderDecommissionTerminalReceiptV1` is exactly the closed logical sum
+`Removed { removal_receipt: DecommissionRemovalReceiptV1 } | KeyringRetired {
+retirement_receipt: KeyringRetirementReceiptV1 }`. It has no independent outer
+encoding: the verified signed kind-`0x0f` or kind-`0x10` final header selects
+the only legal variant. Before local completion,
 SQLite validates that terminal receipt against plan, proof, identity,
 snapshot/version, admission/rotation/decommission fences, live-generation
-digest, and all zero-reference/unresolved fields.
+digest, and all zero-reference/unresolved fields. The current receipt field set
+does not directly authenticate omitted historical fields; its chain assurance
+relies on retained provider state and byte-identical exact-operation replay.
+In particular, kind `0x10` deliberately omits `begin_plan_digest`,
+`complete_plan_digest`, and `retirement_fence_digest`; verification composes the
+exact retained Begin/Complete operation cells and plans with the retained
+handoff/fence ledgers rather than inventing receipt fields. Exact auxiliary
+final wires, operation cells/plans, the proof issuance, and the authenticator
+verification-key epoch identified by the provider envelope are retained through
+Get/replay/recovery and the bounded local-terminal GC horizon. The response and
+caller cannot select a verification epoch, and none of those linked records may
+be collected independently before the atomic terminal cleanup admits all of
+them.
 `LocalDecommissionDispositionPlanV1` is the immutable **post-provider-terminal/
 pre-disposition** record `{ removal_plan_digest, provider_terminal_receipt:
 ProviderDecommissionTerminalReceiptV1, provider_terminal_receipt_digest:
@@ -1432,6 +1506,15 @@ wire. The mechanical maxima are body `16 + 16*3 +
 128+256+128+8+32+32+32+129+129+1+32+32+32+8+128+8 = 1,179`, then final
 `16 + 17*3 +
 128+256+128+8+32+32+32+129+129+1+32+32+32+8+128+8+64 = 1,246`.
+
+Binding tag 8 is derived only after terminal-wire verification and is never a
+caller-selected field. Verified kind `0x0f` (`Removed`) supplies its
+`removal_operation_id`, whose `ProviderOperationKindV1` byte must be `0x05`;
+verified kind `0x10` (`KeyringRetired`) supplies its
+`retirement_complete_operation_id`, whose kind byte must be `0x07`. Any
+terminal-variant/id-kind substitution or disagreement with the retained
+operation cell is the corresponding typed Mismatch refusal before binding
+signing or persistence.
 
 `RepositoryMetadataCommitAuthenticatorV1` is a named repository-facing port
 owned by g.0 `record-encryption/src/items/j_decommission.rs`; it exposes
@@ -1546,6 +1629,16 @@ maximum-plus-one input, reference lookup conflict, Missing/Mismatch/Corrupt/
 AuthenticatorInvalid mapping, and Issue response loss must be covered. The
 lost-response Get vector must be byte-identical to the initial `Issued {
 issuance }` vector, not merely structurally equal.
+For `0x0d` through `0x10`, g.0, g.1, and g.2 each freeze independently encoded
+body and final minimum, maximum, and maximum-plus-one vectors at `926/1,441`,
+`1,758/2,273`, `1,034/1,549`, and `1,404/1,919`. The mutation matrix covers a
+wrong magic/version/kind/header/schema, body used as final, final used as body,
+terminal variant substitution, invalid `Retired` state-byte substitution,
+record-count/tag/order/length/bound mutation, missing or moved authenticator,
+authentication-domain/authenticator/external-digest mutation, and decoded
+nested reserialization. Response-loss and fresh-process vectors must retrieve
+and replay byte-identical retained final wires and select the same signed-header
+variant; structural equality after re-encoding is failure.
 `LocalDecommissionCompletionReceiptV1` is `{ keyring_id,
 repository_id, member_instance_id, repository_epoch,
 decommission_proof_digest: FixedBytes<=64, removal_plan_digest: FixedBytes<=64,
@@ -1732,6 +1825,11 @@ CAS resolves it; a crash resumes from that exact state before readiness. Abort
 is legal only before proof issuance: `abort_repository_decommission_intent_v1`
 reopens the local gate only after the provider has durably recorded the matching
 begin tombstone and SQLite has installed its greater reopened epoch. The closed provider
+auxiliary error quartets are exactly
+`RetirementHandoff{Missing,Mismatch,Corrupt,AuthenticatorInvalid}`,
+`KeyringRetirementFence{Missing,Mismatch,Corrupt,AuthenticatorInvalid}`, and
+`ProviderTerminalReceipt{Missing,Mismatch,Corrupt,AuthenticatorInvalid}` in
+both closed sums. The full provider
 error is `KeyringMembershipError::{MembershipVersionStale,
 MembershipSnapshotStale, RepositoryAlreadyRegistered, RepositoryNotRegistered,
 MemberInstanceStale, MembershipMutationBlocked, RepositoryEpochStale,
@@ -1743,6 +1841,12 @@ DecommissionProofAlreadyIssued, DecommissionScanIncomplete,
 DecommissionObservationStale, DecommissionProofReferenceMissing,
 DecommissionProofReferenceMismatch, DecommissionProofReferenceCorrupt,
 DecommissionProofReferenceAuthenticatorInvalid,
+RetirementHandoffMissing, RetirementHandoffMismatch,
+RetirementHandoffCorrupt, RetirementHandoffAuthenticatorInvalid,
+KeyringRetirementFenceMissing, KeyringRetirementFenceMismatch,
+KeyringRetirementFenceCorrupt, KeyringRetirementFenceAuthenticatorInvalid,
+ProviderTerminalReceiptMissing, ProviderTerminalReceiptMismatch,
+ProviderTerminalReceiptCorrupt, ProviderTerminalReceiptAuthenticatorInvalid,
 KeyringRetiring, KeyringRetired, KeyringRetirementFenceStale,
 KeyringRetirementPreconditionFailed, MembershipOperationConflict,
 ProviderUnavailable, ProviderCorrupt}`. The repository removal error is
@@ -1754,13 +1858,18 @@ DecommissionFenceStale, DecommissionObservationStale, ProviderStatusMismatch,
 DecommissionProofReferenceMissing, DecommissionProofReferenceMismatch,
 DecommissionProofReferenceCorrupt, DecommissionProofReferenceAuthenticatorInvalid,
 DecommissionProofCorrupt, DecommissionProofAuthenticatorInvalid,
-RetirementHandoffMismatch, RetirementBeginPlanMissing,
+RetirementHandoffMissing, RetirementHandoffMismatch,
+RetirementHandoffCorrupt, RetirementHandoffAuthenticatorInvalid,
+KeyringRetirementFenceMissing, KeyringRetirementFenceMismatch,
+KeyringRetirementFenceCorrupt, KeyringRetirementFenceAuthenticatorInvalid,
+ProviderTerminalReceiptMissing, ProviderTerminalReceiptMismatch,
+ProviderTerminalReceiptCorrupt, ProviderTerminalReceiptAuthenticatorInvalid,
+RetirementBeginPlanMissing,
 RetirementBeginPlanMismatch, RetirementCompletePlanMissing,
 RetirementCompletePlanMismatch, LocalDispositionPlanMissing,
 LocalDispositionPlanMismatch, LocalCompletionPlanMissing,
 LocalCompletionPlanMismatch,
 KeyringRetirementFenceStale, KeyringRetirementPreconditionFailed,
-ProviderTerminalReceiptMissing, ProviderTerminalReceiptInvalid,
 LocalDispositionReceiptInvalid, LocalCompletionConflict,
 DecommissionLocalDrainBusy, DecommissionLocalDrainTimeout,
 DecommissionLocalStorageFull, DecommissionLocalStorageIo,
@@ -1780,6 +1889,16 @@ partitioned, omitted, or stale member cannot be removed to evade a drain; after
 removal or retirement the old member remains fenced and cannot rejoin the old
 keyring.
 
+Those three same-name quartets have one exact classification in both sums and
+through g.0 and recovery. An absent retained handoff, fence, or terminal row is
+`Missing`. Bad framing, kind, count, tag, order, length, bound, `Retired` byte,
+nested kind, or missing authenticator tag is `Corrupt`. Canonical bytes with the
+wrong identity, parent, digest, status, or expected terminal branch are
+`Mismatch`. A present envelope with an invalid key or signature is
+`AuthenticatorInvalid`. `KeyringRetirementFenceStale` and
+`KeyringRetirementPreconditionFailed` remain separate semantic failures; no
+quartet branch is collapsed into either one or into a catch-all.
+
 The g.0 adapter mapping is closed and exhaustive. Every
 `KeyringMembershipError` variant is matched by name, never `_`: identity/CAS
 variants (`MembershipVersionStale`, `MembershipSnapshotStale`,
@@ -1795,7 +1914,14 @@ proof/abort/removal error where that operation admits it; proof variants
 `DecommissionProofReferenceCorrupt`,
 `DecommissionProofReferenceAuthenticatorInvalid`) map to the same-named proof
 or removal error; terminal/retirement variants
-(`DecommissionBeginTombstoned`, `KeyringRetiring`, `KeyringRetired`,
+(`RetirementHandoffMissing`, `RetirementHandoffMismatch`,
+`RetirementHandoffCorrupt`, `RetirementHandoffAuthenticatorInvalid`,
+`KeyringRetirementFenceMissing`, `KeyringRetirementFenceMismatch`,
+`KeyringRetirementFenceCorrupt`, `KeyringRetirementFenceAuthenticatorInvalid`,
+`ProviderTerminalReceiptMissing`, `ProviderTerminalReceiptMismatch`,
+`ProviderTerminalReceiptCorrupt`,
+`ProviderTerminalReceiptAuthenticatorInvalid`,
+`DecommissionBeginTombstoned`, `KeyringRetiring`, `KeyringRetired`,
 `KeyringRetirementFenceStale`, `KeyringRetirementPreconditionFailed`) map to
 the named abort/retirement/removal result or error; and
 `MembershipOperationConflict`, `ProviderUnavailable`, and `ProviderCorrupt`
