@@ -2,7 +2,7 @@
 doc_class: Owner-ADR
 owner: build
 status: Accepted
-date: 2026-08-27
+date: 2026-08-28
 inherits:
   - docs/decisions/ADR-0719-eac-serving-control-north-star.md
 ---
@@ -16,19 +16,19 @@ landed.
 
 <current_state>
 
-## Evidence at `db27431b890b5b012a0026e6666f3a57aa987650`
+## Evidence rechecked at `bef729c9af9653d8057fb46d8fa61e18bb4528a4`
 
 | Surface | What exists | Maturity |
 |---|---|---|
-| Root `Cargo.toml` and `Cargo.lock` | Workspace package declarations and the locked Rust dependency solution | Live Cargo authority; shared, serialized files |
-| `reindeer.toml` | Reindeer reads the root manifest, refuses unresolved build-script fixups, emits `third-party/BUCK`, and names an owned overlay under deleted `ci/` | Active input with a dead post-generation reference |
-| `third-party/fixups/**` | 66 package-local fixup files, including native/build-script decisions | Real generation inputs, but not yet covered by one provenance inventory or conformance receipt |
-| `third-party/BUCK` | Checked generated dependency rules plus historical semantic mutations | Consumed by Buck2; its header names a different deleted shell wrapper, so clean reproduction is not proved |
-| `build/dependency-declarations/**` | Six Reindeer transaction packages: pure-core home, two ports, two adapters, and a facade | Structural only; core/adapters have no behavior and the facade refuses service |
-| `build/port-engine/**` | Fourteen Rust packages for the named source-port engine | Implementation-bearing but frozen by ADR-0719; not a dependency or repository transformation engine |
-| `build/toolchains/**`, `build/images/**` | Buck toolchain/cache declarations and one distroless image recipe; both still name Rust 1.97.1 while the root toolchain/workspace and hosted jobs require 1.98.0; several standards also narrate 1.97.1 as current | Partial, internally drifted Build assets and documentation; not a qualified image factory |
-| Dependency/security update automation | `Cargo.lock`, `deny.toml`, and a nonblocking weekly cargo-deny action exist; the documented root `deps.toml`, owned bump bot, and owned supply-chain audit gate do not | Partial observation with no owned update actuator or closed campaign |
-| `build/evidence/**`, `build/REORG-DRAIN.md` | Historical migration narratives | Residue; not runtime, generation, or admission evidence |
+| Root `Cargo.toml`/`Cargo.lock` | Workspace packages; locked solution | Live shared Cargo authority |
+| `reindeer.toml` | Reads root; fixups fail; emits `third-party/BUCK`; names deleted overlay | Active; dead post-step |
+| `third-party/fixups/**` | 70 fixups: 66 inherited, four scanners | Inputs; no provenance/conformance receipt |
+| `third-party/BUCK` | Generated rules plus old mutations | Buck2 input; stale wrapper; reproduction unproved |
+| `build/dependency-declarations/**` | Six core/port/adapter/facade packages | Structural; facade refuses |
+| `build/port-engine/**` | Fourteen source-port packages | Frozen by ADR-0719; not this engine |
+| `build/toolchains/**`, `build/images/**` | Assets use Rust 1.97.1 vs root 1.98.0 | Drifted; unqualified |
+| Dependency/security updates | Lock, deny file, weekly cargo-deny; no bot/gate | Partial; no actuator/campaign |
+| `build/evidence/**`, `REORG-DRAIN.md` | Migration history | Residue; no runtime/generation/admission evidence |
 
 No owned Rust entrypoint currently regenerates `third-party/BUCK` atomically,
 proves two clean runs byte-identical, emits a source-bound receipt, or supplies
@@ -47,13 +47,13 @@ file are not a proved round trip.
 - **origin:** ADR-0719 assigns toolchains, host/guest images, Cloud
   Hypervisor/Firecracker/kernel pins, and the frozen port engine to `build/`,
   while Pipeline owns graph execution and Compute owns fleet agents.
-- **rule:** `build/` MUST own the reproducibility contracts and owned tooling
-  for pinned build toolchains, the host/guest image and kernel inputs assigned
-  by ADR-0719, Cargo/Reindeer-to-Buck declaration artifacts, and separately
-  adopted reusable repository analysis/transformation machinery. Artifacts
-  outside that closed list remain with their capability owner. Build MUST NOT
-  own capability engines, price/rate logic, fleet placement or agents, CI/CD
-  scheduling, merge/review state, Storage, or a user-facing CLI.
+- **rule:** `build/` MUST own reproducibility contracts/tooling for pinned build
+  toolchains, ADR-0719 host/guest image and kernel inputs, Cargo/Reindeer-to-Buck
+  artifacts, and adopted reusable repository transformation machinery. Other
+  artifacts stay with their owner. Build MUST NOT own capability engines,
+  price/rate logic, fleet agents, CI/CD/review state, Storage, or a user-facing
+  CLI. Production capabilities MUST be versioned APIs, declarative resources,
+  and reconcilers; local diagnostic CLIs are retirement-marked scaffolding.
 - **ensure:** dependency and package review rejects unlisted generated-artifact
   ownership, Pipeline/GitHub concepts, cloud capability cores, pricing, fleet
   control, and persistent artifact bytes from Build core; cross-owner effects
@@ -128,34 +128,37 @@ file are not a proved round trip.
 
 ## Decision: one owned, fixup-first reconciliation transaction
 
-- **achieves:** a clean checkout can regenerate the exact dependency rules or
-  refuse without publishing a partial or semantically patched graph.
-- **origin:** `reindeer.toml` and `third-party/BUCK` name two different deleted
-  wrappers; prior generation depended on post-hoc text changes for native
-  build rules, and unresolved local build scripts currently stop a clean run.
+- **achieves:** clean checkouts regenerate exact dependency rules or refuse partial, patched, or self-asserted output.
+- **origin:** Reindeer inputs name conflicting deleted wrappers; prior generation text-patched native rules.
+  Reindeer constructs an ordered typed rule set before rendering, while file-only checks repeat errors.
 - **rule:** declaration reconciliation MUST be an owned Rust transaction. It
-  MUST run one explicitly pinned Reindeer with locked, offline inputs and an
-  explicit environment; encode package/native exceptions in reviewed fixups;
-  generate twice; require byte equality; validate the result; and publish only
-  through a declared, qualified filesystem capability profile. Publication
-  MUST hold an exclusive destination lease or use a genuine compare-and-swap
-  primitive, use directory-relative no-follow operations and same-directory
-  atomic replacement, and refuse an unsupported profile. Reconciliation MUST
-  clear unapproved tool variables, perform no network access, invoke no shell
-  wrapper, make no textual semantic overlay, and never hand-edit generated
-  BUCK output.
-- **ensure:** tests inject generator failure, mismatched double runs, malformed
-  fixups, unsupported capability profiles, lease/CAS conflict, staged-write
-  failure, pre-rename interruption, and directory-sync failure. On qualified
-  profiles, failures before replacement retain the prior output and observers
-  see either prior or new complete bytes. Every failure is typed; generation
-  identity and publication-attempt receipt bind all inputs, tools, profiles,
-  output, and actual success, typed failure, or indeterminate replacement and
-  durability state without claiming uncertain durability.
+  MUST run one pinned Reindeer with locked/offline exact inputs, binary/toolchain
+  provenance, closed environment/sandbox, and reviewed fixups. Before
+  qualification a reviewed producer-side patch/API against that exact source,
+  bound by patch/fork/source/binary digests, MUST return one invocation's typed
+  graph and bytes rendered from it; generator code owns the type, upstreaming is
+  optional, and Build owns rollback. Full
+  canonical DTO fields determine equality/digest—not private state, a second
+  invocation, text reconstruction, `Rule::PartialEq`, or sort keys—and duplicate,
+  colliding, unknown, or lossy graphs refuse. Two clean independent runs MUST be
+  byte/graph identical. `ReindeerRuleGraphV1` is the primary semantic seam; a
+  distinct Build port around exact-pinned maintained `starlark_syntax` MUST make
+  its bounded projection the independent full-equality cross-check;
+  no caller-authored expected graph or Oyatie reverse parser qualifies. Buck2 is
+  consumer/configured authority: every promoted generator/parser/grammar/platform
+  tuple, including Buck2 source/binary/toolchain/cell/config/prelude, MUST pass
+  representative consumer qualification. Publication uses
+  only qualified lease-or-CAS, no-follow, same-directory atomic capabilities;
+  network, shell wrappers, text overlays, and generated-file hand edits refuse.
+- **ensure:** qualification binds every input, tool, producer API/graph/renderer,
+  parser, environment/sandbox, grammar/platform/Buck2 profile, output and
+  receipt. Red-first tests inject dirty roots, undeclared state, duplicate/sort-
+  key collisions, full-field/parser/byte disagreement, lossy/unknown syntax,
+  malformed fixups, unsupported publication and every stage/rename/sync fault.
 - **overturn_when:** Reindeer natively supplies equivalent fixup expressivity,
-  hermetic double-run verification, validated atomic publication, and the same
-  provenance receipt, allowing the owned transaction to shrink without losing
-  a property.
+  independent maintained-parser cross-check, hermetic double-run proof,
+  configured Buck2 evidence, validated atomic publication, and the same
+  provenance receipt, allowing the transaction to shrink without lost proof.
 
 </reconciliation>
 
@@ -191,8 +194,10 @@ file are not a proved round trip.
 - **rule:** Build core MUST consume explicit immutable input descriptors and
   produce deterministic declaration artifacts/receipts. It MUST NOT depend on
   Pipeline's draft repository port, model pull requests or GitHub, orchestrate
-  merge state, or persist blobs in another owner's implementation. Shared
-  contracts MUST be adopted by all affected owners before implementation.
+  merge state, or persist blobs in another owner's implementation. Build MUST refuse to
+  implement a shared contract until every affected owner has independently adopted it. Its
+  surface is API/declarative-resource/reconciler first; diagnostics never become
+  a durable CLI or merge authority.
 - **ensure:** dependency review keeps Build free of Pipeline core/draft and
   forge types; initial reconciliation publishes to a caller-supplied local
   filesystem adapter, while future storage or scheduling integration waits for
@@ -233,7 +238,7 @@ file are not a proved round trip.
 ## Decision: one corpus-free first-party source-declaration relation
 
 - **achieves:** Cargo and BUCK declaration changes converge through one
-  deterministic, owner-sharded repair contract without a configured-graph
+  deterministic, canonically owner-grouped repair contract without a configured-graph
   oracle, repository census, or manual label repair.
 - **origin:** ADR-0719 D-17 adopted one Build-owned engine after recurring
   first-party labels survived stale until weekly Buck smoke; the existing
@@ -245,20 +250,39 @@ file are not a proved round trip.
   core MUST consume immutable caller-supplied snapshot bytes and ownership
   facts, fail closed on incomplete, unknown, unmapped, malformed, or ambiguous
   extraction, and emit sorted violations plus deterministic non-mutating
-  `DeclarationRepairSet` values. Each repair MUST bind the grammar profile,
-  complete semantic read/write sets with digest-or-absence preconditions, and
-  complete postimages. Generated `third-party/BUCK` and `third-party//` remain
-  exclusively in Reindeer reconciliation. Reindeer implementation and
-  qualification MUST precede any new parser dependency or package-graph change.
+  output: exactly one canonical `DeclarationRepairSetV1` per evaluation,
+  including zero actions/groups. It MUST bind engine/snapshot/profile/caller
+  owner-authority/ownership-fact provenance; complete semantic reads and
+  `semantic_writes`; their exact proposed-path projection; and digest-or-absence
+  plus exact owner-or-absence on every bound path. `OwnerExpectation::Absent` is
+  valid only for non-write reads. `semantic_writes` is sole action authority:
+  one concrete-owner `Replacement` per proposed path and no others; each
+  `Replacement` alone binds its path's complete present/absent postimage and
+  canonical digest. The set binds typed postconditions, exact group-output
+  digests, and a whole-set digest/identity over every other canonical field.
+  Canonically ordered groups are exactly non-empty groups induced by distinct
+  replacement owners; each replacement/path occurs once, writes are disjoint,
+  and zero actions have zero groups.
+  Absent-owner writes; empty/extraneous/missing/duplicate/ambiguous/wrong-owner/
+  cross-owner/incomplete/overlapping groups; or any semantic/owner precondition
+  mismatch refuse. Snapshot identity is provenance, not a global lock; a
+  disjoint successor remains applicable only while every bound precondition
+  matches. Generated `third-party/BUCK` remains exclusively in Reindeer. Reindeer
+  qualification MUST precede a new parser dependency or package-graph change.
 - **ensure:** an owner design freezes participating target/dependency kinds,
   admitted syntax, package/port placement, parser identities and supply-chain
   review before implementation. Pure relation tests precede adapters;
   adversarial and out-of-required-path differential qualification cover both
   declaration triggers, legitimate target subsets, every modeled Cargo kind,
   every admitted/refused grammar form, full-HEAD evaluation, deterministic
-  repair bytes, precondition mismatch, and forbidden mutation/process/network
-  effects. A profile identity change requalifies, and activation waits until
-  every detected legacy violation is repaired without a baseline or allowlist.
+  V1 provenance, path-bound preconditions, postimages/postconditions/digests,
+  exact owner grouping/zero behavior/refusals, disjoint-successor behavior, and
+  forbidden effects. Only the protected qualification harness runs exact
+  `cargo metadata --offline --locked --no-deps --format-version 1` and
+  non-building `buck2 uquery`; the engine and required check never do. Profile
+  identity changes requalify, and activation waits for zero legacy violations
+  without a baseline or allowlist. Any Pipeline consumption is a separately
+  adopted owner contract; Build neither applies nor regroups repairs.
 - **overturn_when:** a founder-accepted five-field amendment preserves one
   protected verdict, a complete fail-closed first-party relation, deterministic
   preconditioned repairs, no frozen corpus or second compile plane, and the
@@ -268,14 +292,9 @@ file are not a proved round trip.
 
 ## Rejected destinations
 
-- A second Rust package graph beside Cargo/Reindeer.
-- A second configured execution graph beside Buck2.
-- A shell, Python, or Node regeneration wrapper.
-- A text-replacement overlay that mutates generated BUCK semantics.
+- A second Rust package graph or configured execution graph beside Cargo/Buck2.
+- A shell/Python/Node wrapper or text overlay that mutates generated semantics.
 - A user-facing dependency CLI or a CI scheduler inside Build.
-- A hand-written Cargo/Starlark parser, candidate Starlark interpreter, or
-  Build-owned SCM/ownership resolver.
-- Reusing the frozen port engine for dependencies, repository graphs, or
-  codemods.
-- Storing generated BUCK, receipts, AST/HIR dumps, or semantic indexes as a
-  manually maintained evidence corpus.
+- A hand-written Cargo/Starlark parser, candidate interpreter, or Build-owned
+  SCM/ownership resolver; reuse of the frozen port engine for dependency graphs.
+- Storing generated BUCK, receipts, AST/HIR dumps, or semantic indexes as a manually maintained corpus.

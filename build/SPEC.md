@@ -2,7 +2,7 @@
 doc_class: Owner-SPEC
 owner: build
 status: Active
-date: 2026-08-27
+date: 2026-08-28
 authority:
   - docs/decisions/ADR-0719-eac-serving-control-north-star.md
   - build/ADR.md
@@ -63,13 +63,12 @@ affected-graph reason. Rust 1.99/1.100 observations remain provisional.
 ## Pure transaction
 
 The semantic core accepts values, never ambient state. `ReconciliationRequest`
-binds repository correlation plus manifest, lock, Reindeer config, fixup tree,
-Cargo source snapshot, platform set, generator source/binary, Cargo/rustc,
-effective environment, sandbox, validator, and validation-profile identities.
-It produces `RawGeneration`, `ValidatedGeneration`, and stable
-`GenerationIdentity` values. A separate `PublicationRequest` binds generation,
-expected destination preimage, and publisher profile; its attempt receipt adds
-the actual success, typed failure, or indeterminate outcome.
+binds repository correlation; exact manifest/lock/config/fixup/source/platform
+inputs; generator source/build/binary, Cargo/rustc and renderer identities; the
+closed environment/sandbox; and graph/parser/grammar/Buck consumer profiles. It
+produces generator graph, raw bytes, parsed projection, validated generation,
+and stable identity values. A separate publication request binds generation,
+destination preimage, and publisher profile; its attempt receipt adds outcome.
 
 Repository revision is correlation, not a substitute for content digests. The
 same generation request values and generator bytes produce the same output and
@@ -79,12 +78,13 @@ deterministic for its generation, destination preimage, publisher profile, and
 actual outcome; distinct success, failure, and indeterminate outcomes do not
 share an identity.
 
-The core orders the transaction as: admit generation request; run A; run B;
-compare bytes; validate the common bytes; construct the generation identity;
+The core orders the transaction as: admit generation request; run A and B from
+independent clean roots; compare bytes and exported producer graphs; validate
+the semantic round trip; construct the generation identity;
 admit a qualified publication request; acquire exclusive destination authority;
 compare the destination preimage; publish or report unchanged; construct the
-publication-attempt receipt for every attempted outcome. No adapter can publish
-a `RawGeneration`.
+publication-attempt receipt for every attempted outcome. Only core may turn the
+producer artifact plus independent projection into a publishable generation.
 
 </reconciliation_model>
 
@@ -92,24 +92,31 @@ a `RawGeneration`.
 
 ## Provisional Reindeer qualification candidate
 
-The sole implementation candidate is Reindeer `v2026.08.10.00` at
-`bb681570d2bc47d1446080c12b8681a50a95f628`; the reviewed design ratifies it now,
-not a qualified or publishable binary. The later alias-changing source is comparison evidence,
-not a second candidate. Binary qualification binds reviewed
-source/executable digests and remains blocked on eleven inherited plus four
-planned scanner decisions, two clean byte-equal runs, and consumer evidence.
+The sole candidate is Reindeer `v2026.08.10.00` at `bb681570d2bc47d1446080c12b8681a50a95f628`, not a
+qualified/publishable binary. A later alias-changing source is comparison evidence. Revalidation of eleven inherited
+plus four landed run-only scanner decisions, clean byte/graph equality, and consumer evidence still block promotion.
 
-The process adapter invokes pinned `buckify` with locked/offline/stdout
-semantics, absolute admitted inputs and read-only Cargo sources, an empty stage,
-no network, and no writable Cargo home. It clears proxy, credential, wrapper,
-compiler-substitution, target-dir, incremental, rustflags, config, and loader
-variables before applying a closed allowlist. Source, Cargo/rustc, environment,
-and sandbox identities are digested inputs.
+That source is binary-only and private `do_buckify` returns `BTreeSet<Rule>`, a qualification blocker. A reviewed
+producer-side patch/API against the exact source, bound by patch/fork/source/binary digests, returns one
+`ReindeerGeneratedArtifactV1 { graph: ReindeerRuleGraphV1, rendered_buck }` per invocation; bytes come from that same
+graph instance. The type lives with generator code; upstream acceptance is optional, while Build owns
+qualification/rollback. Build never introspects private `Rule`, makes a second invocation for another view, or
+reconstructs graph from text.
 
-Stdout alone carries BUCK bytes; stderr is bounded diagnostic data. Unsupported
-sandbox profiles refuse. Qualified profiles reject undeclared reads/writes,
-network, timeout/signal/nonzero exit, invalid required text, and oversized
-output.
+The producer refuses duplicate sort keys before `BTreeSet` loss. Equality/digest covers every canonical DTO field,
+never `Rule::PartialEq` (sort key only). The candidate renderer is locked `serde_starlark` 0.1.19 and its
+source/checksum join the profile. The bounded lossless graph covers Alias, Sources, Filegroup, ExtractArchive,
+HttpArchive, GitFetch, Binary, Library, BuildscriptBinary, BuildscriptGenrule, CxxLibrary, PrebuiltCxxLibrary, and
+RootPackage, retaining order, identity, callee, every attribute/value, aliases, maps/env, labels/edges, paths,
+platform/select branches, wrappers, and RootPackage position. Duplicate/colliding/unknown/lossy projection refuses.
+
+The adapter invokes that API once per run, locked/offline, with absolute admitted inputs, read-only Cargo sources,
+empty stage/network and no writable Cargo home. It clears
+proxy/credential/wrapper/compiler-substitution/target-dir/incremental/rustflags/config/loader variables before a closed
+allowlist. An isolated transport carries one bounded canonical artifact, never bare BUCK; diagnostics are bounded and
+it is internal API scaffolding, not a user CLI. Exact inputs, source/build/binary, Cargo/rustc, renderer,
+environment/sandbox, graph/schema/grammar/platform/bounds are digested; undeclared effects, process failure, or
+oversized fields refuse.
 
 </generator_profile_v1>
 
@@ -117,9 +124,8 @@ output.
 
 ## Candidate generation platform families
 
-The reviewed execution design freezes Rust triples and Buck mappings for nine families:
-Linux GNU and musl on `x86_64`/`aarch64`; macOS on `x86_64`/`aarch64`;
-Windows GNU and MSVC on `x86_64`; and `wasm32-unknown-unknown`.
+The reviewed design freezes nine Rust/Buck families: Linux GNU and musl on `x86_64`/`aarch64`; macOS on
+`x86_64`/`aarch64`; Windows GNU/MSVC on `x86_64`; and `wasm32-unknown-unknown`.
 
 Once ratified, generation and validation evaluate every exact mapping
 independently of the host. Adding, removing, or redefining a ratified entry
@@ -150,7 +156,7 @@ Reindeer configuration primitive. V1 qualification includes:
 
 The validator rejects a generated header or rule that advertises another
 post-generation command. There is no patch list, regex rewrite, or AST rewrite
-between Reindeer stdout and validation.
+between rendered bytes in `ReindeerGeneratedArtifactV1` and validation.
 
 </fixup_contract>
 
@@ -158,22 +164,20 @@ between Reindeer stdout and validation.
 
 ## Candidate validation
 
-Validation is deterministic and bounded. It parses the full generated file and
-checks:
+`ReindeerRuleGraphV1` is the primary semantic seam, `ParsedBuckProjectionV1` the independent cross-check, and Buck2
+consumer/configured authority. Validation is the exact round trip: graph → pinned Reindeer renderer bytes → an
+independently injected maintained-parser port → bounded lossless projection → full equality. Meta `starlark_syntax`
+is later pinned by reviewed source revision, exact crate version/checksum, dependency graph, dialect/API and source
+digest; this docs lane selects no dependency. Without evaluation it projects every admitted
+header/import/callee/attribute/value, order, rule/alias identity, internal/external label, path, platform/select
+branch, map/env, wrapper, fixup effect, and RootPackage fact exactly once. Unknown/extra/lossy/ambiguous nodes or
+mismatch map to `InvalidGeneratedGraph`; Oyatie adds no renderer. Two clean runs separately prove raw-byte identity.
 
-- the canonical generated header and imports;
-- unique rule names and one definition per expected crate/alias identity;
-- every dependency, source archive, build-script output, and native-rule
-  reference resolves;
-- no destination, absolute checkout, staging, or host-specific path appears;
-- required Cargo feature/cfg/platform branches and fixup effects are present;
-- forbidden wrapper/overlay references and hand-edit sentinels are absent;
-- representative targets exist for AWS-LC, PSM, optional aliases,
-  `wasm-bindgen-futures`, and `web-sys`.
-
-Parser and rule-shape limits bound file bytes, rules, attributes, list entries,
-string bytes, and reference edges. Limit values land with the kernel tests and
-cannot be inferred from a candidate file.
+`GenerationQualificationProfileV1` binds exact generator API/source/build/binary, Cargo/rustc, renderer, parser, graph
+schema, grammar/header/import, platform, environment/sandbox/bounds, and Buck2
+source/binary/toolchain/cell/config/prelude identities. Any tuple change creates a new profile. Promotion
+cqueries/builds representative AWS-LC, PSM, optional-alias, proc-macro, generated-source, Windows, Linux GNU/musl,
+macOS, and WebAssembly consumers; parser equality never substitutes for Buck2 configured authority.
 
 </validation>
 
@@ -206,7 +210,8 @@ file.
 The versioned generation identity canonically binds repository correlation;
 manifest/lock/Reindeer/fixup/source/platform/validation digests; generator tag,
 source, asset/build, and binary provenance; Cargo/rustc, environment/sandbox,
-validator identities; and `output_digest` plus `output_length_bytes`. Generated
+renderer, exported graph, parser/projection, grammar, bounds, and Buck consumer
+profile identities; and `output_digest` plus `output_length_bytes`. Generated
 BUCK content remains outside the identity record.
 
 Fields are canonically ordered and exclude wall clock, hostname, checkout path,
@@ -234,6 +239,11 @@ Stable failures are `InvalidRequest`, `InputChanged`, `MissingFixup`,
 `DestinationConflict`, `StageWriteFailed`, `StageSyncFailed`, `ReplaceFailed`,
 `DirectorySyncFailed`, and `InternalInvariant`.
 
+Byte comparison never trusts digests alone: same digest with different content
+is `InternalInvariant`; unequal run bytes/producer graphs are
+`NondeterministicOutput`. Parser/refusal details are bounded diagnostics under
+`InvalidGeneratedGraph`, never unversioned wire variants.
+
 Unit/property tests cover digest ordering, environment construction, bounds,
 double-run comparison, receipt stability, and panic freedom. Adapter tests use
 a fake generator and fault-injecting filesystem at every transaction boundary.
@@ -247,54 +257,44 @@ builds/cqueries the representative Buck targets; check-only then reports clean.
 
 ## Closed unconfigured grammar and normalized relation
 
-The first-party engine consumes immutable base/head files, changed-path
-attribution, snapshot identities, and ownership facts supplied by its caller.
-Only head bytes determine conformance. Base/head deltas identify triggers and
-repair owners; they do not limit the evaluated first-party graph.
+The engine consumes caller-supplied immutable base/head files, changed-path attribution, snapshot identities, and
+ownership facts. Only head bytes determine conformance; deltas identify triggers/repair owners, never graph scope.
 
-A versioned grammar profile binds exact Cargo and Starlark parser identities,
-versions, admitted Cargo forms, BUCK preludes, loaded macros, rule contracts,
-label/cell forms, and limits. Maintained syntax libraries sit behind parser
-ports. Parsing returns complete normalized facts or typed refusal; partial facts
-never enter the relation, and Build owns no hand-written parser/interpreter.
+A versioned grammar profile binds exact Cargo/Starlark parser identities/versions, admitted Cargo forms, BUCK
+preludes/loads/macros/rules, labels/cells, and bounds. Maintained libraries sit behind ports and yield complete
+normalized facts or typed refusal; Build writes no parser/interpreter. Cargo facts retain package/path/target and
+normal/build/dev/optional/target-specific/path semantics. BUCK facts retain target/path/kind/direct edges. Each
+admitted edge resolves uniquely in source IR and is Cargo-permitted; only profiled target/dependency pairs require
+coverage, so valid binary/test subsets pass. Unknown, unmapped, malformed, duplicate, ambiguous, or unproved-influence
+forms refuse.
 
-Normalized Cargo facts retain package/path identity, target kind, and
-normal/build/dev/optional/target-specific/path dependency semantics.
-Normalized BUCK facts retain target identity/kind, declaring path, and direct
-first-party edges. Every admitted BUCK edge resolves to a unique declared identity
-in the admitted unconfigured source IR and is permitted by Cargo. Coverage applies
-only to profiled participating target/dependency pairs; valid binary/test subsets pass,
-and a Cargo package with no profiled BUCK participation is not an automatic
-violation. Unsupported, unmapped, malformed, duplicate, or ambiguous facts
-refuse. Unknown loads, macros, expressions, mutation/reassignment, control flow,
-comprehensions, selects/configuration, labels, cells, or Cargo forms refuse until
-a profile admits and qualifies their exact source form. Inability to prove an unknown
-construct cannot influence target identity or dependencies is itself refusal;
-implementation never classifies an unrecognized construct harmless without that proof.
+The engine emits sorted violations and exactly one canonical `DeclarationRepairSetV1` per evaluation, including zero
+actions/groups. It binds engine/snapshot/profile/caller owner-authority/ownership-fact provenance; complete semantic
+reads and `semantic_writes`; their exact proposed-path projection; and digest-or-absence plus owner-or-absence on every
+bound path. `OwnerExpectation::Absent` is valid only on non-write reads.
 
-The engine emits canonically sorted typed violations and owner-sharded
-`DeclarationRepairSet` values. Each repair set binds snapshot correlation,
-grammar-profile identity, the complete semantic read and write sets with an
-expected digest or expected absence for every path, and deterministic complete
-postimages for every write. The semantic read set includes every fact that
-influenced a postimage. Application refuses any mismatch; a disjoint commit is
-irrelevant when all declared preconditions still match. Reordered identical
-inputs yield byte-identical violations, shards, preconditions, and postimages.
+`semantic_writes` is sole action authority: exactly one concrete-owner `Replacement` per proposed path and no other
+action. Each `Replacement` alone carries its path's complete present/absent postimage and canonical postimage digest.
+The set binds typed postconditions, exact group-output digests, and one whole-set digest/identity over every other
+canonical field. Groups are exactly non-empty groups induced by replacement owners, canonically ordered; every
+replacement/path appears once, writes are disjoint, and zero actions yield zero groups.
 
-The engine never mutates a snapshot, applies a repair, invokes SCM or Buck2,
-resolves owners, evaluates configuration, accesses a network, or spawns a
-process. `third-party//` and generated `third-party/BUCK` stay outside this
-profile and inside the Reindeer transaction above.
+Absent-owner writes; empty/extraneous/missing/duplicate/ambiguous/wrong-owner/cross-owner/incomplete/overlapping
+groups; or any semantic/owner precondition, postimage, digest, or projection mismatch refuses. Snapshot identity is
+provenance, not a global lock; a disjoint successor applies only if every bound semantic/owner precondition matches.
+Equal reordered inputs yield byte-identical violations, V1 bytes, groups, outputs, and identity.
+
+The engine never mutates/applies, invokes SCM/Buck2, resolves owners, evaluates configuration, uses network, or spawns
+a process. `third-party//` and generated `third-party/BUCK` stay in Reindeer.
 
 ## Design, dependency, and qualification gate
 
-No implementation or root/package-graph mutation starts until an owner design
-names the parser ports/adapters, exact packages and targets, public/internal
-types, bounds, dependencies and provenance review, serialized root writer, and
-red/green/property/fuzz/differential fixtures. Reindeer qualification precedes
-new parser dependencies. Differential qualification runs outside required
-presubmit against protected Cargo metadata and non-building Buck queries; the
-engine itself invokes neither. Parser, grammar, prelude, macro, or rule-contract
-identity changes create a new profile and requalify before activation.
+Before behavior/root mutation, amend the current owner design to freeze the producer artifact API, distinct parser port
+in the six-package topology, exact types/bounds/dependency review, and RED-first property/fuzz/differential fixtures.
+Prove the Reindeer prerequisite without dependency changes; only then may a serialized lane exact-pin
+`starlark_syntax`, followed by full graph/parser/Buck2 qualification. Only the protected out-of-presubmit harness
+invokes `cargo metadata --offline --locked --no-deps --format-version 1` and non-building `buck2 uquery`;
+engine/required check never do. Any bound identity change requalifies. No implementation, dependency, generated bytes,
+qualification, or readiness is claimed.
 
 </first_party_source_relation>
