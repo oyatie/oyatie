@@ -20,15 +20,15 @@ landed.
 
 | Surface | What exists | Maturity |
 |---|---|---|
-| Root `Cargo.toml` and `Cargo.lock` | Workspace package declarations and the locked Rust dependency solution | Live Cargo authority; shared, serialized files |
-| `reindeer.toml` | Reindeer reads the root manifest, refuses unresolved build-script fixups, emits `third-party/BUCK`, and names an owned overlay under deleted `ci/` | Active input with a dead post-generation reference |
-| `third-party/fixups/**` | 70 package-local fixup files: 66 inherited plus four run-only scanner bindings | Real generation inputs, but not yet covered by one provenance inventory or conformance receipt |
-| `third-party/BUCK` | Checked generated dependency rules plus historical semantic mutations | Consumed by Buck2; its header names a different deleted shell wrapper, so clean reproduction is not proved |
-| `build/dependency-declarations/**` | Six Reindeer transaction packages: pure-core home, two ports, two adapters, and a facade | Structural only; core/adapters have no behavior and the facade refuses service |
-| `build/port-engine/**` | Fourteen Rust packages for the named source-port engine | Implementation-bearing but frozen by ADR-0719; not a dependency or repository transformation engine |
-| `build/toolchains/**`, `build/images/**` | Buck toolchain/cache declarations and one distroless image recipe; both still name Rust 1.97.1 while the root toolchain/workspace and hosted jobs require 1.98.0; several standards also narrate 1.97.1 as current | Partial, internally drifted Build assets and documentation; not a qualified image factory |
-| Dependency/security update automation | `Cargo.lock`, `deny.toml`, and a nonblocking weekly cargo-deny action exist; the documented root `deps.toml`, owned bump bot, and owned supply-chain audit gate do not | Partial observation with no owned update actuator or closed campaign |
-| `build/evidence/**`, `build/REORG-DRAIN.md` | Historical migration narratives | Residue; not runtime, generation, or admission evidence |
+| Root `Cargo.toml`/`Cargo.lock` | Workspace packages; locked solution | Live shared Cargo authority |
+| `reindeer.toml` | Reads root; fixups fail; emits `third-party/BUCK`; names deleted overlay | Active; dead post-step |
+| `third-party/fixups/**` | 70 fixups: 66 inherited, four scanners | Inputs; no provenance/conformance receipt |
+| `third-party/BUCK` | Generated rules plus old mutations | Buck2 input; stale wrapper; reproduction unproved |
+| `build/dependency-declarations/**` | Six core/port/adapter/facade packages | Structural; facade refuses |
+| `build/port-engine/**` | Fourteen source-port packages | Frozen by ADR-0719; not this engine |
+| `build/toolchains/**`, `build/images/**` | Assets use Rust 1.97.1 vs root 1.98.0 | Drifted; unqualified |
+| Dependency/security updates | Lock, deny file, weekly cargo-deny; no bot/gate | Partial; no actuator/campaign |
+| `build/evidence/**`, `REORG-DRAIN.md` | Migration history | Residue; no runtime/generation/admission evidence |
 
 No owned Rust entrypoint currently regenerates `third-party/BUCK` atomically,
 proves two clean runs byte-identical, emits a source-bound receipt, or supplies
@@ -128,8 +128,8 @@ file are not a proved round trip.
 
 ## Decision: one owned, fixup-first reconciliation transaction
 
-- **achieves:** a clean checkout regenerates exact dependency rules or refuses, never publishing a partial, patched, or self-asserted graph.
-- **origin:** `reindeer.toml` and `third-party/BUCK` name different deleted wrappers; prior generation text-patched native rules.
+- **achieves:** clean checkouts regenerate exact dependency rules or refuse partial, patched, or self-asserted output.
+- **origin:** Reindeer inputs name conflicting deleted wrappers; prior generation text-patched native rules.
   Reindeer constructs an ordered typed rule set before rendering, while file-only checks repeat errors.
 - **rule:** declaration reconciliation MUST be an owned Rust transaction. It
   MUST run one pinned Reindeer with locked/offline exact inputs, binary/toolchain
