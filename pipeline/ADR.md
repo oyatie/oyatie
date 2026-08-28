@@ -87,14 +87,18 @@ declaration enforcement has landed.
   commits without allowing stale partial mutation.
 - **origin:** whole-head locks serialize unrelated work, while text hunks and
   destination-only checks omit semantic dependencies.
-- **rule:** Pipeline MUST losslessly wrap each Build `DeclarationRepairSetV1`
-  in a canonical ChangeSet containing its provenance, complete semantic reads
-  and writes, digest-or-absence preconditions, deterministic complete
-  postimages, postconditions, output digests, and owner facts. An owner shard
-  routes review only; it never grants application authority. Before a future
-  application, Pipeline re-reads every declared semantic and owner fact against
-  one current immutable snapshot. Any mismatch refuses with no partial state;
-  a disjoint successor remains applicable only while all declared facts match.
+- **rule:** Pipeline MUST losslessly wrap every source
+  `DeclarationRepairSetV1` in canonical ChangeSets. Every ChangeSet preserves
+  its source RepairSet identity, whole-set digest, and exact owner-group
+  identity, plus complete semantic reads and writes, digest-or-absence
+  preconditions, deterministic complete postimages, postconditions, output
+  digests, and owner facts. The full set partitions completely and exactly once
+  into owner groups with pairwise-disjoint writes; missing, duplicate,
+  ambiguous, or overlapping groups refuse. A group routes review only; it never
+  grants application authority. Before a future application, Pipeline re-reads
+  every declared semantic and owner fact against one current immutable snapshot.
+  Any mismatch refuses with no partial state; a disjoint successor remains
+  applicable only while all declared facts match.
 - **ensure:** later model and fault tests cover read/write mismatch, owner move,
   disjoint successor, overlap, retry, and every compare/publish boundary.
 - **overturn_when:** a five-field Pipeline amendment proves equal complete-read

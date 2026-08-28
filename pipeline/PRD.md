@@ -55,10 +55,14 @@ verdict.
 
 ## ChangeSet application
 
-- Wrap one repair shard in one canonical ChangeSet with complete semantic
-  reads/writes, expected digest-or-absence preconditions, deterministic complete
-  postimages, postconditions and digests, source/profile provenance, and all
-  bound owner facts. A shard is routing metadata, not authority.
+- For every source `DeclarationRepairSetV1`, create exactly one canonical
+  ChangeSet per exact owner group. Each preserves the source RepairSet identity,
+  whole-set digest, owner-group identity, complete semantic reads/writes,
+  expected digest-or-absence preconditions, deterministic complete postimages,
+  postconditions and digests, source/profile provenance, and all bound owner
+  facts. The full set is complete and exactly-once across groups, and group
+  writes are pairwise disjoint; missing, duplicate, ambiguous, or overlapping
+  groups refuse. A group is routing metadata, not authority.
 - Before future publication, re-read every declared semantic input and owner
   fact from one current immutable snapshot. Any mismatch, invalid postimage, or
   ambiguous owner result refuses without partial publication.
@@ -103,8 +107,13 @@ report success.
 
 - Define Cargo/BUCK parsing, grammar, labels, dependency categories, or
   configured-graph behavior.
-- Build an owned SCM, general repository graph, campaign API, repair CLI, or
-  candidate execution environment.
+- Build an owned SCM, general repository graph, repair CLI, or candidate
+  execution environment. This D17a bootstrap creates no declaration-specific
+  or second campaign API: product owners retain semantic intent, postconditions,
+  and acceptance; Pipeline globally owns campaign execution and protected
+  review. Any separately adopted production campaign uses Pipeline's one
+  versioned API plus declarative-resource and reconciler surface; CLIs remain
+  retirement-marked diagnostics.
 - Claim any implementation, qualification, repair, activation, or enforcement
   has landed merely because this owner law is active.
 
