@@ -1,0 +1,18 @@
+[package]
+name = "dependency-declarations-publication-filesystem"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+dependency-declarations-publication = { path = "../../ports/publication" }
+dependency-declarations-reconcile = { path = "../../core/reconcile" }
+rustix.workspace = true
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true

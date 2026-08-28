@@ -1,0 +1,92 @@
+load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
+
+rust_binary(
+    name = "dependency-declarations-reconciler-app-build-script",
+    srcs = ["build.rs"],
+    crate = "build_script_build",
+    crate_root = "build.rs",
+    visibility = [],
+    within_view = ["//build/dependency-declarations/facade/reconciler-app/..."],
+)
+
+export_file(name = "build.rs", visibility = [])
+
+genrule(
+    name = "dependency-declarations-reconciler-app-source-items",
+    srcs = glob(["src/items/*.rs"]),
+    out = "source_items",
+    cmd = "mkdir -p $OUT && if [ -n \"$SRCS\" ]; then cp $SRCS $OUT/; fi",
+    visibility = [],
+)
+
+genrule(
+    name = "dependency-declarations-reconciler-app-manifest-dir",
+    srcs = [
+        ":build.rs",
+        ":dependency-declarations-reconciler-app-source-items",
+    ],
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/src/items && cp $(location :build.rs) $OUT/ && cp -R $(location :dependency-declarations-reconciler-app-source-items)/. $OUT/src/items/",
+    visibility = [],
+)
+
+buildscript_run(
+    name = "dependency-declarations-reconciler-app-build-script-run",
+    buildscript_rule = ":dependency-declarations-reconciler-app-build-script",
+    package_name = "dependency-declarations-reconciler-app",
+    version = "0.1.0",
+    manifest_dir = ":dependency-declarations-reconciler-app-manifest-dir",
+)
+
+_BUILD_ENV = {
+    "OUT_DIR": "$(location :dependency-declarations-reconciler-app-build-script-run[out_dir])",
+}
+
+_FACADE_VIEW = [
+    "//build/dependency-declarations/adapters/generation-reindeer/...",
+    "//build/dependency-declarations/adapters/publication-filesystem/...",
+    "//build/dependency-declarations/core/reconcile/...",
+    "//build/dependency-declarations/facade/reconciler-app/...",
+    "//build/dependency-declarations/ports/generation/...",
+    "//build/dependency-declarations/ports/publication/...",
+]
+
+rust_library(
+    name = "dependency-declarations-reconciler-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "dependency_declarations_reconciler_app",
+    crate_root = "src/lib.rs",
+    env = _BUILD_ENV,
+    visibility = ["//build/dependency-declarations/..."],
+    within_view = _FACADE_VIEW,
+    deps = [
+        "//build/dependency-declarations/adapters/generation-reindeer:dependency-declarations-generation-reindeer",
+        "//build/dependency-declarations/adapters/publication-filesystem:dependency-declarations-publication-filesystem",
+        "//build/dependency-declarations/core/reconcile:dependency-declarations-reconcile",
+        "//build/dependency-declarations/ports/generation:dependency-declarations-generation",
+        "//build/dependency-declarations/ports/publication:dependency-declarations-publication",
+    ],
+)
+
+rust_binary(
+    name = "dependency-declarations-reconciler-app-bin",
+    srcs = ["src/main.rs"],
+    crate = "dependency_declarations_reconciler_app_bin",
+    crate_root = "src/main.rs",
+    visibility = [],
+    within_view = ["//build/dependency-declarations/facade/reconciler-app/..."],
+    deps = [":dependency-declarations-reconciler-app"],
+)
+
+rust_test(
+    name = "dependency-declarations-reconciler-app-module-membership-test",
+    srcs = ["build.rs", "tests/module_membership.rs"],
+    crate = "dependency_declarations_reconciler_app_module_membership_test",
+    crate_root = "tests/module_membership.rs",
+    env = {
+        "CARGO_MANIFEST_DIR": "build/dependency-declarations/facade/reconciler-app",
+    },
+    visibility = [],
+    within_view = ["//build/dependency-declarations/facade/reconciler-app/..."],
+    deps = [":dependency-declarations-reconciler-app"],
+)

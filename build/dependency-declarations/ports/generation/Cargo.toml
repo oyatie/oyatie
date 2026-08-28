@@ -1,0 +1,13 @@
+[package]
+name = "dependency-declarations-generation"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true

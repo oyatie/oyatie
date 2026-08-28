@@ -1,0 +1,74 @@
+load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
+
+rust_binary(
+    name = "dependency-declarations-generation-reindeer-build-script",
+    srcs = ["build.rs"],
+    crate = "build_script_build",
+    crate_root = "build.rs",
+    visibility = [],
+    within_view = ["//build/dependency-declarations/adapters/generation-reindeer/..."],
+)
+
+export_file(name = "build.rs", visibility = [])
+
+genrule(
+    name = "dependency-declarations-generation-reindeer-source-items",
+    srcs = glob(["src/items/*.rs"]),
+    out = "source_items",
+    cmd = "mkdir -p $OUT && if [ -n \"$SRCS\" ]; then cp $SRCS $OUT/; fi",
+    visibility = [],
+)
+
+genrule(
+    name = "dependency-declarations-generation-reindeer-manifest-dir",
+    srcs = [
+        ":build.rs",
+        ":dependency-declarations-generation-reindeer-source-items",
+    ],
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/src/items && cp $(location :build.rs) $OUT/ && cp -R $(location :dependency-declarations-generation-reindeer-source-items)/. $OUT/src/items/",
+    visibility = [],
+)
+
+buildscript_run(
+    name = "dependency-declarations-generation-reindeer-build-script-run",
+    buildscript_rule = ":dependency-declarations-generation-reindeer-build-script",
+    package_name = "dependency-declarations-generation-reindeer",
+    version = "0.1.0",
+    manifest_dir = ":dependency-declarations-generation-reindeer-manifest-dir",
+)
+
+_BUILD_ENV = {
+    "OUT_DIR": "$(location :dependency-declarations-generation-reindeer-build-script-run[out_dir])",
+}
+
+rust_library(
+    name = "dependency-declarations-generation-reindeer",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "dependency_declarations_generation_reindeer",
+    crate_root = "src/lib.rs",
+    env = _BUILD_ENV,
+    visibility = ["//build/dependency-declarations/..."],
+    within_view = [
+        "//build/dependency-declarations/adapters/generation-reindeer/...",
+        "//build/dependency-declarations/core/reconcile/...",
+        "//build/dependency-declarations/ports/generation/...",
+    ],
+    deps = [
+        "//build/dependency-declarations/core/reconcile:dependency-declarations-reconcile",
+        "//build/dependency-declarations/ports/generation:dependency-declarations-generation",
+    ],
+)
+
+rust_test(
+    name = "dependency-declarations-generation-reindeer-module-membership-test",
+    srcs = ["build.rs", "tests/module_membership.rs"],
+    crate = "dependency_declarations_generation_reindeer_module_membership_test",
+    crate_root = "tests/module_membership.rs",
+    env = {
+        "CARGO_MANIFEST_DIR": "build/dependency-declarations/adapters/generation-reindeer",
+    },
+    visibility = [],
+    within_view = ["//build/dependency-declarations/adapters/generation-reindeer/..."],
+    deps = [":dependency-declarations-generation-reindeer"],
+)

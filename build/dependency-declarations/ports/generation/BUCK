@@ -1,0 +1,8 @@
+rust_library(
+    name = "dependency-declarations-generation",
+    srcs = ["src/lib.rs"],
+    crate = "dependency_declarations_generation",
+    crate_root = "src/lib.rs",
+    visibility = ["//build/dependency-declarations/..."],
+    within_view = ["//build/dependency-declarations/ports/generation/..."],
+)
