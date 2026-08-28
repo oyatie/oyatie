@@ -73,6 +73,31 @@ rust_library(
 )
 
 rust_test(
+    name = "dependency-declarations-reconcile-determinism-test",
+    srcs = ["tests/determinism.rs"],
+    crate = "dependency_declarations_reconcile_determinism_test",
+    crate_root = "tests/determinism.rs",
+    visibility = [],
+    within_view = _PACKAGE_VIEW,
+    deps = [":dependency-declarations-reconcile"],
+)
+
+rust_test(
+    name = "dependency-declarations-reconcile-validation-test",
+    srcs = ["tests/validation.rs"],
+    crate = "dependency_declarations_reconcile_validation_test",
+    crate_root = "tests/validation.rs",
+    visibility = [],
+    within_view = _PACKAGE_VIEW + [
+        "//build/dependency-declarations/ports/generation/...",
+    ],
+    deps = [
+        ":dependency-declarations-reconcile",
+        "//build/dependency-declarations/ports/generation:dependency-declarations-generation",
+    ],
+)
+
+rust_test(
     name = "dependency-declarations-reconcile-module-membership-test",
     srcs = ["build.rs", "tests/module_membership.rs"],
     crate = "dependency_declarations_reconcile_module_membership_test",
