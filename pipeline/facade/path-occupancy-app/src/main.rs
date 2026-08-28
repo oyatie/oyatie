@@ -43,7 +43,6 @@ fn run() -> Result<(), String> {
     }
 
     fetch_trunk_and_pull_heads(&open, &config.token)?;
-    let trunk = git_text(&config.token, &["rev-parse", TRUNK_REF])?;
     let current_head = pull_head_ref(config.pull_request);
     let current_base = git_text(
         &config.token,
@@ -67,7 +66,7 @@ fn run() -> Result<(), String> {
         }
     }
 
-    admit(&this, &in_flight, current_base == trunk).map_err(|error| error.message())
+    admit(&this, &in_flight).map_err(|error| error.message())
 }
 
 fn config_from_env() -> Result<Config, String> {
