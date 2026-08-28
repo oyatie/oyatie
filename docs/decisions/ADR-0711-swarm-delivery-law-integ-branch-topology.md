@@ -2,7 +2,7 @@
 doc_status: published
 id: ADR-0711
 title: "Transitional migration input: swarm delivery topology and command discipline"
-status: Accepted
+status: Superseded
 planning_impact: false
 deciders: founder
 date: 2026-08-10
@@ -10,49 +10,12 @@ door: two-way
 owner: council-architecture
 supersedes: []
 superseded_by: []
-amends: [ADR-0700, ADR-0701]
+amends: []
 amended_by: []
-depends_on: [ADR-0700, ADR-0701]
-related: [ADR-0111, ADR-0119, ADR-0131, ADR-0363, ADR-0366, ADR-0515, ADR-0541, ADR-0554, ADR-0562]
+depends_on: []
+related: []
 milestone: W0
-# Frozen authoring-era deliverables below are non-operative migration provenance.
-deliverables:
-  - id: ADR-0711-D1
-    description: "Durable integ/<root> + integ/docs + integ/specs branch topology with machine-readable path envelopes."
-    exit_criteria: "specs/integ-branch-envelopes.json exists; governed roots/planes/hubs are enumerated ONLY in that JSON (#roots, #planes, #hubs.paths) — prose cites JSON pointers and MUST NOT re-list; hub sole-owner list and adjunct claim rules are machine-readable; envelope self-ownership is integ/specs."
-    verified_by: "presubmit"
-  - id: ADR-0711-D2
-    description: "Worktree-per-agent isolation plus worker git allowlist (no stash/reset) and server-side integ reset after land."
-    exit_criteria: "PORTABLE-SWARM-CONTRACT.md carries Swarm Delivery Law; deliver.js Claim verifies envelope + merge-tree + hub exclusivity; Land upserts one PR per integ/<root> and documents server-side reset refspec; concurrent-safe exemptions match specs/integ-branch-envelopes.json#concurrent_safe_exemptions.paths (narrowed per-lane evidence — not whole evidence/**)."
-    verified_by: "presubmit"
-  - id: ADR-0711-D3
-    description: "Hyperscaler monorepo patterns + anti-patterns encoded as first-class Swarm Delivery Law (not agent-swarm lessons alone)."
-    exit_criteria: "ADR-0711 and PORTABLE-SWARM-CONTRACT.md each have a dedicated Hyperscaler monorepo patterns section; specs/integ-branch-envelopes.json carries matching notes citing ADR-0119/0131/0515/0541/0562/0700/0701."
-    verified_by: "presubmit"
-  - id: ADR-0711-D4
-    description: "Amendment A — docs governability epic gate, buck2 [check] daemon (no cargo revival), comment doctrine, generated-files doctrine."
-    exit_criteria: "ADR-0711 Amendment A + PORTABLE-SWARM-CONTRACT Amendment A present; check-daemon invokes buck2 build //...[check] only under SWARM_ORCHESTRATOR=1 with zero cargo build/check/test/clippy invocations; docs-governance beads epic exists gated on integ/docs+integ/specs live."
-    verified_by: "presubmit"
-  - id: ADR-0711-D5
-    description: "Amendment B — REORG NOW ternary layout map: every root/meaningful subdir is reorg_now|keep_forever|delete_permanently; freeze prefixes block NEW births only while moves execute; libs/cloud/oya/infra/toolchains/tools are NOT keep_forever."
-    exit_criteria: "ADR-0711 Amendment B + PORTABLE-SWARM-CONTRACT Amendment B present; envelopes reorg_debt_freeze rows carry action/destination/shape/rationale/redesign/judgment_status; evaluation_gate forbids git-mv-only; deliver.js Claim rejects births under freeze prefixes and rejects path changes without judgment_status=done."
-    verified_by: "presubmit"
-  - id: ADR-0711-D6
-    description: "Amendment B Pattern-First + full 16-lens battery — establish specs/naming-taxonomy.json before renames; taxonomy REPLACES indefensible brand/ADR naming (does not encode it); judgments require lenses_applied=all-16 + challenges[] when keeping/replacing existing patterns; dual-emit merge-gate-context until founder protection flip."
-    exit_criteria: "specs/naming-taxonomy.json with overturned_patterns; ADR-0711 B-1b/B-1c + PORTABLE mirror; envelopes naming.judgment_template + judgment_files.dir (naming_sweep lives under governance/check/integ-envelope/judgments/, not inlined); no mass rename without taxonomy instance."
-    verified_by: "presubmit"
-  - id: ADR-0711-D7
-    description: "Amendment C — 137-entry archive distillation synthesized as clustered operating-patterns catalog (KEEP/BAN), not 137 paraphrases; machine-readable specs/agentic-operating-patterns.json; distill notes that said keep name presubmit are OVERRULED (forever name presubmit)."
-    exit_criteria: "ADR-0711 Amendment C + PORTABLE-SWARM-CONTRACT Amendment C present; specs/agentic-operating-patterns.json carries KEEP/BAN clusters + oyatie_apply tags; explicit OVERRULE of presubmit-as-forever-name."
-    verified_by: "presubmit"
-  - id: ADR-0711-D8
-    description: "Amendment D — Anti-drift documentation doctrine (INV-DOC-1…9); enumerate ONLY in envelopes JSON; docs_touched/docs_action packet; same-wave colocation; versioned anti_drift_doctrine_version; merge_windows policy-as-data."
-    exit_criteria: "ADR-0711 Amendment D + PORTABLE Amendment D present; envelopes #anti_drift + #merge_windows; deliver.js Claim requires docs_touched/docs_action; drift-grep deferred to .grok/ Rust self-check (no tools/swarm birth on #1644)."
-    verified_by: "presubmit"
-  - id: ADR-0711-D10
-    description: "Historical Amendment E is frozen migration input; permanent numbered decision paths and tracked navigation indexes are overruled as current identity."
-    exit_criteria: "Current identities are semantic native names; existing sequential filenames and identifiers remain deletion-bound provenance only, with Unknown blocking projection or deletion."
-    verified_by: "presubmit"
+deliverables: []
 ---
 # ADR-0711: Transitional migration input — swarm delivery topology and command discipline
 
@@ -87,7 +50,11 @@ reference is non-operative migration DATA until independently classified.
   projection and source deletion. Existing sequential filenames and identifiers
   survive only as deletion-bound provenance; there is no rename, tombstone,
   redirect, catalog, or archive phase. Deletion follows successful verified
-  projection, and no such completion is asserted here.
+  projection, and no such completion is asserted here. Current Pipeline
+  admission still recognizes numbered decision paths, and its semantic-naming
+  tests explicitly admit them. The separately owned Pipeline cutover MUST remove
+  that compatibility; this task changes no Pipeline surface and does not claim
+  enforcement is fixed.
 - **overturn_when:** measured evidence proves an irreducible current contract
   cannot live on semantic native authority or an untracked immutable-revision
   view, and a bounded five-field replacement lands atomically without restoring

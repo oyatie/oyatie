@@ -2,25 +2,20 @@
 doc_status: published
 id: ADR-0701
 title: "Transitional migration input: monorepo capability layout, faces, and reorg doctrine"
-status: Accepted
+status: Superseded
 planning_impact: false
 deciders: founder
 date: 2026-08-06
 door: two-way
 owner: council-architecture
-supersedes: [ADR-0011, ADR-0017, ADR-0026, ADR-0034, ADR-0036, ADR-0058, ADR-0131, ADR-0145, ADR-0159, ADR-0165, ADR-0177, ADR-0188, ADR-0197, ADR-0199, ADR-0201, ADR-0206, ADR-0218, ADR-0220, ADR-0245, ADR-0246, ADR-0255, ADR-0280, ADR-0307, ADR-0331, ADR-0332, ADR-0333, ADR-0335, ADR-0336, ADR-0338, ADR-0343, ADR-0344, ADR-0351, ADR-0363, ADR-0370, ADR-0375, ADR-0376, ADR-0378, ADR-0379, ADR-0476, ADR-0479, ADR-0480, ADR-0482, ADR-0510, ADR-0512, ADR-0520, ADR-0532, ADR-0552, ADR-0561, ADR-0562, ADR-0564, ADR-0571, ADR-0580, ADR-0591, ADR-0598, ADR-0599, ADR-0604, ADR-0614, ADR-0615, ADR-0617, ADR-0620, ADR-0621, ADR-0635]
+supersedes: []
 superseded_by: []
 amends: []
-amended_by: [ADR-0710, ADR-0719]
+amended_by: []
 depends_on: []
 related: []
 milestone: W0
-# Frozen authoring-era deliverable below is non-operative migration provenance.
-deliverables:
-  - id: ADR-0701-D1
-    description: "Authoring-era consolidation retained only as frozen migration input; it is not current owner truth or a destination entry surface."
-    exit_criteria: "Every source claim is classified and accepted current facts are projected to semantic native authority at one immutable revision; any conflict or missing fact yields Unknown and keeps this source frozen."
-    verified_by: "presubmit"
+deliverables: []
 ---
 # ADR-0701: Transitional migration input — monorepo capability layout, faces, and reorg doctrine
 
@@ -57,7 +52,11 @@ is non-operative migration DATA until independently classified.
   Accepted current facts project to native authority before atomic source
   deletion. No archive, redirect, catalog, mass rename, tombstone, or numbered
   replacement phase is introduced, and this amendment does not claim that
-  projection is complete or that this file is ready to delete.
+  projection is complete or that this file is ready to delete. Current Pipeline
+  admission still recognizes numbered decision paths, and its semantic-naming
+  tests explicitly admit them. The separately owned Pipeline cutover MUST remove
+  that compatibility; this task changes no Pipeline surface and does not claim
+  enforcement is fixed.
 - **overturn_when:** measured evidence proves an irreducible current contract
   cannot live on semantic native authority or an untracked immutable-revision
   view, and a bounded five-field replacement lands atomically without restoring
@@ -70,8 +69,9 @@ every Accepted file as equal current law. This apex consolidated **62** records
 in the `monorepo_capability` topic. Those records and the consolidation are now
 unclassified migration input; history remains content-addressed in SCM.
 
-Current resolution does not traverse this apex or its `supersedes` edges.
-Explicit historical lookup may inspect them as SCM DATA only.
+Current resolution does not traverse this apex or any relationship field.
+Authoring-era relationships remain available through explicit SCM historical
+lookup as DATA only.
 
 ## Transitional disposition
 
