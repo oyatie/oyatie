@@ -163,6 +163,26 @@ not a qualified compatibility promise.
   generation identity, destination preimage, publisher profile, and actual
   success, typed failure, or indeterminate replacement/durability outcome.
 
+## First-party source-declaration integrity
+
+- A change on either declaration side triggers the complete HEAD relation; a
+  base/delta may attribute or shard repairs but never reduce evaluated HEAD.
+- Only profiled target/dependency pairs participate. Normal, build, dev,
+  optional, and target-specific Cargo categories participate only as first-party
+  local path dependencies; valid binary/test target subsets must not false-fail.
+- Every unadmitted dependency-affecting Cargo or Starlark form refuses. The
+  caller supplies immutable snapshot bytes and owner facts; Build returns sorted
+  typed violations and non-mutating `DeclarationRepairSetV1` values, never effects.
+- Qualified third-party Reindeer regeneration MUST precede any new parser
+  dependency or root package-graph mutation for this slice.
+- Protected differential qualification consumes external receipts from exact
+  `cargo metadata --offline --locked --no-deps --format-version 1` and
+  non-building `buck2 uquery`; the Build engine invokes neither.
+- Activation waits for a qualified profile and deterministic repair of every
+  live violation, with no baseline or allowlist. These are future requirements:
+  no parser, relation, repair facade, qualification, repair, or enforcement is
+  claimed landed.
+
 ## Interfaces and integration
 
 - Keep a pure reconciliation core isolated from process/filesystem concerns.
@@ -209,6 +229,8 @@ At the recorded workspace package/target scale and declared warm-cache profile:
 - pinned-nightly shadow cadence: **at least daily**;
 - Build analysis/refusal receipt after an ingested critical affected-component
   fact: **p95 <= 1 hour**.
+- Qualified first-party complete-HEAD drift false negatives and valid-subset
+  false positives: **zero**.
 
 These are objectives, not current claims. The latency objective is advertised
 only after a reproducible benchmark records hardware, cache, workspace scale,
@@ -230,6 +252,8 @@ generator pin, and platform set.
 - On a qualified publication profile, an unchanged result performs no
   destination replacement; a changed result exposes only the old complete file
   or the new complete file.
+- Once implemented and qualified, either one-sided first-party declaration drift
+  refuses and identical complete-HEAD inputs replay identical V1 repair sets.
 
 ## Failure
 
@@ -247,6 +271,8 @@ generator pin, and platform set.
   second vulnerability.
 - Build selects a consuming product's semantic adoption instead of validating
   its owner-supplied disposition and evidence.
+- The future first-party engine accepts an unadmitted dependency-affecting form,
+  misses one-sided drift, false-fails a valid subset, or performs any effect.
 
 ## Named fault campaigns
 
@@ -263,5 +289,7 @@ generator pin, and platform set.
   compiler miscompilation; Cargo CVE; malicious or yanked transitive package;
   dependency owner change; stale advisory mirror; alias conflict; no fixed
   version; MSRV-incompatible resolution; and one missed pin surface.
+- Cargo-only and BUCK-only drift, valid binary/test subsets, unknown grammar,
+  parser/profile identity change, owner overlap, and repair-precondition mismatch.
 
 </acceptance>

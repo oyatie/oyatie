@@ -227,20 +227,36 @@ file are not a proved round trip.
 
 </migration_provider_boundary>
 
+<source_declaration_integrity>
+
+## Decision: one corpus-free first-party source-declaration relation
+
+- **achieves:** one deterministic, versioned, corpus-free, unconfigured relation between participating first-party local-path Cargo dependencies and checked first-party BUCK labels, never a configured graph or census.
+- **origin:** ADR-0719 D17a admits first-party stale-label prevention distinct from Reindeer-generated `third-party/BUCK`.
+- **rule:** Build MUST evaluate complete HEAD from immutable inputs every time; base/delta facts only attribute and shard repairs. Only profiled normal/build/dev/optional/target-specific first-party local-path Cargo and checked-BUCK target/dependency pairs participate bidirectionally.
+  Registry, Git, and other third-party Cargo edges, `third-party//`, and generated `third-party/BUCK` are excluded. The maintained `toml` and exactly pinned Meta `starlark_syntax` dependencies MUST sit behind Build parser ports and a closed, bounded grammar/profile.
+  The core MUST emit sorted typed violations and deterministic, non-mutating `DeclarationRepairSetV1` values binding snapshot/profile provenance, complete semantic read/write facts and digest-or-absence preconditions, deterministic complete postimages, typed postconditions, postimage digests, an output digest, and a whole-set digest,
+  deterministic caller-owner grouping, and pairwise-disjoint write sets; ambiguous ownership or overlap MUST refuse. Build MUST NOT invoke SCM/Git, discover owners, apply or mutate repairs, orchestrate campaigns/protected reviews, invoke Cargo, Buck2, a shell, any process, or a candidate executable, access a network,
+  store a graph corpus/baseline/count/path inventory, interpret configured Starlark, or claim configured-graph/compile authority.
+- **ensure:** adversarial and protected differential qualification cover valid binary/test subsets, both one-sided drift directions, every admitted/refused grammar form, deterministic replay, and every forbidden effect.
+  Later-disjoint application is allowed only while every precondition matches; activation waits for full deterministic legacy repair without a baseline, and every profile-identity change requires requalification.
+- **overturn_when:** a founder-accepted five-field replacement retains an equally fail-closed complete-HEAD relation and every ownership/effect boundary.
+
+</source_declaration_integrity>
+
 <unadopted_proposals>
 
 ## Contract details requiring explicit adoption — nonbinding
 
 Status: **PROPOSED DETAILS; NOT ADOPTED**.
 
-The provider/consumer ownership boundary above is adopted. The exact
-compilation-unit format, language extractor contracts, semantic fact schemas,
-conformance interfaces, and deterministic recipe protocol remain proposed
-details. Pipeline's typed repository-input and campaign/review contracts, and
-any Storage/Data destination contracts, remain decisions for those owners.
+The provider/consumer boundary and only D17a's first-party declaration relation
+are adopted. General compilation-unit, semantic-fact, conformance, codemod,
+recipe, repository-input, campaign, Storage/Data, and cross-owner schemas remain
+proposed details and decisions for their affected owners.
 
 This file records those questions so the adopted provider boundary cannot be
-mistaken for approval of an exact schema or interface. Those details remain
+mistaken for approval of any remaining schema or interface. Those details remain
 outside implementation until the user adopts them, each affected owner records
 its side, and architecture review accepts the shared contracts. No current lane
 may use this section as dependency authority.

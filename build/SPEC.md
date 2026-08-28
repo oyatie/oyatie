@@ -286,15 +286,15 @@ builds/cqueries the representative Buck targets; check-only then reports clean.
 
 <placement_boundary>
 
-## Implementation placement gate
+## First-party source-declaration V1 placement gate
 
-Build behavior stays separate from `build/port-engine`. ADR-0719's meta-root
-grammar makes exact placement structural; prefer
-`build/dependency-declarations/{core,ports,adapters,facade}`, but authorize no
-code/root mutation until an independent plan names paths, targets, packages,
-the shared-file writer, and required reviews.
-
-Build's reusable provider role is adopted; compilation-unit, semantic-fact,
-conformance, and recipe schemas/homes remain nonbinding `ADR.md` details.
+`SourceDeclarationProfileV1` canonically binds the maintained `toml` and exactly pinned Meta `starlark_syntax` parser sources, versions, and digests; grammar, prelude/macro/rule contracts; admitted label forms and target/dependency kinds; and every bound.
+Parser ports yield complete normalized facts or typed refusal; Build owns no hand parser/interpreter and never interprets configured Starlark.
+Each invocation evaluates complete immutable HEAD; base/delta facts only attribute and shard repairs, never limit correctness.
+Only profiled first-party local-path Cargo dependencies and checked first-party BUCK labels participate bidirectionally; registry/Git/other third-party Cargo, `third-party//`, and generated `third-party/BUCK` are excluded.
+The result is sorted typed violations plus deterministic, non-mutating `DeclarationRepairSetV1` values binding snapshot/profile provenance, complete semantic read/write facts, digest-or-absence preconditions, complete deterministic postimages, typed postconditions, postimage digests, an output digest, a whole-set digest, deterministic caller-owner grouping, and pairwise-disjoint write sets; ambiguity or overlap refuses.
+Core invokes no SCM/Git, Cargo, Buck2, shell, network, process, or candidate executable; discovers no owners; applies/mutates no repair; orchestrates no campaign/review; stores no graph corpus/baseline/count/path inventory; and claims no configured-graph/compile authority.
+Activation waits for a qualified profile, external receipts from protected `cargo metadata --offline --locked --no-deps --format-version 1` and non-building `buck2 uquery`, and full legacy repair without a baseline; the engine invokes neither tool, and any profile-identity change requalifies before enforcement resumes.
+Build stays separate from `build/port-engine`; prefer `build/dependency-declarations/{core,ports,adapters,facade}`, but authorize no code/root mutation until an owner design names paths, targets, packages, the shared writer, and reviews. This defines no Pipeline snapshot, ChangeSet/application, campaign, generic semantic-fact, or general repository-graph schema.
 
 </placement_boundary>
