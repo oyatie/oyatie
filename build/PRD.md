@@ -24,8 +24,9 @@ source port engine remains frozen and is not the reconciliation implementation.
 The adopted migration-provider boundary also assigns reusable repository
 analysis and deterministic transformation machinery to Build. Consuming product
 owners retain semantic intent, postconditions, and acceptance; Pipeline retains
-campaign and protected-review orchestration. Exact schemas and interfaces are
-not adopted or landed by this declaration-integrity slice.
+campaign and protected-review orchestration. The Declaration Reconciliation V1
+request/result/validation contract is adopted solely for L1d-L1g; general
+repository-evolution and cross-owner schemas remain unadopted.
 
 </product_boundary>
 

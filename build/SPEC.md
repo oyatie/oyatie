@@ -199,22 +199,11 @@ between Reindeer stdout and validation.
 
 ## Candidate validation
 
-Validation is deterministic and bounded. It parses the full generated file and
-checks:
-
-- the canonical generated header and imports;
-- unique rule names and one definition per expected crate/alias identity;
-- every dependency, source archive, build-script output, and native-rule
-  reference resolves;
-- no destination, absolute checkout, staging, or host-specific path appears;
-- required Cargo feature/cfg/platform branches and fixup effects are present;
-- forbidden wrapper/overlay references and hand-edit sentinels are absent;
-- representative targets exist for AWS-LC, PSM, optional aliases,
-  `wasm-bindgen-futures`, and `web-sys`.
-
-Parser and rule-shape limits bound file bytes, rules, attributes, list entries,
-string bytes, and reference edges. Limit values land with the kernel tests and
-cannot be inferred from a candidate file.
+Validation is deterministic, bounded, and defined by
+[`declaration-reconciliation-generated-buck-v1.md`](docs/design/declaration-reconciliation-generated-buck-v1.md).
+Internal labels resolve in the parsed file; external labels are declared only by
+exact typed request facts and D/Q Buck receipts prove them. No request can
+extend grammar, rule, attribute, expression, callee, import, or failure law.
 
 </validation>
 

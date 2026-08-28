@@ -1,16 +1,16 @@
 ---
 doc_class: Owner-Design
 owner: build
-status: Proposed
+status: Accepted
 date: 2026-08-27
-base: 505828b377dbd4b6705f50af6369fc1a8a98b21a
-revision: 2
+base: 72f7d47056448ca7278c7b45f2ca20849443e6f1
+revision: 3
 amended: 2026-08-28
 ---
 
 # Declaration reconciliation v1 execution map
 
-This is the L1c execution map, not an ADR fork, second plan authority, evidence dump, or landed-behavior claim. Authority remains [`build/ADR.md`](../../ADR.md), [`build/PRD.md`](../../PRD.md), [`build/SPEC.md`](../../SPEC.md), and [`build/PLAN.md`](../../PLAN.md), inheriting [ADR-0719](../../../docs/decisions/ADR-0719-eac-serving-control-north-star.md) D-27/D-43. Evidence is the exact base above, L1b's blocker at `build/PLAN.md:70-95`, and the pinned source below.
+This accepted L1c execution map is not an ADR fork, second plan authority, evidence dump, or landed-behavior claim. Authority remains [`build/ADR.md`](../../ADR.md), [`build/PRD.md`](../../PRD.md), [`build/SPEC.md`](../../SPEC.md), [`build/PLAN.md`](../../PLAN.md), and the closed [Generated-Buck V1 contract](declaration-reconciliation-generated-buck-v1.md), inheriting [ADR-0719](../../../docs/decisions/ADR-0719-eac-serving-control-north-star.md) D-27/D-43. Evidence is the exact base above, L1b's blocker at `build/PLAN.md:70-95`, and the pinned source below.
 
 ## Rulings and closed shape
 
@@ -21,7 +21,7 @@ The irreducible six packages are two effect traits, one pure core, two implement
 
 | Path; Cargo package; entry point | Owned files and Buck targets | Dependency direction |
 |---|---|---|
-| `core/reconcile`; `dependency-declarations-reconcile`; `src/lib.rs` | `Cargo.toml`, `OWNERS`, `BUCK`, `build.rs`, `src/lib.rs`, `src/items/{canonical,digest,error,platform,receipt,request,validation,reconcile}.rs`, `tests/{request,determinism,validation,publication,refusals,module_membership}.rs`; `:dependency-declarations-reconcile`, `:dependency-declarations-reconcile-request-test`, `:dependency-declarations-reconcile-determinism-test`, `:dependency-declarations-reconcile-validation-test`, `:dependency-declarations-reconcile-publication-test`, `:dependency-declarations-reconcile-refusals-test`, `:dependency-declarations-reconcile-module-membership-test` | generation port + publication port + workspace `sha2`; no IO crate |
+| `core/reconcile`; `dependency-declarations-reconcile`; `src/lib.rs` | `Cargo.toml`, `OWNERS`, `BUCK`, `build.rs`, `src/lib.rs`, `src/items/{canonical,digest,error,platform,receipt,request,validation,reconcile,starlark_lexer,starlark_parser,generated_graph_contract,generated_graph_schema,semantic_projection}.rs`, `tests/{request,determinism,validation,publication,refusals,module_membership,starlark,generated_graph,semantic_projection}.rs`; existing targets plus `:dependency-declarations-reconcile-{starlark,generated-graph,semantic-projection}-test` | generation port + publication port + workspace `sha2` + `semver`; no IO crate |
 | `ports/generation`; `dependency-declarations-generation`; `src/lib.rs` | `Cargo.toml`, `OWNERS`, `BUCK`, `src/lib.rs`, `tests/contract.rs`; `:dependency-declarations-generation`, `:dependency-declarations-generation-contract-test` | `std` only; owns `GenerationPort<Request, Output, Error>` |
 | `ports/publication`; `dependency-declarations-publication`; `src/lib.rs` | `Cargo.toml`, `OWNERS`, `BUCK`, `src/lib.rs`, `tests/contract.rs`; `:dependency-declarations-publication`, `:dependency-declarations-publication-contract-test` | `std` only; owns `PublicationPort<Request, Output, Error>` |
 | `adapters/generation-reindeer`; `dependency-declarations-generation-reindeer`; `src/lib.rs` | `Cargo.toml`, `OWNERS`, `BUCK`, `build.rs`, `src/lib.rs`, `src/items/{environment,process,sandbox,snapshot}.rs`, `tests/{process,nine_platforms,module_membership}.rs`, `tests/fixtures/nine-platforms/{workspace,fixups}.txt`; `:dependency-declarations-generation-reindeer`, `:dependency-declarations-generation-reindeer-process-test`, `:dependency-declarations-generation-reindeer-nine-platforms-test`, `:dependency-declarations-generation-reindeer-module-membership-test` | core + generation port; exact Reindeer process only |
@@ -89,7 +89,7 @@ struct ToolIdentityV1 { name: String, version: String, commit: String, host_trip
 enum GeneratorBinaryV1 { ReproducibleBuild { receipt_sha256: DigestV1 }, ReleaseAsset { asset_sha256: DigestV1 } }
 enum EnvironmentProfileV1 { ReindeerHermeticV1 } enum SandboxProfileV1 { DeclaredReadStageWriteNoNetworkV1 } enum ValidatorProfileV1 { ReindeerBuckV1 }
 enum PublisherProfileV1 { LinuxExt4V1, LinuxXfsV1, MacosApfsV1 }
-struct GenerationRequestV1 { repository: RepositoryCorrelationV1, manifest: InputFileV1, lock: InputFileV1, reindeer_config: InputFileV1, fixups: InputTreeV1, cargo_sources: InputTreeV1, platforms: PlatformSetV1, generator: GeneratorIdentityV1, cargo: ToolIdentityV1, rustc: ToolIdentityV1, environment: EnvironmentProfileV1, sandbox: SandboxProfileV1, validator: ValidatorProfileV1 }
+struct GenerationRequestV1 { repository: RepositoryCorrelationV1, manifest: InputFileV1, lock: InputFileV1, reindeer_config: InputFileV1, fixups: InputTreeV1, cargo_sources: InputTreeV1, platforms: PlatformSetV1, generator: GeneratorIdentityV1, cargo: ToolIdentityV1, rustc: ToolIdentityV1, environment: EnvironmentProfileV1, sandbox: SandboxProfileV1, validator: ValidatorProfileV1, expected_graph: ExpectedGeneratedGraphV1 }
 struct ReconciliationRequestV1 { generation: GenerationRequestV1, publish: Option<PublicationIntentV1> }
 struct GenerationInvocationV1 { request_id: DigestV1, request: GenerationRequestV1 }
 struct RawGenerationV1 { bytes: Box<[u8]>, stderr: Box<[u8]> }
@@ -140,7 +140,7 @@ no-follow capability handles, streams/digests each against its entry, and
 returns `InputChanged` on mismatch. Thus the 16-GiB snapshot is never resident.
 Physical checkout/stage/capability paths are adapter state, excluded from IDs.
 
-`request_id` hashes `build.declaration-request.v1\0` plus `GenerationRequestV1`;
+`request_id` hashes `build.declaration-request.v1\0` plus every `GenerationRequestV1` field, including `expected_graph`, in declaration order;
 publish intent is excluded. `generation_id` hashes
 `build.declaration-generation.v1\0`, request ID, output digest/length and
 validator. `attempt_id` hashes `build.declaration-publication.v1\0` then every
@@ -148,25 +148,11 @@ receipt field except itself. Wall clock, host, user, PID and physical paths are
 excluded. Refusal is `Refused { request_id: Option<DigestV1>, failure }`;
 Generated/Published carry validated generation, with Published also its attempt.
 
-`ValidationBoundsV1` freezes: 32 MiB per declared/manifest file; fixups 16,384
-files/64 MiB; Cargo sources 1,000,000 files/16 GiB; stdout 64 MiB; stderr 1 MiB;
-120 seconds/run; path 4,096 bytes; 100,000 rules; 512 attributes/rule; 131,072
-list entries/attribute; string 1 MiB; 1,000,000 edges; diagnostic 8 KiB.
-Limit+1 refuses with the phase-specific class.
+`ValidationBoundsV1` freezes 32 MiB per declared/manifest file; fixups 16,384 files/64 MiB; Cargo sources 1,000,000 files/16 GiB; stdout 64 MiB; stderr 1 MiB; 120 seconds/run; path 4,096 bytes; 100,000 rules; 512 attributes/rule; 131,072 entries/attribute; string 1 MiB; 1,000,000 edges; diagnostic 8 KiB. The generated-graph parser, projection bounds, and stable failure mapping are normative in [Generated-Buck V1](declaration-reconciliation-generated-buck-v1.md); limit+1 refuses with its named class.
 
-The process calls `env_clear()`; its exact final map is `CARGO_HOME=@cargo-home`,
-`CARGO_INCREMENTAL=0`, `CARGO_NET_OFFLINE=true`, `CARGO_TERM_COLOR=never`,
-`HOME=@empty-home`, `LANG=C`, `LC_ALL=C`, `PATH=` (empty), `RUSTC=@rustc`,
-`TMPDIR=@stage/tmp`, `TZ=UTC`. Tokens map only to absolute no-symlink capability
-paths; `@reindeer`, `--cargo-path @cargo`, and `--rustc-path @rustc` must be
-regular executable files in the read-only tool snapshot whose SHA-256 equals
-the bound identities. No search/fallback is permitted. Sandbox tag `0` permits
-only declared reads, stage/TMPDIR writes, those processes, and no network.
-Validator tag `0` parses the whole output and enforces syntax, names, edges,
-aliases, platform/fixup effects, header/imports, bounds and path absence.
-Publisher tags `0/1/2` use directory-handle no-follow, exclusive sibling lease,
-same-directory regular temp, flush/mode/file sync, atomic rename, parent sync
-and owned-prefix recovery; every other platform/filesystem refuses.
+The process calls `env_clear()`; its exact final map is `CARGO_HOME=@cargo-home`, `CARGO_INCREMENTAL=0`, `CARGO_NET_OFFLINE=true`, `CARGO_TERM_COLOR=never`, `HOME=@empty-home`, `LANG=C`, `LC_ALL=C`, `PATH=` (empty), `RUSTC=@rustc`, `TMPDIR=@stage/tmp`, `TZ=UTC`. Tokens map only to absolute no-symlink capability paths; `@reindeer`, `--cargo-path @cargo`, and `--rustc-path @rustc` must be regular executable files in the read-only tool snapshot whose SHA-256 equals the bound identities. No search/fallback is permitted. Sandbox tag `0` permits only declared reads, stage/TMPDIR writes, those processes, and no network.
+Validator tag `0` is only the closed [Generated-Buck V1](declaration-reconciliation-generated-buck-v1.md) parser/schema/projection; it admits no request-defined grammar, expression, rule, attribute, or failure law.
+Publisher tags `0/1/2` use directory-handle no-follow, exclusive sibling lease, same-directory regular temp, flush/mode/file sync, atomic rename, parent sync and owned-prefix recovery; every other platform/filesystem refuses.
 
 The facade defines `ReconciliationResourceV1 { resource_id: String, generation: u64, spec: GenerationRequestV1, publish: Option<PublicationIntentV1> }`
 and `ReconciliationStatusV1 { observed_generation: u64, phase: ReconciliationPhaseV1, generation_id: Option<DigestV1>, attempt_id: Option<DigestV1>, failure: Option<FailureV1> }`.
@@ -201,7 +187,17 @@ decisions are:
   `storage-provider-object-s3-draft` and `storage-s3-adapter`: run
   `src/{items,test_items}`.
 
-Each maps to its package-named `third-party/fixups/` directory; a source/effect change invalidates the decision. S alone adds and tests `run=true`-only fixups at `third-party/fixups/dependency-declarations-{reconcile,generation-reindeer,publication-filesystem,reconciler-app}/fixups.toml`; the four package `module_membership` tests prove sorted empty output, the run decision, and no premature tracked input. K atomically adds core's first real item and exact `src/items/*.rs` input; A does so for each adapter and F for the facade. After that binding, item lanes add unique files without editing scanner, parent/index, or fixup, so the unresolved count never grows silently.
+Each maps to its package-named `third-party/fixups/` directory; a source/effect change invalidates the decision. S alone adds and tests `run=true`-only fixups at `third-party/fixups/dependency-declarations-{reconcile,generation-reindeer,publication-filesystem,reconciler-app}/fixups.toml`; the four package `module_membership` tests prove sorted empty output, the run decision, and no premature tracked input. K atomically changes its run-only fixup and adds its first item with exactly:
+
+```toml
+[buildscript]
+run = true
+
+[buildscript.build]
+extra_srcs = ["src/items/*.rs"]
+```
+
+The manifest-relative glob uses literal `/`, matches one or many direct regular `src/items/*.rs` files (not nested files), and fails closed unused at zero matches. A and F bind their first item identically; later item lanes never edit scanner, parent/index, or fixup.
 
 AWS-LC DEP metadata must become supported fixup/generator behavior. PSM 0.1.31
 gets an explicit nine-platform matrix: x86_64 Linux GNU/musl and macOS use
