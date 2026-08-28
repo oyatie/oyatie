@@ -75,8 +75,14 @@ Cargo/Buck query or candidate executable capability.
 
 ## Canonical ChangeSet
 
-Pipeline maps one valid repair shard losslessly to one versioned ChangeSet.
-Its canonical identity is domain-separated, length-prefixed, and ordered; it
+Every source `DeclarationRepairSetV1` has one source identity, whole-set digest,
+and exact owner groups. Pipeline maps it losslessly to exactly one versioned
+ChangeSet per owner group. Each ChangeSet preserves that RepairSet identity,
+whole-set digest, and owner-group identity. The groups jointly contain every
+repair exactly once and have pairwise-disjoint writes; missing, duplicate,
+ambiguous, or overlapping groups refuse.
+
+Each canonical identity is domain-separated, length-prefixed, and ordered; it
 includes source snapshot, Build/profile provenance, sorted violation causes,
 complete semantic reads and writes, expected digest-or-absence preconditions,
 complete deterministic postimages, postconditions, output digests, owner

@@ -58,8 +58,11 @@ Class: future test-driven Pipeline port/core/adapter lanes after their exact
 packages and shared contracts are independently approved.
 
 - Add immutable SCM-neutral repository facts and caller-resolved owner facts.
-- Add the canonical ChangeSet wrapper, full fact recheck, disjoint-successor
-  decision, atomic successor construction, and protected repair-PR publication.
+- Add the canonical ChangeSet wrapper that preserves each source RepairSet
+  identity, whole-set digest, and exact owner-group identity; reject incomplete,
+  duplicate, ambiguous, or overlapping owner-group partitions. Then add full
+  fact recheck, disjoint-successor decision, atomic successor construction, and
+  protected repair-PR publication.
 - Verify immutable-object, lossless-delta, owner ambiguity, semantic mismatch,
   disjoint successor, retry, and every compare/publish fault boundary.
 - Rollback: retain existing layout admission and withdraw an unrouted port or
