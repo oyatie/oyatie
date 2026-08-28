@@ -39,8 +39,8 @@ No supported regeneration entrypoint, complete fixup/overlay inventory,
 deterministic double-run gate, validation kernel, qualified publisher,
 provenance identity/receipt, or consumer-neutral freshness contract has landed.
 The two documented regeneration paths are absent. The port engine remains
-frozen. Build's reusable migration-machinery provider boundary is adopted; its
-exact semantic contracts are not.
+frozen. Build's reusable provider boundary and D17a's narrow first-party
+declaration relation are adopted; general fabric schemas remain unadopted.
 
 </baseline>
 
@@ -48,24 +48,12 @@ exact semantic contracts are not.
 
 ## L1a — Establish Build owner law
 
-Class: documentation/authority only; this is the active lane.
-
-- Add `build/{ADR,PRD,SPEC,PLAN}.md` from exact `origin/dev`.
-- Record inherited Build boundaries, current declaration truth, the
-  deterministic reconciliation destination, explicit success/failure/SLO and
-  fault criteria, the adopted migration-provider and toolchain/dependency
-  lifecycle boundaries, and their nonbinding contract details.
-- Keep all code, manifests, lockfiles, Reindeer configuration, fixups,
-  generated files, port-engine files, and other owners read-only.
-
-Closed write envelope: the four owner-law files only.
-
-- Success: four consistent files, five-field strict law, visibly nonbinding
-  schema proposals, and green owner-law/layout checks.
-- Failure: claims of landed behavior/adopted schemas, Pipeline prescription,
-  shared declaration edits, or a port-engine change.
-- Rollback/fault: revert only these docs; hostile review must fail to derive
-  implementation authority from proposals.
+Class: completed documentation/authority only.
+- Recorded inherited boundaries, declaration truth, reconciliation destination, acceptance/SLO/fault criteria, and provider/toolchain lifecycle law in `build/{ADR,PRD,SPEC,PLAN}.md`.
+- Closed envelope: those four docs; code, manifests/lock, Reindeer/fixups/generated files, port-engine, and other owners remained read-only.
+- Success: consistent five-field law, visibly nonbinding general schemas, and green owner-law/layout checks.
+- Failure: landed-behavior claims, Pipeline prescription, shared declaration edits, or port-engine changes.
+- Rollback/fault: revert only the docs; hostile review must fail to derive implementation authority from proposals.
 
 ## L1b — Inventory declaration provenance and drift
 
@@ -214,6 +202,16 @@ Class: verification/promotion; depends on L1f.
   unbuildable rules, or unmeasured latency claims.
 - Rollback/fault: reconcile the last qualified tuple; repeat L1e plus removed
   platform/alias, native-symbol/build-script corruption, and false negatives.
+
+## L1h — First-party declaration integrity
+
+Class: staged Build behavior after qualified third-party Reindeer; Pipeline lands its reciprocal owner contract separately.
+- First land an exact parser/profile/port/target design and Pipeline counterpart; no parser dependency or root package-graph mutation precedes Reindeer qualification.
+- TDD the pure complete-HEAD relation, typed refusal, and deterministic `DeclarationRepairSetV1`; then add maintained parser adapters and a check-only facade.
+- Differentially qualify against protected Cargo metadata and non-building Buck queries, repair live drift canary-first in disjoint owner shards, and prove clean replay before protected admission.
+- Success: both one-sided drifts refuse, valid subsets pass, V1 repairs replay with complete matching preconditions, and admission remains one `presubmit`.
+- Failure: partial-HEAD logic, unknown grammar acceptance, effects in Build, baseline/allowlist activation, or parser/root-graph change before Reindeer qualification.
+- Rollback/fault: disable unqualified admission and revert unapplied repair shards; inject grammar/profile drift, owner overlap, and precondition mismatch.
 
 ## L2a — Reconcile toolchain/dependency lifecycle truth
 
