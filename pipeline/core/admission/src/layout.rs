@@ -279,6 +279,11 @@ fn validate_build_path(file: &str, parts: &[&str], violations: &mut Vec<String>)
         violations.push(format!(
             "{file}: meta root `build` cannot contain owner Cargo face `{child}`"
         ));
+    } else if parts.get(2).is_some_and(|face| FACES.contains(face)) {
+        violations.push(format!(
+            "{file}: unapproved nested Build subsystem cannot contain owner face `{}`",
+            parts[2]
+        ));
     } else if parts[1..].iter().any(|part| {
         matches!(*part, "Cargo.toml" | "Cargo.lock" | "build.rs") || part.ends_with(".rs")
     }) {

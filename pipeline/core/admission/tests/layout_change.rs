@@ -198,41 +198,31 @@ fn workspace_globs_bound_direct_and_draft_crate_depths() {
 
 #[test]
 fn dependency_declarations_bind_exact_names_and_entrypoints() {
-    for (path, package, entrypoint) in [
-        (
-            "core/reconcile",
-            "dependency-declarations-reconcile",
-            "src/lib.rs",
-        ),
-        (
-            "ports/generation",
-            "dependency-declarations-generation",
-            "src/lib.rs",
-        ),
-        (
-            "ports/publication",
-            "dependency-declarations-publication",
-            "src/lib.rs",
-        ),
+    for (path, package) in [
+        ("core/reconcile", "dependency-declarations-reconcile"),
+        ("ports/generation", "dependency-declarations-generation"),
+        ("ports/publication", "dependency-declarations-publication"),
         (
             "adapters/generation-reindeer",
             "dependency-declarations-generation-reindeer",
-            "src/lib.rs",
         ),
         (
             "adapters/publication-filesystem",
             "dependency-declarations-publication-filesystem",
-            "src/lib.rs",
         ),
         (
             "facade/reconciler-app",
             "dependency-declarations-reconciler-app",
-            "src/main.rs",
         ),
     ] {
         let root = format!("build/dependency-declarations/{path}");
         let manifest = format!("{root}/Cargo.toml");
-        let entrypoint = format!("{root}/{entrypoint}");
+        let source = if path.starts_with("facade/") {
+            "src/main.rs"
+        } else {
+            "src/lib.rs"
+        };
+        let entrypoint = format!("{root}/{source}");
         assert!(!cargo_manifest_violations(&manifest, "[package]\nname='wrong'\n").is_empty());
         assert_eq!(
             cargo_entrypoint(&manifest).as_deref(),
@@ -251,6 +241,15 @@ fn dependency_declarations_bind_exact_names_and_entrypoints() {
                 .is_empty()
         );
     }
+    let unrelated = cargo_manifest_violations(
+        "app/application/facade/application-shell-frontend/Cargo.toml",
+        "[package]\nname='application-shell-frontend'\n[lib]\ncrate-type=['cdylib','rlib']\n",
+    );
+    assert!(
+        !unrelated
+            .iter()
+            .any(|item| item.contains("[lib].crate-type"))
+    );
 }
 
 #[test]
@@ -260,13 +259,11 @@ fn dependency_declarations_workspace_pair_is_atomic_and_final() {
     let base_members = WORKSPACE_MEMBER_GLOBS.to_vec();
     let base_excludes = WORKSPACE_EXCLUDES.to_vec();
     assert!(workspace_admits(&base_members, &base_excludes));
-
     let mut paired_members = base_members.clone();
     paired_members.push(MEMBER);
     let mut paired_excludes = base_excludes.clone();
     paired_excludes.push(EXCLUDE);
     assert!(workspace_admits(&paired_members, &paired_excludes));
-
     for (members, excludes) in [
         (paired_members.clone(), base_excludes.clone()),
         (base_members.clone(), paired_excludes.clone()),
@@ -277,7 +274,6 @@ fn dependency_declarations_workspace_pair_is_atomic_and_final() {
     let optional = reordered.pop().expect("optional member");
     reordered.insert(0, optional);
     assert!(!workspace_admits(&reordered, &paired_excludes));
-
     for entry in [
         MEMBER,
         "build/dependency-declarations/*/*",

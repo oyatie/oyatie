@@ -241,6 +241,17 @@ fn dependency_declarations_is_a_closed_build_subsystem() {
     }
     assert!(!rejected("build/port-engine/core/analysis/src/lib.rs"));
     assert!(!rejected("build/toolchains/cache/defs.bzl"));
+    assert!(!rejected("build/docs/dependency-declarations.md"));
+}
+
+#[test]
+fn nested_build_owners_face_shell_is_rejected() {
+    assert!(rejected("build/other/core/shadow/OWNERS"));
+}
+
+#[test]
+fn nested_build_buck_face_shell_is_rejected() {
+    assert!(rejected("build/other/core/shadow/BUCK"));
 }
 
 #[test]

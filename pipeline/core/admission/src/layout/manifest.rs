@@ -45,6 +45,14 @@ pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
             "{path}: `[lib].name` must be omitted so Cargo derives the crate name"
         ));
     }
+    if path.starts_with("build/dependency-declarations/") {
+        let library = manifest.get("lib");
+        for target_kind in ["proc-macro", "crate-type"] {
+            if library.is_some_and(|library| library.get(target_kind).is_some()) {
+                violations.push(format!("{path}: `[lib].{target_kind}` must be omitted"));
+            }
+        }
+    }
     if let Some(lib_path) = manifest
         .get("lib")
         .and_then(|library| library.get("path"))
@@ -239,6 +247,18 @@ mod tests {
             "[package]\nname='network-route'\n[lib]\nharness=false\n",
         ] {
             assert!(!cargo_manifest_violations(path, manifest).is_empty());
+        }
+    }
+
+    #[test]
+    fn dependency_declarations_target_kind_is_canonical() {
+        let path = "build/dependency-declarations/core/reconcile/Cargo.toml";
+        for field in ["proc-macro=true", "crate-type=['cdylib']"] {
+            let target_kind = field.split_once('=').expect("target field").0;
+            let contents =
+                format!("[package]\nname='dependency-declarations-reconcile'\n[lib]\n{field}\n");
+            let violations = cargo_manifest_violations(path, &contents);
+            assert!(violations.join("\n").contains(target_kind), "{target_kind}");
         }
     }
 
