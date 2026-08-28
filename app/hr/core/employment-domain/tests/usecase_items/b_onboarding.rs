@@ -27,9 +27,67 @@ mod onboarding_usecase_contract {
         .expect("literal onboarding command is accepted");
 
         assert_eq!(outcome.employee.employee_id.value.value, "emp_001");
+        assert_eq!(outcome.employee.tenant_id.value.value, "ten_acme");
+        assert_eq!(outcome.employee.legal_entity_id.value.value, "le_kr_001");
+        assert_eq!(outcome.employee.person_ref.value.value, "person/acme/001");
+        assert_eq!(
+            outcome
+                .employee
+                .manager_id
+                .value
+                .expect("manager is retained")
+                .value,
+            "emp_mgr_001"
+        );
+        assert_eq!(
+            outcome.employee.employment_status.value,
+            EmploymentStatus::Active
+        );
+        assert_eq!(
+            outcome.employee.tenant_tier_snapshot.value,
+            TenantTierSnapshot::EnterpriseGroup
+        );
+        assert_eq!(
+            outcome.employee.audit_evidence_ref.value.value,
+            "audit/hr/employee/001"
+        );
+        assert_eq!(outcome.employee.version.value, 1);
+        assert_eq!(outcome.employee.schema_version.value, 1);
+        assert_eq!(
+            outcome
+                .employee
+                .schema_version
+                .data_class
+                .compatibility_data_class(),
+            DataClass::Public
+        );
+        assert_eq!(
+            outcome.lifecycle_event.event_id.value.value,
+            "hrev_employee_created_001"
+        );
+        assert_eq!(outcome.lifecycle_event.tenant_id.value.value, "ten_acme");
+        assert_eq!(
+            outcome.lifecycle_event.legal_entity_id.value.value,
+            "le_kr_001"
+        );
+        assert_eq!(outcome.lifecycle_event.employee_id.value.value, "emp_001");
         assert_eq!(
             outcome.lifecycle_event.lifecycle_kind.value,
             HrLifecycleKind::Created
+        );
+        assert_eq!(
+            outcome.lifecycle_event.audit_evidence_ref.value.value,
+            "audit/hr/employee/001"
+        );
+        assert_eq!(outcome.lifecycle_event.idempotency_key.value, "emp_001:1");
+        assert_eq!(outcome.lifecycle_event.schema_version.value, 1);
+        assert_eq!(
+            outcome
+                .lifecycle_event
+                .schema_version
+                .data_class
+                .compatibility_data_class(),
+            DataClass::Public
         );
         assert_eq!(
             outcome.audit_envelope.topic.value,
@@ -43,6 +101,8 @@ mod onboarding_usecase_contract {
             outcome.audit_envelope.evidence_ref.value.value,
             "audit/hr/employee/001"
         );
+        assert_eq!(outcome.audit_envelope.payload_kind.value, "Created");
+        assert_eq!(outcome.audit_envelope.idempotency_key.value, "emp_001:1");
         assert_eq!(
             outcome.audit_envelope.payload_data_class.value,
             DataClass::PiiIdentifying
@@ -55,6 +115,7 @@ mod onboarding_usecase_contract {
                 .compatibility_data_class(),
             DataClass::InternalOnly
         );
+        assert_eq!(outcome.audit_envelope.schema_version.value, 1);
         assert_eq!(
             outcome
                 .audit_envelope

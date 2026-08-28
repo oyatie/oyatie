@@ -55,6 +55,14 @@ mod sensitive_usecase_contract {
             "audit/hr/privacy/emp_001/consent"
         );
         assert_eq!(
+            envelope.request_evidence_ref.value.value,
+            "audit/hr/privacy/emp_001/request"
+        );
+        assert_eq!(
+            envelope.read_log_evidence_ref.value.value,
+            "audit/hr/privacy/emp_001/read-log"
+        );
+        assert_eq!(
             envelope.decision_status.value,
             SensitiveReadDecisionStatus::Allowed
         );
@@ -64,6 +72,181 @@ mod sensitive_usecase_contract {
         );
         assert_eq!(envelope.payload_data_class.value, DataClass::Phi);
         assert_eq!(envelope.schema_version.value, 1);
+        assert_eq!(
+            envelope.topic.data_class.compatibility_data_class(),
+            DataClass::InternalOnly
+        );
+        assert_eq!(
+            envelope.data_kind.data_class.compatibility_data_class(),
+            DataClass::SensitivePipaArticle23
+        );
+        assert_eq!(
+            envelope.policy_ref.data_class.compatibility_data_class(),
+            DataClass::InternalOnly
+        );
+        assert_eq!(
+            envelope
+                .basis_evidence_ref
+                .data_class
+                .compatibility_data_class(),
+            DataClass::InternalOnly
+        );
+        assert_eq!(
+            envelope
+                .consent_evidence_ref
+                .data_class
+                .compatibility_data_class(),
+            DataClass::InternalOnly
+        );
+        assert_eq!(
+            envelope
+                .request_evidence_ref
+                .data_class
+                .compatibility_data_class(),
+            DataClass::InternalOnly
+        );
+        assert_eq!(
+            envelope
+                .read_log_evidence_ref
+                .data_class
+                .compatibility_data_class(),
+            DataClass::InternalOnly
+        );
+        assert_eq!(
+            envelope
+                .decision_status
+                .data_class
+                .compatibility_data_class(),
+            DataClass::InternalOnly
+        );
+        assert_eq!(
+            envelope
+                .idempotency_key
+                .data_class
+                .compatibility_data_class(),
+            DataClass::InternalOnly
+        );
+        assert_eq!(
+            envelope
+                .payload_data_class
+                .data_class
+                .compatibility_data_class(),
+            DataClass::InternalOnly
+        );
+        assert_eq!(
+            envelope
+                .schema_version
+                .data_class
+                .compatibility_data_class(),
+            DataClass::Public
+        );
+    }
+
+    #[test]
+    fn every_sensitive_data_kind_constructs_a_public_envelope_with_its_payload_class() {
+        // Catches a valid sensitive-data kind being rejected or mapped to another payload class.
+        let accommodation = prepare_sensitive_hr_read_envelope(SensitiveHrReadInput {
+            tenant_id: "ten_acme".to_owned(),
+            legal_entity_id: "le_kr_001".to_owned(),
+            actor_employee_id: "emp_admin_001".to_owned(),
+            subject_employee_id: "emp_001".to_owned(),
+            data_kind: SensitiveHrDataKind::DisabilityAccommodation,
+            purpose: SensitiveReadPurpose::BenefitsAdministration,
+            legal_basis: SensitiveReadLegalBasis::Consent,
+            policy_ref: "policy/hr/sensitive-read/benefits-2026".to_owned(),
+            basis_evidence_ref: "audit/hr/privacy/emp_001/basis".to_owned(),
+            consent_evidence_ref: Some("audit/hr/privacy/emp_001/consent".to_owned()),
+            request_evidence_ref: "audit/hr/privacy/emp_001/request".to_owned(),
+            read_log_evidence_ref: "audit/hr/privacy/emp_001/read-log".to_owned(),
+            evaluated_at_epoch_seconds: 1_779_533_400,
+        })
+        .expect("disability accommodation envelope is public");
+        assert_eq!(
+            accommodation.audit_envelope.data_kind.value,
+            SensitiveHrDataKind::DisabilityAccommodation
+        );
+        assert_eq!(
+            accommodation.audit_envelope.payload_data_class.value,
+            DataClass::Phi
+        );
+
+        let compensation = prepare_sensitive_hr_read_envelope(SensitiveHrReadInput {
+            tenant_id: "ten_acme".to_owned(),
+            legal_entity_id: "le_kr_001".to_owned(),
+            actor_employee_id: "emp_admin_001".to_owned(),
+            subject_employee_id: "emp_001".to_owned(),
+            data_kind: SensitiveHrDataKind::Compensation,
+            purpose: SensitiveReadPurpose::BenefitsAdministration,
+            legal_basis: SensitiveReadLegalBasis::Consent,
+            policy_ref: "policy/hr/sensitive-read/benefits-2026".to_owned(),
+            basis_evidence_ref: "audit/hr/privacy/emp_001/basis".to_owned(),
+            consent_evidence_ref: Some("audit/hr/privacy/emp_001/consent".to_owned()),
+            request_evidence_ref: "audit/hr/privacy/emp_001/request".to_owned(),
+            read_log_evidence_ref: "audit/hr/privacy/emp_001/read-log".to_owned(),
+            evaluated_at_epoch_seconds: 1_779_533_400,
+        })
+        .expect("compensation envelope is public");
+        assert_eq!(
+            compensation.audit_envelope.data_kind.value,
+            SensitiveHrDataKind::Compensation
+        );
+        assert_eq!(
+            compensation.audit_envelope.payload_data_class.value,
+            DataClass::Financial
+        );
+
+        let government_identifier = prepare_sensitive_hr_read_envelope(SensitiveHrReadInput {
+            tenant_id: "ten_acme".to_owned(),
+            legal_entity_id: "le_kr_001".to_owned(),
+            actor_employee_id: "emp_admin_001".to_owned(),
+            subject_employee_id: "emp_001".to_owned(),
+            data_kind: SensitiveHrDataKind::GovernmentIdentifier,
+            purpose: SensitiveReadPurpose::BenefitsAdministration,
+            legal_basis: SensitiveReadLegalBasis::Consent,
+            policy_ref: "policy/hr/sensitive-read/benefits-2026".to_owned(),
+            basis_evidence_ref: "audit/hr/privacy/emp_001/basis".to_owned(),
+            consent_evidence_ref: Some("audit/hr/privacy/emp_001/consent".to_owned()),
+            request_evidence_ref: "audit/hr/privacy/emp_001/request".to_owned(),
+            read_log_evidence_ref: "audit/hr/privacy/emp_001/read-log".to_owned(),
+            evaluated_at_epoch_seconds: 1_779_533_400,
+        })
+        .expect("government identifier envelope is public");
+        assert_eq!(
+            government_identifier.audit_envelope.data_kind.value,
+            SensitiveHrDataKind::GovernmentIdentifier
+        );
+        assert_eq!(
+            government_identifier
+                .audit_envelope
+                .payload_data_class
+                .value,
+            DataClass::PiiIdentifying
+        );
+
+        let disciplinary = prepare_sensitive_hr_read_envelope(SensitiveHrReadInput {
+            tenant_id: "ten_acme".to_owned(),
+            legal_entity_id: "le_kr_001".to_owned(),
+            actor_employee_id: "emp_admin_001".to_owned(),
+            subject_employee_id: "emp_001".to_owned(),
+            data_kind: SensitiveHrDataKind::Disciplinary,
+            purpose: SensitiveReadPurpose::BenefitsAdministration,
+            legal_basis: SensitiveReadLegalBasis::Consent,
+            policy_ref: "policy/hr/sensitive-read/benefits-2026".to_owned(),
+            basis_evidence_ref: "audit/hr/privacy/emp_001/basis".to_owned(),
+            consent_evidence_ref: Some("audit/hr/privacy/emp_001/consent".to_owned()),
+            request_evidence_ref: "audit/hr/privacy/emp_001/request".to_owned(),
+            read_log_evidence_ref: "audit/hr/privacy/emp_001/read-log".to_owned(),
+            evaluated_at_epoch_seconds: 1_779_533_400,
+        })
+        .expect("disciplinary envelope is public");
+        assert_eq!(
+            disciplinary.audit_envelope.data_kind.value,
+            SensitiveHrDataKind::Disciplinary
+        );
+        assert_eq!(
+            disciplinary.audit_envelope.payload_data_class.value,
+            DataClass::SensitivePipaArticle23
+        );
     }
 
     #[test]

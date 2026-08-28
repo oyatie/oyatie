@@ -36,19 +36,68 @@ mod leave_usecase_contract {
         assert_eq!(envelope.legal_entity_id.value.value, "le_kr_001");
         assert_eq!(envelope.employee_id.value.value, "emp_001");
         assert_eq!(envelope.leave_request_id.value.value, "leave_001");
+        assert_eq!(envelope.approver_id.value.value, "emp_hr_001");
         assert_eq!(envelope.decision.value, LeaveDecision::Approved);
         assert_eq!(envelope.routing_mode.value, LeaveRoutingMode::EscalatedHr);
+        assert_eq!(envelope.workflow_ref.value.value, "workflow/hr-leave/kr");
         assert_eq!(envelope.payroll_period.value, "2026-06");
         assert_eq!(
             envelope.payroll_impact_kind.value,
             PayrollImpactKind::UnpaidLeaveDeduction
         );
         assert_eq!(
+            envelope.decision_evidence_ref.value.value,
+            "audit/hr/leave/leave_001/decision"
+        );
+        assert_eq!(
+            envelope.routing_evidence_ref.value.value,
+            "audit/hr/leave/leave_001/escalation"
+        );
+        assert_eq!(
             envelope.payroll_impact_evidence_ref.value.value,
             "audit/hr/leave/leave_001/payroll-impact"
         );
+        assert_eq!(
+            envelope.idempotency_key.value,
+            "ten_acme:leave_001:Approved:2026-06"
+        );
+        assert_eq!(
+            envelope
+                .payroll_period
+                .data_class
+                .compatibility_data_class(),
+            DataClass::Financial
+        );
+        assert_eq!(
+            envelope
+                .payroll_impact_kind
+                .data_class
+                .compatibility_data_class(),
+            DataClass::Financial
+        );
+        assert_eq!(
+            envelope
+                .payroll_impact_evidence_ref
+                .data_class
+                .compatibility_data_class(),
+            DataClass::Financial
+        );
         assert_eq!(envelope.payload_data_class.value, DataClass::Financial);
+        assert_eq!(
+            envelope
+                .payload_data_class
+                .data_class
+                .compatibility_data_class(),
+            DataClass::InternalOnly
+        );
         assert_eq!(envelope.schema_version.value, 1);
+        assert_eq!(
+            envelope
+                .schema_version
+                .data_class
+                .compatibility_data_class(),
+            DataClass::Public
+        );
     }
 
     #[test]

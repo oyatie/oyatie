@@ -2,7 +2,7 @@ mod compliance_usecase_contract {
     use data_boundary_kernel::DataClass;
     use hr_employment_domain::{
         HrAppError, HrDomainError, Jurisdiction, LaborComplianceObligationKind,
-        LegalEntityWorkforceSnapshot, plan_labor_compliance_workflows,
+        LaborComplianceWorkflowStep, LegalEntityWorkforceSnapshot, plan_labor_compliance_workflows,
     };
 
     #[test]
@@ -23,30 +23,118 @@ mod compliance_usecase_contract {
 
         assert_eq!(outcome.obligations.len(), 2);
         assert_eq!(outcome.workflow_dispatches.len(), 2);
-        let dispatch = outcome
-            .workflow_dispatches
-            .iter()
-            .find(|item| {
-                item.obligation_kind.value == LaborComplianceObligationKind::KoreaRulesOfEmployment
-            })
-            .expect("rules-of-employment dispatch is present");
-        assert_eq!(dispatch.topic.value, "workflow.hr.compliance.dispatch");
-        assert_eq!(dispatch.tenant_id.value.value, "ten_acme");
-        assert_eq!(dispatch.legal_entity_id.value.value, "le_kr_001");
+        let [rules_obligation, council_obligation] = outcome.obligations.as_slice() else {
+            panic!("Korea workforce count 30 has two ordered obligations");
+        };
         assert_eq!(
-            dispatch.workflow_ref.value.value,
+            rules_obligation.kind.value,
+            LaborComplianceObligationKind::KoreaRulesOfEmployment
+        );
+        assert_eq!(rules_obligation.tenant_id.value.value, "ten_acme");
+        assert_eq!(rules_obligation.legal_entity_id.value.value, "le_kr_001");
+        assert_eq!(rules_obligation.jurisdiction.value, Jurisdiction::Korea);
+        assert_eq!(rules_obligation.threshold_employee_count.value, 10);
+        assert_eq!(rules_obligation.active_employee_count.value, 30);
+        assert_eq!(
+            council_obligation.kind.value,
+            LaborComplianceObligationKind::KoreaLaborManagementCouncil
+        );
+        assert_eq!(council_obligation.tenant_id.value.value, "ten_acme");
+        assert_eq!(council_obligation.legal_entity_id.value.value, "le_kr_001");
+        assert_eq!(council_obligation.jurisdiction.value, Jurisdiction::Korea);
+        assert_eq!(council_obligation.threshold_employee_count.value, 30);
+        assert_eq!(council_obligation.active_employee_count.value, 30);
+
+        let [rules_dispatch, council_dispatch] = outcome.workflow_dispatches.as_slice() else {
+            panic!("Korea workforce count 30 has two ordered workflow dispatches");
+        };
+        assert_eq!(
+            rules_dispatch.topic.value,
+            "workflow.hr.compliance.dispatch"
+        );
+        assert_eq!(rules_dispatch.tenant_id.value.value, "ten_acme");
+        assert_eq!(rules_dispatch.legal_entity_id.value.value, "le_kr_001");
+        assert_eq!(
+            rules_dispatch.workflow_ref.value.value,
             "workflow/hr-compliance/kr"
         );
         assert_eq!(
-            dispatch.evidence_refs.value[0].value,
+            rules_dispatch.obligation_kind.value,
+            LaborComplianceObligationKind::KoreaRulesOfEmployment
+        );
+        assert_eq!(rules_dispatch.jurisdiction.value, Jurisdiction::Korea);
+        assert_eq!(
+            rules_dispatch.required_steps.value,
+            vec![
+                LaborComplianceWorkflowStep::Drafted,
+                LaborComplianceWorkflowStep::EmployeeReviewSent,
+                LaborComplianceWorkflowStep::MajorityConsentObtained,
+                LaborComplianceWorkflowStep::MoelFiled,
+                LaborComplianceWorkflowStep::Active,
+            ]
+        );
+        assert_eq!(rules_dispatch.evidence_refs.value.len(), 2);
+        assert_eq!(
+            rules_dispatch.evidence_refs.value[0].value,
             "audit/hr/compliance/kr-threshold"
         );
         assert_eq!(
-            dispatch.idempotency_key.value,
-            "ten_acme:le_kr_001:korea_rules_of_employment:2026-01-01"
+            rules_dispatch.evidence_refs.value[1].value,
+            "audit/le_kr_001/moel/rules-of-employment/report"
         );
         assert_eq!(
-            dispatch
+            rules_dispatch.idempotency_key.value,
+            "ten_acme:le_kr_001:korea_rules_of_employment:2026-01-01"
+        );
+        assert_eq!(rules_dispatch.schema_version.value, 1);
+        assert_eq!(
+            rules_dispatch
+                .schema_version
+                .data_class
+                .compatibility_data_class(),
+            DataClass::Public
+        );
+
+        assert_eq!(
+            council_dispatch.topic.value,
+            "workflow.hr.compliance.dispatch"
+        );
+        assert_eq!(council_dispatch.tenant_id.value.value, "ten_acme");
+        assert_eq!(council_dispatch.legal_entity_id.value.value, "le_kr_001");
+        assert_eq!(
+            council_dispatch.workflow_ref.value.value,
+            "workflow/hr-compliance/kr"
+        );
+        assert_eq!(
+            council_dispatch.obligation_kind.value,
+            LaborComplianceObligationKind::KoreaLaborManagementCouncil
+        );
+        assert_eq!(council_dispatch.jurisdiction.value, Jurisdiction::Korea);
+        assert_eq!(
+            council_dispatch.required_steps.value,
+            vec![
+                LaborComplianceWorkflowStep::CouncilRosterRequired,
+                LaborComplianceWorkflowStep::MeetingCadenceRequired,
+                LaborComplianceWorkflowStep::MinutesEvidenceRequired,
+                LaborComplianceWorkflowStep::Active,
+            ]
+        );
+        assert_eq!(council_dispatch.evidence_refs.value.len(), 2);
+        assert_eq!(
+            council_dispatch.evidence_refs.value[0].value,
+            "audit/hr/compliance/kr-threshold"
+        );
+        assert_eq!(
+            council_dispatch.evidence_refs.value[1].value,
+            "audit/le_kr_001/moel/labor-management-council/minutes"
+        );
+        assert_eq!(
+            council_dispatch.idempotency_key.value,
+            "ten_acme:le_kr_001:korea_labor_management_council:2026-01-01"
+        );
+        assert_eq!(council_dispatch.schema_version.value, 1);
+        assert_eq!(
+            council_dispatch
                 .schema_version
                 .data_class
                 .compatibility_data_class(),
