@@ -15,79 +15,41 @@ authority:
 
 ## Current declaration path
 
-The root Cargo workspace and `Cargo.lock` resolve Rust packages. Root
-`reindeer.toml` points Reindeer at `Cargo.toml`, emits `third-party/BUCK`,
-enables build-script execution, injects Cargo package variables, and fails on an
-unresolved build-script fixup. `third-party/fixups/<crate>/fixups.toml` provides
-package-local generation decisions. Buck2 loads the resulting rules through
-the repository prelude.
+The root Cargo workspace/lock resolve packages. `reindeer.toml` targets that
+workspace, emits `third-party/BUCK`, enables build scripts/Cargo variables, and
+fails unresolved fixups. Package decisions live in
+`third-party/fixups/<crate>/fixups.toml`; Buck2 loads the emitted rules.
 
-This path is not reproducible as checked. The configured generated header names
-the deleted `ci/facade/dependency-automation` overlay, while the checked output
-names deleted `scripts/ci/regen-third-party.sh`. The PSM fixup explicitly
-describes a post-generation per-OS rewrite. Clean-generation reconnaissance at
-the L1a base also found unresolved local build-script packages. These are
-inputs to L1b inventory, not permission to preserve the historical overlay.
+This path is not reproducible: configured and checked headers name different
+deleted wrappers; PSM describes a post-generation OS rewrite; and clean L1a
+reconnaissance found unresolved build-script packages. L1b inventories these;
+it may not preserve the historical overlay by default.
 
 </landed_contract>
 
 <toolchain_dependency_evolution>
 
-## Current toolchain and update facts
+## Current facts and lifecycle model
 
-At the L1a base, `rust-toolchain.toml`, workspace `rust-version`, and hosted
-Rust jobs name 1.98.0. The installed host reports rustc 1.98.0 commit
-`88d9e12ae` and Cargo 1.98.0 commit `797e8a9bc` on
-`aarch64-apple-darwin`; Buck and the distroless builder still name 1.97.1.
-`docs/standards/{code-style-rust,dependency-policy,lts-versions-verified,
-observability-slo}.md` also contain stale or coupling claims that must be
-reconciled by their owner; none overrides the live root declarations.
-The floating nightly moved from rustc 1.100.0-nightly commit `c656540d6`
-(2026-08-21) to `bff8e12ff` (2026-08-26), paired locally with Cargo commit
-`e8cb624d5`. These are observed identities, not a production pin.
+Root declarations and hosted jobs name stable 1.98.0: rustc `88d9e12ae` and
+Cargo `797e8a9bc`. Buck, the distroless builder, and several standards still
+narrate 1.97.1. The observed nightly moved from rustc `c656540d6` to
+`bff8e12ff`, paired with Cargo `e8cb624d5`; floating channel names are not
+receipt identities.
 
-The lockfile selects `arrayref` 0.3.9, not the malicious/yanked 0.3.10 release
-reported by the Rust Security Response Team on 2026-08-20. This near miss shows
-why version-range CVE scans alone are incomplete: registry deletion/yank,
-malicious-package, maintainer, build-script, and publication-age facts also
-belong in candidate admission.
+The lock selects safe `arrayref` 0.3.9 rather than malicious/yanked 0.3.10. An
+exact `bff8e12ff` all-target offline check passed with the default next trait
+solver and Polonius Alpha, but reported future-incompatible
+`attribute-derive-macro` 0.10.5 and `proc-macro-error2` 2.0.1 through Leptos/
+`application-shell-frontend`, plus `redis` 0.27.6 through the Valkey adapter.
+These are preview remediation inputs, not authority to mutate stable pins.
 
-An exact `bff8e12ff` nightly `cargo check --workspace --all-targets --locked
---offline` passed on 2026-08-27 and produced future-incompatibility warnings for
-`attribute-derive-macro` 0.10.5, `proc-macro-error2` 2.0.1, and `redis` 0.27.6.
-That nightly enables the next trait solver and Polonius Alpha by default, so
-the check exercised both preview compiler paths without an opt-in flag.
-The current inverse graph reaches the first two through Leptos into
-`application-shell-frontend`, and the third through
-`intelligence-eventsink-valkey-adapter` into `intelligence-app`. These are
-preview remediation inputs, not stable failures or authority to mutate pins.
-
-## Typed intake and disposition model
-
-```text
-ToolchainIdentity {
-  role = DeclaredMsrv | ProductionStable | BetaCandidate | NightlyObservation
-  release, channel_date?, host, rustc_commit, rustc_binary_digest
-  cargo_commit, cargo_binary_digest, rustfmt_digest, clippy_digest
-  llvm_version, component_set_digest, target_set_digest, dist_manifest_digest
-}
-ReleaseItem {
-  source_digest, upstream_item_id, release_status, compatibility_class
-}
-ApplicabilityDisposition {
-  release_item_id, ADOPT | BENCHMARK | DEFER | REJECT
-  owner, rationale, affected_units, msrv_effect, evidence, revisit_trigger
-}
-DependencyCandidate {
-  package, source, version, checksum, publish_time, yank_state
-  maintainer_provenance, dependency_role, feature_graph_digest
-  license_audit_refs, affected_unit_closure
-}
-VulnerabilityFact {
-  canonical_id, aliases, source, modified, withdrawn
-  affected_ranges, fixed_ranges, provenance_digest, security_decision_ref?
-}
-```
+Typed records cover exact MSRV/stable/beta/nightly toolchain and component/
+target identities; provenance-bound release items and
+`ADOPT|BENCHMARK|DEFER|REJECT` dispositions; dependency source/version/checksum,
+publish/yank/maintainer/role/feature/audit/affected-closure facts; and canonical
+vulnerability ranges, aliases, withdrawals, provenance, and Security decision
+references.
 
 Discovery may use networked adapters, but qualification consumes an immutable,
 source-provenance-bound mirror. It deduplicates advisory aliases, preserves
@@ -141,43 +103,14 @@ valid only with an affected-graph query and reason.
 
 ## Pure transaction
 
-The semantic core accepts values, never ambient repository state:
-
-```text
-ReconciliationRequest {
-  repository_revision_correlation
-  manifest_digest
-  lock_digest
-  reindeer_config_digest
-  fixup_tree_digest
-  cargo_source_snapshot_digest
-  platform_set_digest
-  generator_source_identity
-  generator_binary_digest
-  cargo_binary_digest
-  rustc_binary_digest
-  effective_environment_digest
-  sandbox_profile_version
-  validator_binary_digest
-  validation_profile_version
-}
-
-RawGeneration { bytes, bounded_diagnostics }
-ValidatedGeneration { bytes, output_digest, validation_summary }
-GenerationIdentity { generation_id, admitted_input_digests, output_digest }
-PublicationRequest {
-  generation_id
-  expected_destination_preimage_digest
-  publisher_profile_version
-}
-PublicationOutcome = Unchanged | Replaced
-PublicationAttemptReceipt {
-  generation_id
-  destination_preimage_digest
-  publisher_profile_version
-  publication_outcome
-}
-```
+The semantic core accepts values, never ambient state. `ReconciliationRequest`
+binds repository correlation plus manifest, lock, Reindeer config, fixup tree,
+Cargo source snapshot, platform set, generator source/binary, Cargo/rustc,
+effective environment, sandbox, validator, and validation-profile identities.
+It produces `RawGeneration`, `ValidatedGeneration`, and stable
+`GenerationIdentity` values. A separate `PublicationRequest` binds generation,
+expected destination preimage, and publisher profile; its attempt receipt adds
+the actual `Unchanged|Replaced` outcome.
 
 Repository revision is correlation, not a substitute for content digests. The
 same generation request values and generator bytes produce the same output and
@@ -198,31 +131,23 @@ publication-attempt receipt. No adapter can publish a `RawGeneration`.
 
 ## Provisional Reindeer qualification candidate
 
-The initial candidate is Reindeer tag `v2026.08.10.00`, source commit
-`bb681570d2bc47d1446080c12b8681a50a95f628`. Upstream comparison suggests that
-the later 2026-08-24 candidate changes public-alias emission, while this
-repository has three checked `third-party//:any_spawner` consumer references.
-That is a hypothesis for L1b reproduction, not proof that either candidate
-produces the required graph. L1c ratifies the pin only after clean comparison,
-fixup compatibility, and representative consumer evidence. Qualification
-records a reviewed source digest and exact executable digest; a tag alone is
-insufficient.
+The initial comparison candidate is Reindeer `v2026.08.10.00` at
+`bb681570d2bc47d1446080c12b8681a50a95f628`; a later candidate changes alias
+emission while three checked `any_spawner` consumers exist. L1b must reproduce
+both, and L1c ratifies one only after fixup and consumer evidence. Qualification
+binds reviewed source and executable digests; a tag is insufficient.
 
-The process adapter invokes the pinned `buckify` operation with equivalent
-`--locked`, `--offline`, and `--stdout` behavior. It supplies absolute paths to
-the admitted executable, inputs, and read-only Cargo registry/vendor source
-snapshot; runs in a newly created empty staging directory; disables network
-access; and does not inherit a writable Cargo home. It clears proxy, credential,
-wrapper, compiler-substitution, target-dir, incremental, rustflags, config, and
-dynamic-loader variables before applying a closed allowlist required by
-Reindeer and the pinned toolchain. The source snapshot, Cargo/rustc binaries,
-effective environment, and sandbox profile are all digested inputs.
+The process adapter invokes pinned `buckify` with locked/offline/stdout
+semantics, absolute admitted inputs and read-only Cargo sources, an empty stage,
+no network, and no writable Cargo home. It clears proxy, credential, wrapper,
+compiler-substitution, target-dir, incremental, rustflags, config, and loader
+variables before applying a closed allowlist. Source, Cargo/rustc, environment,
+and sandbox identities are digested inputs.
 
-Stdout alone carries candidate BUCK bytes. Stderr is bounded diagnostic data.
-The adapter refuses a sandbox profile that cannot enforce its declared read and
-network boundary. Under a qualified profile it rejects destination writes,
-undeclared file reads, timeout, signal, nonzero exit, invalid UTF-8 where the
-BUCK parser requires text, and output above the declared byte ceiling.
+Stdout alone carries BUCK bytes; stderr is bounded diagnostic data. Unsupported
+sandbox profiles refuse. Qualified profiles reject undeclared reads/writes,
+network, timeout/signal/nonzero exit, invalid required text, and oversized
+output.
 
 </generator_profile_v1>
 
@@ -230,20 +155,9 @@ BUCK parser requires text, and output above the declared byte ceiling.
 
 ## Candidate generation platform families
 
-L1c must freeze exact Rust triples and Buck configuration mappings. The current
-candidate covers these nine target families:
-
-| Architecture | Operating system / environment |
-|---|---|
-| `x86_64` | Linux GNU |
-| `aarch64` | Linux GNU |
-| `x86_64` | Linux musl |
-| `aarch64` | Linux musl |
-| `x86_64` | macOS |
-| `aarch64` | macOS |
-| `x86_64` | Windows GNU |
-| `x86_64` | Windows MSVC |
-| `wasm32` | unknown / unknown |
+L1c freezes exact Rust triples and Buck mappings for nine candidate families:
+Linux GNU and musl on `x86_64`/`aarch64`; macOS on `x86_64`/`aarch64`;
+Windows GNU and MSVC on `x86_64`; and `wasm32-unknown-unknown`.
 
 Once ratified, generation and validation evaluate every exact mapping
 independently of the host. Adding, removing, or redefining a ratified entry
@@ -305,28 +219,21 @@ cannot be inferred from a candidate file.
 
 ## Qualified filesystem publication adapter
 
-The filesystem adapter accepts only a declared capability profile qualified for
-the target filesystem and platform. It obtains an exclusive destination lease
-or genuine compare-and-swap authority, opens the destination directory, and
-uses directory-relative no-follow operations. Under that authority it verifies
-the expected destination preimage and creates a collision-resistant temporary
-regular file in the same directory. It writes validated bytes, flushes file
-contents/metadata, sets the declared mode, atomically replaces the destination,
-and flushes the parent directory before returning `Replaced`.
+The filesystem adapter accepts a profile qualified for its filesystem/platform,
+holds an exclusive destination lease or genuine compare-and-swap authority,
+and uses directory-relative no-follow operations. It verifies the preimage,
+writes a collision-resistant same-directory regular temporary file, flushes
+bytes/metadata, sets mode, replaces atomically, and flushes the parent before
+returning `Replaced`.
 
-If the destination already has the validated digest and declared mode, the
-adapter returns `Unchanged` without a rename. A lease loss or compare-and-swap
-conflict returns a typed refusal; a read followed by rename alone is never
-represented as conflict-safe publication. A profile lacking the required
-primitives returns `UnsupportedPublicationProfile` before staging. On qualified
-profiles, a failure before replacement retains the prior file and observers see
-only old or new complete bytes. A directory-sync failure after replacement
-reports indeterminate durability and never fabricates a durable-success receipt.
+Matching digest/mode returns `Unchanged` without rename. Lease loss, CAS
+conflict, or missing primitives refuse; read-then-rename alone is not conflict
+safe. Before-replacement failure retains the old complete file; directory-sync
+failure after replacement reports indeterminate durability, never success.
 
-Temporary files are recognized only by an owned prefix plus validated random
-suffix. Startup may remove an abandoned matching regular file after proving it
-is not the destination; it never follows or removes a symlink, directory, or
-foreign file.
+Startup removes only an abandoned owned-prefix/validated-random-suffix regular
+file proved not to be the destination; never a symlink, directory, or foreign
+file.
 
 </publication>
 
@@ -334,20 +241,10 @@ foreign file.
 
 ## Generation identity and publication-attempt receipt
 
-The stable generation identity uses a versioned semantic schema and contains:
-
-```text
-schema_version
-repository_revision_correlation
-manifest_digest, lock_digest, reindeer_config_digest, fixup_tree_digest
-cargo_source_snapshot_digest
-platform_set_digest, validation_profile_version
-generator_tag, generator_source_commit, generator_source_digest
-generator_asset_digest?, generator_binary_digest
-cargo_binary_digest, rustc_binary_digest
-effective_environment_digest, sandbox_profile_version, validator_binary_digest
-output_digest, output_bytes
-```
+The versioned generation identity canonically binds repository correlation;
+manifest/lock/Reindeer/fixup/source/platform/validation digests; generator tag,
+source, asset/build, and binary provenance; Cargo/rustc, environment/sandbox,
+validator identities; and output digest/bytes.
 
 Fields are canonically ordered and exclude wall clock, hostname, checkout path,
 temporary path, username, PID, and unrestricted environment. A release asset
@@ -385,17 +282,13 @@ builds/cqueries the representative Buck targets; check-only then reports clean.
 
 ## Implementation placement gate
 
-The behavior belongs to Build and stays separate from `build/port-engine`.
-ADR-0719's current meta-root grammar and shared workspace/build declarations
-make the exact package path a structural decision. The preferred shape is a
-capability-style `build/dependency-declarations/{core,ports,adapters,facade}`
-tree, but no code path or root/workspace mutation is authorized until the
-independent implementation plan names the admitted paths, Buck targets, package
-names, shared-file writer, and required cross-owner reviews.
+Build behavior stays separate from `build/port-engine`. ADR-0719's meta-root
+grammar makes exact placement structural; prefer
+`build/dependency-declarations/{core,ports,adapters,facade}`, but authorize no
+code/root mutation until an independent plan names paths, targets, packages,
+the shared-file writer, and required reviews.
 
-Build's reusable analysis/transformation provider role is adopted, but the
-compilation-unit, semantic-fact, conformance, and recipe contracts remain the
-nonbinding details recorded in `ADR.md`; this specification does not define
-their schemas or implementation homes.
+Build's reusable provider role is adopted; compilation-unit, semantic-fact,
+conformance, and recipe schemas/homes remain nonbinding `ADR.md` details.
 
 </placement_boundary>
