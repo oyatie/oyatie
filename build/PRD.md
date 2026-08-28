@@ -86,17 +86,18 @@ not a qualified compatibility promise.
   binary digests, CI pins, Buck toolchains, image builders, Reindeer inputs,
   cache namespaces, and every other consumer before proposing a toolchain bump.
 - Ingest release notes and compatibility/security advisories into a versioned
-  applicability ledger. Every item is assigned `ADOPT`, `BENCHMARK`, `DEFER`,
-  or `REJECT`, an owning consumer, evidence, MSRV effect, affected targets, and
-  a re-evaluation trigger; no release item disappears as “not relevant” without
-  a recorded reason.
+  applicability ledger. Build validates complete coverage and may emit a
+  nonbinding recommendation; every item carries a consuming-owner-supplied or
+  accepted `ADOPT`, `BENCHMARK`, `DEFER`, or `REJECT`, evidence, MSRV effect,
+  affected targets, and a re-evaluation trigger. Build never selects another
+  owner's semantic adoption.
 - For dependency candidates, bind exact package/source/version/checksum,
   publication age, yank/deletion state, maintainer/provenance changes, feature
   graph, normal/build/dev/proc-macro role, native inputs, duplicate versions,
   license/audit status, and transitive affected targets.
-- Normalize supported RustSec, OSV, CVE/GHSA records issued by CNAs, upstream
-  security, registry yank/deletion, and malicious-package notices without
-  double-counting aliases.
+- Normalize aliases among supported RustSec, OSV, CVE, and GHSA records while
+  preserving issuing-CNA provenance; ingest upstream security, registry
+  yank/deletion, and malicious-package notices without double-counting aliases.
   Build consumes security-owned severity/exploitability/embargo decisions and
   must not claim that advisory ingestion makes Oyatie a CNA.
 - Apply an owned publication-age/quarantine policy and explicit emergency-fix
@@ -157,7 +158,8 @@ not a qualified compatibility promise.
 - Emit a stable generation identity, separate from generated BUCK bytes, that
   binds every semantic input, tool, environment/sandbox/validation profile, and
   output digest. Emit a separate publication-attempt receipt binding that
-  generation identity, destination preimage, publisher profile, and outcome.
+  generation identity, destination preimage, publisher profile, and actual
+  success, typed failure, or indeterminate replacement/durability outcome.
 
 ## Interfaces and integration
 
@@ -197,7 +199,8 @@ At the recorded workspace package/target scale and declared warm-cache profile:
 - freshness false negatives on an input change: **zero**;
 - warm reconciliation p95: **10 seconds or less**;
 - receipt/input/output provenance coverage: **100%**.
-- upstream release-note and supported advisory disposition coverage: **100%**;
+- owner-supplied release-note and supported advisory disposition coverage:
+  **100%**;
 - unexplained toolchain/dependency pin drift: **zero**;
 - declared-MSRV regressions from a production toolchain/dependency bump:
   **zero**;
@@ -240,6 +243,8 @@ generator pin, and platform set.
 - A production bump silently changes MSRV, leaves a pin surface split, consumes
   a floating nightly, omits a release/advisory item, or treats an alias as a
   second vulnerability.
+- Build selects a consuming product's semantic adoption instead of validating
+  its owner-supplied disposition and evidence.
 
 ## Named fault campaigns
 

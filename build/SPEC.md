@@ -45,7 +45,8 @@ solver and Polonius Alpha, but reported future-incompatible
 These are preview remediation inputs, not authority to mutate stable pins.
 
 Typed records cover exact MSRV/stable/beta/nightly toolchain and component/
-target identities; provenance-bound release items and
+target identities; provenance-bound release items, nonbinding Build
+recommendations, and consuming-owner-supplied or accepted
 `ADOPT|BENCHMARK|DEFER|REJECT` dispositions; dependency source/version/checksum,
 publish/yank/maintainer/role/feature/audit/affected-closure facts; and canonical
 vulnerability ranges, aliases, withdrawals, provenance, and Security decision
@@ -80,7 +81,7 @@ This table seeds, but does not replace, item-by-item release-note disposition:
 |---|---|---|
 | 1.96/1.96.1 stable | Copyable `core::range` spans; `assert_matches!`; WASM undefined symbols become link errors; Cargo tarball/auth CVEs plus later libssh2 CVEs and a MIR fix | Adopt spans for future semantic source ranges while public APIs accept `RangeBounds`; use richer match assertions in new fault tests; preserve strict WASM linking and explicit imports; treat point releases as emergency toolchain candidates, not MSRV events. |
 | 1.97/1.97.1 stable | v0 symbol mangling; Cargo `build.warnings` and `resolver.lockfile-path`; visible linker diagnostics; integer bit-width/isolation APIs; new NVPTX baseline; LLVM miscompilation fix | Requalify symbolizers, profiles, backtraces, binary provenance, native linkers, and any GPU target; use alternate lockfile paths for read-only snapshot analysis; evaluate cache-neutral warning denial while retaining Clippy policy; property-prove any bit-helper simplification; rebuild affected artifacts after a compiler-fix rollout. |
-| 1.98 stable | source-subrange and prefix/suffix APIs; buffered integer formatting; algebraic floating point; mutable-slice atomic views; endian-specific UTF-16 decoding; `CommandArgs` thread traits; `ManuallyDrop<Box<_>>` guarantee; runtime-symbol/FFI lints and stricter layout checks | Use subrange APIs in semantic/codemod provenance and evaluate `strip_circumfix` for exact parser chains; replace formatting crates only when direct usage and benchmarks justify it (`itoa` is currently transitive); allow algebraic floats only in approximate, error-budgeted kernels and forbid them in billing/accounting, hashes, receipts, tests, and deterministic transforms; adopt the remaining APIs only at evidenced call sites; prioritize unsafe/FFI/layout and rustfmt-delta qualification. |
+| 1.98 stable | source-subrange and prefix/suffix APIs; buffered integer formatting; algebraic floating point; mutable-slice atomic views; endian-specific UTF-16 decoding; `CommandArgs` thread traits; `ManuallyDrop<Box<_>>` guarantee; runtime-symbol/FFI lints and stricter layout checks | Use subrange APIs in semantic/codemod provenance and evaluate `strip_circumfix` for exact parser chains; replace formatting crates only when direct usage and benchmarks justify it (`itoa` is currently transitive); flag algebraic floats as unsuitable for exact/deterministic surfaces and require the consuming owner to accept error budgets elsewhere; adopt remaining APIs only at evidenced call sites; prioritize unsafe/FFI/layout and rustfmt-delta qualification. |
 | 1.99 projected | Cargo `debug` profile; CI incremental compilation off by default; edition-2024 workspace dependency `default-features` override; lint-name and resolver changes | Keep provisional until release; Oyatie already sets `CARGO_INCREMENTAL=0`, so prove no drift; model `dev`/`debug` explicitly; diff Cargo/Reindeer/Buck feature closure before using member overrides. |
 | 1.100 nightly observed | next trait solver and Polonius alpha previews; Cargo build analysis, new cache layout, fine-grained locking, SBOM, section timing, profile-hint, and trim-path experiments; removal of `update-breaking` and minimum-publish-age experiments | Run pinned-nightly compiler/performance/diagnostic differentials and file upstream regressions; treat the three observed future-incompatible transitive packages as owned dependency candidates; consume Cargo JSON messages rather than scrape `target/`; benchmark cache concurrency/rebuild causality and prototype SBOM/path hygiene behind non-authoritative adapters; keep breaking upgrades and publication quarantine in owned policy. |
 
@@ -93,9 +94,9 @@ for `itoa`, UTF-16 conversion, mutable atomic-slice APIs, `ManuallyDrop`, or
 `CommandArgs`; those items receive an evidence-backed defer/revisit trigger
 rather than a ceremonial rewrite.
 
-Every other Rust, Cargo, rustfmt, and Clippy release item receives a recorded
-disposition before the train can be called fully evaluated. “No code change” is
-valid only with an affected-graph query and reason.
+Every other Rust, Cargo, rustfmt, and Clippy release item requires a recorded
+consuming-owner disposition before the train can be called fully evaluated.
+“No code change” is valid only with an affected-graph query and reason.
 
 </toolchain_dependency_evolution>
 
@@ -110,20 +111,22 @@ effective environment, sandbox, validator, and validation-profile identities.
 It produces `RawGeneration`, `ValidatedGeneration`, and stable
 `GenerationIdentity` values. A separate `PublicationRequest` binds generation,
 expected destination preimage, and publisher profile; its attempt receipt adds
-the actual `Unchanged|Replaced` outcome.
+the actual success, typed failure, or indeterminate outcome.
 
 Repository revision is correlation, not a substitute for content digests. The
 same generation request values and generator bytes produce the same output and
 generation identity regardless of checkout path, temporary path, wall clock,
 locale, user, or host environment. A publication-attempt receipt is separately
 deterministic for its generation, destination preimage, publisher profile, and
-actual outcome; `Replaced` and `Unchanged` attempts do not share an identity.
+actual outcome; distinct success, failure, and indeterminate outcomes do not
+share an identity.
 
 The core orders the transaction as: admit generation request; run A; run B;
 compare bytes; validate the common bytes; construct the generation identity;
 admit a qualified publication request; acquire exclusive destination authority;
 compare the destination preimage; publish or report unchanged; construct the
-publication-attempt receipt. No adapter can publish a `RawGeneration`.
+publication-attempt receipt for every attempted outcome. No adapter can publish
+a `RawGeneration`.
 
 </reconciliation_model>
 
@@ -223,8 +226,8 @@ The filesystem adapter accepts a profile qualified for its filesystem/platform,
 holds an exclusive destination lease or genuine compare-and-swap authority,
 and uses directory-relative no-follow operations. It verifies the preimage,
 writes a collision-resistant same-directory regular temporary file, flushes
-bytes/metadata, sets mode, replaces atomically, and flushes the parent before
-returning `Replaced`.
+bytes, sets the final mode, syncs file contents and metadata, replaces
+atomically, and syncs the parent before returning `Replaced`.
 
 Matching digest/mode returns `Unchanged` without rename. Lease loss, CAS
 conflict, or missing primitives refuse; read-then-rename alone is not conflict
@@ -244,7 +247,8 @@ file.
 The versioned generation identity canonically binds repository correlation;
 manifest/lock/Reindeer/fixup/source/platform/validation digests; generator tag,
 source, asset/build, and binary provenance; Cargo/rustc, environment/sandbox,
-validator identities; and output digest/bytes.
+validator identities; and `output_digest` plus `output_length_bytes`. Generated
+BUCK content remains outside the identity record.
 
 Fields are canonically ordered and exclude wall clock, hostname, checkout path,
 temporary path, username, PID, and unrestricted environment. A release asset
@@ -253,8 +257,10 @@ replaces it when the binary is built from source.
 
 A separate publication-attempt receipt contains `generation_id`, destination
 preimage digest, publisher capability profile/version, and the actual
-`Unchanged` or `Replaced` outcome. Publication outcome does not alter the
-generation identity, but it does alter the attempt-receipt identity.
+`Unchanged`, `Replaced`, typed `Failed`, or `Indeterminate` outcome. Failure and
+indeterminate variants bind the failure class, known/maybe replacement state,
+and known/unknown durability. Publication outcome does not alter the generation
+identity, but it does alter the attempt-receipt identity.
 
 </receipt>
 

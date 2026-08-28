@@ -102,17 +102,20 @@ file are not a proved round trip.
   beta candidate, and exact dated nightly observation as separate identities.
   Production builds MUST track the latest qualified stable patch; an MSRV move
   MUST be a deliberate consumer-compatibility change with its own acceptance.
-  Every Rust/Cargo/rustfmt/Clippy release and dependency candidate MUST receive
-  an owner-visible `ADOPT`, `BENCHMARK`, `DEFER`, or `REJECT` disposition bound
-  to graph impact and evidence. Build MUST bind tool binaries/components,
+  Every Rust/Cargo/rustfmt/Clippy release and dependency candidate MUST carry a
+  consuming-owner-supplied or accepted `ADOPT`, `BENCHMARK`, `DEFER`, or
+  `REJECT` disposition bound to graph impact and evidence. Build MAY emit a
+  nonbinding recommendation but MUST NOT select another owner's semantic
+  adoption. Build MUST bind tool binaries/components,
   targets, LLVM, dependency sources/checksums, and vulnerability/yank/advisory
   facts, but MUST NOT assign CVE IDs, operate embargo/disclosure, claim CNA
   authority, decide product semantics, or orchestrate protected campaigns.
 - **ensure:** qualification compiles and tests the declared MSRV separately
   from latest stable, runs beta and pinned-nightly differential shadow lanes,
-  inventories every pin surface, evaluates every release-note item, regenerates
-  dependency/build declarations, maps CVE/OSV/RustSec/CNA aliases to affected
-  graph closure, and emits one reversible candidate plus receipts. Missing,
+  inventories every pin surface, requires an owner disposition for every
+  release-note item, regenerates dependency/build declarations, maps
+  CVE/GHSA/OSV/RustSec aliases with CNA provenance to affected graph closure,
+  and emits one reversible candidate plus receipts. Missing,
   withdrawn, conflicting, newly published, or unverifiable facts fail closed.
 - **overturn_when:** a user-adopted five-field decision replaces the channel or
   compatibility policy and proves equal security latency, provenance,
@@ -146,7 +149,8 @@ file are not a proved round trip.
   profiles, failures before replacement retain the prior output and observers
   see either prior or new complete bytes. Every failure is typed; generation
   identity and publication-attempt receipt bind all inputs, tools, profiles,
-  output, and actual outcome without claiming uncertain durability.
+  output, and actual success, typed failure, or indeterminate replacement and
+  durability state without claiming uncertain durability.
 - **overturn_when:** Reindeer natively supplies equivalent fixup expressivity,
   hermetic double-run verification, validated atomic publication, and the same
   provenance receipt, allowing the owned transaction to shrink without losing

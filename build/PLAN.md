@@ -221,27 +221,31 @@ Class: read-heavy owner design after L1a; may overlap disjoint L1b scratch work.
 - Route stale MSRV/pin claims in `code-style-rust.md`, `dependency-policy.md`,
   `lts-versions-verified.md`, and `observability-slo.md` to their owner; complete
   the immutable 1.96–1.100 ledger, keeping 1.99/1.100 provisional.
-- Build records Security/CNA and Pipeline ports without prescribing either.
+- Build records only consumer-neutral port needs and routes Security and
+  Pipeline contract decisions to those owners.
 - Success: every pin/item has provenance, owner, disposition, acceptance, and
   drift state; failure includes floating identity, silent MSRV movement, absent
   machinery narrated as live, or cross-owner claims.
 - Faults: same-version/different-commit, advisory withdrawal/modification,
   duplicate aliases, and an omitted release item must fail completeness.
 
-## L2b — Implement pure intake, graph-impact, and disposition kernels
+## L2b — Implement pure intake, graph-impact, and disposition validation
 
 Class: test-driven Build behavior after reviewed L2a and L1 contracts.
 
 - Begin with failing tests for channel identity, MSRV independence, release-item
-  completeness, advisory alias/withdrawal handling, dependency role/feature
-  closure, publication quarantine, and deterministic candidate grouping.
+  and owner-disposition completeness, advisory alias/withdrawal handling,
+  dependency role/feature closure, publication quarantine, nonbinding
+  recommendations, and deterministic candidate grouping.
 - Keep network, SCM, Pipeline, Security policy, clocks, registries, and process
   execution behind ports; consume immutable facts and refuse gaps/conflicts.
-- Success: identical bounded facts deterministically yield dispositions,
-  affected closure, candidates, and refusals without panic.
+- Success: identical bounded facts deterministically yield affected closure,
+  candidates, nonbinding recommendations, and refusals, and validate
+  owner-supplied dispositions without panic.
 - Failure/faults: prose scraping, guessed aliases, `cargo update`, severity
-  assignment, unowned items, feed rollback, source substitution, malicious
-  scripts, owner transfer, yanks, MSRV conflict, cycles, or missing targets.
+  assignment, Build-selected product adoption, unowned items, feed rollback,
+  source substitution, malicious scripts, owner transfer, yanks, MSRV conflict,
+  cycles, or missing targets.
 
 ## L2c — Add mirrored-source adapters and candidate rendering
 
