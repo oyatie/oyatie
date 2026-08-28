@@ -101,8 +101,8 @@ deliverables:
     exit_criteria: "No TrustedTenant/cfg(trusted)/first-party quota class in app cores; no skip-PDP; no second cloud API; adapter injection and IAM principals remain the only knobs."
     verified_by: "presubmit"
   - id: ADR-0719-D27
-    description: "Current-only owner knowledge lives in semantic native artifacts. Capability/app Markdown is forbidden in the destination; proposals and work records stay off-tree; history stays in the SCM; derived human views are untracked and keyed to an immutable revision through an SCM-neutral revision interface whose current adapter is Git."
-    exit_criteria: "Existing owner prose is frozen migration input; each owner migrates atomically under D-36; the destination has zero capability/app Markdown and exactly root README.md, AGENTS.md, and CLAUDE.md as compatibility Markdown."
+    description: "Current-only owner knowledge lives in semantic native artifacts. Capability/app Markdown is forbidden in the destination; proposals and work records stay off-tree; history stays in the SCM and is reachable only through a separate explicit opt-in historical lookup, never mixed into a current view; derived human views are untracked and keyed to an immutable revision through an SCM-neutral revision interface whose current adapter is Git."
+    exit_criteria: "Existing owner prose is frozen migration input; each owner migrates atomically under D-36; the destination has zero capability/app Markdown and exactly root README.md, AGENTS.md, and CLAUDE.md as compatibility Markdown; each of AGENTS.md and CLAUDE.md independently stays at most 300 physical lines and 32 KiB (32,768 UTF-8 bytes)."
     verified_by: "presubmit"
   - id: ADR-0719-D28
     description: "Cross-owner bindings are ports+adapters. Unagreed ports are path-visible (ports/draft/) and cheap to rename. A second owner depending on a shape forces reconcile onto one agreed name on the provider (owner-port grammar + proto v1) via escalated review. No contracts/ root and no libs/ports dump."
@@ -126,19 +126,19 @@ deliverables:
     verified_by: "presubmit"
   - id: ADR-0719-D33
     description: "Structural Mutation Separation: reorg (git mv/rm, D-8 children, crate grammar, workspace members, lockfile, faces) is a different class from behavioral edits. Do not mix in one lane. After the structure wave, implement lanes are content-only inside frozen crates."
-    exit_criteria: "PRs are either structural (layout/lock/members/faces) or behavioral (crate src/tests/docs), not both; implement dispatches do not git mv trees or edit root Cargo.toml; D-8 shape stays frozen mid-feature."
+    exit_criteria: "PRs are either structural (layout/lock/members/faces) or behavioral (Rust types/implementation/tests, ports/protobuf, adapters, Cedar, reconciler/SLO inputs), not both; implement dispatches do not git mv trees or edit root Cargo.toml; D-8 shape stays frozen mid-feature."
     verified_by: "presubmit"
   - id: ADR-0719-D34
     description: "Local N-way uses shared read-only build cache (buck2 CAS/disk cache), cargo --offline --locked if cargo is used at all, and the existing buck2 + rust-analyzer graphs for dispatch. Reject shared CARGO_TARGET_DIR lock-bypass, per-agent lockfiles, and an Aggregated AST Patch product."
     exit_criteria: "Agent local verify does not rewrite Cargo.lock or take a shared cargo target lock; cache is content-addressed and trusted-writer; dispatcher consults build graph (buck2) and crate graph (metadata/r-a); no new AST-merge service."
     verified_by: "presubmit"
   - id: ADR-0719-D35
-    description: "Hand-written native files are at most 300 lines. Destination exemptions are generated artifacts, lockfiles, and third-party material; root README.md, AGENTS.md, and CLAUDE.md are the only Markdown compatibility files, and the two agent hubs remain at most 300 lines. Existing ADR and owner Markdown exemptions are frozen transition input, not permission to create or expand prose."
-    exit_criteria: "The separate Pipeline lane later applies a touched-path budget and three-root-Markdown allowlist without an expected_total or frozen corpus; generated/lock/vendor paths remain excluded, and this ADR-only lane does not claim that enforcement is live."
+    description: "Hand-written native files are at most 300 lines. Destination exemptions are generated artifacts, lockfiles, and third-party material; root README.md, AGENTS.md, and CLAUDE.md are the only Markdown compatibility files; each of the two agent hubs independently remains at most 300 physical lines and 32 KiB (32,768 UTF-8 bytes). Existing ADR and owner Markdown exemptions are frozen transition input, not permission to create or expand prose."
+    exit_criteria: "The separate Pipeline lane later applies a touched-path budget, an independent 32 KiB UTF-8 ceiling to each root agent hub, and the three-root-Markdown allowlist without an expected_total or frozen corpus; generated/lock/vendor paths remain excluded, and this ADR-only lane does not claim that enforcement is live."
     verified_by: "presubmit"
   - id: ADR-0719-D36
-    description: "Current-only native owner knowledge: no tracked Markdown below capability/app roots; native artifacts are authoritative; proposals and work are off-tree; history is SCM-only; derived views are revision-keyed and untracked. Existing owner prose is read-only migration input and is deleted atomically after exact-candidate projection and verification."
-    exit_criteria: "Pipeline first stops requiring the quartet in a separate lane; every owner claim is classified exactly once, conflicts are challenged, accepted truth is projected to semantic native authority, retained references and exact-tip views are verified, source prose is deleted atomically, and no tombstone or in-tree receipt remains."
+    description: "Current-only native owner knowledge: no tracked Markdown below capability/app roots; native artifacts are authoritative; proposals and work are off-tree; history is SCM-only and requires a separate explicit opt-in historical lookup that never mixes into a current view; derived views are revision-keyed and untracked. Existing owner prose is read-only migration input and is deleted atomically after exact-candidate projection and verification."
+    exit_criteria: "Pipeline first stops requiring the quartet in a separate lane; every owner claim has exactly one result; ambiguity, conflict, duplication, or absence of classification yields Unknown; Unknown blocks projection and deletion and cannot be coerced into accepted-current, proposal/work, or historical/rejected; accepted truth is projected to semantic native authority; every owner-prose deletion has retained-reference and exact-candidate checks, a failure-injection proof, and an offline-available view bound to that immutable revision; the three-root-Markdown allowlist and independent per-hub ceilings of 300 physical lines and 32 KiB (32,768 UTF-8 bytes) hold; source prose is deleted atomically, and no tombstone or in-tree receipt remains."
     verified_by: "presubmit"
   - id: ADR-0719-D37
     description: "Shared native config/json/yaml/toml is not split like .rs. Keep it minimal. Implement agents must not in-place edit the denylist; additive changes are uuid-named fragments only where stable native membership cannot express them. Mechanical fold is one serial step on the receiving branch; root compatibility Markdown stays single-writer, and Cargo.lock is regenerated once after fold."
@@ -201,7 +201,9 @@ the D-39 Markdown-block grain, the D-40 tracked plan/ADR path, and the D-43
 tracked design-note option. Sequential ADR/D-n identifiers in this transition
 remain provenance only; they are not names for current operational surfaces.
 Any older owner-prose instruction retained in SCM history is non-authoritative
-migration evidence, not permission to add, edit, or restore tracked Markdown.
+migration evidence, reachable only by an explicit historical lookup and never
+mixed into a current view; it is not permission to add, edit, or restore tracked
+Markdown.
 
 ## Context
 
@@ -731,8 +733,9 @@ on-path QUIC MITM or ECH-off “enterprise mode”; a `firewall/` cap; `ci/` and
 A capability/app directory or file is allowed only when a compiler, test, PDP,
 SLO controller, reconciler, Cargo, Buck, or ownership enforcement consumes it.
 Those native artifacts hold current owner truth. SCM history is the historical
-record; Git commit/tree identity is the current SCM adapter. Do not invent a
-tracked prose destination for leftovers.
+record and is accessed only through a separate explicit opt-in historical
+lookup; a current view never traverses or mixes it. Git commit/tree identity is
+the current SCM adapter. Do not invent a tracked prose destination for leftovers.
 
 **Repo root (closed).** Workspace: `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`,
 `rustfmt.toml`, `deny.toml`, `reindeer.toml`, `.buckconfig`, `.buckroot`, `.cargo/`.
@@ -754,8 +757,9 @@ tree, or catch-all `specs/`. Root compatibility entry is `AGENTS.md` /
 **Removed this wave (not shrink-only):** `libs/`, `tools/`, `infra/`, `kernel/`,
 `os/`, `contracts/`, `plan/`, `tasks/`, `scripts/`. Last leg is **gone**, not
 tolerated. This ADR is retained only for the frozen transition and becomes
-SCM-only history when the D-36 migration closes; that temporary location does
-not re-admit `docs/` to the destination grammar.
+SCM-only history when the D-36 migration closes, reachable only through an
+explicit historical lookup and never mixed into a current view; that temporary
+location does not re-admit `docs/` to the destination grammar.
 
 **Capability and `app/<product>/` — identical closed children.** Caps and apps
 use the **same** four faces. Hyperscaler analog: one API (ports), one engine
@@ -861,7 +865,8 @@ still speak REST may go red until they speak proto — that break is in-scope hy
 
 - During the frozen transition, migration lanes read this amendment as source
   input. Ordinary implementation consumes the owner's semantic native surfaces;
-  after migration, this ADR is SCM-only provenance, not a current-truth index.
+  after migration, this ADR is SCM-only provenance reachable only through an
+  explicit historical lookup, never a current-truth index or current-view input.
 - `policy/` extraction and IR proto are implementation follow-through, not optional sketch.
 - Admission remains VAP/CEL+PSA as cited from ADR-0704 / ADR-0700. Proposed
   0710-range ids are not `depends_on`.
@@ -1610,19 +1615,25 @@ tree bytes. A branch, tag, working tree, mutable `HEAD` label, timestamp, or
 "latest" is not a durable identity. A view refuses if the exact revision bytes
 or required native inputs are unavailable or mismatch. It may be cached outside
 the repository under that full key; it is never tracked, checked in, or treated
-as input to the native authority.
+as input to the native authority. Before any operational owner prose is deleted,
+the exact-candidate view must be materialized from that immutable revision and
+remain available for inspection without network access.
 
 **Human work and history.** Proposals, rationale under consideration, sequence,
 and acceptance discussion live in the PR body or an external work system. Once
 landed, current truth is the native candidate and history is available only
-through the SCM. No archive, changelog copy, Markdown tombstone, migration
-receipt, or generated view stays in tree.
+through the SCM by a separate, explicitly requested historical lookup. A current
+view never enables that lookup or mixes historical material. No archive,
+changelog copy, Markdown tombstone, migration receipt, or generated view stays
+in tree.
 
 **Root compatibility only.** `/README.md`, `/AGENTS.md`, and `/CLAUDE.md` are
 the complete destination Markdown set. They bootstrap humans and harnesses;
-they do not duplicate owner contracts. The two agent hubs remain at most 300
-lines. All other tracked Markdown, including under `docs/`, `templates/`, a
-capability, or `app/<product>/`, is transition input to remove under D-36.
+they do not duplicate owner contracts. Each of the two agent hubs independently
+remains at most 300 physical lines **and** 32 KiB (32,768 UTF-8 bytes); either
+ceiling can fail even when the other passes. All other tracked Markdown,
+including under `docs/`, `templates/`, a capability, or `app/<product>/`, is
+transition input to remove under D-36.
 
 **MUST (immutable current views)**
 
@@ -1633,11 +1644,14 @@ capability, or `app/<product>/`, is transition input to remove under D-36.
 - **rule:** current views are semantic projections of native authority, bind an
   immutable SCM-neutral revision plus view identity, and remain untracked; Git
   commit/tree resolution is the current adapter, not the product contract;
-  proposals are off-tree and history is SCM-only.
+  proposals are off-tree; SCM-only history requires a separate explicit opt-in
+  historical lookup and never mixes into a current view.
 - **ensure:** the separate Pipeline lane later qualifies exact-tip view tests,
-  retained-reference checks, capability/app Markdown rejection, and the
-  three-root-Markdown allowlist. This amendment neither implements that adapter
-  nor claims enforcement is live.
+  refusal of historical inputs on current-view requests, retained-reference
+  checks, capability/app Markdown rejection, and the three-root-Markdown
+  allowlist plus independent 300-physical-line and 32-KiB UTF-8-byte ceilings
+  for each root agent hub. This amendment neither implements that adapter nor
+  claims enforcement is live.
 - **overturn_when:** measured evidence proves an exact-revision view cannot make
   native current truth operable and a bounded five-field replacement lands
   atomically without restoring a parallel tracked authority.
@@ -1942,7 +1956,7 @@ pipeline/RE (ADR-0716 overturn), the same read-only rule holds.
   does not lock or corrupt, or an AST merge that is still crate-disjoint
   (then it is unnecessary).
 
-### D-35 — File budget: 300 lines, with destination exemptions only
+### D-35 — File budget: 300 lines plus an independent 32 KiB agent-hub ceiling
 
 For agents, a 2k-line hand-written native file is a context and conflict
 magnet. The destination maximum remains **300 physical lines** for every
@@ -1953,8 +1967,9 @@ lines without comment-stripping or a repository file-count census.
 artifacts such as `*.generated.*`, protobuf/Reindeer output, and controller
 outputs; and vendored lock-step snapshots. The root compatibility set
 `README.md`, `AGENTS.md`, `CLAUDE.md` is allowed by D-8, but it is not an
-unbounded prose exemption: both agent hubs remain at most 300 lines, and the
-README follows the ordinary 300-line budget.
+unbounded prose exemption: each agent hub independently remains at most 300
+physical lines and 32 KiB (32,768 UTF-8 bytes). The byte ceiling is independent
+of the line ceiling. The README follows the ordinary 300-line budget.
 
 Existing ADRs, owner quartets, owner READMEs, and owner prose trees are frozen
 transition input under D-36. Their current length is tolerated only so they can
@@ -1975,11 +1990,13 @@ or live.
   exemptions preserved stale owner novels; file-count censuses are forbidden.
 - **rule:** hand-written destination files are at most 300 physical lines;
   destination exemptions are generated, lock, third-party, and vendored
-  lock-step artifacts; the three root Markdown files are allowed but the agent
-  hubs remain at most 300 lines; frozen migration prose may only be deleted.
+  lock-step artifacts; the three root Markdown files are allowed, but each agent
+  hub independently remains at most 300 physical lines and 32 KiB (32,768 UTF-8
+  bytes); frozen migration prose may only be deleted.
 - **ensure:** the separate Pipeline lane later checks touched native files and
-  the three-root-Markdown allowlist without `expected_total`, a baseline, or a
-  frozen corpus; this lane claims no live enforcement.
+  the three-root-Markdown allowlist plus the independent per-agent-hub UTF-8
+  byte ceiling without `expected_total`, a baseline, or a frozen corpus; this
+  lane claims no live enforcement.
 - **overturn_when:** a five-field amendment names a different bound that still
   fits agent context, keeps root compatibility bounded, and does not become a
   file-count freeze.
@@ -2015,7 +2032,8 @@ remaining-work sequences live in the PR body or an external work system. A
 human-readable current view follows D-27: it is derived on demand from the
 native artifacts, keyed by an immutable SCM-neutral revision and view identity,
 and never tracked. Historical truth is available only from SCM; the current Git
-adapter uses verified commit/tree bytes.
+adapter uses verified commit/tree bytes. Historical lookup is a separate,
+explicit opt-in request; a current view never enables it or mixes its results.
 
 **Fail-closed transition.** The following order is mandatory:
 
@@ -2030,31 +2048,41 @@ adapter uses verified commit/tree bytes.
    may add or rewrite that prose; the only admitted owner-prose diff is its
    atomic deletion in the owner migration.
 3. The migration builds an ephemeral, off-tree claim ledger. Every source
-   claim is classified **exactly once** as accepted-current, proposal/work, or
-   historical/rejected. Conflicting claims are challenged against native
-   behavior, consumers, owner intent, and current acceptance. An unresolved,
-   duplicated, or unclassified claim refuses migration.
+   claim receives **exactly one** result: accepted-current, proposal/work,
+   historical/rejected, or `Unknown`. Any ambiguity, unresolved conflict,
+   duplicate classification, or absent classification yields `Unknown`.
+   `Unknown` is fail-closed: it blocks native projection and prose deletion and
+   must not be coerced into a successful class. Conflicting claims are
+   challenged against native behavior, consumers, owner intent, and current
+   acceptance until evidence supports one success result or they remain
+   `Unknown`.
 4. Accepted-current claims project exactly once onto the semantic native
    surfaces above. Proposal/work claims move to the PR body or external work
-   system. Historical/rejected claims remain only in SCM history. A prose
-   sentence, generated Markdown copy, numbered citation, or retained archive is
-   not a projection.
+   system. Historical/rejected claims remain only in SCM history and require a
+   separate explicit opt-in historical lookup; they never enter a current view.
+   A prose sentence, generated Markdown copy, numbered citation, or retained
+   archive is not a projection.
 5. One owner migration candidate contains every required native change and the
    deletion of **all** that owner's Markdown. Exact-candidate tests exercise the
    compiler/test/PDP/SLO-controller/reconciler/Cargo/Buck/ownership consumers;
-   an exact-tip derived view is regenerated from the same immutable revision;
-   retained-reference checks refuse any live reference to deleted prose. The
-   candidate refuses on a test failure, revision mismatch, incomplete native
-   projection, or unresolved retained reference.
+   an exact-tip derived view is regenerated from the same immutable revision and
+   is available offline before deletion; retained-reference checks refuse any
+   live reference to deleted prose. Every deletion also requires a
+   failure-injection proof that a failed consumer, missing native input,
+   revision mismatch, or unavailable offline view refuses the migration. The
+   candidate refuses on a failed or missing proof, test failure, revision
+   mismatch, incomplete native projection, unresolved retained reference,
+   unavailable offline view, or any `Unknown` result.
 6. Native projection and source deletion land atomically. No tombstone,
    migration matrix, receipt, changelog copy, archive, redirect, or in-tree view
    remains. If any step cannot complete, the source stays frozen and the owner
    remains unmigrated; partial deletion is forbidden.
 
 **Pipeline boundary.** Required compatibility, transition, reference, exact-tip,
-and Markdown-allowlist checks are a later Pipeline-owned implementation and
-qualification lane. This section specifies their contract only. It does not
-claim those checks, the view adapter, owner migrations, or enforcement are live.
+Markdown-allowlist, 300-physical-line, and independent 32-KiB UTF-8-byte checks
+are a later Pipeline-owned implementation and qualification lane. This section
+specifies their contract only. It does not claim those checks, the view adapter,
+owner migrations, or enforcement are live.
 
 **MUST (current-only native owner knowledge)**
 
@@ -2063,12 +2091,16 @@ claim those checks, the view adapter, owner migrations, or enforcement are live.
 - **origin:** mandatory quartets, g3doc trees, indexes, archives, and numbered
   citations became stale parallel authority.
 - **rule:** no tracked Markdown under capability/app roots; native artifacts are
-  authority; proposals/work are off-tree; history is SCM-only; derived views are
-  revision-keyed and untracked.
+  authority; proposals/work are off-tree; SCM-only history requires a separate
+  explicit opt-in historical lookup and never mixes into a current view; derived
+  current views are revision-keyed and untracked.
 - **ensure:** Pipeline compatibility change, atomic owner migrations,
-  retained-reference checks, exact-tip tests, three-root-file allowlist, and
-  <=300-line root agent hubs. These are separate Pipeline follow-through and
-  are not claimed live by this ADR-only amendment.
+  `Unknown` classification/refusal without coercion, retained-reference checks,
+  current-view refusal of historical inputs, exact-tip tests, per-deletion
+  failure-injection proofs, offline-available immutable-revision-bound views,
+  three-root-file allowlist, and independent per-agent-hub ceilings of <=300
+  physical lines and 32 KiB (32,768 UTF-8 bytes). These are separate Pipeline
+  follow-through and are not claimed live by this ADR-only amendment.
 - **overturn_when:** measured evidence proves an irreducible tracked human
   contract cannot be represented by native authority or an off-tree view, and a
   bounded replacement lands atomically.
