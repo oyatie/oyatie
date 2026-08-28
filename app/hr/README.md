@@ -19,8 +19,8 @@ Canonical owner law:
 - [ADR.md](ADR.md) — decisions and portability boundaries
 - [PRD.md](PRD.md) — product requirements, acceptance, and SLO objectives
 - [SPEC.md](SPEC.md) — current contract and target transaction/fault semantics
-- [PLAN.md](PLAN.md) — L2a through L2k.3 implementation, retirement, and
-  bounded-production sequence
+- [PLAN.md](PLAN.md) — semantic implementation, retirement, and bounded-
+  production sequence
 
 Replay obtains its bounded, provider-authenticated generation matrix through the
 record-encryption port, then uses only a returned generation-scoped opaque
@@ -85,8 +85,9 @@ proof, and abort provider ids before Begin, then the terminal fenced scan writes
 the exact Issue request digest in `ProofIssuePlanned` before it calls Issue.
 Recovery sends only the persisted tuple through the tombstone CAS. A recovery
 response id never becomes a provider side-effect id. Provider ids are
-operation-kind-scoped, and g.0 freezes named exhaustive provider status/Abort/
-membership-mutation and local Abort/Remove/Complete result sums; every status
+operation-kind-scoped, and `commit-replay-contract-freeze` freezes named
+exhaustive provider status/Abort/membership-mutation and local Abort/Remove/
+Complete result sums; every status
 and error branch is explicitly matched in port/adapter/SQLite tests, including
 `DecommissionObservationStale`. Thus `NotStarted` is not
 permission to reopen and a late begin cannot resurrect a locally aborted fence.
@@ -136,8 +137,9 @@ wire under `hr.decommission.provider-terminal-receipt.v1`.
 
 Fence, Begin plan, and Begin request nest exact final kind-`0x0d` bytes;
 Complete plan nests exact final kind-`0x0e` bytes; disposition nests exact
-final kind-`0x0f` or `0x10` bytes. g.0, g.1, and g.2 each freeze independent
-body/final min/max/+1 and mutation vectors for wrong header/kind/schema/variant,
+final kind-`0x0f` or `0x10` bytes. The contract-freeze, provider, and repository
+lanes each freeze independent body/final min/max/+1 and mutation vectors for
+wrong header/kind/schema/variant,
 body/final confusion, count/tag/order/length/domain/authenticator/digest/state,
 nested reserialization, response loss, and fresh-process byte-identical replay.
 Plan maxima remain `3,096/1,793/3,832/2,179/253`, requests remain
@@ -151,8 +153,9 @@ Both membership and repository-removal errors carry the same explicit
 quartets. Missing is absence, Corrupt is structural/state-byte failure,
 Mismatch is the wrong canonical identity/parent/digest/status/terminal branch,
 and AuthenticatorInvalid is a present bad key/signature envelope. Fence-stale
-and retirement-precondition failures remain separate; g.0 and recovery preserve
-every name. Receipt fields/maxima are unchanged, so assurance for omitted
+and retirement-precondition failures remain separate; contract-freeze and
+recovery evidence preserve every name. Receipt fields/maxima are unchanged, so
+assurance for omitted
 history relies on retained provider state and byte-identical exact-operation
 replay rather than claiming those omitted fields are directly authenticated.
 Binding tag 8 is derived only from the verified terminal header: kind `0x0f`
@@ -175,8 +178,9 @@ signing key id/epoch. A fresh process verifies receipt and binding
 bytes/digests/key/signature before it derives the 253-byte completion plan; a
 missing, changed, corrupt, duplicate, or unauthenticated receipt/binding is
 `LocalDispositionReceiptInvalid`, not an 870-byte completion-plan input. The
-g.0-owned metadata-commit signer/verify port is implemented by the key-service
-adapter with retained verification keys through receipt GC; unavailable, unknown
+metadata-commit signer/verify port owned by `commit-replay-contract-freeze` is
+implemented by the key-service adapter with retained verification keys through
+receipt GC; unavailable, unknown
 key, or bad-signature outcomes withdraw readiness and there is no reverse
 adapter-to-repository runtime edge.
 The fence wire is 2,273 bytes, the dependent Complete plan is 3,832 bytes, and
@@ -186,8 +190,9 @@ commits its replay cell, Decommissioning membership state, and signed `Fenced`
 result, so provider status never exposes `IntentPending`. That name is solely
 the write-closed SQLite pre-Begin state: response loss resolves by Get/exact
 replay to `NotStarted`, signed `Aborted`, or a signed closed state, and only the
-stored Abort tuple may act on `NotStarted`. g.0/g.1/g.2 tests freeze minimum and
-maximum plan/request byte vectors, every field/id/parent/receipt mutation,
+stored Abort tuple may act on `NotStarted`. Contract-freeze, provider, and
+repository tests freeze minimum and maximum plan/request byte vectors, every
+field/id/parent/receipt mutation,
 max-plus-one, independent rederivation, and crashes before/after plan, journal,
 issuance, and side-effect persistence.
 Minimal concrete

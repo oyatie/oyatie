@@ -2,7 +2,7 @@
 doc_class: Owner-PLAN
 owner: app/hr
 status: Active
-date: 2026-08-26
+date: 2026-08-27
 ---
 
 # HR remaining work
@@ -27,18 +27,18 @@ SLO. Core/facade still import Data core types, infrastructure imports Gateway
 core/runtime types, and the storage trait lives inside its adapter.
 
 Exactly eight hand-written Rust files exceed ADR-0719's 300-line budget at the
-reviewed L2a head:
+reviewed owner-law head:
 
-| Exact path | Lines | Serialized L2b slice |
+| Exact path | Lines | Semantic repair lane |
 |---|---:|---|
-| `core/employment-domain/src/lib.rs` | 1,600 | L2b.1 domain |
-| `core/employment-domain/tests/leave_balance.rs` | 440 | L2b.1 domain |
-| `core/employment-domain/tests/leave_carryover_forfeiture.rs` | 383 | L2b.1 domain |
-| `core/employment-domain/tests/onboarding.rs` | 360 | L2b.1 domain |
-| `ports/employment-api/src/lib.rs` | 484 | L2b.2 compatibility API |
-| `adapters/employment-infrastructure/src/authz.rs` | 448 | L2b.3 infrastructure |
-| `adapters/employment-infrastructure/src/lib.rs` | 372 | L2b.3 infrastructure |
-| `adapters/employment-infrastructure/tests/runtime.rs` | 512 | L2b.3 infrastructure |
+| `core/employment-domain/src/lib.rs` | 1,600 | employment domain file-budget split |
+| `core/employment-domain/tests/leave_balance.rs` | 440 | employment domain file-budget split |
+| `core/employment-domain/tests/leave_carryover_forfeiture.rs` | 383 | employment domain file-budget split |
+| `core/employment-domain/tests/onboarding.rs` | 360 | employment domain file-budget split |
+| `ports/employment-api/src/lib.rs` | 484 | delete with the legacy REST surface; do not modularize |
+| `adapters/employment-infrastructure/src/authz.rs` | 448 | delete with the legacy REST surface; preserve requirements in the Connect contract/tests |
+| `adapters/employment-infrastructure/src/lib.rs` | 372 | delete with the legacy REST surface; do not modularize |
+| `adapters/employment-infrastructure/tests/runtime.rs` | 512 | delete with the legacy REST surface; preserve security cases in the Connect test matrix |
 
 The Cargo graph is green, but the corresponding Buck graph is not. HR BUCK
 files still name deleted `//libs/*` labels. The live Data target is
@@ -46,44 +46,48 @@ files still name deleted `//libs/*` labels. The live Data target is
 packages now live at `gateway/{core,adapters}/...` but have no BUCK files. As a
 result, `buck2 targets //app/hr/...` discovers targets while
 `buck2 build //app/hr/...` fails first at
-`//libs/data-boundary-kernel:data-boundary-kernel`. L2b cannot truthfully claim
-Cargo/Buck parity until L2b.0 repairs that build closure.
+`//libs/data-boundary-kernel:data-boundary-kernel`.
+
+The attempted all-at-once repair at PR #2245 established a second fact: any
+edit below a legacy facade leaf correctly revalidates ADR-0719's process
+invariant. `app/hr/facade/employment-app`, `app/payroll/facade/run-app`, and
+`iam/facade/tenant-rbac-app` are libraries without `src/main.rs`; changing only
+their BUCK files therefore fails repository layout. An empty main would be a
+green veneer, not a process. HR and Payroll infrastructure targets also depend
+on those invalid facade rules, so merely dropping the three facade BUCK files
+still does not produce a truthful build closure. The monolithic 19-leaf repair
+is retired below in favor of disjoint dependency-closed repair PRs plus owner
+migrations that delete or replace each invalid facade and its coupled
+infrastructure edge.
 
 </baseline>
 
 <verification_closures>
 
-## Fixed reverse build closures
+## Dependency-closed verification units
 
-Every HR migration slice compiles and tests the applicable changed package plus
-the complete HR package set:
+The protected `presubmit` remains the one linearized Cargo workspace proof.
+Local lane proof is `buck2 build` / `buck2 test` of the dispatched target and
+its real Buck dependency closure, as ADR-0719 D-32/D-43 requires. A local lane
+is forbidden to widen itself into an unrelated legacy facade merely to claim an
+owner-wide Buck build; that is exactly what made the failed monolithic repair
+touch three invalid leaves.
 
-```text
-hr-employment-domain
-hr-employment-app
-hr-employment-api
-hr-employment-storage-inmemory
-hr-employment-infrastructure
-```
+Until the compatibility leaves are retired, the local Buck units are:
 
-Until L2g.1 proves their HR-internal edges are zero, it also compiles and tests
-these exact five IAM packages through Cargo and Buck:
+| Lane class | Required local Buck unit |
+|---|---|
+| domain shape and use-case work | exact-package pattern `//app/hr/core/employment-domain:` for the library and test targets; file-budget structure lands before new unique use-case items |
+| IAM detachment | the exact IAM packages changed by the IAM-owned lane; after graph cleanup their closure contains no HR target |
+| legacy HR REST/facade retirement | the consolidated employment core plus retained in-memory storage targets after the facade, JSON API, and HTTP infrastructure trees are deleted atomically |
+| terminal legacy-storage retirement | every remaining HR target plus the zero-IAM-to-HR inverse scan |
 
-```text
-iam-tenant-rbac-local-runtime-composition
-iam-tenant-rbac-local-inmemory-harness
-iam-tenant-rbac-listener-gateway
-iam-tenant-rbac-listener-runtime-evidence
-iam-tenant-rbac-readiness-gate
-```
-
-The corresponding Buck closures are the exact recursive target sets under the
-five current `app/hr/{core,ports,facade,adapters}` package directories and the
-five exact `iam/facade/tenant-rbac-*` directories above. A slice that creates a
-new package names its library plus unit/contract/integration targets in its
-BUCK file and adds that package to this closure. Target discovery alone is not a
-build result. Cargo evidence is locked/offline; Buck is local hermeticity under
-ADR-0716, and both graphs must model the same source membership.
+A slice that creates a package names its library plus unit/contract/integration
+targets in its BUCK file. Target discovery alone is not a build result. No
+source lane edits `Cargo.lock`; Cargo `presubmit` supplies the full-workspace
+consumer proof after the PR enters the queue. This correction narrows local
+work to a truthful build unit; it does not waive Cargo/Buck membership parity
+for any changed package.
 
 </verification_closures>
 
@@ -91,8 +95,8 @@ ADR-0716, and both graphs must model the same source membership.
 
 ## Mandatory IAM compatibility retirement
 
-The exact locked inverse graph at reviewed head
-`2467e77442ff7764851237252dea38db18540028` contains these five IAM consumers:
+The exact locked inverse graph at reviewed `origin/dev`
+`8489b29bce609b8ee3a3e5874f1d3013672d20c9` contains these five IAM consumers:
 
 | IAM path | Current illegal HR relationship |
 |---|---|
@@ -102,38 +106,56 @@ The exact locked inverse graph at reviewed head
 | `iam/facade/tenant-rbac-listener-runtime-evidence` | Transitive HR dependency through listener gateway |
 | `iam/facade/tenant-rbac-readiness-gate` | Transitive HR dependency through both HR-bearing IAM paths |
 
-The compatibility surfaces used by those packages are temporary migration
-devices, not a supported cross-owner architecture. L2b through L2f.1 keep the
-five IAM directories read-only and preserve their behavior. L2g.0a, L2g.0b,
-and L2g.1 are mandatory D-29 IAM-owner PRs: structurally prepare the oversized
-workload-manifest crate, delete the HR route/store rehearsal from IAM, then
-remove every Cargo/Buck/Rust edge from the complete IAM cone into
-`app/hr/`. IAM MUST NOT replace those internal edges with an HR client crate:
-cloud IAM authenticates/authorizes a separately deployed tenant product; it is
-not an HR product shell or a lawful consumer-side home for People composition.
-L2h is then a mandatory HR-owner structural retirement of the old compatibility
-packages. No live route, deployment, readiness, or SLO promotion may precede
-the terminal zero-IAM-to-HR proof plus L2h.
+Those packages are a closed tenant-RBAC REST/census/evidence fossil, not a
+supported cross-owner architecture. However, accepted ADR-0710 currently calls
+`iam/core/tenant-rbac-tenant-admission-policy` its live admission-policy instance;
+that review-only crate directly needs
+`tenant-rbac-tenant-workload-manifest`. The implementation does not install or
+enforce admission, but owner law cannot silently overrule the accepted ADR.
+Full-cone deletion is therefore non-dispatchable until an explicit accepted
+ADR-0710 amendment preserves the abstract identity-bound fail-closed CEL/RBAC
+invariant while removing the false concrete-crate binding. After that amendment
+and IAM owner law, one IAM-owned structural deletion removes every
+`tenant-rbac-*` core/port/adapter/facade package and its hand-authored tenant-RBAC
+OpenSLO files. The 618-line workload manifest is deleted rather than split
+first; modularizing deletion inventory is throwaway work. IAM is forbidden to
+replace those internal edges with an HR client crate: cloud IAM authenticates/
+authorizes a separately deployed tenant product; it is not an HR or Payroll
+product shell or a lawful consumer-side home for People composition. This HR
+plan governs only the zero-IAM-to-HR acceptance proof; the ADR-0710 and IAM
+owners govern the amendment, exact deletion envelope, and IAM behavior-retention
+evidence.
 
-One PR never writes both owner cones. HR compatibility preservation is not a
-reason to skip the IAM migration, and a failed migration blocks promotion
-rather than making the compatibility surface immortal.
+The domain split followed by use-case consolidation into unique items in the
+same portable core may advance while IAM detaches. The structural HR cutover
+that deletes `facade/employment-app`, the JSON API, and the REST infrastructure
+waits for both the new core behavior and the terminal zero-IAM-to-HR proof. No
+live route, deployment, readiness, or SLO promotion may precede that proof and
+the later terminal legacy-storage retirement.
+
+One PR never writes both owner cones. Legacy caller preservation is not a
+reason to skip the IAM migration or retain REST/JSON: ADR-0719 explicitly
+accepts temporary caller breakage. A failed migration blocks promotion rather
+than making the legacy surface immortal.
 
 </known_reverse_consumers>
 
 <sequence>
 
-## L2a — Establish HR owner law
+## HR owner-law correction for facade bootstrap
 
 Class: documentation/authority only.
 
-- Add the four canonical owner files and reconcile `README.md`.
-- Record current implementation truth, D-23/D-25 boundaries, D-24 SQLite v1,
-  target transaction/replay semantics, SLO objectives, and ordered lanes.
+- Amend `ADR.md` and this `PLAN.md` after PR #2245 exposed the invalid facade
+  leaves and reverse-consumer closure.
+- Align the migration with ADR-0719 deletion law: no split-first work for
+  deletion inventory, no REST/JSON compatibility adapter, whole IAM tenant-
+  RBAC fossil deletion under IAM authority, and semantic path-set sequencing.
 - Do not edit code, manifests, generated files, dependencies, or root law.
 
-Success: all four owner files agree on current versus target state, and
-path/docs admission plus the unchanged HR test fleet pass.
+Success: all four owner files remain coherent, ADR and PLAN agree on current
+versus target state, and path/docs admission plus the unchanged HR test fleet
+pass.
 
 Failure: the documents claim durable/network/SLO behavior that does not exist,
 endorse direct cloud-core coupling, or omit crash/reopen/idempotent-replay proof.
@@ -143,73 +165,60 @@ Rollback: revert these owner-law files; no runtime or format state changes.
 Fault evidence: hostile document review traces every landed claim to code/tests
 and every target claim to an explicit future lane.
 
-## L2b.0 — Repair the exact HR plus IAM Buck closure
+## Buck bootstrap — `buck-bootstrap`
 
-Class: serialized D-29 build-graph repair; prerequisite to L2b.1.
+Class: one-path structural build-graph repair governed by the cross-owner
+boundary and one-path-set-per-PR rules. It is prerequisite only to the HR
+domain file-budget work.
 
-This is a separate multi-owner build lane, not part of an HR source split. It
-replaces only stale labels and creates the five missing producer BUCK targets:
-the three Gateway packages plus the two IAM shared-kernel packages. Its closed
-write set is:
+This corrects the failed 19-path attempt without weakening facade validation
+or hiding unrelated failure behind an owner-wide build claim. PR #2245 is
+required to be shrunk to this single HR-domain path; it is not repurposed as a
+multi-owner bundle:
 
 ```text
 app/hr/core/employment-domain/BUCK
-app/hr/facade/employment-app/BUCK
-app/hr/adapters/employment-infrastructure/BUCK
-app/payroll/core/run-domain/BUCK
-app/payroll/facade/run-app/BUCK
-app/payroll/adapters/run-infrastructure/BUCK
-billing/core/accounting-app/BUCK
-billing/core/accounting-journal/BUCK
-billing/adapters/accounting-http/BUCK
-iam/core/tenant-rbac-domain/BUCK
-iam/core/tenant-rbac-usecase/BUCK
-iam/ports/tenant-rbac-api/BUCK
-iam/adapters/tenant-rbac-storage-inmemory/BUCK
-iam/facade/tenant-rbac-app/BUCK
-iam/core/shared-pdp-kernel/BUCK
-iam/core/platform-contracts-kernel/BUCK
-gateway/core/http-router-kernel/BUCK
-gateway/core/http-middleware-kernel/BUCK
-gateway/adapters/http-runtime-hyper/BUCK
 ```
 
-Every `//libs/data-boundary-kernel:*` edge in that set becomes
-`//data/core/data-boundary-kernel:data-boundary-kernel`. Every old HTTP edge
-becomes, according to the matching Cargo package, exactly
-`//gateway/core/http-router-kernel:http-router-kernel`,
-`//gateway/core/http-middleware-kernel:http-middleware-kernel`, or
-`//gateway/adapters/http-runtime-hyper:http-runtime-hyper-adapter`; all five
-new producer BUCK files model only their existing Cargo manifests and source
-globs without source changes. The two old IAM shared-kernel labels become
-`//iam/core/shared-pdp-kernel:shared-pdp-kernel` and
-`//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel`.
+The other eighteen paths are removed from PR #2245. This owner law does not
+authorize HR to repair or preserve Payroll, Billing, Gateway, or IAM inventory.
+Those paths require their own owner-law/path-set decisions, and may proceed in
+parallel when independently authorized. Within HR,
+`facade/employment-app/BUCK` and
+`adapters/employment-infrastructure/BUCK` stay frozen until the owning
+structural migrations delete the invalid facade dependency; an empty process
+main is forbidden.
 
-No Rust source, Cargo manifest/lock, owner law, or generated file may change.
-Build closure is all five current HR packages plus the five exact IAM packages
-under `<verification_closures>` and their Cargo-resolved Payroll, Billing, Data,
-Gateway, and IAM dependencies. Required review is Build/architecture plus Data,
-Gateway, HR, IAM, Payroll, and Billing owners.
+```text
+app/hr/facade/employment-app/BUCK
+app/hr/adapters/employment-infrastructure/BUCK
+```
 
-Success: the exact 19-path closed closure contains no `//libs/` label; Cargo
-remains unchanged; all five canonical producer labels
-(`//gateway/core/http-router-kernel:http-router-kernel`,
-`//gateway/core/http-middleware-kernel:http-middleware-kernel`,
-`//gateway/adapters/http-runtime-hyper:http-runtime-hyper-adapter`,
-`//iam/core/shared-pdp-kernel:shared-pdp-kernel`, and
-`//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel`)
-resolve from those package BUCK files; Buck builds and tests all HR and five IAM
-targets; and target labels match current package paths. Failure is any
-source/behavior change, invented alias, omitted reverse consumer, or further
-missing target outside the exact 19-file envelope; that missing target fails
-closed and requires a new authority correction, never lane self-widening.
-Rollback restores only the BUCK files because no runtime or data format changes.
+In the admitted HR-domain path, every
+`//libs/data-boundary-kernel:data-boundary-kernel` edge becomes exactly
+`//data/core/data-boundary-kernel:data-boundary-kernel`. No compatibility alias
+is created.
+
+No Rust source, Cargo manifest/lock, other owner law, or generated file may
+change. Local Buck proof builds/tests only the HR domain library/tests and their
+dependency closure; it does not claim an owner-wide Buck closure. Protected
+Cargo `presubmit` remains the full-workspace proof. Required review is HR,
+Build/architecture, and Data as the direct producer owner.
+
+Success: PR #2245 contains exactly the one HR-domain BUCK file, its ten
+targets resolve the canonical Data label, and the diff has no `//libs/` label.
+Failure is any source/behavior change, invented alias, owner-wide/full-closure
+claim, other-owner or frozen-path touch, or a missing target outside the one-
+file path set; that missing target fails closed and becomes a new owner
+correction, never lane self-widening. Rollback restores the one BUCK file
+because no runtime or data format changes.
 Fault evidence includes a deleted-label fixture and builds from a fresh Buck
 daemon/cache.
 
-## L2b.1 — Split the domain files
+## Employment domain file-budget split — `employment-domain-file-budget`
 
-Class: structural file-budget and D-41 scanner lane; depends on L2b.0.
+Class: structural file-budget and D-41 scanner lane; depends on the Buck
+bootstrap.
 
 Add `core/employment-domain/build.rs`; make `src/lib.rs` a stable generated
 include; and split production into exactly these bounded files:
@@ -235,16 +244,22 @@ tests/leave_carryover_forfeiture_items/{a_projection,b_invalid}.rs
 tests/onboarding_items/{a_readiness,b_invalid}.rs
 ```
 
-The scanner sorts direct Rust entries and writes `lib.generated.rs` plus the
-three named test membership files to `OUT_DIR`. Buck's `buildscript_run` stages
-the same four directories and supplies the same outputs. Closed write envelope
+The lane also creates stable `tests/usecases.rs`; initially empty
+`src/test_items/*.rs` and `tests/usecase_items/*.rs` memberships are reserved
+for following content lanes without adding behavior. The crate root includes a
+separate `tests.generated.rs` only under `cfg(test)`. The scanner sorts direct
+Rust entries and writes `lib.generated.rs`, `tests.generated.rs`, and the four
+named integration-test membership files to `OUT_DIR`. Buck's
+`buildscript_run` stages the same six direct-item globs and supplies the same
+outputs. Closed write envelope
 is `app/hr/core/employment-domain/{build.rs,src/**,tests/**,BUCK}` only; its
 Cargo manifest, lockfile, dependency direction, behavior, and all other paths
 are frozen.
 
-Build closure is the domain library and every existing domain test plus all HR
-and five IAM packages under `<verification_closures>`. Required review is HR,
-Build, IAM compatibility, and an independent domain reviewer.
+Local Buck proof is the domain library and every existing domain test under
+`<verification_closures>`; protected Cargo `presubmit` supplies the full-
+workspace consumer proof. Required review is HR, Build, IAM compatibility, and
+an independent domain reviewer.
 
 Success: the four originals and every new hand-written file are at most 300
 lines, public paths/results are identical, and add/rename/remove canaries compile
@@ -253,136 +268,120 @@ manual/tracked index, graph mismatch, or IAM break. Rollback reverts this one
 split. Fault evidence includes before/after domain vectors and scanner negative
 fixtures.
 
-## L2b.2 — Split the compatibility API file
+## Employment use-case consolidation into portable core — `employment-usecase-consolidation`
 
-Class: structural file-budget and D-41 scanner lane; depends on L2b.1.
-
-Add `ports/employment-api/build.rs`, retain one stable generated include in
-`src/lib.rs`, and split the existing body into exactly:
-
-```text
-src/items/a_error.rs
-src/items/b_onboarding.rs
-src/items/c_compliance.rs
-src/items/d_leave.rs
-src/items/e_sensitive.rs
-src/items/f_dto.rs
-```
-
-Closed write envelope is
-`app/hr/ports/employment-api/{build.rs,src/**,BUCK}` only. The scanner and Buck
-rule use the same direct item glob and `employment_api.generated.rs`; the Cargo
-manifest, integration test, lock, behavior, serialization, and other paths are
-frozen. Build closure is the API library/contract test plus all HR and five IAM
-packages. Required review is HR, Build/API, and IAM compatibility.
-
-Success: wire values, error mapping, serialization, and public paths remain
-byte-for-byte compatible while every touched file is at most 300 lines and both
-graphs discover the same items. Failure, rollback, and scanner fault evidence
-match L2b.1.
-
-## L2b.3 — Split infrastructure and authorization files
-
-Class: structural file-budget and D-41 scanner lane; depends on L2b.2.
-
-Add `adapters/employment-infrastructure/build.rs`; retain stable generated crate
-and runtime-test roots; and split only into:
-
-```text
-src/items/{a_types,b_routes,c_handlers,d_responses,e_authority,f_middleware,z_exports}.rs
-src/test_items/{a_routes,b_authority}.rs
-tests/items/{a_dispatch,b_authorization,c_health}.rs
-```
-
-The scanner writes `lib.generated.rs`, `tests.generated.rs`, and
-`runtime.generated.rs` to `OUT_DIR`; Buck stages the identical directories.
-Closed write envelope is
-`app/hr/adapters/employment-infrastructure/{build.rs,src/**,tests/**,BUCK}`.
-Its manifest, lock, routes, validation order, authorization semantics, and all
-other paths are frozen.
-
-Build closure is every infrastructure library/unit/runtime target plus all HR
-and five IAM packages. Required review is HR, Build, IAM, Gateway, and security.
-Success is unchanged routes/auth/results with every touched file at most 300
-lines and graph parity. Failure is an authorization/order drift, manual index,
-or reverse-consumer break. Rollback reverts only this split. Fault evidence
-includes malformed credentials, cross-tenant requests, route errors, and D-41
-add/rename/remove canaries in both graphs.
-
-## L2c.0 — Admit the canonical use-case face
-
-Class: serialized structural package/build mutation; depends on L2b.3.
-
-Create only `app/hr/core/employment-usecase`. It receives `Cargo.toml`, `BUCK`,
-`build.rs`, stable `src/lib.rs`, `src/items/a_face.rs`,
-`src/test_items/a_face.rs`, stable `tests/contract.rs`, and
-`tests/items/a_face.rs`. The scanner sorts the two item directories into
-`OUT_DIR`; Buck models identical membership. `hr-employment-usecase` declares
-only the domain dependency.
-
-No new compatibility facade is admitted. In particular,
-`facade/employment-compat-app` MUST NOT exist: D-8 reserves `facade/*-app` for a
-process with a compiler-required `src/main.rs`, while JSON/Serde translation is
-adapter behavior. The existing `employment-app` remains migration debt and is
-retired at L2h; creating a second illegal face is not a repair.
-
-To keep the current package green for the later content move, this lane may add
-only the new canonical path dependency to this exact existing graph pair:
-
-```text
-app/hr/facade/employment-app/{Cargo.toml,BUCK}
-Cargo.lock
-```
-
-No existing Rust/test file changes and no item behavior lands. Root
-`Cargo.toml` remains frozen because its accepted globs enroll the new package.
-The five IAM directories are read-only. Build closure is the empty new core
-face, all current HR packages, and all five IAM packages. Required review is
-HR, Build/architecture, API, and IAM because the old externally consumed
-surface is being prepared as a compatibility shim.
-
-Success: the new core face builds through Cargo/Buck with stable membership
-while every current result stays unchanged and no new facade process/library is
-created. Failure is role behavior, creation of a `facade/*-app` without
-structural main, a generated or manual index, root-member edit, unrelated lock
-churn, or IAM break. Rollback removes the empty core face, its predeclared old-
-package edge, and only its lock entry.
-
-## L2c.1 — Move use-case behavior into the frozen core role
-
-Class: content-only behavior-preserving refactor; depends on L2c.0.
+Class: content-only behavior-preserving refactor; depends on the employment
+domain file-budget split. ADR-0719 places domain and use cases together under
+`core/`; a second core use-case package would add a boundary without an
+independent ownership, build, or deployment reason.
 
 Implement the current use-case behavior only in:
 
 ```text
-core/employment-usecase/src/items/{b_onboarding,c_compliance,d_leave,e_sensitive}.rs
-core/employment-usecase/src/test_items/b_contract.rs
-core/employment-usecase/tests/items/b_parity.rs
+core/employment-domain/src/items/{k_onboarding_usecase,l_compliance_usecase,m_leave_usecase,n_sensitive_usecase}.rs
+core/employment-domain/src/test_items/b_usecase_contract.rs
+core/employment-domain/tests/usecase_items/{b_onboarding,c_compliance,d_leave,e_sensitive}.rs
 ```
 
-Turn exactly `facade/employment-app/src/lib.rs` and
-`facade/employment-app/tests/{app_envelopes,leave,privacy}.rs` into
-parity-checked compatibility re-exports of the core use case. The existing
-`ports/employment-api` JSON/Serde implementation is frozen in this lane; its
-semantic translation moves only in L2d.1 after the matching transport
-compatibility adapter exists. Those four legacy facade paths plus the new
-unique core paths above are the complete write set. All manifests, BUCK/build
-scripts, parent indexes, lock/root files, adapters, domain/API files, IAM files,
-and new semantics are frozen.
+The old facade, JSON API, REST infrastructure, manifests, BUCK/build scripts, parent
+indexes, lock/root files, adapters, all pre-existing domain items, IAM files,
+and new semantics are frozen. Tests are written first and use literal independent expected
+vectors derived from the accepted behavior; they are forbidden to import or execute the
+invalid old facade as an oracle. The JSON/Serde and REST implementations are
+also frozen here and deleted in the next structural lane; none is translated
+into a standing compatibility adapter.
 
-Build closure is the new use-case package plus all HR and five IAM packages.
-Required review is HR, API/architecture, and IAM compatibility. Success means
-use cases live in core, the old facade only preserves public compatibility, all
-serialized/API outputs remain unchanged, and no I/O or feature behavior
-changes. Failure is duplicate canonical ownership, codec/transport behavior in
-the new core, persistence in facade, an adapter type in core, or compatibility
-drift. Rollback removes only the new content and restores old facade content;
-the empty structural core remains. Fault evidence is before/after domain,
-facade, serialization, authorization, and IAM parity.
+Local Buck proof is the consolidated employment-core library and all domain/
+use-case tests; protected Cargo `presubmit` supplies the full-workspace consumer proof. Required review is HR
+and an independent API/architecture reviewer. Success means use cases live in
+core with identical domain results and no I/O or feature behavior change.
+Failure is duplicate canonical ownership, codec/transport behavior in core,
+persistence or adapter types in core, a dependency on the invalid facade, a
+new Data dependency beyond the core's already-recorded migration debt, or
+parity drift. Rollback removes only the new unique content items. Fault evidence covers every accepted onboarding, leave, privacy,
+serialization-boundary input, and failure result using independent expected
+fixtures.
 
-## L2d.0 — Admit draft I/O ports and compatibility adapters
+## Pipeline ownership-fixture cleanup — `pipeline-ownership-fixture-cleanup`
 
-Class: serialized structural port/adapter/build mutation; depends on L2c.1.
+Class: external-owner structural test-fixture correction. Owner and writer are
+Pipeline, not HR. It may run after this owner law and in parallel with HR core
+work, but it must land before legacy HR REST/facade retirement.
+
+The exact write set is:
+
+```text
+pipeline/core/admission/src/owners.rs
+```
+
+Replace the stale fixture path
+`app/hr/adapters/employment-infrastructure/OWNERS` with the existing semantic
+path `app/hr/core/employment-domain/BUCK`, preserving the expected `hr` owner.
+No ownership algorithm, production path, HR file, root file, generated face, or
+other fixture changes. Local proof is the exact Pipeline ownership unit test;
+protected Cargo presubmit supplies the full-workspace proof. Required review is
+Pipeline, HR, and repository architecture. Success is identical owner
+resolution through a live HR path and no protected-code reference to the
+retiring infrastructure tree. Failure is an invented path, changed owner,
+broader fixture churn, or runtime behavior change. Rollback restores the one
+fixture before the HR tree is deleted; afterward it may not resurrect a stale
+implementation path. Fault evidence adds an unknown nested HR path and proves
+owner resolution still refuses it.
+
+## Legacy HR REST and facade retirement — `legacy-rest-facade-retirement`
+
+Class: serialized structural identity and caller rewrite; depends on the
+employment use-case consolidation, the terminal IAM-to-HR detachment proof, and
+the Pipeline ownership-fixture cleanup. It is the only lane allowed to delete
+the old facade/REST trees or change the retained storage adapter's dependency
+identity.
+
+The complete write set is:
+
+```text
+app/hr/facade/employment-app/**
+app/hr/ports/employment-api/**
+app/hr/adapters/employment-infrastructure/**
+app/hr/adapters/employment-storage-inmemory/Cargo.toml
+app/hr/adapters/employment-storage-inmemory/BUCK
+app/hr/adapters/employment-storage-inmemory/src/lib.rs
+app/hr/adapters/employment-storage-inmemory/tests/storage.rs
+Cargo.lock
+```
+
+Atomically replace the retained in-memory storage adapter's
+`hr-employment-app` dependency/imports with `hr-employment-domain`; preserve
+its storage records, error results, and reference-adapter tests; mechanically
+remove the changed manifest's `[lib].name` override so Cargo derives the
+canonical crate name; then delete the complete invalid facade, JSON DTO API, and
+in-process REST infrastructure trees. ADR-0719 explicitly accepts breaking the
+legacy JSON/HTTP callers. This is a structural identity/deletion cutover, not a
+behavior lane; the previously accepted core and storage behavior is frozen. No
+empty `src/main.rs`, re-export shell, forwarding facade, REST translator, or
+compatibility adapter is permitted. Root membership needs no edit because
+accepted globs stop matching the deleted packages.
+
+Local Buck proof builds/tests the consolidated employment core and retained in-memory
+storage adapter after all three legacy trees are absent. Protected Cargo
+`presubmit` supplies the full-workspace consumer proof. Terminal inverse scans
+reject the three package names, every Cargo path/Buck label/source import, JSON
+route literal, and any remaining file below the deleted trees. Required review
+is HR, Build/architecture, API, IAM boundary, Gateway/security, and an
+independent behavior-parity reviewer.
+
+Success is one canonical use-case implementation in core, unchanged retained
+storage results, no REST/JSON product surface, no invalid facade leaf, and no
+IAM dependency on HR. Failure is retained transport behavior, storage behavior
+drift, a residual old identity, facade replacement without a genuine process,
+unrelated lock churn, or reverse-consumer break. Rollback restores all three
+legacy trees and the storage caller identities together; it never restores only
+one side of the cutover. Fault evidence includes deliberately stale old Cargo,
+Buck, Rust-import, and route literals, each of which the inverse scans reject.
+
+## Draft I/O port and reference-adapter face admission — `draft-io-face-admission`
+
+Class: serialized structural port/adapter/build mutation; depends on the
+legacy HR REST and facade retirement.
 
 Create these exact owner-local draft packages:
 
@@ -397,7 +396,6 @@ app/hr/ports/draft/payroll-impact-dispatch
 app/hr/ports/draft/transport
 app/hr/ports/draft/runtime-context
 app/hr/adapters/draft/employment-repository-memory
-app/hr/adapters/draft/transport-employment-compat
 ```
 
 Each package receives only `Cargo.toml`, `BUCK`, `build.rs`, stable
@@ -406,71 +404,57 @@ Each package receives only `Cargo.toml`, `BUCK`, `build.rs`, stable
 sorted direct-item scanner. Package names are respectively
 `hr-<leaf>-draft`; no other owner may consume them.
 
-The two new adapters predeclare these exact provider-port edges in both build
-graphs before behavior moves:
+The new adapter predeclares this exact provider-port edge in both build graphs
+before behavior moves:
 
 | Adapter | Cargo runtime dependencies | Buck library dependencies |
 |---|---|---|
 | `hr-employment-repository-memory-draft` | `hr-employment-repository-draft` | `//app/hr/ports/draft/employment-repository:hr-employment-repository-draft` |
-| `hr-transport-employment-compat-draft` | `hr-transport-draft`, `hr-authorization-evidence-draft`, `hr-runtime-context-draft`, `hr-employment-usecase`, `hr-employment-domain`, frozen `hr-employment-api`, `serde.workspace`, `serde_json.workspace` | the matching six HR labels plus `third-party//:serde` and `third-party//:serde_json` |
 
-The six literal HR labels in the compatibility transport row are:
-
-```text
-//app/hr/ports/draft/transport:hr-transport-draft
-//app/hr/ports/draft/authorization-evidence:hr-authorization-evidence-draft
-//app/hr/ports/draft/runtime-context:hr-runtime-context-draft
-//app/hr/core/employment-usecase:hr-employment-usecase
-//app/hr/core/employment-domain:hr-employment-domain
-//app/hr/ports/employment-api:hr-employment-api
-```
-
-This adapter, not a facade process, is the sole executable endpoint for the
-temporary JSON/Serde translation. The legacy `employment-api` remains the
-frozen DTO/conversion source it already is; the dependency points adapter to
-legacy port, never port to adapter. Both remain unrouted compatibility code and
-are deleted together at L2h.
-
-Their library, unit, and integration-test targets carry the same direct HR
-edges; no transitive dependency is treated as a declared edge. There are no
-adapter dev-dependencies in this hop. A missing extra edge stops the lane and
-requires a new structural envelope rather than being smuggled into L2d.1.
+Its library, unit, and integration-test targets carry the same direct HR edge;
+no transitive dependency is treated as a declared edge. There are no adapter
+dev-dependencies in this hop. A missing extra edge stops the lane and requires
+a new structural envelope rather than being smuggled into the behavior lane.
 
 This structural lane predeclares the new path dependencies, without using them,
 only in:
 
 ```text
-app/hr/core/employment-usecase/{Cargo.toml,BUCK}
+app/hr/core/employment-domain/{Cargo.toml,BUCK}
 app/hr/adapters/employment-storage-inmemory/{Cargo.toml,BUCK}
-app/hr/adapters/employment-infrastructure/{Cargo.toml,BUCK}
 Cargo.lock
 ```
 
-The existing-consumer mapping is fixed: `employment-usecase` receives the eight
+The existing-consumer mapping is fixed: `employment-domain` receives the eight
 business/effect draft port edges; the record-encryption port is consumed only
 by the later SQLite adapter. The old storage adapter receives only
-`employment-repository` plus `employment-repository-memory`; and the old
-infrastructure adapter receives `authorization-evidence`, `transport`,
-`runtime-context`, and `transport-employment-compat`. The old `employment-api`
-graph remains frozen and is consumed only by the compatibility adapter. This
-mapping remains frozen when the later accepted Connect lane adds the second
-matching transport adapter; an additional existing-package consumer stops the
-lane for a new structural envelope.
+`employment-repository` plus `employment-repository-memory`. Transport and
+authority ports have no existing HTTP consumer: the next transport consumer is
+the separately accepted generated Connect adapter. An additional existing-
+package consumer stops the lane for a new structural envelope.
+
+Because this lane changes the employment-domain manifest, it also mechanically
+removes that manifest's `[lib].name` override; Cargo continues to derive
+`hr_employment_domain` from the package name. The already-clean storage manifest
+must not regain an override. No `[lib].path`, doctest, dependency, or source
+behavior changes beyond the exact predeclared edges are allowed.
 
 Root membership is unchanged because accepted globs already enroll the faces.
 No trait, value, implementation, schema, route, auth, storage, or readiness
-behavior lands. Build closure is all eleven empty faces plus all HR and five IAM
-packages. Required review is HR, Build/architecture, IAM compatibility, Data,
-Gateway, and security.
+behavior lands. Local Buck proof builds/tests the ten empty faces and their
+declared dependency closure; protected Cargo `presubmit` supplies the full-
+workspace consumer proof. Required review is HR, Build/architecture, IAM
+compatibility, Data, Gateway, and security.
 
-Success: eleven empty draft faces compile with identical Cargo/Buck membership and
+Success: ten empty draft faces compile with identical Cargo/Buck membership and
 all old behavior remains green. Failure is behavior in an `a_face`, cross-owner
 draft use, root/generated churn, or a missing reverse consumer. Rollback removes
 the faces, predeclared edges, and only their lock entries.
 
-## L2d.1 — Implement ports and invert source dependencies
+## Port implementation and source dependency inversion — `port-dependency-inversion`
 
-Class: content-only behavior-preserving dependency inversion; depends on L2d.0.
+Class: content-only behavior-preserving dependency inversion; depends on draft
+I/O port and reference-adapter face admission.
 
 The new-file write set is exactly:
 
@@ -491,9 +475,6 @@ adapters/draft/employment-repository-memory/src/test_items/b_contract.rs
 adapters/draft/employment-repository-memory/tests/items/b_parity.rs
 adapters/draft/employment-repository-memory/src/test_items/c_canonical_formats.rs
 adapters/draft/employment-repository-memory/tests/items/c_canonical_formats.rs
-adapters/draft/transport-employment-compat/src/items/{b_error,c_onboarding,d_compliance,e_leave,f_sensitive,g_authority}.rs
-adapters/draft/transport-employment-compat/src/test_items/b_contract.rs
-adapters/draft/transport-employment-compat/tests/items/{b_parity,c_serialization}.rs
 ```
 
 Every file is at most 300 lines.
@@ -531,78 +512,75 @@ fixed `u16be(1)` locator purpose tag, six-component full-preimage grammar,
 component width/order/bounds, and 24-KiB cap are exactly SPEC-owned; the port
 receives typed slot components and must neither parse nor normalize them. An
 unkeyed request digest is not part of either operation. No other owner may
-consume this draft port; L2i.0d must accept the production implementation,
-L2i.0d.1 must admit the adapter face, L2i.0f must add the structural slots,
-L2i.0g.0 must freeze typed replay/decommission/membership contracts, L2i.0g.1
-must implement provider behavior, L2i.0g.1a must implement the minimal concrete
-key-adapter behavior, L2i.0g.2 must then freeze repository/SQLite behavior, and
-L2i.0h must complete repository rekey before production composition.
+consume this draft port; `record-encryption-authority-decision` must accept the
+production implementation, `key-service-graph-admission` must admit the adapter
+face, `commit-replay-rekey-slot-admission` must add the structural slots,
+`commit-replay-contract-freeze` must freeze typed replay/decommission/membership
+contracts, `key-provider-lifecycle-implementation` must implement provider
+behavior, `minimum-key-adapter-implementation` must implement the minimal
+concrete key-adapter behavior, `repository-commit-replay-implementation` must
+then freeze repository/SQLite behavior, and `bounded-rekey-implementation` must
+complete repository rekey before production composition.
 
-The only existing source paths that may be rewritten are the ten exact L2b.1
-domain items, the four L2c.1 use-case items,
-`ports/employment-api/src/items/{a_error,b_onboarding,c_compliance,d_leave,e_sensitive,f_dto}.rs`,
-`ports/employment-api/tests/contracts.rs`,
-`adapters/employment-storage-inmemory/{src/lib.rs,tests/storage.rs}`, and the
-exact L2b.3 infrastructure item/test paths. The six old API items retain only
-their frozen Serde DTO/error identities; semantic request/result conversion
-moves into `hr-transport-employment-compat-draft`, whose unique files become the
-sole executable translation endpoint, never a facade, and parity-test every
-frozen DTO/result. No old API source imports or re-exports the adapter. The
-remaining paths replace Data-classified values with HR-owned semantic values,
-use the new repository/authority/effect ports, and delegate old storage/HTTP
-identities to the new compatibility adapters. Authorization still requires
-verified, request-bound evidence; transport remains in-process compatibility
-only.
+The only existing source paths that may be rewritten are the ten exact
+employment-domain items, the four employment-use-case items, and
+`adapters/employment-storage-inmemory/{src/lib.rs,tests/storage.rs}`. Those
+paths replace Data-classified values with HR-owned semantic values and use the
+new repository/authority/effect ports while the retained storage adapter
+delegates to the new reference implementation. No JSON DTO, REST handler,
+compatibility codec, Gateway type, or facade translation survives or is
+recreated. Authorization still requires verified, request-bound evidence; the
+transport port is a contract only until the generated Connect adapter lands.
 
 All manifests, BUCK/build scripts, stable parent indexes, root/lock/generated
-files, proto, IAM paths, and feature behavior are frozen. Build closure is all
-new ports/adapters, all HR packages, and all five IAM packages. Required review
-is HR plus independent architecture, Data, Gateway, IAM, privacy/security, and
-adapter-parity reviewers.
+files, proto, IAM paths, and feature behavior are frozen. Local Buck proof is
+the exact new and rewritten package targets with their dependency closure;
+protected Cargo `presubmit` supplies full-workspace consumer proof. Required
+review is HR plus independent architecture, Data, IAM,
+privacy/security, and adapter-parity reviewers.
 
 Success: core/use-case tests compile against HR-owned values and ports, the
 in-memory reference passes the same repository contract, removing an adapter
-requires no domain source edit, semantic JSON/Serde translation executes only
-in the matching adapter while the legacy API retains DTO compatibility, and all
-existing outputs stay equal. Both build graphs also emit identical canonical/
-descriptor goldens and reject every exact-bound-plus-one vector. Failure is an adapter/provider type inward, an old
-API-to-adapter edge, translation in a facade/core, caller-asserted authority,
-copied Data/Gateway engine behavior, trusted-tenant shortcut, or frozen
-structural edit. Rollback removes the new items and restores the exact
-compatibility source paths; no data format exists. Fault evidence covers every
-forbidden edge, forged/cross-tenant proof, byte-for-byte serialization, adapter
-unavailability, and no partial mutation/disclosure.
+requires no domain source edit, no deleted JSON/REST surface reappears, and all
+retained outputs stay equal. Both build graphs also emit identical canonical/
+descriptor goldens and reject every exact-bound-plus-one vector. Failure is an
+adapter/provider type inward, a recreated compatibility edge, translation in a
+facade/core, caller-asserted authority, copied Data/Gateway engine behavior,
+trusted-tenant shortcut, or frozen structural edit. Rollback removes the new
+items and restores the exact retained source paths; no data format exists.
+Fault evidence covers every forbidden edge, forged/cross-tenant proof,
+canonical-byte parity, adapter unavailability, and no partial mutation or
+disclosure.
 
-## L2d.2 — Remove direct Data/Gateway graph edges
+## Direct Data graph-edge removal — `direct-data-edge-removal`
 
-Class: serialized structural dependency cleanup; depends on L2d.1.
+Class: serialized structural dependency cleanup; depends on port implementation
+and source dependency inversion.
 
 The complete write set is:
 
 ```text
 app/hr/core/employment-domain/{Cargo.toml,BUCK}
-app/hr/facade/employment-app/{Cargo.toml,BUCK}
-app/hr/adapters/employment-storage-inmemory/{Cargo.toml,BUCK}
-app/hr/adapters/employment-infrastructure/{Cargo.toml,BUCK}
 Cargo.lock
 ```
 
-Remove `data-boundary-kernel`, `http-router-kernel`,
-`http-middleware-kernel`, and `http-runtime-hyper-adapter` edges; retain only
-the L2d HR-owned port/adapter dependencies required by the already-landed
-content. No Rust/test/root/generated/IAM file changes.
+Remove the `data-boundary-kernel` edge; the Gateway edges disappeared with the
+legacy REST infrastructure tree. Retain only the HR-owned dependencies required
+by the already-landed content. No Rust/test/root/generated/IAM file changes.
 
-Build closure is all L2d packages, all HR, and all five IAM packages. Required
-review is HR, Build/architecture, Data, Gateway, and IAM. Success is a Cargo and
-Buck inverse scan proving HR core/use cases have no SQLite/HTTP/IAM/Data/
+Local Buck proof is the exact changed packages and their dependency closure;
+protected Cargo `presubmit` supplies the full-workspace proof. Required review
+is HR, Build/architecture, Data, and IAM. Success is a Cargo and Buck
+inverse scan proving HR core/use cases have no SQLite/HTTP/IAM/Data/
 Storage/Gateway/other-app dependency and adapter edges do not import cloud
 core/ports. Failure is any forbidden edge or behavior change. Rollback restores
 only dependency metadata; no format exists. Fault evidence includes
 compile-fail fixtures for each forbidden dependency family.
 
-## L2e.0a — Admit the exact SQLite dependency
+## SQLite dependency admission — `sqlite-dependency-admission`
 
-Class: serialized shared dependency/generated-graph mutation; depends on L2d.2.
+Class: serialized shared dependency/generated-graph mutation; depends on direct
+Data graph-edge removal.
 
 The selected temporary binding is exactly:
 
@@ -632,18 +610,19 @@ generation twice; bare or overlaid generation that is non-idempotent, deletes
 existing semantic fixups, or produces unrelated churn fails closed. No
 `app/hr/**` file changes in this hop.
 
-Build closure is locked/offline metadata, license/source/native-code policy,
-the generated rusqlite/libsqlite3 targets, and unchanged all-HR plus five-IAM
-tests. Required review is workspace/Build, supply chain, native-code/security,
+Local proof is locked/offline metadata, license/source/native-code policy, and
+the generated rusqlite/libsqlite3 targets; protected Cargo `presubmit` supplies
+the full-workspace proof. Required review is workspace/Build, supply chain, native-code/security,
 Data durability, and HR. Success is one exact dependency closure and idempotent
 generated Buck graph. Failure is a runtime download, extra feature/default,
 hand edit, unrelated lock churn, or behavior change. Rollback removes the one
 workspace dependency and its exact lock/generated/fixup closure before an
 adapter or schema exists.
 
-## L2e.0b — Create the frozen SQLite adapter face
+## SQLite adapter-face admission — `sqlite-adapter-face-admission`
 
-Class: serialized structural package/build mutation; depends on L2e.0a.
+Class: serialized structural package/build mutation; depends on
+`sqlite-dependency-admission`.
 
 Create `app/hr/adapters/draft/employment-repository-sqlite` with only:
 
@@ -688,9 +667,10 @@ a later resource glob but no migration exists.
 
 Closed write envelope is the ten files above plus only the new workspace-package
 entry in `Cargo.lock`. Root Cargo, generated third party, port/memory packages,
-other HR, IAM, schema, and behavior are frozen. Build closure is the SQLite
-library/empty tests, repository port/memory oracle, all HR, and five IAM
-packages. Required review is HR, Build, Data durability, and security/audit.
+other HR, IAM, schema, and behavior are frozen. Local Buck proof is the SQLite
+library/empty tests plus repository-port/memory-oracle closure; protected Cargo
+`presubmit` supplies the full-workspace proof. Required review is HR, Build,
+Data durability, and security/audit.
 
 Success: one empty unrouted adapter face and all three exact Buck target classes
 build through both graphs with stable membership and no durability/readiness
@@ -700,9 +680,10 @@ the empty face and its lock entry; no format or runtime state exists. Fault
 evidence includes add/rename/remove scanner canaries and missing-port,
 memory-oracle, and real-file-test dependency fixtures.
 
-## L2e — Implement SQLite durability in bounded unique files
+## SQLite durability implementation — `sqlite-durability-implementation`
 
-Class: content-only behavioral durability; depends on L2e.0b.
+Class: content-only behavioral durability; depends on
+`sqlite-adapter-face-admission`.
 
 The complete write set is:
 
@@ -746,26 +727,32 @@ manifests, BUCK/build scripts, stable parents,
 `a_face.rs` items, root/lock/generated files, ports, memory adapter, other HR,
 and IAM paths are frozen. One tenant selects one adapter; no dual write.
 
-Build closure is the repository port, memory oracle, SQLite library/unit/
-contract/recovery targets, all HR, and five IAM packages. Required review is HR
-plus independent Data durability, security/audit, migration, and fault-
-injection reviewers.
+Local Buck proof is the repository port, memory oracle, and SQLite library/
+unit/contract/recovery targets; protected Cargo `presubmit` supplies the full-
+workspace proof. Required review is HR plus independent Data durability,
+security/audit, migration, and fault-injection reviewers.
 
-The test-only pre-L2i comparison oracle may use an opaque fixture-local locator
+The test-only pre-production-authority comparison oracle may use an opaque
+fixture-local locator
 only to exercise a V1 storage row; it is not backed by a provider authority,
 never accepts mutable canonical-request bytes as a lookup key, and cannot become
 a production replay selector. SQLite contains no unkeyed SHA-256 or other
-canonical-request fingerprint. After L2i.0g.2, replay lookup comes only from the
+canonical-request fingerprint. After
+`repository-commit-replay-implementation`, replay lookup comes only from the
 returned-authority-bound `derive_idempotency_locator_v1` port operation and then
 from authenticated canonical-plaintext comparison. This unrouted lane does not
-claim a production rotation/revocation fence: L2i.0d must accept it, L2i.0d.1 must admit
-the adapter structure, L2i.0f must prepare the exact slots, L2i.0g.0 must freeze
-the port, L2i.0g.1 must implement provider behavior, L2i.0g.1a must first accept
-minimal concrete adapter behavior, L2i.0g.2 must add repository/SQLite behavior,
-and L2i.0h must add bounded rekey behavior.
+claim a production rotation/revocation fence:
+`record-encryption-authority-decision` must accept it,
+`key-service-graph-admission` must admit the adapter structure,
+`commit-replay-rekey-slot-admission` must prepare the exact slots,
+`commit-replay-contract-freeze` must freeze the port,
+`key-provider-lifecycle-implementation` must implement provider behavior,
+`minimum-key-adapter-implementation` must first accept minimal concrete adapter
+behavior, `repository-commit-replay-implementation` must add repository/SQLite
+behavior, and `bounded-rekey-implementation` must add bounded rekey behavior.
 
-The two format items consume only the frozen repository-port codecs from
-L2d.1. SQLite stores their explicit versions, builds the staged descriptor by
+The two format items consume only the frozen repository-port codecs from the
+port implementation lane. SQLite stores their explicit versions, builds the staged descriptor by
 enumerating the actual four-row write set, and refuses an unrepresentable,
 omitted, duplicate, or reordered effect before commit. It uses the fixture-local
 opaque locator only to populate a V1 row; production lookup later receives a
@@ -793,7 +780,8 @@ Rollback at this stage is **unrouted and test-only**: remove the unique behavior
 and migration files and discard only scratch test databases. No tenant has been
 routed and no production database or reader compatibility promise exists.
 Format-barrier rollback rules begin only in a later, separately reviewed routed
-promotion after L2g.1 and L2h; they are not claimed here.
+promotion after IAM fossil deletion and legacy-storage retirement; they are not
+claimed here.
 
 Fault evidence interrupts after begin, idempotency insert, employee write,
 lifecycle write, outbox write, before commit, and after commit-before-response;
@@ -809,16 +797,18 @@ authenticated idempotent replay. A memory-only,
 `:memory:`, mocked-connection, or same-live-connection test is not recovery
 evidence.
 
-## L2f.0a — Accept a generated Connect generator/runtime
+## Connect toolchain decision — `connect-toolchain-decision`
 
-Class: fail-closed D-29 protocol decision gate; depends on L2e. This is not an
-implementation dispatch.
+Class: fail-closed protocol decision gate governed by ADR-0719 D-29; depends on
+`sqlite-durability-implementation`. This is not an implementation dispatch.
 
 The reviewed repository has no accepted Connect generator or runtime target.
 `prost-build`, `tonic-prost-build`, and hand-written HTTP/protobuf/error framing
-do not satisfy ADR-0719 D-4. Therefore L2f.0b, L2f.0c, L2f.0d, and L2f.1 are
-explicitly **NON-DISPATCHABLE** until a protocol-owner/architecture/Build
-decision lands and this owner law is amended at a new exact head.
+do not satisfy ADR-0719 D-4. Therefore `connect-structure-admission`,
+`people-schema-admission`, `unrouted-process-admission`, and
+`connect-onboarding-slice` are explicitly **NON-DISPATCHABLE** until a protocol-
+owner/architecture/Build decision lands and this owner law is amended at a new
+exact head.
 
 The gate must name all of the following, without placeholders:
 
@@ -848,11 +838,11 @@ an unowned crate, a Cargo-only target, or leaving any dependency/output
 implicit. Rollback is rejection of the decision; no HR/proto/root/build path
 changes and no runtime state exist at this gate.
 
-## L2f.0b — Admit empty Connect codegen/package/build structure
+## Connect structure admission — `connect-structure-admission`
 
 Class: serialized structural dependency/package/build/lock mutation; depends on
-successful L2f.0a and its exact owner-law amendment. It contains no proto schema
-or API behavior.
+successful `connect-toolchain-decision` and its exact owner-law amendment. It
+contains no proto schema or API behavior.
 
 The fixed HR identity is:
 
@@ -892,7 +882,8 @@ tests/items/a_face.rs
 entrypoint; it declares no state, marker, boot result, handler, route, listener,
 or readiness value. Both packages run the owned sorted D-41 scanner over absent
 or empty `src/items` plus their structural test items. The adapter build graph
-runs the L2f.0a-accepted generator with an empty schema set and writes only its
+runs the generator accepted by `connect-toolchain-decision` with an empty schema
+set and writes only its
 declared empty/generated indexes under `OUT_DIR`; Cargo and Buck stage identical
 inputs and outputs. A generator or scanner that cannot tolerate absent schema
 and content items fails this structural lane.
@@ -901,15 +892,15 @@ The known HR-side dependency graph is exact:
 
 | Target | Cargo direct dependencies | Buck direct dependencies |
 |---|---|---|
-| `hr-transport-connect-draft` runtime | `hr-transport-draft` plus the exact accepted generated-Connect runtime/service targets recorded by L2f.0a | `//app/hr/ports/draft/transport:hr-transport-draft` plus accepted runtime/service Buck targets |
-| `hr-transport-connect-draft` build | exact accepted generator/compiler targets from L2f.0a | matching accepted generator/compiler Buck targets |
-| `hr-people-app` runtime | `hr-employment-usecase`, `hr-employment-repository-draft`, `hr-record-encryption-draft`, `hr-installed-overlay-draft`, `hr-authorization-evidence-draft`, `hr-audit-outbox-draft`, `hr-transport-draft`, `hr-runtime-context-draft`, `hr-employment-repository-sqlite-draft`, `hr-transport-connect-draft` | the ten literal HR labels below |
+| `hr-transport-connect-draft` runtime | `hr-transport-draft` plus the exact accepted generated-Connect runtime/service targets recorded by `connect-toolchain-decision` | `//app/hr/ports/draft/transport:hr-transport-draft` plus accepted runtime/service Buck targets |
+| `hr-transport-connect-draft` build | exact accepted generator/compiler targets from `connect-toolchain-decision` | matching accepted generator/compiler Buck targets |
+| `hr-people-app` runtime | `hr-employment-domain`, `hr-employment-repository-draft`, `hr-record-encryption-draft`, `hr-installed-overlay-draft`, `hr-authorization-evidence-draft`, `hr-audit-outbox-draft`, `hr-transport-draft`, `hr-runtime-context-draft`, `hr-employment-repository-sqlite-draft`, `hr-transport-connect-draft` | the ten literal HR labels below |
 | `hr-people-app` dev | `hr-employment-repository-memory-draft`, `tempfile.workspace = true` | `//app/hr/adapters/draft/employment-repository-memory:hr-employment-repository-memory-draft`, `third-party//:tempfile` |
 
 The ten `hr-people-app` Buck runtime labels are exactly:
 
 ```text
-//app/hr/core/employment-usecase:hr-employment-usecase
+//app/hr/core/employment-domain:hr-employment-domain
 //app/hr/ports/draft/employment-repository:hr-employment-repository-draft
 //app/hr/ports/draft/record-encryption:hr-record-encryption-draft
 //app/hr/ports/draft/installed-overlay:hr-installed-overlay-draft
@@ -921,16 +912,18 @@ The ten `hr-people-app` Buck runtime labels are exactly:
 //app/hr/adapters/draft/transport-connect:hr-transport-connect-draft
 ```
 
-The L2f.0a amendment must replace the accepted-target descriptions in the first
-two rows with literal package/label names before dispatch; this table is a gate
-condition, not current dependency authority. No tonic/gRPC target is allowed.
+The `connect-toolchain-decision` amendment must replace the accepted-target
+descriptions in the first two rows with literal package/label names before
+dispatch; this table is a gate condition, not current dependency authority. No
+tonic/gRPC target is allowed.
 The facade recovery target directly includes the SQLite adapter, repository
 port, and `tempfile`; byte tests directly include the generated Connect adapter
 and accepted runtime. No transitive edge counts as declared.
 
 The eventual closed structural write set is the two proto directory metadata
 files, the seven adapter files and eight process files above, the exact root
-dependency/lock/generated/fixup files named by L2f.0a, and nothing else. Until
+dependency/lock/generated/fixup files named by `connect-toolchain-decision`, and
+nothing else. Until
 those root/generated paths are literal, this lane remains non-dispatchable.
 Existing draft packages, SQLite behavior/schema, all IAM paths, every proto
 schema, and every HR runtime value are frozen. No `Unrouted` marker, boot
@@ -939,9 +932,9 @@ readiness, or SLO claim lands. Every hand-written structural file, including
 Cargo, Buck, build scripts, entrypoints, and tests, is at most 300 physical
 lines; generated `OUT_DIR` outputs are not tracked.
 
-Build closure is the accepted generator/runtime, both empty packages, draft
-transport, full L2d/L2e closure, all HR, and five IAM packages through Cargo and
-Buck. Required D-29 review is protocol owner, HR, architecture/API, Build,
+Local Buck proof is the accepted generator/runtime, both empty packages, draft
+transport, and the required port/SQLite target closure; protected Cargo
+`presubmit` supplies the full-workspace proof. Required D-29 review is protocol owner, HR, architecture/API, Build,
 Gateway, IAM, security, supply chain, and Data durability. Success is exact
 D-8-complete empty structure and graph parity with a canonical process main,
 no semantic runtime value, no schema or request served, and every hand-written
@@ -951,9 +944,10 @@ edge, over-budget file, manual index, or unrelated generated/lock churn.
 Rollback removes only the empty packages/directory metadata and exact admitted
 dependency closure; no wire or format exists.
 
-## L2f.0c — Land the semantic People schema only
+## People schema admission — `people-schema-admission`
 
-Class: content-only external-contract/API lane; depends on L2f.0b.
+Class: content-only external-contract/API lane; depends on
+`connect-structure-admission`.
 
 The complete write set is the one new file:
 
@@ -973,8 +967,9 @@ SQLite, IAM, and stable indexes are frozen. Generated output changes only under
 lines; exceeding the D-35 budget or splitting it through a second IDL fails the
 lane.
 
-Build closure is proto lint plus the accepted generated service/message output,
-both empty L2f packages, full HR, and five IAM packages through Cargo/Buck.
+Local proof is proto lint plus the accepted generated service/message output
+and both empty People packages; protected Cargo `presubmit` supplies the full-
+workspace proof.
 Required review is HR, external API/AIP, protocol owner, architecture, Build,
 security/privacy, and future consumer representatives. Success is one semantic
 package/path with byte-stable generated symbols in both graphs. Failure is a
@@ -982,9 +977,9 @@ path/package mismatch, schema plus structural edit, second codec, unbounded
 repeated/string field, or behavior claim. Rollback deletes only the schema; the
 empty structural/codegen faces remain.
 
-## L2f.0d — Install the fail-closed unrouted process state
+## Unrouted process admission — `unrouted-process-admission`
 
-Class: content-only boot behavior; depends on L2f.0c.
+Class: content-only boot behavior; depends on `people-schema-admission`.
 
 The complete write set is:
 
@@ -1005,9 +1000,9 @@ handler or health endpoint, and cannot be made ready by arguments, environment,
 or a test fake. Every file is at most 300 lines.
 
 All manifests, BUCK/build scripts, lock/root/generated files, proto, adapter,
-SQLite, IAM, and structural test items are frozen. Build closure is
-`hr-people-app`, its structural dependencies, full HR, and five IAM packages in
-both graphs. Required review is HR, Build, security, Gateway/protocol, and
+SQLite, IAM, and structural test items are frozen. Local Buck proof is
+`hr-people-app` and its structural dependency closure; protected Cargo
+`presubmit` supplies the full-workspace proof. Required review is HR, Build, security, Gateway/protocol, and
 operability. Success is a D-8 process that always refuses boot with typed
 `Unrouted` and no network effect. Failure is an empty-success exit presented as
 readiness, any bind/route/provider construction, a parent-index edit, sensitive
@@ -1017,9 +1012,10 @@ Fault evidence executes the binary with valid-looking config, fake provider
 addresses, inherited sockets, and cancellation and proves the same bounded
 non-zero refusal with zero opened listeners.
 
-## L2f.1 — Implement one unrouted People slice on generated Connect
+## Generated Connect onboarding slice — `connect-onboarding-slice`
 
-Class: content-only feature behavior; depends on L2f.0d.
+Class: content-only feature behavior; depends on
+`unrouted-process-admission`.
 
 The complete write set is:
 
@@ -1046,7 +1042,7 @@ app/hr/adapters/draft/transport-connect/tests/items/d_no_grpc_trailers.rs
 ```
 
 Every Rust file is at most 300 lines. Use the already-landed onboarding domain
-behavior and L2e repository to bind verified principal/PDP, installed-overlay
+behavior and the SQLite repository to bind verified principal/PDP, installed-overlay
 generation, correlation/idempotency identity, one lifecycle event, and durable
 audit/outbox intent. Creating a record never silently marks onboarding ready or
 dispatches unowned work.
@@ -1071,10 +1067,11 @@ file, loses the response at the selected post-commit failpoint, drops all live
 connections, opens a new SQLite adapter at the same path, and replays through
 the People service. The memory dev adapter is used only by parity tests; it
 cannot satisfy recovery. The byte and malformed targets directly depend on the
-generated Connect adapter/runtime accepted in L2f.0a.
+generated Connect adapter/runtime accepted in `connect-toolchain-decision`.
 
-Build closure is both L2f packages, accepted generated service/runtime, the full
-port/SQLite closure, all HR, and five IAM packages. Required review is HR plus
+Local Buck proof is both People packages, accepted generated service/runtime,
+and the full port/SQLite target closure; protected Cargo `presubmit` supplies
+the full-workspace proof. Required review is HR plus
 independent security, protocol, durability, overload/performance, privacy,
 observability, and byte-compatibility reviewers.
 
@@ -1099,134 +1096,68 @@ streaming content type, unsupported compression, `grpc-status`/`grpc-message`,
 attempted trailers, deadline grammar/expiry, and oversized headers/body; every
 case fails before repository mutation.
 
-## L2g.0a — Prepare the IAM workload-manifest file budget
+## IAM tenant-RBAC fossil deletion prerequisite — `iam-tenant-rbac-deletion`
 
-Class: mandatory IAM-owned D-29/D-35/D-41 structural split; depends on L2f.1.
-Owner and writer are IAM, not HR. The immutable input
-`iam/core/tenant-rbac-tenant-workload-manifest/src/lib.rs` is 618 physical
-lines, so no content retirement may touch that crate first.
+Class: non-dispatchable external-owner structural deletion; depends on an
+explicit accepted ADR-0710 amendment plus accepted IAM owner law. Owner and
+writer are IAM, not HR. After those gates it may run in parallel with HR domain
+and use-case work and must land before legacy HR REST/facade retirement.
 
-The complete structural envelope is exactly:
-
-```text
-iam/core/tenant-rbac-tenant-workload-manifest/build.rs
-iam/core/tenant-rbac-tenant-workload-manifest/BUCK
-iam/core/tenant-rbac-tenant-workload-manifest/src/lib.rs
-iam/core/tenant-rbac-tenant-workload-manifest/src/items/a_contract.rs
-iam/core/tenant-rbac-tenant-workload-manifest/src/items/b_manifest.rs
-iam/core/tenant-rbac-tenant-workload-manifest/src/items/c_validation.rs
-iam/core/tenant-rbac-tenant-workload-manifest/src/items/d_text_safety.rs
-```
-
-`src/lib.rs` retains only crate documentation/attributes and one stable
-`include!(concat!(env!("OUT_DIR"), "/manifest.generated.rs"))`. The owned
-scanner sorts direct `src/items/*.rs` and writes that one index under `OUT_DIR`;
-Buck adds the matching build-script binary, staged glob/manifest directory,
-`buildscript_run`, and identical `OUT_DIR` environment to library and existing
-integration test. Cargo auto-discovers the new root `build.rs`; the existing
-`Cargo.toml`, including its `doctest = false` setting and D-30-compatible crate
-identity, is frozen. No tracked generated file or manual `mod` inventory exists.
-Every hand-written file is at most 300 physical lines.
-
-All public identities, values, ordering, validation, error classes, exact four
-workload rows—including the HR row—and the 162-line existing integration test
-remain byte/behavior compatible. Cargo.toml, Cargo.lock, all other IAM/HR paths,
-and every behavior are frozen. Build closure is this library/test and all five
-IAM reverse consumers through Cargo and Buck. Required review is IAM, Build,
-architecture, HR boundary, and the Payroll/Accounting consumers. Success is
-identical behavior and Cargo/Buck membership with add/rename/remove scanner
-canaries. Failure is changed output, removed HR row, over-budget file, parent
-index edit, Cargo-only membership, or behavior mixed into the split. Rollback
-removes `build.rs` and `src/items/`, restores the single 618-line `src/lib.rs`
-and original BUCK rule, and changes no runtime or format state.
-
-## L2g.0b — Delete HR product composition from IAM
-
-Class: mandatory D-29 IAM content-only retirement; depends on L2g.0a. Owner is
-IAM, not HR.
-
-The complete write envelope is exactly:
+The IAM owner lane deletes every package directory matching these four owned
+sets, the tenant-RBAC OpenSLO directory, the resulting workspace-package
+entries in `Cargo.lock`:
 
 ```text
-iam/facade/tenant-rbac-local-runtime-composition/src/lib.rs
-iam/facade/tenant-rbac-local-runtime-composition/tests/composition.rs
-iam/facade/tenant-rbac-local-inmemory-harness/src/lib.rs
-iam/facade/tenant-rbac-local-inmemory-harness/tests/harness.rs
-iam/core/tenant-rbac-tenant-workload-manifest/src/items/a_contract.rs
-iam/core/tenant-rbac-tenant-workload-manifest/src/items/b_manifest.rs
-iam/core/tenant-rbac-tenant-workload-manifest/src/items/c_validation.rs
-iam/core/tenant-rbac-tenant-workload-manifest/tests/tenant_workload_manifest.rs
-```
-
-Delete HR route aggregation, HR in-memory store/error/snapshot/methods and HR
-test fixtures from the two IAM-local composition packages. Remove the complete
-HR workload row/kind, its four-workload minimum/required-kind assertion, and the
-hard-coded `app/hr/adapters/employment-infrastructure` implementation path from
-the IAM manifest and its existing test; future tenant desired state identifies
-a sold workload, not an app-internal Rust package. Preserve every IAM, Payroll,
-Accounting, workflow, identity, and honest non-production flag behavior. The
-remaining exact workload count is three. Do not add an HR client,
-proto import, Connect fake, route replacement, or network/readiness claim.
-
-All Cargo/BUCK/build/lock files, stable parent indexes, every HR path, and all
-other IAM files are frozen;
-the now-unused HR graph edges remain until L2g.1. Build closure is both direct
-IAM packages, the workload-manifest package, and all five reverse-consumer
-packages. Required review is IAM, HR boundary, architecture/API, security, and
-the affected Payroll/Accounting owners.
-
-Success: IAM behavior and tests contain no HR product route/store composition
-or app-internal implementation path while all non-HR outputs remain equal.
-Failure is an HR client/fake substitution, lost IAM/Payroll/Accounting behavior,
-new cross-owner call, structural edit, over-budget file, or readiness fiction.
-Rollback restores these eight content files while the old graph edges still
-exist. Fault evidence
-proves the remaining composition handles duplicate non-HR routes/store errors
-and that absence of HR cannot grant, mutate, or serve an HR request.
-
-## L2g.1 — Remove every IAM-to-HR graph and source edge
-
-Class: mandatory serialized D-29 IAM structural cleanup; depends on L2g.0b.
-
-Remove every HR package edge from exactly:
-
-```text
-iam/facade/tenant-rbac-local-runtime-composition/{Cargo.toml,BUCK}
-iam/facade/tenant-rbac-local-inmemory-harness/{Cargo.toml,BUCK}
+iam/core/tenant-rbac-*
+iam/ports/tenant-rbac-*
+iam/adapters/tenant-rbac-*
+iam/facade/tenant-rbac-*
+iam/observability/slos/tenant-rbac/**
 Cargo.lock
 ```
 
-No source, HR, root manifest, generated, or other IAM file changes. Build and
-test all five IAM reverse consumers and scan the complete `iam/**` Cargo, Buck,
-and Rust graph. The terminal proof rejects every `path` into `app/hr`, every
-`//app/hr` label, every `app/hr/` implementation literal, and every Rust import
-or extern edge for an HR workspace crate. It also proves none of the five
-packages reaches HR transitively. HR-related principal/resource vocabulary in
-an IAM-owned policy contract is not an executable package edge and is reviewed
-separately; it cannot name an app implementation path.
+The IAM plan owns the expanded concrete file list and preservation proof. HR
+does not edit those paths and does not require an intermediate behavior-salvage
+or workload-manifest file split: the cone has no executable external Cargo
+consumer, its valid principal/tenant-binding semantics already survive in
+independent IAM identity packages, and ADR-0719 classifies the REST route
+census, cross-app shell, evidence farm, and hand-authored OpenSLO as removal
+inventory. The only unique retained requirement is ADR-0710's abstract in-
+process admission invariant; the required amendment must keep that law without
+claiming this review-only crate is live. A separate future IAM Connect process
+or Kubernetes-owner admission implementation is new feature work, not a rename,
+move, or compatibility wrapper around this cone.
+The owner-root `iam/BUCK` census loader is outside this cone and remains frozen;
+it belongs to a separate systemic ADR-0719 D-17 cleanup with the other owner-
+root census loaders.
 
-Success is **zero IAM-to-`app/hr` dependency**, direct or transitive. There is
-no exception for `hr-transport-connect-draft`, `hr-people-app`, or any future HR
-client: cloud IAM provides its sold identity/authorization service and does not
-compose the tenant product. Any residual graph/source edge is failure and
-blocks L2h and every routing lane. Required review is IAM, HR,
-Build/architecture, API/protocol, and security. Rollback restores the old,
-unused graph edges only; full rollback then reverts L2g.0b and L2g.0a. No
-behavior or data-format changes in this structural hop.
+HR acceptance is a terminal inverse scan proving no IAM Cargo path, Buck label,
+Rust import, string implementation path, direct edge, or transitive edge
+reaches `app/hr/`; no replacement HR client/fake exists in IAM. Protected Cargo
+`presubmit`, IAM owner tests outside the deleted cone, and independent IAM,
+Policy, HR, Payroll, Accounting, Build, API, and security review are required.
 
-## L2h — Retire HR compatibility packages
+Success is an accepted ADR-0710 amendment followed by total cone deletion, with
+the abstract admission invariant and independent IAM identity behavior still
+green and zero IAM-to-HR dependency. Failure is deletion before that amendment,
+retained tenant-RBAC inventory, lost admission or principal/tenant-binding law,
+behavior copied into a new shell, cross-app replacement, unrelated IAM deletion,
+or a split-first throwaway PR.
+Rollback restores the complete cone and lock/aggregation changes together; it
+does not restore a partial review-only runtime. Fault evidence injects stale
+Cargo/Buck/source/string references and proves each inverse scan fails closed.
 
-Class: mandatory serialized HR structural retirement; depends on L2g.1.
+## Legacy in-memory storage retirement — `legacy-storage-retirement`
+
+Class: mandatory serialized HR structural retirement; depends on IAM tenant-
+RBAC fossil deletion, legacy HR REST/facade retirement, and the accepted
+repository-memory/SQLite plus generated-Connect replacement closure.
 
 After the zero-inverse proof, delete exactly these old package trees and their
 workspace-package entries in `Cargo.lock`:
 
 ```text
-app/hr/facade/employment-app
-app/hr/ports/employment-api
 app/hr/adapters/employment-storage-inmemory
-app/hr/adapters/employment-infrastructure
-app/hr/adapters/draft/transport-employment-compat
 ```
 
 The canonical domain, use-case, HR-owned ports, repository memory/SQLite
@@ -1239,8 +1170,7 @@ The post-compatibility, pre-production-provider direct graph is frozen and
 proved in both Cargo and Buck:
 
 ```text
-hr-employment-usecase
-  -> hr-employment-domain
+hr-employment-domain
   -> hr-employment-repository-draft
   -> hr-installed-overlay-draft
   -> hr-authorization-evidence-draft
@@ -1260,10 +1190,11 @@ hr-employment-repository-sqlite-draft
   -> hr-employment-repository-draft + hr-record-encryption-draft + rusqlite
 
 hr-transport-connect-draft
-  -> hr-transport-draft + the exact generated Connect targets accepted at L2f.0a
+  -> hr-transport-draft + the exact generated Connect targets accepted by
+     `connect-toolchain-decision`
 
 hr-people-app
-  -> hr-employment-usecase
+  -> hr-employment-domain
   -> hr-employment-repository-draft
   -> hr-record-encryption-draft
   -> hr-installed-overlay-draft
@@ -1275,7 +1206,7 @@ hr-people-app
   -> hr-transport-connect-draft
 ```
 
-At L2h this graph is intentionally **not routable**: the five mandatory
+At this retirement point the graph is intentionally **not routable**: the five mandatory
 production authority adapters have not yet been admitted. The People test graph
 adds only the memory repository oracle and `tempfile`;
 its recovery target still links SQLite directly. The terminal scan must find no
@@ -1285,21 +1216,22 @@ package/name/label/path; no adapter is allowed to
 survive without a matching provider port and at least one named build-graph
 consumer. It also re-proves zero IAM-to-HR direct and transitive edges.
 
-Build closure is every remaining HR package and all five IAM consumers through
-Cargo and Buck, plus inverse scans proving no old/compatibility package
-label/name/path and no orphan adapter.
+Local Buck proof builds/tests every remaining HR package; protected Cargo
+`presubmit` supplies the full-workspace proof. Inverse scans prove no old/
+compatibility package label/name/path, no orphan adapter, and no IAM-to-HR edge.
 
-Required D-29 review is HR, IAM, Build/architecture, API, Data, Gateway, and
+Required D-29 review is HR, IAM, Build/architecture, API, Data, and
 security. Success is deletion with the full replacement closure green; failure
 is a residual consumer, moved behavior, root/generated edit, or route/readiness
-claim. Rollback restores the five complete package trees and lock entries; no
+claim. Rollback restores the one complete package tree and lock entry; no
 SQLite format or live route changes.
 
-## L2i.0a through L2i.0e — Accept five production authority contracts
+## Production authority contract decisions — `production-authority-decisions`
 
-Class: five fail-closed D-29 provider decisions; depends on L2h. These are not
+Class: five fail-closed provider decisions governed by ADR-0719 D-29; depends on
+legacy in-memory storage retirement. These are not
 implementation dispatches and may be reviewed independently, but all five must
-accept before L2j.0.
+accept before `people-composition-graph-admission`.
 
 The current tree does not provide an automatically acceptable production
 contract for any of these HR ports. Existing Packs files, IAM/Policy internals,
@@ -1307,17 +1239,17 @@ Audit ports, Secrets/KMS surfaces, Cell/Observability ports, and crypto
 dependencies are evidence to review, not permission for HR to import another
 owner's core, port, adapter, or in-process facade. The five gates are:
 
-- **L2i.0a — Packs/install:** accept one sold install-authority contract that
+- **Install authority — `install-authority-decision`:** accept one sold install-authority contract that
   resolves `(tenant, pack_id)` to signed content digest, overlay generation,
   effective window, revocation state, and bounded HR overlay bytes.
-- **L2i.0b — Policy/IAM:** accept one sold authentication/authorization contract
+- **Authorization authority — `authorization-authority-decision`:** accept one sold authentication/authorization contract
   that returns verified channel principal plus tenant/action/resource/request-
   bound PDP provenance, expiry, policy revision, purpose, and legal-basis
   evidence. A caller-supplied allow bit is never an input authority.
-- **L2i.0c — Audit:** accept one sold idempotent audit-emission contract and an
+- **Audit authority — `audit-authority-decision`:** accept one sold idempotent audit-emission contract and an
   operation-class matrix distinguishing pre-disclosure/pre-commit evidence from
   asynchronously deliverable durable outbox intent.
-- **L2i.0d — Record encryption/key service:** accept one authenticated-
+- **Record encryption/key service — `record-encryption-authority-decision`:** accept one authenticated-
   encryption implementation and one commodity or sold key-service facade for
   `hr-record-encryption-draft`. It fixes the algorithm, nonce source, key
   custody/zeroization, associated-data encoding, tenant/key-scoped non-replay
@@ -1374,7 +1306,7 @@ owner's core, port, adapter, or in-process facade. The five gates are:
   drain/source loss/partition must withdraw
   readiness rather than bypassing this fence. Provider selection alone is not
   permission to claim an adapter-only fence.
-- **L2i.0e — Runtime context:** accept the exact sold Cell trusted-interval and
+- **Runtime context — `runtime-context-authority-decision`:** accept the exact sold Cell trusted-interval and
   Observability signal/health facades consumed by an HR-owned
   `hr-runtime-context-oyatie-draft` adapter. The decision fixes interval units
   and uncertainty, source generation, boundary-straddling refusal, correlation
@@ -1394,10 +1326,11 @@ consumer translation. A missing field, internal provider import, JSON/second
 codec, or test fake rejects the gate. Rejection changes no repository path and
 keeps People unrouted.
 
-## L2i.0d.1 — Admit the key-service adapter graph before replay behavior
+## Key-service adapter-graph admission — `key-service-graph-admission`
 
-Class: serialized D-33 structural adapter lane; depends only on accepted L2i.0d
-and precedes L2i.0f. It admits the key-service structure early because no
+Class: serialized structural adapter lane governed by ADR-0719 D-33; depends
+only on accepted `record-encryption-authority-decision` and precedes
+`commit-replay-rekey-slot-admission`. It admits the key-service structure early because no
 repository/SQLite lane may claim a provider traversal before the selected adapter
 exists in both build graphs. Its complete write set is:
 
@@ -1428,14 +1361,16 @@ SQLite package/label.
 
 The target's owned scanner admits `tests/items/*.rs`, emits empty stable `OUT_DIR`
 membership before item slots exist, and is the only target that may later traverse
-SQLite -> record-encryption port -> key-service adapter. L2i.0f creates its
+SQLite -> record-encryption port -> key-service adapter.
+`commit-replay-rekey-slot-admission` creates its
 minimal `b_envelope.rs`/`e_commit_authorization.rs` structural slots and
 `b_parity.rs`/`c_commit_order.rs` test slots as well as its
 `k_sqlite_replay_composition.rs` and `m_sqlite_decommission_composition.rs`
-slots. L2i.0g.1 leaves the five g.1a-owned adapter slots empty; L2i.0g.1a implements and
-reviews the minimal adapter slots without executing this dev-only target;
-L2i.0g.2 alone writes and executes the composition slots after that behavior
-exists. No request
+slots. `key-provider-lifecycle-implementation` leaves the five
+minimum-key-adapter-owned slots empty; `minimum-key-adapter-implementation`
+implements and reviews those slots without executing this dev-only target;
+`repository-commit-replay-implementation` alone writes and executes the
+composition slots after that behavior exists. No request
 translation, PRF, membership, SQLite, repository, readiness, or provider behavior
 appears in this structural lane.
 `cargo tree -p hr-record-encryption-key-service-draft --edges normal` and Buck
@@ -1443,10 +1378,11 @@ runtime-dependency inspection must contain neither `hr-employment-repository-*`
 nor its SQLite label, while the named dev-only targets contain both direct edges.
 Rollback removes only this empty face and its accepted dependency closure.
 
-## L2i.0f — Prepare commit-fence, replay, decommission, membership, and rekey file membership
+## Commit, replay, membership, decommission, and rekey slot admission — `commit-replay-rekey-slot-admission`
 
-Class: serialized D-33 structural/D-41 file-slot lane after accepted L2i.0d and
-completed L2i.0d.1 adapter structure.
+Class: serialized structural/file-slot lane governed by ADR-0719 D-33 and D-41,
+after accepted `record-encryption-authority-decision` and completed
+`key-service-graph-admission`.
 It creates only these compiler-visible empty unique files inside already-
 admitted scanner-owned faces:
 
@@ -1471,9 +1407,9 @@ app/hr/ports/draft/employment-repository/src/items/i_decommission.rs
 app/hr/ports/draft/employment-repository/src/test_items/i_decommission.rs
 app/hr/ports/draft/employment-repository/src/items/f_rekey_repository.rs
 app/hr/ports/draft/employment-repository/src/test_items/f_rekey_repository.rs
-app/hr/core/employment-usecase/src/items/f_rekey_reconciler.rs
-app/hr/core/employment-usecase/src/test_items/c_rekey_reconciler.rs
-app/hr/core/employment-usecase/tests/items/c_rekey_reconciler.rs
+app/hr/core/employment-domain/src/items/o_rekey_reconciler.rs
+app/hr/core/employment-domain/src/test_items/c_rekey_reconciler.rs
+app/hr/core/employment-domain/tests/usecase_items/f_rekey_reconciler.rs
 app/hr/adapters/draft/employment-repository-memory/src/items/c_rekey_repository.rs
 app/hr/adapters/draft/employment-repository-memory/src/test_items/d_rekey_repository.rs
 app/hr/adapters/draft/employment-repository-memory/tests/items/d_rekey_repository.rs
@@ -1527,22 +1463,24 @@ requires one and is at most 20 lines. The existing owned scanners and Buck
 `buildscript_run` rules discover the identical sorted sets without a parent,
 manifest, BUCK, build-script, root, lock, generated, migration, provider, route,
 or runtime edit. In particular `migrations/*.sql` was already admitted as a
-resource glob at L2e.0b; semantic migrations remain absent here.
+resource glob at `sqlite-adapter-face-admission`; semantic migrations remain
+absent here.
 
-Build closure is the employment use case, both ports, memory repository, SQLite
-library/unit/contract/recovery targets, the already-admitted key-service adapter
-face, full HR, accepted key-service contract, and zero-edge IAM proof through
-Cargo and Buck. Required review is
+Local Buck proof is the employment use case, both ports, memory repository,
+SQLite library/unit/contract/recovery targets, and the already-admitted key-
+service adapter face; protected Cargo `presubmit` supplies the full-workspace
+proof and the zero-IAM-edge scan remains required. Required review is
 HR, Build/D-41, architecture, Data/SQLite durability, and security. Success is
 unchanged behavior with exact Cargo/Buck membership and add/rename/remove
 canaries. Any type, operation, SQL, test assertion, dependency, format,
 readiness value, or parent-index edit is failure. Rollback removes only these
 empty files; no schema or runtime state exists.
 
-## L2i.0g.0 — Freeze typed commit, replay, decommission, and membership port contracts
+## Commit, replay, decommission, and membership contract freeze — `commit-replay-contract-freeze`
 
-Class: content-only HR contract lane; depends on L2i.0f. The complete write set
-is only the following already-admitted port files:
+Class: content-only HR contract lane; depends on
+`commit-replay-rekey-slot-admission`. The complete write set is only the
+following already-admitted port files:
 
 ```text
 app/hr/ports/draft/record-encryption/src/items/c_commit_authorization.rs
@@ -1699,9 +1637,9 @@ kind-`0x0d` wire; the Complete plan contains the exact final kind-`0x0e` wire;
 the disposition plan contains the exact final kind-`0x0f` or `0x10` wire.
 Wrong kind/header/schema, body/final confusion, variant substitution,
 count/tag/order/length/domain/authenticator/digest mutation, or nested
-reserialization is a typed refusal. g.0, g.1, and g.2 each freeze independent
-minimum, maximum, and maximum-plus-one body/final goldens plus response-loss
-and fresh-process byte-identical replay.
+reserialization is a typed refusal. The contract-freeze, provider, and
+repository lanes each freeze independent minimum, maximum, and maximum-plus-one
+body/final goldens plus response-loss and fresh-process byte-identical replay.
 
 The independently recomputed ledger preserves proof `1,805`, reference
 `1,265`, issuance `3,092`, observation `1,123`, Issue request `1,274`, plan
@@ -1733,14 +1671,15 @@ length/bound/state byte/nested kind or missing authenticator tag; Mismatch means
 wrong canonical identity/parent/digest/status/terminal branch; and
 AuthenticatorInvalid means a present envelope with an invalid key/signature.
 `KeyringRetirementFenceStale` and `KeyringRetirementPreconditionFailed` remain
-separate semantic errors. g.0 and recovery preserve every branch by name and
-remove the former generic terminal-invalid branch.
+separate semantic errors. Contract-freeze and recovery evidence preserve every
+branch by name and remove the former generic terminal-invalid branch.
 
 It also freezes proof tags `1..=20`, reference tags `1..=8`, and issuance tags
 `{1 proof_final_wire, 2 reference_final_wire}`. Both signed records follow the
 same body/sign/final/external-digest construction, and issuance nests those
-exact final wires. Independent g.0/g.1/g.2 codecs therefore produce identical
-proof/reference/issuance bytes, and Issue/Get never reserializes an issuance.
+exact final wires. Independent contract/provider/repository codecs therefore
+produce identical proof/reference/issuance bytes, and Issue/Get never
+reserializes an issuance.
 
 It also freezes the receipt-addressed completion plan:
 `CanonicalDecommissionStorageReceiptEncodingV1` owns the fixed `0x06` receipt
@@ -1750,24 +1689,28 @@ is kind `0x0c`, tags `1..=17`, has a 1,179-byte no-authenticator body and
 1,246-byte final wire, and carries the canonical receipt lookup, expected
 receipt digest, all identity/parent/terminal/local-operation/disposition/
 manifest/admission fields, metadata key id/epoch, and the final detached
-authenticator. g.0 `record-encryption/src/items/j_decommission.rs` owns
+authenticator. Contract-freeze file
+`record-encryption/src/items/j_decommission.rs` owns
 `RepositoryMetadataCommitAuthenticatorV1` sign/verify request/result/error
-types; g.1 `record-encryption-key-service/src/items/j_decommission.rs`
-implements active-signing plus retained verification-only key epochs; g.2
-injects that port into SQLite. The normal Cargo/Buck edge is SQLite repository
--> record-encryption port -> key-service adapter, with no g.0-to-SQLite or
-adapter-to-repository runtime edge. Before `LocalDispositionApplied`, g.2 must
+types; provider file
+`record-encryption-key-service/src/items/j_decommission.rs` implements active-
+signing plus retained verification-only key epochs; the repository lane injects
+that port into SQLite. The normal Cargo/Buck edge is SQLite repository ->
+record-encryption port -> key-service adapter, with no contract-to-SQLite or
+adapter-to-repository runtime edge. Before `LocalDispositionApplied`, the
+repository lane must
 atomically persist receipt plus binding/status after signature verification;
 recovery verifies those exact bytes/digests/parents/key epoch/signature before
 deriving `LocalDecommissionCompletionPlanV1`, which encodes only the receipt
 digest. Contract tests prove all receipt/binding/plan min/max/plus-one,
 kind-substitution/unknown-kind, field/id/parent/receipt mutation, independent
 rederivation, response-loss/crash, and named missing/mismatch/corrupt/
-authenticator-invalid refusal before g.1/g.2 implement behavior.
+authenticator-invalid refusal before provider and repository behavior lands.
 
-## L2i.0g.1 — Implement provider replay, decommission, and membership behavior before repository use
+## Key-provider lifecycle implementation — `key-provider-lifecycle-implementation`
 
-Class: content-only key-service-adapter lane; depends on L2i.0g.0 and writes only:
+Class: content-only key-service-adapter lane; depends on
+`commit-replay-contract-freeze` and writes only:
 
 ```text
 app/hr/adapters/draft/record-encryption-key-service/src/items/h_replay_generation_set.rs
@@ -1850,16 +1793,19 @@ The
 adapter's runtime graph still has only the record-encryption port plus accepted
 provider client. Its repository/SQLite dev edges are not exercised in this lane:
 `tests/items/k_sqlite_replay_composition.rs` and
-`tests/items/m_sqlite_decommission_composition.rs` remain empty L2i.0f-admitted
-slots until L2i.0g.2, so L2i.0g.1 claims no repository traversal.
+`tests/items/m_sqlite_decommission_composition.rs` remain empty slots admitted
+by `commit-replay-rekey-slot-admission` until
+`repository-commit-replay-implementation`, so this provider lane claims no
+repository traversal.
 `cargo tree -p hr-record-encryption-key-service-draft --edges normal` and Buck
 runtime dependency inspection reject any adapter runtime edge to repository or
 SQLite.
 
-## L2i.0g.1a — Implement minimal concrete key-adapter behavior before SQLite composition
+## Minimum key-adapter implementation — `minimum-key-adapter-implementation`
 
-Class: content-only key-service-adapter lane; depends on L2i.0g.1 and writes
-only the following L2i.0f-admitted slots:
+Class: content-only key-service-adapter lane; depends on
+`key-provider-lifecycle-implementation` and writes only the following slots
+admitted by `commit-replay-rekey-slot-admission`:
 
 ```text
 app/hr/adapters/draft/record-encryption-key-service/src/items/b_envelope.rs
@@ -1869,9 +1815,10 @@ app/hr/adapters/draft/record-encryption-key-service/tests/items/b_parity.rs
 app/hr/adapters/draft/record-encryption-key-service/tests/items/c_commit_order.rs
 ```
 
-This lane implements the minimal concrete accepted-facade translation that g.2
-will actually call: V1 envelope seal/open with associated-data authentication and
-tamper refusal; provider `authorize_commit` and idempotent `resolve_commit`; and
+This lane implements the minimal concrete accepted-facade translation that the
+repository lane will actually call: V1 envelope seal/open with associated-data
+authentication and tamper refusal; provider `authorize_commit` and idempotent
+`resolve_commit`; and
 the decommission-fence check that denies new seal/authorization after a matching
 begin fence. It does not implement a repository, SQLite access, locator lookup,
 or the dev-only composition target. Its Cargo/Buck contract tests use the
@@ -1880,16 +1827,19 @@ tamper rejection, authorization-before-commit/resolution ordering, stale/replaye
 receipt refusal, provider loss, and no authorization after a decommission fence.
 They must pass as `cargo test -p hr-record-encryption-key-service-draft --test contract`
 and `buck2 test //app/hr/adapters/draft/record-encryption-key-service:hr-record-encryption-key-service-contract`
-before g.2 may write either SQLite composition item. The dev-only target's
-direct Cargo and Buck repository/SQLite edges were admitted only in L2i.0d.1;
+before `repository-commit-replay-implementation` may write either SQLite
+composition item. The dev-only target's
+direct Cargo and Buck repository/SQLite edges were admitted only in
+`key-service-graph-admission`;
 this lane edits neither manifest nor BUCK, and normal dependency scans still
 forbid any adapter-to-repository/SQLite runtime edge. Its successful review is a
-hard prerequisite, not a later L2i.2d backfill.
+hard prerequisite, not a later `record-encryption-adapter-implementation`
+backfill.
 
-## L2i.0g.2 — Freeze canonical commit, replay, decommission, and membership behavior across repository and SQLite
+## Repository and SQLite commit-replay implementation — `repository-commit-replay-implementation`
 
-Class: content-only HR repository/SQLite lane; depends on accepted L2i.0g.1a.
-Its complete
+Class: content-only HR repository/SQLite lane; depends on accepted
+`minimum-key-adapter-implementation`. Its complete
 write set is the following frozen files plus one additive semantic migration:
 
 ```text
@@ -1980,12 +1930,12 @@ repository/member instance/epoch, snapshot/version, rotation fence, terminal
 write sequence, complete scan checkpoint, separate ciphertext/locator/non-
 replay-index counts, unresolved receipt, and exact Issue request are identical;
 SQLite then matches the returned proof's Issue id/digest to its local
-proof-issue plan without an adapter-to-repository runtime edge. The g.2 SQLite
-state named `IntentPending` is only that committed local pre-Begin intent. The
-g.1 provider Begin/Abort transaction has no such observable provider status:
+proof-issue plan without an adapter-to-repository runtime edge. The repository
+SQLite state named `IntentPending` is only that committed local pre-Begin intent.
+The provider Begin/Abort transaction has no such observable provider status:
 Get/exact Begin returns only NotStarted before commit, then the signed Fenced
 result (or a later signed closed result), while Abort-first returns the exact
-tombstone and tombstones delayed Begin. g.2 recovery sends the exact persisted
+tombstone and tombstones delayed Begin. Repository recovery sends the exact persisted
 Abort tuple only for NotStarted, installs the exact returned
 Fenced/Aborted/closed evidence otherwise, and cannot reopen from an observation.
 
@@ -2115,8 +2065,9 @@ or adapter-to-repository runtime edge.
 
 The required real-file composition is repository/SQLite -> record-encryption
 port -> key-service adapter -> accepted provider facade. It is permitted only
-because L2i.0g.1a already accepted concrete open/seal, authorization/resolution,
-and decommission-fence behavior. L2i.0g.2 alone writes
+because `minimum-key-adapter-implementation` already accepted concrete
+open/seal, authorization/resolution, and decommission-fence behavior.
+`repository-commit-replay-implementation` alone writes
 `record-encryption-key-service/tests/items/k_sqlite_replay_composition.rs` and
 `record-encryption-key-service/tests/items/m_sqlite_decommission_composition.rs`.
 Each opens a real SQLite file through the concrete SQLite repository adapter,
@@ -2136,7 +2087,8 @@ plan/receipt/binding identities at every edge. They run
 as `sqlite_replay_composition` and `sqlite_decommission_composition` under
 `cargo test -p hr-record-encryption-key-service-draft --test contract`, and both
 run under `buck2 test //app/hr/adapters/draft/record-encryption-key-service:hr-record-encryption-key-service-contract`.
-The Cargo/Buck target direct dev edges were admitted in L2i.0d.1; this lane edits
+The Cargo/Buck target direct dev edges were admitted in
+`key-service-graph-admission`; this lane edits
 neither manifests nor BUCK. Runtime reverse scans must prove no
 key-adapter -> repository path, while the named dev-only test target proves the
 forward traversal. Every retry/restart reacquires its provider-authenticated set
@@ -2174,8 +2126,9 @@ ciphertext/locator/non-replay-index-reference and zero-unresolved proof; stale
 or orphaned non-replay indexes and a checkpoint/count mismatch prevent proof or
 revoke. A sole member follows the typed retirement handoff and reaches `Retired`
 only after all generations are revoked; and a rotation fence binds an immutable
-member snapshot. All L2i.0f structural paths other than the
-explicitly deferred L2i.0h rekey files, plus manifests, Buck/build scripts,
+member snapshot. All `commit-replay-rekey-slot-admission` structural paths other
+than the explicitly deferred `bounded-rekey-implementation` files, plus
+manifests, Buck/build scripts,
 parents, lock/root/generated, routes, and readiness implementation, are frozen.
 
 Provider authorization, replay acquisition/locator derivation, membership CAS, and
@@ -2207,19 +2160,19 @@ rotation, response-loss/hard-close recovery, decommission fence races, and
 membership snapshot races; Cargo and Buck use independent V1 encoders sharing
 only typed inputs and fixed vectors.
 
-## L2i.0h — Implement bounded repository rekey and zero-reference revocation
+## Bounded repository rekey and zero-reference revocation — `bounded-rekey-implementation`
 
-Class: content-only HR durability behavior; depends on L2i.0g.2. The complete
-write set is:
+Class: content-only HR durability behavior; depends on
+`repository-commit-replay-implementation`. The complete write set is:
 
 ```text
 app/hr/ports/draft/record-encryption/src/items/d_rekey_generation.rs
 app/hr/ports/draft/record-encryption/src/test_items/d_rekey_generation.rs
 app/hr/ports/draft/employment-repository/src/items/f_rekey_repository.rs
 app/hr/ports/draft/employment-repository/src/test_items/f_rekey_repository.rs
-app/hr/core/employment-usecase/src/items/f_rekey_reconciler.rs
-app/hr/core/employment-usecase/src/test_items/c_rekey_reconciler.rs
-app/hr/core/employment-usecase/tests/items/c_rekey_reconciler.rs
+app/hr/core/employment-domain/src/items/o_rekey_reconciler.rs
+app/hr/core/employment-domain/src/test_items/c_rekey_reconciler.rs
+app/hr/core/employment-domain/tests/usecase_items/f_rekey_reconciler.rs
 app/hr/adapters/draft/employment-repository-memory/src/items/c_rekey_repository.rs
 app/hr/adapters/draft/employment-repository-memory/src/test_items/d_rekey_repository.rs
 app/hr/adapters/draft/employment-repository-memory/tests/items/d_rekey_repository.rs
@@ -2282,12 +2235,13 @@ fencing discovers a provider rotation whose local job was never created, resumes
 the last durable checkpoint, and reconciles revoke-before-local-completion
 without guessing.
 
-All L2i.0g paths are frozen. Apart from the additive `0003` migration, every
+All preceding commit/replay contract, provider, and repository paths are frozen.
+Apart from the additive `0003` migration, every
 manifest/BUCK/build/root/lock/generated path, provider adapter, composition,
 main, route, and readiness implementation is frozen. Every Rust file is at
 most 300 lines.
-The L2i.0h rekey/replay fault matrix consumes, but does not alter, the frozen
-g.0/g.1/g.2 decommission codec: it carries the same independent
+The bounded-rekey fault matrix consumes, but does not alter, the frozen
+contract/provider/repository decommission codec: it carries the same independent
 Removal/Begin/Complete/disposition/completion plan and request-journal vectors,
 max-plus-one and parent/fence/reference/receipt mutation refusal, explicit
 Issue-issuance/Get byte identity, Begin-digest/fence binding, and verifies that a
@@ -2297,9 +2251,10 @@ oracle: provider status cannot be IntentPending, while repository-local
 IntentPending remains write-closed and resolves only through its persisted
 NotStarted Abort tuple or exact signed Fenced/Aborted/closed evidence. This is
 test consumption only; no h target gains an adapter-to-repository runtime edge.
-Build closure is the use case, encryption/repository ports, memory adapter,
-SQLite library/unit/contract/recovery targets, accepted key-service contract,
-full HR, and zero-edge IAM proof through Cargo/Buck. Required review is HR,
+Local Buck proof is the use case, encryption/repository ports, memory adapter,
+SQLite library/unit/contract/recovery targets, and accepted key-service
+contract; protected Cargo `presubmit` supplies full-workspace proof and the
+zero-IAM-edge scan remains required. Required review is HR,
 key-provider contract, Data/SQLite durability, Build/D-41, security/
 cryptography, migration/format compatibility, fault injection, and SRE/
 operability.
@@ -2312,7 +2267,7 @@ locator/non-replay-index/zero-unresolved receipt and provider unresolved count
 is zero. At the PRD
 load envelope, evidence also holds p99 bounded-step latency to five seconds and
 checkpoint age to sixty seconds without violating foreground objectives; these
-remain unqualified test objectives until L2k promotion. Failure is a
+remain unqualified test objectives until route/cohort promotion. Failure is a
 skipped row, checkpoint advance on failed CAS, unbounded page/retry/call work,
 stale/corrupt cursor/epoch/fence/membership snapshot accepted, unavailable
 source/target/provider/repository or partitioned member treated as progress,
@@ -2331,26 +2286,30 @@ rejoin, and schema-compatible restart;
 every schedule returns the original outcome or the closed refusal and proves no
 second employee/lifecycle/idempotency/outbox effect commits.
 
-## L2i.1a, L2i.1b, L2i.1c, and L2i.1e — Admit the remaining production authority adapter structures
+## Remaining production-authority adapter structure admissions — `remaining-authority-adapter-structures`
 
 Class: four serialized structural package/dependency/build/lock lanes; each
-depends on its matching accepted L2i.0 gate and exact owner-law amendment. They
-serialize on `Cargo.lock` and any root/generated dependency faces and contain no
-provider request, validation, retry, policy, audit, route, or readiness behavior.
+depends on its matching accepted production-authority decision and exact owner-
+law amendment. They serialize on `Cargo.lock` and any root/generated dependency
+faces and contain no provider request, validation, retry, policy, audit, route,
+or readiness behavior.
 
 | Lane | Exact package path | Cargo package | Matching HR port |
 |---|---|---|---|
-| L2i.1a | `app/hr/adapters/draft/installed-overlay-packs` | `hr-installed-overlay-packs-draft` | `hr-installed-overlay-draft` |
-| L2i.1b | `app/hr/adapters/draft/authorization-evidence-policy` | `hr-authorization-evidence-policy-draft` | `hr-authorization-evidence-draft` |
-| L2i.1c | `app/hr/adapters/draft/audit-outbox-audit` | `hr-audit-outbox-audit-draft` | `hr-audit-outbox-draft` |
-| L2i.1e | `app/hr/adapters/draft/runtime-context-oyatie` | `hr-runtime-context-oyatie-draft` | `hr-runtime-context-draft` |
+| `install-adapter-structure` | `app/hr/adapters/draft/installed-overlay-packs` | `hr-installed-overlay-packs-draft` | `hr-installed-overlay-draft` |
+| `authorization-adapter-structure` | `app/hr/adapters/draft/authorization-evidence-policy` | `hr-authorization-evidence-policy-draft` | `hr-authorization-evidence-draft` |
+| `audit-adapter-structure` | `app/hr/adapters/draft/audit-outbox-audit` | `hr-audit-outbox-audit-draft` | `hr-audit-outbox-draft` |
+| `runtime-context-adapter-structure` | `app/hr/adapters/draft/runtime-context-oyatie` | `hr-runtime-context-oyatie-draft` | `hr-runtime-context-draft` |
 
-The record-encryption adapter structure is completed at L2i.0d.1, its replay/
-membership/decommission behavior at L2i.0g.1, and its minimal concrete
-open/seal/authorization behavior at L2i.0g.1a before repository/SQLite behavior
-at L2i.0g.2; those paths are frozen here. L2i.1e's non-HR inputs are
-only the exact generated Cell/Observability consumer targets accepted at
-L2i.0e; it may not path-depend either provider's Rust core or port.
+The record-encryption adapter structure is completed by
+`key-service-graph-admission`, its replay/membership/decommission behavior by
+`key-provider-lifecycle-implementation`, and its minimal concrete open/seal/
+authorization behavior by `minimum-key-adapter-implementation` before
+repository/SQLite behavior lands in `repository-commit-replay-implementation`;
+those paths are frozen here. The runtime-context adapter's non-HR inputs are
+only the exact generated Cell/Observability consumer targets accepted by
+`runtime-context-authority-decision`; it may not path-depend either provider's
+Rust core or port.
 
 D-28/D-30 are explicit: every matching HR port is still owner-local and
 unagreed, so each adapter remains under `adapters/draft/` and carries the
@@ -2364,30 +2323,42 @@ Each package receives exactly `Cargo.toml`, `BUCK`, `build.rs`, stable
 `src/lib.rs`, `src/test_items/a_face.rs`, stable `tests/contract.rs`, and
 `tests/items/a_face.rs`. Its only HR runtime edge is the matching port above;
 all other runtime/build/dev Cargo and Buck edges must be the literal accepted
-provider targets recorded by its L2i.0 amendment. Each owned D-41 scanner
+provider targets recorded by its matching authority-decision amendment. Each
+owned D-41 scanner
 tolerates absent `src/items`, emits only stable membership under `OUT_DIR`, and
 has identical Cargo/Buck inputs. Root membership remains unchanged under the
 accepted globs. The complete write envelope for each lane is its seven files,
 its exact workspace-package lock entry, and only the root/generated dependency
 files named by the matching gate. Every hand-written file is at most 300 lines.
 
-Build closure is each new empty adapter, matching HR port, accepted provider
-client/contract targets, all remaining HR, and the zero-edge IAM proof through
-Cargo and Buck. Required review is HR, the provider owner, Architecture/API,
+Local Buck proof is each new empty adapter, matching HR port, and accepted
+provider client/contract target closure; protected Cargo `presubmit` supplies
+full-workspace proof and the zero-IAM-edge scan remains required. Required
+review is HR, the provider owner, Architecture/API,
 Build, security/privacy, supply chain, and operability. Success is four empty
 adapters with exact graph parity and no runtime value. Failure is behavior,
 placeholder/transitive-only dependency, cross-owner internal edge, manual
 index, over-budget file, unrelated lock churn, or readiness fiction. Rollback
 removes only that empty adapter and exact dependency closure.
 
-## L2i.2a through L2i.2e — Implement production authority adapters
+## Production-authority adapter implementations — `production-authority-adapter-implementations`
 
-Class: five content-only adapter behavior lanes. L2i.2a, L2i.2b, L2i.2c, and
-L2i.2e each depend on their matching L2i.1 structure; L2i.2d depends on the
-already-complete L2i.0h replay/membership/rekey sequence. Their changed paths
-are disjoint, but the fixed full-HR verification closure overlaps, so
-implementation dispatches serialize; review and read-only recon may run
-concurrently.
+Class: five content-only adapter behavior lanes. The install, authorization,
+audit, and runtime-context implementations each depend on their matching adapter
+structure; the record-encryption implementation depends on the already-complete
+`bounded-rekey-implementation` sequence. Their changed paths are disjoint, so
+implementations may run concurrently once their own dependency is green;
+read-only build-closure overlap is not a writer lock.
+
+The semantic behavior lanes and their prerequisites are exact:
+
+| Behavior lane | Prerequisite |
+|---|---|
+| `install-adapter-implementation` | `install-adapter-structure` |
+| `authorization-adapter-implementation` | `authorization-adapter-structure` |
+| `audit-adapter-implementation` | `audit-adapter-structure` |
+| `record-encryption-adapter-implementation` | `bounded-rekey-implementation` |
+| `runtime-context-adapter-implementation` | `runtime-context-adapter-structure` |
 
 The complete unique-file envelopes are:
 
@@ -2424,17 +2395,20 @@ evidence fails before mutation/disclosure, while an allowed asynchronous class
 commits one durable outbox intent and redelivers without a second effect.
 Record encryption implements only the accepted primitive/key-service contract,
 binds canonical associated data, produces unique nonces and bounded non-replay
-field indexes, preserves the already-owned L2i.0g.1 generation-set,
-idempotency-locator, membership, and decommission behavior and the L2i.0g.1a
-concrete `b_envelope`/`e_commit_authorization` behavior without reopening those
-frozen files. This later lane owns only the remaining key-generation/rotation/
+field indexes, preserves the already-owned
+`key-provider-lifecycle-implementation` generation-set, idempotency-locator,
+membership, and decommission behavior and the
+`minimum-key-adapter-implementation` concrete `b_envelope`/
+`e_commit_authorization` behavior without reopening those frozen files. This
+later lane owns only the remaining key-generation/rotation/
 rekey behavior and supports idempotent re-encryption plus fail-closed
 revocation. It authenticates
 the exact HR-owned canonical-request, staged-descriptor, checkpoint, and zero-
 reference domain bytes without parsing or rewriting them and never supplies a
 plaintext or process-local fallback. Its `g_rekey_sqlite.rs` integration item is
-strictly a later rekey/checkpoint test: it may use the L2i.0d.1-admitted dev edges
-but neither supplies nor replaces the L2i.0g.2-owned
+strictly a later rekey/checkpoint test: it may use the
+`key-service-graph-admission` dev edges but neither supplies nor replaces the
+`repository-commit-replay-implementation`-owned
 `k_sqlite_replay_composition.rs` or `m_sqlite_decommission_composition.rs`
 traversals. It exercises the exact SPEC page/step
 bounds and crash/reopen sequence, and proves the key adapter itself has no
@@ -2443,16 +2417,19 @@ translates only the accepted generated Cell/Observability clients into trusted
 intervals, typed uncertainty, bounded signal receipts, and provider health; it
 never reads system/process time or silently drops to logs.
 
-Each lane builds its adapter/port/provider contract plus full HR through Cargo
-and Buck. Required review is HR, matching provider, security/privacy, fault/
+Each lane builds/tests its adapter/port/provider target closure through Buck;
+protected Cargo `presubmit` supplies full-workspace proof. Required review is
+HR, matching provider, security/privacy, fault/
 retry, and adapter-parity reviewers. Success is semantic parity and bounded
-translation against the accepted contract. For L2i.2d that includes Cargo/Buck
+translation against the accepted contract. For
+`record-encryption-adapter-implementation` that includes Cargo/Buck
 byte-golden parity for both protected preimages; V1 replay after response loss,
 page-CAS, hard close, rekey, and restart; authenticated-open constant-time
 plaintext equality under different nonce/generation; normal rotation to zero
 references; attempted G+2, frozen-membership receipt mismatch, emergency drain/
 source loss/partition, malformed/stale/replayed V1 set, and provider-loss refusal
-against the already-accepted L2i.0g.2 real SQLite composition target; and a
+against the already-accepted `repository-commit-replay-implementation` real
+SQLite composition target; and a
 provider revoke receipt matching the repository checkpoint and frozen membership
 snapshot. It may run that frozen target as full-HR verification but cannot supply
 or revise its prerequisite adapter behavior. V2 remains non-dispatchable until its
@@ -2469,10 +2446,10 @@ time boundary, regress/widen the interval, saturate signal buffers, and remove
 Cell and Observability independently; each refuses without a wall-clock or
 log-only fallback.
 
-## L2j.0 — Admit the production People composition graph
+## Production People composition-graph admission — `people-composition-graph-admission`
 
 Class: serialized structural composition dependency lane; depends on all five
-L2i.2 lanes. It changes only:
+production-authority adapter implementations. It changes only:
 
 ```text
 app/hr/facade/people-app/Cargo.toml
@@ -2489,7 +2466,7 @@ dependencies (including `hr-record-encryption-draft`) plus
 runtime labels are exactly:
 
 ```text
-//app/hr/core/employment-usecase:hr-employment-usecase
+//app/hr/core/employment-domain:hr-employment-domain
 //app/hr/ports/draft/employment-repository:hr-employment-repository-draft
 //app/hr/ports/draft/record-encryption:hr-record-encryption-draft
 //app/hr/ports/draft/installed-overlay:hr-installed-overlay-draft
@@ -2509,17 +2486,19 @@ runtime labels are exactly:
 Dev/test edges remain exactly the memory repository oracle and `tempfile`; no
 provider fake or mock is a runtime edge. All Rust, proto, build scripts, root
 dependency declarations, generated files, IAM/provider paths, deployment,
-route, and behavior are frozen. Build closure is the fifteen-edge facade,
-provider adapters/contracts, full HR, and inverse scans through both graphs.
+route, and behavior are frozen. Local Buck proof is the fifteen-edge facade and
+provider adapter/contract closure; protected Cargo `presubmit` supplies full-
+workspace proof and inverse scans remain required.
 Required review is HR, all five providers, Build/architecture, security, and
 Data durability. Success is exact graph parity with main still `Unrouted`.
 Failure is source behavior, transitive-only edge, test fake in runtime, extra
 provider dependency, lock churn outside the people-app package entry, or a
 route/readiness claim. Rollback restores only these three graph files.
 
-## L2j.1 — Compose concrete production authorities while remaining unrouted
+## Unrouted production-authority composition — `unrouted-production-composition`
 
-Class: content-only composition behavior; depends on L2j.0.
+Class: content-only composition behavior; depends on
+`people-composition-graph-admission`.
 
 The complete write set is:
 
@@ -2549,8 +2528,9 @@ also requires `hr-runtime-context-oyatie-draft`. It injects the concrete
 encryption adapter into SQLite, the concrete runtime context into every
 authority/effective-window and telemetry call, and its production type cannot
 accept the memory oracle or any provider/key/time/telemetry fake. It enforces
-provider health, L2i.0g.1a commit authorization/resolution, L2i.0h bounded rekey
-resume/zero-reference completion, active key-generation fencing, trusted-
+provider health, `minimum-key-adapter-implementation` commit authorization/
+resolution, `bounded-rekey-implementation` resume/zero-reference completion,
+active key-generation fencing, trusted-
 interval boundary refusal, bounded signal delivery, and the
 audit operation-class matrix before dispatch. `src/main.rs` and
 `a_unrouted.rs` remain unchanged, so no process can instantiate the composition
@@ -2586,10 +2566,10 @@ and the eligible-denominator, required-authority-failure, and error-budget-burn
 signals; the burn ends only on recovery or a route-layer withdrawal acknowledgement,
 never a readiness flip. Rollback removes only these sixteen unique files.
 
-## L2k.0 — Accept the listener, deployment, and cohort contract
+## Listener, deployment, and cohort decision — `route-promotion-decision`
 
-Class: fail-closed D-29 production-route decision; depends on L2j.1. This is not
-an implementation dispatch.
+Class: fail-closed production-route decision governed by ADR-0719 D-29; depends
+on `unrouted-production-composition`. This is not an implementation dispatch.
 
 Before any route lane, a protocol/Gateway/IAM/Observability/IaC decision and
 same-wave HR law amendment must name the exact generated-Connect listener and
@@ -2599,12 +2579,13 @@ generated outputs, deployment desired-state/IaC paths, Cargo/Buck dependencies,
 root/lock/generated/fixups, health/readiness semantics, drain/shutdown contract,
 capacity profile, rollout and rollback barrier, and reviewers. It must prove
 that listener identity is not an IAM-to-HR Rust edge and that the provider
-adapters from L2i—including record encryption/key service and runtime
+adapters from the production-authority sequence—including record encryption/key
+service and runtime
 context—remain the only authority/runtime implementations. It also fixes the
 boot-time active key-generation receipt, commit-authorization reconciliation,
 trusted-time/telemetry health, canonical/descriptor reader-version barrier,
 incomplete-rekey checkpoint/progress SLO, rotation/revocation readiness
-barrier, and cohort withdrawal signal. It MUST additionally freeze the monthly
+barrier, and cohort withdrawal signal. It also freezes the monthly
 facade-availability numerator as successful eligible operations and its
 denominator as every syntactically valid, capacity-admitted operation except
 one classified caller-caused invalid/unauthenticated/forbidden by an available
@@ -2619,10 +2600,11 @@ Placeholder paths,
 handwritten HTTP, a global/all-tenant default, mutable CLI activation, or a
 second codec rejects the gate and leaves main `Unrouted`.
 
-## L2k.1 — Admit route/deployment structure without activation
+## Inactive route/deployment structure admission — `inactive-route-structure-admission`
 
 Class: serialized structural dependency/deployment lane; depends on accepted
-L2k.0 and its literal owner-law amendment. Its fixed HR graph paths are
+`route-promotion-decision` and its literal owner-law amendment. Its fixed HR
+graph paths are
 `app/hr/facade/people-app/{Cargo.toml,BUCK}` plus `Cargo.lock`; the amendment
 must add the exact HR observability/IaC source/generated paths and any accepted
 root dependency/generated/fixup paths before this lane becomes dispatchable.
@@ -2630,26 +2612,29 @@ No Rust behavior, main edit, route, listener bind, provider construction,
 non-empty cohort, readiness result, or SLO claim lands.
 
 If the ratified structural envelope creates any multi-file Rust or test face,
-L2k.1 also creates that face's owned sorted `build.rs` scanner, stable
+`inactive-route-structure-admission` also creates that face's owned sorted
+`build.rs` scanner, stable
 `include!(OUT_DIR/...)` root, and Cargo/Buck rules with identical discovered
 membership. A tracked generated index, manual `mod` inventory, missing Buck
 scanner input/output, or scanner introduced later with behavior fails D-41 and
-blocks L2k.2.
+blocks `empty-cohort-route-activation`.
 
 All admitted structural files are at most 300 lines unless they are generated
 by the accepted owner tool; generated faces are materialized, never hand edited,
 and two consecutive materializations are byte-identical. Cargo and Buck carry
 the same listener/config/telemetry inputs and retain the fifteen HR composition
-edges. Build closure is the exact listener/deployment graph, full HR, all five
-providers, and current cell/Gateway/IAM/Observability/IaC consumers. Required
+edges. Local Buck proof is the exact listener/deployment graph plus all five
+provider targets; protected Cargo `presubmit` supplies current cell/Gateway/
+IAM/Observability/IaC consumer proof. Required
 review is every affected owner plus Architecture, Build, security, SRE, and
 privacy. Success is inert structure with main still `Unrouted`. Failure is
 behavior, unknown path, hand-generated output, graph mismatch, implicit cohort,
 or readiness fiction. Rollback removes only the admitted structure/dependencies.
 
-## L2k.2 — Activate main and routes with an empty cohort
+## Empty-cohort main and route activation — `empty-cohort-route-activation`
 
-Class: content-only process/route behavior; depends on L2k.1.
+Class: content-only process/route behavior; depends on
+`inactive-route-structure-admission`.
 
 The fixed HR content envelope is:
 
@@ -2698,12 +2683,13 @@ withdrawal acknowledgement; readiness alone is insufficient. Rollback
 restores the typed `Unrouted` main; no tenant cohort or format downgrade is
 involved.
 
-## L2k.3 — Promote the first bounded tenant cohort
+## First bounded tenant-cohort promotion — `first-cohort-promotion`
 
 Class: deployment/promotion content only; depends on independent approval of
-L2k.2 fault evidence and green protected admission. The complete write envelope
-must be the exact cohort, observability, and desired-state paths ratified at
-L2k.0; if those paths are not literal in an amended plan, this lane is
+`empty-cohort-route-activation` fault evidence and green protected admission.
+The complete write envelope must be the exact cohort, observability, and desired-
+state paths ratified by `route-promotion-decision`; if those paths are not
+literal in an amended plan, this lane is
 non-dispatchable. Rust, proto, Cargo/Buck/build, lock/root dependency, adapter,
 and generated outputs are frozen.
 
@@ -2734,45 +2720,59 @@ or rollback that risks acknowledged data.
 
 <parallelism>
 
-The HR chain is sequential because each slice freezes the paths used by the
-next. L2b.0 is a separate multi-owner build prerequisite. L2e.0a is the sole
-root dependency/lock/generated-third-party writer; L2e.0b is the sole adapter-
-face/lock writer. L2f.0a is a non-implementation protocol decision gate and
-holds every People RPC lane closed. After its exact amendment, L2f.0b is the
-sole accepted Connect dependency/package/build/lock writer; L2f.0c writes only
-the semantic proto schema; L2f.0d performs the first of exactly two planned
-`src/main.rs` transitions (compiler shell to typed `Unrouted`); and L2f.1 writes
-only the named unique behavior/test items. The second and final main transition
-is L2k.2 (`Unrouted` to the concrete empty-cohort process), after which main is
-frozen. L2e and L2f.1 release shared hubs and write only their named unique
-content paths.
+The HR sequence is a dependency graph, not one capability-wide mutex. Buck
+bootstrap lands first. Employment-domain splitting and use-case consolidation
+share the same package and therefore serialize. IAM owner law and the IAM
+tenant-RBAC fossil-deletion decision run in their own worktrees concurrently
+with those HR lanes. Legacy HR REST/facade retirement waits only for accepted
+use-case behavior plus the IAM zero-edge proof. Draft port/reference-adapter
+admission, port behavior, and the direct Data-edge removal then serialize only
+where their exact files overlap.
 
-L2g.0a, L2g.0b, and L2g.1 are IAM-owner lanes: the scanner/file-budget split
-serializes before the eight content paths, four graph files, and `Cargo.lock`;
-L2h returns to the HR owner. The five L2i.0 provider decisions may be reviewed
-independently. L2i.0d.1 first admits the key-service adapter structure;
-L2i.0f is then the single structural scanner/file-slot join; L2i.0g.0 freezes
-only port contracts; L2i.0g.1 implements provider replay/membership/decommission
-behavior; L2i.0g.1a accepts the minimal concrete open/seal, authorization/
-resolution, and decommission-fence behavior; L2i.0g.2 alone performs the
-repository/SQLite traversal and additive `0002`; and L2i.0h fills only the
+The SQLite dependency lane is the sole root dependency/lock/generated-third-
+party writer; SQLite adapter-face admission is the sole adapter-face/lock
+writer. The Connect generator/runtime decision gate holds every People RPC lane
+closed. After acceptance, Connect structure is the sole dependency/package/
+build/lock writer; the semantic proto schema is its own path; the unrouted
+process lane performs the first of exactly two planned `src/main.rs`
+transitions (compiler shell to typed `Unrouted`); and the first People slice
+writes only named unique behavior/test items. The second and final main
+transition activates the concrete empty-cohort process, after which main is
+frozen. SQLite and People behavior lanes release shared hubs and write only
+their named unique content paths.
+
+Legacy in-memory storage retirement returns to the HR owner only after its
+replacement closure is green. The five production provider decisions may be
+reviewed independently. `key-service-graph-admission` first admits the key-
+service adapter structure; `commit-replay-rekey-slot-admission` is then the
+single structural scanner/file-slot join; `commit-replay-contract-freeze`
+freezes only port contracts; `key-provider-lifecycle-implementation` implements
+provider replay/membership/decommission behavior;
+`minimum-key-adapter-implementation` accepts the minimal concrete open/seal,
+authorization/resolution, and decommission-fence behavior;
+`repository-commit-replay-implementation` alone performs the repository/SQLite
+traversal and additive `0002`; and `bounded-rekey-implementation` fills only the
 disjoint rekey/recovery paths plus additive `0003`. That order is mandatory: no
-repository or SQLite claim of real provider replay/open/authorization,
-opaque-authority derivation, or membership fencing may precede L2i.0g.1a.
-L2i.1a, L2i.1b, L2i.1c, and L2i.1e are
-structurally disjoint except for `Cargo.lock` and any ratified root/generated
-dependency hub, so those structural writers serialize. L2i.2a-e have disjoint
-changed paths but share the mandatory all-HR practical build closure, so their
-implementation dispatches also serialize while their independent review/recon
-can overlap. L2j.0 serializes the shared People graph, L2j.1 adds only unique
-composition items, and L2k.0 holds all route work closed.
-L2k.1 serializes admitted route/deployment structure; L2k.2 exclusively changes
-main and route content with an empty cohort; L2k.3 changes only the ratified
-cohort/desired-state envelope.
+repository or SQLite claim of real provider replay/open/authorization, opaque-
+authority derivation, or membership fencing may precede
+`minimum-key-adapter-implementation`. The four remaining authority-adapter
+structure lanes are structurally disjoint except for `Cargo.lock` and any
+ratified root/generated dependency hub, so only those shared structural writers
+serialize. The five provider implementation lanes have disjoint changed paths
+and may implement in parallel; local proof stays target-scoped and the protected
+merge group supplies combination evidence. `people-composition-graph-admission`
+serializes the shared People graph; `unrouted-production-composition` adds only
+unique composition items; and `route-promotion-decision` holds all route work
+closed. `inactive-route-structure-admission` serializes admitted route/
+deployment structure; `empty-cohort-route-activation` exclusively changes main
+and route content with an empty cohort; `first-cohort-promotion` changes only
+the ratified cohort/desired-state envelope.
 
-Other owners may advance concurrently only when both changed paths and practical
-Cargo/Buck build closures are disjoint from the exact sets above. Read-only
-review/recon may fan out. D-36 owner law has one writer, observation is not
-APPROVE, and no worker widens a lane after discovering a missing dependency.
+Other owners may advance concurrently whenever changed path sets are disjoint;
+dependency-closure overlap is read-only and is not a lock. Root manifests,
+`Cargo.lock`, generated third-party faces, and the same item remain serialized
+writers. Read-only review/recon may fan out. Owner law has one writer,
+observation is not APPROVE, and no worker widens a lane after discovering a
+missing dependency.
 
 </parallelism>

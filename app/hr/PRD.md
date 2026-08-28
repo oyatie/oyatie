@@ -220,9 +220,9 @@ transport/provider field order, unknown field, omitted effect, implicit
   exact final kind-`0x0f` or `0x10` bytes. Wrong kind/header/schema, body/final
   confusion, terminal substitution, count/tag/order/length/domain/authenticator/
   digest mutation, invalid state byte, or nested reserialization is a typed
-  refusal. g.0, g.1, and g.2 each own independent body/final min, max, and
-  max-plus-one goldens for all four rows plus response-loss and fresh-process
-  byte-identical replay vectors.
+  refusal. The contract-freeze, provider, and repository lanes each own
+  independent body/final min, max, and max-plus-one goldens for all four rows
+  plus response-loss and fresh-process byte-identical replay vectors.
 
   The independently checked size ledger retains plan maxima
   `3,096/1,793/3,832/2,179/253`, request maxima
@@ -235,8 +235,9 @@ transport/provider field order, unknown field, omitted effect, implicit
   Missing is absent retained state; Corrupt is structural wire/state failure;
   Mismatch is wrong canonical identity/parent/digest/status/terminal branch;
   AuthenticatorInvalid is a present envelope with an invalid key/signature.
-  Fence-stale and retirement-precondition errors stay separate, and g.0 plus
-  recovery preserve the exact branches without a catch-all. Receipt fields and
+  Fence-stale and retirement-precondition errors stay separate, and contract-
+  freeze plus recovery evidence preserve the exact branches without a catch-
+  all. Receipt fields and
   maxima do not expand: assurance for omitted history relies on retained
   provider state and byte-identical exact-operation replay, not a claim that
   omitted fields are directly authenticated.
