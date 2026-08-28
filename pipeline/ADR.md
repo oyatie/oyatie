@@ -52,8 +52,9 @@ destination described below.
   GateRun/Tide, Cargo, or a Pipeline-owned worker fleet as the product.
 - **rule:** `pipeline/` MUST own one SCM-neutral execute engine for graph,
   queue, schedule, and promotion orchestration, with internal and sold facades
-  over the same semantics. Compute MUST execute work; Git/GitHub Actions and
-  GitHub merge queue MUST remain replaceable current adapters. Tenant #0 MUST
+  over the same semantics. Pipeline consumes a separately adopted Compute
+  execution contract; Git/GitHub Actions and GitHub merge queue MUST remain
+  replaceable current adapters. Tenant #0 MUST
   retain one required `presubmit`; Cargo nextest remains its temporary execute
   path until Pipeline serves the Buck2 graph under the ADR-0716 cutover bar.
 - **ensure:** owner review rejects workflow YAML or hosted-provider types in
@@ -73,16 +74,16 @@ destination described below.
 - **origin:** recurring Cargo/Buck drift needs protected admission and automated
   repair, but copying declaration parsing or conformance rules into Pipeline
   would create a second graph authority beside Build.
-- **rule:** Pipeline MUST own SCM-neutral immutable snapshot acquisition, path
-  deltas, owner facts, protected execution, admission fan-in, canonical
-  ChangeSet application, qualification orchestration, and repair campaigns.
-  Build MUST remain the sole owner of Cargo/Buck parsing, grammar profiles,
-  unconfigured source-declaration conformance, typed violations, and neutral
-  `DeclarationRepairSet` construction. Pipeline MUST NOT reinterpret, weaken,
-  or independently reproduce the Build relation.
-- **ensure:** dependency review permits Pipeline to consume one Build check-only
-  contract and rejects a Pipeline Cargo/Buck parser, label resolver, configured
-  Buck graph oracle, declaration corpus, or duplicate repair generator.
+- **rule:** Product owners own semantic intent, postconditions, and acceptance;
+  Build owns neutral Cargo/Buck analysis and transformation. Pipeline MUST own
+  SCM-neutral immutable snapshot acquisition, path deltas, caller-resolved owner
+  facts, protected execution, admission fan-in, ChangeSet application,
+  qualification, campaigns, retries, protected review/admission, and merge.
+  Pipeline consumes, but MUST NOT prescribe or reinterpret, the separately
+  adopted Build contract: its typed violations and `DeclarationRepairSetV1`.
+- **ensure:** dependency review permits one opaque Build check-only contract and
+  rejects a Pipeline Cargo/Buck parser, label resolver, configured Buck graph
+  oracle, declaration corpus, duplicate repair generator, or semantic claim.
 - **overturn_when:** a founder-accepted five-field amendment reallocates both
   sides atomically while preserving one semantic engine, one protected verdict,
   and SCM neutrality.
@@ -100,15 +101,17 @@ destination described below.
   SHAs, byte streams, and owner lookup are not yet one versioned repository-fact
   contract suitable for another SCM.
 - **rule:** Pipeline MUST provide versioned immutable base/head snapshot
-  identities, exact regular-blob bytes and modes for both changed declaration
-  endpoints, a lossless path delta, complete HEAD declaration bytes, and
-  one protected owner-authority identity/revision plus an expected owner or
-  owner absence for every declaration and proposed write path. Git MUST be the
-  required current adapter behind that port, not a Build dependency or the
-  permanent value model. Missing, conflicting, lossy, mutable, symlink,
-  gitlink, or otherwise unsupported facts MUST refuse closed. Deltas and base
-  bytes MUST be attribution and repair-sharding inputs only; correctness MUST
-  evaluate the complete HEAD first-party declaration graph.
+  identities, exact regular-blob entry facts/bytes/modes for both changed
+  declaration endpoints, a lossless path delta, and complete protected-requested
+  source-surface bytes, plus one protected owner-authority identity/revision and
+  owner-or-absence CAS facts for bound paths. Absence is only for non-write
+  semantic reads; every semantic/proposed write has one concrete expected owner.
+  Git is the required current adapter behind that port, not a Build dependency
+  or permanent value model.
+  Missing, conflicting, lossy, mutable, symlink, gitlink, or unsupported facts
+  MUST refuse. Pipeline never accepts caller-authored expected nodes, edges,
+  semantic facts, or conformance answers: Build derives the complete HEAD graph;
+  deltas/base bytes only trigger, attribute, or shard.
 - **ensure:** adapter contract tests replay immutable objects, renames, copies,
   deletes, non-UTF-8 and malformed records, unsafe entry kinds, owner gaps and
   ambiguity; SCM-neutral kernel tests contain no Git command, SHA grammar,
@@ -155,29 +158,35 @@ destination described below.
 
 ## Decision: neutral repair sets become atomic, preconditioned ChangeSets
 
-- **achieves:** owner-sharded mechanical repair remains safe across unrelated
+- **achieves:** owner-grouped mechanical repair remains safe across unrelated
   commits and can never partially overwrite a changed semantic input.
 - **origin:** binding a repair only to one repository head serializes disjoint
   work, while applying text hunks or checking only destination preimages misses
   semantic read dependencies and permits stale repair.
-- **rule:** Pipeline MUST wrap each Build `DeclarationRepairSet` without
-  semantic loss in one canonical ChangeSet that binds engine/profile identity,
-  complete semantic read and write sets, digest-or-absence preconditions,
-  deterministic complete postimages, an owner-authority identity/revision, and
-  sorted expected owner-or-absence preconditions for every semantic read,
-  semantic write, and proposed-write path. `owner_shard` MUST be routing only,
-  never application authority. Before constructing a new immutable snapshot,
-  Pipeline MUST re-read every semantic precondition, re-load the owner authority,
-  re-resolve every bound path, and CAS-compare all facts; any mismatch or
-  ambiguity MUST refuse with no partial state. Snapshot identity is provenance,
-  not a global application lock: a later disjoint commit remains applicable
-  when every declared semantic and owner precondition still matches.
-  Application MUST publish only through an isolated protected PR against `dev`,
-  never by mutating a candidate or protected branch directly.
-- **ensure:** model/property tests cover overlapping and disjoint commits,
-  read-only dependency changes, missing/added paths, mode changes, owner moves,
-  reordered writes, retry, crash at every application boundary, and byte-
-  identical replay; every failure observes old state or no published commit.
+- **rule:** Build returns exactly one canonical `DeclarationRepairSetV1` per
+  evaluation, carrying its whole-set digest/identity and canonical non-empty
+  owner groups in canonical owner order; a zero-action set has zero groups.
+  Pipeline MUST validate and
+  map every supplied group one-to-one to exactly one canonical ChangeSet, never
+  derive, invent, or regroup ownership. Each preserves whole-set digest/identity
+  and exact-group identity, engine/profile binding, reads/writes, preconditions,
+  typed postconditions, deterministic complete postimages, every path-bound
+  canonical postimage digest, exact owner-group output digest, and owner facts.
+  Every action/proposed-write path occurs exactly once; group writes are
+  pairwise-disjoint. Semantic/proposed writes require a concrete expected owner;
+  `OwnerExpectation::Absent` is only a non-write-read CAS fact. Empty,
+  extraneous, missing, duplicate, ambiguous, wrong-owner, cross-owner,
+  incomplete, overlapping, absent-owner, split whole-set digest/identity,
+  missing/invalid complete postimage, or digest mismatch groups/writes MUST
+  refuse. Before a new snapshot Pipeline CAS-compares every
+  bound fact; mismatch refuses with no partial state. A later disjoint commit applies when declared facts still match;
+  application publishes only an isolated protected PR against `dev`.
+- **ensure:** model/property tests cover zero-action/zero-group, concrete-owner
+  write, absent-owner rejection, exact-once path/action coverage, non-empty
+  canonical groups, typed postconditions, deterministic complete postimages,
+  every path-bound postimage/group-output digest, every listed refusal, conflicts, retries,
+  crashes, and byte-identical replay.
+  Every failure sees old state or no published commit.
 - **overturn_when:** a five-field Pipeline decision proves an alternative with
   equal complete-read validation, atomic complete postimages, disjoint-commit
   applicability, owner isolation, retry safety, and protected review.
@@ -193,11 +202,17 @@ destination described below.
 - **origin:** nonblocking Buck smoke discovered stale labels after merge;
   immediately blocking an unqualified parser would trade false greens for broad
   false failures and manual exceptions.
-- **rule:** Pipeline MUST orchestrate adversarial and protected differential
-  qualification outside required presubmit, then owner-sharded repair campaigns,
-  before first activation. Qualification MAY invoke protected
-  `cargo metadata --offline --locked` and non-building Buck queries; the Build
-  engine and required declaration check MUST NOT. First activation MUST require
+- **rule:** Pipeline MUST orchestrate adversarial/protected-differential
+  qualification outside required presubmit, then campaigns, before activation.
+  Its planner uses declared repair-group dependency/fanout facts, not Cargo/Buck
+  semantics, detects SCCs, and emits topologically ordered closure-complete
+  waves; an incomplete or unresolved closure halts. Owner groups are distinct
+  from dependency closure. One canary completes before wider waves; explicit
+  halt, repair, and rollback remain available. Pipeline schedules only through a
+  separately adopted Compute contract. Pipeline MUST invoke
+  `cargo metadata --offline --locked --no-deps --format-version 1` and
+  non-building `buck2 uquery` only in protected out-of-presubmit qualification,
+  and MUST NOT invoke them from required admission. First activation MUST require
   an admission-qualified profile and zero current violations without a baseline,
   count/path allowlist, census artifact, or waiver fleet. After activation, a
   new parser/grammar/prelude/macro/rule-contract identity MUST shadow separately
@@ -232,3 +247,5 @@ destination described below.
   application without complete postimages, or destination-only preconditions.
 - Direct writes to `dev`, invisible working-tree mutation, partial application,
   self-approval, or treating green CI as review APPROVE.
+- A declaration-specific campaign API, one-off analyzer/runner/controller/evidence
+  plane, or a production CLI that is not a retirement-marked diagnostic.

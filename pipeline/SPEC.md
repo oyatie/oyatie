@@ -20,8 +20,9 @@ authority:
   executes them.
 - SCM adapter responses and owner-resolution inputs are untrusted until
   structurally validated and bound to one immutable snapshot.
-- A Build engine result is untrusted typed data. Pipeline validates its version,
-  identity, bounds, ordering, ownership, preconditions, and postimages.
+- A Build engine result is untrusted typed data. Pipeline validates its schema,
+  version, bounds, ordering, bindings, cardinality, digests, owner facts, and
+  lossless mapping; Build alone proves semantic completeness.
 - Ruleset-selected Pipeline/Build source and qualification profiles are
   protected, identity-bound, independently reviewed control inputs.
 - The Git executable is today's required adapter capability. The adapter uses
@@ -49,7 +50,7 @@ the implementation plan.
 ```text
 SnapshotIdentity = { format_version, scm_kind, opaque_identity }
 SnapshotEntry = { path, kind: RegularBlob | ExecutableBlob | Tree,
-                  content_digest, content_bytes? }
+                  storage_content_digest, content_bytes? }
 PathDelta =
   Added(path) | Modified(path) | Deleted(path)
   | Renamed(old_path, new_path) | Copied(source_path, new_path)
@@ -59,22 +60,24 @@ OwnerExpectation = { path, expected: Owner(owner) | Absent }
 OwnerFacts = { authority_identity, expectations: sorted [OwnerExpectation] }
 ```
 
-`opaque_identity` is equality/provenance, not a SHA-shaped string. Content is
-present exactly where the consumer declares it as a read. Paths are repository-
+`opaque_identity` is equality/provenance, not a SHA-shaped string.
+`storage_content_digest` is non-authoritative transport integrity, never a
+postimage digest. Content is present exactly where the consumer declares it as a
+read. Paths are repository-
 relative byte-preserving values at the adapter boundary and become normalized
 text only after the closed profile proves the encoding and path rules. Symlink,
 gitlink, device, mutable checkout, truncated delta, duplicate/conflicting entry,
 and lossy path representations refuse. `OwnerExpectation::Absent` means the
-authority resolves no owner for that path; it is independent of file absence.
+authority resolves no owner for that path; it is permitted only for a non-write
+semantic read and is independent of file absence.
 
-The adapter provides base and head identities, their lossless delta, base bytes
-and modes for changed declaration endpoints, complete HEAD declaration entries
-selected by Build's versioned source-surface request, and exactly one owner fact
-for each declaration and potential write, all under one protected owner-
-authority identity/revision. Pipeline does not select correctness inputs from
-the delta or base. It uses them to decide whether to invoke, attribute
-violations, and shard repair output.
-
+The adapter provides base/head identities and lossless delta, changed-endpoint
+base bytes/modes, and complete HEAD entry facts/bytes selected by Build's
+protected versioned source-surface request. It binds one owner fact for each
+declaration/potential write under one authority identity/revision. Pipeline does
+not accept caller-authored expected nodes, edges, semantic facts, or conformance
+answers, and does not select correctness inputs from the delta/base: Build
+derives the graph; deltas only trigger, attribute, and shard.
 </repository_values>
 
 <build_engine_exchange>
@@ -92,12 +95,12 @@ Pipeline passes one bounded request containing:
 - the lossless base-to-head path delta; and
 - caller-resolved owner facts bound to one authority identity/revision.
 
-Build returns one versioned result containing sorted typed violations and zero
-or more deterministic `DeclarationRepairSet` owner shards. Pipeline validates
-the result version, engine/profile binding, input-snapshot binding, ordering,
-bounds, one-owner sharding, semantic read/write closure, expected digest-or-
-absence preconditions, and complete postimages. It does not reinterpret Cargo,
-BUCK, targets, labels, dependency kinds, or the reason for a Build refusal.
+Build returns one versioned result containing sorted typed violations and exactly
+one canonical `DeclarationRepairSetV1`, including zero-action sets. It carries
+whole-set digest/identity and canonical non-empty owner groups in canonical
+owner order; Pipeline
+validates schema/version, bindings, bounds/order, owner facts, cardinality,
+digests, and lossless mapping, never Cargo/BUCK semantics or completeness.
 
 The protected layout application invokes this exchange when either source
 surface changes. Build still evaluates the complete HEAD relation. No candidate
@@ -112,54 +115,45 @@ capability.
 
 ## Canonical ChangeSet wrapping
 
-Pipeline translates a valid Build repair shard one-to-one into its canonical
-ChangeSet application contract:
+Pipeline accepts exactly one opaque canonical `DeclarationRepairSetV1` per
+evaluation. Build supplies whole-set digest/identity and non-empty owner groups
+in canonical owner order; a zero-action set has zero groups. Pipeline validates
+and maps each supplied group one-to-one to exactly one ChangeSet, never derives,
+invents, or regroups ownership. Every action and proposed-write path is in
+exactly one group and writes are pairwise-disjoint. Each semantic/proposed write
+has exactly one concrete expected owner; `OwnerExpectation::Absent` is allowed
+only for non-write semantic reads. Empty, extraneous, missing, duplicate,
+ambiguous, wrong-owner, cross-owner, incomplete, overlapping, or absent-owner
+groups/writes refuse before ChangeSet construction.
 
 ```text
-ChangeSet = {
-  schema_version, changeset_identity, source_snapshot_identity,
-  protected_engine_identity, grammar_profile_identity,
-  owner_shard,  # routing only
-  owner_authority_identity,
-  owner_preconditions: sorted [OwnerExpectation],
-  causes: sorted violation identities,
-  semantic_reads: sorted [ExpectedEntry], semantic_writes: sorted [Replacement],
-}
-ExpectedEntry = { path, expected: Absent | Blob { content_digest, executable } }
-Replacement = {
-  path, expected: Absent | Blob { content_digest, executable },
-  postimage: Absent | Blob { complete_bytes, content_digest, executable },
-}
+ChangeSet = { schema_version, changeset_identity, source_snapshot_identity,
+  repair_set_identity: WholeSetDigest, owner_group_identity,
+  owner_group_output_digest, typed_postconditions: sorted [Postcondition],
+  protected_engine_identity, grammar_profile_identity, owner_authority_identity,
+  owner_preconditions: sorted [OwnerExpectation], causes: sorted [ViolationId],
+  semantic_reads: sorted [ExpectedEntry], semantic_writes: sorted [Replacement] }
+ExpectedEntry = { path, expected_preimage: Absent | Blob { preimage_digest, mode } }
+Replacement = { path, expected_preimage: Absent | Blob { preimage_digest, mode },
+  complete_postimage: Absent { postimage_digest } | Blob { complete_bytes, mode, postimage_digest } }
 ```
 
-Identity encoding is versioned, domain-separated, length-prefixed, and ordered.
-It includes the owner-authority identity/revision and sorted per-path owner
-preconditions for the union of every semantic read, semantic write, and
-proposed-write path; `owner_shard` is routing metadata only. Identity excludes
-wall clock, hostname, checkout path, temporary path, PID, username, and ambient
-environment. `semantic_reads` includes every declaration fact that can change
-the proposed repair, including entries not written. Every write also appears in
-the read set or carries an equivalent expected precondition. A patch, span edit,
-or command is explanatory only and never application authority; application
-uses complete postimages.
-
-Before application, Pipeline selects one current immutable snapshot, reads every
-expected entry, reloads the owner authority, and re-resolves every bound path.
-It refuses unless the owner-authority identity/revision, every semantic
-expectation, and every owner-or-absence expectation match; every write remains
-a regular-file operation within the resolved owner represented by the routing
-shard; all postimage digests recompute; and no active path occupancy conflicts.
-The adapter then constructs one successor tree/commit from the current snapshot
-and publishes it only as an isolated PR branch. Publication is idempotent for
-the same ChangeSet/current snapshot and never reports success for an
-indeterminate commit or PR outcome.
-
-`source_snapshot_identity != current_snapshot_identity` is not itself a
-conflict. If all semantic expectations and owner facts still match, commits
-whose changes are disjoint from the declared semantic sets preserve
-applicability. A changed semantic read, destination, mode, owner, or authority
-revision refuses and requires fresh Build evaluation; Pipeline never rebases a
-postimage heuristically.
+There is exactly one ChangeSet for each supplied owner group. `semantic_writes`
+is the canonical proposed-write action sequence: it has exactly one `Replacement` for every proposed-write path and no others, so its sorted `Replacement.path` projection preserves the proposed-write path set losslessly. Its whole-set digest/identity and exact group identity, engine/profile, reads/writes, preconditions, typed
+postconditions, deterministic complete postimages, every path-bound canonical postimage digest, exact
+owner-group output digest, and owner facts map losslessly from V1.
+`postimage_digest` is domain-separated over canonical `(path, Present/Absent tag, bytes/mode)` encoding; `Replacement` is its sole authority and no detached digest list exists. `owner_group_identity` routes/isolates but never supplies semantic authority.
+Identity encoding is versioned, domain-separated, length-prefixed, ordered, and
+excludes ambient host/time/process state. Patches, span edits, or commands only
+explain; they never authorize application.
+Before application Pipeline selects a current immutable snapshot, re-reads every
+expected entry, owner authority, and bound path. It refuses unless all facts,
+regular-file ownership, path-bound canonical postimage digests, and occupancy match. The adapter
+constructs one successor tree/commit or none, publishes only an isolated PR, is
+idempotent for the same ChangeSet/current snapshot, and reports an indeterminate
+commit/PR outcome honestly. A source/current snapshot mismatch alone is not a
+conflict; changed declared read/write/mode/owner/authority facts require fresh
+Build evaluation. Pipeline never heuristically rebases a postimage.
 
 </changeset_contract>
 
@@ -199,10 +193,20 @@ enters `EnforcementBlocked` and refuses relevant changes until an atomic
 qualified replacement. A shadow never supplies an admission verdict. State is
 protected Pipeline control, not candidate configuration, census, or waiver.
 
+Campaign/query/conformance production uses Pipeline's single versioned API,
+declarative desired-state resources, and reconcilers; a CLI is a retirement-
+marked diagnostic. Before that surface, ordinary protected PRs are the sole
+route: manual migrations become versioned gold fixtures but do not claim an
+automated campaign or authorize a one-off analyzer/runner/controller/evidence
+plane. Campaign planning consumes declared repair-group dependency/fanout facts,
+detects SCCs, makes topologically ordered closure-complete waves, starts with
+one canary, and supports explicit halt/repair/rollback. Owner groups are not
+dependency closure; scheduling consumes a separately adopted Compute contract.
+
 The out-of-presubmit qualification harness may invoke protected
-`cargo metadata --offline --locked` and non-building Buck queries against
-isolated immutable snapshots. It compares semantic facts and refusal behavior,
-not compilation success. The required declaration path invokes neither tool.
+`cargo metadata --offline --locked --no-deps --format-version 1` and non-building
+`buck2 uquery` against isolated immutable snapshots. It compares semantic facts
+and refusal behavior, not compilation success; the required declaration path invokes neither tool.
 
 </qualification_state>
 
@@ -217,8 +221,13 @@ not compilation success. The required declaration path invokes neither tool.
 - protected engine unavailable, timed out, crashed, or returned malformed,
   oversized, unbound, unordered, or unqualified output;
 - Build semantic refusal or violation;
-- incomplete semantic read/write set, missing/invalid complete postimage, or
-  ChangeSet identity mismatch;
+- invalid repair-set schema/version/binding/digest, absent-owner semantic/
+  proposed write, empty/extraneous/missing/duplicate/ambiguous/wrong-owner/
+  cross-owner/incomplete/overlapping group, non-exact coverage, missing typed
+  postcondition/path-bound postimage/owner-group-output digest, split whole-set
+  digest/identity, missing/invalid complete postimage or digest mismatch,
+  incomplete/mismatched proposed-write path or lossless map/read/write set,
+  derived/regrouped group, or ChangeSet mismatch;
 - semantic precondition, mode, owner-authority, per-path owner, or occupancy
   conflict;
 - successor construction failure, publication failure, or indeterminate
@@ -228,7 +237,7 @@ not compilation success. The required declaration path invokes neither tool.
   attempted transition back to nonblocking shadow-only admission.
 
 Errors preserve the stable category, correlation identity, protected profile,
-snapshot/ChangeSet digests where known, and safe human context. They never
+snapshot/repair-set/ChangeSet digests where known, and safe human context. They never
 include unrestricted source bytes, secrets, tokens, mutable host paths, or
 candidate-controlled terminal escapes. Unknown errors become an internal
 refusal, never success.
@@ -240,7 +249,7 @@ refusal, never success.
 ## Work, evidence, and data handling
 
 Versioned protected limits bound snapshot entries/bytes, delta records, path and
-owner-fact bytes, engine result bytes, violations, repair shards, semantic
+owner-fact bytes, engine result bytes, violations, owner groups, semantic
 reads/writes, individual/aggregate postimage bytes, duration, and diagnostic
 cardinality. Limit values live with protected implementation and tests, not in
 a candidate census or current-repository count. Processing is deterministic and
@@ -248,11 +257,11 @@ linear in admitted declaration bytes plus modeled nodes/edges.
 
 Receipts bind correlation ID; protected source, engine, grammar profile and
 limit identities; base/head/current snapshot identities; owner-authority
-revision; verdict/refusal class; ChangeSet identity; compare outcome;
+revision; verdict/refusal class; repair-set/ChangeSet identities; compare outcome;
 qualification state, monotonic `ever_enforced`, active/last-enforced and shadow
 profile identities; and published branch/PR/commit identity when known.
-Metrics report duration, bounded sizes, violations, repair shards, refusal
-class, owner shard, CAS conflict, qualification transition, and indeterminate
+Metrics report duration, bounded sizes, violations, owner groups, refusal class,
+owner group, CAS conflict, qualification transition, and indeterminate
 publication. Raw declaration bytes and postimages are excluded.
 
 </bounds_and_observability>
@@ -266,16 +275,18 @@ publication. Raw declaration bytes and postimages are excluded.
 - **Git adapter:** immutable-object reads, hook/config isolation,
   rename/copy/delete/type change, non-UTF-8/truncation, symlink/gitlink, absent
   object, and process failure.
-- **Owner facts:** authority identity/revision, exact expected owner/absence for
-  every semantic/proposed path, missing/ambiguous/stale fact, owner move,
-  routing-shard misuse, and root/meta owner handling.
+- **Owner facts:** authority identity/revision, concrete expected owner for every
+  semantic/proposed write, Absent-only non-write read, missing/ambiguous/stale
+  fact, owner move, routing-shard misuse, and root/meta owner handling.
 - **Protected admission:** candidate cannot select, replace, or skip the engine;
   complete HEAD follows either delta trigger; engine absence, crash, timeout, or
   malformed result refuses; exactly one verdict reaches fan-in.
-- **ChangeSet:** complete semantic reads/writes/postimages, deterministic
-  identity, applicable disjoint commit, refused intervening mismatch affecting
-  either declared semantic set, internal read/write precondition coverage, and
-  idempotent retry.
+- **ChangeSet:** one canonical V1 set, zero-action/zero-group, Build-supplied
+  non-empty groups mapped one-to-one without derivation/regrouping, exact-once
+  actions/paths, concrete write owners, Absent-only non-write reads,
+  pairwise-disjoint writes, proposed-path/Replacement bijection, and every listed
+  malformed-group refusal; also typed postconditions, deterministic complete
+  postimages, every path-bound postimage/owner-group output digest, conflicts, and retry.
 - **Application:** inject failure before and after every compare, tree
   construction, commit, push, and PR boundary; observe no partial success and
   an honest indeterminate outcome.
