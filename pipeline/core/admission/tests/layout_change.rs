@@ -195,24 +195,34 @@ fn workspace_globs_bound_direct_and_draft_crate_depths() {
         assert!(!workspace.contains(forbidden_parent), "{forbidden_parent}");
     }
 }
-
 #[test]
-fn dependency_declarations_bind_exact_names_and_entrypoints() {
-    for (path, package) in [
-        ("core/reconcile", "dependency-declarations-reconcile"),
-        ("ports/generation", "dependency-declarations-generation"),
-        ("ports/publication", "dependency-declarations-publication"),
+fn dependency_declarations_bind_exact_identity_and_build_scripts() {
+    for (path, package, allows_build_script) in [
+        ("core/reconcile", "dependency-declarations-reconcile", true),
+        (
+            "ports/generation",
+            "dependency-declarations-generation",
+            false,
+        ),
+        (
+            "ports/publication",
+            "dependency-declarations-publication",
+            false,
+        ),
         (
             "adapters/generation-reindeer",
             "dependency-declarations-generation-reindeer",
+            true,
         ),
         (
             "adapters/publication-filesystem",
             "dependency-declarations-publication-filesystem",
+            true,
         ),
         (
             "facade/reconciler-app",
             "dependency-declarations-reconciler-app",
+            true,
         ),
     ] {
         let root = format!("build/dependency-declarations/{path}");
@@ -224,32 +234,27 @@ fn dependency_declarations_bind_exact_names_and_entrypoints() {
         };
         let entrypoint = format!("{root}/{source}");
         assert!(!cargo_manifest_violations(&manifest, "[package]\nname='wrong'\n").is_empty());
-        assert_eq!(
-            cargo_entrypoint(&manifest).as_deref(),
-            Some(entrypoint.as_str())
-        );
-        assert_eq!(
-            cargo_manifest_for_entrypoint(&entrypoint).as_deref(),
-            Some(manifest.as_str())
-        );
-        assert_eq!(
-            cargo_manifest_for_crate_path(&format!("{root}/tests/contract.rs")).as_deref(),
-            Some(manifest.as_str())
-        );
-        assert!(
-            cargo_manifest_violations(&manifest, &format!("[package]\nname='{package}'\n"))
-                .is_empty()
-        );
+        let cargo_target = cargo_entrypoint(&manifest);
+        assert_eq!(cargo_target.as_deref(), Some(entrypoint.as_str()));
+        let entrypoint_manifest = cargo_manifest_for_entrypoint(&entrypoint);
+        assert_eq!(entrypoint_manifest.as_deref(), Some(manifest.as_str()));
+        let crate_manifest = cargo_manifest_for_crate_path(&format!("{root}/tests/contract.rs"));
+        assert_eq!(crate_manifest.as_deref(), Some(manifest.as_str()));
+        let canonical = format!("[package]\nname='{package}'\n");
+        assert!(cargo_manifest_violations(&manifest, &canonical).is_empty());
+        let path_allows_build = layout_violations(&[format!("{root}/build.rs")]).is_empty();
+        assert_eq!(path_allows_build, allows_build_script);
+        let build_manifest = format!("[package]\nname='{package}'\nbuild='build.rs'\n");
+        let manifest_allows_build =
+            cargo_manifest_violations(&manifest, &build_manifest).is_empty();
+        assert_eq!(manifest_allows_build, allows_build_script);
     }
     let unrelated = cargo_manifest_violations(
         "app/application/facade/application-shell-frontend/Cargo.toml",
         "[package]\nname='application-shell-frontend'\n[lib]\ncrate-type=['cdylib','rlib']\n",
-    );
-    assert!(
-        !unrelated
-            .iter()
-            .any(|item| item.contains("[lib].crate-type"))
-    );
+    )
+    .join("\n");
+    assert!(!unrelated.contains("[lib].crate-type"));
 }
 
 #[test]

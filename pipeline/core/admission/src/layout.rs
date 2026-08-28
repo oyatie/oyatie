@@ -251,7 +251,6 @@ fn validate_app_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
     }
     validate_owner_path(file, parts, 2, violations);
 }
-
 fn validate_build_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
     let Some(child) = parts.get(1).copied() else {
         return;
@@ -266,9 +265,16 @@ fn validate_build_path(file: &str, parts: &[&str], violations: &mut Vec<String>)
             ));
             return;
         };
-        if manifest::dependency_declarations_package(face, leaf).is_none() {
+        let Some((_, allows_build_script)) = manifest::dependency_declarations_package(face, leaf)
+        else {
             violations.push(format!(
                 "{file}: `{face}/{leaf}` is not one of the six dependency-declarations crates"
+            ));
+            return;
+        };
+        if !allows_build_script && parts.get(4) == Some(&"build.rs") {
+            violations.push(format!(
+                "{file}: std-only port must not use root `build.rs`"
             ));
             return;
         }
