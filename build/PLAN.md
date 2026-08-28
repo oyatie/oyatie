@@ -122,20 +122,17 @@ facade/receipts and one writer owns shared declarations.
 - Rollback/fault: remove unconsumed scaffolding; fixtures reject port-engine,
   root dumps, manual parent indexes, and cross-owner drafts.
 
-## L1d — Implement the pure reconciliation kernel
+## L1d — Implement the adopted pure reconciliation kernel
 
-Class: behavior, test-driven; depends on L1c structural merge.
+Class: behavior, test-driven; depends on L1c structural merge, accepted
+execution-map revision 3, and generated-Buck V1 contract.
 
-- Start with failing tests for request admission, digest/canonical ordering,
-  two-run mismatch, generated-graph validation, bounds, stable failures,
-  generation identity, and publication-attempt receipt construction.
+- Start with failing tests for canonical grammar, exact fact closure, declaration-only external edges, digest/canonical ordering, two-run and same-digest/different-bytes mismatch, bounds, stable failures, identity, and receipt construction.
 - Implement only pure values and state transitions. No process, filesystem,
   network, Git, Pipeline, Buck execution, or wall-clock access enters core.
-- Use one primary item per file and generated/globbed membership established by
-  the structural lane; do not edit frozen parents or shared declarations.
+- Use one primary item per file: `canonical`, `digest`, `error`, `platform`, `receipt`, `request`, `validation`, `reconcile`, `starlark_lexer`, `starlark_parser`, `generated_graph_contract`, `generated_graph_schema`, and `semantic_projection`; add paired revision-3 tests/targets.
 
-Closed write envelope and target names come from the approved L1c plan and are
-limited to new core items/tests.
+Closed envelope: core package, its scanner fixup, and package-local tests/targets; root Cargo/lock, Reindeer, generated BUCK, ports, adapters, facade, Pipeline, and port-engine stay read-only.
 
 - Success: red-green-refactor/property receipts, panic freedom, and identical
   results/identity for repeat requests.

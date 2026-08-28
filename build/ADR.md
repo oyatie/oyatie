@@ -158,6 +158,26 @@ file are not a proved round trip.
 
 </reconciliation>
 
+<declaration_reconciliation_v1_contract>
+
+## Decision: adopt the closed Declaration Reconciliation V1 contract
+
+- **achieves:** makes the pure kernel implementable without allowing a request
+  or generated file to define its validator.
+- **origin:** the execution map called its contract frozen while it remained
+  Proposed, the PRD said schemas were unadopted, and `ReindeerBuckV1` lacked a
+  closed language and failure contract.
+- **rule:** Build adopts the versioned request/result/receipt contract and the
+  closed generated-Buck profile solely for L1d-L1g. Grammar and schema are
+  code-owned and finite; request facts are exact expectations and cannot add
+  syntax.
+- **ensure:** hostile grammar, fact, edge, bound, and collision tests plus
+  independent review; K implements no A, F, D, or Q behavior.
+- **overturn_when:** a reviewed version transition supplies equal deterministic,
+  fail-closed validation and compatibility/rollback evidence.
+
+</declaration_reconciliation_v1_contract>
+
 <port_engine>
 
 ## Decision: keep the source port engine frozen and separate
