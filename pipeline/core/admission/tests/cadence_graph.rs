@@ -59,13 +59,12 @@ fn presubmit_jobs_are_the_occupant_set() {
         y.contains("needs: [layout, occupancy, lint, clippy, test, deny, pg-gate, live-postgres]")
     );
     assert!(y.contains("needs: [layout, occupancy]"));
-    let protected_source = "ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || 'refs/oyatie/invalid-admission-source' }}";
+    let protected_source = "ref: ${{ github.workflow_sha }}";
     assert_eq!(
         y.matches(protected_source).count(),
         2,
-        "layout and occupancy must compile from the protected base commit"
+        "layout and occupancy must compile from the immutable revision of the ruleset-selected workflow"
     );
-    assert!(!y.contains("github.workflow_sha"));
     assert!(y.contains("ref: ${{ github.sha }}"));
     assert!(y.contains("git rev-parse --verify 'HEAD^1^{commit}'"));
     assert!(!y.contains("github.event.pull_request.head.sha"));
