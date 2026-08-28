@@ -29,8 +29,8 @@ deliverables:
     exit_criteria: "Pack overlays are the only place jurisdiction law is specialized; no implement PR assumes EU-only identity, retention, or global ACL replication."
     verified_by: "presubmit"
   - id: ADR-0719-D8
-    description: "Closed directory set for repo root and capability/app/<product>/ roots. A name exists only if a compiler, test, PDP, SLO controller, or reconciler loads it (or it is OWNERS/README/BUCK or ADR.md PRD.md SPEC.md PLAN.md on the owner)."
-    exit_criteria: "ADR-0701 Status cites this D-8; layout admits those four owner law files on cap and app roots."
+    description: "Closed directory set for repo root and capability/app/<product>/ roots. Capability/app paths exist only when consumed by a compiler, test, PDP, SLO controller, reconciler, Cargo, Buck, or ownership enforcement. No tracked Markdown exists below a capability or app root; the only destination Markdown is the root compatibility set README.md, AGENTS.md, and CLAUDE.md."
+    exit_criteria: "The destination grammar excludes docs/, owner README.md, ADR.md, PRD.md, SPEC.md, PLAN.md, and every other capability/app Markdown path; the separate Pipeline lane later enforces the three-root-Markdown allowlist without this ADR claiming that enforcement is live."
     verified_by: "presubmit"
   - id: ADR-0719-D9
     description: "The merge-blocking CI context is named presubmit (Google TAP-shaped). New workflow and required-context names do not use an oyatie- prefix. Today's presubmit string is a rename target, not the destination name."
@@ -101,16 +101,16 @@ deliverables:
     exit_criteria: "No TrustedTenant/cfg(trusted)/first-party quota class in app cores; no skip-PDP; no second cloud API; adapter injection and IAM principals remain the only knobs."
     verified_by: "presubmit"
   - id: ADR-0719-D27
-    description: "g3doc split: owner-local engineering docs live in <cap>/docs and app/<p>/docs (closed inner grammar). Repo-root docs/ is thin (operating contract, live 07xx ADRs, standards). No ADR copies, no catalog/IP/scorecard resurrection, no mass-move of the old wiki."
-    exit_criteria: "D-8 allowlists admit docs/ as a cap/app extra with the inner grammar; root docs/decisions remains the unique ADR home; no IPs/scorecards under docs/."
+    description: "Current-only owner knowledge lives in semantic native artifacts. Capability/app Markdown is forbidden in the destination; proposals and work records stay off-tree; history stays in the SCM; derived human views are untracked and keyed to an immutable revision through an SCM-neutral revision interface whose current adapter is Git."
+    exit_criteria: "Existing owner prose is frozen migration input; each owner migrates atomically under D-36; the destination has zero capability/app Markdown and exactly root README.md, AGENTS.md, and CLAUDE.md as compatibility Markdown."
     verified_by: "presubmit"
   - id: ADR-0719-D28
     description: "Cross-owner bindings are ports+adapters. Unagreed ports are path-visible (ports/draft/) and cheap to rename. A second owner depending on a shape forces reconcile onto one agreed name on the provider (owner-port grammar + proto v1) via escalated review. No contracts/ root and no libs/ports dump."
     exit_criteria: "Other owners cannot path-dep ports/draft/; agreed shared shapes live on the provider as owner-port; proto packages do not ship draft names; no new contracts/ or libs/ tree."
     verified_by: "presubmit"
   - id: ADR-0719-D29
-    description: "Amendment jurisdiction: owner OWNERS may amend content inside their cap/app root. They must not change the canonical children, inner crate layout, or crate grammar. Shared contracts, sold facades, and repo-root law require escalated review."
-    exit_criteria: "PRs that touch agreed ports/proto/facade or repo-root law name the other owners + architecture; local-only docs/draft/core changes stay on owner OWNERS; new children, faces, or plan/tasks stay rejected."
+    description: "Amendment jurisdiction: owner OWNERS may amend native content inside their cap/app root. They must not add Markdown, change the canonical children, inner crate layout, or crate grammar. Shared contracts, sold facades, and root compatibility or structural law require escalated review."
+    exit_criteria: "PRs that touch agreed ports/proto/facade or root compatibility/structural law name the other owners + architecture; local core/draft/adapter/cedar/iac changes stay on owner OWNERS; capability/app Markdown and new children or faces stay rejected."
     verified_by: "presubmit"
   - id: ADR-0719-D30
     description: "Names and inner files follow established Cargo + google3 + AIP conventions: RFC 430/940, directory leaf = last grammar token, package name = full owner-port grammar, proto package directory = AIP-191. No invented domain/use_case taxonomy. Structure (D-8) does not change per team."
@@ -133,28 +133,28 @@ deliverables:
     exit_criteria: "Agent local verify does not rewrite Cargo.lock or take a shared cargo target lock; cache is content-addressed and trusted-writer; dispatcher consults build graph (buck2) and crate graph (metadata/r-a); no new AST-merge service."
     verified_by: "presubmit"
   - id: ADR-0719-D35
-    description: "Hand-written non-exempt files are at most 300 lines. Exempt: 07xx apex ADRs, owner ADR.md PRD.md SPEC.md PLAN.md, AGENTS/CLAUDE, generated, lockfiles, third-party."
-    exit_criteria: "Presubmit pattern check on touched non-exempt paths; no expected_total of file counts; splits stay inside the crate (D-32); generated proto/lock/vendor ignored."
+    description: "Hand-written native files are at most 300 lines. Destination exemptions are generated artifacts, lockfiles, and third-party material; root README.md, AGENTS.md, and CLAUDE.md are the only Markdown compatibility files, and the two agent hubs remain at most 300 lines. Existing ADR and owner Markdown exemptions are frozen transition input, not permission to create or expand prose."
+    exit_criteria: "The separate Pipeline lane later applies a touched-path budget and three-root-Markdown allowlist without an expected_total or frozen corpus; generated/lock/vendor paths remain excluded, and this ADR-only lane does not claim that enforcement is live."
     verified_by: "presubmit"
   - id: ADR-0719-D36
-    description: "Owner law is exactly ADR.md PRD.md SPEC.md PLAN.md inside each capability dir and each app/<product>/. Agents open those files and search tagged sections. Exempt from the 300-line cap. After human interview, compress landed work that survives in git history. Sessions amend in place."
-    exit_criteria: "Layout admits those four names on cap and app roots; they are D-35 exempt; session PRs edit them; post-interview compress of landed work."
+    description: "Current-only native owner knowledge: no tracked Markdown below capability/app roots; native artifacts are authoritative; proposals and work are off-tree; history is SCM-only; derived views are revision-keyed and untracked. Existing owner prose is read-only migration input and is deleted atomically after exact-candidate projection and verification."
+    exit_criteria: "Pipeline first stops requiring the quartet in a separate lane; every owner claim is classified exactly once, conflicts are challenged, accepted truth is projected to semantic native authority, retained references and exact-tip views are verified, source prose is deleted atomically, and no tombstone or in-tree receipt remains."
     verified_by: "presubmit"
   - id: ADR-0719-D37
-    description: "Shared docs/config/json/yaml/toml are not split like .rs. Keep them minimal. Implement agents must not in-place edit the denylist; additive changes are uuid-named fragments. Mechanical fold is one serial step on the receiving branch (pre-commit/merge_group), not per-worktree. Prose ADRs stay single-writer. Cargo.lock is regenerated once after fold, not fragment-merged."
-    exit_criteria: "Implement PRs that touch root Cargo.toml/lock/toolchain/deny/rustfmt/AGENTS/live ADRs in place fail unless a structural lane; additive member/config lands as a unique fragment; fold engine is Rust; no specs/ yaml farm; lockfile diffs only from the fold step."
+    description: "Shared native config/json/yaml/toml is not split like .rs. Keep it minimal. Implement agents must not in-place edit the denylist; additive changes are uuid-named fragments only where stable native membership cannot express them. Mechanical fold is one serial step on the receiving branch; root compatibility Markdown stays single-writer, and Cargo.lock is regenerated once after fold."
+    exit_criteria: "Implement PRs that touch root Cargo.toml/lock/toolchain/deny/rustfmt or root compatibility Markdown in place fail unless a structural lane; no Markdown fragments, specs farm, or prose sidecars; lockfile diffs come only from the fold step."
     verified_by: "presubmit"
   - id: ADR-0719-D38
     description: "Worktrees isolate indexes, not integration. Lanes integrate star-shaped onto dev via merge_group only. Never mesh-merge live worktrees. A path conflict quarantines writers to that identity only; other disjoint lanes continue. Do not merge origin/dev into the lane (rebase/queue replay)."
     exit_criteria: "No agent merges one implementation worktree into another; PRs target dev; conflict on a file/Item pauses only that identity; other files in the same crate continue; merge_group is the combination test."
     verified_by: "presubmit"
   - id: ADR-0719-D39
-    description: "OVERRULE crate-lock and uuid-delta VCS. Commute identity is a unique git path at module/item (or markdown block-file) grain. Parent membership (mod, workspace members) is a pure function of the directory (Cargo/Buck globs + generated mod list), not a hand-edited list and not .delta files. N agents on one crate is allowed iff they own disjoint files/items. Same Item two writers is still refused at assign — not a crate mutex, not poll-until-unlock."
+    description: "OVERRULE crate-lock and uuid-delta VCS. Commute identity is a unique native path at module/item grain. Parent membership (mod, workspace members) is a pure function of the directory (Cargo/Buck globs + generated mod list), not a hand-edited list or .delta files. N agents on one crate is allowed iff they own disjoint files/items. Same Item two writers is still refused at assign — not a crate mutex, not poll-until-unlock."
     exit_criteria: "Workspace members use closed globs over D-8 faces so adding a crate dir does not edit root Cargo.toml; crate roots do not grow hand-maintained mod lists for every sibling file; occupancy is open PR paths at file/item grain; no Cargo.toml.d uuid product required for the common add; no whole-crate lock."
     verified_by: "presubmit"
   - id: ADR-0719-D40
-    description: "Occupancy is a path-set, not a cap/app session lock. Write/edit/delete occupy the path; git mv occupies {old,new}. Mixed N ops commute iff path-sets are disjoint. Cross-cap work is named extra paths (D-29), not a crate lock. Plan/ADR is one path and therefore commutes with all src. Mechanical LSC (same symbol, many files) is one lane or file-sharded, not N overlapping edits. Cap cone remains default sandbox blast-radius, not merge necessity."
-    exit_criteria: "Dispatch names a path-set (including rename pairs); overlapping path-sets are not spawned; sessions may list paths in more than one cap when escalated; plan PRs touch ADR/PRD only; LSC does not share files with feature lanes; no poll-lock of a capability."
+    description: "Occupancy is a path-set, not a cap/app session lock. Write/edit/delete occupy the path; git mv occupies {old,new}. Mixed N ops commute iff path-sets are disjoint. Cross-cap work is named extra paths (D-29), not a crate lock. Proposals and plans live in the PR body or an external work system and occupy no tracked owner path. Mechanical LSC is one lane or file-sharded; the cap cone remains sandbox blast radius, not merge necessity."
+    exit_criteria: "Dispatch names a path-set including rename pairs; overlapping path-sets are not spawned; sessions may list paths in more than one cap when escalated; no plan or design Markdown is added to the tree; LSC does not share files with feature lanes; no capability poll-lock."
     verified_by: "presubmit"
   - id: ADR-0719-D41
     description: "YAGNI cut: git conflict is impossible iff commits do not share a path. Keep parent indexes STABLE (workspace member globs; crate module list from compile-time directory scan, not a committed generated file). Jail writes to the dispatched files. PR to dev; merge_group. No occupancy service, no uuid fragments, no crate/cap mutex. Uncoordinated same-path create is a tiny rebase, like TAP mid-air — do not invent unique-name VCS to prevent it."
@@ -165,15 +165,15 @@ deliverables:
     exit_criteria: "AGENTS.md and CLAUDE.md state the same sequence; implement PRs still fail denylist regardless of which harness authored them; no harness-specific occupancy tool required."
     verified_by: "presubmit"
   - id: ADR-0719-D43
-    description: "N-parallel delivery loop is path-set PRs, not a task-board poll. Launcher (not the agent) derives unique output paths from ADR/PRD and spawns. Each PR: red tests on that path, implement, de-slop, coverage on that crate, pipeline review only if pipeline files are in the path-set. presubmit green is required; if red, process error on that PR not a factory stop. merge_group then squash. Stages commute across PRs."
+    description: "N-parallel delivery loop is path-set PRs, not a task-board poll. Launcher (not the agent) derives unique output paths from an accepted off-tree work package plus exact-revision native surfaces and spawns. Each PR: red tests on that path, implement, de-slop, coverage on that crate, pipeline review only if pipeline files are in the path-set. presubmit green is required; if red, process error on that PR not a factory stop. merge_group then squash. Stages commute across PRs."
     exit_criteria: "No tasks/ JSON board; no agent loop on gh pr list; overlapping path-sets fail presubmit; CI-metric review only when .github/ or pipeline/ is touched; local pre-push is fmt-on-touched not workspace nextest."
     verified_by: "presubmit"
   - id: ADR-0719-D44
-    description: "Client need is received by the human operator plus orchestrator. Interview + research against existing docs/tree + verification produce an ephemeral artifact package. Ambiguous or wrong needs fail closed (NeedClarification / Rejected). The package hands off to Product (app/) XOR Program (capability). Raw client text never reaches implement. The package is not written under plan/ or tasks/."
+    description: "Client need is received by the human operator plus orchestrator. Interview + research against exact-revision native surfaces and verification produce an ephemeral off-tree artifact package. Ambiguous or wrong needs fail closed (NeedClarification / Rejected). The package hands off to Product (app/) XOR Program (capability). Raw client text never reaches implement."
     exit_criteria: "No implement hop is admitted from an unverified prompt; mixed app+capability packages fail; dump-root requests reject; Product vs Program is a function of target paths."
     verified_by: "presubmit"
   - id: ADR-0719-D45
-    description: "OVERRULE D-43 single-agent walk of stages. Occupancy remains one draft PR path-set (D-42). Roles are a DAG with fan-out (implement complete unblocks review, coverage, security, docs together). Orchestrator publishes ready hops; it does not spawn agents and must not fold N ready hops of a role onto one worker. Each hop binds a fresh agent. Implementer finishing a slice is free for the next disjoint slice immediately."
+    description: "OVERRULE D-43 single-agent walk of stages. Occupancy remains one draft PR path-set (D-42). Roles are a DAG with fan-out (implement complete unblocks review, coverage, security, and native-knowledge/view validation together). Orchestrator publishes ready hops; it does not spawn agents and must not fold N ready hops of a role onto one worker. Each hop binds a fresh agent. Implementer finishing a slice is free for the next disjoint slice immediately."
     exit_criteria: "Ready-hop cardinality for a role equals disjoint schedulable slices in that role; reused agent ids fail; completing Implement does not wait for PrBabysit before another Implement hop elsewhere; no long-running implementer looping disjoint work."
     verified_by: "presubmit"
   - id: ADR-0719-D46
@@ -190,6 +190,18 @@ deliverables:
 and platform-foundations apexes. Does not archive them.
 
 Chat/session architecture is not law. This file is.
+
+**Current-only owner-knowledge amendment (founder 2026-08-28).** D-36 is
+the controlling current decision for owner knowledge. It explicitly
+**OVERRULES** the owner `README.md` and quartet exceptions in D-8, the D-17
+owning-ADR entry route, the D-21 quartet handoff, D-27 g3doc, D-29 owner-doc
+jurisdiction, the D-33 behavioral
+docs lane, the D-35 owner-prose exemptions, the D-37 prose-ADR merge model,
+the D-39 Markdown-block grain, the D-40 tracked plan/ADR path, and the D-43
+tracked design-note option. Sequential ADR/D-n identifiers in this transition
+remain provenance only; they are not names for current operational surfaces.
+Any older owner-prose instruction retained in SCM history is non-authoritative
+migration evidence, not permission to add, edit, or restore tracked Markdown.
 
 ## Context
 
@@ -638,7 +650,8 @@ other’s data:
 Folding the bundle under `policy/` makes `cell/` and `compliance/`
 depend on the PDP’s tree. Folding under `compliance/` makes Check
 compile from the evidence product. **Root `packs/` is the zip SSOT.**
-Today’s markdown under `packs/` is KEEP+WORK, not the job.
+Today’s Markdown under `packs/` is frozen transition input to delete, not the
+job. Current pack truth is Cedar + typed IR consumed by the engines.
 
 **Realization (adversarial — do not build a second PDP).**
 
@@ -715,29 +728,34 @@ on-path QUIC MITM or ECH-off “enterprise mode”; a `firewall/` cap; `ci/` and
 
 ### D-8 — Repo root and capability / app root (amends ADR-0701)
 
-A directory or file is allowed only if something that is **not a census gate** loads it,
-or it is `OWNERS` / short `README.md` / `BUCK` / owner `ADR.md` `PRD.md` `SPEC.md` `PLAN.md`. Git history is
-the audit log. Do not invent a destination for leftovers; many must **not exist**.
+A capability/app directory or file is allowed only when a compiler, test, PDP,
+SLO controller, reconciler, Cargo, Buck, or ownership enforcement consumes it.
+Those native artifacts hold current owner truth. SCM history is the historical
+record; Git commit/tree identity is the current SCM adapter. Do not invent a
+tracked prose destination for leftovers.
 
 **Repo root (closed).** Workspace: `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`,
 `rustfmt.toml`, `deny.toml`, `reindeer.toml`, `.buckconfig`, `.buckroot`, `.cargo/`.
-GitHub: `.github/`, `.gitignore`, `.gitattributes`. Hubs: `README.md`, `LICENSE`,
-`OWNERS`, `AGENTS.md`, `CLAUDE.md`. Meta: `build/`, `third-party/`. `base/` is **not**
+GitHub: `.github/`, `.gitignore`, `.gitattributes`. Compatibility: `README.md`,
+`AGENTS.md`, `CLAUDE.md`; these are the **only** destination tracked Markdown.
+Root `LICENSE` and `OWNERS` remain non-Markdown control files. Meta: `build/`,
+`third-party/`. `base/` is **not**
 pre-created; it appears only when the first crate admitted under the ≥3-caps-below-all
 rule. `governance/` is gone (D-17). **No `kernel/` and no `os/` rungs** (D-13). Fleet is
 stripped Linux on Cloud Hypervisor and/or Firecracker (`compute/`).
 Composition: `app/`. One directory per capability (including BUILD `policy/`).
-`packs/` = install authority (D-24). Repo-root `docs/` = thin operating contract
-+ unique `docs/decisions/` ADR home + `docs/standards/` (D-27). Per-owner
-`docs/` lives under each cap/app, not here. Thin `templates/`: ADR skeleton +
-swarm ritual only. **No catch-all `specs/`.** Agent entry is `AGENTS.md` /
-`CLAUDE.md`.
+`packs/` = install authority (D-24). No destination `docs/`, Markdown template
+tree, or catch-all `specs/`. Root compatibility entry is `AGENTS.md` /
+`CLAUDE.md`; owner knowledge is discovered from semantic native surfaces (D-36).
 
-**Not repo-root (gone this wave):** `contracts/`, `plan/`, `tasks/`, `scripts/`,
-`specs/`, `registry/`, `evidence/`, `governance/`, `oya/`, `cloud/`.
+**Not repo-root in the destination:** `contracts/`, `plan/`, `tasks/`, `scripts/`,
+`specs/`, `registry/`, `evidence/`, `governance/`, `docs/`, Markdown templates,
+`oya/`, `cloud/`.
 **Removed this wave (not shrink-only):** `libs/`, `tools/`, `infra/`, `kernel/`,
 `os/`, `contracts/`, `plan/`, `tasks/`, `scripts/`. Last leg is **gone**, not
-tolerated.
+tolerated. This ADR is retained only for the frozen transition and becomes
+SCM-only history when the D-36 migration closes; that temporary location does
+not re-admit `docs/` to the destination grammar.
 
 **Capability and `app/<product>/` — identical closed children.** Caps and apps
 use the **same** four faces. Hyperscaler analog: one API (ports), one engine
@@ -753,9 +771,7 @@ service + impls; AWS control-plane vs data-plane as engines, not dump folders.
 | `cedar/` | This cap/app’s Cedar only | Platform templates (those wait `policy/` cap) |
 | `observability/slos/` | Generated from IR | Hand OpenSLO, dashboards JSON |
 | `iac/` | IR the reconciler applies | Helm/Tofu/charts as source |
-| `docs/` | This owner's g3doc (D-27): `README.md`, `concepts/`, `runbooks/`, `design/` | ADR copies, IPs, catalogs, scorecards, customer manuals, `plan/`, `tasks/` |
-| `OWNERS`, short `README.md`, `BUCK` | Yes | — |
-| `ADR.md` `PRD.md` `SPEC.md` `PLAN.md` | Canonical owner law on every capability root and every `app/<product>/` (D-36; D-35 exempt) | Extra novels, `docs/decisions/` dump, `specs/`, `plan/` |
+| `OWNERS`, `BUCK` | Ownership and build inputs | Markdown, prose indexes |
 
 **This shape does not change.** Owner PRs fill these children with content.
 They do **not** add faces, rename faces, insert `plan/`/`tasks/`/`crates/`/
@@ -780,11 +796,6 @@ No nested IPs, catalog.yaml, Helm, `plan/`, `tasks/`. Do not flatten `src/`
 | `cedar/` | This owner's Cedar only | Platform templates |
 | `observability/slos/` | Generated from IR | Hand YAML novels |
 | `iac/` | IR this engine needs in a cell | Helm/Tofu as source |
-| `docs/README.md` | Landing (g3doc traffic cop) | Essays |
-| `docs/concepts/` | How *this* owner works | ADR-07xx copies |
-| `docs/runbooks/` | On-call for *this* owner | Fleet stamped books |
-| `docs/design/` | Owner-local design notes | `plan/`, IPs, ADR forks |
-| `ADR.md` `PRD.md` `SPEC.md` `PLAN.md` | Canonical owner law (cap and app) | Extra novels, IPs |
 
 Do not add a fifth face. Do not pre-create empty module dirs.
 
@@ -817,7 +828,8 @@ provider's `ports/<port>/` after D-28/D-29 review — not a copy.
 `IP-journey-*.md`, `AUDIT-FINDINGS-*.json`, `REMEDIATION-NOTES-*.md`, `scorecards/`,
 `dashboards/*.json`, `dpia/`, `decisions/` copies, `capabilities/*.yaml` essays,
 stamped runbooks, stamped `tenant-scope.cedar` copies, dual ARCH files, placeholder
-READMEs. Delete the gate with the files.
+or explanatory Markdown. The prohibition applies recursively to every `*.md`
+under a capability or `app/<product>/`, not only to these former root names.
 
 **Public door:** proto/H3 is the product. REST/JSON leftover is **deleted**, not
 transcoded as a standing codec. No new public REST shapes. Console/SDK/gates that
@@ -826,25 +838,30 @@ still speak REST may go red until they speak proto — that break is in-scope hy
 **MUST (closed children)**
 
 - **achieves:** engine vs data names do not collide; N copies of platform Cedar/SLO
-  cannot reappear; org law has one tree gates already load.
+  or prose authority cannot reappear; current truth stays on semantic native
+  surfaces.
 - **origin:** naming `policy/` for both the PDP and per-cap Cedar followed the live
-  tree; OpenSLO-as-authoring and REST transcode are Helm-shaped dual stacks; dual
-  `cedar/`+`policy/` allowlists encoded the collision.
+  tree; OpenSLO-as-authoring, owner quartets, g3doc, and REST transcode created
+  parallel stacks that drifted from the artifacts consumers execute.
 - **rule:** cap and `app/<product>/` share this child set; the set and inner Cargo
   layout **do not change** per owner (D-29/D-30); cap-root `cedar/` only; `policy/`
   is the capability; SLO source is IR; no `specs/` catch-all; `ports/` is the
-  contract face (draft vs agreed: D-28); extras, REST/JSON product surfaces, and
-  `HANDOFF.md` deleted, not grandfathered. Temporarily breaking live callers/gates
-  is accepted. Leaving anti-pattern debt is not.
-- **ensure:** layout allowlists match this set; no immortal `IPs/`; no both `cedar/`
-  and `policy/` as cap children; owner PRs that add a new child or `domain/`/
-  `use_case/`/`crates/` taxonomy fail.
+  contract face (draft vs agreed: D-28); no capability/app Markdown; extras and
+  REST/JSON product surfaces are deleted, not grandfathered. Temporarily breaking
+  live callers/gates is accepted. Leaving anti-pattern debt is not.
+- **ensure:** the separate Pipeline compatibility lane later matches this set,
+  rejects all capability/app Markdown, and applies the three-root-Markdown
+  allowlist; no both `cedar/` and `policy/` as cap children; owner PRs that add a
+  new child or invented inner taxonomy fail. This ADR-only amendment does not
+  claim those checks are live.
 - **overturn_when:** a child is loaded by a compiler/PDP/SLO/reconciler AND a
   five-field amendment lands same-wave.
 
 ## Consequences
 
-- Implementers read this plus ADR-0701/0702/0704/0705/0615. Do not re-derive from chat.
+- During the frozen transition, migration lanes read this amendment as source
+  input. Ordinary implementation consumes the owner's semantic native surfaces;
+  after migration, this ADR is SCM-only provenance, not a current-truth index.
 - `policy/` extraction and IR proto are implementation follow-through, not optional sketch.
 - Admission remains VAP/CEL+PSA as cited from ADR-0704 / ADR-0700. Proposed
   0710-range ids are not `depends_on`.
@@ -1085,8 +1102,8 @@ the **presubmit** rename target (branch protection in the same change).
 
 The cloud is **not** a root `cloud/` tree and **not** a JSON catalog. It is the
 **closed capability set** (registry). Repo root only **names** those directories
-(plus `base/` when admitted, `build/`, `third-party/`, `app/`, `packs/`, `docs/`,
-`governance/` as already in D-8 — **not** `kernel/` or `os/`). Everything a
+(plus `base/` when admitted, `build/`, `third-party/`, `app/`, and `packs/` as
+already in D-8 — **not** `docs/`, `governance/`, `kernel/`, or `os/`). Everything a
 tenant or operator calls is a **facade** of one capability or an
 **`app/<product>/`** that wires 2+.
 
@@ -1243,7 +1260,7 @@ No new `cloud-*` crates. REMOVE is not rehome.
 - `intelligence/` inference
 - `iac/` unifier; `billing/` platform meter; `marketplace/` plugin+SKU kernel; `compliance/`
 - `flags/core/evaluation-domain`
-- Meta: `docs/`, `build/`, `third-party/`, `packs/` (install authority), `templates/` (ADR + ritual only), `app/` (composition)
+- Meta: `build/`, `third-party/`, `packs/` (install authority), `app/` (composition); root compatibility Markdown is only `README.md`, `AGENTS.md`, `CLAUDE.md`
 
 **KEEP+WORK** (DO + HAVE, additional REMOVE or BUILD inside)
 
@@ -1286,7 +1303,7 @@ No new `cloud-*` crates. REMOVE is not rehome.
 - `gateway/` Workday/Slack/Salesforce/… connectors
 - `flags/` dump (catalog.yaml, IPs, Helm, REST+gRPC server, experiment dashboards)
 - Nested census; a root named `ci/` (retired; do not recreate)
-- Repo-root leftovers **deleted:** `contracts/`, `plan/`, `tasks/`, `scripts/`, `libs/`, `infra/`, `tools/`, `kernel/`, `os/`, `oya/`, `evidence/`, `registry/`, `specs/`, `governance/`. Not shrink-only.
+- Repo-root leftovers **deleted in the destination:** `contracts/`, `plan/`, `tasks/`, `scripts/`, `libs/`, `infra/`, `tools/`, `kernel/`, `os/`, `oya/`, `evidence/`, `registry/`, `specs/`, `governance/`, `docs/`, and Markdown templates. Not shrink-only. The frozen transition retains this ADR only until D-36 closes.
 - A root named `messaging/` (retired; do not recreate)
 - `cloud-*` crates; cap-root IPs, AUDIT-FINDINGS, Helm source, OpenAPI product, `catalog.yaml`
 
@@ -1365,7 +1382,9 @@ Ontology Manager, Pipeline Builder UX. It sits on `data/` engines and
 | `pipeline/` | TAP / Cloud Build execute |
 | `intelligence/` | Vertex / AIP on Foundry objects |
 
-Further Foundry product law amends `app/foundry/{ADR,PRD,SPEC,PLAN}.md` (D-36).
+Further Foundry product truth amends semantic native artifacts under
+`app/foundry/{core,ports,adapters,facade,cedar,observability/slos,iac}`;
+proposals stay in the PR body or an external work system (D-36).
 
 **MUST (Foundry occupant)**
 
@@ -1489,7 +1508,12 @@ IaaS-only tenants install a pack-id whose owners have only `cloud.*` overlays. A
 
 #### Runtime state is not git plaintext
 
-ADRs, README, proto, Cedar **as source** stay git. Instance data (objects, mail, drive files, pack **installs**, ledger rows) does **not**. v1 adapters: **SQLite**. Destination adapters: `data/` (records), blob port (bytes), on-prem. Ports exist on day 1 so SQLite is not a data model. SQLite is not the D-1 serving path (10^8 checks stay RAM snapshots).
+Native source artifacts such as proto, Cedar, Rust, Cargo, and Buck stay tracked.
+Frozen ADR/README prose is D-36 migration input, not destination authority.
+Instance data (objects, mail, drive files, pack **installs**, ledger rows) does
+**not** stay in SCM. v1 adapters: **SQLite**. Destination adapters: `data/`
+(records), blob port (bytes), on-prem. Ports exist on day 1 so SQLite is not a
+data model. SQLite is not the D-1 serving path (10^8 checks stay RAM snapshots).
 
 #### `pipeline/` is CI/CD only
 
@@ -1565,37 +1589,58 @@ Hyperscalers do not ship “trusted GCS for Gmail.” One API, identities, ACLs.
 - **ensure:** review rejects `TrustedTenant`, `cfg(trusted)` cloud-core path-deps, first-party unmetered classes, and privileged extra APIs.
 - **overturn_when:** a five-field ADR same-wave shows a missing capability that IAM+adapters cannot express AND names a fail-closed alternative that is still one proto.
 
-### D-27 — Docs live with the owner; root `docs/` is thin (g3doc)
+### D-27 — Current views are untracked, semantic, and revision-keyed
 
-Hyperscaler analog: Google **g3doc** next to the package; org-wide developer
-guides stay central; customer manuals are a different product. Chromium: same
-CL as the code. Not a 1,490-file root wiki (Google already failed that as
-GooWiki).
+D-36 controls current owner knowledge and replaces the former owner-docs model.
+There is no tracked human-authoring tree in the destination. A human or agent
+view is a **projection**, never a second authority.
 
-**Per owner** (`<cap>/docs/`, `app/<p>/docs/`): engineering docs for *this*
-tree — concepts, runbooks, design notes. Same inner grammar as the D-8 table.
-Owner OWNERS may amend these without architecture review (D-29).
+**Native inputs.** The view reads the same artifacts that product and control
+consumers read: Rust types and tests; Cargo and Buck declarations; port traits;
+protobuf contracts; Cedar; reconciler IR; SLO-controller inputs and generated
+outputs; and `OWNERS`. Current surfaces use semantic domain and operator names.
+ADR numbers, D-n labels, migration sequence numbers, and former prose filenames
+may appear only as transitional provenance, never as the name or lookup key for
+a current check, contract, test, error, view, or workflow.
 
-**Repo root `docs/`:** `AGENTS.md` operating contract pointer, unique
-`docs/decisions/` (07xx live ADRs), `docs/standards/`. No per-cap copies of
-ADRs. No catalogs, IPs, scorecards, census JSON.
+**Immutable revision binding.** The view request binds an opaque immutable
+source revision supplied through an SCM port plus the view schema/generator
+identity. The current Git adapter resolves that revision to verified commit and
+tree bytes. A branch, tag, working tree, mutable `HEAD` label, timestamp, or
+"latest" is not a durable identity. A view refuses if the exact revision bytes
+or required native inputs are unavailable or mismatch. It may be cached outside
+the repository under that full key; it is never tracked, checked in, or treated
+as input to the native authority.
 
-**Do not:** mass-move the old wiki this wave; put Foundry user manuals here
-(that is a later product site); resurrect `plan/` or `tasks/` as `docs/`.
+**Human work and history.** Proposals, rationale under consideration, sequence,
+and acceptance discussion live in the PR body or an external work system. Once
+landed, current truth is the native candidate and history is available only
+through the SCM. No archive, changelog copy, Markdown tombstone, migration
+receipt, or generated view stays in tree.
 
-**MUST (g3doc)**
+**Root compatibility only.** `/README.md`, `/AGENTS.md`, and `/CLAUDE.md` are
+the complete destination Markdown set. They bootstrap humans and harnesses;
+they do not duplicate owner contracts. The two agent hubs remain at most 300
+lines. All other tracked Markdown, including under `docs/`, `templates/`, a
+capability, or `app/<product>/`, is transition input to remove under D-36.
 
-- **achieves:** docs that describe a service change in the same PR; org law has
-  one home; owner docs cannot fork ADRs.
-- **origin:** root `docs/` became GooWiki; cap context was unfindable; founders
-  asked whether per-owner docs match hyperscaler practice (they do: g3doc).
-- **rule:** owner engineering docs under `<owner>/docs/` with the closed inner
-  grammar; root `docs/` is thin law; unique ADR home; no IP/catalog resurrection;
-  no same-wave 1,490-file move.
-- **ensure:** D-8 allowlist includes `docs/` as a cap/app extra; layout rejects
-  `plan/`, `tasks/`, `IPs/`, `decisions/` copies under owners.
-- **overturn_when:** a five-field ADR names a different docs home that still
-  co-locates service docs with code and keeps a thin org-law tree.
+**MUST (immutable current views)**
+
+- **achieves:** humans and agents can inspect exact-revision current truth
+  without copying it into a prose authority or mixing it with history.
+- **origin:** g3doc, quartets, indexes, archives, and numbered citations drifted
+  from native artifacts and made stale context look current.
+- **rule:** current views are semantic projections of native authority, bind an
+  immutable SCM-neutral revision plus view identity, and remain untracked; Git
+  commit/tree resolution is the current adapter, not the product contract;
+  proposals are off-tree and history is SCM-only.
+- **ensure:** the separate Pipeline lane later qualifies exact-tip view tests,
+  retained-reference checks, capability/app Markdown rejection, and the
+  three-root-Markdown allowlist. This amendment neither implements that adapter
+  nor claims enforcement is live.
+- **overturn_when:** measured evidence proves an exact-revision view cannot make
+  native current truth operable and a bounded five-field replacement lands
+  atomically without restoring a parallel tracked authority.
 
 ### D-28 — Shared contracts: draft vs agreed (ports + adapters)
 
@@ -1640,30 +1685,33 @@ D-8 children. Who may **amend** them is not the same.
 
 | Blast | What | Who reviews | Analog |
 |---|---|---|---|
-| **Owner-local** | `core/`, `ports/draft/`, local `adapters/draft/`, `cedar/`, `docs/` (including `docs/design/`), `iac/` that only this engine consumes | That owner's `OWNERS` | Google package OWNERS / g3doc CL |
+| **Owner-local** | `core/`, `ports/draft/`, local `adapters/draft/`, `cedar/`, `iac/` that only this engine consumes, and owner-local tests/build declarations | That owner's `OWNERS` | Package OWNERS |
 | **External contract** | Agreed `ports/<port>/`, adapters other owners consume, sold `facade/` proto, any crate another owner `path =`s | **This owner + every consuming owner + architecture** | Google API review / AIP; not a drive-by |
-| **Repo root** | `AGENTS.md`, `CLAUDE.md`, `docs/decisions/ADR-07xx`, D-8 allowlist, `rust-toolchain.toml`, workspace membership policy, required `presubmit` | Architecture (+ founder on law) | Central developer guides; not a cap feature PR |
+| **Repo root** | `README.md`, `AGENTS.md`, `CLAUDE.md`, D-8 structural allowlist, `rust-toolchain.toml`, workspace membership policy, required `presubmit` | Architecture (+ founder on law) | Central compatibility/structure; not a cap feature PR |
 
-Owner-local **includes** amending this owner's docs, design notes, and
-`ports/draft/` **content**. It is **not** a license to change the canonical
-children, inner crate files, crate grammar, or to add `plan/`, `tasks/`,
-`crates/`, `domain/`, or a private ADR tree. The structure is the same for
-every owner and does not evolve per team. Repo-root law and agreed contracts
-**do not** land as a side effect of a feature PR.
+Owner-local includes amending this owner's semantic native artifacts and
+`ports/draft/` content. It is **not** a license to add Markdown, change the
+canonical children, inner crate files, crate grammar, or add a private planning
+or decision tree. Proposals remain in the PR body or external work system.
+Structure is the same for every owner and does not evolve per team. Root
+compatibility/structure and agreed contracts do not land as a side effect of a
+feature PR.
 
 **MUST (jurisdiction)**
 
 - **achieves:** teams move inside a frozen tree; they cannot silently bind the
-  rest of the company, rewrite org law, or fork layout.
+  rest of the company, rewrite structural law, or fork layout.
 - **origin:** local iteration blocked by org review; conversely, shared ports
-  and `AGENTS.md` edited from a cap dump; teams inventing `domain/`/`plan/`
-  inside “their” root.
-- **rule:** owner OWNERS for **content** in canonical children that do not leak;
+  and root hubs were edited from a cap dump; teams invented prose and private
+  taxonomies inside “their” root.
+- **rule:** owner OWNERS for **native content** in canonical children that does
+  not leak;
   the D-8 shape and D-30 grammar are not owner-amendable; escalated review for
-  agreed ports/proto/facade and for repo-root law; `plan/`/`tasks/` stay gone.
+  agreed ports/proto/facade and for root compatibility/structure; tracked owner
+  Markdown stays forbidden.
 - **ensure:** PRs touching agreed ports, sold proto, or root law name the extra
   reviewers; layout rejects non-canonical children and invented inner taxonomies
-  even on owner PRs.
+  or capability/app Markdown even on owner PRs.
 - **overturn_when:** a five-field ADR replaces this split with an equally
   fail-closed OWNERS + API-review model.
 
@@ -1753,7 +1801,7 @@ must not be able to edit `iam/` while dispatched to `storage/`.
 1. **Out of tree.** `git worktree add` under a temp path (`/tmp`, `/private/tmp`, …). Never the human clone (`integ/audit` or `~/Developer/oyatie`). Already required; this names why.
 2. **Ephemeral.** Create on dispatch. Remove on PR merge, lane abort, or idle expiry. Leftover worktrees are bugs, not inventory.
 3. **Writable cone.** Maximum is one `<cap>/` or `app/<product>/` named in the dispatch (D-29). Parallel subagents **narrow** that to disjoint **leaf crate** dirs (D-32). Plus the worktree's own `.git` / index so git works. One git index per worktree — two writers in one worktree are forbidden.
-4. **Read-only declared inputs** (not “the whole company” as writes). Root law the agent must load (`AGENTS.md`, `CLAUDE.md`, `rust-toolchain.toml`, workspace `Cargo.toml`/`Cargo.lock`, thin `docs/decisions/` for live 07xx). Agreed ports/facades this owner **already** `path =`s (D-28). Toolchain. `/tmp` for build scratch.
+4. **Read-only declared inputs** (not “the whole company” as writes). Root compatibility (`AGENTS.md`, `CLAUDE.md`), `rust-toolchain.toml`, workspace `Cargo.toml`/`Cargo.lock`, and exact-revision native artifacts for agreed ports/facades this owner already consumes (D-28). A D-36 migration lane may additionally declare its frozen prose as migration data. Toolchain. `/tmp` for build scratch.
 5. **OS write-jail** when the host can: Landlock path-beneath on Linux, Seatbelt `sandbox-exec` on macOS (Bazel Darwin sandbox, Anthropic/DeepSeek agent runtimes). Writable = owner cone + tmp + target dir. Everything else read-only or absent. The agent **cannot** widen this set.
 6. **Local proof is buck2** (D-32 / ADR-0716). Not `cargo nextest --workspace`, not N cargo processes. Optional `cargo nextest -p <one crate>` is local feedback only. Full-graph cargo stays CI.
 
@@ -1835,7 +1883,7 @@ commits and become unreviewable).
 | Class | What moves | Lane |
 |---|---|---|
 | **Structural** | Faces, crate dirs, `git mv`/`git rm`, root `Cargo.toml` members, `Cargo.lock`, D-8 children, proto package path, agreed port promotion | One serialized (or explicitly stacked) reorg lane. Escalated (D-29). This is `#2221`. |
-| **Behavioral** | `src/`, `tests/`, owner `docs/`, cedar, IR under an **existing** crate | Parallel leaf-crate worktrees (D-32). Frozen shape (D-8/D-30). |
+| **Behavioral** | `src/`, `tests/`, Cedar, IR, proto, and other native artifacts under an **existing** owner | Parallel leaf-crate worktrees (D-32). Frozen shape (D-8/D-30). |
 
 `REFACTOR` = `git mv`. `REMOVE` = `git rm`. Neither is a feature PR. After
 the structure wave, implement agents **do not** mutate the tree shape.
@@ -1894,96 +1942,138 @@ pipeline/RE (ADR-0716 overturn), the same read-only rule holds.
   does not lock or corrupt, or an AST merge that is still crate-disjoint
   (then it is unnecessary).
 
-### D-35 — File budget: 300 lines (agents), with a closed exempt set
+### D-35 — File budget: 300 lines, with destination exemptions only
 
-Google does not hard-cap file length (C++ guide caps *functions* around
-~40 lines as a smell, not files). For **agents**, a 2k-line `lib.rs` is a
-context and conflict magnet (D-32: one writer per crate is useless if
-that crate is one file). Cap **hand-written** files.
+For agents, a 2k-line hand-written native file is a context and conflict
+magnet. The destination maximum remains **300 physical lines** for every
+hand-written file. Prefer splitting earlier; 100 is not a gate. Count physical
+lines without comment-stripping or a repository file-count census.
 
-**Budget.** **300** physical lines is the born-blocking maximum for a
-non-exempt file (the top of the 100–300 range). Prefer splitting before
-that; **100 is not a gate** — it would explode module count and fight
-RFC 430 (`lib.rs` as the crate root). Count is `wc -l`, no comment-stripping
-cleverness (that becomes a census).
+**Destination exemptions (closed).** `Cargo.lock`; `third-party/`; generated
+artifacts such as `*.generated.*`, protobuf/Reindeer output, and controller
+outputs; and vendored lock-step snapshots. The root compatibility set
+`README.md`, `AGENTS.md`, `CLAUDE.md` is allowed by D-8, but it is not an
+unbounded prose exemption: both agent hubs remain at most 300 lines, and the
+README follows the ordinary 300-line budget.
 
-**Exempt (closed).** Live 07xx apex ADRs; owner `ADR.md`, `PRD.md`,
-`SPEC.md`, `PLAN.md` (D-36; compress after interview); `AGENTS.md` /
-`CLAUDE.md`; `Cargo.lock`; `third-party/`; generated
-(`*.generated.*`, prost/tonic/reindeer output, OpenSLO from IR); vendored
-lock-step snapshots. Not exempt: tests, cedar, owner `docs/`, `*.rs` agents
-write. Do **not** add `specs/` or `plan/` to the exempt list by recreating
-those trees (D-8 / D-36).
+Existing ADRs, owner quartets, owner READMEs, and owner prose trees are frozen
+transition input under D-36. Their current length is tolerated only so they can
+be classified and deleted atomically. They may not be expanded or used as a
+template for a new owner. Native over-budget files split inside the same leaf
+crate when touched or in a dedicated structural lane.
 
-**Existing over-budget files.** Split when that **crate** is next worked,
-or in a dedicated file-budget lane for that crate (D-33: not mixed with a
-feature, not one repo-wide 2221 dump). Split = more `snake_case.rs` modules
-**inside the same leaf crate**, not a new crate (unless D-28/D-29).
-
-**Enforcement.** Pattern gate on **touched** non-exempt paths (D-17 keep
-set: fail the file, not `expected_total`). Agents must not emit a new file
-over 300.
+**Enforcement state.** A touched-path budget and Markdown allowlist belong to
+the separate Pipeline compatibility/enforcement lane. This ADR-only amendment
+defines the target and does **not** claim either check is implemented, qualified,
+or live.
 
 **MUST (file budget)**
 
-- **achieves:** agent-local diffs stay reviewable; parallel crates stay
-  small; monsters get split on purpose.
-- **origin:** unbounded `lib.rs`; founder 100–300 range; census gates are
-  forbidden.
-- **rule:** 300-line cap on hand-written non-exempt files; 100 is not a
-  gate; exempt set is closed; existing over-budget split per crate when
-  touched; no repo-wide dump; no `expected_total`.
-- **ensure:** touched-path check in presubmit; new agent files >300 fail;
-  generated/lock/ADR/PRD ignored.
-- **overturn_when:** a five-field ADR names a different number that still
-  fits agent context and does not become a file-count freeze.
+- **achieves:** native diffs stay reviewable and the three compatibility files
+  cannot become a replacement wiki.
+- **origin:** unbounded code and prose files became context magnets; broad
+  exemptions preserved stale owner novels; file-count censuses are forbidden.
+- **rule:** hand-written destination files are at most 300 physical lines;
+  destination exemptions are generated, lock, third-party, and vendored
+  lock-step artifacts; the three root Markdown files are allowed but the agent
+  hubs remain at most 300 lines; frozen migration prose may only be deleted.
+- **ensure:** the separate Pipeline lane later checks touched native files and
+  the three-root-Markdown allowlist without `expected_total`, a baseline, or a
+  frozen corpus; this lane claims no live enforcement.
+- **overturn_when:** a five-field amendment names a different bound that still
+  fits agent context, keeps root compatibility bounded, and does not become a
+  file-count freeze.
 
-### D-36 — Four canonical files on the owner path; compress after interview
+### D-36 — Current-only native owner knowledge; frozen atomic transition
 
-A D-n catalog in this global ADR is unmaintainable: it is not loaded on
-`network/`, so the next session adds D-47. Pointers fail: agents do not
-follow “see also.” They **open named files on the path they are editing.**
+This amendment replaces tracked owner prose with current truth on the artifacts
+that compilers, tests, policy engines, controllers, reconcilers, build systems,
+and ownership enforcement actually consume.
 
-**Occupants** — inside the capability directory or `app/<product>/`:
+**Semantic native authority.** Each capability and `app/<product>/` expresses
+its current contract through the applicable native surfaces:
 
-| File | What the agent searches |
+| Concern | Current semantic surface |
 |---|---|
-| `ADR.md` | decisions in force |
-| `PRD.md` | requirements |
-| `SPEC.md` | behavior / contract |
-| `PLAN.md` | remaining sequenced work |
+| Domain behavior and invariants | Rust types/implementation plus exact tests and typed failures |
+| Owner and cross-owner contracts | Port traits, protobuf packages/methods/messages, contract tests |
+| Backend realization | Adapter types, bindings, conformance tests |
+| Authorization | Cedar schema/policy and PDP tests |
+| Desired state and reconciliation | Typed IR, reconciler inputs, observed-state/status types, reconciliation tests |
+| Reliability | SLO-controller inputs, generated controller output, failure-injection tests |
+| Build/dependency declaration | `Cargo.toml`, `BUCK`, generated admitted relations |
+| Jurisdiction | `OWNERS` and ownership enforcement inputs |
 
-```
-network/ADR.md   network/PRD.md   network/SPEC.md   network/PLAN.md
-app/foundry/ADR.md  …same four…
-```
+Names on those surfaces describe the domain or operator action. Sequential
+ADR, D-n, migration-wave, or ticket identifiers are transitional provenance
+only; they may appear in SCM metadata or comments but must not be the current
+surface, lookup key, check name, test name, error name, or workflow label.
 
-XML tags **inside** each file name slots (`<content_addressable_storage>`,
-`<ontology>`), not vendors. The agent iterates tags in that file.
+**No tracked prose authority.** No `*.md` is tracked anywhere below a
+capability or `app/<product>/`. Proposals, plans, rationale under review, and
+remaining-work sequences live in the PR body or an external work system. A
+human-readable current view follows D-27: it is derived on demand from the
+native artifacts, keyed by an immutable SCM-neutral revision and view identity,
+and never tracked. Historical truth is available only from SCM; the current Git
+adapter uses verified commit/tree bytes.
 
-Those four are **exempt from the 300-line cap** (D-35). Completeness beats
-splitting. They do not grow forever: after a **human interview**, shrink
-them. Work that has landed and survives in git history / changelog is
-compressed or removed. `PLAN.md` is remaining work. `ADR.md` / `SPEC.md`
-/ `PRD.md` are current contract, not archaeology.
+**Fail-closed transition.** The following order is mandatory:
 
-Two agents on `network/` vs `iam/` do not share these files (D-41).
-Two agents on the same owner share a given file — one writer (D-32).
+1. Pipeline must first stop requiring `ADR.md`, `PRD.md`, `SPEC.md`, and
+   `PLAN.md` in a **separate Pipeline compatibility lane**. That change and all
+   later enforcement are not implemented or made live by this ADR-only lane.
+   No new capability or `app/<product>/` owner may be created before that
+   prerequisite lands; afterward, a new owner starts with native artifacts and
+   no Markdown.
+2. On adoption, every existing owner `ADR.md`, `PRD.md`, `SPEC.md`, `PLAN.md`,
+   `README.md`, and `docs/**/*.md` becomes read-only migration input. No lane
+   may add or rewrite that prose; the only admitted owner-prose diff is its
+   atomic deletion in the owner migration.
+3. The migration builds an ephemeral, off-tree claim ledger. Every source
+   claim is classified **exactly once** as accepted-current, proposal/work, or
+   historical/rejected. Conflicting claims are challenged against native
+   behavior, consumers, owner intent, and current acceptance. An unresolved,
+   duplicated, or unclassified claim refuses migration.
+4. Accepted-current claims project exactly once onto the semantic native
+   surfaces above. Proposal/work claims move to the PR body or external work
+   system. Historical/rejected claims remain only in SCM history. A prose
+   sentence, generated Markdown copy, numbered citation, or retained archive is
+   not a projection.
+5. One owner migration candidate contains every required native change and the
+   deletion of **all** that owner's Markdown. Exact-candidate tests exercise the
+   compiler/test/PDP/SLO-controller/reconciler/Cargo/Buck/ownership consumers;
+   an exact-tip derived view is regenerated from the same immutable revision;
+   retained-reference checks refuse any live reference to deleted prose. The
+   candidate refuses on a test failure, revision mismatch, incomplete native
+   projection, or unresolved retained reference.
+6. Native projection and source deletion land atomically. No tombstone,
+   migration matrix, receipt, changelog copy, archive, redirect, or in-tree view
+   remains. If any step cannot complete, the source stays frozen and the owner
+   remains unmigrated; partial deletion is forbidden.
 
-**MUST (canonical owner files)**
+**Pipeline boundary.** Required compatibility, transition, reference, exact-tip,
+and Markdown-allowlist checks are a later Pipeline-owned implementation and
+qualification lane. This section specifies their contract only. It does not
+claim those checks, the view adapter, owner migrations, or enforcement are live.
 
-- **achieves:** agents find law by filename on the path; N owners commute;
-  checklists stay current because implemented detail is compressed out.
-- **origin:** unread 07xx dumps; pointer-following; append-only novels.
-- **rule:** owner law is those four files on that path; amend in place;
-  interview then compress; this apex does not grow a new D-n for an
-  owner-scoped change.
-- **ensure:** layout admits those four names; they are D-35 exempt;
-  session PRs edit them.
-- **overturn_when:** a five-field amendment of this section names a
-  different occupant set.
+**MUST (current-only native owner knowledge)**
 
-### D-37 — Shared docs/config are not 300-line splits; uuid fragments + one fold
+- **achieves:** exact-revision current truth without prose duplication or
+  historical context poisoning.
+- **origin:** mandatory quartets, g3doc trees, indexes, archives, and numbered
+  citations became stale parallel authority.
+- **rule:** no tracked Markdown under capability/app roots; native artifacts are
+  authority; proposals/work are off-tree; history is SCM-only; derived views are
+  revision-keyed and untracked.
+- **ensure:** Pipeline compatibility change, atomic owner migrations,
+  retained-reference checks, exact-tip tests, three-root-file allowlist, and
+  <=300-line root agent hubs. These are separate Pipeline follow-through and
+  are not claimed live by this ADR-only amendment.
+- **overturn_when:** measured evidence proves an irreducible tracked human
+  contract cannot be represented by native authority or an off-tree view, and a
+  bounded replacement lands atomically.
+
+### D-37 — Shared native config is not a 300-line split; one fold
 
 N agents colliding on `Cargo.toml` / `Cargo.lock` / YAML / JSON is the
 problem D-32 named. Splitting those files like `lib.rs` does not work
@@ -1996,9 +2086,10 @@ No new JSON/YAML product. OpenSLO/faces stay generated. Cedar is per-owner
 policy, not a global yaml.
 
 **Denylist (implement agents: no in-place edit).** Root workspace
-`Cargo.toml`, `Cargo.lock`, toolchain/fmt/deny, `AGENTS.md`, `CLAUDE.md`,
-live 07xx ADRs, generated `*.json`/`*.yaml`. Crate-local `Cargo.toml` is
-**not** on this list — it is that crate’s file (D-32).
+`Cargo.toml`, `Cargo.lock`, toolchain/fmt/deny, root `README.md`, `AGENTS.md`,
+`CLAUDE.md`, and generated `*.json`/`*.yaml`. Crate-local `Cargo.toml` is
+**not** on this list — it is that crate’s file (D-32). Frozen transition prose
+may only be deleted by its D-36 migration lane.
 
 **Additive path: uuid fragments, not clones of the whole file.** Copying
 `Cargo.toml.<uuid>` and hoping to 3-way merge is still a novel. Agents
@@ -2019,10 +2110,10 @@ merge recreates the `Cargo.toml` conflict. So:
 That step is “pre-commit” in the TAP sense (before the linearized snapshot
 is proven), not N local hooks racing.
 
-**Cannot fragment-merge:** prose ADRs/PRDs (D-36 — single writer,
-architecture lane); `Cargo.lock` body (derive after fold); YAML/JSON
-novels (do not exist). Duplicate fragment keys with different values
-**fail closed**.
+**Cannot fragment-merge:** root compatibility Markdown (single writer);
+frozen migration prose (delete atomically, never merge); `Cargo.lock` body
+(derive after fold); YAML/JSON novels (do not exist). Duplicate fragment keys
+with different values **fail closed**. Proposals and plans remain off-tree.
 
 **YAGNI bound (thought experiment).** After D-33 the common implement
 lane never touches root `Cargo.toml`. Two humans on different laptops
@@ -2043,12 +2134,13 @@ that is the waste-avoidance, not a smarter fold.
 - **achieves:** N agents add to shared config without touching the same
   git path; one mechanical fold; no yaml/json farm; lockfile has one
   writer at fold.
-- **origin:** N-way `Cargo.toml`/`Cargo.lock`/docs; 300-line split does
-  not apply; founder: uuid clones + pre-commit resolve.
+- **origin:** N-way `Cargo.toml`/`Cargo.lock` and root compatibility edits;
+  300-line split does not apply; founder: uuid clones + pre-commit resolve.
 - **rule:** keep file-config minimal; implement agents do not in-place
   edit the denylist; additions are uuid fragments; fold is one Rust
-  serial step on the receiving branch; ADRs stay single-writer; lock is
-  regenerated once after fold; no whole-file uuid clones.
+  serial step on the receiving branch; root compatibility stays
+  single-writer; no Markdown fragment or prose sidecar; lock is regenerated
+  once after fold; no whole-file uuid clones.
 - **ensure:** review/presubmit reject in-place denylist diffs on
   implement PRs; fragment schema is closed; leftover fragments after
   fold fail; no `specs/` resurrection.
@@ -2129,8 +2221,6 @@ big; uuid sidecars invent paths that are not the code.
 ```
 crate → module files → one primary Item per file
         (fn / struct / impl / trait / enum — RFC 430 names)
-markdown → one structural block per file
-        (one H2 / one D-n section — not a .delta of the ADR)
 ```
 
 D-35 (≤300 lines) exists so one file ≈ one Item. N agents on crate P
@@ -2160,8 +2250,9 @@ No `.delta`. No uuid object store. The new file **is** the commit.
 is **that file/Item** on open PRs. Agent 2 is dispatched to a **different
 Item/file in the same crate**, immediately — not parked on a crate lock.
 
-Markdown law (ADR/PRD) stays one writer (D-36): rare, checklist
-iteration. Owner `docs/` splits like code: one topic file.
+Root compatibility Markdown stays one writer. Owner Markdown does not split
+like code because D-36 forbids it; proposals remain off-tree and current truth
+changes at semantic native paths.
 
 **MUST (path identity)**
 
@@ -2169,10 +2260,10 @@ iteration. Owner `docs/` splits like code: one topic file.
   sidecar VCS; git conflicts become assignment bugs.
 - **origin:** crate-lock and uuid-delta both failed the founder bar;
   crates already decompose into files and Items.
-- **rule:** commute identity = unique git path at module/Item (or md
-  block-file); membership = directory glob + generated mod list; no
-  `.delta`; no whole-crate lock; same-Item dual write refused at
-  assign; N disjoint files in one crate is allowed and expected.
+- **rule:** commute identity = unique git path at native module/Item grain;
+  membership = directory glob + generated mod list;
+  no `.delta`; no Markdown sidecars; no whole-crate lock; same-Item dual write
+  refused at assign; N disjoint files in one crate is allowed and expected.
 - **ensure:** workspace members globs match D-8; generated mod list not
   hand-edited; occupancy matches PR file paths; review rejects crate-
   wide locks and uuid-delta dumps.
@@ -2180,7 +2271,7 @@ iteration. Owner `docs/` splits like code: one topic file.
   generated `mod` (then drop the generator) or a five-field ADR names
   another unique-path membership that is not a second VCS.
 
-### D-40 — Path-sets, mixed ops, plans, cross-owner; cap cone is sandbox not a lock
+### D-40 — Path-sets, mixed ops, off-tree proposals, cross-owner
 
 **Is a session locked to an app/capability?** For **merge: no.** Commute
 is path-sets (D-39). For **blast radius / sandbox: default yes** (D-31
@@ -2211,14 +2302,14 @@ Write + refactor + move + delete **in parallel** is allowed **and
 expected** when those path-sets do not intersect. That is structurally
 conflict-free. Same-path mix is an assignment bug, not a merge skill.
 
-**Planning vs implementation.** ADR-0719 / `PRD.md` are **one path
-each**. A plan-amendment lane occupies that path; every `*.rs` lane
-**commutes** with it (different paths). “Needs more planning” does
-**not** stop implementation. Two plan-amendment lanes on the **same**
-ADR **do** conflict — serialize plan writers (D-36), or split only
-owner `docs/` into block-files (not a `.delta` of the ADR). Corrections
-found in another cap: **new dispatch** with those paths, original lane
-keeps its set. Do not mutate the living ADR from ten implement agents.
+**Proposal vs implementation.** A proposal or plan in a PR body or external
+work system has no tracked owner path and cannot become current authority by
+narration. Accepted truth changes only by editing the applicable semantic native
+surface and therefore occupies that native path. Two lanes changing the same
+trait, proto, Cedar fragment, IR type, test, build declaration, or root
+compatibility file conflict and serialize on that path; they do not create prose
+sidecars. A correction in another cap is a new dispatch with those paths; the
+original lane keeps its set.
 
 **Scenarios (experiment).**
 
@@ -2233,8 +2324,10 @@ keeps its set. Do not mutate the living ADR from ten implement agents.
 6. Mechanical rename of a trait across 40 files — LSC lane owns those
    40, or 40 shards with disjoint files; feature work on those files
    waits **on those files**, not on the capability.
-7. Plan lane amends D-40 in this ADR while N crates implement — commute.
-8. Two plan lanes both edit this ADR — serialize (single writer).
+7. Off-tree plan/review proceeds while N native crate paths implement — no
+   tracked collision and no current-truth effect until native projection.
+8. Two lanes edit the same port trait or root compatibility file — serialize on
+   that path; do not split the decision into Markdown blocks.
 9. Foundry agent finds a `storage` bug — dispatcher opens a **storage
    path-set** lane; Foundry lane does not absorb `storage/` (D-31 no
    self-widen). If it is a **shared port** shape, that is D-28/D-29,
@@ -2249,12 +2342,13 @@ keeps its set. Do not mutate the living ADR from ten implement agents.
   code; cross-owner corrections are named dispatches; LSC does not
   collide with features on the same files.
 - **origin:** cap-session lock and crate-wait were mutexes; founder
-  asked mixed write/refactor/move/delete, plan/amend/correct, and
+  asked mixed write/refactor/move/delete, propose/amend/correct, and
   whether cap lock is necessary.
 - **rule:** occupancy = path-set (mv occupies both ends); disjoint
   sets commute including across caps; cap cone is default sandbox not
-  merge law; plan/ADR is one path (commutes with src); LSC is one lane
-  or file-sharded; no poll-lock; no self-widen; no `.delta`.
+  merge law; proposals/work stay off-tree and current amendments occupy
+  semantic native paths; LSC is one lane or file-sharded; no poll-lock;
+  no self-widen; no `.delta` or Markdown sidecar.
 - **ensure:** dispatch records the path-set; overlapping PR path-sets
   are not spawned; review rejects cap-wide locks and un-named cross-cap
   writes.
@@ -2288,8 +2382,9 @@ path. Therefore:
 4. **Integrate** PR → `origin/dev` → merge_group. Star, not mesh (D-38).
 5. **Jail** writes to the dispatched files (narrower than a cap). Cap
    is a default hint, not a lock.
-6. **Plan** occupies the ADR path; implement occupies `*.rs`. They
-   already commute. One plan writer (D-36).
+6. **Proposals** stay in the PR body or external work system and occupy no
+   tracked owner path. Accepted truth occupies the semantic native path it
+   changes; same-path writers serialize.
 
 **Do not build:** occupancy JSON; uuid fragments; committed generated
 mod lists; crate/cap poll-locks; automod from crates.io unless owned.
@@ -2391,13 +2486,13 @@ This is the acquire → plan → red → green → slop → CI → queue loop,
 law. The four-harness collision lab was **not** executed to merge.
 Do not claim that loop is empirically green.
 
-**Acquire is the launcher, once.** ADR/PRD names work as **output
-paths** (`storage/adapters/blob-sqlite/src/items/put.rs`). A spawn
-script (human or one coordinator process) gives each harness **one
-path-set**. The agent does not poll issues, `gh pr list`, or
-`tasks/`. Grabbing is `argv`, not a mutex. Second spawn with an
-overlapping path is a launcher bug; presubmit path-intersect is the
-backstop (D-42).
+**Acquire is the launcher, once.** The accepted off-tree work package and
+exact-revision native dependency/ownership surfaces name **output paths**
+(`storage/adapters/blob-sqlite/src/items/put.rs`). A spawn script (human or
+one coordinator process) gives each harness one path-set. The agent does not
+poll issues, `gh pr list`, or an in-tree task board. Grabbing is `argv`, not a
+mutex. Second spawn with an overlapping path is a launcher bug; presubmit
+path-intersect is the later backstop (D-42).
 
 **One PR per path-set** (usually one harness). Cross-harness =
 separate PRs onto `dev`/`main`, never a Graphite stack across
@@ -2410,7 +2505,7 @@ stage). Other PRs run the same stages **at the same time**.
 | Stage | What | N-parallel? |
 |---|---|---|
 | Valid | Path in D-8 grammar; not denylist; not intersecting open PR files | Launcher + presubmit |
-| Plan | PR body or `docs/design/<item>.md` ≤300, cites the D-n. Review on the PR | Yes, different items |
+| Propose | PR body or external work system only; semantic current-surface names, with sequential ids permitted only as transitional provenance | Yes, different items |
 | Red | Tests for **this** item as unique files | Yes |
 | Review tests | PR review (≠ merge APPROVE) | Yes |
 | Implement | Fill the item file | Yes |
@@ -2441,11 +2536,12 @@ mesh-merge of stages across PRs; new ceremony markdown per stage.
   acquire without polling; CI red is local to a PR.
 - **origin:** a 19-step serial ritual plus a grab-list would recreate
   locks and GooWiki.
-- **rule:** launcher assigns unique path-sets from ADR/PRD; one PR
+- **rule:** launcher assigns unique path-sets from an accepted off-tree package
+  plus exact-revision native surfaces; one PR
   carries plan→tests→impl→slop→coverage; pipeline/CI review only
   when those files are touched; presubmit/merge_group/squash;
-  pre-push is fmt-touched only; no task board; no factory-stop on
-  one red PR.
+  pre-push is fmt-touched only; no tracked design/plan Markdown, task board,
+  or factory-stop on one red PR.
 - **ensure:** path-intersect check; denylist; no `tasks/` directory;
   workflow diffs require CI-metric look, src-only PRs do not.
 - **overturn_when:** a five-field ADR names a smaller loop that still
@@ -2462,13 +2558,13 @@ down the factory is how you get N agents building the wrong shape.
 **Gate (fail closed, before any slice).**
 
 1. Interview until the need is unambiguous (no TBD / empty acceptance).
-2. Research **existing** docs and the working tree; cite paths that
-   exist.
+2. Research the exact immutable revision's native artifacts and, when useful,
+   an untracked D-27 view; cite semantic paths and the immutable revision.
 3. Realistic evaluation: layout (D-8 faces), YAGNI, blast radius,
    what already exists. Dump-root asks (`plan/`, `libs/`, …) are
    **Rejected**, not clarified into existence.
-4. Emit an **ephemeral artifact package** (not a `plan/` or `tasks/`
-   in the product tree).
+4. Emit an **ephemeral off-tree artifact package** in the PR body or external
+   work system; never add a planning/design Markdown path to the product tree.
 5. Handoff is a function of paths: `app/` → **Product**; capability
    root → **Program**. Mixed packages split. No owner → no package.
 
@@ -2504,8 +2600,8 @@ in-flight, path occupancy). Anvil publishes them. Harnesses bind a
 vendor CLIs for those hops.
 
 Roles form a **DAG with fan-out**: after Implement, review, coverage,
-security, docs, and box tests become ready **together**. Completing
-Implement on slice A unblocks A's successors **and** frees the
+security, native-knowledge/view validation, and box tests become ready
+**together**. Completing Implement on slice A unblocks A's successors **and** frees the
 implement lane for slice B.
 
 **MUST (lanes)**
@@ -2584,7 +2680,7 @@ UI is `app/` **after** the apps discussion, as tenant #0, same public APIs.
 
 ### D-17 — Presubmit is the graph, not a JSON product
 
-**Executed (this wave):** `git rm` of `specs/` as a living-law corpus (including `root-hub-pointers.json`, `integ-branch-envelopes.json`, `masterplan.json`, `cedar-policy-schema.json`), `registry/`, `evidence/`, `governance/` (including `capability-registry.json` and `check/`), `ci.toml`, `pipeline/facade` census crates, Tide/GateRun/process-kit/webhook-gateway, and the `libs/check-*` + `libs/governance-*` fitness farm (except library kernels `check-cost-budget` and `governance-eval-domain`). D-8 unknown-root names live in `pipeline/core/admission`. Agent entry is `AGENTS.md` + `CLAUDE.md` + owning ADRs. No replacement JSON hub.
+**Executed (this wave):** `git rm` of `specs/` as a living-law corpus (including `root-hub-pointers.json`, `integ-branch-envelopes.json`, `masterplan.json`, `cedar-policy-schema.json`), `registry/`, `evidence/`, `governance/` (including `capability-registry.json` and `check/`), `ci.toml`, `pipeline/facade` census crates, Tide/GateRun/process-kit/webhook-gateway, and the `libs/check-*` + `libs/governance-*` fitness farm (except library kernels `check-cost-budget` and `governance-eval-domain`). D-8 unknown-root names live in `pipeline/core/admission`. Root compatibility entry is `AGENTS.md` + `CLAUDE.md`; D-36 makes semantic native owner surfaces current and freezes owning ADRs as migration input. No replacement JSON hub.
 
 `pipeline/facade/*` (was `ci/facade`) and `governance/check/*` grew a **second
 product**: JSON policy files, frozen path lists, FNV signatures, Helm/OpenAPI
