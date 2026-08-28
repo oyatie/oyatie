@@ -4,7 +4,9 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use pipeline_admission::{
-    changed_layout_violations, git_change_paths_from_name_status_z, layout_violations,
+    WORKSPACE_EXCLUDES, WORKSPACE_MEMBER_GLOBS, cargo_entrypoint, cargo_manifest_for_crate_path,
+    cargo_manifest_for_entrypoint, cargo_manifest_violations, changed_layout_violations,
+    git_change_paths_from_name_status_z, layout_violations, workspace_membership_violations,
 };
 
 fn repo_root() -> PathBuf {
@@ -12,6 +14,22 @@ fn repo_root() -> PathBuf {
         .join("../../..")
         .canonicalize()
         .expect("repo root")
+}
+
+fn workspace_manifest(members: &[&str], excludes: &[&str]) -> String {
+    let members = members
+        .iter()
+        .map(|entry| format!("  {entry:?},\n"))
+        .collect::<String>();
+    let excludes = excludes
+        .iter()
+        .map(|entry| format!("  {entry:?},\n"))
+        .collect::<String>();
+    format!("[workspace]\nmembers = [\n{members}]\nexclude = [\n{excludes}]\nresolver = '2'\n")
+}
+
+fn workspace_admits(members: &[&str], excludes: &[&str]) -> bool {
+    workspace_membership_violations(&workspace_manifest(members, excludes)).is_empty()
 }
 
 #[test]
@@ -175,5 +193,107 @@ fn workspace_globs_bound_direct_and_draft_crate_depths() {
         "\"app/*/facade/*\"",
     ] {
         assert!(!workspace.contains(forbidden_parent), "{forbidden_parent}");
+    }
+}
+
+#[test]
+fn dependency_declarations_bind_exact_names_and_entrypoints() {
+    for (path, package, entrypoint) in [
+        (
+            "core/reconcile",
+            "dependency-declarations-reconcile",
+            "src/lib.rs",
+        ),
+        (
+            "ports/generation",
+            "dependency-declarations-generation",
+            "src/lib.rs",
+        ),
+        (
+            "ports/publication",
+            "dependency-declarations-publication",
+            "src/lib.rs",
+        ),
+        (
+            "adapters/generation-reindeer",
+            "dependency-declarations-generation-reindeer",
+            "src/lib.rs",
+        ),
+        (
+            "adapters/publication-filesystem",
+            "dependency-declarations-publication-filesystem",
+            "src/lib.rs",
+        ),
+        (
+            "facade/reconciler-app",
+            "dependency-declarations-reconciler-app",
+            "src/main.rs",
+        ),
+    ] {
+        let root = format!("build/dependency-declarations/{path}");
+        let manifest = format!("{root}/Cargo.toml");
+        let entrypoint = format!("{root}/{entrypoint}");
+        assert!(!cargo_manifest_violations(&manifest, "[package]\nname='wrong'\n").is_empty());
+        assert_eq!(
+            cargo_entrypoint(&manifest).as_deref(),
+            Some(entrypoint.as_str())
+        );
+        assert_eq!(
+            cargo_manifest_for_entrypoint(&entrypoint).as_deref(),
+            Some(manifest.as_str())
+        );
+        assert_eq!(
+            cargo_manifest_for_crate_path(&format!("{root}/tests/contract.rs")).as_deref(),
+            Some(manifest.as_str())
+        );
+        assert!(
+            cargo_manifest_violations(&manifest, &format!("[package]\nname='{package}'\n"))
+                .is_empty()
+        );
+    }
+}
+
+#[test]
+fn dependency_declarations_workspace_pair_is_atomic_and_final() {
+    const MEMBER: &str = "build/dependency-declarations/*/*/src/..";
+    const EXCLUDE: &str = "build/dependency-declarations/*/*";
+    let base_members = WORKSPACE_MEMBER_GLOBS.to_vec();
+    let base_excludes = WORKSPACE_EXCLUDES.to_vec();
+    assert!(workspace_admits(&base_members, &base_excludes));
+
+    let mut paired_members = base_members.clone();
+    paired_members.push(MEMBER);
+    let mut paired_excludes = base_excludes.clone();
+    paired_excludes.push(EXCLUDE);
+    assert!(workspace_admits(&paired_members, &paired_excludes));
+
+    for (members, excludes) in [
+        (paired_members.clone(), base_excludes.clone()),
+        (base_members.clone(), paired_excludes.clone()),
+    ] {
+        assert!(!workspace_admits(&members, &excludes));
+    }
+    let mut reordered = paired_members.clone();
+    let optional = reordered.pop().expect("optional member");
+    reordered.insert(0, optional);
+    assert!(!workspace_admits(&reordered, &paired_excludes));
+
+    for entry in [
+        MEMBER,
+        "build/dependency-declarations/*/*",
+        "build/dependency-declarations/**/src/..",
+    ] {
+        let mut members = paired_members.clone();
+        members.push(entry);
+        assert!(!workspace_admits(&members, &paired_excludes));
+    }
+    for entry in [
+        EXCLUDE,
+        "build/dependency-declarations/*",
+        "build/dependency-declarations/**",
+    ] {
+        let mut excludes = paired_excludes.clone();
+        excludes.push(entry);
+        assert!(!workspace_admits(&paired_members, &excludes));
     }
 }

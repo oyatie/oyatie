@@ -3,6 +3,20 @@
 
 use super::{is_capability_root, path_parts};
 
+pub(super) fn dependency_declarations_package(face: &str, leaf: &str) -> Option<&'static str> {
+    match (face, leaf) {
+        ("core", "reconcile") => Some("dependency-declarations-reconcile"),
+        ("ports", "generation") => Some("dependency-declarations-generation"),
+        ("ports", "publication") => Some("dependency-declarations-publication"),
+        ("adapters", "generation-reindeer") => Some("dependency-declarations-generation-reindeer"),
+        ("adapters", "publication-filesystem") => {
+            Some("dependency-declarations-publication-filesystem")
+        }
+        ("facade", "reconciler-app") => Some("dependency-declarations-reconciler-app"),
+        _ => None,
+    }
+}
+
 pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
     let Some((expected_name, face)) = expected_manifest_identity(path) else {
         return Vec::new();
@@ -135,6 +149,15 @@ pub fn cargo_manifest_for_crate_path(path: &str) -> Option<String> {
 
 pub(super) fn expected_manifest_identity(path: &str) -> Option<(String, &str)> {
     let parts = path_parts(path);
+    if parts.first() == Some(&"build") && parts.get(1) == Some(&"dependency-declarations") {
+        if parts.len() != 5 || parts.last() != Some(&"Cargo.toml") {
+            return None;
+        }
+        let face = *parts.get(2)?;
+        let leaf = *parts.get(3)?;
+        return dependency_declarations_package(face, leaf)
+            .map(|package| (package.to_owned(), face));
+    }
     let (owner, face_index) = if parts.first() == Some(&"app") {
         (*parts.get(1)?, 2)
     } else {
