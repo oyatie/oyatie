@@ -51,7 +51,7 @@ mod tests {
             ("app/README.md", "oyatie"),
             ("app/foundry/OWNERS", "foundry"),
             ("app/foundry/grid/OWNERS", "foundry"),
-            ("app/hr/adapters/employment-infrastructure/OWNERS", "hr"),
+            ("app/hr/core/employment-domain/BUCK", "hr"),
             ("network/OWNERS", "network"),
             ("iam/adapters/x/OWNERS", "iam"),
             ("docs/decisions/OWNERS", "oyatie"),
