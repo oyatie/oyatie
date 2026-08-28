@@ -29,7 +29,5 @@ pub use layout::{
     workspace_draft_dependency_violations, workspace_membership_violations,
 };
 pub use line_budget::file_budget_violations;
-pub use occupancy::{
-    OYATIE_HUB_PREFIXES, OYATIE_HUBS, OccupancyRefused, OccupiedSet, admit, hits_hub,
-};
+pub use occupancy::{OccupancyRefused, OccupiedSet, admit};
 pub use owners::{ROOT_OCCUPANT, owners_occupant};
