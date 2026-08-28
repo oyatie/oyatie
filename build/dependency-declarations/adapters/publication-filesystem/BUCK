@@ -1,0 +1,88 @@
+load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
+
+_FIXUP = "third-party//fixups/dependency-declarations-publication-filesystem:fixups.toml"
+_PACKAGE_VIEW = ["//build/dependency-declarations/adapters/publication-filesystem/..."]
+
+rust_binary(
+    name = "dependency-declarations-publication-filesystem-build-script",
+    srcs = ["build.rs"],
+    crate = "build_script_build",
+    crate_root = "build.rs",
+    visibility = [],
+    within_view = _PACKAGE_VIEW,
+)
+
+export_file(
+    name = "build.rs",
+    visibility = [],
+    within_view = _PACKAGE_VIEW,
+)
+
+genrule(
+    name = "dependency-declarations-publication-filesystem-source-items",
+    srcs = glob(["src/items/*.rs"]),
+    out = "source_items",
+    cmd = "mkdir -p $OUT && if [ -n \"$SRCS\" ]; then cp $SRCS $OUT/; fi",
+    visibility = [],
+    within_view = _PACKAGE_VIEW,
+)
+
+genrule(
+    name = "dependency-declarations-publication-filesystem-manifest-dir",
+    srcs = [
+        ":build.rs",
+        ":dependency-declarations-publication-filesystem-source-items",
+    ],
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/src/items && cp $(location :build.rs) $OUT/ && cp -R $(location :dependency-declarations-publication-filesystem-source-items)/. $OUT/src/items/",
+    visibility = [],
+    within_view = _PACKAGE_VIEW,
+)
+
+buildscript_run(
+    name = "dependency-declarations-publication-filesystem-build-script-run",
+    buildscript_rule = ":dependency-declarations-publication-filesystem-build-script",
+    package_name = "dependency-declarations-publication-filesystem",
+    version = "0.1.0",
+    manifest_dir = ":dependency-declarations-publication-filesystem-manifest-dir",
+    within_view = _PACKAGE_VIEW,
+)
+
+_BUILD_ENV = {
+    "OUT_DIR": "$(location :dependency-declarations-publication-filesystem-build-script-run[out_dir])",
+}
+
+rust_library(
+    name = "dependency-declarations-publication-filesystem",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "dependency_declarations_publication_filesystem",
+    crate_root = "src/lib.rs",
+    env = _BUILD_ENV,
+    visibility = ["//build/dependency-declarations/..."],
+    within_view = [
+        "//build/dependency-declarations/adapters/publication-filesystem/...",
+        "//build/dependency-declarations/core/reconcile/...",
+        "//build/dependency-declarations/ports/publication/...",
+        "third-party//:rustix",
+    ],
+    deps = [
+        "//build/dependency-declarations/core/reconcile:dependency-declarations-reconcile",
+        "//build/dependency-declarations/ports/publication:dependency-declarations-publication",
+        "third-party//:rustix",
+    ],
+)
+
+rust_test(
+    name = "dependency-declarations-publication-filesystem-module-membership-test",
+    srcs = ["build.rs", "tests/module_membership.rs"],
+    crate = "dependency_declarations_publication_filesystem_module_membership_test",
+    crate_root = "tests/module_membership.rs",
+    env = {
+        "CARGO_MANIFEST_DIR": "build/dependency-declarations/adapters/publication-filesystem",
+        "DEPENDENCY_DECLARATIONS_PUBLICATION_FILESYSTEM_FIXUP": "$(location {})".format(_FIXUP),
+    },
+    resources = [_FIXUP],
+    visibility = [],
+    within_view = _PACKAGE_VIEW + [_FIXUP],
+    deps = [":dependency-declarations-publication-filesystem"],
+)

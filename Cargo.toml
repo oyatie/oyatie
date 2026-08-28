@@ -30,6 +30,7 @@ members = [
   # Named ADR-0538 exception for the owned build-meta port engine (ADR-0704). Two segments admit
   # its capability-shaped face crates without moving the engine into pipeline/.
   "build/port-engine/*/*",
+  "build/dependency-declarations/*/*/src/..",
 ]
 # Cargo retains an unmatched member glob as a literal path. These exact
 # exclusions suppress only that literal fallback after the final draft is
@@ -39,6 +40,7 @@ exclude = [
   "*/adapters/draft/*",
   "app/*/ports/draft/*",
   "app/*/adapters/draft/*",
+  "build/dependency-declarations/*/*",
 ]
 resolver = "2"
 
