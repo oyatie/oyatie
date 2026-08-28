@@ -2,7 +2,7 @@
 doc_class: Owner-PRD
 owner: build
 status: Active
-date: 2026-08-27
+date: 2026-08-28
 authority:
   - docs/decisions/ADR-0719-eac-serving-control-north-star.md
   - build/ADR.md
@@ -36,7 +36,7 @@ design- and supply-chain-gated. No first-party behavior has landed.
 - Product owners need an independent tested MSRV floor and current qualified production stable.
 - Security needs exact reachability without delegating severity, embargo, disclosure, or CNA duties.
 - Package owners need stale, missing, duplicate, or unsupported BUCK declarations caught from either side.
-- Repair orchestration needs deterministic owner shards with complete semantic preconditions and postimages.
+- Repair orchestration needs one canonical V1 set with exact owner groups, preconditions, postimages, and identity.
 
 </users>
 
@@ -44,8 +44,9 @@ design- and supply-chain-gated. No first-party behavior has landed.
 
 ## Current foundation
 
-Cargo manifests and `Cargo.lock` are live; Reindeer configuration, 66 fixup
-packages, and checked `third-party/BUCK` carry native/build-script semantics.
+Cargo manifests and `Cargo.lock` are live; Reindeer configuration, 70 fixup
+packages (66 inherited plus four run-only scanners), and checked
+`third-party/BUCK` carry native/build-script semantics.
 
 Reproduction is open: headers name deleted wrappers, clean generation hits
 unresolved fixups, native rules used text rewrites, and no qualified publisher,
@@ -119,7 +120,7 @@ path has landed.
 ## First-party source declarations
 
 - Treat either Cargo or BUCK change as a complete-HEAD first-party graph
-  trigger. Deltas attribute findings and shard repairs, never correctness.
+  trigger. Deltas attribute findings and repairs, never correctness.
 - Parse a closed, versioned unconfigured grammar through maintained Cargo/Starlark
   syntax dependencies behind parser ports and bind all profile identities. Refuse
   every unadmitted form: inability to prove an unknown construct cannot influence
@@ -133,34 +134,23 @@ path has landed.
   from the caller. Do not invoke Git, resolve owners, execute Buck2, compile a
   candidate, interpret Starlark, mutate files, access a network, or spawn a
   process.
-- Emit sorted typed violations and byte-deterministic `DeclarationRepairSet`
-  values. Each owner shard binds the grammar profile, complete semantic read and
-  write sets with expected digest-or-absence, and complete postimages; any
-  precondition mismatch refuses application.
-- Exclude generated `third-party/BUCK` and `third-party//`; Reindeer remains
-  their sole path and qualifies before a new parser or package-graph change.
+- Emit sorted violations and exactly one canonical `DeclarationRepairSetV1` per evaluation, including zero actions/groups. Bind engine/snapshot/profile/caller owner-authority/ownership-fact provenance; complete reads and `semantic_writes`; exact proposed-path projection; and digest-or-absence plus owner-or-absence on every bound path.
+  Owner absence is valid only for non-write reads. `semantic_writes` is sole action authority: one concrete-owner `Replacement` per proposed path and no others; each `Replacement` alone binds its path's complete present/absent postimage and canonical digest. Bind typed postconditions, exact group-output digests, and a whole-set digest/identity over every other canonical field.
+  Groups are exactly non-empty groups induced by replacement owners, canonically ordered, with each replacement/path once and disjoint writes; zero actions have zero groups. Refuse absent-owner writes, incomplete facts, precondition mismatch, or empty/extraneous/missing/duplicate/ambiguous/wrong-owner/cross-owner/incomplete/overlapping groups. Snapshot identity is provenance, not a global lock; a disjoint successor requires every semantic and owner precondition to match.
+- Exclude generated `third-party/BUCK`/`third-party//`; Reindeer stays their sole path and qualifies before a new parser or package-graph change.
 
 ## Deterministic generation
 
-- Qualify one reviewed Reindeer source and binary identity. The execution design ratifies
-  `v2026.08.10.00` at source commit
-  `bb681570d2bc47d1446080c12b8681a50a95f628` as the sole implementation
-  candidate, not a qualified binary. Promotion remains blocked on the eleven
-  measured inherited and four planned scanner fixup decisions, plus clean
-  generation and consumer evidence.
-- Invoke generation with locked, offline inputs, explicit tool paths, an empty
-  network surface, an explicit read-only Cargo source snapshot, and an
-  allowlisted environment independent of the caller's machine.
-- Express AWS-LC environment/build behavior and per-platform PSM native rules in
-  fixups or generator-supported configuration, never an output text patch.
-- Run raw generation twice in isolated staging locations and require byte-for-
-  byte identity before validating or publishing either result.
+- Qualify reviewed Reindeer `v2026.08.10.00` source `bb681570d2bc47d1446080c12b8681a50a95f628` and binary identity. It is the sole candidate, not qualified; revalidation of eleven inherited and four landed run-only scanner decisions plus clean generation/consumer evidence still block promotion.
+- Because that source is binary-only and its graph private, qualification also requires a reviewed producer-side patch/API bound by patch/fork/source/binary digests. Generator code returns one `ReindeerGeneratedArtifactV1` containing its typed graph and bytes rendered from that same graph instance; upstreaming is optional, while Build owns qualification/rollback.
+- Bind exact manifest/lock/config/fixup/source/platform inputs; generator source/build toolchain/target/flags/binary, renderer, closed environment, and sandbox. Run locked/offline in clean roots with explicit tools, read-only sources, empty network, and no ambient host state.
+- Express AWS-LC and per-platform PSM native behavior in fixups or generator configuration, never a text patch.
+- Require two clean runs with identical bytes/full canonical producer DTOs. Refuse duplicates/sort-key collisions before `BTreeSet` loss; equality/digest covers every DTO field, never `Rule::PartialEq`, private introspection, a second invocation, caller-authored expected graph, or text reconstruction.
 
 ## Validation and publication
 
-- Validate the generated file's complete syntax/shape, imports, target
-  uniqueness, references, required aliases, fixup effects, and configured
-  platform behavior before it can replace the checked output.
+- After Reindeer prerequisite qualification, separately review/exact-pin maintained Meta `starlark_syntax` source, crate version/checksum, and bounded profile behind a distinct Build port. `ReindeerRuleGraphV1` is the primary semantic seam; its parser projection is the independent cross-check; Buck2 is consumer/configured authority. Semantic round trip is graph→Reindeer renderer→BUCK bytes→maintained parser→bounded projection→full equality; unknown/lossy/extra/ambiguous forms refuse. This docs lane adds no dependency, behavior, or qualification.
+- Final promotion binds generator/parser/renderer/graph-schema/grammar/platform and Buck2 source/binary/toolchain/cell/config/prelude identities, with representative cquery/build evidence for every tuple. Buck2 is configured authority; parser equality is not configured-graph proof.
 - Publish only through a declared filesystem capability profile that has been
   qualified for directory-relative no-follow operations, same-directory atomic
   replacement, and durability sync. Hold an exclusive destination lease or use
@@ -178,11 +168,8 @@ path has landed.
 
 ## Interfaces and integration
 
-- Keep a pure reconciliation core isolated from process/filesystem concerns.
-  Use ports for raw generation and atomic publication, with Reindeer/process and
-  filesystem adapters at the edge.
-- Expose consumer-neutral internal reconcile and check-only facades. Build does
-  not decide whether or how Pipeline wires either facade into its graph.
+- Keep pure core isolated from effects. `GenerationPort` carries one producer artifact; a distinct parser port independently projects bytes. Both fit existing six packages; publication remains separate; add no package/root.
+- Expose versioned APIs, declarative resources, and reconciler status for neutral reconcile/check-only behavior. CLIs are retirement-marked local diagnostics; Build does not prescribe Pipeline wiring.
 - Make freshness check-only mode use the same core and generator adapter as
   materialization; drift reports the expected and observed digest and exits
   without modifying the tree.
@@ -209,6 +196,8 @@ path has landed.
 At the recorded workspace package/target scale and declared warm-cache profile:
 
 - byte reproducibility across two clean runs: **100%**;
+- generator-graph/parser-projection equality for qualified tuples: **100%**;
+- representative Buck2 consumer evidence for every promoted tuple: **100%**;
 - network operations during reconciliation: **zero**;
 - partial or unvalidated publications: **zero**;
 - freshness false negatives on an input change: **zero**;
@@ -237,8 +226,9 @@ reproducible benchmark binds hardware, cache, scale, generator, and platforms.
 ## Success
 
 - Two isolated generation passes from identical admitted inputs yield identical
-  bytes and one stable generation identity; publication-attempt receipts may
-  differ only with their bound destination preimage, profile, or outcome.
+  bytes and direct generator graph, the independent parser round-trips and
+  projects those bytes exactly, and one stable generation identity results;
+  publication receipts differ only with bound preimage, profile, or outcome.
 - The validated output builds representative native, proc-macro, platform-
   conditional, optional-alias, and WebAssembly dependency targets with Buck2.
 - Check-only mode is clean immediately after materialization and detects any
@@ -249,7 +239,7 @@ reproducible benchmark binds hardware, cache, scale, generator, and platforms.
 - Either declaration-side trigger yields the same complete-HEAD relation;
   legitimate target subsets pass and stale/duplicate/unresolved identities fail.
 - Identical first-party inputs and ownership facts yield byte-identical sorted
-  violations and repair shards; a disjoint change remains applicable only when
+  violations and canonical owner groups; a disjoint change remains applicable only when
   every declared semantic precondition still matches.
 
 ## Failure
@@ -257,6 +247,8 @@ reproducible benchmark binds hardware, cache, scale, generator, and platforms.
 - Bare Reindeer output plus an undocumented/manual mutation is required.
 - Host environment, network availability, iteration order, temporary path, or
   current platform changes output semantics.
+- Generator graph, rendered bytes, maintained-parser projection, round trip, or
+  Buck2 consumer evidence disagrees, is lossy, unbound, or self-derived.
 - A failed or interrupted run truncates, partially replaces, or blesses stale
   `third-party/BUCK`.
 - Generation identity or publication receipt omits a bound input/tool/profile,
@@ -279,8 +271,11 @@ reproducible benchmark binds hardware, cache, scale, generator, and platforms.
 
 - Missing/malformed manifest, lock, configuration, fixup, generator, and
   required alias; path traversal, symlink substitution, and input mutation.
-- Generator nonzero exit, timeout, signal, oversized stdout/stderr, attempted
-  network access, and unallowlisted environment dependence.
+- Generator nonzero exit, timeout, signal, oversized artifact/diagnostic,
+  attempted network access, and unallowlisted environment dependence.
+- Two-root byte/graph mismatch; unknown parser node; lossy projection; round-trip
+  mismatch; same-digest/different-content; parser/profile drift; and Buck2
+  consumer failure for each generator/parser/grammar/platform tuple.
 - Different first/second output, duplicate/dangling targets, unsupported
   platform branch, and absent native fixup effect.
 - Unsupported publication profile, lease acquisition/loss or CAS conflict,
