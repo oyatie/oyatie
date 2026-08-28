@@ -61,8 +61,12 @@ deliverables:
     exit_criteria: "console/ is absent from the tree and from the closed capability registry; ADR-0701 Status cites D-16; layout allowlists do not re-admit console/."
     verified_by: "presubmit"
   - id: ADR-0719-D17
-    description: "Presubmit is cargo fmt/clippy/test plus a short closed set of admission engines. Exactly one Build-owned, versioned, corpus-free first-party Cargo↔BUCK unconfigured source-declaration conformance engine is admitted. Census gates, Helm/OpenAPI/OpenSLO parity, docs-coverage, frozen counts, min_expected_*, and expected_total pins remain deleted, not trimmed."
-    exit_criteria: "ci/facade and governance/check contain only the D-17 keep set; cedar-deploy-parity and scan-root-liveness are gone; source-declaration conformance scans the complete HEAD first-party graph and activates only after adversarial and protected differential qualification plus repair of all detected legacy drift; no new gate is a path/count freeze, baseline/count allowlist, census fleet, second required context, configured Buck2 graph claim, or second Cargo/Buck compile proof."
+    description: "Presubmit is cargo fmt/clippy/test plus a short closed set of admission engines. Census gates, Helm/OpenAPI/OpenSLO parity, docs-coverage, frozen counts, min_expected_*, and expected_total pins are deleted, not trimmed."
+    exit_criteria: "ci/facade and governance/check contain only the D-17 keep set; cedar-deploy-parity and scan-root-liveness are gone; no new gate is a path/count freeze."
+    verified_by: "presubmit"
+  - id: ADR-0719-D17a
+    description: "Additive D-17 exception: exactly one Build-owned, versioned, corpus-free deterministic engine checks the complete immutable HEAD relation between first-party Cargo path dependencies and checked first-party BUCK labels; Pipeline may feed its protected verdict only into the existing workflow named presubmit."
+    exit_criteria: "The separate five-field D17a amendment defines reciprocal one-sided-drift refusal, DeclarationRepairSetV1 completeness, closed-grammar and differential qualification, and the no-execution/no-corpus/no-second-workflow boundary without claiming implementation or enforcement has landed."
     verified_by: "presubmit"
   - id: ADR-0719-D18
     description: "pipeline/ is one execute engine: TAP internally (tenant #0) and Cloud Build sold are two facades. GHA disjoint adapter. JSON/governance check fleets are not the product. ci/ is a retired path."
@@ -2607,101 +2611,6 @@ hand-edit of generated faces, D-8 unknown root name):
 | D-35 file budget on **touched** non-exempt files | Pattern: this file is too long. Not a frozen count of files. |
 | First-party Cargo↔BUCK source-declaration conformance (one Build-owned, versioned engine) | Pattern: a changed source declaration is outside the admitted relation. Direct parsing of a closed grammar, never a frozen package/path census. |
 
-**First-party Cargo↔BUCK source-declaration conformance — adopted 2026-08-28.**
-This is exactly one narrow exception to the default-delete rule above: a
-Build-owned, versioned, corpus-free engine. This amendment admits that engine;
-it does not claim that implementation, Pipeline integration, qualification, or
-enforcement has landed.
-
-**Inputs, grammar, and relation.** Pipeline acquires immutable base and head
-snapshot bytes through its SCM port, resolves owners, and supplies those bytes,
-snapshot identities, and ownership facts to the Build engine. Git is
-Pipeline's required current SCM adapter, not a Build-core dependency or the
-only future SCM. The engine neither invokes Git nor resolves owners. Cargo and
-BUCK syntax libraries are maintained Rust dependencies behind parser ports.
-The engine never grows a hand-written Starlark parser or interpreter. The
-closed grammar profile binds each parser's identity and version plus every
-admitted prelude, macro, and rule contract identity.
-
-A change to either declaration surface triggers evaluation of the complete
-HEAD first-party declaration graph over one closed, versioned Cargo/BUCK
-grammar and its unconfigured source IR. Base/head deltas are attribution and
-repair-sharding inputs only, never the correctness boundary. Every admitted
-first-party BUCK edge must resolve to a unique declared identity in the
-admitted unconfigured source IR and be permitted by the applicable Cargo
-declaration. Cargo-to-BUCK coverage applies only to the participating target
-and dependency kinds explicitly modeled by the Build owner SPEC. It does not
-require naive package-wide set equality: test and binary rules may legitimately
-consume subsets. Normal, build, dev, optional, target-specific, and path
-dependency semantics must map into that relation; an unsupported, unmapped,
-malformed, or ambiguous shape refuses rather than returning a false green. This
-is source-declaration conformance, not a claim about Buck2's configured graph
-and not a Cargo or Buck2 compile proof. The first-party scope explicitly
-excludes `third-party//` and generated `third-party/BUCK`; those remain in
-Reindeer declaration reconciliation, not this engine.
-
-The default grammar refuses unknown or unadmitted target- or
-dependency-affecting loads, macros, mutations or reassignments, control flow,
-comprehensions, selects or other configuration forms, expressions, label or
-cell forms, and Cargo semantics. Each remains refused until the Build owner
-SPEC explicitly admits and qualifies its exact source form. Simple loaded rule
-symbols, constants, and list concatenation are no exception: they are
-admissible only when that SPEC admits and qualifies them. Any later syntactic
-admission remains an unconfigured source relation; it does not evaluate
-configuration. Inability to prove that an unknown construct cannot influence
-target identity or dependencies is itself a refusal.
-
-**Outputs and effects.** The engine emits sorted typed violations and
-deterministic, non-mutating `DeclarationRepairSet` values sharded by the
-caller-supplied ownership facts. Snapshot identity is provenance, not a
-repository-wide application lock. Every repair set binds the admitted
-grammar-profile identity, including parser, prelude, macro, and rule-contract
-identities; declares the complete semantic read set and write set with expected
-digest-or-absence preconditions; and carries deterministic complete postimages.
-An unrelated disjoint commit does not invalidate a repair when every declared
-precondition still matches. Any semantic read-set or write-set mismatch
-refuses. Repeated evaluation of the same immutable inputs produces
-byte-identical violations, sharding, preconditions, and postimages. The engine
-does not apply a repair, mutate the candidate, invoke `buck2`, access the
-network, or spawn a shell or any other process. It creates no frozen count,
-package/path list, census file, learned baseline, or gate fleet.
-
-**Protected integration.** Pipeline later invokes the versioned engine from
-ruleset-selected protected source inside the existing trusted layout admission
-and feeds its verdict to the one existing `presubmit`. It does not add a
-workflow fleet, required context, or standalone Cargo/Buck compile lane, and it
-is not a second proof that either build system compiles the candidate. This
-source-declaration relation does not revive the deleted
-cross-artifact-agreement census. D-34's native Buck2,
-`cargo metadata --offline --locked`, and rust-analyzer dispatcher graphs remain
-unchanged; this engine neither replaces them nor stores their configured
-results. Pipeline later wraps and applies a `DeclarationRepairSet` through its
-canonical ChangeSet contract; that orchestration is not Build behavior.
-
-**Activation and qualification.** Initial enforcement activates only after
-adversarial qualification proves both declaration-side triggers, complete HEAD
-graph evaluation, delta-only attribution and repair sharding, legitimate target
-subsets, every modeled dependency semantic, unique declared-identity
-resolution, every admitted and refused grammar form, deterministic violations
-and repair sets, complete semantic read/write preconditions, complete
-postimages, mismatch refusal, and the no-side-effect boundary.
-Out-of-presubmit differential qualification compares the engine with protected
-`cargo metadata --offline --locked` and non-building Buck2 queries. The
-qualification harness invokes those tools; the engine and required declaration
-check do not. A change to the admitted grammar, Buck prelude, or rule contract
-or to a parser or admitted macro identity/version produces a new grammar-profile
-identity and mechanically requires requalification before enforcement resumes.
-
-Qualification must also repair every violation the engine detects as legacy
-drift on the then-current `dev`. There is no baseline, count, or violation
-allowlist. A stale or missing label, duplicate declared identity, unsupported
-relation or grammar form, false green, false failure for a legitimate subset,
-nondeterministic result, incomplete read/write preconditions or postimages,
-read/write mismatch acceptance, candidate mutation, process/network attempt,
-unqualified grammar/prelude/rule-contract change, or unresolved legacy
-violation blocks activation; after activation, the same declaration failures
-refuse `presubmit`.
-
 **Not needed** as crates, JSON dirs, or merge predicates: corpus-census,
 planning-projection as a required check, cross-artifact-agreement as a
 required check, endpoint-authorization-coverage (that is tests + PDP
@@ -2716,39 +2625,72 @@ are not a D-8 unknown-name step **REMOVE**.
 
 **MUST (graph, not JSON gates)**
 
-- **achieves:** merge is TAP execute and first-party source declarations stay
-  conformant under one protected verdict, not a policy-file farm, configured
-  graph oracle, or second compile plane.
-- **origin:** census JSON and `governance/check` became the product while Cloud
-  Build never shipped; recurring stale first-party labels survived until
-  nonblocking weekly Buck smoke or manual repair without deterministic
-  owner-sharded repairs.
+- **achieves:** merge is TAP execute, not a policy-file farm.
+- **origin:** census JSON and `governance/check` became the product; Cloud
+  Build never shipped.
 - **rule:** presubmit is fmt + clippy + nextest plus the short pattern-step
-  table. That table admits exactly one Build-owned, versioned, corpus-free
-  first-party Cargo↔BUCK source-declaration conformance engine under the complete
-  contract above: Pipeline supplies immutable snapshots and ownership facts,
-  Build checks the complete HEAD graph with deltas used only for attribution
-  and repair sharding, and Build emits typed violations plus neutral
-  `DeclarationRepairSet` values with complete semantic read/write preconditions
-  and deterministic complete postimages. Pipeline alone invokes the protected
-  engine in existing trusted layout admission, feeds the one `presubmit`, and
-  wraps repairs in its canonical ChangeSet contract. Path/count freeze JSON is
-  not a gate; `governance/` is registry not CI; new check crates are
-  born-blocking unless they are a tabled pattern step in the `pipeline/` graph.
-- **ensure:** no new `*-policy.json` freeze, `governance/check/*` census crate,
-  gate fleet, or GHA predicate this ADR deleted. Adversarial and protected
-  differential qualification proves the closed grammar/profile, full-HEAD
-  evaluation, first-party/Reindeer boundary, deterministic repair-set
-  preconditions/postimages, mismatch refusal, and forbidden side effects;
-  profile identity changes mechanically requalify, and enforcement remains off
-  until all detected legacy drift is repaired without an allowlist. Review
-  preserves the D-34 dispatcher graphs and rejects Build-side Git/owner
-  resolution, required-path tool invocation, a configured-graph claim, a
-  second required context, or a second compile proof.
-- **overturn_when:** one founder-accepted five-field amendment changes this
-  combined TAP/declaration contract while proving one protected presubmit, no
-  frozen corpus/count/fleet, no second compile plane or context, and equally
-  fail-closed complete-HEAD declaration integrity with deterministic repairs.
+  table; path/count freeze JSON is not a gate; `governance/` is registry
+  not CI; new check crates are born-blocking unless they are a pattern
+  step in the `pipeline/` graph.
+- **ensure:** no new `*-policy.json` freeze; no new `governance/check/*`
+  census crate; GHA must not grow predicates this ADR deleted.
+- **overturn_when:** a five-field ADR adds one engine that evaluates
+  IR/Cedar/cargo graph without a frozen corpus.
+
+**D17a amendment — first-party declaration integrity (additive).** This admits
+one cross-owner law boundary only. It does not claim that implementation,
+qualification, Pipeline integration, enforcement, or legacy-drift repair has
+landed.
+
+- **achieves:** first-party Cargo path dependencies and checked first-party BUCK
+  labels cannot silently diverge while merge remains one `presubmit`, not a
+  second build/test plane, census product, or configured-graph oracle.
+- **origin:** repository moves and dependency edits left reciprocal declaration
+  drift for weekly Buck smoke or manual repair; the first adoption also rewrote
+  D-17 instead of preserving its additive amendment history.
+- **rule:** exactly one Build-owned, versioned, corpus-free deterministic engine
+  evaluates, on every protected invocation, the complete immutable candidate
+  HEAD relation. Participating Cargo edges are only direct or workspace-inherited
+  local path dependencies whose resolved destinations are first-party repository
+  packages; participating BUCK labels resolve to those same identities. Normal,
+  build, dev, optional, and target-specific categories participate only when
+  they are those local path dependencies. Registry, Git, and other third-party
+  Cargo dependencies, `third-party//`, and generated `third-party/BUCK` are out
+  of scope. The relation is bidirectional: either one-sided drift refuses.
+  Base/head deltas may attribute and shard repairs, never suppress complete-HEAD
+  evaluation. Unknown or ambiguous dependency-affecting grammar fails closed.
+  The engine emits sorted typed violations and deterministic, non-mutating
+  `DeclarationRepairSetV1` values with source-snapshot provenance, complete
+  semantic read/write preconditions, complete deterministic postimages, explicit
+  postconditions, postimage/output and whole-set digests, and deterministic
+  grouping by caller-supplied owner facts; owner-group write sets are pairwise
+  disjoint, and ambiguous ownership or overlap refuses. Application across a
+  later unrelated commit is allowed only while every declared semantic
+  read/write precondition matches; any mismatch refuses. Pipeline may execute
+  the engine only from protected source and feed its verdict to exactly one
+  workflow named `presubmit`. Any later application requires a separately
+  adopted Pipeline canonical ChangeSet contract. The required engine does none
+  of the following: compile or test the candidate; invoke Cargo, Buck2, a shell,
+  any process, or a candidate executable; access a network or SCM; discover
+  owners; mutate or apply changes; orchestrate campaigns; store a graph corpus,
+  baseline, count, or path inventory; or claim configured-graph authority.
+- **ensure:** adversarial qualification proves both declaration directions,
+  every participating dependency category, complete-HEAD evaluation, reciprocal
+  one-sided-drift refusal, fail-closed unknown grammar, deterministic V1 repairs,
+  complete preconditions/postimages/postconditions/digests, pairwise-disjoint
+  owner groups, and every forbidden effect. Differential qualification stays
+  outside `presubmit` and compares with protected
+  `cargo metadata --offline --locked --no-deps --format-version 1` and
+  non-building `buck2 uquery`. Any admitted grammar/profile identity change
+  mechanically requires requalification before enforcement resumes. Enforcement
+  remains off until qualification and deterministic repair of all detected
+  legacy drift complete without a stored baseline or exception inventory;
+  review rejects a second workflow, required context, gate fleet, compile proof,
+  configured-graph claim, or owner-local implementation wiring in this root law.
+- **overturn_when:** a founder-accepted five-field amendment preserves one
+  protected `presubmit`, corpus-free complete-HEAD bidirectional integrity,
+  deterministic versioned repairs, and equally fail-closed execution,
+  qualification, ownership, and grammar boundaries.
 
 ### D-18 — `pipeline/` product vs GHA operator; purge `workflow/`; `.github/scripts` glue
 
