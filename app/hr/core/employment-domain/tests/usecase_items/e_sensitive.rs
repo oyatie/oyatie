@@ -5,7 +5,6 @@ mod sensitive_usecase_contract {
         SensitiveReadDecisionStatus, SensitiveReadLegalBasis, SensitiveReadPurpose,
         prepare_sensitive_hr_read_envelope,
     };
-
     #[test]
     fn accepted_sensitive_read_preserves_the_policy_audit_envelope() {
         // Catches sensitive-read actor, policy, or PHI payload metadata being altered.
@@ -25,7 +24,6 @@ mod sensitive_usecase_contract {
             evaluated_at_epoch_seconds: 1_779_533_400,
         })
         .expect("literal policy-bound sensitive read is accepted");
-
         let envelope = outcome.audit_envelope;
         assert_eq!(envelope.topic.value, "audit.hr.sensitive-read.policy");
         assert_eq!(envelope.tenant_id.value.value, "ten_acme");
@@ -73,75 +71,79 @@ mod sensitive_usecase_contract {
         assert_eq!(envelope.payload_data_class.value, DataClass::Phi);
         assert_eq!(envelope.schema_version.value, 1);
         assert_eq!(
-            envelope.topic.data_class.compatibility_data_class(),
-            DataClass::InternalOnly
-        );
-        assert_eq!(
-            envelope.data_kind.data_class.compatibility_data_class(),
-            DataClass::SensitivePipaArticle23
-        );
-        assert_eq!(
-            envelope.policy_ref.data_class.compatibility_data_class(),
-            DataClass::InternalOnly
-        );
-        assert_eq!(
-            envelope
-                .basis_evidence_ref
-                .data_class
-                .compatibility_data_class(),
-            DataClass::InternalOnly
-        );
-        assert_eq!(
-            envelope
-                .consent_evidence_ref
-                .data_class
-                .compatibility_data_class(),
-            DataClass::InternalOnly
-        );
-        assert_eq!(
-            envelope
-                .request_evidence_ref
-                .data_class
-                .compatibility_data_class(),
-            DataClass::InternalOnly
-        );
-        assert_eq!(
-            envelope
-                .read_log_evidence_ref
-                .data_class
-                .compatibility_data_class(),
-            DataClass::InternalOnly
-        );
-        assert_eq!(
-            envelope
-                .decision_status
-                .data_class
-                .compatibility_data_class(),
-            DataClass::InternalOnly
-        );
-        assert_eq!(
-            envelope
-                .idempotency_key
-                .data_class
-                .compatibility_data_class(),
-            DataClass::InternalOnly
-        );
-        assert_eq!(
-            envelope
-                .payload_data_class
-                .data_class
-                .compatibility_data_class(),
-            DataClass::InternalOnly
-        );
-        assert_eq!(
-            envelope
-                .schema_version
-                .data_class
-                .compatibility_data_class(),
-            DataClass::Public
+            [
+                envelope.topic.data_class.compatibility_data_class(),
+                envelope.tenant_id.data_class.compatibility_data_class(),
+                envelope
+                    .legal_entity_id
+                    .data_class
+                    .compatibility_data_class(),
+                envelope
+                    .actor_employee_id
+                    .data_class
+                    .compatibility_data_class(),
+                envelope
+                    .subject_employee_id
+                    .data_class
+                    .compatibility_data_class(),
+                envelope.data_kind.data_class.compatibility_data_class(),
+                envelope.purpose.data_class.compatibility_data_class(),
+                envelope.legal_basis.data_class.compatibility_data_class(),
+                envelope.policy_ref.data_class.compatibility_data_class(),
+                envelope
+                    .basis_evidence_ref
+                    .data_class
+                    .compatibility_data_class(),
+                envelope
+                    .consent_evidence_ref
+                    .data_class
+                    .compatibility_data_class(),
+                envelope
+                    .request_evidence_ref
+                    .data_class
+                    .compatibility_data_class(),
+                envelope
+                    .read_log_evidence_ref
+                    .data_class
+                    .compatibility_data_class(),
+                envelope
+                    .decision_status
+                    .data_class
+                    .compatibility_data_class(),
+                envelope
+                    .idempotency_key
+                    .data_class
+                    .compatibility_data_class(),
+                envelope
+                    .payload_data_class
+                    .data_class
+                    .compatibility_data_class(),
+                envelope
+                    .schema_version
+                    .data_class
+                    .compatibility_data_class(),
+            ],
+            [
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::SensitivePipaArticle23,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::Public,
+            ]
         );
     }
-
     #[test]
     fn every_sensitive_data_kind_constructs_a_public_envelope_with_its_payload_class() {
         // Catches a valid sensitive-data kind being rejected or mapped to another payload class.
@@ -271,7 +273,6 @@ mod sensitive_usecase_contract {
             DataClass::Public
         );
     }
-
     #[test]
     fn sensitive_read_returns_the_domain_error_when_consent_evidence_is_missing() {
         // Catches consent reads bypassing the mandatory evidence boundary.
@@ -291,7 +292,6 @@ mod sensitive_usecase_contract {
             evaluated_at_epoch_seconds: 1_779_533_400,
         })
         .expect_err("consent without evidence is rejected");
-
         assert_eq!(
             error,
             HrAppError::Domain(HrDomainError::MissingConsentEvidence)

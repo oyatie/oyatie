@@ -107,22 +107,66 @@ mod onboarding_usecase_contract {
             outcome.audit_envelope.payload_data_class.value,
             DataClass::PiiIdentifying
         );
-        assert_eq!(
-            outcome
-                .audit_envelope
-                .payload_data_class
-                .data_class
-                .compatibility_data_class(),
-            DataClass::InternalOnly
-        );
         assert_eq!(outcome.audit_envelope.schema_version.value, 1);
         assert_eq!(
-            outcome
-                .audit_envelope
-                .schema_version
-                .data_class
-                .compatibility_data_class(),
-            DataClass::Public
+            [
+                outcome
+                    .audit_envelope
+                    .topic
+                    .data_class
+                    .compatibility_data_class(),
+                outcome
+                    .audit_envelope
+                    .tenant_id
+                    .data_class
+                    .compatibility_data_class(),
+                outcome
+                    .audit_envelope
+                    .legal_entity_id
+                    .data_class
+                    .compatibility_data_class(),
+                outcome
+                    .audit_envelope
+                    .aggregate_ref
+                    .data_class
+                    .compatibility_data_class(),
+                outcome
+                    .audit_envelope
+                    .evidence_ref
+                    .data_class
+                    .compatibility_data_class(),
+                outcome
+                    .audit_envelope
+                    .payload_kind
+                    .data_class
+                    .compatibility_data_class(),
+                outcome
+                    .audit_envelope
+                    .idempotency_key
+                    .data_class
+                    .compatibility_data_class(),
+                outcome
+                    .audit_envelope
+                    .payload_data_class
+                    .data_class
+                    .compatibility_data_class(),
+                outcome
+                    .audit_envelope
+                    .schema_version
+                    .data_class
+                    .compatibility_data_class(),
+            ],
+            [
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::Public,
+            ]
         );
     }
 

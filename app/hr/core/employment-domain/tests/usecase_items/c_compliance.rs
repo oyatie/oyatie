@@ -88,11 +88,57 @@ mod compliance_usecase_contract {
         );
         assert_eq!(rules_dispatch.schema_version.value, 1);
         assert_eq!(
-            rules_dispatch
-                .schema_version
-                .data_class
-                .compatibility_data_class(),
-            DataClass::Public
+            [
+                rules_dispatch.topic.data_class.compatibility_data_class(),
+                rules_dispatch
+                    .tenant_id
+                    .data_class
+                    .compatibility_data_class(),
+                rules_dispatch
+                    .legal_entity_id
+                    .data_class
+                    .compatibility_data_class(),
+                rules_dispatch
+                    .workflow_ref
+                    .data_class
+                    .compatibility_data_class(),
+                rules_dispatch
+                    .obligation_kind
+                    .data_class
+                    .compatibility_data_class(),
+                rules_dispatch
+                    .jurisdiction
+                    .data_class
+                    .compatibility_data_class(),
+                rules_dispatch
+                    .required_steps
+                    .data_class
+                    .compatibility_data_class(),
+                rules_dispatch
+                    .evidence_refs
+                    .data_class
+                    .compatibility_data_class(),
+                rules_dispatch
+                    .idempotency_key
+                    .data_class
+                    .compatibility_data_class(),
+                rules_dispatch
+                    .schema_version
+                    .data_class
+                    .compatibility_data_class(),
+            ],
+            [
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::Public,
+            ]
         );
 
         assert_eq!(
@@ -134,11 +180,57 @@ mod compliance_usecase_contract {
         );
         assert_eq!(council_dispatch.schema_version.value, 1);
         assert_eq!(
-            council_dispatch
-                .schema_version
-                .data_class
-                .compatibility_data_class(),
-            DataClass::Public
+            [
+                council_dispatch.topic.data_class.compatibility_data_class(),
+                council_dispatch
+                    .tenant_id
+                    .data_class
+                    .compatibility_data_class(),
+                council_dispatch
+                    .legal_entity_id
+                    .data_class
+                    .compatibility_data_class(),
+                council_dispatch
+                    .workflow_ref
+                    .data_class
+                    .compatibility_data_class(),
+                council_dispatch
+                    .obligation_kind
+                    .data_class
+                    .compatibility_data_class(),
+                council_dispatch
+                    .jurisdiction
+                    .data_class
+                    .compatibility_data_class(),
+                council_dispatch
+                    .required_steps
+                    .data_class
+                    .compatibility_data_class(),
+                council_dispatch
+                    .evidence_refs
+                    .data_class
+                    .compatibility_data_class(),
+                council_dispatch
+                    .idempotency_key
+                    .data_class
+                    .compatibility_data_class(),
+                council_dispatch
+                    .schema_version
+                    .data_class
+                    .compatibility_data_class(),
+            ],
+            [
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::InternalOnly,
+                DataClass::Public,
+            ]
         );
     }
 
