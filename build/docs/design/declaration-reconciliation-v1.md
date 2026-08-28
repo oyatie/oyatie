@@ -71,6 +71,8 @@ The v1 fields, in canonical declaration order, are:
 
 ```rust
 struct RepositoryCorrelationV1 { repository_id: String, revision: String }
+struct CanonicalPathV1(String)
+enum InputFileRoleV1 { Manifest, Lock, Config, TreeManifest } enum TreeRoleV1 { Fixups, CargoSource }
 struct InputFileV1 { role: InputFileRoleV1, path: CanonicalPathV1, length_bytes: u64, sha256: DigestV1, bytes: Box<[u8]> }
 struct TreeEntryV1 { path: CanonicalPathV1, length_bytes: u64, sha256: DigestV1 }
 struct InputTreeV1 { role: TreeRoleV1, manifest: InputFileV1, root_sha256: DigestV1, file_count: u64, total_bytes: u64 }
@@ -85,16 +87,22 @@ struct GenerationRequestV1 { repository: RepositoryCorrelationV1, manifest: Inpu
 struct ReconciliationRequestV1 { generation: GenerationRequestV1, publish: Option<PublicationIntentV1> }
 struct GenerationInvocationV1 { request_id: DigestV1, request: GenerationRequestV1 }
 struct RawGenerationV1 { bytes: Box<[u8]>, stderr: Box<[u8]> }
+enum GenerationPortErrorV1 { InputChanged, MissingFixup, GeneratorUnavailable, GeneratorFailed, GeneratorTimedOut, GeneratorOutputTooLarge, InternalInvariant }
+type PublicationPortErrorV1 = core::convert::Infallible;
 struct ValidatedGenerationV1 { request_id: DigestV1, generation_id: DigestV1, output_sha256: DigestV1, output_length_bytes: u64, bytes: Box<[u8]>, validator: ValidatorProfileV1 }
 struct PublicationIntentV1 { expected_preimage: Option<DigestV1>, publisher: PublisherProfileV1 }
 struct PublicationRequestV1 { generation: ValidatedGenerationV1, intent: PublicationIntentV1 }
 struct PublicationObservationV1 { outcome: PublicationOutcomeV1 }
+enum FailureClassV1 { InvalidRequest, InputChanged, MissingFixup, GeneratorUnavailable, GeneratorFailed, GeneratorTimedOut, GeneratorOutputTooLarge, NondeterministicOutput, InvalidGeneratedGraph, UnsupportedPublicationProfile, DestinationLeaseUnavailable, LeaseLost, DestinationConflict, StageWriteFailed, StageSyncFailed, ReplaceFailed, DirectorySyncFailed, InternalInvariant }
 struct FailureV1 { class: FailureClassV1 }
 enum ReplacementStateV1 { No, Maybe } enum DurabilityStateV1 { Unknown }
 enum PublicationOutcomeV1 { Unchanged, Replaced, Failed { failure: FailureV1, replacement: ReplacementStateV1 }, Indeterminate { failure: FailureV1, replacement: ReplacementStateV1, durability: DurabilityStateV1 } }
 struct PublicationAttemptReceiptV1 { attempt_id: DigestV1, generation_id: DigestV1, expected_preimage: Option<DigestV1>, publisher: PublisherProfileV1, outcome: PublicationOutcomeV1 }
 enum ReconciliationResultV1 { Refused { request_id: Option<DigestV1>, failure: FailureV1 }, Generated { generation: ValidatedGenerationV1 }, Published { generation: ValidatedGenerationV1, attempt: PublicationAttemptReceiptV1 } }
+enum ReconciliationPhaseV1 { Pending, Running, Succeeded, Failed, Indeterminate }
 ```
+
+`GenerationPortErrorV1` is an adapter-origin Rust enum with no independent wire encoding: its variants map one-to-one to same-named `FailureV1` classes/tags `1/2/3/4/5/6/17`; core returns `Refused { request_id: Some(request_id), failure }`, and no other generation error conforms. `PublicationPortErrorV1` is `Infallible`: an invalid `PublicationRequestV1` or unsupported profile/capability is refused before `publish` and is not an attempt. Once invoked, the adapter always returns `Ok(PublicationObservationV1)`; post-invocation failure classes are only `DestinationLeaseUnavailable` through `DirectorySyncFailed` or `InternalInvariant`, and adapter/process/filesystem faults are `Failed` with replacement `No` only when no replacement is proven, otherwise `Indeterminate` with replacement `Maybe` and durability `Unknown`, never panic or `Err`. Core constructs exactly one `PublicationAttemptReceiptV1` from every invocation's `Unchanged`, `Replaced`, `Failed`, or `Indeterminate` observation.
 
 `DigestV1=[u8;32]`; display is `sha256:` plus 64 lowercase hex. Tags are one
 byte and closed: file roles manifest/lock/config/tree-manifest=`0/1/2/3`; tree
