@@ -98,9 +98,9 @@ Write envelope: owner docs only when evidence changes law; scratch stays outside
 
 Class: structural design and shared-path escalation; depends on L1b.
 
-- Write an independently reviewed implementation plan naming every new package,
-  source/test file, Buck target, Cargo member implication, and exact verification
-  command before code changes.
+- Independently review the file-exact [execution map](docs/design/declaration-reconciliation-v1.md),
+  which names every package, source/test file, Buck target, Cargo member
+  implication, and exact verification command before code changes.
 - Prefer `build/dependency-declarations/{core,ports,adapters,facade}`; verify the
   live layout grammar, workspace globs, package naming, and parent-index rules.
   Route any admission need to Pipeline owner planning; it is outside this
