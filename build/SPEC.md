@@ -21,9 +21,9 @@ fails unresolved fixups. Package decisions live in
 `third-party/fixups/<crate>/fixups.toml`; Buck2 loads the emitted rules.
 
 This path is not reproducible: configured and checked headers name different
-deleted wrappers; PSM describes a post-generation OS rewrite; and clean L1a
-reconnaissance found unresolved build-script packages. L1b inventories these;
-it may not preserve the historical overlay by default.
+deleted wrappers; PSM describes a post-generation OS rewrite; and clean
+reconnaissance found unresolved build-script packages. The provenance inventory
+does not preserve the historical overlay by default.
 
 </landed_contract>
 
@@ -31,72 +31,30 @@ it may not preserve the historical overlay by default.
 
 ## Current facts and lifecycle model
 
-Root declarations and hosted jobs name stable 1.98.0: rustc `88d9e12ae` and
-Cargo `797e8a9bc`. Buck, the distroless builder, and several standards still
-narrate 1.97.1. The observed nightly moved from rustc `c656540d6` to
-`bff8e12ff`, paired with Cargo `e8cb624d5`; floating channel names are not
-receipt identities.
+Root declarations and hosted jobs name stable 1.98.0 (`rustc` `88d9e12ae`,
+Cargo `797e8a9bc`); Buck, the image builder, and standards still narrate 1.97.1.
+The observed nightly is `bff8e12ff`/Cargo `e8cb624d5`. Floating channel names
+are discovery inputs, never receipt identities.
 
-The lock selects safe `arrayref` 0.3.9 rather than malicious, deleted 0.3.10. An
-exact `bff8e12ff` all-target offline check passed with the default next trait
-solver and Polonius Alpha, but reported future-incompatible
-`attribute-derive-macro` 0.10.5 and `proc-macro-error2` 2.0.1 through Leptos/
-`application-shell-frontend`, plus `redis` 0.27.6 through the Valkey adapter.
-These are preview remediation inputs, not authority to mutate stable pins.
+Typed intake retains exact MSRV/stable/beta/nightly tools, components, targets,
+release items, owner dispositions, dependency source/version/checksum/role/
+feature/audit/closure, and canonical advisory aliases and provenance. Discovery
+may use network adapters; qualification consumes an immutable bound mirror,
+refuses conflicting ranges, and takes Security decisions through a port.
 
-Typed records cover exact MSRV/stable/beta/nightly toolchain and component/
-target identities; provenance-bound release items, nonbinding Build
-recommendations, and consuming-owner-supplied or accepted
-`ADOPT|BENCHMARK|DEFER|REJECT` dispositions; dependency source/version/checksum,
-publish/yank/maintainer/role/feature/audit/affected-closure facts; and canonical
-vulnerability ranges, aliases, withdrawals, provenance, and Security decision
-references.
+One candidate transaction inventories every pin, preserves the declared MSRV,
+regenerates Cargo/Reindeer/Buck declarations, computes affected closure, and
+emits neutral ChangeSet, rollback, and qualification receipts. It evaluates
+build scripts, features, duplicates, source ownership, publication age, yanks,
+and audits; owned quarantine replaces unstable Cargo minimum-age behavior.
 
-Discovery may use networked adapters, but qualification consumes an immutable,
-source-provenance-bound mirror. It deduplicates advisory aliases, preserves
-withdrawals and modifications, and refuses conflicting affected/fixed ranges.
-Security-owned severity, exploitability, embargo, disclosure, VEX, and CNA
-decisions enter through a port; Build supplies graph impact and transformation
-mechanics and does not become a CNA.
-
-One candidate transaction inventories all pin surfaces, resolves with the
-declared MSRV policy, regenerates Cargo/Reindeer/Buck declarations, computes
-configured-target and semantic fanout, and emits an atomic ChangeSet plus
-rollback and qualification receipts. Dependency admission also evaluates
-normal/build/dev/proc-macro/native role, new build scripts, feature drift,
-duplicates, audits, source ownership, publish age, and yanks. An owned
-quarantine rule replaces reliance on unstable Cargo minimum-age behavior.
-
-Production-stable qualification runs MSRV and stable matrices separately. Beta
-and an exact dated nightly run shadow differential compilation, tests, lints,
-formatting, representative Buck targets, generated declarations, binary/
-symbolization checks, unsafe/FFI, WASM, build scripts/proc macros, and platform
-targets. Shadow lanes never mutate production pins or `Cargo.lock`.
-
-## Rust 1.96 through 1.100 applicability ledger seed
-
-This table seeds, but does not replace, item-by-item release-note disposition:
-
-| Train | High-impact upstream change | Oyatie-specific disposition work |
-|---|---|---|
-| 1.96/1.96.1 stable | Copyable `core::range` spans; `assert_matches!`; WASM undefined symbols become link errors; Cargo tarball/auth CVEs plus later libssh2 CVEs and a MIR fix | Adopt spans for future semantic source ranges while public APIs accept `RangeBounds`; use richer match assertions in new fault tests; preserve strict WASM linking and explicit imports; treat point releases as emergency toolchain candidates, not MSRV events. |
-| 1.97/1.97.1 stable | v0 symbol mangling; Cargo `build.warnings` and `resolver.lockfile-path`; visible linker diagnostics; integer bit-width/isolation APIs; new NVPTX baseline; LLVM miscompilation fix | Requalify symbolizers, profiles, backtraces, binary provenance, native linkers, and any GPU target; use alternate lockfile paths for read-only snapshot analysis; evaluate cache-neutral warning denial while retaining Clippy policy; property-prove any bit-helper simplification; rebuild affected artifacts after a compiler-fix rollout. |
-| 1.98 stable | source-subrange and prefix/suffix APIs; buffered integer formatting; algebraic floating point; mutable-slice atomic views; endian-specific UTF-16 decoding; `CommandArgs` thread traits; `ManuallyDrop<Box<_>>` guarantee; runtime-symbol/FFI lints and stricter layout checks | Use subrange APIs in semantic/codemod provenance and evaluate `strip_circumfix` for exact parser chains; replace formatting crates only when direct usage and benchmarks justify it (`itoa` is currently transitive); flag algebraic floats as unsuitable for exact/deterministic surfaces and require the consuming owner to accept error budgets elsewhere; adopt remaining APIs only at evidenced call sites; prioritize unsafe/FFI/layout and rustfmt-delta qualification. |
-| 1.99 projected | Cargo `debug` profile; CI incremental compilation off by default; edition-2024 workspace dependency `default-features` override; lint-name and resolver changes | Keep provisional until release; Oyatie already sets `CARGO_INCREMENTAL=0`, so prove no drift; model `dev`/`debug` explicitly; diff Cargo/Reindeer/Buck feature closure before using member overrides. |
-| 1.100 nightly observed | next trait solver and Polonius alpha previews; Cargo build analysis, new cache layout, fine-grained locking, SBOM, section timing, profile-hint, trim-path, and minimum-publish-age experiments; removal of `update-breaking` | Run pinned-nightly compiler/performance/diagnostic differentials and file upstream regressions; treat the three observed future-incompatible transitive packages as owned dependency candidates; consume Cargo JSON messages rather than scrape `target/`; benchmark cache concurrency/rebuild causality and prototype SBOM/path hygiene behind non-authoritative adapters; keep breaking upgrades and publication quarantine in owned policy. |
-
-The base has `assert!(matches!(...))` in 214 Rust files, repeated
-`strip_prefix(...).and_then(...strip_suffix(...))` parser shapes, and one
-security-sensitive Merkle split using `leading_zeros`. Those are candidate
-corpora for 1.96 match diagnostics, 1.98 `strip_circumfix`, and 1.97 bit APIs,
-respectively—not bulk-edit authorization. No direct Rust/Cargo use was found
-for `itoa`, UTF-16 conversion, mutable atomic-slice APIs, `ManuallyDrop`, or
-`CommandArgs`; those items receive an evidence-backed defer/revisit trigger
-rather than a ceremonial rewrite.
-
-Every other Rust, Cargo, rustfmt, and Clippy release item requires a recorded
-consuming-owner disposition before the train can be called fully evaluated.
-“No code change” is valid only with an affected-graph query and reason.
+Stable qualification runs MSRV and production matrices separately. Exact beta
+and nightly identities shadow compile/test/lint/format, representative Buck,
+declarations, symbols, unsafe/FFI, WASM, macros/scripts, and platforms without
+mutating production pins. The safe `arrayref` 0.3.9 selection and current
+future-incompatibility findings are remediation inputs, not edit authority.
+Every release item needs an owner disposition; “no code change” needs an
+affected-graph reason. Rust 1.99/1.100 observations remain provisional.
 
 </toolchain_dependency_evolution>
 
@@ -134,7 +92,8 @@ a `RawGeneration`.
 
 ## Provisional Reindeer qualification candidate
 
-The sole implementation candidate is Reindeer `v2026.08.10.00` at `bb681570d2bc47d1446080c12b8681a50a95f628`; L1c ratifies that exact source now,
+The sole implementation candidate is Reindeer `v2026.08.10.00` at
+`bb681570d2bc47d1446080c12b8681a50a95f628`; the reviewed design ratifies it now,
 not a qualified or publishable binary. The later alias-changing source is comparison evidence,
 not a second candidate. Binary qualification binds reviewed
 source/executable digests and remains blocked on eleven inherited plus four
@@ -158,7 +117,7 @@ output.
 
 ## Candidate generation platform families
 
-L1c freezes exact Rust triples and Buck mappings for nine candidate families:
+The reviewed execution design freezes Rust triples and Buck mappings for nine families:
 Linux GNU and musl on `x86_64`/`aarch64`; macOS on `x86_64`/`aarch64`;
 Windows GNU and MSVC on `x86_64`; and `wasm32-unknown-unknown`.
 
@@ -284,17 +243,58 @@ builds/cqueries the representative Buck targets; check-only then reports clean.
 
 </errors_and_evidence>
 
-<placement_boundary>
+<first_party_source_relation>
 
-## Implementation placement gate
+## Closed unconfigured grammar and normalized relation
 
-Build behavior stays separate from `build/port-engine`. ADR-0719's meta-root
-grammar makes exact placement structural; prefer
-`build/dependency-declarations/{core,ports,adapters,facade}`, but authorize no
-code/root mutation until an independent plan names paths, targets, packages,
-the shared-file writer, and required reviews.
+The first-party engine consumes immutable base/head files, changed-path
+attribution, snapshot identities, and ownership facts supplied by its caller.
+Only head bytes determine conformance. Base/head deltas identify triggers and
+repair owners; they do not limit the evaluated first-party graph.
 
-Build's reusable provider role is adopted; compilation-unit, semantic-fact,
-conformance, and recipe schemas/homes remain nonbinding `ADR.md` details.
+A versioned grammar profile binds exact Cargo and Starlark parser identities,
+versions, admitted Cargo forms, BUCK preludes, loaded macros, rule contracts,
+label/cell forms, and limits. Maintained syntax libraries sit behind parser
+ports. Parsing returns complete normalized facts or typed refusal; partial facts
+never enter the relation, and Build owns no hand-written parser/interpreter.
 
-</placement_boundary>
+Normalized Cargo facts retain package/path identity, target kind, and
+normal/build/dev/optional/target-specific/path dependency semantics.
+Normalized BUCK facts retain target identity/kind, declaring path, and direct
+first-party edges. Every admitted BUCK edge resolves to a unique declared identity
+in the admitted unconfigured source IR and is permitted by Cargo. Coverage applies
+only to profiled participating target/dependency pairs; valid binary/test subsets pass,
+and a Cargo package with no profiled BUCK participation is not an automatic
+violation. Unsupported, unmapped, malformed, duplicate, or ambiguous facts
+refuse. Unknown loads, macros, expressions, mutation/reassignment, control flow,
+comprehensions, selects/configuration, labels, cells, or Cargo forms refuse until
+a profile admits and qualifies their exact source form. Inability to prove an unknown
+construct cannot influence target identity or dependencies is itself refusal;
+implementation never classifies an unrecognized construct harmless without that proof.
+
+The engine emits canonically sorted typed violations and owner-sharded
+`DeclarationRepairSet` values. Each repair set binds snapshot correlation,
+grammar-profile identity, the complete semantic read and write sets with an
+expected digest or expected absence for every path, and deterministic complete
+postimages for every write. The semantic read set includes every fact that
+influenced a postimage. Application refuses any mismatch; a disjoint commit is
+irrelevant when all declared preconditions still match. Reordered identical
+inputs yield byte-identical violations, shards, preconditions, and postimages.
+
+The engine never mutates a snapshot, applies a repair, invokes SCM or Buck2,
+resolves owners, evaluates configuration, accesses a network, or spawns a
+process. `third-party//` and generated `third-party/BUCK` stay outside this
+profile and inside the Reindeer transaction above.
+
+## Design, dependency, and qualification gate
+
+No implementation or root/package-graph mutation starts until an owner design
+names the parser ports/adapters, exact packages and targets, public/internal
+types, bounds, dependencies and provenance review, serialized root writer, and
+red/green/property/fuzz/differential fixtures. Reindeer qualification precedes
+new parser dependencies. Differential qualification runs outside required
+presubmit against protected Cargo metadata and non-building Buck queries; the
+engine itself invokes neither. Parser, grammar, prelude, macro, or rule-contract
+identity changes create a new profile and requalify before activation.
+
+</first_party_source_relation>
