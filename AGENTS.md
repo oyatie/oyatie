@@ -62,6 +62,33 @@ result, and never mixes into a current view.
   view, and a bounded five-field replacement lands atomically without restoring
   parallel tracked authority.
 
+## Fail-closed owner-prose migration
+
+1. The existing Pipeline owner-prose compatibility adapter must cut over first.
+   Its cutover is a prerequisite and is not claimed live.
+   No new owner may land until it does.
+2. At every stage, all existing non-root Markdown is frozen non-authoritative input.
+   It may change only in an explicitly assigned atomic migration or redirect-retirement lane.
+3. Every source claim is classified exactly once off-tree as exactly one of:
+   - `accepted-current`;
+   - `proposal/work`;
+   - `historical/rejected`; or
+   - `Unknown`.
+   Ambiguity, conflict, duplicate classification, or missing classification is `Unknown` and blocks.
+4. All `accepted-current` facts project exactly once into semantic native authority.
+   `proposal/work` stays in its PR or an external work system.
+   `historical/rejected` remains explicit opt-in SCM DATA.
+   Prose, citations, generated Markdown, and archives are not projection targets.
+5. One candidate includes every required native change plus all owner Markdown deletions.
+   It must pass exact-candidate compiler, test, runtime, PDP, SLO-controller, reconciler, Cargo, Buck, and ownership consumers.
+   It must also pass retained-reference refusal.
+   It must expose an offline view bound to the same immutable revision.
+   Every deletion requires per-deletion failure injection.
+   Inject a failed or missing consumer or input, revision mismatch, or view unavailability.
+6. Native projection and deletion land atomically.
+   The protocol permits no partial deletion, tombstone, archive, receipt, redirect, or in-tree view.
+   Atomic landing is required; otherwise the frozen source stays.
+
 ### Semantic operational names
 
 - **achieves:** operators can understand a check, job, test, or failure without

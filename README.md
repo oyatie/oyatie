@@ -33,12 +33,21 @@ build declarations, and `OWNERS` consumed at an immutable revision. Any human
 view is an untracked projection of those native facts. Historical lookup is a
 separate explicit opt-in and does not become current truth.
 
-## Participation and security
+## Participation, conduct, and security
 
-Authorized contributors follow [contribution expectations](.github/CONTRIBUTING.md)
-and the [Code of Conduct](.github/CODE_OF_CONDUCT.md). Report vulnerabilities
-privately through the route in the [security policy](.github/SECURITY.md); do
-not open a public issue for a vulnerability.
+Participation is limited to contributors authorized by the repository owner.
+Contributors must communicate professionally and maintain a harassment-free
+environment. Prohibited conduct includes harassment, discrimination,
+sexualized or derogatory language or imagery, and publication of another
+person's private information without explicit permission.
+
+The repository owner enforces these expectations and may reject or remove
+content, issue a warning, or suspend or ban participation. Report conduct
+concerns privately to the repository owner. Use an authorized private channel;
+do not publish conduct reports.
+
+Do not report vulnerabilities publicly. Submit them through
+[GitHub private vulnerability reporting](https://github.com/oyatie/oyatie/security/advisories/new).
 
 This repository is proprietary. Use and distribution are governed by the
 [`LICENSE`](LICENSE).

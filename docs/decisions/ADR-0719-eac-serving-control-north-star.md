@@ -1,209 +1,38 @@
 ---
 doc_status: published
 id: ADR-0719
-title: "EaC north star: serving vs control, proto IR, cell-local authz, packs not an EU world-floor"
-status: Accepted
-planning_impact: true
+title: "Transitional migration input: EaC serving/control authoring record"
+status: Superseded
+planning_impact: false
 deciders: founder
 date: 2026-08-21
 door: two-way
 owner: oyatie
 supersedes: []
 superseded_by: []
-amends: [ADR-0701, ADR-0702, ADR-0704, ADR-0705, ADR-0708, ADR-0716]
+amends: []
 amended_by: []
-depends_on: [ADR-0615, ADR-0701, ADR-0702, ADR-0704, ADR-0705]
-related: [ADR-0243, ADR-0280, ADR-0354, ADR-0049]
+depends_on: []
+related: []
 milestone: W0
-deliverables:
-  - id: ADR-0719-D1
-    description: "Record serving-path vs control-path split as live law: 10^8-class user/Check traffic is in-cell RAM snapshots; writes, IR apply, packs, and cluster objects are a journaled control plane. k8s/ports: etcd is the v1 adapter, owned journal is the destination adapter; cluster-object API is never the etcd API. Time is our TrueTime: interval API always; cell clock port; data consumes it; storage does not use clock as identity."
-    exit_criteria: "This ADR is Accepted; CLAUDE.md live apex list cites it; no implement PR treats etcd or a Kubernetes object store as the Check/IR/tuple store."
-    verified_by: "presubmit"
-  - id: ADR-0719-D2
-    description: "Record EaC as one protobuf IR plus per-plane reconcilers behind one Connect/H3 gateway contract (N cell frontends). No wrap language. JSON is not a product codec. Gateway TLS port crates: hybrid ML-KEM public default, classical dying, ECH in tree. Visibility is after trusted terminate + audit export, not on-path QUIC MITM. No Istio. No standing gRPC. No firewall/ cap."
-    exit_criteria: "New public product surfaces and IR apply/preview/watch are authored from the Rust/proto contract SSOT; Helm/Tofu/CUE are not sources of desired state."
-    verified_by: "presubmit"
-  - id: ADR-0719-D3
-    description: "Record compliance as jurisdiction packs. EU is not the world baseline. KR (and others) are not GDPR subsets. ReBAC and snapshots stay in the certified cell."
-    exit_criteria: "Pack overlays are the only place jurisdiction law is specialized; no implement PR assumes EU-only identity, retention, or global ACL replication."
-    verified_by: "presubmit"
-  - id: ADR-0719-D8
-    description: "Closed directory set for repo root and capability/app/<product>/ roots. Capability/app paths exist only when consumed by a compiler, test, PDP, SLO controller, reconciler, Cargo, Buck, or ownership enforcement. No tracked Markdown exists below a capability or app root; the only destination Markdown is the root compatibility set README.md, AGENTS.md, and CLAUDE.md."
-    exit_criteria: "The destination grammar excludes docs/, owner README.md, ADR.md, PRD.md, SPEC.md, PLAN.md, and every other capability/app Markdown path; the separate Pipeline lane later enforces the three-root-Markdown allowlist without this ADR claiming that enforcement is live."
-    verified_by: "presubmit"
-  - id: ADR-0719-D9
-    description: "The merge-blocking CI context is named presubmit (Google TAP-shaped). New workflow and required-context names do not use an oyatie- prefix. Today's presubmit string is a rename target, not the destination name."
-    exit_criteria: "This ADR uses presubmit as verified_by; no new ADR or workflow is named ci-*; the live GitHub required context rename is a follow-through PR that updates branch protection in the same change."
-    verified_by: "presubmit"
-  - id: ADR-0719-D10
-    description: "Hyperscaler pipeline names: presubmit (merge-blocking, graph-aware), postsubmit (on merge to dev), nightly, weekly, promotion rungs dev-staging-canary-production, release train bundling. One required context. No oyatie- prefix. No per-capability required GitHub checks."
-    exit_criteria: "This ADR defines those cadences; new workflows use those names; presubmit remains a rename target with branch protection in the same follow-through change."
-    verified_by: "presubmit"
-  - id: ADR-0719-D11
-    description: "Cloud-provider placement: the registered capabilities ARE the cloud. Repo root holds only directory names plus meta (build/third-party; base/ only when admitted) and app/. No kernel/ or os/ rungs — fleet node is Linux + compute agent, not Talos/kube. Each capability owns one engine (core), ports, adapters, facade. 2+ compose in app/. No cloud/ folder."
-    exit_criteria: "This table is the placement reading; new engines go in an existing cap or a §7 registry split, not a new root dump; app/ is composition only."
-    verified_by: "presubmit"
-  - id: ADR-0719-D13
-    description: "Fleet is stripped-minimum Linux on Cloud Hypervisor and/or Firecracker. Asterinas/Hermit are not plant today; reconsider only with a measured five-field ADR. Not Talos/kube as the cloud OS. Delete kernel/ and os/."
-    exit_criteria: "kernel/ and os/ are absent from the tree and from the capability-registry meta_directories; AGENTS.md/CLAUDE.md no longer list them as production rungs; port-engine remains under build/."
-    verified_by: "presubmit"
-  - id: ADR-0719-D14
-    description: "Per-capability is/is-not/burn for the cloud-provider set. Nested leftover service trees burn. Product engines (payments, ledger, SaaS apps) are out of this set — later discussion."
-    exit_criteria: "This table is the reading for reorg; no PR parks a second engine inside a cap or treats a k8s/Talos port as that cap's core."
-    verified_by: "presubmit"
-  - id: ADR-0719-D15
-    description: "Cloud-provider purpose, in-scope, and out-of-scope for each registered engine. This set is IaaS/PaaS/control plane only. Tenant SaaS (HR, payroll, community, Slack-superset, SAP-class ledger/payments products) is app/, not a capability charter."
-    exit_criteria: "Reorg and new crates match these in/out lists; no cap charter absorbs an app product; no app/ grows a cloud engine."
-    verified_by: "presubmit"
-  - id: ADR-0719-D16
-    description: "console/ is not a cloud-provider capability. Discard the ops-dashboard-control-center pilot. git rm; no empty scaffold; do not park in app/ops-console. Token broker is iam. Operator actions stay on each cap facade. A future UI is app/ after the apps discussion."
-    exit_criteria: "console/ is absent from the tree and from the closed capability registry; ADR-0701 Status cites D-16; layout allowlists do not re-admit console/."
-    verified_by: "presubmit"
-  - id: ADR-0719-D17
-    description: "Presubmit is cargo fmt/clippy/test plus a short closed set of admission engines. Exactly one Build-owned, versioned, corpus-free first-party Cargo↔BUCK unconfigured source-declaration conformance engine is admitted. Census gates, Helm/OpenAPI/OpenSLO parity, docs-coverage, frozen counts, min_expected_*, and expected_total pins remain deleted, not trimmed."
-    exit_criteria: "ci/facade and governance/check contain only the D-17 keep set; cedar-deploy-parity and scan-root-liveness are gone; source-declaration conformance scans the complete HEAD first-party graph and activates only after adversarial and protected differential qualification plus repair of all detected legacy drift; no new gate is a path/count freeze, baseline/count allowlist, census fleet, second required context, configured Buck2 graph claim, or second Cargo/Buck compile proof."
-    verified_by: "presubmit"
-  - id: ADR-0719-D18
-    description: "pipeline/ is one execute engine: TAP internally (tenant #0) and Cloud Build sold are two facades. GHA disjoint adapter. JSON/governance check fleets are not the product. ci/ is a retired path."
-    exit_criteria: "ADR tables use pipeline/, bus/, notify/; workflow/ and comms/ trees absent; rust-first exclude_prefixes includes .github/scripts/; GHA YAML is not a face of pipeline/."
-    verified_by: "presubmit"
-  - id: ADR-0719-D19
-    description: "Every repo-root name is DO or DON'T, and HAVE or HAVE NOT: DONE, BUILD, REMOVE, or STAY GONE. No new cloud-* crates. REMOVE is delete/rewrite in charter, not a move to another cap."
-    exit_criteria: "New crates are DO+HAVE-NOT (BUILD) or DO+HAVE (DONE); PRs that add DON'T names or rehome REMOVE dumps fail review."
-    verified_by: "presubmit"
-  - id: ADR-0719-D20
-    description: "Charter reconciliation (founder default A, 2026-08-22): two compute reconcilers not k8s-on-compute; ontology out of data/core; intelligence is Vertex not copilot; price is marketplace+billing not build/; iam consumes federation; Drive/PACS/Meet out of storage (Drive is app/drive over a storage adapter, D-23); marketplace plugins+SKU only; gateway is PEP; meters are usage events; port-engine frozen; quota split; DNS/CDN split."
-    exit_criteria: "D-11/D-14/D-15/D-19 and registry charters match D-20; no new crate uses k8s-on-compute, ontology-in-data-core, gateway Cedar engine, or build/ price view."
-    verified_by: "presubmit"
-  - id: ADR-0719-D21
-    description: "Foundry is app/foundry: ontology, Pages, Grid, Workshop, Manager, Pipeline Builder UX. data/ is records engines. intelligence/ is Vertex/AIP on those objects."
-    exit_criteria: "Ontology crates land under app/foundry; data/ charter is engines; no foundry/ capability root."
-    verified_by: "presubmit"
-  - id: ADR-0719-D22
-    description: "Apps 2x2: one launchpad; Foundry module; v1 People=hr+payroll; v1 Finance=accounting+payments+ledger; community shrunk; messenger dual-context one dir; no SAP ghost dirs."
-    exit_criteria: "No empty app dirs for dropped modules or registry ghosts; app/ledger is the posting product not a cap; community has no SecureDrop v1; no app/social."
-    verified_by: "presubmit"
-  - id: ADR-0719-D23
-    description: "Apps are tenants of the cloud. First-party apps consume cloud SKUs only through adapters (same as external tenants). Foundry v1 is the full suite and persists via data/storage/pipeline adapters. Console dumps deleted. Calendar is embeddable. Mailbox vs notify. Messenger Slack+Discord dual. app/drive over storage adapter. Payments lowest v1. Community Blind+Reddit dual. One pack engine; app overlay slices."
-    exit_criteria: "No tenant-admin-console dump; no app crate depends on cloud core in-process; D-22 table lists drive; notify is multi-channel send not mailbox; packs schema allows app.<product> slices without a second pack reconciler."
-    verified_by: "presubmit"
-  - id: ADR-0719-D24
-    description: "OVERRULE D-23 pack-as-one-file and Pipeline-Builder-to-TAP. Packs: per-cap/app overlay content + thin central install authority. Runtime state is not git plaintext; v1 SQLite adapters then data/storage/on-prem. Cloud pipeline/ is CI/CD only. Mailbox is a port (IMAP/JMAP/SMTP/Connect adapters). One blob port for Drive/Foundry/mail; on-prem storage is an adapter."
-    exit_criteria: "D-23 Foundry settle table does not send Pipeline Builder to pipeline/; packs/ is install authority not overlay novels; app crates persist through ports with a SQLite adapter; Drive/Foundry bytes share one blob port."
-    verified_by: "presubmit"
-  - id: ADR-0719-D25
-    description: "App business logic lives in core; IO only through ports. Cloud SKUs are one adapter family among others (SQLite v1, S3, Postgres, IMAP, Stripe, on-prem). End of a cloud capability must not end the app without a rewrite. Not HA during our outage."
-    exit_criteria: "App crates: domain/use-case in core with no cloud/SQLite/HTTP types; one port per substrate need; adapters for our cloud and for commodity substitutes; no path-dep on cloud core/ports."
-    verified_by: "presubmit"
-  - id: ADR-0719-D26
-    description: "REJECT a trusted-vs-untrusted tenant mode in apps. D-23/D-25 already prove the cloud (same facade) and portability (commodity adapters). First-party is an IAM principal like any other; not an app flag, VIP class, skip-PDP, or in-process core. Do not add a mechanism we will regret."
-    exit_criteria: "No TrustedTenant/cfg(trusted)/first-party quota class in app cores; no skip-PDP; no second cloud API; adapter injection and IAM principals remain the only knobs."
-    verified_by: "presubmit"
-  - id: ADR-0719-D27
-    description: "Current-only owner knowledge lives in semantic native artifacts. Capability/app Markdown is forbidden in the destination; proposals and work records stay off-tree; history stays in the SCM and is reachable only through a separate explicit opt-in historical lookup, never mixed into a current view; derived human views are untracked and keyed to an immutable revision through an SCM-neutral revision interface whose current adapter is Git."
-    exit_criteria: "Existing owner prose is frozen migration input; each owner migrates atomically under D-36; the destination has zero capability/app Markdown and exactly root README.md, AGENTS.md, and CLAUDE.md as compatibility Markdown; each of AGENTS.md and CLAUDE.md independently stays at most 300 physical lines and 32 KiB (32,768 UTF-8 bytes)."
-    verified_by: "presubmit"
-  - id: ADR-0719-D28
-    description: "Cross-owner bindings are ports+adapters. Unagreed ports are path-visible (ports/draft/) and cheap to rename. A second owner depending on a shape forces reconcile onto one agreed name on the provider (owner-port grammar + proto v1) via escalated review. No contracts/ root and no libs/ports dump."
-    exit_criteria: "Other owners cannot path-dep ports/draft/; agreed shared shapes live on the provider as owner-port; proto packages do not ship draft names; no new contracts/ or libs/ tree."
-    verified_by: "presubmit"
-  - id: ADR-0719-D29
-    description: "Amendment jurisdiction: owner OWNERS may amend native content inside their cap/app root. They must not add Markdown, change the canonical children, inner crate layout, or crate grammar. Shared contracts, sold facades, and root compatibility or structural law require escalated review."
-    exit_criteria: "PRs that touch agreed ports/proto/facade or root compatibility/structural law name the other owners + architecture; local core/draft/adapter/cedar/iac changes stay on owner OWNERS; capability/app Markdown and new children or faces stay rejected."
-    verified_by: "presubmit"
-  - id: ADR-0719-D30
-    description: "Names and inner files follow established Cargo + google3 + AIP conventions: RFC 430/940, directory leaf = last grammar token, package name = full owner-port grammar, proto package directory = AIP-191. No invented domain/use_case taxonomy. Structure (D-8) does not change per team."
-    exit_criteria: "New crates: kebab package, omitted [lib].name, dir leaf matches last token, src/lib.rs or src/main.rs, snake_case modules, proto under facade/proto matching package.v1; no -rs/-rust/oyatie-/cloud- prefixes; no domain/ or use_case/ as required folders."
-    verified_by: "presubmit"
-  - id: ADR-0719-D31
-    description: "Default implement/review worker runs in an ephemeral out-of-tree git worktree. Writable surface is only the dispatched owner (one cap or one app/<p>/). OS write-jail when available. Sparse cone of that owner plus declared read-only inputs. Agent cannot expand its own sandbox. Not a full-repo hide (Cargo + D-28). Not a VCS ratchet product."
-    exit_criteria: "Worker dispatches name the owner path; worktree is not the human clone; writes outside that owner fail or are review-blocking; D-29 escalated lanes name extra writable cones; worktree is removed when the lane ends; no new claim/verify ceremony."
-    verified_by: "presubmit"
-  - id: ADR-0719-D32
-    description: "Parallelism unit is the leaf crate, not the cargo workspace and not the whole cap. Subagents get separate worktrees with disjoint crate cones. Local proof is buck2 on those targets (ADR-0716). Cargo.lock / root Cargo.toml are single-writer. CI cargo --workspace is the linearized merge proof, not N-way local cargo."
-    exit_criteria: "Dispatches name crate paths when splitting an owner; two live lanes do not share a worktree or Cargo.lock writes; local agent verify is buck2; cargo update/generate-lockfile is not used in parallel owner sandboxes; path-only PRs do not touch Cargo.lock."
-    verified_by: "presubmit"
-  - id: ADR-0719-D33
-    description: "Structural Mutation Separation: reorg (git mv/rm, D-8 children, crate grammar, workspace members, lockfile, faces) is a different class from behavioral edits. Do not mix in one lane. After the structure wave, implement lanes are content-only inside frozen crates."
-    exit_criteria: "PRs are either structural (layout/lock/members/faces) or behavioral (Rust types/implementation/tests, ports/protobuf, adapters, Cedar, reconciler/SLO inputs), not both; implement dispatches do not git mv trees or edit root Cargo.toml; D-8 shape stays frozen mid-feature."
-    verified_by: "presubmit"
-  - id: ADR-0719-D34
-    description: "Local N-way uses shared read-only build cache (buck2 CAS/disk cache), cargo --offline --locked if cargo is used at all, and the existing buck2 + rust-analyzer graphs for dispatch. Reject shared CARGO_TARGET_DIR lock-bypass, per-agent lockfiles, and an Aggregated AST Patch product."
-    exit_criteria: "Agent local verify does not rewrite Cargo.lock or take a shared cargo target lock; cache is content-addressed and trusted-writer; dispatcher consults build graph (buck2) and crate graph (metadata/r-a); no new AST-merge service."
-    verified_by: "presubmit"
-  - id: ADR-0719-D35
-    description: "Hand-written native files are at most 300 lines. Destination exemptions are generated artifacts, lockfiles, and third-party material; root README.md, AGENTS.md, and CLAUDE.md are the only Markdown compatibility files; each of the two agent hubs independently remains at most 300 physical lines and 32 KiB (32,768 UTF-8 bytes). Existing ADR and owner Markdown exemptions are frozen transition input, not permission to create or expand prose."
-    exit_criteria: "The separate Pipeline lane later applies a touched-path budget, an independent 32 KiB UTF-8 ceiling to each root agent hub, and the three-root-Markdown allowlist without an expected_total or frozen corpus; generated/lock/vendor paths remain excluded, and this ADR-only lane does not claim that enforcement is live."
-    verified_by: "presubmit"
-  - id: ADR-0719-D36
-    description: "Current-only native owner knowledge: no tracked Markdown below capability/app roots; native artifacts are authoritative; proposals and work are off-tree; history is SCM-only and requires a separate explicit opt-in historical lookup that never mixes into a current view; derived views are revision-keyed and untracked. Existing owner prose is read-only migration input and is deleted atomically after exact-candidate projection and verification."
-    exit_criteria: "Pipeline first stops requiring the quartet in a separate lane; every owner claim has exactly one result; ambiguity, conflict, duplication, or absence of classification yields Unknown; Unknown blocks projection and deletion and cannot be coerced into accepted-current, proposal/work, or historical/rejected; accepted truth is projected to semantic native authority; every owner-prose deletion has retained-reference and exact-candidate checks, a failure-injection proof, and an offline-available view bound to that immutable revision; the three-root-Markdown allowlist and independent per-hub ceilings of 300 physical lines and 32 KiB (32,768 UTF-8 bytes) hold; source prose is deleted atomically, and no tombstone or in-tree receipt remains."
-    verified_by: "presubmit"
-  - id: ADR-0719-D37
-    description: "Shared native config/json/yaml/toml is not split like .rs. Keep it minimal. Implement agents must not in-place edit the denylist; additive changes are uuid-named fragments only where stable native membership cannot express them. Mechanical fold is one serial step on the receiving branch; root compatibility Markdown stays single-writer, and Cargo.lock is regenerated once after fold."
-    exit_criteria: "Implement PRs that touch root Cargo.toml/lock/toolchain/deny/rustfmt or root compatibility Markdown in place fail unless a structural lane; no Markdown fragments, specs farm, or prose sidecars; lockfile diffs come only from the fold step."
-    verified_by: "presubmit"
-  - id: ADR-0719-D38
-    description: "Worktrees isolate indexes, not integration. Lanes integrate star-shaped onto dev via merge_group only. Never mesh-merge live worktrees. A path conflict quarantines writers to that identity only; other disjoint lanes continue. Do not merge origin/dev into the lane (rebase/queue replay)."
-    exit_criteria: "No agent merges one implementation worktree into another; PRs target dev; conflict on a file/Item pauses only that identity; other files in the same crate continue; merge_group is the combination test."
-    verified_by: "presubmit"
-  - id: ADR-0719-D39
-    description: "OVERRULE crate-lock and uuid-delta VCS. Commute identity is a unique native path at module/item grain. Parent membership (mod, workspace members) is a pure function of the directory (Cargo/Buck globs + generated mod list), not a hand-edited list or .delta files. N agents on one crate is allowed iff they own disjoint files/items. Same Item two writers is still refused at assign — not a crate mutex, not poll-until-unlock."
-    exit_criteria: "Workspace members use closed globs over D-8 faces so adding a crate dir does not edit root Cargo.toml; crate roots do not grow hand-maintained mod lists for every sibling file; occupancy is open PR paths at file/item grain; no Cargo.toml.d uuid product required for the common add; no whole-crate lock."
-    verified_by: "presubmit"
-  - id: ADR-0719-D40
-    description: "Occupancy is a path-set, not a cap/app session lock. Write/edit/delete occupy the path; git mv occupies {old,new}. Mixed N ops commute iff path-sets are disjoint. Cross-cap work is named extra paths (D-29), not a crate lock. Proposals and plans live in the PR body or an external work system and occupy no tracked owner path. Mechanical LSC is one lane or file-sharded; the cap cone remains sandbox blast radius, not merge necessity."
-    exit_criteria: "Dispatch names a path-set including rename pairs; overlapping path-sets are not spawned; sessions may list paths in more than one cap when escalated; no plan or design Markdown is added to the tree; LSC does not share files with feature lanes; no capability poll-lock."
-    verified_by: "presubmit"
-  - id: ADR-0719-D41
-    description: "YAGNI cut: git conflict is impossible iff commits do not share a path. Keep parent indexes STABLE (workspace member globs; crate module list from compile-time directory scan, not a committed generated file). Jail writes to the dispatched files. PR to dev; merge_group. No occupancy service, no uuid fragments, no crate/cap mutex. Uncoordinated same-path create is a tiny rebase, like TAP mid-air — do not invent unique-name VCS to prevent it."
-    exit_criteria: "Implement PRs do not edit root members lists or hand-maintained mod inventories; new Item is a new unique file; lib.rs membership line is stable; merge_group is the combination test; no Cargo.toml.d product; no occupancy JSON."
-    verified_by: "presubmit"
-  - id: ADR-0719-D42
-    description: "Cross-harness (Grok, Claude, Codex, Cursor, Antigravity, …): only git + draft PR on origin/dev + presubmit is portable. Do not rely on a vendor sandbox, worktree, or dispatcher. Instruction must live on every session-loaded hub. Draft PR is occupancy. Same-path create is rebase, not a lock."
-    exit_criteria: "AGENTS.md and CLAUDE.md state the same sequence; implement PRs still fail denylist regardless of which harness authored them; no harness-specific occupancy tool required."
-    verified_by: "presubmit"
-  - id: ADR-0719-D43
-    description: "N-parallel delivery loop is path-set PRs, not a task-board poll. Launcher (not the agent) derives unique output paths from an accepted off-tree work package plus exact-revision native surfaces and spawns. Each PR: red tests on that path, implement, de-slop, coverage on that crate, pipeline review only if pipeline files are in the path-set. presubmit green is required; if red, process error on that PR not a factory stop. merge_group then squash. Stages commute across PRs."
-    exit_criteria: "No tasks/ JSON board; no agent loop on gh pr list; overlapping path-sets fail presubmit; CI-metric review only when .github/ or pipeline/ is touched; local pre-push is fmt-on-touched not workspace nextest."
-    verified_by: "presubmit"
-  - id: ADR-0719-D44
-    description: "Client need is received by the human operator plus orchestrator. Interview + research against exact-revision native surfaces and verification produce an ephemeral off-tree artifact package. Ambiguous or wrong needs fail closed (NeedClarification / Rejected). The package hands off to Product (app/) XOR Program (capability). Raw client text never reaches implement."
-    exit_criteria: "No implement hop is admitted from an unverified prompt; mixed app+capability packages fail; dump-root requests reject; Product vs Program is a function of target paths."
-    verified_by: "presubmit"
-  - id: ADR-0719-D45
-    description: "OVERRULE D-43 single-agent walk of stages. Occupancy remains one draft PR path-set (D-42). Roles are a DAG with fan-out (implement complete unblocks review, coverage, security, and native-knowledge/view validation together). Orchestrator publishes ready hops; it does not spawn agents and must not fold N ready hops of a role onto one worker. Each hop binds a fresh agent. Implementer finishing a slice is free for the next disjoint slice immediately."
-    exit_criteria: "Ready-hop cardinality for a role equals disjoint schedulable slices in that role; reused agent ids fail; completing Implement does not wait for PrBabysit before another Implement hop elsewhere; no long-running implementer looping disjoint work."
-    verified_by: "presubmit"
-  - id: ADR-0719-D46
-    description: "Cross-slice need (break, contract amend, agreement) is not a committee. Writer without occupancy of a path must not write it. Consumer files ports/draft/ or adapters/draft/ on their own path-set (commutes). Owner gets a ContractAmend hop when those owner paths are free. Presubmit/merge_group red quarantines that path-set only; other disjoint slices continue. No ticket board. No poll-lock."
-    exit_criteria: "Cross-owner path writes without occupancy fail; draft ports are path-visible; owner amend is a hop on owner paths; one red PR does not stop other path-sets."
-    verified_by: "presubmit"
+deliverables: []
 ---
 
-# ADR-0719: EaC north star — serving vs control, proto IR, packs
+# ADR-0719: Transitional migration input — EaC serving/control authoring record
 
 ## Status
 
-**Accepted** (founder 2026-08-21). Amends the live identity/authz, k8s-port, product-protocol,
-and platform-foundations apexes. Does not archive them.
+**Accepted at authoring; frozen deletion-bound migration DATA now.** This
+numbered record is superseded and non-operative migration input, not current
+authority, current owner truth, or a normal agent reading surface.
+Root `AGENTS.md` plus semantic native facts are current. The sequential filename and
+identifier survive solely as deletion-bound provenance while every source
+claim is classified; this amendment does not claim that projection, retained-
+reference retirement, or deletion is complete.
 
-Chat/session architecture is not law. This file is.
-
-**Current-only owner-knowledge amendment (founder 2026-08-28).** D-36 is
-the controlling current decision for owner knowledge. It explicitly
-**OVERRULES** the owner `README.md` and quartet exceptions in D-8, the D-17
-owning-ADR entry route, the D-21 quartet handoff, D-27 g3doc, D-29 owner-doc
-jurisdiction, the D-33 behavioral
-docs lane, the D-35 owner-prose exemptions, the D-37 prose-ADR merge model,
-the D-39 Markdown-block grain, the D-40 tracked plan/ADR path, and the D-43
-tracked design-note option. Sequential ADR/D-n identifiers in this transition
-remain provenance only; they are not names for current operational surfaces.
-Any older owner-prose instruction retained in SCM history is non-authoritative
-migration evidence, reachable only by an explicit historical lookup and never
-mixed into a current view; it is not permission to add, edit, or restore tracked
-Markdown.
+For this frozen transition, only the status boundary above governs how the body
+may be consumed. Every later MUST, decision, deliverable, and reference in this body is non-operative migration DATA until classified.
+Numbered identifiers and this path are provenance only, never current control.
 
 ## Context
 
