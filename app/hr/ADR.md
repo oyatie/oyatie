@@ -2,7 +2,7 @@
 doc_class: Owner-ADR
 owner: app/hr
 status: Accepted
-date: 2026-08-26
+date: 2026-08-27
 inherits:
   - docs/decisions/ADR-0719-eac-serving-control-north-star.md
 ---
@@ -15,7 +15,7 @@ destination implementation has landed.
 
 <current_state>
 
-## Evidence at L2a
+## Evidence at the owner-law baseline
 
 | Surface | What exists | Maturity |
 |---|---|---|
@@ -26,9 +26,9 @@ destination implementation has landed.
 | `adapters/employment-infrastructure` | In-process HTTP route, bearer verification, tenant-match, PDP-decision, and health behavior | Its 448-line authorization source, 372-line crate root, and 512-line runtime test exceed the budget; it imports Gateway core/runtime crates directly and has no deployment or network-listener promotion evidence |
 | SLO and operations | Capability flags honestly report that no durable backend, workflow call, payroll call, sensitive retrieval, or audit-chain emission is attached | No HR-owned SLO source, persistent recovery proof, or production serving evidence has landed |
 
-The current package and public type names remain compatibility facts until a
-versioned structural migration changes them. The direct Data/Gateway edges and
-over-budget files are debt, not precedent.
+The current package and public type names are inventory facts, not compatibility
+promises. ADR-0719 permits the JSON/REST surface to break during deletion. The
+direct Data/Gateway edges and over-budget files are debt, not precedent.
 
 </current_state>
 
@@ -96,7 +96,8 @@ over-budget files are debt, not precedent.
 - **rule:** the reserved People IDL identity is
   `app/hr/facade/proto/hr/people/v1/people_service.proto`, package
   `hr.people.v1`, with unary `OnboardEmployee` and `GetEmployee` methods.
-  The IDL, codegen packages, and behavior are non-dispatchable until L2f.0a
+  The IDL, codegen packages, and behavior are non-dispatchable until the
+  `connect-toolchain-decision` lane
   records an architecture/Build/protocol-owner accepted Connect generator and
   runtime with exact Cargo/Buck targets, versions/features, generated-output
   contract, dependency/removal policy, and fault suite. After that gate, the
@@ -109,7 +110,8 @@ over-budget files are debt, not precedent.
   `grpc-message`, use HTTP trailers, or advertise streaming. No other owner may
   import either draft crate; a future Rust consumer requires a separate D-28
   promotion and a consumer-owned client adapter.
-- **ensure:** the L2f gate fails closed while no accepted target exists. Its
+- **ensure:** the Connect toolchain gate fails closed while no accepted target
+  exists. Its
   acceptance receipt and amended plan prove generated Connect service symbols,
   Cargo/Buck input/output parity, no tonic/gRPC runtime, and byte/fault vectors
   for exact paths, bare protobuf success, bounded success/error output,
@@ -172,20 +174,23 @@ over-budget files are debt, not precedent.
   its canonical plaintext. The canonical request and staged-write descriptor are
   HR-owned, versioned byte contracts; a key provider authenticates those bytes
   but MUST NOT choose, reorder, omit, or normalize their semantic fields.
-  Production use is non-dispatchable until
-  L2i.0d accepts one authenticated-encryption
+  Production use is non-dispatchable until the
+  `record-encryption-authority-decision` accepts one authenticated-encryption
   implementation and one commodity or sold key-service facade with exact
   dependencies, key custody, nonce, rotation, revocation, outage, exact
   `AcquireReplayGenerationSetV1`/idempotency-locator-derivation semantics,
   exact decommission fence/proof/removal semantics, and
-  `authorize_commit`/idempotent `resolve_commit` semantics, L2i.0d.1 first
-  admits the key-service adapter graph, L2i.0f prepares the closed protocol/
-  repository/SQLite/adapter file set, L2i.0g.0 freezes the HR port contracts,
-  L2i.0g.1 implements selected replay/membership/decommission provider
-  behavior, L2i.0g.1a implements and reviews the minimal concrete open/seal,
-  commit-authorization/resolution, and decommission-fence behavior, L2i.0g.2
-  only then implements repository/SQLite behavior and its real composition
-  target, and L2i.0h implements bounded
+  `authorize_commit`/idempotent `resolve_commit` semantics; then
+  `key-service-graph-admission` admits the adapter graph,
+  `commit-replay-rekey-slot-admission` prepares the closed protocol/repository/
+  SQLite/adapter file set, `commit-replay-contract-freeze` freezes the HR port
+  contracts, `key-provider-lifecycle-implementation` implements selected
+  replay/membership/decommission provider behavior,
+  `minimum-key-adapter-implementation` implements and reviews the minimal
+  concrete open/seal, commit-authorization/resolution, and decommission-fence
+  behavior, and `repository-commit-replay-implementation` only then implements
+  repository/SQLite behavior and its real composition target.
+  `bounded-rekey-implementation` follows with bounded
   repository rekey/recovery. Provider authorization, repository-
   epoch fencing, keyring repository enrollment/removal, and generation
   transitions MUST share one linearizable order: a transition denies new
@@ -401,9 +406,10 @@ over-budget files are debt, not precedent.
   the Complete plan nests exact final kind-`0x0e` bytes; disposition nests
   exact final kind-`0x0f` or `0x10` bytes. Wrong kind/header/schema, body/final
   confusion, variant substitution, count/tag/order/length/domain/authenticator/
-  digest mutation, or nested reserialization is a typed refusal. g.0, g.1, and
-  g.2 independently freeze body/final min, max, and max-plus-one vectors for all
-  four rows, including response loss and fresh-process byte-identical replay.
+  digest mutation, or nested reserialization is a typed refusal. The contract-
+  freeze, provider, and repository lanes independently freeze body/final min,
+  max, and max-plus-one vectors for all four rows, including response loss and
+  fresh-process byte-identical replay.
   The published plan maxima `3,096/1,793/3,832/2,179/253`, request maxima
   `2,267/1,758/2,184/292/288`, storage receipt/binding `870/1,246`, and
   `4,096 - 3,832 = 264` bytes of headroom remain unchanged.
@@ -418,8 +424,9 @@ over-budget files are debt, not precedent.
   parent, digest, status, or expected terminal branch is Mismatch; and a present
   envelope with an invalid key or signature is AuthenticatorInvalid.
   `KeyringRetirementFenceStale` and `KeyringRetirementPreconditionFailed` remain
-  distinct semantic branches. g.0 and recovery preserve the same names, with no
-  wildcard or generic terminal-invalid branch. The existing receipt fields and
+  distinct semantic branches. Contract-freeze and recovery evidence preserve
+  the same names, with no wildcard or generic terminal-invalid branch. The
+  existing receipt fields and
   maxima do not expand: chain assurance for omitted historical fields relies on
   retained provider state and byte-identical exact-operation replay, not a claim
   that those omitted fields are directly authenticated.
@@ -476,7 +483,8 @@ over-budget files are debt, not precedent.
   and signature, then derives the 253-byte plan. A missing, duplicate, corrupt,
   mismatched, or bad-authenticator receipt/binding is the named
   `LocalDispositionReceiptInvalid` branch, not a way to substitute its 870-byte
-  wire. The repository metadata-commit signer/verify port is g.0-owned,
+  wire. The repository metadata-commit signer/verify port is owned by
+  `commit-replay-contract-freeze`,
   key-service implemented, rotation-aware, fail-closed on unavailable/unknown
   key/signature failure, and has no reverse adapter-to-repository edge.
   Provider Begin and Abort serialize through one provider transaction: Begin
@@ -499,7 +507,8 @@ over-budget files are debt, not precedent.
   resurrect that `NotStarted` race.
   Provider operation ids are explicitly kind-scoped and their canonical request
   digests include that kind and its operation-specific authority tuple; local
-  response/disposition/completion ids live in separate namespaces. g.0 freezes named exhaustive
+  response/disposition/completion ids live in separate namespaces.
+  `commit-replay-contract-freeze` freezes named exhaustive
   `ProviderDecommissionStatusV1`, provider Abort and membership-mutation result
   sums, and repository Abort/Remove/Complete result sums. Port, key-adapter, and
   SQLite implementations match every status/error branch without a wildcard;
@@ -546,10 +555,15 @@ over-budget files are debt, not precedent.
   oldest format has a durable compatibility-retirement receipt. Adapter
   structure, file-slot admission, port freeze, provider behavior, minimal
   concrete adapter behavior, repository/SQLite behavior plus its dev-only real
-  composition target, and rekey remain separate L2i.0d.1, L2i.0f, L2i.0g.0,
-  L2i.0g.1, L2i.0g.1a, L2i.0g.2, and L2i.0h changes. The g.2 target may execute
-  real open/seal/authorization/decommission behavior only after g.1a accepts it;
-  L2i.2d does not backfill that prerequisite.
+  composition target, and rekey remain separate
+  `key-service-graph-admission`, `commit-replay-rekey-slot-admission`,
+  `commit-replay-contract-freeze`, `key-provider-lifecycle-implementation`,
+  `minimum-key-adapter-implementation`,
+  `repository-commit-replay-implementation`, and
+  `bounded-rekey-implementation` changes. The repository composition target may
+  execute real open/seal/authorization/decommission behavior only after the
+  minimum key-adapter lane accepts it; the later
+  `record-encryption-adapter-implementation` does not backfill that prerequisite.
 - **ensure:** independent Cargo and Buck encoders share typed inputs but not an
   encoder, and assert exact idempotency-locator and `CommitBinding` preimages,
   semantic-equivalence and changed-field vectors, unknown/omitted/reordered
@@ -573,8 +587,9 @@ over-budget files are debt, not precedent.
   returned-authority locator derivation, and stale/replayed/provider-loss errors;
   its matching Cargo/Buck test target is the only dev edge to SQLite and reverse
   scans reject a library/runtime adapter-to-repository edge. That target is
-  enabled only after the g.1a adapter open/seal, authorization/resolution, and
-  decommission-fence tests are accepted. Decommission tests race
+  enabled only after the `minimum-key-adapter-implementation` open/seal,
+  authorization/resolution, and decommission-fence tests are accepted.
+  Decommission tests race
   authorization/commit before and after local intent, provider fence, each scan
   page, terminal observation, proof issuance, provider removal, local completion,
   and recovery; response loss, crash, partition, local drain/delete/quarantine
@@ -653,28 +668,31 @@ over-budget files are debt, not precedent.
   `src/authz.rs`, `src/lib.rs`, and `tests/runtime.rs`; it also has misplaced
   port/transport responsibilities and illegal dependency direction. No SQLite
   dependency or adapter package exists, so admitting that graph and implementing
-  its durability protocol are distinct ADR-0719 D-33 change classes. The IAM
-  workload-manifest source is also 618 lines and must be structurally prepared
-  before the IAM content retirement touches it.
-- **rule:** the migration MUST first repair the stale Buck labels in the exact
-  HR plus reverse-consumer build closure, then proceed as L2b file-budget
-  splits; L2c structural face admission followed by content-only role
-  separation; L2d structural draft-port/adapter admission, content-only
-  dependency inversion, then structural removal of direct Data/Gateway edges;
+  its durability protocol are distinct ADR-0719 D-33 change classes. The
+  oversized JSON API and REST infrastructure are deletion inventory. The IAM
+  tenant-RBAC manifest is also deletion inventory under ADR-0719, but accepted
+  ADR-0710 still names it indirectly through a review-only admission-policy
+  crate as a live instance; full-cone deletion therefore requires an explicit
+  ADR-0710 amendment rather than silent owner-law override. Splitting any of
+  this deletion inventory first would be throwaway work.
+- **rule:** the migration MUST first repair only the dependency-closed HR-domain
+  Buck path, then allow the employment-domain file-budget split, content-only
+  use-case consolidation into that core package, and IAM owner-law plus the
+  explicit ADR-0710 amendment decision to advance on disjoint paths. IAM
+  deletion remains non-dispatchable until that amendment is accepted. After the IAM
+  tenant-RBAC cone has zero edge to HR, one structural HR lane MUST delete the
+  invalid facade, JSON API, and REST infrastructure trees while mechanically
+  rewiring the retained in-memory storage adapter to core. It MUST NOT add an
+  empty main, REST translator, JSON compatibility adapter, or facade re-export.
+  Structural draft-port/reference-adapter admission, content-only dependency
+  inversion, and structural removal of the direct Data edge follow;
   serialized SQLite dependency and adapter-face admission, including the
   owner-local record-encryption port; content-only encrypted SQLite parity and
   crash proof; a fail-closed Connect generator/runtime decision
   gate; structural empty codegen/package/build admission; a separate schema-only
   People contract; a content-only fail-closed `Unrouted` process state; and then
-  a content-only generated-Connect onboarding slice. The temporary JSON/Serde
-  translation MUST move into `transport-employment-compat`; no new
-  `*-app` library-only compatibility facade may be created.
-  A mandatory D-29 IAM consumer sequence MUST first install D-35/D-41 stable
-  membership in its oversized tenant-workload-manifest crate, then delete
-  IAM-local HR composition and remove every
-  IAM Cargo/Buck/Rust edge into `app/hr` without substituting an HR client,
-  after which a separate HR structural lane MUST retire the compatibility
-  surfaces. Production serving then requires decision-gated Packs/install,
+  a content-only generated-Connect onboarding slice. Production serving then
+  requires decision-gated Packs/install,
   Policy/IAM authorization-evidence, Audit/outbox, authenticated record-
   encryption/key-service, and trusted runtime-context provider contracts; an
   intervening D-33 structural commit/rekey file-slot lane, content-only
@@ -684,15 +702,18 @@ over-budget files are debt, not precedent.
   behavior; structural composition edges; content-only composition; and a
   separately gated main/route activation before any tenant cohort. No live
   route or production-readiness promotion may precede the zero-inverse-edge
-  proof or those production authorities. Structural lanes MUST preserve public
-  behavior and make no durability, network, or readiness claim.
-- **ensure:** each lane has an exact changed-path envelope, Cargo and Buck build
-  closure, reviewer jurisdiction, rollback, before/after tests, no generated
-  hand edits, and a protected PR. SQLite behavior begins only after the pinned
+  proof or those production authorities. Structural lanes MUST preserve
+  retained behavior; the removed JSON/REST callers intentionally receive no
+  compatibility promise. They make no durability, network, or readiness claim.
+- **ensure:** each lane has an exact changed-path envelope, target-scoped Buck
+  proof, protected full-workspace Cargo presubmit, reviewer jurisdiction,
+  rollback, before/after tests, no generated hand edits, and a protected PR.
+  SQLite behavior begins only after the pinned
   binding, workspace/lock, port, adapter face, and Cargo/Buck membership
-  prerequisites are green and frozen; routing begins only after an inverse scan
-  of the whole IAM cone proves no manifest, Buck label, or Rust import reaches
-  any `app/hr` package and outage tests prove that unavailable Packs, Policy/IAM,
+  prerequisites are green and frozen; routing begins only after the IAM tenant-
+  RBAC cone is absent and an inverse scan proves no Cargo path, Buck label, Rust
+  import, or implementation literal reaches any `app/hr` package. Outage tests
+  prove that unavailable Packs, Policy/IAM,
   Audit, or encryption/key authority prevents routing, mutation, plaintext
   persistence, and sensitive disclosure as required by the operation class.
 - **overturn_when:** independently reviewed evidence shows two adjacent lanes
@@ -703,16 +724,16 @@ over-budget files are debt, not precedent.
 
 <stable_item_membership>
 
-## Decision: L2b installs owned stable compile-time indexes
+## Decision: employment-domain items use an owned stable compile-time index
 
 - **achieves:** later HR work adds one uniquely named item without editing a
   shared crate or test index, while Cargo and Buck compile the same membership.
-- **origin:** L2b turns three monolithic crate roots and four oversized tests
-  into multi-file surfaces. ADR-0719 D-41 forbids replacing those monoliths with
+- **origin:** the domain file-budget lane turns one monolithic crate root and
+  three oversized tests into multi-file surfaces. ADR-0719 D-41 forbids replacing those monoliths with
   tracked generated indexes or hand-maintained `mod` lists, and Storage already
   demonstrates the owned sorted `build.rs` plus `OUT_DIR` pattern.
-- **rule:** each L2b package MUST install its own crate-root `build.rs`. The
-  script MUST enumerate the package's declared `src/items/*.rs` and split-test
+- **rule:** the employment-domain package MUST install its own crate-root
+  `build.rs`. The script MUST enumerate the package's declared `src/items/*.rs` and split-test
   item directories, retain Rust sources, sort their paths deterministically,
   and emit named membership files only under `OUT_DIR`. Each affected crate or
   test root MUST hold a stable `include!(concat!(env!("OUT_DIR"),
@@ -720,7 +741,7 @@ over-budget files are debt, not precedent.
   and no parent may carry a manual per-item `mod` inventory.
 - **ensure:** Cargo's auto-detected build script and Buck's `buildscript_run`
   MUST execute the same scanner over the same globbed directory sets; their
-  generated source order and contents must match. L2b evidence adds, renames,
+  generated source order and contents must match. Domain-split evidence adds, renames,
   and removes a uniquely named item without an index edit, builds it through
   both graphs, and rejects tracked/generated or manual membership inventories.
 - **overturn_when:** rustc provides deterministic directory membership without
@@ -732,7 +753,9 @@ over-budget files are debt, not precedent.
 ## Rejected destinations
 
 - HR core importing cloud capability core/ports or another app's internals.
-- A JSON/HTTP adapter treated as the semantic API source of truth.
+- A retained or translated JSON/REST product surface, including a temporary
+  compatibility adapter; the generated protobuf/Connect contract is the only
+  target API.
 - Git, an in-memory map, or caller-owned state presented as durable HR storage.
 - Dual-write migration between SQLite and cloud/commodity adapters.
 - A first-party/trusted mode that bypasses normal IAM, PDP, audit, quota, or

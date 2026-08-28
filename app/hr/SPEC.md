@@ -101,10 +101,11 @@ crate; a future Rust consumer requires a separate D-28 provider-port promotion,
 external API review, and a client adapter owned by that consumer.
 
 This target is not dispatchable today. The reviewed workspace has no accepted
-Connect generator/runtime target. L2f.0a must first record a protocol-owner,
-architecture, and Build accepted implementation with exact versions/features,
-Cargo/Buck targets, generated inputs and outputs, license/removal policy, and
-wire/fault evidence. HR then consumes its generated service bindings. HR source
+Connect generator/runtime target. `connect-toolchain-decision` must first record
+a protocol-owner, architecture, and Build accepted implementation with exact
+versions/features, Cargo/Buck targets, generated inputs and outputs, license/
+removal policy, and wire/fault evidence. HR then consumes its generated service
+bindings. HR source
 does not parse Connect HTTP, frame protobuf, serialize Connect error envelopes,
 or decide trailer behavior. Message-only generation plus hand-written framing
 is not an implementation of this contract.
@@ -226,8 +227,9 @@ bindings under `OUT_DIR`; Cargo and Buck stage the same IDL/import inputs and
 compile the same generated membership. The structural generator must tolerate
 the schema being absent so package/build/lock admission can precede the
 schema-only external-contract lane. The exact runtime and build dependencies
-remain deliberately unnamed until L2f.0a accepts them and amends the owner plan;
-placeholders are not dispatch authority. Neither `hr-transport-connect-draft`
+remain deliberately unnamed until `connect-toolchain-decision` accepts them and
+amends the owner plan; placeholders are not dispatch authority. Neither
+`hr-transport-connect-draft`
 nor `hr-people-app` may depend on `tonic`, `tonic-prost`, `tonic-build`, or
 `tonic-prost-build`, and no gRPC service/client code is generated.
 
@@ -246,9 +248,10 @@ sensitive fields, and occurs before repository mutation or response commitment.
 
 ## Narrow first feature contract
 
-After L2e and the accepted L2f.0a generated-Connect gate, the first People slice
-is durable employee onboarding using the already-landed `onboard_employee`
-behavior. It adds no new employment-law rule.
+After `sqlite-durability-implementation` and the accepted
+`connect-toolchain-decision`, the first People slice is durable employee
+onboarding using the already-landed `onboard_employee` behavior. It adds no new
+employment-law rule.
 
 Input contains tenant, legal entity, employee/person/manager references,
 employment state, tier snapshot, lifecycle event id, evidence reference,
@@ -358,8 +361,9 @@ permanently six for this V1 preimage. Canonical-request bytes, request schema
 version, and canonical-format version are deliberately absent. Variable
 component lengths, integer widths, order, domains, bounds, and normalization
 are exactly those stated here. Checked `u64` accounting rejects an overlong
-component or a complete preimage over 24 KiB before any PRF call. The accepted
-L2i.0d PRF authenticates these bytes without parsing or rewriting them.
+component or a complete preimage over 24 KiB before any PRF call. The PRF
+accepted by `record-encryption-authority-decision` authenticates these bytes
+without parsing or rewriting them.
 
 The executable baseline admits and writes only format `u16be(1)`.
 `ReplayGenerationSetV1.active_writer_format` is therefore exactly `1`, and each
@@ -608,10 +612,12 @@ the fixed `u16be(1)` purpose tag and
 preimage is the SPEC grammar, not an adapter-specific field label; it excludes
 canonical-request/schema/format bytes. Length-prefixing and domain separation
 are canonical; it locates one logical slot inside one generation and never
-permits a stable cross-generation token. After L2i.0g, a repository MUST NOT
-invoke `blind_index` directly for replay lookup:
+permits a stable cross-generation token. After
+`repository-commit-replay-implementation`, a repository MUST NOT invoke
+`blind_index` directly for replay lookup:
 `derive_idempotency_locator_v1` is the only returned-authority-bound locator
-edge. The accepted primitive, encoding, and width are decision-gated at L2i.0d.
+edge. The accepted primitive, encoding, and width are gated by
+`record-encryption-authority-decision`.
 
 `AcquireReplayGenerationSetV1` is the sole executable provider-truth edge for
 replay; its Rust port method is `acquire_replay_generation_set_v1`. Its exact request is
@@ -651,8 +657,9 @@ the corresponding closed result and cannot fall through to zero-match creation.
 tenant_id, operation_kind, idempotency_key }` and result
 `IdempotencyLocatorV1 { generation: u64, bytes: FixedBytes<=64,
 matrix_digest: FixedBytes<=64, provider_authenticator: OpaqueBytes<=512 }`.
-`FixedBytes<=64` is an immutable exact-length value whose width is fixed by the
-accepted L2i.0d port decision and cannot vary by row, generation, or request.
+`FixedBytes<=64` is an immutable exact-length value whose width is fixed by
+`record-encryption-authority-decision` and cannot vary by row, generation, or
+request.
 `generation_authority` is the opaque value returned by the same unexpired
 `AcquireReplayGenerationSetV1` result; callers cannot construct, substitute,
 replay across a repository/epoch/matrix digest, or inspect its PRF authority.
@@ -882,10 +889,11 @@ that final observation wire and tag `2` containing the kind-scoped provider
 operation id; its maximum is `16 + 2*3 + 1,123 + 129 = 1,274`.
 `issue_proof_request_digest = H(ASCII("hr.decommission.issue-proof-request.v1")
 || 0x00 || final_issue_request_wire)` is external and is persisted before the
-provider Issue call. g.0, g.1, and g.2 maintain independently written codecs
-and must produce identical minimum/maximum issuance, observation, and Issue
-request vectors; mutation of any tag, nested header, count, length, operation
-id, proof/reference authenticator, or parent digest is a named typed refusal.
+provider Issue call. The contract-freeze, provider, and repository lanes
+maintain independently written codecs and must produce identical minimum/
+maximum issuance, observation, and Issue request vectors; mutation of any tag,
+nested header, count, length, operation id, proof/reference authenticator, or
+parent digest is a named typed refusal.
 
 The complete canonical wire of `DecommissionProofV1`,
 `DecommissionProofReferenceV1`, `DecommissionProofIssuanceV1`,
@@ -1091,9 +1099,10 @@ owns one corresponding `DecommissionProofIssuanceV1` record. Its immutable
 value is the exact kind-`0x09` issuance wire with tag 1 equal to the returned
 proof final wire and tag 2 equal to the returned reference final wire; it verifies both authenticators, the reference
 lookup identity, issue request digest, and full-proof digest before every use.
-That ledger is introduced by the g.1 key-service adapter implementation behind
-the g.0 port; the repository carries only this port type, so it adds no
-adapter-to-repository runtime edge or g.0-to-g.2 dependency.
+That ledger is introduced by `key-provider-lifecycle-implementation` behind the
+port frozen by `commit-replay-contract-freeze`; the repository carries only
+this port type, so it adds no adapter-to-repository runtime edge or direct
+contract-to-repository dependency.
 
 The ledger retains the complete issuance record at least through every accepted
 exact Issue/Remove/Complete/Get/recovery replay and the associated terminal
@@ -1517,12 +1526,14 @@ operation cell is the corresponding typed Mismatch refusal before binding
 signing or persistence.
 
 `RepositoryMetadataCommitAuthenticatorV1` is a named repository-facing port
-owned by g.0 `record-encryption/src/items/j_decommission.rs`; it exposes
+owned by `commit-replay-contract-freeze` in
+`record-encryption/src/items/j_decommission.rs`; it exposes
 `sign_local_storage_receipt_binding_v1 { key_id, key_epoch, binding_body_wire
 }-> { metadata_commit_authenticator: FixedBytes=64 }` and
 `verify_local_storage_receipt_binding_v1 { final_binding_wire } -> Verified`.
-The g.1 record-encryption-key-service adapter owns its implementation and the
-active signing-key selection. A rotation makes the old key verification-only
+The `key-provider-lifecycle-implementation` record-encryption-key-service
+adapter owns its implementation and the active signing-key selection. A
+rotation makes the old key verification-only
 through the receipt/binding retention and GC horizon; only the active key can
 sign a new binding. `MetadataCommitSignerUnavailable`,
 `MetadataCommitKeyEpochUnknown`, `MetadataCommitSignatureInvalid`,
@@ -1531,8 +1542,8 @@ sign a new binding. `MetadataCommitSignerUnavailable`,
 `LocalDispositionReceiptBindingAuthenticatorInvalid` are closed typed results;
 the first three withdraw repository readiness rather than counting as available
 user work. The normal runtime graph is repository/SQLite -> record-encryption
-port -> key-service adapter; g.0 has no SQLite edge and the adapter has no
-repository/SQLite runtime edge.
+port -> key-service adapter; the contract-freeze lane has no SQLite edge and the
+adapter has no repository/SQLite runtime edge.
 
 After a local disposition has produced the canonical receipt bytes, SQLite
 derives the external receipt digest, obtains the binding signature over the
@@ -1600,13 +1611,13 @@ arithmetic behind the frozen maxima is:
 | Disposition request | 16 + 6*3 + 32+32+129+1+32+32 = 292 |
 | Completion request | 16 + 5*3 + 32+32+32+129+32 = 288 |
 
-The g.0 contract tests freeze an independently encoded byte-for-byte golden
+The contract-freeze tests freeze an independently encoded byte-for-byte golden
 vector for the minimum and maximum legal value of each of those ten rows,
 including the exact domain prefix and expected digest. They also test each
 single-field mutation, id mutation, parent-digest/receipt mutation, record
 reordering/duplicate/omission, and exact maximum versus maximum-plus-one
-bytes. The g.1 adapter and g.2 SQLite suites use a separately maintained
-encoder oracle and must obtain the same ten vectors/digests; neither may use
+bytes. The provider-adapter and repository/SQLite suites use a separately
+maintained encoder oracle and must obtain the same ten vectors/digests; neither may use
 the production encoder to generate its oracle. Completion vectors resolve the
 same retained storage-receipt key first and prove that a missing, changed,
 duplicate, or metadata-commit-mismatched receipt is
@@ -1615,11 +1626,11 @@ Those suites additionally freeze independent minimum/maximum canonical
 local-storage-receipt bytes and digest vectors, their exact lookup key, and
 maximum-plus-one/field-order/tag/length failures before deriving the completion
 plan; neither implementation may generate those receipt vectors from its
-production encoder. The same g.0 vectors freeze each five-plan kind byte and
+production encoder. The same contract-freeze vectors freeze each five-plan kind byte and
 its corresponding request header (`0x01`/Remove, `0x02`/Begin,
 `0x03`/Complete, `0x04`/Disposition, `0x05`/Completion), min/max and max-plus-
-one exact bytes, and kind-substitution/unknown-kind rejection. g.1 and g.2
-must derive the same vectors with independently maintained codecs, including
+one exact bytes, and kind-substitution/unknown-kind rejection. Provider and
+repository lanes must derive the same vectors with independently maintained codecs, including
 memory and SQLite conformance paths; no decoder may normalize a different kind
 to the intended plan. They also freeze proof (`1,805`), reference (`1,265`),
 issuance (`3,092`), observation (`1,123`), Issue request (`1,274`), receipt
@@ -1629,8 +1640,9 @@ maximum-plus-one input, reference lookup conflict, Missing/Mismatch/Corrupt/
 AuthenticatorInvalid mapping, and Issue response loss must be covered. The
 lost-response Get vector must be byte-identical to the initial `Issued {
 issuance }` vector, not merely structurally equal.
-For `0x0d` through `0x10`, g.0, g.1, and g.2 each freeze independently encoded
-body and final minimum, maximum, and maximum-plus-one vectors at `926/1,441`,
+For `0x0d` through `0x10`, the contract-freeze, provider, and repository lanes
+each freeze independently encoded body and final minimum, maximum, and maximum-
+plus-one vectors at `926/1,441`,
 `1,758/2,273`, `1,034/1,549`, and `1,404/1,919`. The mutation matrix covers a
 wrong magic/version/kind/header/schema, body used as final, final used as body,
 terminal variant substitution, invalid `Retired` state-byte substitution,
@@ -1890,7 +1902,8 @@ removal or retirement the old member remains fenced and cannot rejoin the old
 keyring.
 
 Those three same-name quartets have one exact classification in both sums and
-through g.0 and recovery. An absent retained handoff, fence, or terminal row is
+through contract-freeze and recovery evidence. An absent retained handoff,
+fence, or terminal row is
 `Missing`. Bad framing, kind, count, tag, order, length, bound, `Retired` byte,
 nested kind, or missing authenticator tag is `Corrupt`. Canonical bytes with the
 wrong identity, parent, digest, status, or expected terminal branch are
@@ -1899,7 +1912,7 @@ wrong identity, parent, digest, status, or expected terminal branch are
 `KeyringRetirementPreconditionFailed` remain separate semantic failures; no
 quartet branch is collapsed into either one or into a catch-all.
 
-The g.0 adapter mapping is closed and exhaustive. Every
+The contract mapping is closed and exhaustive. Every
 `KeyringMembershipError` variant is matched by name, never `_`: identity/CAS
 variants (`MembershipVersionStale`, `MembershipSnapshotStale`,
 `RepositoryNotRegistered`, `MemberInstanceStale`, `RepositoryEpochStale`,
@@ -2025,7 +2038,8 @@ envelope, provider timeout, missing key, and revoked key are typed fail-closed
 errors. There is no plaintext, zero-key, cached-forever, environment, or test-
 fake fallback in a production composition.
 
-L2i.0d is a non-dispatchable decision gate until it names the exact accepted
+`record-encryption-authority-decision` is non-dispatchable until it names the
+exact accepted
 authenticated-encryption primitive/library and commodity or sold key-service
 facade, versions/features/licenses, generated client and Cargo/Buck targets,
 key custody and zeroization boundary, nonce source, retry/deadline bounds,
@@ -2036,14 +2050,17 @@ key custody and zeroization boundary, nonce source, retry/deadline bounds,
   normal-rotation CAS/refusal semantics, generation and commit-authorization
   linearization semantics, bounded unresolved-receipt enumeration, repository-
   epoch and admission-fence fencing, recovery/administrative resolution, and
-  removal path. L2i.0d.1 must first admit
-  the key-service adapter structure; L2i.0f must then prepare the exact unique
-  port/repository/SQLite/adapter file slots; L2i.0g.0 freezes only the typed port
-  contract; L2i.0g.1 implements and tests replay/membership/decommission
-  provider behavior; L2i.0g.1a then implements and reviews the minimal concrete
-  adapter open/seal, commit-authorization, resolution, and decommission-fence
-  behavior; L2i.0g.2 only then freezes repository/SQLite behavior and its
-  executable dev-only composition target; and L2i.0h implements bounded
+  removal path. `key-service-graph-admission` must first admit the key-service
+  adapter structure; `commit-replay-rekey-slot-admission` must then prepare the
+  exact unique port/repository/SQLite/adapter file slots;
+  `commit-replay-contract-freeze` freezes only the typed port contract;
+  `key-provider-lifecycle-implementation` implements and tests replay/
+  membership/decommission provider behavior;
+  `minimum-key-adapter-implementation` then implements and reviews the minimal
+  concrete adapter open/seal, commit-authorization, resolution, and
+  decommission-fence behavior; `repository-commit-replay-implementation` only
+  then freezes repository/SQLite behavior and its executable dev-only
+  composition target; and `bounded-rekey-implementation` implements bounded
   repository rekey/recovery before production composition is dispatchable. The
 selected adapter is owner-local and remains
 `app/hr/adapters/draft/record-encryption-key-service` /
@@ -2056,7 +2073,7 @@ RepositoryAdmissionEpochStale, RepositoryDecommissioning, ResolutionConflict,
 ProviderUnavailable, ProviderCorrupt}`. A successful
 resolution is exactly `CommittedBeforeFence` or `AbortedBeforeCommit`; neither
 is inferred from a timeout, disconnect, clock, or missing row. Pending-page
-results are capped by the L2i.0d accepted item/byte limits and carry an opaque
+results are capped by the `record-encryption-authority-decision` item/byte limits and carry an opaque
 continuation; duplicate pages and resolutions are idempotent, while a skipped,
 reordered, oversized, or non-progressing continuation fails closed.
 
@@ -2110,8 +2127,9 @@ The high-level `RekeyRepository` operation is owned by
 `hr-employment-repository-draft`; its provider-neutral reconciler is an
 employment use case and its SQLite implementation composes
 `hr-record-encryption-draft`. The key-service adapter has no repository edge
-and never enumerates HR rows. L2i.0d must expose an immutable normal-rotation
-fence plus bounded discovery of incomplete rotations; a crash after the
+and never enumerates HR rows. `record-encryption-authority-decision` must expose
+an immutable normal-rotation fence plus bounded discovery of incomplete
+rotations; a crash after the
 provider moves `G` to `Draining` but before SQLite creates its job is therefore
 recoverable. Job creation is idempotent on
 `(repository_id, rotation_fence_id, source_generation, target_generation)`.
