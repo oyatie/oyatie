@@ -7,6 +7,7 @@
 use std::collections::BTreeSet;
 
 mod base;
+mod build;
 mod cargo_config;
 mod change;
 mod dependency;
@@ -214,7 +215,7 @@ pub fn layout_violations(changed_files: &[String]) -> Vec<String> {
         } else if root == "templates" {
             root_meta::validate_templates_path(file, &parts, &mut violations);
         } else if root == "build" {
-            validate_build_path(file, &parts, &mut violations);
+            build::validate_build_path(file, &parts, &mut violations);
         } else if is_meta_root(root) && parts.get(1).is_some_and(|child| FACES.contains(child)) {
             violations.push(format!(
                 "{file}: meta root `{root}` cannot contain owner Cargo face `{}`",
@@ -250,51 +251,4 @@ fn validate_app_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
         return;
     }
     validate_owner_path(file, parts, 2, violations);
-}
-fn validate_build_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
-    let Some(child) = parts.get(1).copied() else {
-        return;
-    };
-    if child == "port-engine" {
-        return;
-    }
-    if child == "dependency-declarations" {
-        let (Some(face), Some(leaf)) = (parts.get(2).copied(), parts.get(3).copied()) else {
-            violations.push(format!(
-                "{file}: dependency-declarations requires a frozen face/crate pair"
-            ));
-            return;
-        };
-        let Some((_, allows_build_script)) = manifest::dependency_declarations_package(face, leaf)
-        else {
-            violations.push(format!(
-                "{file}: `{face}/{leaf}` is not one of the six dependency-declarations crates"
-            ));
-            return;
-        };
-        if !allows_build_script && parts.get(4) == Some(&"build.rs") {
-            violations.push(format!(
-                "{file}: std-only port must not use root `build.rs`"
-            ));
-            return;
-        }
-        validate_owner_path(file, parts, 2, violations);
-        return;
-    }
-    if FACES.contains(&child) {
-        violations.push(format!(
-            "{file}: meta root `build` cannot contain owner Cargo face `{child}`"
-        ));
-    } else if parts.get(2).is_some_and(|face| FACES.contains(face)) {
-        violations.push(format!(
-            "{file}: unapproved nested Build subsystem cannot contain owner face `{}`",
-            parts[2]
-        ));
-    } else if parts[1..].iter().any(|part| {
-        matches!(*part, "Cargo.toml" | "Cargo.lock" | "build.rs") || part.ends_with(".rs")
-    }) {
-        violations.push(format!(
-            "{file}: nested Build Cargo/Rust content is allowed only under `build/port-engine` or `build/dependency-declarations`"
-        ));
-    }
 }
