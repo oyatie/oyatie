@@ -31,8 +31,9 @@ date: 2026-08-27
   future-incompatible transitive packages across the application frontend and
   intelligence/Valkey closures; no owner/disposition automation records them.
 - Although ADR-0719 D-35 broadly exempts owner law, the live gate excludes the
-  `build` meta-root. Keep these files below 300 lines and route the discrepancy
-  to Pipeline-owner planning rather than editing admission in this Build lane.
+  `build` meta-root. Keep these files at or below 300 lines and route the
+  discrepancy to Pipeline-owner planning rather than editing admission in this
+  Build lane.
 
 No supported regeneration entrypoint, complete fixup/overlay inventory,
 deterministic double-run gate, validation kernel, qualified publisher,
@@ -274,9 +275,10 @@ Class: verification and consumer-neutral handoff; depends on L2c.
   Pipeline owns rollout, review, retry, and merge order.
 - Success: stable qualifies or has a typed blocker, MSRV stays green, every item
   is disposed, shadows reproduce, and rollback restores the qualified tuple.
-- Failure/faults: nightly authority, nondeterministic/financial algebraic floats,
-  ignored ABI/symbol or rebuild impact, Build-run campaigns, miscompilation,
-  nightly syntax, solver/Polonius/demangler/WASM/GPU/cache/rollback failures.
+- Failure/faults: nightly authority, algebraic floats on exact/deterministic
+  surfaces or without a consuming-owner-accepted error budget, ignored ABI/
+  symbol or rebuild impact, Build-run campaigns, miscompilation, nightly syntax,
+  solver/Polonius/demangler/WASM/GPU/cache/rollback failures.
 
 </sequence>
 
