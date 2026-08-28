@@ -1,70 +1,66 @@
 ---
 doc_status: published
 id: ADR-0711
-title: "Swarm Delivery Law: integration branch topology and command discipline"
-status: Accepted
-planning_impact: true
+title: "Transitional migration input: swarm delivery topology and command discipline"
+status: Superseded
+planning_impact: false
 deciders: founder
 date: 2026-08-10
 door: two-way
 owner: council-architecture
 supersedes: []
 superseded_by: []
-amends: [ADR-0700, ADR-0701]
+amends: []
 amended_by: []
-depends_on: [ADR-0700, ADR-0701]
-related: [ADR-0111, ADR-0119, ADR-0131, ADR-0363, ADR-0366, ADR-0515, ADR-0541, ADR-0554, ADR-0562]
+depends_on: []
+related: []
 milestone: W0
-deliverables:
-  - id: ADR-0711-D1
-    description: "Durable integ/<root> + integ/docs + integ/specs branch topology with machine-readable path envelopes."
-    exit_criteria: "specs/integ-branch-envelopes.json exists; governed roots/planes/hubs are enumerated ONLY in that JSON (#roots, #planes, #hubs.paths) — prose cites JSON pointers and MUST NOT re-list; hub sole-owner list and adjunct claim rules are machine-readable; envelope self-ownership is integ/specs."
-    verified_by: "presubmit"
-  - id: ADR-0711-D2
-    description: "Worktree-per-agent isolation plus worker git allowlist (no stash/reset) and server-side integ reset after land."
-    exit_criteria: "PORTABLE-SWARM-CONTRACT.md carries Swarm Delivery Law; deliver.js Claim verifies envelope + merge-tree + hub exclusivity; Land upserts one PR per integ/<root> and documents server-side reset refspec; concurrent-safe exemptions match specs/integ-branch-envelopes.json#concurrent_safe_exemptions.paths (narrowed per-lane evidence — not whole evidence/**)."
-    verified_by: "presubmit"
-  - id: ADR-0711-D3
-    description: "Hyperscaler monorepo patterns + anti-patterns encoded as first-class Swarm Delivery Law (not agent-swarm lessons alone)."
-    exit_criteria: "ADR-0711 and PORTABLE-SWARM-CONTRACT.md each have a dedicated Hyperscaler monorepo patterns section; specs/integ-branch-envelopes.json carries matching notes citing ADR-0119/0131/0515/0541/0562/0700/0701."
-    verified_by: "presubmit"
-  - id: ADR-0711-D4
-    description: "Amendment A — docs governability epic gate, buck2 [check] daemon (no cargo revival), comment doctrine, generated-files doctrine."
-    exit_criteria: "ADR-0711 Amendment A + PORTABLE-SWARM-CONTRACT Amendment A present; check-daemon invokes buck2 build //...[check] only under SWARM_ORCHESTRATOR=1 with zero cargo build/check/test/clippy invocations; docs-governance beads epic exists gated on integ/docs+integ/specs live."
-    verified_by: "presubmit"
-  - id: ADR-0711-D5
-    description: "Amendment B — REORG NOW ternary layout map: every root/meaningful subdir is reorg_now|keep_forever|delete_permanently; freeze prefixes block NEW births only while moves execute; libs/cloud/oya/infra/toolchains/tools are NOT keep_forever."
-    exit_criteria: "ADR-0711 Amendment B + PORTABLE-SWARM-CONTRACT Amendment B present; envelopes reorg_debt_freeze rows carry action/destination/shape/rationale/redesign/judgment_status; evaluation_gate forbids git-mv-only; deliver.js Claim rejects births under freeze prefixes and rejects path changes without judgment_status=done."
-    verified_by: "presubmit"
-  - id: ADR-0711-D6
-    description: "Amendment B Pattern-First + full 16-lens battery — establish specs/naming-taxonomy.json before renames; taxonomy REPLACES indefensible brand/ADR naming (does not encode it); judgments require lenses_applied=all-16 + challenges[] when keeping/replacing existing patterns; dual-emit merge-gate-context until founder protection flip."
-    exit_criteria: "specs/naming-taxonomy.json with overturned_patterns; ADR-0711 B-1b/B-1c + PORTABLE mirror; envelopes naming.judgment_template + judgment_files.dir (naming_sweep lives under governance/check/integ-envelope/judgments/, not inlined); no mass rename without taxonomy instance."
-    verified_by: "presubmit"
-  - id: ADR-0711-D7
-    description: "Amendment C — 137-entry archive distillation synthesized as clustered operating-patterns catalog (KEEP/BAN), not 137 paraphrases; machine-readable specs/agentic-operating-patterns.json; distill notes that said keep name presubmit are OVERRULED (forever name presubmit)."
-    exit_criteria: "ADR-0711 Amendment C + PORTABLE-SWARM-CONTRACT Amendment C present; specs/agentic-operating-patterns.json carries KEEP/BAN clusters + oyatie_apply tags; explicit OVERRULE of presubmit-as-forever-name."
-    verified_by: "presubmit"
-  - id: ADR-0711-D8
-    description: "Amendment D — Anti-drift documentation doctrine (INV-DOC-1…9); enumerate ONLY in envelopes JSON; docs_touched/docs_action packet; same-wave colocation; versioned anti_drift_doctrine_version; merge_windows policy-as-data."
-    exit_criteria: "ADR-0711 Amendment D + PORTABLE Amendment D present; envelopes #anti_drift + #merge_windows; deliver.js Claim requires docs_touched/docs_action; drift-grep deferred to .grok/ Rust self-check (no tools/swarm birth on #1644)."
-    verified_by: "presubmit"
-  - id: ADR-0711-D10
-    description: "Amendment E — adr-rename-overturn (forever ADR-NNNN-<topic> + indexes); rules-with-why on load-bearing MUST/KEEP/BAN; daemon_hotset + perimeter northstar as envelopes policy-as-data."
-    exit_criteria: "ADR-0711 Amendment E + PORTABLE Amendment E present; naming-taxonomy decision-record keep NNNN-topic; agentic-operating-patterns carry achieves/origin/ensure/overturn_when; envelopes #daemon_hotset + #perimeter binding."
-    verified_by: "presubmit"
+deliverables: []
 ---
-# ADR-0711: Swarm Delivery Law — integration branch topology and command discipline
+# ADR-0711: Transitional migration input — swarm delivery topology and command discipline
 
 ## Status
 
-**Accepted** (founder 2026-08-10). Phase A doctrine + policy-as-data + Claim/Land harness are
-live and already enforced; leaving this ADR `Proposed` while Claim treated it as binding law
-violated END-STATE-POLICY (Proposed carries no implement authority). Remaining rollout work is
-deliverable completion, not a status gate: Phase B hermetic CI envelope check under
-`presubmit`, and Phase C (branch protection restricting `dev` PRs to `integ/*` +
-`hotfix/*`) which stays founder-paired and out of this ADR's acceptance criteria.
+**Accepted at authoring; frozen transitional migration input now.** Neither this
+file nor its numbered path is a destination agent entry surface, current owner
+truth, or a normal agent read. Authoring-era claims below are evidence to
+classify against semantic compiler-, test-, runtime-, admission-, policy-,
+controller-, reconciler-, build-, and ownership-consumed facts at one immutable
+revision. This amendment does not claim that those facts have already been
+projected or that this file is ready to delete.
+For this frozen transition, only the ruling below governs how the file may be
+consumed; every later authoring-era MUST, KEEP, BAN, amendment, deliverable, and
+reference is non-operative migration DATA until independently classified.
 
-## Context
+### Current-only transition ruling
+
+- **achieves:** semantic current delivery and owner truth without a permanent
+  numbered decision identity, tracked navigation index, in-tree archive, or
+  historical context poisoning.
+- **origin:** authoring-era decision paths, mirrors, indexes, and catalog entries
+  became parallel entry surfaces even when native admission and runtime behavior
+  differed.
+- **rule:** this file MUST remain frozen transitional migration input, not a
+  destination entry surface. Current execution starts at the root hubs and uses
+  semantic native facts at an immutable SCM-neutral revision. History requires a
+  separate explicit opt-in SCM lookup, remains SCM-only DATA, and never mixes
+  into the current view; Git is the current adapter, not the product contract.
+- **ensure:** every claim receives exactly one migration result. Conflict,
+  ambiguity, duplication, or missing facts yields `Unknown` and blocks native
+  projection and source deletion. Existing sequential filenames and identifiers
+  survive only as deletion-bound provenance; there is no rename, tombstone,
+  redirect, catalog, or archive phase. Deletion follows successful verified
+  projection, and no such completion is asserted here. Current Pipeline
+  admission still recognizes numbered decision paths, and its semantic-naming
+  tests explicitly admit them. The separately owned Pipeline cutover MUST remove
+  that compatibility; this task changes no Pipeline surface and does not claim
+  enforcement is fixed.
+- **overturn_when:** measured evidence proves an irreducible current contract
+  cannot live on semantic native authority or an untracked immutable-revision
+  view, and a bounded five-field replacement lands atomically without restoring
+  tracked parallel authority.
+
+## Historical context — migration input, not current authority
 
 Parallel agent delivery on this monorepo repeatedly hit the same failure classes:
 
@@ -83,7 +79,7 @@ stash/reset substrate even by accident.
 This ADR does not replace ADR-0700 merge admission or ADR-0701 capability layout. It amends how
 agent lanes assemble onto trunk: unit work never opens a trunk PR; domain integ branches do.
 
-## Decision
+## Historical decision record — non-operative migration input
 
 ### D-1 — Durable integ branches are the only trunk admission surface
 
@@ -250,9 +246,9 @@ historical ADRs are provenance only.
 - **Inventing work / inventing lanes for empty verified space** — claim only labeled
   `implementable` beads; do not fabricate scope to keep agents busy.
 
-#### Swarm operating lessons (carried, still binding)
+#### Historical swarm operating lessons — non-operative migration input
 
-Kept from Bun / Cursor swarm / Amendment C archive practice and already encoded in Claim/Land /
+Kept from Bun / Cursor swarm / Amendment C archive practice and formerly encoded in Claim/Land /
 PORTABLE-SWARM-CONTRACT: one implementer + adversarial reviewers; planner ≠ implementer;
 fix the process not the output; batch same-subsystem work into one lane; green CI is not
 authorization — re-verify at the moment of action; never delete a git lock without checking the
@@ -263,22 +259,24 @@ Full clustered KEEP/BAN from the 137-entry Amendment C archive distillation: **A
 
 ### Amendment A (2026-08-10)
 
-Binding amendment to the Swarm Delivery Law. Full portable mirror:
+Historical amendment record; frozen migration input. Authoring-era mirror:
 `governance/contracts/PORTABLE-SWARM-CONTRACT.md` § Amendment A.
 
-#### A-1 — Docs governability track (beads epic)
+#### A-1 — Historical docs-governability proposal, overruled for destination
 
-N docs / JSONs / YAMLs / ADRs without findability produces stale, duplicate, and conflicting
-decisions. Create a `docs-governance` beads epic, **gated on `integ/docs` + `integ/specs`
-going live** (do not activate execution until both planes have landed trunk PRs). Scope:
+The authoring-era proposal for tracked catalogs, indexes, ledgers, and retirement
+phases is not a current requirement and is not the destination migration shape.
+Its remaining use is migration evidence for this fail-closed sequence:
 
-1. Inventory + dedupe map against `docs/DOC-CATALOG.md` / registry projections.
-2. Enforce `specs/markdown-retirement-policy.json` phases.
-3. Admission rule for new docs: register owner + catalog row + supersede check (no orphans;
-   extend the `adr-orphan-detect` pattern).
-4. Findability via machine-readable indexes as entry points.
-5. Contradiction detection via `docs/CONTRADICTION-LEDGER.md` discipline.
-6. Growth budget on root `docs/` / `specs/` with colocation preferred (ADR-0131 / ADR-0701).
+1. Classify frozen prose in an ephemeral off-tree claim ledger at one immutable
+   revision.
+2. Project accepted current claims onto semantic native authority.
+3. Refuse on a conflict, missing fact, duplicate classification, or any other
+   `Unknown` result.
+4. Generate any human view on demand, untracked and bound to that exact
+   revision; do not create an in-tree navigation index.
+5. Delete successfully projected source atomically, without a catalog,
+   redirect, archive, tombstone, or rename phase.
 
 #### A-2 — Fast-feedback plane correction (no cargo revival)
 
@@ -332,8 +330,9 @@ admission.
 
 ### Amendment B (2026-08-10) — REORG NOW (ternary layout map)
 
-Binding amendment. **Reorg happens NOW** — classification is a move map, not a parking lot.
-Portable mirror: `governance/contracts/PORTABLE-SWARM-CONTRACT.md` § Amendment B.
+Historical amendment record; frozen migration input. The authoring-era text
+required immediate reorganization and used this mirror:
+`governance/contracts/PORTABLE-SWARM-CONTRACT.md` § Amendment B.
 Policy-as-data: `specs/integ-branch-envelopes.json` → `reorg_debt_freeze`.
 
 #### B-0 — Greenfield question (placement law)
@@ -413,7 +412,7 @@ Extends (does not invent a parallel cosmology):
 |---|---|
 | Role-first tokens | Name states behavior (`baseline-ratchet`, `presubmit`) |
 | Forbidden leading brand | `oyatie-` / `` / `cloud-` / `cloud_` as leading durable prefixes |
-| ADR path shape (Amendment E) | Forever `docs/decisions/ADR-NNNN-<topic>.md`; indexes/frontmatter carry nav — MUST NOT mass-rename for optics |
+| Decision-record transition | Existing sequential filenames and identifiers are deletion-bound provenance only; the destination has no numbered decision catalog, tracked navigation index, or rename phase |
 | Self-explanatory path test | Path+filename alone convey purpose (`NNNN` + topic together) |
 | Brand ≠ keep_forever | Brand prefix alone never justifies durable home |
 
@@ -432,7 +431,7 @@ Extends (does not invent a parallel cosmology):
 | `presubmit` | merge-gate-context | `presubmit` (dual-emit until founder protection flip) |
 | `freshness (…, ADR-0539)` | ci-job | `generated-artifact-freshness (lock + faces)` |
 | `pipeline-firewall (…) ` | ci-job | `admission-baseline-ratchet (+ gate-registration)` |
-| `docs/decisions/ADR-NNNN-*.md` | decision-record | `docs/decisions/ADR-NNNN-<topic>.md` (**keep** — indexes carry nav; Amendment E OVERRULE of topic-only mass rename) |
+| existing numbered decision file | decision-record | frozen migration input until verified projection, then deletion; no destination filename or tracked index |
 
 **Execution order:** taxonomy lands on `integ/specs` → sweep rows cite kinds → renames execute
 as taxonomy instances on owning `integ/<root>`. Agents MUST NOT change GitHub branch protection;
@@ -473,7 +472,7 @@ Patterns this amendment recommends overturning (mechanism may stay; brand/shape 
 | Leading `oyatie-` / `cloud-` on crates/gates/bins | ADR-0017 workspace uniqueness / AWS-style prefix | Role-first grammar; brand prefix = debt |
 | `pipeline-firewall` brand | Phase-0 go-live metaphor | `admission-baseline-ratchet` (+ gate-registration) |
 | `required_prefix = "oyatie-"` as greenfield law | Historical crate BNF | Superseded for greenfield by `naming-taxonomy.json` |
-| `docs/decisions/ADR-NNNN-*.md` path shape | Numbered decision catalogs | Topic-shaped filenames; numbers in index/frontmatter (batched renames) |
+| Numbered decision catalogs and filenames | Chronology and stable authoring-era citations | Semantic current names on native surfaces; historical bytes remain content-addressed in SCM |
 
 #### B-2 — Freeze prefixes = no NEW births while moves execute
 
@@ -507,7 +506,7 @@ First wave = evaluated decisions with evidence (`judgments_done` / `first_wave`)
 
 ### Amendment C (2026-08-10) — operating-patterns catalog
 
-Binding amendment. Distilled from **all 137** archive entries (14 batch distillers,
+Historical amendment record; frozen migration input. It distilled **all 137** archive entries (14 batch distillers,
 000–136) into the operating-patterns catalog. Encode **clusters**, not 137 paraphrases.
 Portable mirror: `governance/contracts/PORTABLE-SWARM-CONTRACT.md` § Amendment C.
 Policy-as-data: `specs/agentic-operating-patterns.json`.
@@ -552,7 +551,8 @@ Any distill note that said **keep the name `presubmit`** is **OVERRULED**.
 
 ### Amendment D (2026-08-10) — Anti-drift documentation doctrine
 
-Binding amendment. Machine law + packet + same-wave colocation so docs cannot drift after change.
+Historical amendment record; frozen migration input. It proposed machine law,
+packet evidence, and same-wave colocation so docs could not drift after change.
 Portable mirror: `governance/contracts/PORTABLE-SWARM-CONTRACT.md` § Amendment D.
 Policy-as-data: `specs/integ-branch-envelopes.json#anti_drift` (`anti_drift_doctrine_version`).
 
@@ -600,25 +600,24 @@ yet, so `deliver.js` is the sole live admission parse. Does not rewrite DOC-CATA
 authorize mass ADR renames. Drift-grep: deferred `.grok/` Rust self-check (interim: deliver.js Claim + PORTABLE review). Root-file content land of
 INV-DOC-9 short form is owned by `integ/ci` (`planes.process_meta`) — route ≠ content.
 
-### Amendment E (2026-08-10) — adr-rename-overturn + rules-with-why + northstar pins
+### Amendment E (2026-08-10) — historical transition record
 
-Binding amendment. Challenge applied now (no defer-as-debt).
+Historical amendment record; frozen migration input. Its permanent-path rule is
+overruled below rather than deferred.
 
-#### E-1 — ADR path forever shape (`adr-rename-overturn`)
-
-**OVERRULE** any Pattern-First / taxonomy draft that reshapes
-`docs/decisions/ADR-NNNN-*.md` → `docs/decisions/<topic>.md` as forever law.
+#### E-1 — Current-only semantic identity overrules permanent decision paths
 
 | Field | Content |
 |---|---|
-| **achieves** | Stable citation paths without high-fan-in rename churn; topic findability via indexes |
-| **origin** | Challenged mass-rename proposal treated `ADR-NNNN` path segments as indefensible optics debt |
-| **rule** | Keep `docs/decisions/ADR-NNNN-<topic>.md`; indexes/frontmatter carry nav; MUST NOT mass-rename ADR files for taxonomy theater |
-| **ensure** | `specs/naming-taxonomy.json` kind `decision-record` + `OP-adr-numbered-decision-paths` verdict=`keep`; naming_sweep rows match; this amendment |
-| **overturn_when** | Measured findability failure proves NNNN-topic harmful AND a batched judged rename clears 16-lens with dual-emit cutover and zero dual-truth |
+| **achieves** | Semantic current identities without high-fan-in rename churn or a permanent numbered catalog |
+| **origin** | The authoring-era choice treated stable sequential citation paths and tracked indexes as permanent current identity |
+| **rule** | Filenames are not identity. Current native surfaces use semantic domain or operator names, and the destination contains no numbered decision catalog. Existing sequential filenames and identifiers remain deletion-bound provenance only; history is content-addressed in SCM. There is no rename, tombstone, redirect, or catalog phase because verified native projection is followed by atomic source deletion. |
+| **ensure** | Current work begins at root hubs and resolves compiler-, test-, runtime-, admission-, policy-, controller-, reconciler-, build-, and ownership-consumed facts at an immutable SCM-neutral revision. Conflict, ambiguity, or missing facts yields `Unknown` and blocks projection and deletion. No projection or deletion readiness is claimed here. |
+| **overturn_when** | Measured evidence proves an irreducible current identity cannot be semantic on native authority or an untracked immutable-revision view, and a bounded five-field replacement lands atomically without restoring parallel tracked authority. |
 
-Chesterton: numbered ADR catalogs exist for chronology + citation. Indexes already solve topic
-nav. Mass rename is blast-radius theater, not irreducible cleanup.
+Chesterton: numbered decision paths protected chronology and stable authoring-era
+citations. SCM preserves those exact bytes and identities for explicit historical
+lookup, so neither a mass rename nor a permanent tracked catalog is required.
 
 #### E-2 — Rules carry why (reflection shape)
 
@@ -692,12 +691,18 @@ Does not authorize `sweep-execute` naming moves before `#1644` land. Observation
 
 - **Treat libs/cloud/oya/infra/toolchains/tools as keep_forever or gradual freeze** — banned; Amendment B ternary requires reorg_now/delete_permanently NOW; freeze prefixes only block new births during the move.
 - **Mass-rename without a naming taxonomy** — banned; Pattern-First Law (B-1b) requires `specs/naming-taxonomy.json` kinds + grammar before renames; one-off bespoke names are debt.
-- **Mass-rename ADR files to topic-only paths for taxonomy optics** — OVERRULED (Amendment E-1 / `adr-rename-overturn`); forever is `ADR-NNNN-<topic>` + indexes.
+- **Mass-rename or permanently catalog numbered decision files** — both are
+  overruled for the destination; existing paths remain frozen provenance until
+  verified projection and atomic deletion.
 - **Keep `oyatie-` / `cloud-` leading brand prefixes because ADR-0017 / history said so** — banned for greenfield; brand prefix is not keep_forever; role-first forever names + dual-emit/alias for protection cutovers.
 - **Keep forever name `presubmit` because Amendment C distill notes said so** — OVERRULED (Amendment C-3); forever name is `presubmit`; distill is operating-pattern evidence, not naming authority.
 - **Defer rules-with-why / daemon-hotset / perimeter as Phase-B debt** — banned; forever shapes encode now (Amendment E); enforcement wiring may trail doctrine.
 
-## References
+## Historical references — explicit opt-in provenance only
+
+The paths below record the authoring context of this frozen source. They are not
+current navigation or normal agent entry points; current work starts at the root
+hubs and semantic native facts, while history is queried separately from SCM.
 
 - Naming taxonomy: `specs/naming-taxonomy.json`
 - operating-patterns catalog: `specs/agentic-operating-patterns.json`
@@ -705,9 +710,9 @@ Does not authorize `sweep-execute` naming moves before `#1644` land. Observation
 - Portable rule text: `governance/contracts/PORTABLE-SWARM-CONTRACT.md`
 - Harness: `templates/agent-delivery/deliver.js` (Claim + Land)
 - Concurrent-safe registry: `registry/vcs/concurrent-safe-paths.yaml`
-- Operating contract: `docs/AGENTS.md` (worktree-per-lane; sole required merge-admission context)
-- Layout apex: ADR-0701 (capability-first; supersedes ADR-0562 / ADR-0131 as live law)
-- CI admission apex: ADR-0700 (single required merge-admission context; ADR-0515 lineage; forever name `presubmit`)
+- Legacy operating-contract redirect: `docs/AGENTS.md`
+- Authoring-era layout citation: ADR-0701
+- Authoring-era CI-admission citation: ADR-0700
 - Specs topology provenance: ADR-0119 (flat cross-cutting `specs/` hub)
 - Doc colocation / g3doc pattern: ADR-0541 (corpus liveness; owner-colocated docs)
 - Affected testing: ADR-0554 / ADR-0700 lineage
