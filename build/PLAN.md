@@ -86,8 +86,7 @@ on L1a review/merge.
 - Produce a concise owner-local design amendment or PR description; do not add
   an evidence dump or mutate declarations/generated output.
 
-Write envelope: owner docs only when evidence changes law; scratch stays outside Git; L1c waits. Re-measure `syn`, AWS-LC, PSM, aliases,
-generated sources, and consumers after the eleven missing decisions are resolved.
+Write envelope: owner docs only when evidence changes law; scratch stays outside Git. L1c consumes this blocker; executable/shared-declaration work waits for its reviewed serialized plan. Clean-generation remeasurement of `syn`, AWS-LC, PSM, aliases, generated sources, and consumers follows its approved eleven-decision resolution.
 
 - Success: every semantic difference has a source and mapped consumer target.
 - Failure: the current missing decisions mask fixup, alias, and platform faults;
