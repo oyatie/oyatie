@@ -4,13 +4,13 @@ owner: build
 status: Proposed
 date: 2026-08-27
 base: 505828b377dbd4b6705f50af6369fc1a8a98b21a
+revision: 2
+amended: 2026-08-28
 ---
 
 # Declaration reconciliation v1 execution map
 
-This is the L1c execution map, not an ADR fork, second plan authority, evidence dump, or landed-behavior claim. Authority remains
-[`build/ADR.md`](../../ADR.md), [`build/PRD.md`](../../PRD.md), [`build/SPEC.md`](../../SPEC.md), and [`build/PLAN.md`](../../PLAN.md), inheriting
-[ADR-0719](../../../docs/decisions/ADR-0719-eac-serving-control-north-star.md) D-27/D-43. Evidence is the exact base above, L1b's blocker at `build/PLAN.md:70-95`, and the pinned source below.
+This is the L1c execution map, not an ADR fork, second plan authority, evidence dump, or landed-behavior claim. Authority remains [`build/ADR.md`](../../ADR.md), [`build/PRD.md`](../../PRD.md), [`build/SPEC.md`](../../SPEC.md), and [`build/PLAN.md`](../../PLAN.md), inheriting [ADR-0719](../../../docs/decisions/ADR-0719-eac-serving-control-north-star.md) D-27/D-43. Evidence is the exact base above, L1b's blocker at `build/PLAN.md:70-95`, and the pinned source below.
 
 ## Rulings and closed shape
 
@@ -28,10 +28,16 @@ The irreducible six packages are two effect traits, one pure core, two implement
 | `adapters/publication-filesystem`; `dependency-declarations-publication-filesystem`; `src/lib.rs` | `Cargo.toml`, `OWNERS`, `BUCK`, `build.rs`, `src/lib.rs`, `src/items/{capability,lease,publish,recovery}.rs`, `tests/{faults,old_or_new,recovery,module_membership}.rs`; `:dependency-declarations-publication-filesystem`, `:dependency-declarations-publication-filesystem-faults-test`, `:dependency-declarations-publication-filesystem-old-or-new-test`, `:dependency-declarations-publication-filesystem-recovery-test`, `:dependency-declarations-publication-filesystem-module-membership-test` | core + publication port + workspace `rustix` |
 | `facade/reconciler-app`; `dependency-declarations-reconciler-app`; `src/main.rs` (+ `src/lib.rs`) | `Cargo.toml`, `OWNERS`, `BUCK`, `build.rs`, `src/{lib,main}.rs`, `src/items/{codec,resource,service}.rs`, `tests/{resource_status,process,freshness,dependency_direction,module_membership}.rs`; `:dependency-declarations-reconciler-app`, `:dependency-declarations-reconciler-app-bin`, `:dependency-declarations-reconciler-app-resource-status-test`, `:dependency-declarations-reconciler-app-process-test`, `:dependency-declarations-reconciler-app-freshness-test`, `:dependency-declarations-reconciler-app-dependency-direction-test`, `:dependency-declarations-reconciler-app-module-membership-test` | core, both ports, both adapters; composition only |
 
-Each multi-item crate's immutable `build.rs` sorts direct `src/items/*.rs` into `OUT_DIR`; item lanes add unique files, never an index. Cargo uses canonical library discovery; only the facade has `src/main.rs`.
-BUCK names these paths explicitly or with bounded `src/**/*.rs`/`tests/*.rs` globs; there is no parent BUCK. Direct path dependencies need no new root `[workspace.dependencies]` entry.
-Libraries are visible only within `//build/dependency-declarations/...`; the binary stays private until API adoption. `dependency_direction.rs` parses all six Cargo/BUCK declarations and admits only the edges above, including no port-engine/Pipeline label.
-Path, Cargo/Buck target kind, entrypoint, dependency direction, visibility, OWNERS and tested serving relationship jointly prove role; empty `main.rs` never does, and structure never proves production readiness. The serialized writer owns `Cargo.lock` normalization.
+Each multi-item crate's immutable `build.rs` sorts direct `src/items/*.rs` into `OUT_DIR`; item lanes add unique files, never an index. Cargo uses canonical library discovery; only the facade has `src/main.rs`. BUCK names these paths explicitly or with bounded `src/**/*.rs`/`tests/*.rs` globs; there is no parent BUCK; direct path dependencies need no new root `[workspace.dependencies]` entry.
+Libraries are visible only within `//build/dependency-declarations/...`; the binary stays private until API adoption. `dependency_direction.rs` parses all six Cargo/BUCK declarations and admits only the edges above, including no port-engine/Pipeline label. Path, Cargo/Buck target kind, entrypoint, dependency direction, visibility, OWNERS and tested serving relationship jointly prove role; empty `main.rs` never does, structure never proves production readiness, and the serialized writer owns `Cargo.lock` normalization.
+
+## OVERRULE — stage tracked scanner inputs with their first real item
+
+- **achieves:** every intermediate declaration tuple remains Reindeer-resolvable and Buck-executable without placeholder behavior.
+- **origin:** exact Reindeer candidate `bb681570d2bc47d1446080c12b8681a50a95f628` treats an empty tracked `src/items/*.rs` glob as unused and fatal; target listing does not execute OUT_DIR wiring.
+- **rule:** S MUST land four empty-safe scanners and `run=true`-only fixups, testing sorted empty output, run decision, and no premature tracked input. K MUST atomically add core's first real item plus exact `extra_srcs`; A MUST do so for both adapters; F MUST do so for the facade. Each is a serialized shared-declaration sublane; later item lanes add unique files without editing scanner, parent/index, or fixup. S MUST Buck-build six libraries and the private facade binary, not merely target-list them.
+- **ensure:** exact-candidate source audit, package tests, rejection of premature or absent post-first-item input, explicit Buck builds, path-layout, and independent review.
+- **overturn_when:** a reviewed, qualified Reindeer primitive supports empty tracked globs (or an equally exact no-placeholder input model) and its same-wave replacement proves clean generation and Buck execution.
 
 ## Pipeline-owned prerequisite
 
@@ -174,13 +180,7 @@ readiness.
 
 ## Reindeer, fixups, and platforms
 
-The sole source candidate is Reindeer `v2026.08.10.00`, commit
-`bb681570d2bc47d1446080c12b8681a50a95f628`. It is qualification-blocked, not a
-qualified or publishable binary. A later source build binds source-tree and
-lock digests, exact builder toolchain/target/flags, reproducible-build receipt
-and binary SHA-256; a reviewed release asset may instead bind its asset digest.
-Promotion then requires two clean equal runs, perturbation detection, alias,
-native/generated-source and Buck-consumer evidence.
+The sole source candidate is Reindeer `v2026.08.10.00`, commit `bb681570d2bc47d1446080c12b8681a50a95f628`. It is qualification-blocked, not a qualified or publishable binary. A later source build binds source-tree and lock digests, exact builder toolchain/target/flags, reproducible-build receipt and binary SHA-256; a reviewed release asset may instead bind its asset digest. Promotion then requires two clean equal runs, perturbation detection, alias, native/generated-source and Buck-consumer evidence.
 
 One serialized declaration writer owns `Cargo.toml`, `Cargo.lock`, all six
 package manifests/OWNERS/BUCK/entrypoints, `reindeer.toml`,
@@ -201,12 +201,7 @@ decisions are:
   `storage-provider-object-s3-draft` and `storage-s3-adapter`: run
   `src/{items,test_items}`.
 
-Each maps to its package-named `third-party/fixups/` directory; a source/effect change
-invalidates the decision. S alone adds and tests `run=true` fixups at
-`third-party/fixups/dependency-declarations-{reconcile,generation-reindeer,
-publication-filesystem,reconciler-app}/fixups.toml`, each declaring its direct
-`src/items` input; the four package `module_membership` tests prove sorted
-output and exact fixup input, so the unresolved count never grows silently.
+Each maps to its package-named `third-party/fixups/` directory; a source/effect change invalidates the decision. S alone adds and tests `run=true`-only fixups at `third-party/fixups/dependency-declarations-{reconcile,generation-reindeer,publication-filesystem,reconciler-app}/fixups.toml`; the four package `module_membership` tests prove sorted empty output, the run decision, and no premature tracked input. K atomically adds core's first real item and exact `src/items/*.rs` input; A does so for each adapter and F for the facade. After that binding, item lanes add unique files without editing scanner, parent/index, or fixup, so the unresolved count never grows silently.
 
 AWS-LC DEP metadata must become supported fixup/generator behavior. PSM 0.1.31
 gets an explicit nine-platform matrix: x86_64 Linux GNU/musl and macOS use
@@ -271,15 +266,28 @@ done
 | Wave | Red/green proof and success | Refusal/fault and rollback |
 |---|---|---|
 | P: Pipeline prerequisite | `cargo test --locked --offline -p pipeline-admission --test layout --test layout_adversarial --test layout_change`; absent/paired glob and exact paths pass | broad meta face, wrong name/entrypoint, half-pair fail; revert Pipeline PR |
-| S: serialized structure | add six crates, paired root entries, four scanner fixups and four `module_membership` tests; run `cargo test --locked --offline -p dependency-declarations-reconcile -p dependency-declarations-generation-reindeer -p dependency-declarations-publication-filesystem -p dependency-declarations-reconciler-app --test module_membership`, metadata/fmt, and `buck2 targets 'root//build/dependency-declarations/...'` | any half tuple, missing input/target, or forbidden edge fails; revert six-crate/root-pair/four-fixup tuple together |
-| K: pure core | package tests start red, then cover canonical IDs, bounds, A/B mismatch, validation, stable failures and fake ports; `cargo test --locked --offline -p dependency-declarations-reconcile` | ambient IO, panic, limit+1, order/path drift fail; revert only K item/test files |
-| A: adapters | `cargo test --locked --offline -p dependency-declarations-generation-reindeer -p dependency-declarations-publication-filesystem`; tests cover exact process/env/sandbox and every lease/write/sync/rename/recovery fault | network/env leak, timeout orphan, partial visibility or dishonest durability fail; withdraw adapters, retain core |
-| F: reconciler/freshness | `cargo test --locked --offline -p dependency-declarations-reconciler-app`; resource/status, process and freshness tests pass with no CLI parser or network/forge transport dependency | vacant main, mutation in check-only, missing status/backpressure fail; withdraw facade |
-| D: declaration conversion | `cargo test --locked --offline -p dependency-declarations-reconciler-app --test freshness`; resolve 11 inherited decisions, revalidate all 15, bind platforms/AWS-LC/PSM, materialize through the engine, then obtain two clean checks | missing inherited fixup, residue, hand edit or unequal output fails; restore the pre-D config/11-fixup/PACKAGE/BUCK tuple while preserving S's four scanner fixups/scaffold |
+| S: serialized structure | add six crates, paired root entries, four empty-safe scanners, four run-only fixups and four `module_membership` tests; run `cargo test --locked --offline -p dependency-declarations-reconcile -p dependency-declarations-generation-reindeer -p dependency-declarations-publication-filesystem -p dependency-declarations-reconciler-app --test module_membership`, metadata/fmt, `buck2 targets 'root//build/dependency-declarations/...'`, and the explicit Buck build below | premature tracked glob, nonempty placeholder, missing run decision, missing Buck target/OUT_DIR, half tuple, or forbidden edge fails; revert six-crate/root-pair/four-fixup tuple together |
+| K: pure core | atomically add core's first real item and exact tracked `src/items/*.rs` input, then start red package tests for canonical IDs, bounds, A/B mismatch, validation, stable failures and fake ports; `cargo test --locked --offline -p dependency-declarations-reconcile` | ambient IO, panic, limit+1, order/path drift, or separated item/input binding fails; rollback removes all K item/test files and its input binding together |
+| A: adapters | atomically add each adapter's first real item and exact tracked input; `cargo test --locked --offline -p dependency-declarations-generation-reindeer -p dependency-declarations-publication-filesystem` covers exact process/env/sandbox and every lease/write/sync/rename/recovery fault | network/env leak, timeout orphan, partial visibility, dishonest durability, or separated adapter item/input binding fails; withdraw all adapter item/test files and both input bindings while retaining K/S |
+| F: reconciler/freshness | atomically add the facade's first real item and exact tracked input; `cargo test --locked --offline -p dependency-declarations-reconciler-app` covers resource/status, process and freshness with no CLI parser or network/forge transport dependency | vacant main, check-only mutation, missing status/backpressure, or separated facade item/input binding fails; withdraw all facade item/test files and its input binding while retaining K/A/S |
+| D: declaration conversion | `cargo test --locked --offline -p dependency-declarations-reconciler-app --test freshness`; resolve 11 inherited decisions, revalidate all 15, bind platforms/AWS-LC/PSM, materialize through the engine, then obtain two clean checks | missing inherited fixup, residue, hand edit or unequal output fails; restore the pre-D config/11-fixup/PACKAGE/BUCK tuple while preserving S's four scanner fixups/scaffold, now with their exact tracked inputs |
 | Q: qualification | two clean roots yield equal bytes/IDs; run the exact loop above on recorded qualified executors and perturb every input | any executor, alias/native/generated/platform/consumer or p95 gap blocks promotion; republish last qualified tuple |
 
 Every wave also runs `git diff --check`, `cargo fmt --all --check`, locked
 offline metadata, its package tests, and the protected path-layout application.
+S's explicit Buck execution check is:
+
+```text
+buck2 build \
+  root//build/dependency-declarations/core/reconcile:dependency-declarations-reconcile \
+  root//build/dependency-declarations/ports/generation:dependency-declarations-generation \
+  root//build/dependency-declarations/ports/publication:dependency-declarations-publication \
+  root//build/dependency-declarations/adapters/generation-reindeer:dependency-declarations-generation-reindeer \
+  root//build/dependency-declarations/adapters/publication-filesystem:dependency-declarations-publication-filesystem \
+  root//build/dependency-declarations/facade/reconciler-app:dependency-declarations-reconciler-app \
+  root//build/dependency-declarations/facade/reconciler-app:dependency-declarations-reconciler-app-bin
+```
+
 Build supplies neutral machinery and receipts; product owners supply semantic
 intent, postconditions and acceptance; Pipeline alone owns dependency-closed
 campaign waves and protected review. Manual migrations become gold fixtures,
@@ -287,9 +295,4 @@ never the automated campaign. L1 owns no Git/GitHub/merge state, CNA or security
 severity, database/schema or customer-data migration, traffic shift, deployment
 or cell evacuation; it may only require receipts from those systems.
 
-L2a read-heavy MSRV/Rust/dependency/CVE/CNA analysis continues now under
-`build/PLAN.md`; declared MSRV, qualified stable, beta and exact dated nightly
-remain independent identities. Only L2 behavior, candidate rendering and
-publication wait for Q and consume L1 ChangeSets/receipts without moving MSRV
-or Security ownership. Cargo `min-publish-age` and `update-breaking` remain
-unstable observations, never durable APIs.
+L2a read-heavy MSRV/Rust/dependency/CVE/CNA analysis continues now under `build/PLAN.md`; declared MSRV, qualified stable, beta and exact dated nightly remain independent identities. Only L2 behavior, candidate rendering and publication wait for Q and consume L1 ChangeSets/receipts without moving MSRV or Security ownership. Cargo `min-publish-age` and `update-breaking` remain unstable observations, never durable APIs.
