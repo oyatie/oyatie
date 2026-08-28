@@ -1,0 +1,6 @@
+package(
+    within_view = [
+        "//build/dependency-declarations/adapters/publication-filesystem/...",
+        "prelude//rust/buildscript:buildscript_platform_transition",
+    ],
+)

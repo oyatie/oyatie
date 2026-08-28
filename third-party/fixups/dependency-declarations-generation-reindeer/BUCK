@@ -1,0 +1,5 @@
+export_file(
+    name = "fixups.toml",
+    visibility = ["root//build/dependency-declarations/adapters/generation-reindeer:dependency-declarations-generation-reindeer-module-membership-test"],
+    within_view = ["third-party//fixups/dependency-declarations-generation-reindeer/..."],
+)

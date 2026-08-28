@@ -1,15 +1,22 @@
 load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
 
+_FIXUP = "third-party//fixups/dependency-declarations-generation-reindeer:fixups.toml"
+_PACKAGE_VIEW = ["//build/dependency-declarations/adapters/generation-reindeer/..."]
+
 rust_binary(
     name = "dependency-declarations-generation-reindeer-build-script",
     srcs = ["build.rs"],
     crate = "build_script_build",
     crate_root = "build.rs",
     visibility = [],
-    within_view = ["//build/dependency-declarations/adapters/generation-reindeer/..."],
+    within_view = _PACKAGE_VIEW,
 )
 
-export_file(name = "build.rs", visibility = [])
+export_file(
+    name = "build.rs",
+    visibility = [],
+    within_view = _PACKAGE_VIEW,
+)
 
 genrule(
     name = "dependency-declarations-generation-reindeer-source-items",
@@ -17,6 +24,7 @@ genrule(
     out = "source_items",
     cmd = "mkdir -p $OUT && if [ -n \"$SRCS\" ]; then cp $SRCS $OUT/; fi",
     visibility = [],
+    within_view = _PACKAGE_VIEW,
 )
 
 genrule(
@@ -28,6 +36,7 @@ genrule(
     out = "manifest_dir",
     cmd = "mkdir -p $OUT/src/items && cp $(location :build.rs) $OUT/ && cp -R $(location :dependency-declarations-generation-reindeer-source-items)/. $OUT/src/items/",
     visibility = [],
+    within_view = _PACKAGE_VIEW,
 )
 
 buildscript_run(
@@ -36,6 +45,7 @@ buildscript_run(
     package_name = "dependency-declarations-generation-reindeer",
     version = "0.1.0",
     manifest_dir = ":dependency-declarations-generation-reindeer-manifest-dir",
+    within_view = _PACKAGE_VIEW,
 )
 
 _BUILD_ENV = {
@@ -67,8 +77,10 @@ rust_test(
     crate_root = "tests/module_membership.rs",
     env = {
         "CARGO_MANIFEST_DIR": "build/dependency-declarations/adapters/generation-reindeer",
+        "DEPENDENCY_DECLARATIONS_GENERATION_REINDEER_FIXUP": "$(location {})".format(_FIXUP),
     },
+    resources = [_FIXUP],
     visibility = [],
-    within_view = ["//build/dependency-declarations/adapters/generation-reindeer/..."],
+    within_view = _PACKAGE_VIEW + [_FIXUP],
     deps = [":dependency-declarations-generation-reindeer"],
 )
