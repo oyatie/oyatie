@@ -129,10 +129,12 @@ not a qualified compatibility promise.
 
 ## Deterministic generation
 
-- Qualify one reviewed Reindeer source and binary identity. Treat
+- Qualify one reviewed Reindeer source and binary identity. L1c ratifies
   `v2026.08.10.00` at source commit
-  `bb681570d2bc47d1446080c12b8681a50a95f628` only as the initial L1b comparison
-  candidate; L1c ratifies a pin after clean generation and consumer evidence.
+  `bb681570d2bc47d1446080c12b8681a50a95f628` as the sole implementation
+  candidate, not a qualified binary. Promotion remains blocked on the eleven
+  measured inherited and four planned scanner fixup decisions, plus clean
+  generation and consumer evidence.
 - Invoke generation with locked, offline inputs, explicit tool paths, an empty
   network surface, an explicit read-only Cargo source snapshot, and an
   allowlisted environment independent of the caller's machine.

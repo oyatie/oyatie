@@ -134,11 +134,11 @@ a `RawGeneration`.
 
 ## Provisional Reindeer qualification candidate
 
-The initial comparison candidate is Reindeer `v2026.08.10.00` at
-`bb681570d2bc47d1446080c12b8681a50a95f628`; a later candidate changes alias
-emission while three checked `any_spawner` consumers exist. L1b must reproduce
-both, and L1c ratifies one only after fixup and consumer evidence. Qualification
-binds reviewed source and executable digests; a tag is insufficient.
+The sole implementation candidate is Reindeer `v2026.08.10.00` at `bb681570d2bc47d1446080c12b8681a50a95f628`; L1c ratifies that exact source now,
+not a qualified or publishable binary. The later alias-changing source is comparison evidence,
+not a second candidate. Binary qualification binds reviewed
+source/executable digests and remains blocked on eleven inherited plus four
+planned scanner decisions, two clean byte-equal runs, and consumer evidence.
 
 The process adapter invokes pinned `buckify` with locked/offline/stdout
 semantics, absolute admitted inputs and read-only Cargo sources, an empty stage,
