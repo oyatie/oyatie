@@ -1,8 +1,96 @@
+load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
+
+rust_binary(
+    name = "hr-employment-domain-build-script",
+    srcs = ["build.rs"],
+    crate = "build_script_build",
+    crate_root = "build.rs",
+    visibility = [],
+)
+
+rust_test(
+    name = "hr-employment-domain-build-script-test",
+    srcs = ["build.rs"],
+    crate = "hr_employment_domain_build_script_test",
+    crate_root = "build.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(name = "build.rs", visibility = [])
+
+genrule(
+    name = "hr-employment-domain-source-items",
+    srcs = glob(["src/items/*.rs"]),
+    out = "source_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "hr-employment-domain-source-test-items",
+    srcs = glob(["src/test_items/*.rs"]),
+    out = "source_test_items",
+    cmd = "mkdir -p $OUT && if [ -n \"$SRCS\" ]; then cp $SRCS $OUT/; fi",
+)
+
+genrule(
+    name = "hr-employment-domain-usecase-items",
+    srcs = glob(["tests/usecase_items/*.rs"]),
+    out = "usecase_items",
+    cmd = "mkdir -p $OUT && if [ -n \"$SRCS\" ]; then cp $SRCS $OUT/; fi",
+)
+
+genrule(
+    name = "hr-employment-domain-leave-balance-items",
+    srcs = glob(["tests/leave_balance_items/*.rs"]),
+    out = "leave_balance_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "hr-employment-domain-leave-carryover-forfeiture-items",
+    srcs = glob(["tests/leave_carryover_forfeiture_items/*.rs"]),
+    out = "leave_carryover_forfeiture_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "hr-employment-domain-onboarding-items",
+    srcs = glob(["tests/onboarding_items/*.rs"]),
+    out = "onboarding_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "hr-employment-domain-manifest-dir",
+    srcs = [
+        ":build.rs",
+        ":hr-employment-domain-source-items",
+        ":hr-employment-domain-source-test-items",
+        ":hr-employment-domain-usecase-items",
+        ":hr-employment-domain-leave-balance-items",
+        ":hr-employment-domain-leave-carryover-forfeiture-items",
+        ":hr-employment-domain-onboarding-items",
+    ],
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/src/items $OUT/src/test_items $OUT/tests/usecase_items $OUT/tests/leave_balance_items $OUT/tests/leave_carryover_forfeiture_items $OUT/tests/onboarding_items && cp $(location :build.rs) $OUT/ && cp -R $(location :hr-employment-domain-source-items)/. $OUT/src/items/ && cp -R $(location :hr-employment-domain-source-test-items)/. $OUT/src/test_items/ && cp -R $(location :hr-employment-domain-usecase-items)/. $OUT/tests/usecase_items/ && cp -R $(location :hr-employment-domain-leave-balance-items)/. $OUT/tests/leave_balance_items/ && cp -R $(location :hr-employment-domain-leave-carryover-forfeiture-items)/. $OUT/tests/leave_carryover_forfeiture_items/ && cp -R $(location :hr-employment-domain-onboarding-items)/. $OUT/tests/onboarding_items/",
+)
+
+buildscript_run(
+    name = "hr-employment-domain-build-script-run",
+    buildscript_rule = ":hr-employment-domain-build-script",
+    package_name = "hr-employment-domain",
+    version = "0.1.0",
+    manifest_dir = ":hr-employment-domain-manifest-dir",
+)
+
+_BUILD_ENV = {"OUT_DIR": "$(location :hr-employment-domain-build-script-run[out_dir])"}
+
 rust_library(
     name = "hr-employment-domain",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "hr_employment_domain",
     crate_root = "src/lib.rs",
+    env = _BUILD_ENV,
     visibility = ["PUBLIC"],
     deps = [
         "//data/core/data-boundary-kernel:data-boundary-kernel",
@@ -14,6 +102,7 @@ rust_test(
     srcs = ["tests/employment.rs"],
     crate = "hr_employment_domain_employment",
     crate_root = "tests/employment.rs",
+    env = _BUILD_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":hr-employment-domain",
@@ -26,6 +115,7 @@ rust_test(
     srcs = ["tests/kr_council.rs"],
     crate = "hr_employment_domain_kr_council",
     crate_root = "tests/kr_council.rs",
+    env = _BUILD_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":hr-employment-domain",
@@ -38,6 +128,7 @@ rust_test(
     srcs = ["tests/kr_rules.rs"],
     crate = "hr_employment_domain_kr_rules",
     crate_root = "tests/kr_rules.rs",
+    env = _BUILD_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":hr-employment-domain",
@@ -50,6 +141,7 @@ rust_test(
     srcs = ["tests/leave.rs"],
     crate = "hr_employment_domain_leave",
     crate_root = "tests/leave.rs",
+    env = _BUILD_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":hr-employment-domain",
@@ -59,9 +151,10 @@ rust_test(
 
 rust_test(
     name = "hr-employment-domain-leave-balance",
-    srcs = ["tests/leave_balance.rs"],
+    srcs = ["tests/leave_balance.rs"] + glob(["tests/leave_balance_items/*.rs"]),
     crate = "hr_employment_domain_leave_balance",
     crate_root = "tests/leave_balance.rs",
+    env = _BUILD_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":hr-employment-domain",
@@ -71,9 +164,10 @@ rust_test(
 
 rust_test(
     name = "hr-employment-domain-leave-carryover-forfeiture",
-    srcs = ["tests/leave_carryover_forfeiture.rs"],
+    srcs = ["tests/leave_carryover_forfeiture.rs"] + glob(["tests/leave_carryover_forfeiture_items/*.rs"]),
     crate = "hr_employment_domain_leave_carryover_forfeiture",
     crate_root = "tests/leave_carryover_forfeiture.rs",
+    env = _BUILD_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":hr-employment-domain",
@@ -83,9 +177,10 @@ rust_test(
 
 rust_test(
     name = "hr-employment-domain-onboarding",
-    srcs = ["tests/onboarding.rs"],
+    srcs = ["tests/onboarding.rs"] + glob(["tests/onboarding_items/*.rs"]),
     crate = "hr_employment_domain_onboarding",
     crate_root = "tests/onboarding.rs",
+    env = _BUILD_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":hr-employment-domain",
@@ -98,6 +193,7 @@ rust_test(
     srcs = ["tests/privacy.rs"],
     crate = "hr_employment_domain_privacy",
     crate_root = "tests/privacy.rs",
+    env = _BUILD_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":hr-employment-domain",
@@ -110,6 +206,20 @@ rust_test(
     srcs = ["tests/rulepack_manifest.rs"],
     crate = "hr_employment_domain_rulepack_manifest",
     crate_root = "tests/rulepack_manifest.rs",
+    env = _BUILD_ENV,
+    visibility = ["PUBLIC"],
+    deps = [
+        ":hr-employment-domain",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "hr-employment-domain-usecases",
+    srcs = ["tests/usecases.rs"] + glob(["tests/usecase_items/*.rs"]),
+    crate = "hr_employment_domain_usecases",
+    crate_root = "tests/usecases.rs",
+    env = _BUILD_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":hr-employment-domain",
