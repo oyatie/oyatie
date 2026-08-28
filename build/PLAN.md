@@ -76,18 +76,22 @@ on L1a review/merge.
   `reindeer.toml`, all fixups, the checked BUCK file, and historical overlays.
 - Classify each rule or mutation as raw Reindeer output, declarative fixup,
   obsolete residue, or undocumented post-generation change.
-- Re-run clean generation with the proposed pin in an isolated scratch area and
-  enumerate every missing/stale fixup, required alias, native branch, generated
-  source, and representative consumer.
+- At `2ffb356`, 453 manifests, the 1,040-package lock, `reindeer.toml`, 66
+  fixups, and the 21,577-line BUCK are inputs. Candidate `v2026.08.10.00`/
+  `bb681570` fails offline before output on exactly eleven missing build-script
+  decisions; it is not a qualified generator.
+- The two former overlay mutations are AWS-LC DEP metadata and PSM's Linux /
+  Darwin select. The two deleted command headers are obsolete residue; aliases,
+  generated sources, and consumers remain unverified until a clean candidate.
 - Produce a concise owner-local design amendment or PR description; do not add
   an evidence dump or mutate declarations/generated output.
 
-Write envelope: owner docs only when evidence changes law; scratch stays outside
-Git and implementation waits for L1c. Re-measure the observed eleven missing
-build-script fixups, stale `syn`, AWS-LC environment, and PSM OS overlay.
+Write envelope: owner docs only when evidence changes law; scratch stays outside Git; L1c waits. Re-measure `syn`, AWS-LC, PSM, aliases,
+generated sources, and consumers after the eleven missing decisions are resolved.
 
 - Success: every semantic difference has a source and mapped consumer target.
-- Failure: unexplained rules, generated-byte edits, or historical authority.
+- Failure: the current missing decisions mask fixup, alias, and platform faults;
+  unexplained rules, generated-byte edits, or historical authority also fail.
 - Rollback/fault: no published state; scratch perturbations of a fixup, alias,
   and platform must be detected.
 
