@@ -1806,6 +1806,51 @@ dependencies = [
 ]
 
 [[package]]
+name = "dependency-declarations-generation"
+version = "0.1.0"
+
+[[package]]
+name = "dependency-declarations-generation-reindeer"
+version = "0.1.0"
+dependencies = [
+ "dependency-declarations-generation",
+ "dependency-declarations-reconcile",
+]
+
+[[package]]
+name = "dependency-declarations-publication"
+version = "0.1.0"
+
+[[package]]
+name = "dependency-declarations-publication-filesystem"
+version = "0.1.0"
+dependencies = [
+ "dependency-declarations-publication",
+ "dependency-declarations-reconcile",
+ "rustix",
+]
+
+[[package]]
+name = "dependency-declarations-reconcile"
+version = "0.1.0"
+dependencies = [
+ "dependency-declarations-generation",
+ "dependency-declarations-publication",
+ "sha2",
+]
+
+[[package]]
+name = "dependency-declarations-reconciler-app"
+version = "0.1.0"
+dependencies = [
+ "dependency-declarations-generation",
+ "dependency-declarations-generation-reindeer",
+ "dependency-declarations-publication",
+ "dependency-declarations-publication-filesystem",
+ "dependency-declarations-reconcile",
+]
+
+[[package]]
 name = "der"
 version = "0.7.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"

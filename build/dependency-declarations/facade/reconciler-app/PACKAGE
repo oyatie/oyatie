@@ -1,0 +1,6 @@
+package(
+    within_view = [
+        "//build/dependency-declarations/facade/reconciler-app/...",
+        "prelude//rust/buildscript:buildscript_platform_transition",
+    ],
+)

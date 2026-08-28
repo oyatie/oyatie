@@ -1,0 +1,20 @@
+[package]
+name = "dependency-declarations-reconciler-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+dependency-declarations-generation = { path = "../../ports/generation" }
+dependency-declarations-generation-reindeer = { path = "../../adapters/generation-reindeer" }
+dependency-declarations-publication = { path = "../../ports/publication" }
+dependency-declarations-publication-filesystem = { path = "../../adapters/publication-filesystem" }
+dependency-declarations-reconcile = { path = "../../core/reconcile" }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true

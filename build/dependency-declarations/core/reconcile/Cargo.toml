@@ -1,0 +1,18 @@
+[package]
+name = "dependency-declarations-reconcile"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+dependency-declarations-generation = { path = "../../ports/generation" }
+dependency-declarations-publication = { path = "../../ports/publication" }
+sha2.workspace = true
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
