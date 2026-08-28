@@ -2652,19 +2652,39 @@ configuration. Inability to prove that an unknown construct cannot influence
 target identity or dependencies is itself a refusal.
 
 **Outputs and effects.** The engine emits sorted typed violations and
-deterministic, non-mutating `DeclarationRepairSet` values sharded by the
-caller-supplied ownership facts. Snapshot identity is provenance, not a
-repository-wide application lock. Every repair set binds the admitted
-grammar-profile identity, including parser, prelude, macro, and rule-contract
-identities; declares the complete semantic read set and write set with expected
-digest-or-absence preconditions; and carries deterministic complete postimages.
-An unrelated disjoint commit does not invalidate a repair when every declared
-precondition still matches. Any semantic read-set or write-set mismatch
-refuses. Repeated evaluation of the same immutable inputs produces
-byte-identical violations, sharding, preconditions, and postimages. The engine
-does not apply a repair, mutate the candidate, invoke `buck2`, access the
-network, or spawn a shell or any other process. It creates no frozen count,
-package/path list, census file, learned baseline, or gate fleet.
+exactly one canonical, deterministic, non-mutating `DeclarationRepairSetV1` per
+evaluation; the set may contain zero repair actions. It binds the engine
+identity, source-snapshot identity, admitted grammar-profile identity (including
+parser, prelude, macro, and rule-contract identities), and the caller-supplied
+owner-authority identity and ownership facts. It declares the complete semantic
+read set, complete semantic write set, and complete proposed-write path set.
+Every bound semantic read, semantic write, and proposed-write path carries a
+digest-or-absence precondition and the exact expected owner identity or expected
+owner absence. `OwnerExpectation::Absent` is valid as an ownership CAS fact only
+for a non-write semantic read; its use on a semantic write, proposed-write
+action, or proposed-write path refuses. Every proposed-write action and path
+must otherwise resolve to exactly one concrete expected owner.
+The set carries deterministic complete postimages and typed postconditions and
+binds canonical digests for every postimage and owner-group output plus a
+whole-set digest over the canonical encoding of every other field. That
+whole-set digest is its canonical whole-set identity. Its owner groups are
+exactly the non-empty groups induced by the distinct concrete expected owners of
+its proposed-write actions, as bound from caller-supplied ownership facts.
+Every repair action and proposed-write path appears in exactly one group, the
+groups follow canonical owner order, their write sets are pairwise disjoint,
+and a zero-action set has zero groups. Any of the following causes refusal: an
+absent-owner proposed write; an empty, extraneous, missing, duplicate, ambiguous,
+or wrong-owner group; cross-owner grouping; incomplete action or proposed-write
+path coverage; or overlapping group writes. Snapshot identity is provenance,
+not a repository-wide application lock. An unrelated disjoint successor commit
+does not invalidate a repair when every declared semantic and owner-authority
+precondition still matches. Any semantic read-set, write-set, proposed-write,
+or owner-authority precondition mismatch refuses. Repeated evaluation of the
+same immutable inputs produces byte-identical violations, grouping,
+preconditions, postimages, postconditions, output digests, and whole-set
+identity. The engine does not apply a repair, mutate the candidate, invoke
+`buck2`, access the network, or spawn a shell or any other process. It creates
+no frozen count, package/path list, census file, learned baseline, or gate fleet.
 
 **Protected integration.** Pipeline later invokes the versioned engine from
 ruleset-selected protected source inside the existing trusted layout admission
@@ -2675,22 +2695,34 @@ source-declaration relation does not revive the deleted
 cross-artifact-agreement census. D-34's native Buck2,
 `cargo metadata --offline --locked`, and rust-analyzer dispatcher graphs remain
 unchanged; this engine neither replaces them nor stores their configured
-results. Pipeline later wraps and applies a `DeclarationRepairSet` through its
-canonical ChangeSet contract; that orchestration is not Build behavior.
+results. Pipeline later validates each `DeclarationRepairSetV1` owner group and
+maps it one-to-one to a canonical ChangeSet before application; it
+never invents or regroups ownership. That orchestration is not Build behavior.
 
 **Activation and qualification.** Initial enforcement activates only after
 adversarial qualification proves both declaration-side triggers, complete HEAD
 graph evaluation, delta-only attribution and repair sharding, legitimate target
 subsets, every modeled dependency semantic, unique declared-identity
-resolution, every admitted and refused grammar form, deterministic violations
-and repair sets, complete semantic read/write preconditions, complete
-postimages, mismatch refusal, and the no-side-effect boundary.
+resolution, every admitted and refused grammar form, exactly one canonical
+`DeclarationRepairSetV1` per evaluation including a zero-action set, complete
+digest-or-absence and owner-or-absence preconditions on every bound semantic
+read, semantic write, and proposed-write path, complete postimages and typed
+postconditions, canonical postimage/output/whole-set digests and identity,
+`OwnerExpectation::Absent` restricted to non-write reads, exactly one concrete
+expected owner for every proposed-write action and path, absent-owner semantic
+writes and proposed writes refusing, canonical ordering of exactly the non-empty
+owner groups induced by distinct concrete expected owners of proposed-write
+actions, exactly-once repair-action and proposed-write-path membership,
+pairwise-disjoint writes, zero actions yielding zero groups, empty, extraneous,
+missing, duplicate, ambiguous, wrong-owner, cross-owner, incomplete, and
+overlapping-group refusal, mismatch refusal, and the no-side-effect boundary.
 Out-of-presubmit differential qualification compares the engine with protected
-`cargo metadata --offline --locked` and non-building Buck2 queries. The
-qualification harness invokes those tools; the engine and required declaration
-check do not. A change to the admitted grammar, Buck prelude, or rule contract
-or to a parser or admitted macro identity/version produces a new grammar-profile
-identity and mechanically requires requalification before enforcement resumes.
+`cargo metadata --offline --locked --no-deps --format-version 1` and
+non-building `buck2 uquery`. Only the protected qualification harness invokes
+those exact commands; the engine and required declaration check never do. A
+change to the admitted grammar, Buck prelude, or rule contract or to a parser
+or admitted macro identity/version produces a new grammar-profile identity and
+mechanically requires requalification before enforcement resumes.
 
 Qualification must also repair every violation the engine detects as legacy
 drift on the then-current `dev`. There is no baseline, count, or violation
@@ -2728,23 +2760,44 @@ are not a D-8 unknown-name step **REMOVE**.
   first-party Cargo↔BUCK source-declaration conformance engine under the complete
   contract above: Pipeline supplies immutable snapshots and ownership facts,
   Build checks the complete HEAD graph with deltas used only for attribution
-  and repair sharding, and Build emits typed violations plus neutral
-  `DeclarationRepairSet` values with complete semantic read/write preconditions
-  and deterministic complete postimages. Pipeline alone invokes the protected
-  engine in existing trusted layout admission, feeds the one `presubmit`, and
-  wraps repairs in its canonical ChangeSet contract. Path/count freeze JSON is
-  not a gate; `governance/` is registry not CI; new check crates are
-  born-blocking unless they are a tabled pattern step in the `pipeline/` graph.
+  and repair sharding, and Build emits typed violations plus exactly one neutral,
+  canonical `DeclarationRepairSetV1` per evaluation, including a zero-action
+  set, binding engine, source-snapshot, profile, and owner-authority provenance;
+  complete digest-or-absence and exact owner-or-absence preconditions for every
+  bound semantic read, semantic write, and proposed-write path;
+  `OwnerExpectation::Absent` allowed only for non-write reads and refused on
+  semantic writes or proposed writes; one concrete expected owner for every
+  proposed-write action and path; deterministic complete postimages and typed
+  postconditions; canonical
+  postimage/output/whole-set digests and identity; and canonical ordering of
+  exactly the non-empty owner groups induced by those concrete owners, with
+  every repair action and proposed-write path in exactly one group,
+  pairwise-disjoint writes, zero actions producing zero groups, and refusal of
+  absent-owner proposed writes and empty, extraneous, missing, duplicate,
+  ambiguous, wrong-owner, cross-owner, incomplete, or overlapping groups.
+  Pipeline alone invokes the protected engine in existing trusted layout
+  admission, feeds the one `presubmit`, and validates and maps each owner group
+  one-to-one to its canonical ChangeSet without inventing or regrouping
+  ownership.
+  Path/count freeze JSON is not a gate; `governance/` is registry not CI; new
+  check crates are born-blocking unless they are a tabled pattern step in the
+  `pipeline/` graph.
 - **ensure:** no new `*-policy.json` freeze, `governance/check/*` census crate,
   gate fleet, or GHA predicate this ADR deleted. Adversarial and protected
   differential qualification proves the closed grammar/profile, full-HEAD
-  evaluation, first-party/Reindeer boundary, deterministic repair-set
-  preconditions/postimages, mismatch refusal, and forbidden side effects;
-  profile identity changes mechanically requalify, and enforcement remains off
-  until all detected legacy drift is repaired without an allowlist. Review
-  preserves the D-34 dispatcher graphs and rejects Build-side Git/owner
-  resolution, required-path tool invocation, a configured-graph claim, a
-  second required context, or a second compile proof.
+  evaluation, first-party/Reindeer boundary, canonical `DeclarationRepairSetV1`
+  provenance, read/write/proposed-write preconditions, postimages,
+  postconditions, digests, identity, absent-owner semantic-write/proposed-write
+  refusal, canonical non-empty induced owner groups, exact-once
+  repair-action/proposed-write-path membership, zero-action/zero-group behavior,
+  pairwise-disjoint writes, refusal of empty, extraneous, missing, duplicate,
+  ambiguous, wrong-owner, cross-owner, incomplete, or overlapping groups,
+  mismatch refusal, and forbidden side effects; profile identity changes
+  mechanically requalify, and enforcement remains off until all detected legacy
+  drift is repaired without an allowlist.
+  Review preserves the D-34 dispatcher graphs and rejects Build-side Git/owner
+  resolution, required-path tool invocation, a configured-graph claim, a second
+  required context, or a second compile proof.
 - **overturn_when:** one founder-accepted five-field amendment changes this
   combined TAP/declaration contract while proving one protected presubmit, no
   frozen corpus/count/fleet, no second compile plane or context, and equally
