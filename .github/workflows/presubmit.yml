@@ -35,7 +35,7 @@ jobs:
       - name: Check out protected admission source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || 'refs/oyatie/invalid-admission-source' }}
+          ref: ${{ github.workflow_sha }}
           path: trusted
           persist-credentials: false
           fetch-depth: 1
@@ -74,7 +74,7 @@ jobs:
       - name: Check out protected admission source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || 'refs/oyatie/invalid-admission-source' }}
+          ref: ${{ github.workflow_sha }}
           path: trusted
           persist-credentials: false
           fetch-depth: 1
