@@ -2,7 +2,7 @@
 doc_class: Owner-PLAN
 owner: build
 status: Active
-date: 2026-08-27
+date: 2026-08-28
 ---
 
 # Build remaining work
@@ -15,8 +15,8 @@ date: 2026-08-27
   dependency solution.
 - Reindeer configuration targets the root workspace and fails unresolved
   build-script fixups.
-- Sixty-six package fixups and a checked `third-party/BUCK` are consumed by the
-  Buck graph.
+- Seventy package fixups (66 inherited plus four run-only scanners) and a checked
+  `third-party/BUCK` are consumed by the Buck graph.
 - Fourteen port-engine packages, partial toolchain/cache definitions, and one
   image recipe exist under Build.
 - Root Rust declarations and hosted workflows name 1.98.0, while the Buck
@@ -56,38 +56,36 @@ absent.
 
 Class: behavior, test-driven; the reviewed Reindeer scaffold has landed.
 
-- Start with failing tests for request admission, digest/canonical ordering,
-  two-run mismatch, generated-graph validation, bounds, stable failures,
-  generation identity, and publication-attempt receipt construction.
-- Implement only pure values and state transitions. No process, filesystem,
-  network, Git, Pipeline, Buck execution, or wall-clock access enters core.
-- Use one primary item per file and generated/globbed membership established by
-  the structural lane; do not edit frozen parents or shared declarations.
+- Amend the execution design inside the six packages for a producer-owned exported typed artifact/API,
+  `GenerationPort`, distinct maintained-parser port, full-field DTO/projection, and Buck consumer profile; add no
+  package/root.
+- Start RED tests for admission, full-DTO digest/equality, duplicate/sort-key collision/lossy refusal, two-run
+  byte/graph mismatch, graph→renderer→parser→projection equality, bounds, failures, identity, attempt receipts.
+  Never use `Rule::PartialEq`.
+- Implement pure values/transitions only: no process/filesystem/network/Git/Pipeline/Buck/time in core.
+- Use one primary item/file and existing generated/globbed membership; do not edit frozen parents/shared declarations.
 
 Closed paths and target names come from the approved declaration-reconciliation
 design and remain limited to core items/tests.
 
-- Success: red-green-refactor/property receipts, panic freedom, and identical
-  results/identity for repeat requests.
-- Failure: adapter leakage, ambient ordering/paths, unbounded input, or tests
-  written after behavior.
-- Rollback/fault: one package-local revert; exercise arbitrary bytes/Unicode,
-  maximum+one, digest collision, run mismatch, and invalid rules/errors.
+- Success: red-green-refactor/property receipts, panic freedom, and identical repeat artifacts/results/identity.
+- Failure: adapter leakage, ambient order/path, unbounded input, or tests after behavior.
+- Rollback/fault: package-local revert; arbitrary bytes/Unicode, max+1, digest collision, run mismatch, invalid
+  rules/errors.
 
 ## Add Reindeer and qualified-publication adapters
 
 Class: behavior at owned ports; depends on the pure reconciliation kernel.
 
-- Implement the process adapter for the ratified Reindeer, explicit read-only
-  Cargo source snapshot and environment, offline/locked/stdout generation,
-  time/output bounds, and process reaping.
-- Implement only qualified filesystem capability profiles, using an exclusive
-  destination lease or genuine compare-and-swap, directory-relative no-follow
-  operations, same-directory atomic replacement, file/parent sync, and restart
-  cleanup. Refuse unsupported profiles before staging.
-- Wire an internal facade that generates twice, validates, publishes, and emits
-  the stable generation identity and publication-attempt receipt. It is not a
-  user-facing CLI.
+- Land/review a producer-side patch/API against exact pinned Reindeer, binding patch/fork/source/binary digests;
+  propose upstream where useful, but Build owns qualification/rollback. One invocation returns
+  `ReindeerGeneratedArtifactV1` graph and bytes rendered from that graph instance, refusing duplicate keys before
+  `BTreeSet` loss. Implement its adapter with read-only sources, closed env, offline/locked bounds and reaping if
+  isolated; no private introspection, second view invocation, text reconstruction, or bare-stdout contract.
+- Implement only qualified lease-or-CAS, directory-relative no-follow, same-directory atomic, sync/recovery
+  publication; unsupported profiles refuse before staging.
+- Wire API/declarative-resource/reconciler surfaces for double-run validation/publication/receipts. Local process
+  transports or diagnostic CLIs are retirement-marked, never merge authority.
 
 Closed paths and targets come from the approved design; shared generator,
 configuration, and fixup paths remain a separate serialized structural lane.
@@ -130,19 +128,22 @@ generated file is tool-materialized. No Pipeline behavior enters this sequence.
 Class: verification/promotion; depends on third-party materialization and
 freshness.
 
-- From two clean isolated roots, run the same pinned generator and reconciler;
-  compare bytes and generation identity.
-- Build and cquery representative AWS-LC, PSM, optional-alias, proc-macro,
-  generated-source, Windows, Linux GNU/musl, macOS, and WebAssembly targets.
-- Record the warm-cache performance profile and qualify SLO language only if
-  the measured envelope meets `PRD.md`.
-- Prove check-only is clean after generation and red for each admitted input
-  mutation without changing the destination.
+- From two clean roots, invoke the producer API once/root; compare bytes and every DTO field/digest, refusing
+  duplicate/colliding/lossy graphs even when sort keys compare equal.
+- Bind exact inputs, generator source/build/binary, Cargo/rustc, renderer, environment/sandbox, graph schema,
+  grammar/header/import and platform. This Reindeer prerequisite receipt lands before a parser dependency.
+- Later exact-pin reviewed `starlark_syntax` behind the distinct parser port; prove graph→renderer bytes→maintained
+  parser→bounded projection→full equality. Producer graph is primary seam;
+  parser projection is the independent cross-check; Buck2 is consumer/configured authority; no Oyatie renderer.
+- For every promoted generator/parser/grammar/platform tuple bind Buck2 source/binary/toolchain/cell/config/prelude;
+  build/cquery representative AWS-LC, PSM, alias, proc-macro, generated-source and nine-platform consumers.
+- Measure warm-cache SLO; prove check-only clean after generation and red for every admitted input mutation without
+  destination changes.
 
-- Success: byte identity, all mappings, representative Buck consumption, zero
-  network/partial publication, and protected independently approved admission.
-- Failure: host/manual dependence, divergent identity, missed freshness,
-  unbuildable rules, or unmeasured latency claims.
+- Success: byte/full-graph/projection identity, all mappings, Buck consumption, zero network/partial publication,
+  independent approval.
+- Failure: host/manual dependence, private/reconstructed graph, divergent/lossy projection, unbound tuple, missed
+  freshness, or unbuildable rules.
 - Rollback/fault: reconcile the last qualified tuple; repeat adapter faults plus removed
   platform/alias, native-symbol/build-script corruption, and false negatives.
 
@@ -151,29 +152,22 @@ freshness.
 Class: owner design and dependency qualification; documentation may proceed
 while Reindeer finishes, but no parser/package graph changes may land first.
 
-- Produce `build/docs/design/source-declaration-integrity-v1.md` with exact
-  packages, targets, parser ports/adapters, profile identity, admitted/refused
-  Cargo and BUCK forms, target/dependency mapping, normalized facts,
-  `DeclarationRepairSet`, limits, fixtures, and the serialized root writer.
-- Review exact parser source, version, license, maintenance, advisories, audits,
-  transitive graph, API stability, and pin/update/rollback path. Prefer a
-  maintained syntax library; no hand parser or candidate interpreter qualifies.
-- Success: independent Build/build-system/supply-chain approval and complete
-  red/green/property/fuzz/differential acceptance before package mutation.
-- Failure/fault: vague grammar, unreviewed dependency, package-set equality, or
-  classifying an unrecognized construct harmless without proof it cannot
-  influence target identity or dependencies.
+- Freeze `build/docs/design/source-declaration-integrity-v1.md`: exact packages/targets/ports/adapters/profile,
+  admitted/refused Cargo/BUCK, relation, `DeclarationRepairSetV1`, bounds, fixtures, and root writer.
+- Review exact parser source/version/license/maintenance/advisories/audits/transitives/API/pin-update-rollback. No
+  hand parser/interpreter qualifies.
+- Success: independent Build/build-system/supply-chain approval plus RED/property/fuzz/differential acceptance before
+  package mutation.
+- Failure/fault: vague grammar, unreviewed dependency, set equality, or unproved-harmless unknown influence.
 
 ## Implement the complete-HEAD declaration relation
 
 Class: test-driven pure Build behavior; starts after Reindeer qualification and
 the source-declaration design, with one serialized package/root writer.
 
-- Begin with failing normalized-fact tests for both triggers, complete-HEAD
-  evaluation, every BUCK edge resolving to a unique declared identity in the
-  admitted unconfigured source IR, legitimate subsets, modeled Cargo kinds, refusal.
-- Keep parsing, ownership resolution, SCM, configuration, processes, network,
-  filesystem mutation, and Buck2 outside the pure relation.
+- Begin RED normalized-fact tests for both triggers, complete HEAD, unique declared-identity edge resolution,
+  legitimate subsets, modeled Cargo kinds, and refusal.
+- Keep parsing, ownership/SCM/configuration/process/network/mutation/Buck2 outside pure relation.
 - Success: identical complete facts yield byte-identical sorted violations;
   arbitrary order, duplicate identities, limit+1, and partial extraction refuse.
 - Rollback/fault: revert the isolated package behavior; retain the qualified
@@ -183,11 +177,13 @@ the source-declaration design, with one serialized package/root writer.
 
 Class: Build adapters and non-mutating composition; depends on the pure relation.
 
-- Adapt the reviewed Cargo/Starlark syntax libraries into complete normalized
-  facts or typed refusal under the frozen grammar profile. Never execute source.
-- Emit caller-owner-sharded `DeclarationRepairSet` values with profile identity,
-  complete semantic read/write digest-or-absence preconditions, and complete
-  deterministic postimages. The facade checks only; it never applies repairs.
+- Adapt reviewed syntax libraries into complete normalized facts or typed refusal; never execute source.
+- Emit one canonical `DeclarationRepairSetV1`, including zero actions/groups, with engine/snapshot/profile/owner
+  provenance, complete reads, and `semantic_writes` as sole action authority. Each proposed path maps bijectively to
+  one concrete-owner `Replacement`, whose complete present/absent postimage and path-bound digest are sole postimage
+  authority. Bind typed postconditions, group-output digests, whole-set digest/identity, exact induced canonical
+  non-empty groups, exact-once membership/disjoint writes; refuse every root-law absent-owner/group/precondition/digest
+  violation. API/declarative reconciler never applies/regroups.
 - Property/fuzz tests cover syntax bytes, admitted/refused forms, ordering,
   preimage races, incomplete read sets, output bounds, and forbidden effects.
 - Success: repeated immutable inputs produce byte-identical violations/repairs;
@@ -196,18 +192,16 @@ Class: Build adapters and non-mutating composition; depends on the pure relation
 
 ## Differentially qualify, repair drift, and hand off
 
-Class: out-of-required-path qualification and owner-sharded remediation; depends
+Class: out-of-required-path qualification and owner-grouped remediation; depends
 on the parser/facade and leaves protected integration to Pipeline.
 
-- Compare complete engine results with protected `cargo metadata --offline
-  --locked` and non-building Buck queries; the harness, never the engine or
-  required check, invokes those tools.
+- Compare exact `cargo metadata --offline --locked --no-deps --format-version 1` and non-building `buck2 uquery`;
+  only protected out-of-presubmit qualification invokes them.
 - Prove every profile form, both triggers, full-HEAD scope, target subsets,
   modeled Cargo semantics, unknown-influence proof/refusal, deterministic
   repairs, precondition mismatch, no effects, and profile requalification.
-- Scan then-current `dev`; callers apply deterministic owner shards through the
-  Pipeline ChangeSet path. Repair every finding without baseline/count/path or
-  violation allowlists, then rerun qualification from clean roots.
+- Scan current `dev`; hand one neutral V1 set to a separately adopted consumer. Build prescribes no apply/regroup
+  behavior. Repair all findings without allowlists, then rerun.
 - Publish a versioned check-only Build facade. Pipeline owner law separately
   selects protected source, trusted layout integration, and the one presubmit.
 - Success: no legacy violation, differential disagreement, false green/failure,
