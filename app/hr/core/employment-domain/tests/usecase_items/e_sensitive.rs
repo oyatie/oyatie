@@ -161,6 +161,7 @@ mod sensitive_usecase_contract {
             evaluated_at_epoch_seconds: 1_779_533_400,
         })
         .expect("disability accommodation envelope is public");
+        let accommodation_schema = &accommodation.audit_envelope.schema_version;
         assert_eq!(
             accommodation.audit_envelope.data_kind.value,
             SensitiveHrDataKind::DisabilityAccommodation
@@ -169,7 +170,11 @@ mod sensitive_usecase_contract {
             accommodation.audit_envelope.payload_data_class.value,
             DataClass::Phi
         );
-
+        assert_eq!(accommodation_schema.value, 1);
+        assert_eq!(
+            accommodation_schema.data_class.compatibility_data_class(),
+            DataClass::Public
+        );
         let compensation = prepare_sensitive_hr_read_envelope(SensitiveHrReadInput {
             tenant_id: "ten_acme".to_owned(),
             legal_entity_id: "le_kr_001".to_owned(),
@@ -186,6 +191,7 @@ mod sensitive_usecase_contract {
             evaluated_at_epoch_seconds: 1_779_533_400,
         })
         .expect("compensation envelope is public");
+        let compensation_schema = &compensation.audit_envelope.schema_version;
         assert_eq!(
             compensation.audit_envelope.data_kind.value,
             SensitiveHrDataKind::Compensation
@@ -194,7 +200,11 @@ mod sensitive_usecase_contract {
             compensation.audit_envelope.payload_data_class.value,
             DataClass::Financial
         );
-
+        assert_eq!(compensation_schema.value, 1);
+        assert_eq!(
+            compensation_schema.data_class.compatibility_data_class(),
+            DataClass::Public
+        );
         let government_identifier = prepare_sensitive_hr_read_envelope(SensitiveHrReadInput {
             tenant_id: "ten_acme".to_owned(),
             legal_entity_id: "le_kr_001".to_owned(),
@@ -211,6 +221,7 @@ mod sensitive_usecase_contract {
             evaluated_at_epoch_seconds: 1_779_533_400,
         })
         .expect("government identifier envelope is public");
+        let government_identifier_schema = &government_identifier.audit_envelope.schema_version;
         assert_eq!(
             government_identifier.audit_envelope.data_kind.value,
             SensitiveHrDataKind::GovernmentIdentifier
@@ -222,7 +233,13 @@ mod sensitive_usecase_contract {
                 .value,
             DataClass::PiiIdentifying
         );
-
+        assert_eq!(government_identifier_schema.value, 1);
+        assert_eq!(
+            government_identifier_schema
+                .data_class
+                .compatibility_data_class(),
+            DataClass::Public
+        );
         let disciplinary = prepare_sensitive_hr_read_envelope(SensitiveHrReadInput {
             tenant_id: "ten_acme".to_owned(),
             legal_entity_id: "le_kr_001".to_owned(),
@@ -239,6 +256,7 @@ mod sensitive_usecase_contract {
             evaluated_at_epoch_seconds: 1_779_533_400,
         })
         .expect("disciplinary envelope is public");
+        let disciplinary_schema = &disciplinary.audit_envelope.schema_version;
         assert_eq!(
             disciplinary.audit_envelope.data_kind.value,
             SensitiveHrDataKind::Disciplinary
@@ -246,6 +264,11 @@ mod sensitive_usecase_contract {
         assert_eq!(
             disciplinary.audit_envelope.payload_data_class.value,
             DataClass::SensitivePipaArticle23
+        );
+        assert_eq!(disciplinary_schema.value, 1);
+        assert_eq!(
+            disciplinary_schema.data_class.compatibility_data_class(),
+            DataClass::Public
         );
     }
 
