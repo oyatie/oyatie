@@ -16,7 +16,7 @@ landed.
 
 <current_state>
 
-## Evidence at `8489b29bce609b8ee3a3e5874f1d3013672d20c9`
+## Evidence at `db27431b890b5b012a0026e6666f3a57aa987650`
 
 | Surface | What exists | Maturity |
 |---|---|---|
@@ -24,6 +24,7 @@ landed.
 | `reindeer.toml` | Reindeer reads the root manifest, refuses unresolved build-script fixups, emits `third-party/BUCK`, and names an owned overlay under deleted `ci/` | Active input with a dead post-generation reference |
 | `third-party/fixups/**` | 66 package-local fixup files, including native/build-script decisions | Real generation inputs, but not yet covered by one provenance inventory or conformance receipt |
 | `third-party/BUCK` | Checked generated dependency rules plus historical semantic mutations | Consumed by Buck2; its header names a different deleted shell wrapper, so clean reproduction is not proved |
+| `build/dependency-declarations/**` | Six Reindeer transaction packages: pure-core home, two ports, two adapters, and a facade | Structural only; core/adapters have no behavior and the facade refuses service |
 | `build/port-engine/**` | Fourteen Rust packages for the named source-port engine | Implementation-bearing but frozen by ADR-0719; not a dependency or repository transformation engine |
 | `build/toolchains/**`, `build/images/**` | Buck toolchain/cache declarations and one distroless image recipe; both still name Rust 1.97.1 while the root toolchain/workspace and hosted jobs require 1.98.0; several standards also narrate 1.97.1 as current | Partial, internally drifted Build assets and documentation; not a qualified image factory |
 | Dependency/security update automation | `Cargo.lock`, `deny.toml`, and a nonblocking weekly cargo-deny action exist; the documented root `deps.toml`, owned bump bot, and owned supply-chain audit gate do not | Partial observation with no owned update actuator or closed campaign |
@@ -219,33 +220,51 @@ file are not a proved round trip.
   cell evacuation.
 - **ensure:** future contracts keep domain postconditions and campaign state out
   of Build core; conformance tests exercise provider-neutral machinery against
-  owner-supplied fixtures; completed manual migrations become gold-corpus input
-  but never implementation or automated-campaign proof.
+  owner-supplied fixtures; completed manual migrations may become bounded
+  adversarial fixtures, never implementation or automated-campaign proof.
 - **overturn_when:** a user-adopted, five-field cross-owner decision reallocates
   the provider/consumer boundary and every affected owner lands its side in the
   same protected wave.
 
 </migration_provider_boundary>
 
-<unadopted_proposals>
+<source_declaration_integrity>
 
-## Contract details requiring explicit adoption — nonbinding
+## Decision: one corpus-free first-party source-declaration relation
 
-Status: **PROPOSED DETAILS; NOT ADOPTED**.
+- **achieves:** Cargo and BUCK declaration changes converge through one
+  deterministic, owner-sharded repair contract without a configured-graph
+  oracle, repository census, or manual label repair.
+- **origin:** ADR-0719 D-17 adopted one Build-owned engine after recurring
+  first-party labels survived stale until weekly Buck smoke; the existing
+  reconciliation program covers generated third-party declarations only.
+- **rule:** Build MUST own one versioned, unconfigured first-party source
+  grammar and normalized complete-HEAD relation. Maintained Cargo and Starlark
+  syntax dependencies MUST sit behind parser ports; Build MUST NOT hand-write a
+  parser, interpret candidate Starlark, invoke SCM, or resolve ownership. The
+  core MUST consume immutable caller-supplied snapshot bytes and ownership
+  facts, fail closed on incomplete, unknown, unmapped, malformed, or ambiguous
+  extraction, and emit sorted violations plus deterministic non-mutating
+  `DeclarationRepairSet` values. Each repair MUST bind the grammar profile,
+  complete semantic read/write sets with digest-or-absence preconditions, and
+  complete postimages. Generated `third-party/BUCK` and `third-party//` remain
+  exclusively in Reindeer reconciliation. Reindeer implementation and
+  qualification MUST precede any new parser dependency or package-graph change.
+- **ensure:** an owner design freezes participating target/dependency kinds,
+  admitted syntax, package/port placement, parser identities and supply-chain
+  review before implementation. Pure relation tests precede adapters;
+  adversarial and out-of-required-path differential qualification cover both
+  declaration triggers, legitimate target subsets, every modeled Cargo kind,
+  every admitted/refused grammar form, full-HEAD evaluation, deterministic
+  repair bytes, precondition mismatch, and forbidden mutation/process/network
+  effects. A profile identity change requalifies, and activation waits until
+  every detected legacy violation is repaired without a baseline or allowlist.
+- **overturn_when:** a founder-accepted five-field amendment preserves one
+  protected verdict, a complete fail-closed first-party relation, deterministic
+  preconditioned repairs, no frozen corpus or second compile plane, and the
+  third-party/Reindeer boundary.
 
-The provider/consumer ownership boundary above is adopted. The exact
-compilation-unit format, language extractor contracts, semantic fact schemas,
-conformance interfaces, and deterministic recipe protocol remain proposed
-details. Pipeline's typed repository-input and campaign/review contracts, and
-any Storage/Data destination contracts, remain decisions for those owners.
-
-This file records those questions so the adopted provider boundary cannot be
-mistaken for approval of an exact schema or interface. Those details remain
-outside implementation until the user adopts them, each affected owner records
-its side, and architecture review accepts the shared contracts. No current lane
-may use this section as dependency authority.
-
-</unadopted_proposals>
+</source_declaration_integrity>
 
 ## Rejected destinations
 
@@ -254,6 +273,8 @@ may use this section as dependency authority.
 - A shell, Python, or Node regeneration wrapper.
 - A text-replacement overlay that mutates generated BUCK semantics.
 - A user-facing dependency CLI or a CI scheduler inside Build.
+- A hand-written Cargo/Starlark parser, candidate Starlark interpreter, or
+  Build-owned SCM/ownership resolver.
 - Reusing the frozen port engine for dependencies, repository graphs, or
   codemods.
 - Storing generated BUCK, receipts, AST/HIR dumps, or semantic indexes as a
