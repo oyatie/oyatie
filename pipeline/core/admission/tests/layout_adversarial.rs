@@ -216,6 +216,43 @@ fn sold_proto_and_owner_docs_reject_draft_and_law_dumps() {
 }
 
 #[test]
+fn dependency_declarations_is_a_closed_build_subsystem() {
+    for path in [
+        "build/dependency-declarations/core/reconcile/src/lib.rs",
+        "build/dependency-declarations/ports/generation/src/lib.rs",
+        "build/dependency-declarations/ports/publication/src/lib.rs",
+        "build/dependency-declarations/adapters/generation-reindeer/src/lib.rs",
+        "build/dependency-declarations/adapters/publication-filesystem/src/lib.rs",
+        "build/dependency-declarations/facade/reconciler-app/src/main.rs",
+        "build/dependency-declarations/core/reconcile/build.rs",
+        "build/dependency-declarations/adapters/generation-reindeer/build.rs",
+        "build/dependency-declarations/adapters/publication-filesystem/build.rs",
+        "build/dependency-declarations/facade/reconciler-app/build.rs",
+    ] {
+        assert!(!rejected(path), "unexpected rejection: {path}");
+    }
+    for path in [
+        "build/dependency-declarations/ADR.md",
+        "build/dependency-declarations/docs/design.md",
+        "build/dependency-declarations/facade/proto/build/api/v1/service.proto",
+        "build/dependency-declarations/core/generation/src/lib.rs",
+        "build/dependency-declarations/ports/reconcile/src/lib.rs",
+        "build/dependency-declarations/facade/seventh-app/src/main.rs",
+        "build/other/core/shadow/Cargo.toml",
+        "build/other/core/shadow/src/lib.rs",
+        "build/other/core/shadow/OWNERS",
+        "build/other/core/shadow/BUCK",
+        "build/dependency-declarations/ports/generation/build.rs",
+        "build/dependency-declarations/ports/publication/build.rs",
+    ] {
+        assert!(rejected(path), "expected rejection: {path}");
+    }
+    assert!(!rejected("build/port-engine/core/analysis/src/lib.rs"));
+    assert!(!rejected("build/toolchains/cache/defs.bzl"));
+    assert!(!rejected("build/docs/dependency-declarations.md"));
+}
+
+#[test]
 fn root_docs_cargo_config_and_pack_payloads_are_closed() {
     for path in [
         "docs/scratch/Cargo.toml",
@@ -242,6 +279,9 @@ fn root_docs_cargo_config_and_pack_payloads_are_closed() {
 fn changed_manifests_bind_package_and_rustc_identity() {
     let path = "network/ports/blob/Cargo.toml";
     assert!(cargo_manifest_violations(path, "[package]\nname = 'network-blob'\n").is_empty());
+    let build =
+        cargo_manifest_violations(path, "[package]\nname='network-blob'\nbuild='build.rs'\n");
+    assert!(build.is_empty());
     assert!(!cargo_manifest_violations(path, "[package]\nname = 'other'\n").is_empty());
     assert!(
         !cargo_manifest_violations(
