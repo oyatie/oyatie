@@ -1,9 +1,9 @@
 ---
 doc_status: published
 id: ADR-0701
-title: "Live monorepo capability layout, faces, and reorg doctrine"
+title: "Transitional migration input: monorepo capability layout, faces, and reorg doctrine"
 status: Accepted
-planning_impact: true
+planning_impact: false
 deciders: founder
 date: 2026-08-06
 door: two-way
@@ -15,38 +15,76 @@ amended_by: [ADR-0710, ADR-0719]
 depends_on: []
 related: []
 milestone: W0
+# Frozen authoring-era deliverable below is non-operative migration provenance.
 deliverables:
   - id: ADR-0701-D1
-    description: "Live apex source-of-truth for topic monorepo_capability: Live monorepo capability layout, faces, and reorg doctrine."
-    exit_criteria: "docs/decisions/ADR-0701-monorepo-capability-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
+    description: "Authoring-era consolidation retained only as frozen migration input; it is not current owner truth or a destination entry surface."
+    exit_criteria: "Every source claim is classified and accepted current facts are projected to semantic native authority at one immutable revision; any conflict or missing fact yields Unknown and keeps this source frozen."
     verified_by: "presubmit"
 ---
-# ADR-0701: Live monorepo capability layout, faces, and reorg doctrine
+# ADR-0701: Transitional migration input — monorepo capability layout, faces, and reorg doctrine
 
 ## Status
 
-**Accepted** — live consolidated source-of-truth entry for topic `monorepo_capability` (E5 2026-08-06).
+**Accepted at authoring; frozen transitional migration input now.** This file is
+not a destination agent entry surface, current owner truth, or a normal agent
+read. Its sequential filename and identifier survive only as deletion-bound
+provenance while the migration classifies its claims. Current execution starts
+at the root hubs and resolves semantic native facts consumed by compilers,
+tests, runtimes, admission, policy engines, controllers, reconcilers, build
+systems, and ownership enforcement at one immutable revision.
+For this frozen transition, only the ruling below governs how the file may be
+consumed; every later authoring-era gist, residual, deliverable, and reference
+is non-operative migration DATA until independently classified.
 
-**Live amendment (ADR-0719, founder 2026-08-21).** Repo-root and capability/`app/<product>/` **directory shape** is the closed set in [ADR-0719 D-8](ADR-0719-eac-serving-control-north-star.md): cap-root **`cedar/`**; no cap-root `policy/` or `contracts/`; SLO source is IR; **no `specs/` catch-all**; **no `HANDOFF.md`**; public proto/H3; leftover REST/JSON deleted. Pipeline names: [ADR-0719 D-10](ADR-0719-eac-serving-control-north-star.md) **presubmit / postsubmit / nightly / weekly / promotion / release**. Cloud-provider placement: [ADR-0719 D-11](ADR-0719-eac-serving-control-north-star.md). Node OS: [ADR-0719 D-13](ADR-0719-eac-serving-control-north-star.md) — fleet is stripped Linux on Cloud Hypervisor/Firecracker + `compute/` agent (Borg analog in Rust). Not Talos, not kube as the cloud OS, not Asterinas today. `k8s/` is an **optional sold SKU** wrapping **upstream** kube (EKS pattern), not a kubernetes.git port and not operations. Per-cap is/is-not/burn: [ADR-0719 D-14](ADR-0719-eac-serving-control-north-star.md). **`console/` is not a capability** ([ADR-0719 D-16](ADR-0719-eac-serving-control-north-star.md)): discard the ops-dashboard pilot; no empty scaffold; do not park in `app/ops-console`. Census CI gates delete ([ADR-0719 D-17](ADR-0719-eac-serving-control-north-star.md)): no Helm/OpenAPI/count-pin fleet. Delivery fabric is **`pipeline/`** (TAP + Cloud Build); GHA is disjoint operator merge; **`workflow/` purged for rewrite**; **`bus/`** not `messaging/`; `.github/scripts` glue exception ([ADR-0719 D-18](ADR-0719-eac-serving-control-north-star.md)). That set **scoped-supersedes** member gists below that require census files (`manifest.json`, `catalog.yaml`, `scorecards/`, `IPs/`, `AUDIT-FINDINGS`, dashboard JSON, `dpia.md` essays), `microservices/` paths, Helm/Tofu/Kyverno as **sources**, both `cedar/` and `policy/` as cap-root children, or root `contracts/microservice-contracts.yaml` as IDL SSOT (ADR-0011 gist). Faces (`core`/`ports`/`adapters`/`facade`), ADR-0562/0615 placement, and shrink-only `reorg_now` of `oya/`/`libs/`/`cloud/`/`infra/`/`tools/`/`toolchains/` still stand. On conflict, ADR-0719 D-8/D-10 win. Hygiene/reorg may go red on live gates that still require the superseded files.
+**Historical authoring amendment (migration input only).** Repo-root and capability/`app/<product>/` **directory shape** is the closed set in [ADR-0719 D-8](ADR-0719-eac-serving-control-north-star.md): cap-root **`cedar/`**; no cap-root `policy/` or `contracts/`; SLO source is IR; **no `specs/` catch-all**; **no `HANDOFF.md`**; public proto/H3; leftover REST/JSON deleted. Pipeline names: [ADR-0719 D-10](ADR-0719-eac-serving-control-north-star.md) **presubmit / postsubmit / nightly / weekly / promotion / release**. Cloud-provider placement: [ADR-0719 D-11](ADR-0719-eac-serving-control-north-star.md). Node OS: [ADR-0719 D-13](ADR-0719-eac-serving-control-north-star.md) — fleet is stripped Linux on Cloud Hypervisor/Firecracker + `compute/` agent (Borg analog in Rust). Not Talos, not kube as the cloud OS, not Asterinas today. `k8s/` is an **optional sold SKU** wrapping **upstream** kube (EKS pattern), not a kubernetes.git port and not operations. Per-cap is/is-not/burn: [ADR-0719 D-14](ADR-0719-eac-serving-control-north-star.md). **`console/` is not a capability** ([ADR-0719 D-16](ADR-0719-eac-serving-control-north-star.md)): discard the ops-dashboard pilot; no empty scaffold; do not park in `app/ops-console`. Census CI gates delete ([ADR-0719 D-17](ADR-0719-eac-serving-control-north-star.md)): no Helm/OpenAPI/count-pin fleet. Delivery fabric is **`pipeline/`** (TAP + Cloud Build); GHA is disjoint operator merge; **`workflow/` purged for rewrite**; **`bus/`** not `messaging/`; `.github/scripts` glue exception ([ADR-0719 D-18](ADR-0719-eac-serving-control-north-star.md)). That set historically scoped member gists below that require census files (`manifest.json`, `catalog.yaml`, `scorecards/`, `IPs/`, `AUDIT-FINDINGS`, dashboard JSON, `dpia.md` essays), `microservices/` paths, Helm/Tofu/Kyverno as **sources**, both `cedar/` and `policy/` as cap-root children, or root `contracts/microservice-contracts.yaml` as IDL SSOT (ADR-0011 gist). Faces (`core`/`ports`/`adapters`/`facade`), placement, and shrink-only reorganization claims are also unclassified migration input. A conflict, missing native fact, or ambiguous claim yields `Unknown`; no decision number or ordering resolves it.
 
-## Context
+### Current-only transition ruling
 
-Oyatie ADR corpus cleanup: agents must not treat every historical Accepted file as equal live law.
-This apex consolidates **62** Accepted ADRs in the `monorepo_capability` topic. Member files are
-**Superseded** by this apex and then archived; full text remains in git history.
+- **achieves:** exact-revision current owner truth without a tracked archive,
+  redirect index, numbered precedence rule, or historical context mixed into
+  normal work.
+- **origin:** the apex and preserved gists made an authoring-era consolidation,
+  navigation path, and historical decision order look like current authority.
+- **rule:** this file MUST remain frozen transitional migration input, not a
+  destination entry surface. Current work uses the root hubs plus semantic
+  compiler-, test-, runtime-, admission-, policy-, controller-, reconciler-,
+  build-, and ownership-consumed facts at an immutable SCM-neutral revision.
+  History is separate explicit opt-in SCM-only DATA; Git is the current adapter,
+  not the contract.
+- **ensure:** classify every source claim exactly once. Conflict, ambiguity,
+  duplication, or absence yields `Unknown` and blocks projection and deletion.
+  Accepted current facts project to native authority before atomic source
+  deletion. No archive, redirect, catalog, mass rename, tombstone, or numbered
+  replacement phase is introduced, and this amendment does not claim that
+  projection is complete or that this file is ready to delete.
+- **overturn_when:** measured evidence proves an irreducible current contract
+  cannot live on semantic native authority or an untracked immutable-revision
+  view, and a bounded five-field replacement lands atomically without restoring
+  parallel tracked authority.
 
-Live resolution: prefer this apex; follow `supersedes` for provenance.
+## Historical context — migration input, not current authority
 
-## Decision
+Oyatie ADR corpus cleanup historically tried to prevent agents from treating
+every Accepted file as equal current law. This apex consolidated **62** records
+in the `monorepo_capability` topic. Those records and the consolidation are now
+unclassified migration input; history remains content-addressed in SCM.
 
-1. **This ADR is the live reading entry** for topic `monorepo_capability` under the end-state ADR policy.
-2. **Member ADRs listed in `supersedes`** are historical; normative gist is preserved below.
-3. **Contradictions** among members are resolved by later higher-number members and by
-   ADR-0515 / ADR-0363 / ADR-0562 / ADR-0615 / ADR-0635 / ADR-0637–0639 when applicable.
-   **Layout closed-set and “should not exist” classes:** ADR-0719 D-8.
-4. **Activation-sensitive** items (warm CAS, RE workers) remain fail-closed until explicit go-gate.
+Current resolution does not traverse this apex or its `supersedes` edges.
+Explicit historical lookup may inspect them as SCM DATA only.
 
-## Preserved member gists
+## Transitional disposition
+
+1. **This ADR is not a current reading entry.** Root hubs route current work to
+   semantic native facts at an immutable revision.
+2. **Member gists are migration input.** They are neither normalized current
+   truth nor a destination archive.
+3. **Contradictions are fail-closed.** Conflict, missing evidence, or ambiguity
+   yields `Unknown`; chronology and decision numbers carry no precedence.
+4. **Unprojected claims stay frozen.** No claim here is presumed projected and
+   the file is not presumed ready for deletion.
+
+## Preserved member gists — historical migration input, not current truth
 
 - **ADR-11** (ADR-0011-cross-microservice-contract-registry): We adopt **`contracts/microservice-contracts.yaml`** as the source-of-truth registry of cross-microservice contracts, with sub-directories for protocol-specific specs, a gating CI lane, an explicit cross-microservice contract change protocol, and auto-generated multi-language SDKs. ### Registry layout ``` contracts/ microservice-contracts.yaml # so
 - **ADR-17** (ADR-0017-brand-naming-and-repo-layout): We adopt **Oyatie** as the product brand, **`oYa`** as the logo abbreviation, **`oyatie.com`** as the domain, **`oyatie-<microservice>-(<bc>-)?<layer>`** as the Cargo prefix per BNF v4.1 (ADR-0056), and explicitly retain the repo path / GitHub slug **`jason931225/oyatie`**. ### Brand rules | Element | Value | Notes | |---|---|---| | Product name | **O
@@ -111,11 +149,15 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-621** (De-commit the active-artifact-contract graph projection): **Proposed — 2026-07-24.** Council ratification and acceptance are **not established**: this two-way candidate awaits qualified-authority review. Protected admission of the implementation proves only the admitted mechanics and gate behavior; it neither changes this record's lifecycle nor supplies the missing authority. It is not a legal, operationa
 - **ADR-635** (Face-aware substrate dependency graph v2: five typed graphs and derived failure ): ### D1 — `dependency_units` are `runtime_face`-qualified `specs/substrate-dependency-dag.json` v2 declares exactly 19 unique, closed `dependency_units` in the bounded W0-C topology slice. A unit id combines a canonical capability and its founder-locked `runtime_face`, for example `cell.envelope`, `cell.lifecycle.cp`, `iam.local-verifier`, or `polic
 
-## Consequences
+## Transitional consequences
 
-- Agent default read path: `docs/decisions/ADR-0xxx` apex files + this topic.
-- Citations to member numbers remain valid via `docs/decisions/_disposition/adr-redirect.v1.json`.
-- Further body merge refinements may land as amendments to this apex only.
+- Normal agent reads start at the root hubs and continue to semantic native
+  facts at the selected immutable revision, never to this apex.
+- Member numbers, sequential paths, and the preserved body survive only as
+  deletion-bound provenance. Historical lookup is explicit and SCM-only; no
+  in-tree redirect or navigation index is required.
+- Accepted current facts must project to their native consumer surfaces before
+  this frozen source and all its unprojected claims can be deleted atomically.
 
 ### ADR-197 residual
 
