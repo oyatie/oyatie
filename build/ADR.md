@@ -194,8 +194,8 @@ file are not a proved round trip.
 - **rule:** Build core MUST consume explicit immutable input descriptors and
   produce deterministic declaration artifacts/receipts. It MUST NOT depend on
   Pipeline's draft repository port, model pull requests or GitHub, orchestrate
-  merge state, or persist blobs in another owner's implementation. Shared
-  contracts MUST be adopted by all affected owners before implementation. Its
+  merge state, or persist blobs in another owner's implementation. Build MUST refuse to
+  implement a shared contract until every affected owner has independently adopted it. Its
   surface is API/declarative-resource/reconciler first; diagnostics never become
   a durable CLI or merge authority.
 - **ensure:** dependency review keeps Build free of Pipeline core/draft and
