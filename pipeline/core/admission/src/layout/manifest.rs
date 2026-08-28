@@ -1,10 +1,26 @@
-//! Cargo identity and dependency-shape checks for changed repository manifests.
-//! Provenance: ADR-0719 D-30/D-41.
+//! Cargo identity checks for changed manifests. Provenance: ADR-0719 D-30/D-41.
 
 use super::{is_capability_root, path_parts};
 
+pub(super) type PackagePolicy = (&'static str, bool);
+pub(super) fn dependency_declarations_package(face: &str, leaf: &str) -> Option<PackagePolicy> {
+    match (face, leaf) {
+        ("core", "reconcile") => Some(("dependency-declarations-reconcile", true)),
+        ("ports", "generation") => Some(("dependency-declarations-generation", false)),
+        ("ports", "publication") => Some(("dependency-declarations-publication", false)),
+        ("adapters", "generation-reindeer") => {
+            Some(("dependency-declarations-generation-reindeer", true))
+        }
+        ("adapters", "publication-filesystem") => {
+            Some(("dependency-declarations-publication-filesystem", true))
+        }
+        ("facade", "reconciler-app") => Some(("dependency-declarations-reconciler-app", true)),
+        _ => None,
+    }
+}
+
 pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
-    let Some((expected_name, face)) = expected_manifest_identity(path) else {
+    let Some((expected_name, face, allows_build_script)) = expected_manifest_identity(path) else {
         return Vec::new();
     };
     let manifest = match contents.parse::<toml::Value>() {
@@ -30,6 +46,14 @@ pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
         violations.push(format!(
             "{path}: `[lib].name` must be omitted so Cargo derives the crate name"
         ));
+    }
+    if path.starts_with("build/dependency-declarations/") {
+        let library = manifest.get("lib");
+        for target_kind in ["proc-macro", "crate-type"] {
+            if library.is_some_and(|library| library.get(target_kind).is_some()) {
+                violations.push(format!("{path}: `[lib].{target_kind}` must be omitted"));
+            }
+        }
     }
     if let Some(lib_path) = manifest
         .get("lib")
@@ -89,7 +113,10 @@ pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
         .and_then(|package| package.get("build"))
     {
         match build.as_str() {
-            Some("build.rs") => {}
+            Some("build.rs") if allows_build_script => {}
+            Some("build.rs") => {
+                violations.push(format!("{path}: std-only port forbids package `build`"))
+            }
             Some(build_path) => violations.push(format!(
                 "{path}: package build target must be the stable item-scanner `build.rs`, got `{build_path}`"
             )),
@@ -102,7 +129,7 @@ pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
 }
 
 pub fn cargo_entrypoint(path: &str) -> Option<String> {
-    let (_, face) = expected_manifest_identity(path)?;
+    let (_, face, _) = expected_manifest_identity(path)?;
     let directory = path.strip_suffix("/Cargo.toml")?;
     let source = if face == "facade" {
         "src/main.rs"
@@ -133,8 +160,17 @@ pub fn cargo_manifest_for_crate_path(path: &str) -> Option<String> {
     })
 }
 
-pub(super) fn expected_manifest_identity(path: &str) -> Option<(String, &str)> {
+pub(super) fn expected_manifest_identity(path: &str) -> Option<(String, &str, bool)> {
     let parts = path_parts(path);
+    if parts.first() == Some(&"build") && parts.get(1) == Some(&"dependency-declarations") {
+        if parts.len() != 5 || parts.last() != Some(&"Cargo.toml") {
+            return None;
+        }
+        let face = *parts.get(2)?;
+        let leaf = *parts.get(3)?;
+        return dependency_declarations_package(face, leaf)
+            .map(|(package, allows_build_script)| (package.to_owned(), face, allows_build_script));
+    }
     let (owner, face_index) = if parts.first() == Some(&"app") {
         (*parts.get(1)?, 2)
     } else {
@@ -161,12 +197,12 @@ pub(super) fn expected_manifest_identity(path: &str) -> Option<(String, &str)> {
         return None;
     }
     let suffix = if draft { "-draft" } else { "" };
-    Some((format!("{owner}-{leaf}{suffix}"), face))
+    Some((format!("{owner}-{leaf}{suffix}"), face, true))
 }
 
 #[cfg(test)]
 fn expected_package_name(path: &str) -> Option<String> {
-    expected_manifest_identity(path).map(|(name, _)| name)
+    expected_manifest_identity(path).map(|(name, _, _)| name)
 }
 
 #[cfg(test)]
@@ -220,19 +256,27 @@ mod tests {
     }
 
     #[test]
+    fn dependency_declarations_target_kind_is_canonical() {
+        let path = "build/dependency-declarations/core/reconcile/Cargo.toml";
+        for field in ["proc-macro=true", "crate-type=['cdylib']"] {
+            let target_kind = field.split_once('=').expect("target field").0;
+            let contents =
+                format!("[package]\nname='dependency-declarations-reconcile'\n[lib]\n{field}\n");
+            let violations = cargo_manifest_violations(path, &contents);
+            assert!(violations.join("\n").contains(target_kind), "{target_kind}");
+        }
+    }
+
+    #[test]
     fn canonical_entrypoint_follows_the_face() {
-        assert_eq!(
-            cargo_entrypoint("network/core/route/Cargo.toml").as_deref(),
-            Some("network/core/route/src/lib.rs")
-        );
-        assert_eq!(
-            cargo_entrypoint("network/facade/edge-app/Cargo.toml").as_deref(),
-            Some("network/facade/edge-app/src/main.rs")
-        );
-        assert_eq!(
-            cargo_manifest_for_entrypoint("network/facade/edge-app/src/main.rs").as_deref(),
-            Some("network/facade/edge-app/Cargo.toml")
-        );
+        let core = cargo_entrypoint("network/core/route/Cargo.toml");
+        assert_eq!(core.as_deref(), Some("network/core/route/src/lib.rs"));
+        let facade = cargo_entrypoint("network/facade/edge-app/Cargo.toml");
+        let facade_path = Some("network/facade/edge-app/src/main.rs");
+        assert_eq!(facade.as_deref(), facade_path);
+        let manifest = cargo_manifest_for_entrypoint("network/facade/edge-app/src/main.rs");
+        let manifest_path = Some("network/facade/edge-app/Cargo.toml");
+        assert_eq!(manifest.as_deref(), manifest_path);
         assert!(cargo_manifest_for_entrypoint("network/facade/edge-app/src/lib.rs").is_none());
     }
 
@@ -247,11 +291,10 @@ mod tests {
         ] {
             assert!(cargo_manifest_for_crate_path(path).is_some(), "{path}");
         }
-        assert!(
-            cargo_manifest_for_crate_path("network/facade/proto/network/api/v1/a.proto").is_none()
-        );
-        assert!(
-            cargo_manifest_for_crate_path("build/port-engine/core/analysis/src/lib.rs").is_none()
-        );
+        let proto = cargo_manifest_for_crate_path("network/facade/proto/network/api/v1/a.proto");
+        assert!(proto.is_none());
+        let port_engine =
+            cargo_manifest_for_crate_path("build/port-engine/core/analysis/src/lib.rs");
+        assert!(port_engine.is_none());
     }
 }

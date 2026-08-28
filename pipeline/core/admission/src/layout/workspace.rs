@@ -29,6 +29,9 @@ pub const WORKSPACE_EXCLUDES: &[&str] = &[
     "app/*/adapters/draft/*",
 ];
 
+const DEPENDENCY_DECLARATIONS_MEMBER: &str = "build/dependency-declarations/*/*/src/..";
+const DEPENDENCY_DECLARATIONS_EXCLUDE: &str = "build/dependency-declarations/*/*";
+
 /// Refuse missing, added, or duplicate workspace membership policy entries.
 pub fn workspace_membership_violations(contents: &str) -> Vec<String> {
     let document = match contents.parse::<toml::Value>() {
@@ -46,16 +49,30 @@ pub fn workspace_membership_violations(contents: &str) -> Vec<String> {
         Ok(entries) => entries,
         Err(error) => return vec![format!("Cargo.toml: {error}")],
     };
+    let pair_present = entries
+        .members
+        .iter()
+        .any(|entry| entry == DEPENDENCY_DECLARATIONS_MEMBER)
+        || entries
+            .exclude
+            .iter()
+            .any(|entry| entry == DEPENDENCY_DECLARATIONS_EXCLUDE);
+    let mut expected_members = WORKSPACE_MEMBER_GLOBS.to_vec();
+    let mut expected_excludes = WORKSPACE_EXCLUDES.to_vec();
+    if pair_present {
+        expected_members.push(DEPENDENCY_DECLARATIONS_MEMBER);
+        expected_excludes.push(DEPENDENCY_DECLARATIONS_EXCLUDE);
+    }
     compare_closed_entries(
         "member glob",
         &entries.members,
-        WORKSPACE_MEMBER_GLOBS,
+        &expected_members,
         &mut violations,
     );
     compare_closed_entries(
         "exclude",
         &entries.exclude,
-        WORKSPACE_EXCLUDES,
+        &expected_excludes,
         &mut violations,
     );
     violations
