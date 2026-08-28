@@ -12,40 +12,31 @@ authority:
 
 <product_boundary>
 
-`build/` is repository meta infrastructure for reproducible toolchains,
-pinned host/guest image inputs, and translation of source package declarations
-into build-engine inputs. Its first active product slice is deterministic
-Cargo/Reindeer-to-Buck declaration reconciliation for tenant #0.
+`build/` is repository meta infrastructure for reproducible toolchains, pinned
+host/guest image inputs, and source-package translation into build-engine
+inputs. Its first active slice is Cargo/Reindeer-to-Buck reconciliation.
 
-Build is not Pipeline, a CI scheduler, a repository/forge product, Storage,
-Compute's fleet agent, a price catalog, or a cloud capability engine. The
-source port engine remains frozen and is not the reconciliation implementation.
+Build is not Pipeline, a CI scheduler, repository/forge, Storage, Compute's
+fleet agent, pricing, or a cloud capability engine. The port engine stays frozen.
 
-The adopted migration-provider boundary also assigns reusable repository
-analysis and deterministic transformation machinery to Build. Consuming product
-owners retain semantic intent, postconditions, and acceptance; Pipeline retains
-campaign and protected-review orchestration. Exact schemas and interfaces are
-not adopted or landed by this declaration-integrity slice.
+ADR-0719 D-17 also adopts one corpus-free first-party Cargo↔BUCK source engine.
+Build owns neutral grammar, relation, violations, and repairs; callers own SCM
+snapshots, ownership, application, and campaigns. Package/parser choices remain
+design- and supply-chain-gated. No first-party behavior has landed.
 
 </product_boundary>
 
 <users>
 
-- Rust maintainers need Cargo manifests and the lockfile to remain the only
-  package/dependency declarations they edit.
-- Build maintainers need one reviewed fixup mechanism for native sources,
-  build scripts, generated files, features, cfgs, and platform differences.
-- Downstream orchestrators need a consumer-neutral freshness result without
-  learning Reindeer internals or creating another declaration authority.
-- Reviewers need a receipt that proves which exact inputs, generator, toolchain,
-  and bytes produced a candidate `third-party/BUCK`.
-- Operators need failures to preserve the last complete graph and identify the
-  failed phase without exposing host environment or secrets.
-- Product owners need the declared MSRV to remain a tested compatibility floor
-  while production builds independently consume current qualified stable Rust.
-- Security owners need exact toolchain/dependency reachability and remediation
-  candidates without delegating severity, embargo, disclosure, or CNA duties to
-  Build.
+- Rust maintainers need Cargo manifests and the lockfile to remain the only package declarations they edit.
+- Build maintainers need one reviewed fixup path for native, generated, feature, cfg, and platform effects.
+- Orchestrators need consumer-neutral freshness without learning Reindeer or creating another authority.
+- Reviewers need exact input, generator, toolchain, and byte provenance for `third-party/BUCK`.
+- Operators need typed failures that preserve the last graph without leaking host state or secrets.
+- Product owners need an independent tested MSRV floor and current qualified production stable.
+- Security needs exact reachability without delegating severity, embargo, disclosure, or CNA duties.
+- Package owners need stale, missing, duplicate, or unsupported BUCK declarations caught from either side.
+- Repair orchestration needs deterministic owner shards with complete semantic preconditions and postimages.
 
 </users>
 
@@ -53,22 +44,20 @@ not adopted or landed by this declaration-integrity slice.
 
 ## Current foundation
 
-Cargo manifests and `Cargo.lock` are live. Reindeer configuration and 66 fixup
-packages exist, and Buck2 consumes the checked `third-party/BUCK`. The checked
-output contains native/build-script behavior beyond raw dependency listing.
+Cargo manifests and `Cargo.lock` are live; Reindeer configuration, 66 fixup
+packages, and checked `third-party/BUCK` carry native/build-script semantics.
 
-Reproduction is not closed: configuration and output headers refer to different
-deleted wrappers; clean raw generation encounters unresolved local build-script
-fixups; native rules have depended on semantic text rewriting; and there is no
-owned qualified publisher, source-bound provenance identity/receipt, or
-consumer-neutral freshness contract.
+Reproduction is open: headers name deleted wrappers, clean generation hits
+unresolved fixups, native rules used text rewrites, and no qualified publisher,
+source-bound receipt, or neutral freshness contract exists.
 
-`build/port-engine` has fourteen packages but is frozen for its separately
-named source-port concern. Build's toolchain/image surfaces are partial and no
-qualified image factory has landed. Root Rust declarations require 1.98.0,
-while `build/toolchains/BUCK` and the distroless image recipe still name 1.97.1;
-several standards also narrate 1.97.1 as current. That split is current drift,
-not a qualified compatibility promise.
+`build/port-engine` has fourteen frozen packages. Toolchain/image surfaces are
+partial: root Rust requires 1.98.0 while Buck, the image recipe, and standards
+still name 1.97.1. That is drift, not a compatibility promise.
+
+Six `build/dependency-declarations/**` packages establish Reindeer core, ports,
+adapters, and facade shape. They remain structural/refusing; neither behavior
+path has landed.
 
 </landed_scope>
 
@@ -127,9 +116,33 @@ not a qualified compatibility promise.
 - Preserve Cargo feature/resolution semantics and Reindeer's crate identity;
   do not invent an owner-local package model.
 
+## First-party source declarations
+
+- Treat either Cargo or BUCK change as a complete-HEAD first-party graph
+  trigger. Deltas attribute findings and shard repairs, never correctness.
+- Parse a closed, versioned unconfigured grammar through maintained Cargo/Starlark
+  syntax dependencies behind parser ports and bind all profile identities. Refuse
+  every unadmitted form: inability to prove an unknown construct cannot influence
+  target identity or dependencies is itself refusal; never classify it harmless.
+- Require each first-party BUCK edge to resolve to a unique declared identity in
+  the admitted unconfigured source IR and be permitted by Cargo. Coverage applies
+  only to participating target/dependency kinds; legitimate subsets pass. Map
+  normal, build, dev, optional, target-specific, and path dependency semantics;
+  incomplete, unknown, unmapped, malformed, or ambiguous extraction refuses.
+- Accept immutable snapshot bytes, changed-path attribution, and ownership facts
+  from the caller. Do not invoke Git, resolve owners, execute Buck2, compile a
+  candidate, interpret Starlark, mutate files, access a network, or spawn a
+  process.
+- Emit sorted typed violations and byte-deterministic `DeclarationRepairSet`
+  values. Each owner shard binds the grammar profile, complete semantic read and
+  write sets with expected digest-or-absence, and complete postimages; any
+  precondition mismatch refuses application.
+- Exclude generated `third-party/BUCK` and `third-party//`; Reindeer remains
+  their sole path and qualifies before a new parser or package-graph change.
+
 ## Deterministic generation
 
-- Qualify one reviewed Reindeer source and binary identity. L1c ratifies
+- Qualify one reviewed Reindeer source and binary identity. The execution design ratifies
   `v2026.08.10.00` at source commit
   `bb681570d2bc47d1446080c12b8681a50a95f628` as the sole implementation
   candidate, not a qualified binary. Promotion remains blocked on the eleven
@@ -207,12 +220,15 @@ At the recorded workspace package/target scale and declared warm-cache profile:
 - declared-MSRV regressions from a production toolchain/dependency bump:
   **zero**;
 - pinned-nightly shadow cadence: **at least daily**;
-- Build analysis/refusal receipt after an ingested critical affected-component
-  fact: **p95 <= 1 hour**.
+- Build analysis/refusal receipt after a critical affected-component fact: **p95 <= 1 hour**.
+- complete-HEAD evaluation from either declaration-side trigger: **100%**;
+- false greens and false failures for qualified first-party forms: **zero**;
+- repeated violation/repair-set bytes for identical immutable inputs: **100%**;
+- repair semantic read/write precondition and postimage coverage: **100%**;
+- engine file, process, and network side effects: **zero**.
 
-These are objectives, not current claims. The latency objective is advertised
-only after a reproducible benchmark records hardware, cache, workspace scale,
-generator pin, and platform set.
+These are objectives, not current claims. Advertise latency only after a
+reproducible benchmark binds hardware, cache, scale, generator, and platforms.
 
 </slo_objective>
 
@@ -230,6 +246,11 @@ generator pin, and platform set.
 - On a qualified publication profile, an unchanged result performs no
   destination replacement; a changed result exposes only the old complete file
   or the new complete file.
+- Either declaration-side trigger yields the same complete-HEAD relation;
+  legitimate target subsets pass and stale/duplicate/unresolved identities fail.
+- Identical first-party inputs and ownership facts yield byte-identical sorted
+  violations and repair shards; a disjoint change remains applicable only when
+  every declared semantic precondition still matches.
 
 ## Failure
 
@@ -247,6 +268,12 @@ generator pin, and platform set.
   second vulnerability.
 - Build selects a consuming product's semantic adoption instead of validating
   its owner-supplied disposition and evidence.
+- First-party evaluation is delta-only, equates package sets, or crosses Reindeer;
+  classifying an unrecognized construct harmless without proving it cannot influence
+  target identity or dependencies also fails, as do candidate parser/SCM/Buck/effects.
+- A repair omits a semantic read/write dependency or complete postimage,
+  accepts a digest/absence mismatch, changes under input reordering, or relies
+  on a baseline, count, path census, or legacy-violation allowlist.
 
 ## Named fault campaigns
 
@@ -263,5 +290,11 @@ generator pin, and platform set.
   compiler miscompilation; Cargo CVE; malicious or yanked transitive package;
   dependency owner change; stale advisory mirror; alias conflict; no fixed
   version; MSRV-incompatible resolution; and one missed pin surface.
+- Cargo-only and BUCK-only changes; legitimate subsets; every modeled dependency
+  kind; unknown load/macro/mutation/select/control flow; unproved harmlessness;
+  duplicate, stale, missing, malformed, and ambiguous identities.
+- Parser/profile/prelude/rule identity drift; read/write preimage races;
+  ownership reordering; attempted file/process/network effects; and differential
+  disagreement with protected Cargo metadata or non-building Buck queries.
 
 </acceptance>
