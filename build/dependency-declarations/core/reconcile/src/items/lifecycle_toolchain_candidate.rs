@@ -94,7 +94,7 @@ impl ToolchainMsrvEffectV1 {
 pub struct ToolchainCandidateV1 {
     current: ToolchainMatrixV1,
     proposed: ToolchainMatrixV1,
-    changed_roles: Box<[ToolchainRoleV1]>,
+    delta: ToolchainCandidateDeltaV1,
     msrv_effect: ToolchainMsrvEffectV1,
     discovery_receipt_sha256: DigestV1,
     identity_sha256: DigestV1,
@@ -124,25 +124,22 @@ impl ToolchainCandidateV1 {
             }
         }
 
-        let msrv_effect = msrv_effect(&current, &proposed, msrv_intent)?;
-        let changed_roles = changed_roles(&current, &proposed);
-        if changed_roles.is_empty() {
+        let delta = ToolchainCandidateDeltaV1::between(&current, &proposed);
+        if delta.changed_roles().is_empty() {
             return Err(invalid_toolchain_candidate());
         }
+        let msrv_effect = msrv_effect(&current, &proposed, msrv_intent)?;
 
         let mut hash = CanonicalHasherV1::new(b"build.toolchain-candidate.v1\0");
         hash.digest(current.identity_sha256());
         hash.digest(proposed.identity_sha256());
-        hash.u64(lifecycle_len(changed_roles.len())?);
-        for role in &changed_roles {
-            hash.tag(*role as u8);
-        }
+        delta.encode(&mut hash)?;
         msrv_effect.encode(&mut hash);
         hash.digest(discovery_receipt_sha256);
         Ok(Self {
             current,
             proposed,
-            changed_roles: changed_roles.into_boxed_slice(),
+            delta,
             msrv_effect,
             discovery_receipt_sha256,
             identity_sha256: hash.finish(),
@@ -161,7 +158,12 @@ impl ToolchainCandidateV1 {
 
     #[must_use]
     pub fn changed_roles(&self) -> &[ToolchainRoleV1] {
-        &self.changed_roles
+        self.delta.changed_roles()
+    }
+
+    #[must_use]
+    pub const fn delta(&self) -> &ToolchainCandidateDeltaV1 {
+        &self.delta
     }
 
     #[must_use]
@@ -178,39 +180,6 @@ impl ToolchainCandidateV1 {
     pub const fn identity_sha256(&self) -> DigestV1 {
         self.identity_sha256
     }
-}
-
-fn changed_roles(
-    current: &ToolchainMatrixV1,
-    proposed: &ToolchainMatrixV1,
-) -> Vec<ToolchainRoleV1> {
-    [
-        (
-            ToolchainRoleV1::DeclaredMsrvCompatibility,
-            current.msrv(),
-            proposed.msrv(),
-        ),
-        (
-            ToolchainRoleV1::QualifiedStableExecution,
-            current.stable(),
-            proposed.stable(),
-        ),
-        (
-            ToolchainRoleV1::BetaShadow,
-            current.beta(),
-            proposed.beta(),
-        ),
-        (
-            ToolchainRoleV1::NightlyShadow,
-            current.nightly(),
-            proposed.nightly(),
-        ),
-    ]
-    .into_iter()
-    .filter_map(|(role, current, proposed)| {
-        (current.identity_sha256() != proposed.identity_sha256()).then_some(role)
-    })
-    .collect()
 }
 
 fn msrv_effect(
