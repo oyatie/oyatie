@@ -126,6 +126,14 @@ impl ToolchainProfileV1 {
         if targets.is_empty() || targets.len() > LifecycleBoundsV1::MAX_TOOLCHAIN_TARGETS {
             return Err(lifecycle_bounds());
         }
+        if !targets
+            .iter()
+            .any(|target| target.target_triple() == tools.rustc().host_triple())
+        {
+            return Err(LifecycleFailureV1::new(
+                LifecycleFailureClassV1::ToolchainTargetMismatch,
+            ));
+        }
         targets.sort_by(|left, right| {
             left.target_triple
                 .as_bytes()
