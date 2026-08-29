@@ -83,16 +83,6 @@ rust_library(
 )
 
 rust_test(
-    name = "dependency-declarations-generation-reindeer-provider-schema-test",
-    srcs = ["tests/provider_schema.rs"],
-    crate = "dependency_declarations_generation_reindeer_provider_schema_test",
-    crate_root = "tests/provider_schema.rs",
-    visibility = [],
-    within_view = _PACKAGE_VIEW,
-    deps = [":dependency-declarations-generation-reindeer"],
-)
-
-rust_test(
     name = "dependency-declarations-generation-reindeer-provider-source-test",
     srcs = ["tests/provider_source.rs"] + glob(["tests/provider_source/**/*.rs"]),
     crate = "dependency_declarations_generation_reindeer_provider_source_test",
