@@ -22,6 +22,8 @@ mod dependency_qualification_refusals;
 mod lifecycle_refusals;
 #[path = "support/lifecycle.rs"]
 mod lifecycle_support;
+#[path = "support/lifecycle_toolchain_delta.rs"]
+mod lifecycle_toolchain_delta;
 #[path = "support/lifecycle_toolchain_refusals.rs"]
 mod lifecycle_toolchain_refusals;
 #[path = "support/lifecycle_toolchain_transition.rs"]
