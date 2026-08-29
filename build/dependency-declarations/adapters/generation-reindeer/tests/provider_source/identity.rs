@@ -58,7 +58,7 @@ fn recipe_identity_matches_the_workspace_lock() {
 #[ignore = "requires the exact upstream Reindeer source snapshot"]
 fn exact_source_batch_produces_one_deterministic_adaptation() {
     let files = source_batch(&pinned_source_root());
-    let snapshot = ReindeerProviderSourceSnapshotV1::new(PINNED_REVISION, [7; 32], files);
+    let snapshot = ReindeerProviderSourceSnapshotV1::new(PINNED_REVISION, files);
 
     let first = adapt_reindeer_provider_source_v1(&snapshot).unwrap();
     let second = adapt_reindeer_provider_source_v1(&snapshot).unwrap();
@@ -95,7 +95,6 @@ fn exact_source_batch_produces_one_deterministic_adaptation() {
     assert!(buck.preimage_sha256().is_some());
     assert_ne!(buck.preimage_sha256(), Some(buck.postimage_sha256()));
     assert_eq!(first.schema().rule_variants().len(), 13);
-    assert_eq!(first.source_tree_sha256(), [7; 32]);
     assert_eq!(
         first.profile().source_repository(),
         "https://github.com/facebookincubator/reindeer"
@@ -115,34 +114,12 @@ fn source_discovery_order_does_not_change_the_adaptation() {
     let adapt = |files| {
         adapt_reindeer_provider_source_v1(&ReindeerProviderSourceSnapshotV1::new(
             PINNED_REVISION,
-            [7; 32],
             files,
         ))
         .unwrap()
     };
 
     assert_eq!(adapt(forward), adapt(reverse));
-}
-
-#[test]
-#[ignore = "requires the exact upstream Reindeer source snapshot"]
-fn tree_identity_changes_the_adapted_batch_and_whole_receipt() {
-    let files = source_batch(&pinned_source_root());
-    let adapt = |identity, files| {
-        adapt_reindeer_provider_source_v1(&ReindeerProviderSourceSnapshotV1::new(
-            PINNED_REVISION,
-            identity,
-            files,
-        ))
-        .unwrap()
-    };
-    let first = adapt([7; 32], files.clone());
-    let second = adapt([8; 32], files);
-
-    assert_eq!(first.files(), second.files());
-    assert_eq!(first.schema(), second.schema());
-    assert_ne!(first.adapted_batch_sha256(), second.adapted_batch_sha256());
-    assert_ne!(first.receipt_sha256(), second.receipt_sha256());
 }
 
 #[test]
@@ -154,7 +131,7 @@ fn exact_revision_with_changed_source_bytes_refuses() {
         .find(|file| file.path() == "src/buck.rs")
         .unwrap()
         .replace_present_bytes(b"changed source".to_vec());
-    let snapshot = ReindeerProviderSourceSnapshotV1::new(PINNED_REVISION, [7; 32], files);
+    let snapshot = ReindeerProviderSourceSnapshotV1::new(PINNED_REVISION, files);
 
     assert_eq!(
         adapt_reindeer_provider_source_v1(&snapshot),
@@ -166,37 +143,31 @@ fn exact_revision_with_changed_source_bytes_refuses() {
 #[ignore = "requires the exact upstream Reindeer source snapshot"]
 fn unsupported_revision_batch_and_presence_refuse() {
     let files = source_batch(&pinned_source_root());
-    let refusal = |revision, identity, files| {
-        adapt_reindeer_provider_source_v1(&ReindeerProviderSourceSnapshotV1::new(
-            revision, identity, files,
-        ))
+    let refusal = |revision, files| {
+        adapt_reindeer_provider_source_v1(&ReindeerProviderSourceSnapshotV1::new(revision, files))
     };
     assert_eq!(
-        refusal("different", [7; 32], files.clone()),
+        refusal("different", files.clone()),
         Err(ReindeerProviderAdaptationErrorV1::UnsupportedSourceRevision)
-    );
-    assert_eq!(
-        refusal(PINNED_REVISION, [0; 32], files.clone()),
-        Err(ReindeerProviderAdaptationErrorV1::MissingSourceTreeIdentity)
     );
 
     let mut missing = files.clone();
     missing.pop();
     assert_eq!(
-        refusal(PINNED_REVISION, [7; 32], missing),
+        refusal(PINNED_REVISION, missing),
         Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch)
     );
     let mut duplicate = files.clone();
     duplicate.pop();
     duplicate.push(files[0].clone());
     assert_eq!(
-        refusal(PINNED_REVISION, [7; 32], duplicate),
+        refusal(PINNED_REVISION, duplicate),
         Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch)
     );
     let mut present_generated = files;
     present_generated[0].replace_present_bytes(b"mod unexpected;\n".to_vec());
     assert_eq!(
-        refusal(PINNED_REVISION, [7; 32], present_generated),
+        refusal(PINNED_REVISION, present_generated),
         Err(ReindeerProviderAdaptationErrorV1::SourcePresenceMismatch)
     );
 }
@@ -210,7 +181,7 @@ fn oversized_source_refuses_before_digest_comparison() {
         .find(|file| file.path() == "src/buck.rs")
         .unwrap()
         .replace_present_bytes(vec![b' '; 2 * 1024 * 1024 + 1]);
-    let snapshot = ReindeerProviderSourceSnapshotV1::new(PINNED_REVISION, [7; 32], files);
+    let snapshot = ReindeerProviderSourceSnapshotV1::new(PINNED_REVISION, files);
 
     assert_eq!(
         adapt_reindeer_provider_source_v1(&snapshot),

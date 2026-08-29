@@ -88,7 +88,7 @@ rust_test(
     crate = "dependency_declarations_generation_reindeer_provider_source_test",
     crate_root = "tests/provider_source.rs",
     visibility = [],
-    within_view = _PACKAGE_VIEW,
+    within_view = _PACKAGE_VIEW + ["third-party//:serde_json"],
     deps = [
         ":dependency-declarations-generation-reindeer",
         "third-party//:serde_json",
