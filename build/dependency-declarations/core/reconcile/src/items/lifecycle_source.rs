@@ -11,6 +11,13 @@ impl LifecycleBoundsV1 {
     pub const MAX_TOOLCHAIN_TARGETS: usize = 64;
     pub const MAX_AFFECTED_UNITS: u64 = 1_000_000;
     pub const MAX_AFFECTED_UNIT_BYTES: u64 = 256 * 1024 * 1024;
+    pub const MAX_ADVISORY_RECORDS: usize = 100_000;
+    pub const MAX_ADVISORY_ALIASES_PER_RECORD: usize = 64;
+    pub const MAX_TOTAL_ADVISORY_IDENTIFIERS: usize = 1_000_000;
+    pub const MAX_ADVISORY_PACKAGES_PER_RECORD: usize = 1_024;
+    pub const MAX_ADVISORY_RANGES_PER_PACKAGE: usize = 256;
+    pub const MAX_TOTAL_ADVISORY_PACKAGE_CLAIMS: usize = 1_000_000;
+    pub const MAX_TOTAL_ADVISORY_RANGES: usize = 4_000_000;
 }
 
 /// Upstream component represented by an immutable source object.
@@ -31,6 +38,7 @@ pub enum LifecycleComponentV1 {
     Reindeer = 11,
     Buck2 = 12,
     Buck2ChangeDetector = 13,
+    UpstreamAdvisory = 14,
 }
 
 /// Channel semantics are independent of a display version.

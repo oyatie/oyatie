@@ -15,6 +15,11 @@ pub enum LifecycleFailureClassV1 {
     ExtractionProfileMismatch = 10,
     UnqualifiedExtraction = 11,
     InternalInvariant = 12,
+    InvalidPackageVersion = 13,
+    AdvisorySourceMismatch = 14,
+    ConflictingAdvisoryRange = 15,
+    ConflictingAdvisoryHistory = 16,
+    MixedAdvisoryQualification = 17,
 }
 
 /// A matchable lifecycle refusal without ambient diagnostic text.
