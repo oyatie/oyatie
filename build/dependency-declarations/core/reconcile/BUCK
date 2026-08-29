@@ -174,6 +174,7 @@ rust_test(
         "tests/support/advisory.rs",
         "tests/support/advisory_refusals.rs",
         "tests/support/dependency_candidate.rs",
+        "tests/support/dependency_candidate_axes.rs",
         "tests/support/dependency_candidate_refusals.rs",
         "tests/support/dependency_graph.rs",
         "tests/support/dependency_graph_control.rs",

@@ -78,6 +78,7 @@ pub(super) fn candidate_with_proposed_msrv(
             published_at: 100,
             observed_at: 200,
             advisory_identities: vec![digest("RUSTSEC-2026-0258")],
+            license_evidence_sha256: digest("current-license"),
         },
     )
     .unwrap();
@@ -97,6 +98,7 @@ pub(super) fn candidate_with_proposed_msrv(
             published_at: 100,
             observed_at: 200,
             advisory_identities: proposed_advisories,
+            license_evidence_sha256: digest("proposed-license"),
         },
     )
     .unwrap();

@@ -4,6 +4,8 @@ mod advisory;
 mod advisory_refusals;
 #[path = "support/dependency_candidate.rs"]
 mod dependency_candidate;
+#[path = "support/dependency_candidate_axes.rs"]
+mod dependency_candidate_axes;
 #[path = "support/dependency_candidate_refusals.rs"]
 mod dependency_candidate_refusals;
 #[path = "support/dependency_graph.rs"]
