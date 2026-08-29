@@ -52,44 +52,9 @@ absent.
 
 <sequence>
 
-## Establish the provider artifact protocol and adaptation bootstrap
-
-Class: owner design, then test-driven provider qualification; precedes any
-producer graph proof in core.
-
-- Land `build/docs/design/reindeer-provider-adaptation-v1.md` and remove every
-  caller-constructible alleged producer observation from the current draft.
-- Prefer a generic upstream Reindeer artifact API. If unavailable, TDD one
-  bounded Rust recipe in the existing generation adapter; it consumes an exact
-  source batch and generates complete postimages plus schema/adaptation receipt.
-  Text patches, source forks without explicit owner approval, and per-node work
-  are not inputs.
-- Parse each touched upstream file once, inventory every admitted `Rule` variant
-  and field, refuse drift/collisions/overlap/stale preimages, and require
-  deterministic `rustfmt`/Clippy-clean naturally readable Rust output.
-- Record work counters proving one adaptation/source batch, one whole-workspace
-  generation per clean root, one parser pass per artifact, and batched Buck2
-  consumers per profile.
-- Treat the current Buck analysis refusal as declaration drift, not an adapter
-  exception: `Cargo.lock` selects Syn 2.0.119/proc-macro2 1.0.107 while the
-  generated third-party face still selects older rules and leaves
-  `prettyplease-0.2`/`proc-macro2-1` invisible. Repair that face only through
-  the serialized Reindeer/reconciliation lane; never widen or hand-edit it.
-
-- Success: the upstream-native API or generated adaptation produces one closed
-  producer artifact from the exact source with complete identities, bounded
-  work, readable code, and a deterministic receipt.
-- Failure: a handwritten patch, fuzzy match, duplicated field map, comment blob,
-  hidden N+1 loop, silent schema fallback, permanent provider leak, or readiness
-  claim before independent parser and Buck2 qualification.
-- Rollback/fault: withdraw the unpromoted adapter and retain the old Reindeer
-  path; inject source/signature/variant/field drift, sort collisions, repeated
-  receipts, malformed output, and every bound plus one.
-
 ## Finish the third-party pure reconciliation kernel
 
-Class: behavior, test-driven; depends on the producer artifact protocol and
-adaptation bootstrap above. The reviewed Reindeer scaffold has landed.
+Class: behavior after the exact-source producer adaptation in `build/docs/design/reindeer-provider-adaptation-v1.md`.
 
 - Amend the execution design inside the six packages for a producer-owned exported typed artifact/API,
   `GenerationPort`, distinct maintained-parser port, full-field DTO/projection, and Buck consumer profile; add no
@@ -112,11 +77,8 @@ design and remain limited to core items/tests.
 
 Class: behavior at owned ports; depends on the pure reconciliation kernel.
 
-- Prefer and propose an upstream-native producer API. If it is unavailable,
-  land only the bounded generated source adaptation in
-  `build/docs/design/reindeer-provider-adaptation-v1.md`, binding provider/
-  recipe/parser/source/adapted-tree/build/binary digests; no authored patch or
-  silent fork qualifies. Build owns qualification/rollback. One invocation returns
+- Prefer an upstream-native producer API; otherwise use only the bounded recipe in
+  `build/docs/design/reindeer-provider-adaptation-v1.md`, binding all identities; authored patches/forks refuse. One invocation returns
   `ReindeerGeneratedArtifactV1` graph and bytes rendered from that graph instance, refusing duplicate keys before
   `BTreeSet` loss. Implement its adapter with read-only sources, closed env, offline/locked bounds and reaping if
   isolated; no private introspection, second view invocation, text reconstruction, or bare-stdout contract.
@@ -239,19 +201,9 @@ on the parser/facade and leaves protected integration to Pipeline.
 - Prove every profile form, both triggers, full-HEAD scope, target subsets,
   modeled Cargo semantics, unknown-influence proof/refusal, deterministic
   repairs, precondition mismatch, no effects, and profile requalification.
-- Re-census exact `dev`, obtain caller-owner dispositions for unmatched units,
-  and generate canary-first owner-grouped repairs. Retained independent crates
-  receive one same-directory `BUCK`; pre-reorganization remnants are
-  absorbed/moved/removed; proved fixtures are excluded by typed scope. Migrate
-  surviving Rust-2021 packages, explicit Cargo edition overrides, and absent
-  declared MSRV. At `origin/dev`
-  `a355428b265db665a18c29e4fc0a35872fbd0053`, 32 workspace package roots
-  lack a colocated `BUCK`, 31 tracked Buck package roots lack a colocated
-  `Cargo.toml`, three workspace packages resolve to Rust 2021, and 39 workspace
-  packages lack a resolved `rust-version`. Some unmatched roots were introduced
-  during broad topology work; current membership, a canonical-looking path, or
-  creation history does not prove they survived the reorganization. These are
-  disposition inputs, not an allowlist or a mandate to add 32 files.
+- Re-census exact `dev` under the source-declaration design and obtain owner dispositions before canary-first repair.
+  Retain/colocate only proved independent crates; absorb/move/remove pre-reorganization remnants; exclude proved fixtures.
+  Recorded counts are evidence, never an allowlist or a mandate to add packages.
 - Scan current `dev`; hand one neutral V1 set to a separately adopted consumer. Build prescribes no apply/regroup
   behavior. Repair all findings without allowlists, then rerun.
 - Publish a versioned check-only Build facade. Pipeline owner law separately
