@@ -2,6 +2,13 @@ load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
 
 _FIXUP = "third-party//fixups/dependency-declarations-generation-reindeer:fixups.toml"
 _PACKAGE_VIEW = ["//build/dependency-declarations/adapters/generation-reindeer/..."]
+_PARSER_VIEW = [
+    "third-party//:prettyplease-0.2",
+    "third-party//:proc-macro2-1",
+    "third-party//:quote",
+    "third-party//:sha2",
+    "third-party//:syn",
+]
 
 rust_binary(
     name = "dependency-declarations-generation-reindeer-build-script",
@@ -63,11 +70,36 @@ rust_library(
         "//build/dependency-declarations/adapters/generation-reindeer/...",
         "//build/dependency-declarations/core/reconcile/...",
         "//build/dependency-declarations/ports/generation/...",
-    ],
+    ] + _PARSER_VIEW,
     deps = [
         "//build/dependency-declarations/core/reconcile:dependency-declarations-reconcile",
         "//build/dependency-declarations/ports/generation:dependency-declarations-generation",
+        "third-party//:prettyplease-0.2",
+        "third-party//:proc-macro2-1",
+        "third-party//:quote",
+        "third-party//:sha2",
+        "third-party//:syn",
     ],
+)
+
+rust_test(
+    name = "dependency-declarations-generation-reindeer-provider-schema-test",
+    srcs = ["tests/provider_schema.rs"],
+    crate = "dependency_declarations_generation_reindeer_provider_schema_test",
+    crate_root = "tests/provider_schema.rs",
+    visibility = [],
+    within_view = _PACKAGE_VIEW,
+    deps = [":dependency-declarations-generation-reindeer"],
+)
+
+rust_test(
+    name = "dependency-declarations-generation-reindeer-provider-source-test",
+    srcs = ["tests/provider_source.rs"] + glob(["tests/provider_source/**/*.rs"]),
+    crate = "dependency_declarations_generation_reindeer_provider_source_test",
+    crate_root = "tests/provider_source.rs",
+    visibility = [],
+    within_view = _PACKAGE_VIEW,
+    deps = [":dependency-declarations-generation-reindeer"],
 )
 
 rust_test(
