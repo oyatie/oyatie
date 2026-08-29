@@ -154,3 +154,17 @@ rust_test(
     within_view = _KERNEL_TEST_VIEW,
     deps = _KERNEL_TEST_DEPS,
 )
+
+rust_test(
+    name = "dependency-declarations-reconcile-lifecycle-test",
+    srcs = [
+        "tests/lifecycle.rs",
+        "tests/support/lifecycle.rs",
+        "tests/support/lifecycle_refusals.rs",
+    ],
+    crate = "dependency_declarations_reconcile_lifecycle_test",
+    crate_root = "tests/lifecycle.rs",
+    visibility = [],
+    within_view = _KERNEL_TEST_VIEW,
+    deps = _KERNEL_TEST_DEPS,
+)
