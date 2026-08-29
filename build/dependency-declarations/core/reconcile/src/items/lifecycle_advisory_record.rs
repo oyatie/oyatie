@@ -1,37 +1,21 @@
-/// UTC instant represented without parser or locale dependence.
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct AdvisoryTimestampV1(u64);
-
-impl AdvisoryTimestampV1 {
-    #[must_use]
-    pub const fn from_unix_seconds(value: u64) -> Self {
-        Self(value)
-    }
-
-    #[must_use]
-    pub const fn unix_seconds(self) -> u64 {
-        self.0
-    }
-}
-
 /// Source-local lifecycle state of one advisory revision.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum AdvisoryLifecycleV1 {
     Active {
-        published_at: AdvisoryTimestampV1,
-        modified_at: AdvisoryTimestampV1,
+        published_at: LifecycleTimestampV1,
+        modified_at: LifecycleTimestampV1,
     },
     Withdrawn {
-        published_at: AdvisoryTimestampV1,
-        modified_at: AdvisoryTimestampV1,
-        withdrawn_at: AdvisoryTimestampV1,
+        published_at: LifecycleTimestampV1,
+        modified_at: LifecycleTimestampV1,
+        withdrawn_at: LifecycleTimestampV1,
     },
 }
 
 impl AdvisoryLifecycleV1 {
     pub fn try_active(
-        published_at: AdvisoryTimestampV1,
-        modified_at: AdvisoryTimestampV1,
+        published_at: LifecycleTimestampV1,
+        modified_at: LifecycleTimestampV1,
     ) -> Result<Self, LifecycleFailureV1> {
         if published_at > modified_at {
             return Err(lifecycle_invalid());
@@ -43,9 +27,9 @@ impl AdvisoryLifecycleV1 {
     }
 
     pub fn try_withdrawn(
-        published_at: AdvisoryTimestampV1,
-        modified_at: AdvisoryTimestampV1,
-        withdrawn_at: AdvisoryTimestampV1,
+        published_at: LifecycleTimestampV1,
+        modified_at: LifecycleTimestampV1,
+        withdrawn_at: LifecycleTimestampV1,
     ) -> Result<Self, LifecycleFailureV1> {
         if published_at > withdrawn_at || withdrawn_at > modified_at {
             return Err(lifecycle_invalid());
@@ -81,7 +65,7 @@ impl AdvisoryLifecycleV1 {
     }
 
     #[must_use]
-    pub const fn modified_at(self) -> AdvisoryTimestampV1 {
+    pub const fn modified_at(self) -> LifecycleTimestampV1 {
         match self {
             Self::Active { modified_at, .. } | Self::Withdrawn { modified_at, .. } => modified_at,
         }

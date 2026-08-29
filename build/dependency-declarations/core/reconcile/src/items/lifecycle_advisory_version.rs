@@ -67,7 +67,7 @@ impl CargoVersionV1 {
         })
     }
 
-    fn precedence_cmp(&self, other: &Self) -> std::cmp::Ordering {
+    pub(crate) fn precedence_cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.parsed.cmp_precedence(&other.parsed)
     }
 

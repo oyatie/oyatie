@@ -186,8 +186,8 @@ fn advisory_authority_must_match_the_exact_source_component() {
         identifier(AdvisoryNamespaceV1::RustSec, "RUSTSEC-2026-0258"),
         Vec::new(),
         AdvisoryLifecycleV1::try_active(
-            AdvisoryTimestampV1::from_unix_seconds(100),
-            AdvisoryTimestampV1::from_unix_seconds(200),
+            LifecycleTimestampV1::from_unix_seconds(100),
+            LifecycleTimestampV1::from_unix_seconds(200),
         )
         .unwrap(),
         AdvisoryAffectedSetV1::reference_only(digest("primary-mismatch")),
@@ -265,8 +265,8 @@ fn duplicate_aliases_and_source_records_are_refused() {
         rustsec.clone(),
         vec![rustsec.clone()],
         AdvisoryLifecycleV1::try_active(
-            AdvisoryTimestampV1::from_unix_seconds(100),
-            AdvisoryTimestampV1::from_unix_seconds(200),
+            LifecycleTimestampV1::from_unix_seconds(100),
+            LifecycleTimestampV1::from_unix_seconds(200),
         )
         .unwrap(),
         complete_h2("0.4.16"),
