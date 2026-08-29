@@ -1,0 +1,36 @@
+rust_library(
+    name = "shared-audit-digest-adapter-awslc",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "shared_audit_digest_adapter_awslc",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:aws-lc-rs",
+        "//audit/core/event-kernel:shared-audit-event-kernel",
+    ],
+)
+
+rust_test(
+    name = "shared-audit-digest-adapter-awslc-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "shared_audit_digest_adapter_awslc",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:aws-lc-rs",
+        "//audit/core/event-kernel:shared-audit-event-kernel",
+    ],
+)
+
+rust_test(
+    name = "shared-audit-digest-adapter-awslc-digest-chain-integration",
+    srcs = ["tests/digest_chain_integration.rs"],
+    crate = "shared_audit_digest_adapter_awslc_digest_chain_integration",
+    crate_root = "tests/digest_chain_integration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":shared-audit-digest-adapter-awslc",
+        "third-party//:aws-lc-rs",
+        "//audit/core/event-kernel:shared-audit-event-kernel",
+    ],
+)

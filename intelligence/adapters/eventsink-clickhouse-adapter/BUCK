@@ -6,8 +6,8 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//intelligence/core/kernel:intelligence-kernel",
-        "//libs/shared-olap-clickhouse-adapter:shared-olap-clickhouse-adapter",
-        "//libs/shared-olap-client-kernel:shared-olap-client-kernel",
+        "//data/adapters/olap-clickhouse:shared-olap-clickhouse-adapter",
+        "//data/core/olap-client-kernel:shared-olap-client-kernel",
         "third-party//:serde",
         "third-party//:tokio",
         "third-party//:tracing",
@@ -22,8 +22,8 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//intelligence/core/kernel:intelligence-kernel",
-        "//libs/shared-olap-clickhouse-adapter:shared-olap-clickhouse-adapter",
-        "//libs/shared-olap-client-kernel:shared-olap-client-kernel",
+        "//data/adapters/olap-clickhouse:shared-olap-clickhouse-adapter",
+        "//data/core/olap-client-kernel:shared-olap-client-kernel",
         "third-party//:serde",
         "third-party//:tokio",
         "third-party//:tracing",
