@@ -30,6 +30,8 @@ pub enum LifecycleFailureClassV1 {
     UnsupportedFactEvidence = 25,
     DependencyAnalysisMismatch = 26,
     InvalidSecurityException = 27,
+    DependencyImpactCancelled = 28,
+    DependencyImpactDeadlineExceeded = 29,
 }
 
 /// A matchable lifecycle refusal without ambient diagnostic text.
