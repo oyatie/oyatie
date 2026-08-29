@@ -3,6 +3,7 @@ use std::ffi::OsStr;
 use std::path::Path;
 use std::process::Command;
 
+use crate::cargo_build::CargoMessageStreamV1;
 use crate::support::{SourceFixture, materialized_fixture, pinned_source_root};
 
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -59,16 +60,11 @@ fn clippy_diagnostics(cargo: &OsStr, root: &Path) -> BTreeMap<ClippyDiagnosticV1
 
     let mut diagnostics = BTreeMap::new();
     let mut saw_reindeer_artifact = false;
-    let mut saw_successful_finish = false;
-    for line in output.stdout.split(|byte| *byte == b'\n') {
-        let Ok(event) = serde_json::from_slice::<serde_json::Value>(line) else {
-            continue;
-        };
+    let messages = CargoMessageStreamV1::try_new(&output.stdout)
+        .expect("Clippy must emit one complete Cargo message stream");
+    for event in messages.events() {
         if event["reason"] == "compiler-artifact" && event["target"]["name"] == "reindeer" {
             saw_reindeer_artifact = true;
-        }
-        if event["reason"] == "build-finished" && event["success"] == true {
-            saw_successful_finish = true;
         }
         if event["reason"] != "compiler-message" || event["message"]["level"] != "warning" {
             continue;
@@ -97,7 +93,6 @@ fn clippy_diagnostics(cargo: &OsStr, root: &Path) -> BTreeMap<ClippyDiagnosticV1
         *diagnostics.entry(diagnostic).or_default() += 1;
     }
     assert!(saw_reindeer_artifact, "Clippy emitted no Reindeer artifact");
-    assert!(saw_successful_finish, "Clippy emitted no successful finish");
     diagnostics
 }
 
