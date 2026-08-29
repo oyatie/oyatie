@@ -134,12 +134,11 @@ file are not a proved round trip.
 - **rule:** declaration reconciliation MUST be an owned Rust transaction. It
   MUST run one pinned Reindeer with locked/offline exact inputs, binary/toolchain
   provenance, closed environment/sandbox, and reviewed fixups. Before
-  qualification an upstream-native API or bounded generated source adaptation against that exact source, bound by
-  provider/recipe/parser/source/adapted-tree/build/binary digests, MUST return one invocation's typed graph and bytes
-  rendered from it; generator code owns the type, upstreaming is preferred, and Build owns rollback. Fallback MUST
-  follow `build/docs/design/reindeer-provider-adaptation-v1.md`; authored patches, N+1 work, duplicated field maps,
-  provider leaks, comment blobs, opaque codegen, or unreadable/non-idiomatic Rust refuse. Full canonical DTO fields
-  determine equality/digest—not private state, a second
+  qualification a reviewed producer-side patch/API against that exact source,
+  bound by patch/fork/source/binary digests, MUST return one invocation's typed
+  graph and bytes rendered from it; generator code owns the type, upstreaming is
+  optional, and Build owns rollback. Full
+  canonical DTO fields determine equality/digest—not private state, a second
   invocation, text reconstruction, `Rule::PartialEq`, or sort keys—and duplicate,
   colliding, unknown, or lossy graphs refuse. Two clean independent runs MUST be
   byte/graph identical. `ReindeerRuleGraphV1` is the primary semantic seam; a
@@ -151,14 +150,15 @@ file are not a proved round trip.
   representative consumer qualification. Publication uses
   only qualified lease-or-CAS, no-follow, same-directory atomic capabilities;
   network, shell wrappers, text overlays, and generated-file hand edits refuse.
-- **ensure:** qualification binds every input, tool, producer API/graph/renderer, parser, environment/sandbox,
-  grammar/platform/Buck2 profile, output and receipt. Red-first tests inject dirty roots, undeclared state,
-  duplicate/sort-key collisions, full-field/parser/byte disagreement, lossy/unknown syntax, malformed fixups,
-  schema drift, work amplification, unreadable output, unsupported publication and every stage/rename/sync fault.
+- **ensure:** qualification binds every input, tool, producer API/graph/renderer,
+  parser, environment/sandbox, grammar/platform/Buck2 profile, output and
+  receipt. Red-first tests inject dirty roots, undeclared state, duplicate/sort-
+  key collisions, full-field/parser/byte disagreement, lossy/unknown syntax,
+  malformed fixups, unsupported publication and every stage/rename/sync fault.
 - **overturn_when:** Reindeer natively supplies equivalent fixup expressivity,
   independent maintained-parser cross-check, hermetic double-run proof,
   configured Buck2 evidence, validated atomic publication, and the same
-  provenance receipt, allowing the recipe and transaction to shrink without lost proof.
+  provenance receipt, allowing the transaction to shrink without lost proof.
 
 </reconciliation>
 
@@ -266,9 +266,9 @@ file are not a proved round trip.
   Absent-owner writes; empty/extraneous/missing/duplicate/ambiguous/wrong-owner/
   cross-owner/incomplete/overlapping groups; or any semantic/owner precondition
   mismatch refuse. Snapshot identity is provenance, not a global lock; a
-  disjoint successors require every bound precondition. Package/role/Rust/MSRV conformance MUST follow
-  `build/docs/design/source-declaration-integrity-v1.md`: only retained crates map to colocated `BUCK`; owners disposition
-  pre-reorganization remnants; path or vacant `main.rs` proves neither role nor readiness. Reindeer stays third-party.
+  disjoint successor remains applicable only while every bound precondition
+  matches. Generated `third-party/BUCK` remains exclusively in Reindeer. Reindeer
+  qualification MUST precede a new parser dependency or package-graph change.
 - **ensure:** an owner design freezes participating target/dependency kinds,
   admitted syntax, package/port placement, parser identities and supply-chain
   review before implementation. Pure relation tests precede adapters;
