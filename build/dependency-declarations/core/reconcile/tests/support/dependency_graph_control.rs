@@ -32,7 +32,7 @@ fn cancellation_refuses_before_dependency_work() {
     let graph = chain_graph(&candidate, 8);
     let mut checkpoints = Vec::new();
     let failure = graph
-        .try_analyze_candidates_with_control(
+        .try_analyze_candidates(
             std::slice::from_ref(&candidate),
             LifecycleTimestampV1::from_unix_seconds(200),
             |progress| {
@@ -58,7 +58,7 @@ fn deadline_refuses_at_a_bounded_mid_closure_checkpoint() {
     let graph = chain_graph(&candidate, 4_096);
     let mut checkpoint_count = 0;
     let failure = graph
-        .try_analyze_candidates_with_control(
+        .try_analyze_candidates(
             std::slice::from_ref(&candidate),
             LifecycleTimestampV1::from_unix_seconds(200),
             |progress| {
@@ -88,11 +88,12 @@ fn continuing_control_preserves_the_canonical_result() {
         .try_analyze_candidates(
             std::slice::from_ref(&candidate),
             LifecycleTimestampV1::from_unix_seconds(200),
+            continue_dependency_impact,
         )
         .unwrap();
     let mut final_progress = None;
     let actual = graph
-        .try_analyze_candidates_with_control(
+        .try_analyze_candidates(
             std::slice::from_ref(&candidate),
             LifecycleTimestampV1::from_unix_seconds(200),
             |progress| {

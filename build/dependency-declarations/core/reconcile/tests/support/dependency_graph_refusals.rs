@@ -107,7 +107,11 @@ fn analysis_refuses_partial_inferred_speculative_or_stale_graphs() {
     for (envelope, now, expected) in cases {
         let graph = graph_for_candidate(&candidate, envelope);
         let failure = graph
-            .try_analyze_candidates(std::slice::from_ref(&candidate), now)
+            .try_analyze_candidates(
+                std::slice::from_ref(&candidate),
+                now,
+                continue_dependency_impact,
+            )
             .unwrap_err();
         assert_eq!(failure.class(), expected);
     }
@@ -214,6 +218,7 @@ fn analysis_refuses_missing_or_duplicate_candidate_roots() {
         .try_analyze_candidates(
             std::slice::from_ref(&candidate),
             LifecycleTimestampV1::from_unix_seconds(200),
+            continue_dependency_impact,
         )
         .unwrap_err();
     assert_eq!(
@@ -223,13 +228,18 @@ fn analysis_refuses_missing_or_duplicate_candidate_roots() {
 
     let graph = graph_for_candidate(&candidate, safe_envelope());
     let failure = graph
-        .try_analyze_candidates(&[], LifecycleTimestampV1::from_unix_seconds(200))
+        .try_analyze_candidates(
+            &[],
+            LifecycleTimestampV1::from_unix_seconds(200),
+            continue_dependency_impact,
+        )
         .unwrap_err();
     assert_eq!(failure.class(), LifecycleFailureClassV1::BoundsExceeded);
     let failure = graph
         .try_analyze_candidates(
             &[candidate.clone(), candidate],
             LifecycleTimestampV1::from_unix_seconds(200),
+            continue_dependency_impact,
         )
         .unwrap_err();
     assert_eq!(failure.class(), LifecycleFailureClassV1::DuplicateIdentity);

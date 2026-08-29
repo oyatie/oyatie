@@ -45,9 +45,15 @@ fn candidate_batch_is_canonical_with_shared_fanout() {
     let graph = DependencyGraphV1::try_new(safe_envelope(), nodes, edges).unwrap();
     let now = LifecycleTimestampV1::from_unix_seconds(200);
     let forward = graph
-        .try_analyze_candidates(&[h2.clone(), tokio.clone()], now)
+        .try_analyze_candidates(
+            &[h2.clone(), tokio.clone()],
+            now,
+            continue_dependency_impact,
+        )
         .unwrap();
-    let reverse = graph.try_analyze_candidates(&[tokio, h2], now).unwrap();
+    let reverse = graph
+        .try_analyze_candidates(&[tokio, h2], now, continue_dependency_impact)
+        .unwrap();
 
     assert_eq!(forward.identity_sha256(), reverse.identity_sha256());
     assert_eq!(forward.impacts().len(), 2);
@@ -94,6 +100,7 @@ fn long_fanout_chain_is_iterative_and_closure_complete() {
         .try_analyze_candidates(
             std::slice::from_ref(&candidate),
             LifecycleTimestampV1::from_unix_seconds(200),
+            continue_dependency_impact,
         )
         .unwrap();
     assert_eq!(batch.impacts()[0].affected_nodes().len(), 2_049);
@@ -128,6 +135,7 @@ fn conservative_complete_facts_may_widen_the_safe_closure() {
             .try_analyze_candidates(
                 std::slice::from_ref(&candidate),
                 LifecycleTimestampV1::from_unix_seconds(200),
+                continue_dependency_impact,
             )
             .is_ok()
     );
@@ -165,6 +173,7 @@ fn every_declared_dependency_role_participates_in_impact() {
         .try_analyze_candidates(
             std::slice::from_ref(&candidate),
             LifecycleTimestampV1::from_unix_seconds(200),
+            continue_dependency_impact,
         )
         .unwrap();
     assert_eq!(batch.impacts()[0].affected_nodes().len(), 8);
