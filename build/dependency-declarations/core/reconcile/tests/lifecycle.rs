@@ -12,6 +12,10 @@ mod dependency_graph;
 mod dependency_graph_refusals;
 #[path = "support/dependency_graph_scale.rs"]
 mod dependency_graph_scale;
+#[path = "support/dependency_qualification.rs"]
+mod dependency_qualification;
+#[path = "support/dependency_qualification_refusals.rs"]
+mod dependency_qualification_refusals;
 #[path = "support/lifecycle_refusals.rs"]
 mod lifecycle_refusals;
 #[path = "support/lifecycle.rs"]

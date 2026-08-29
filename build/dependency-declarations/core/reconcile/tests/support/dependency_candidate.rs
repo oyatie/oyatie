@@ -64,11 +64,52 @@ pub(super) fn try_release(
     qualification: DependencyFactQualificationV1,
     changed: bool,
 ) -> Result<CargoDependencyReleaseV1, LifecycleFailureV1> {
-    let publication = DependencyPublicationV1::try_new(
-        LifecycleTimestampV1::from_unix_seconds(100),
-        LifecycleTimestampV1::from_unix_seconds(200),
+    let msrv = DependencyMsrvDeclarationV1::Declared {
+        version: RustVersionV1::try_new(1, if changed { 64 } else { 63 }, 0).unwrap(),
+        evidence_sha256: digest("declared-msrv"),
+    };
+    let advisories = if changed {
+        Vec::new()
+    } else {
+        vec![digest("RUSTSEC-2026-0258")]
+    };
+    try_release_with_facts(
+        source,
+        package,
+        version,
         state,
-        digest(if changed {
+        qualification,
+        DependencyReleaseFactsV1 {
+            changed,
+            msrv,
+            published_at: 100,
+            observed_at: 200,
+            advisory_identities: advisories,
+        },
+    )
+}
+
+pub(super) struct DependencyReleaseFactsV1 {
+    pub changed: bool,
+    pub msrv: DependencyMsrvDeclarationV1,
+    pub published_at: u64,
+    pub observed_at: u64,
+    pub advisory_identities: Vec<DigestV1>,
+}
+
+pub(super) fn try_release_with_facts(
+    source: LifecycleSourceV1,
+    package: CargoPackageIdentityV1,
+    version: &str,
+    state: DependencyPublicationStateV1,
+    qualification: DependencyFactQualificationV1,
+    facts: DependencyReleaseFactsV1,
+) -> Result<CargoDependencyReleaseV1, LifecycleFailureV1> {
+    let publication = DependencyPublicationV1::try_new(
+        LifecycleTimestampV1::from_unix_seconds(facts.published_at),
+        LifecycleTimestampV1::from_unix_seconds(facts.observed_at),
+        state,
+        digest(if facts.changed {
             "proposed-publication"
         } else {
             "current-publication"
@@ -76,58 +117,54 @@ pub(super) fn try_release(
     )
     .unwrap();
     let metadata = DependencyMetadataV1::new(
-        named(if changed {
+        named(if facts.changed {
             &["maintainer:alice", "maintainer:bob"]
         } else {
             &["maintainer:alice"]
         }),
         DependencyLicenseV1::try_new(
-            if changed { "MIT OR Apache-2.0" } else { "MIT" },
-            digest(if changed {
+            if facts.changed {
+                "MIT OR Apache-2.0"
+            } else {
+                "MIT"
+            },
+            digest(if facts.changed {
                 "proposed-license"
             } else {
                 "current-license"
             }),
         )
         .unwrap(),
-        named(if changed {
+        named(if facts.changed {
             &["feature:stream", "feature:unstable"]
         } else {
             &["feature:stream"]
         }),
-        DependencyMsrvDeclarationV1::Declared {
-            version: RustVersionV1::try_new(1, if changed { 64 } else { 63 }, 0).unwrap(),
-            evidence_sha256: digest("declared-msrv"),
-        },
+        facts.msrv,
     );
     let build_surface = DependencyBuildSurfaceV1::new(
-        changed.then(|| digest("build-script")),
-        changed,
-        named(if changed { &["native:cc"] } else { &[] }),
+        facts.changed.then(|| digest("build-script")),
+        facts.changed,
+        named(if facts.changed { &["native:cc"] } else { &[] }),
     );
     let evidence = DependencyReleaseEvidenceV1::new(
-        digest(if changed {
+        digest(if facts.changed {
             "proposed-dependency-manifest"
         } else {
             "current-dependency-manifest"
         }),
-        DependencyAdvisorySetV1::try_new(if changed {
-            Vec::new()
-        } else {
-            vec![digest("RUSTSEC-2026-0258")]
-        })
-        .unwrap(),
-        digest(if changed {
+        DependencyAdvisorySetV1::try_new(facts.advisory_identities).unwrap(),
+        digest(if facts.changed {
             "proposed-audit"
         } else {
             "current-audit"
         }),
-        digest(if changed {
+        digest(if facts.changed {
             "proposed-provenance"
         } else {
             "current-provenance"
         }),
-        digest(if changed {
+        digest(if facts.changed {
             "proposed-sbom"
         } else {
             "current-sbom"

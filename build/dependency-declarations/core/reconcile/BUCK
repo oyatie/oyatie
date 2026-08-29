@@ -168,6 +168,8 @@ rust_test(
         "tests/support/dependency_graph.rs",
         "tests/support/dependency_graph_refusals.rs",
         "tests/support/dependency_graph_scale.rs",
+        "tests/support/dependency_qualification.rs",
+        "tests/support/dependency_qualification_refusals.rs",
         "tests/support/lifecycle.rs",
         "tests/support/lifecycle_refusals.rs",
     ],
