@@ -211,10 +211,9 @@ fn candidate_binds_exact_release_facts_and_mechanical_deltas() {
         qualified_dependency(),
         true,
     );
-    let candidate =
-        DependencyCandidateV1::try_new(current, proposed, digest("dependency-candidate-discovery"))
-            .unwrap();
-
+    let discovery = digest("dependency-candidate-discovery");
+    let candidate = DependencyCandidateV1::try_new(current, proposed, discovery).unwrap();
+    let delta = candidate.delta();
     assert_eq!(candidate.current().version().as_str(), "0.4.15");
     assert_eq!(candidate.proposed().version().as_str(), "0.4.16");
     for axis in [
@@ -233,13 +232,9 @@ fn candidate_binds_exact_release_facts_and_mechanical_deltas() {
         DependencyChangeAxisV1::Provenance,
         DependencyChangeAxisV1::Sbom,
     ] {
-        assert!(candidate.delta().changed(axis));
+        assert!(delta.changed(axis));
     }
-    assert!(
-        !candidate
-            .delta()
-            .changed(DependencyChangeAxisV1::PublicationState)
-    );
+    assert!(!delta.changed(DependencyChangeAxisV1::PublicationState));
 
     let refreshed = DependencyCandidateV1::try_new(
         candidate.current().clone(),

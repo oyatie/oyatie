@@ -117,18 +117,7 @@ fn security_exception_identity_binds_authority_schema_and_receipt() {
     let baseline_decision = security_decision();
     let baseline = exception_for(baseline_decision);
 
-    assert_eq!(
-        baseline.security_decision().authority_identity_sha256(),
-        digest("security-authority")
-    );
-    assert_eq!(
-        baseline.security_decision().schema_identity_sha256(),
-        digest("security-decision-schema")
-    );
-    assert_eq!(
-        baseline.security_decision().decision_receipt_sha256(),
-        digest("security-decision-receipt")
-    );
+    assert_eq!(baseline.security_decision(), baseline_decision);
     for changed in [
         DependencySecurityDecisionEvidenceV1::new(
             digest("other-security-authority"),
