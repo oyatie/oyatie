@@ -21,10 +21,6 @@ fn adapted_source_builds_as_the_pinned_provider() {
     let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
     let pristine_diagnostics = clippy_diagnostics(&cargo, pristine.path());
     let adapted_diagnostics = clippy_diagnostics(&cargo, fixture.path());
-    assert!(
-        !pristine_diagnostics.is_empty(),
-        "pinned upstream unexpectedly emitted no Clippy baseline"
-    );
     for (diagnostic, adapted_count) in adapted_diagnostics {
         let pristine_count = pristine_diagnostics
             .get(&diagnostic)
@@ -62,10 +58,18 @@ fn clippy_diagnostics(cargo: &OsStr, root: &Path) -> BTreeMap<ClippyDiagnosticV1
     assert_command_succeeded(&output, "Clippy differential");
 
     let mut diagnostics = BTreeMap::new();
+    let mut saw_reindeer_artifact = false;
+    let mut saw_successful_finish = false;
     for line in output.stdout.split(|byte| *byte == b'\n') {
         let Ok(event) = serde_json::from_slice::<serde_json::Value>(line) else {
             continue;
         };
+        if event["reason"] == "compiler-artifact" && event["target"]["name"] == "reindeer" {
+            saw_reindeer_artifact = true;
+        }
+        if event["reason"] == "build-finished" && event["success"] == true {
+            saw_successful_finish = true;
+        }
         if event["reason"] != "compiler-message" || event["message"]["level"] != "warning" {
             continue;
         }
@@ -92,6 +96,8 @@ fn clippy_diagnostics(cargo: &OsStr, root: &Path) -> BTreeMap<ClippyDiagnosticV1
         };
         *diagnostics.entry(diagnostic).or_default() += 1;
     }
+    assert!(saw_reindeer_artifact, "Clippy emitted no Reindeer artifact");
+    assert!(saw_successful_finish, "Clippy emitted no successful finish");
     diagnostics
 }
 
