@@ -1,5 +1,16 @@
-use super::lifecycle_support::profile;
+use super::lifecycle_support::{digest, profile, source};
 use dependency_declarations_reconcile::*;
+
+fn tool(name: &str, commit: &str) -> ToolIdentityV1 {
+    ToolIdentityV1::try_new(
+        name,
+        "1.98.0",
+        commit,
+        "aarch64-apple-darwin",
+        digest(&format!("{name}-{commit}")),
+    )
+    .unwrap()
+}
 
 #[test]
 fn matrix_refuses_an_msrv_newer_than_stable() {
@@ -90,4 +101,43 @@ fn matrix_refuses_non_increasing_release_trains() {
             LifecycleFailureClassV1::UnsupportedVersionRelation
         );
     }
+}
+
+#[test]
+fn profile_refuses_missing_host_target_closure() {
+    let tools = ToolchainToolsV1::try_new(
+        tool("rustc", "88d9e12ae"),
+        tool("cargo", "797e8a9bc"),
+        tool("rustfmt", "rustfmt-1.98.0"),
+        tool("clippy", "clippy-1.98.0"),
+    )
+    .unwrap();
+    let failure = ToolchainProfileV1::try_new(
+        ToolchainRoleV1::QualifiedStableExecution,
+        RustVersionV1::try_new(1, 98, 0).unwrap(),
+        source(
+            LifecycleComponentV1::RustDistribution,
+            LifecycleChannelV1::Stable,
+            SourceMaturityV1::Released,
+            "88d9e12ae",
+        ),
+        tools,
+        ToolchainQualificationV1::Production {
+            qualification_receipt_sha256: digest("stable-qualification"),
+        },
+        "LLVM 22.1.8",
+        vec![
+            ToolchainTargetV1::try_new(
+                "x86_64-unknown-linux-gnu",
+                digest("x86_64-std"),
+                digest("x86_64-components"),
+            )
+            .unwrap(),
+        ],
+    )
+    .unwrap_err();
+    assert_eq!(
+        failure.class(),
+        LifecycleFailureClassV1::ToolchainTargetMismatch
+    );
 }
