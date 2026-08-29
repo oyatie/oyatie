@@ -11,45 +11,7 @@ impl Foundation {
         request: CapabilityInvocationRequest,
     ) -> Result<InvocationReceipt, FoundationError> {
         if principal.tenant_id != request.tenant_id || principal.user_id != request.user_id {
-            if let (Some(tenant), Some(capability)) = (
-                self.tenants.get(&request.tenant_id).cloned(),
-                self.capabilities.get(&request.capability_id).cloned(),
-            ) {
-                let authorization_audit_hash = self
-                    .audit_chain
-                    .append_classifications(
-                        request.tenant_id.clone(),
-                        "cedar.policy.authorize",
-                        Plane::Control,
-                        request.purpose,
-                        vec![DataClass::InternalOnly],
-                        "DENY",
-                    )?
-                    .hash
-                    .clone();
-                let (capability_invoke_audit_hash, topic_audit_hash) =
-                    self.append_invocation_denial_audits(&request, &capability)?;
-                self.record_denied_invocation(DeniedInvocationRecord {
-                    request: &request,
-                    tenant: &tenant,
-                    capability: &capability,
-                    disposition: RunDisposition::FailureAuthorization,
-                    evidence_kind: EvidenceKind::CapabilityInvocation,
-                    reason: "principal_mismatch",
-                    audit_event_hash: topic_audit_hash,
-                    extra_fields: BTreeMap::from([
-                        (
-                            "authorization_audit_event_hash".to_string(),
-                            authorization_audit_hash,
-                        ),
-                        (
-                            "capability_invoke_audit_event_hash".to_string(),
-                            capability_invoke_audit_hash,
-                        ),
-                    ]),
-                })?;
-            }
-            return Err(FoundationError::CapabilityInvocationUnauthorized);
+            return Err(self.deny_principal_mismatch(&request));
         }
         let user = self
             .require_user(&request.tenant_id, &request.user_id)?
@@ -88,38 +50,12 @@ impl Foundation {
             .capabilities
             .is_licensed_for_tenant(&request.tenant_id, &request.capability_id)
         {
-            let license_audit_hash = self
-                .audit_chain
-                .append_classifications(
-                    request.tenant_id.clone(),
-                    "foundry.capability.license",
-                    Plane::Control,
-                    request.purpose,
-                    vec![DataClass::InternalOnly],
-                    "DENY",
-                )?
-                .hash
-                .clone();
-            let (capability_invoke_audit_hash, topic_audit_hash) =
-                self.append_invocation_denial_audits(&request, &capability)?;
-            self.record_denied_invocation(DeniedInvocationRecord {
-                request: &request,
-                tenant: &tenant,
-                capability: &capability,
-                disposition: RunDisposition::FailureLicense,
-                evidence_kind: EvidenceKind::CapabilityInvocation,
-                reason: "license",
-                audit_event_hash: topic_audit_hash,
-                extra_fields: BTreeMap::from([
-                    (
-                        "capability_invoke_audit_event_hash".to_string(),
-                        capability_invoke_audit_hash,
-                    ),
-                    ("license_audit_event_hash".to_string(), license_audit_hash),
-                ]),
-            })?;
-            emit_invocation_trace(invocation_span.as_ref(), "denied", Some("license"));
-            return Err(FoundationError::CapabilityNotLicensed);
+            return Err(self.deny_unlicensed_capability(
+                &request,
+                &tenant,
+                &capability,
+                invocation_span.as_ref(),
+            )?);
         }
 
         let mut autonomy_decision = policy.evaluate_with_context(
@@ -183,33 +119,14 @@ impl Foundation {
             .hash
             .clone();
         if !authorization_decision.allowed {
-            let (capability_invoke_audit_hash, topic_audit_hash) =
-                self.append_invocation_denial_audits(&request, &capability)?;
-            self.record_denied_invocation(DeniedInvocationRecord {
-                request: &request,
-                tenant: &tenant,
-                capability: &capability,
-                disposition: RunDisposition::FailureAuthorization,
-                evidence_kind: EvidenceKind::CapabilityInvocation,
-                reason: "authorization",
-                audit_event_hash: topic_audit_hash,
-                extra_fields: BTreeMap::from([
-                    (
-                        "authorization_audit_event_hash".to_string(),
-                        authorization_audit_hash,
-                    ),
-                    (
-                        "authorization_reason".to_string(),
-                        authorization_decision.reason,
-                    ),
-                    (
-                        "capability_invoke_audit_event_hash".to_string(),
-                        capability_invoke_audit_hash,
-                    ),
-                ]),
-            })?;
-            emit_invocation_trace(invocation_span.as_ref(), "denied", Some("authorization"));
-            return Err(FoundationError::CapabilityInvocationUnauthorized);
+            return Err(self.deny_unauthorized_invocation(
+                &request,
+                &tenant,
+                &capability,
+                authorization_decision,
+                authorization_audit_hash,
+                invocation_span.as_ref(),
+            )?);
         }
 
         let autonomy_audit_hash = self
@@ -245,118 +162,35 @@ impl Foundation {
             None => None,
         };
         if !autonomy_decision.allowed() {
-            let (capability_invoke_audit_hash, topic_audit_hash) =
-                self.append_invocation_denial_audits(&request, &capability)?;
-            let mut autonomy_fields =
-                autonomy_decision_fields(&autonomy_decision, &autonomy_audit_hash);
-            autonomy_fields.insert(
-                "capability_invoke_audit_event_hash".to_string(),
-                capability_invoke_audit_hash,
-            );
-            self.record_denied_invocation(DeniedInvocationRecord {
-                request: &request,
-                tenant: &tenant,
-                capability: &capability,
-                disposition: RunDisposition::FailureAutonomy,
-                evidence_kind: EvidenceKind::AutonomyDecision,
-                reason: "autonomy",
-                audit_event_hash: topic_audit_hash,
-                extra_fields: autonomy_fields,
-            })?;
-            emit_invocation_trace(invocation_span.as_ref(), "denied", Some("autonomy"));
-            return Err(FoundationError::AutonomyCeilingExceeded);
+            return Err(self.deny_autonomy_ceiling(
+                &request,
+                &tenant,
+                &capability,
+                &autonomy_decision,
+                &autonomy_audit_hash,
+                invocation_span.as_ref(),
+            )?);
         }
         if let Err(denial) = evaluate_invocation_data_use(
             &capability,
             &request,
             self.consent_scopes.get(&request.tenant_id),
         ) {
-            let data_use_audit_hash = self
-                .audit_chain
-                .append_classifications(
-                    request.tenant_id.clone(),
-                    "privacy.data-use.evaluate",
-                    Plane::Control,
-                    denial.effective_purpose,
-                    capability_record_classifications(&capability),
-                    "DENY",
-                )?
-                .hash
-                .clone();
-            let (capability_invoke_audit_hash, topic_audit_hash) =
-                self.append_invocation_denial_audits(&request, &capability)?;
-            let mut data_use_fields = data_use_denial_fields(
+            return Err(self.deny_data_use(
                 &request,
+                &tenant,
                 &capability,
-                &denial,
-                capability_invoke_audit_hash,
-            );
-            data_use_fields.insert("data_use_audit_event_hash".to_string(), data_use_audit_hash);
-            self.record_denied_invocation(DeniedInvocationRecord {
-                request: &request,
-                tenant: &tenant,
-                capability: &capability,
-                disposition: RunDisposition::FailureClass,
-                evidence_kind: EvidenceKind::ConsentCheck,
-                reason: "data_boundary",
-                audit_event_hash: topic_audit_hash,
-                extra_fields: data_use_fields,
-            })?;
-            emit_invocation_trace(invocation_span.as_ref(), "denied", Some("data_boundary"));
-            return Err(FoundationError::DataUseNotAllowed);
+                denial,
+                invocation_span.as_ref(),
+            )?);
         }
         if !capability.allows_projected_invocation_cost(request.projected_cost_micros) {
-            let cost_budget_audit_hash = self
-                .audit_chain
-                .append_classifications(
-                    request.tenant_id.clone(),
-                    "foundry.cost-budget.reserve",
-                    Plane::Control,
-                    request.purpose,
-                    vec![DataClass::InternalOnly],
-                    "DENY",
-                )?
-                .hash
-                .clone();
-            let (capability_invoke_audit_hash, topic_audit_hash) =
-                self.append_invocation_denial_audits(&request, &capability)?;
-            self.record_denied_invocation(DeniedInvocationRecord {
-                request: &request,
-                tenant: &tenant,
-                capability: &capability,
-                disposition: RunDisposition::FailureBudget,
-                evidence_kind: EvidenceKind::CapabilityInvocation,
-                reason: "capability_cost_profile",
-                audit_event_hash: topic_audit_hash,
-                extra_fields: BTreeMap::from([
-                    (
-                        "cost_budget_audit_event_hash".to_string(),
-                        cost_budget_audit_hash,
-                    ),
-                    (
-                        "capability_invoke_audit_event_hash".to_string(),
-                        capability_invoke_audit_hash,
-                    ),
-                    (
-                        "capability_per_invocation_limit_micros".to_string(),
-                        capability
-                            .cost_profile()
-                            .per_invocation_limit_micros
-                            .value
-                            .to_string(),
-                    ),
-                    (
-                        "projected_cost_micros".to_string(),
-                        request.projected_cost_micros.to_string(),
-                    ),
-                ]),
-            })?;
-            emit_invocation_trace(
+            return Err(self.deny_cost_profile(
+                &request,
+                &tenant,
+                &capability,
                 invocation_span.as_ref(),
-                "denied",
-                Some("capability_cost_profile"),
-            );
-            return Err(FoundationError::CostBudgetExceeded);
+            )?);
         }
 
         let budget_scope = BudgetScope::new(
@@ -954,3 +788,5 @@ impl Foundation {
         })
     }
 }
+
+mod denial;
