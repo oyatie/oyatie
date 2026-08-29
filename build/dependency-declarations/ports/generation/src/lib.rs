@@ -6,3 +6,11 @@
 pub trait GenerationPort<Request, Output, Error> {
     fn generate(&self, request: &Request) -> Result<Output, Error>;
 }
+
+/// Projects rendered declarations through an independent maintained parser.
+pub trait RenderedDeclarationProjectionPort {
+    type Projection;
+    type Error;
+
+    fn project(&self, rendered: &[u8]) -> Result<Self::Projection, Self::Error>;
+}
