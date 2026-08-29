@@ -48,7 +48,15 @@ fn render_reindeer_artifact_writer_tokens_v1() -> proc_macro2::TokenStream {
             use std::io::Write as _;
 
             use super::BoundedRenderedBytesV1;
+            use super::MAX_RULES;
             use super::ReindeerValueSerializerV1;
+            use super::validate_rule_count;
+
+            #[test]
+            fn artifact_rule_count_refuses_before_graph_normalization() {
+                assert!(validate_rule_count(MAX_RULES).is_ok());
+                assert!(validate_rule_count(MAX_RULES + 1).is_err());
+            }
 
             #[test]
             fn artifact_rendered_writer_refuses_before_partial_overflow() {

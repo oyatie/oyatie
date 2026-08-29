@@ -18,6 +18,7 @@ pub(super) const SOURCE_PATHS: [&str; 7] = [
     "src/main.rs",
 ];
 static NEXT_SOURCE_FIXTURE: AtomicUsize = AtomicUsize::new(0);
+const MAX_SOURCE_FIXTURE_CREATE_ATTEMPTS: usize = 64;
 
 pub(super) fn pinned_source_root() -> PathBuf {
     std::env::var_os("REINDEER_PINNED_SOURCE_ROOT")
@@ -185,14 +186,7 @@ pub(super) struct SourceFixture {
 
 impl SourceFixture {
     pub(super) fn from_snapshot(snapshot: &ReindeerProviderSourceSnapshotV1) -> Self {
-        let sequence = NEXT_SOURCE_FIXTURE.fetch_add(1, Ordering::Relaxed);
-        let root = std::env::temp_dir().join(format!(
-            "reindeer-provider-adaptation-{}-{sequence}",
-            std::process::id(),
-        ));
-        if root.exists() {
-            std::fs::remove_dir_all(&root).unwrap();
-        }
+        let root = create_source_fixture_root();
         for file in snapshot.files() {
             let path = root.join(file.path());
             std::fs::create_dir_all(path.parent().unwrap()).unwrap();
@@ -205,6 +199,22 @@ impl SourceFixture {
     pub(super) fn path(&self) -> &Path {
         &self.root
     }
+}
+
+fn create_source_fixture_root() -> PathBuf {
+    for _ in 0..MAX_SOURCE_FIXTURE_CREATE_ATTEMPTS {
+        let sequence = NEXT_SOURCE_FIXTURE.fetch_add(1, Ordering::Relaxed);
+        let candidate = std::env::temp_dir().join(format!(
+            "reindeer-provider-adaptation-{}-{sequence}",
+            std::process::id(),
+        ));
+        match std::fs::create_dir(&candidate) {
+            Ok(()) => return candidate,
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(error) => panic!("provider source fixture directory must be created: {error}"),
+        }
+    }
+    panic!("provider source fixture directory names are exhausted");
 }
 
 impl Drop for SourceFixture {
