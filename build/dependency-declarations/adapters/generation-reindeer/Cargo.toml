@@ -9,6 +9,11 @@ license = "Apache-2.0"
 [dependencies]
 dependency-declarations-generation = { path = "../../ports/generation" }
 dependency-declarations-reconcile = { path = "../../core/reconcile" }
+prettyplease.workspace = true
+proc-macro2 = { workspace = true, features = ["span-locations"] }
+quote.workspace = true
+sha2.workspace = true
+syn = { workspace = true, features = ["visit-mut"] }
 
 [lib]
 doctest = false
