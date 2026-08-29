@@ -39,10 +39,10 @@ fn canonical_reindeer_provider_source_snapshot_v1(
         if file.bytes.len() > MAX_PROVIDER_SOURCE_FILE_BYTES_V1 {
             return Err(ReindeerProviderAdaptationErrorV1::SourceTooLarge);
         }
-        total_bytes = total_bytes
-            .checked_add(file.bytes.len())
-            .filter(|total| *total <= MAX_PROVIDER_SOURCE_TREE_BYTES_V1)
-            .ok_or(ReindeerProviderAdaptationErrorV1::SourceTooLarge)?;
+        total_bytes = checked_reindeer_provider_source_tree_bytes_v1(
+            total_bytes,
+            file.bytes.len(),
+        )?;
     }
 
     let source_tree_sha256 = reindeer_provider_source_tree_digest_v1(&files)?;
@@ -54,6 +54,16 @@ fn canonical_reindeer_provider_source_snapshot_v1(
         source_tree_sha256,
         total_bytes,
     })
+}
+
+fn checked_reindeer_provider_source_tree_bytes_v1(
+    total: usize,
+    next: usize,
+) -> Result<usize, ReindeerProviderAdaptationErrorV1> {
+    total
+        .checked_add(next)
+        .filter(|total| *total <= MAX_PROVIDER_SOURCE_TREE_BYTES_V1)
+        .ok_or(ReindeerProviderAdaptationErrorV1::SourceTooLarge)
 }
 
 fn canonical_reindeer_source_path_v1(path: &str) -> bool {
@@ -98,4 +108,29 @@ fn hash_reindeer_source_bytes_v1(
     );
     hash.update(bytes);
     Ok(())
+}
+
+#[cfg(test)]
+mod provider_source_tree_tests_v1 {
+    use super::*;
+
+    #[test]
+    fn aggregate_source_bytes_refuse_limit_and_integer_overflow() {
+        assert_eq!(
+            checked_reindeer_provider_source_tree_bytes_v1(
+                MAX_PROVIDER_SOURCE_TREE_BYTES_V1,
+                0,
+            ),
+            Ok(MAX_PROVIDER_SOURCE_TREE_BYTES_V1)
+        );
+        for (total, next) in [
+            (MAX_PROVIDER_SOURCE_TREE_BYTES_V1, 1),
+            (usize::MAX, 1),
+        ] {
+            assert_eq!(
+                checked_reindeer_provider_source_tree_bytes_v1(total, next),
+                Err(ReindeerProviderAdaptationErrorV1::SourceTooLarge)
+            );
+        }
+    }
 }

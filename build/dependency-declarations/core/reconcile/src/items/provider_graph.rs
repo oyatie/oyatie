@@ -55,7 +55,7 @@ pub(crate) fn decode_provider_graph_v1(
     if source_revision != request.tools.generator.source_revision.as_ref()
         || cursor.read_text(ValidationBoundsV1::MAX_IDENTITY_BYTES)?
             != provider.adaptation_recipe_id.as_ref()
-        || cursor.read_digest()? != provider.source_sha256
+        || cursor.read_digest()? != provider.schema_source_sha256
         || cursor.read_digest()? != provider.semantic_schema_sha256
     {
         return Err(invalid_graph());

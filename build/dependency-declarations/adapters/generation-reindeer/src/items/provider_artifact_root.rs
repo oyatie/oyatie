@@ -3,7 +3,7 @@ fn render_reindeer_artifact_root_v1(
 ) -> Result<Vec<u8>, ReindeerProviderAdaptationErrorV1> {
     let source_revision = PINNED_SOURCE_REVISION;
     let adaptation_recipe_id = REINDEER_ADAPTATION_RECIPE_ID_V1;
-    let source_sha256 = schema.source_sha256().bytes().to_vec();
+    let schema_source_sha256 = schema.schema_source_sha256().bytes().to_vec();
     let semantic_schema_sha256 = schema.semantic_schema_sha256().bytes().to_vec();
     let rule_kinds = schema
         .rule_variants()
@@ -31,7 +31,7 @@ fn render_reindeer_artifact_root_v1(
 
         const SOURCE_REVISION: &str = #source_revision;
         const ADAPTATION_RECIPE_ID: &str = #adaptation_recipe_id;
-        const SOURCE_SHA256: [u8; 32] = [#(#source_sha256),*];
+        const SCHEMA_SOURCE_SHA256: [u8; 32] = [#(#schema_source_sha256),*];
         const SEMANTIC_SCHEMA_SHA256: [u8; 32] = [#(#semantic_schema_sha256),*];
         const GRAPH_DOMAIN: &[u8] = b"reindeer.rule-graph.v1\0";
         const MAX_RULES: usize = 1_000_000;
@@ -120,7 +120,7 @@ fn render_reindeer_artifact_root_v1(
                 extend_graph_bytes(&mut output, GRAPH_DOMAIN)?;
                 encode_graph_bytes(&mut output, SOURCE_REVISION.as_bytes())?;
                 encode_graph_bytes(&mut output, ADAPTATION_RECIPE_ID.as_bytes())?;
-                extend_graph_bytes(&mut output, &SOURCE_SHA256)?;
+                extend_graph_bytes(&mut output, &SCHEMA_SOURCE_SHA256)?;
                 extend_graph_bytes(&mut output, &SEMANTIC_SCHEMA_SHA256)?;
                 encode_graph_bytes(&mut output, &self.prefix)?;
                 encode_graph_length(&mut output, self.rules.len())?;

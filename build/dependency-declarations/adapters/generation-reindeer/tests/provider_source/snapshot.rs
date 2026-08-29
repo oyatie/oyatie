@@ -107,3 +107,49 @@ fn snapshot_refuses_empty_or_oversized_input() {
         Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch)
     );
 }
+
+#[test]
+fn snapshot_refuses_invalid_revision() {
+    for revision in ["", "revision\n"] {
+        assert_eq!(
+            ReindeerProviderSourceSnapshotV1::try_new(
+                revision,
+                vec![file(
+                    "Cargo.toml",
+                    ReindeerProviderSourceModeV1::Regular,
+                    b"manifest",
+                )],
+            ),
+            Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch)
+        );
+    }
+}
+
+#[test]
+fn snapshot_refuses_excessive_file_count_or_path_length() {
+    let too_many_files = (0..4_097)
+        .map(|index| {
+            file(
+                &format!("source/{index}"),
+                ReindeerProviderSourceModeV1::Regular,
+                b"",
+            )
+        })
+        .collect();
+    assert_eq!(
+        ReindeerProviderSourceSnapshotV1::try_new("revision", too_many_files),
+        Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch)
+    );
+
+    assert_eq!(
+        ReindeerProviderSourceSnapshotV1::try_new(
+            "revision",
+            vec![file(
+                &"p".repeat(1_025),
+                ReindeerProviderSourceModeV1::Regular,
+                b"",
+            )],
+        ),
+        Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch)
+    );
+}

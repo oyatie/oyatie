@@ -14,7 +14,7 @@ pub enum ProviderArtifactFaultV1 {
     Receipt,
     SourceRevision,
     AdaptationRecipe,
-    SourceDigest,
+    SchemaSourceDigest,
     SemanticSchemaDigest,
     TrailingGraphByte,
     NoncontiguousPosition,
@@ -96,12 +96,13 @@ fn encode_graph(
         provider.adaptation_recipe_id().as_bytes()
     };
     framed(&mut output, adaptation_recipe);
-    let source_sha256 = if matches!(fault, Some(ProviderArtifactFaultV1::SourceDigest)) {
-        DigestV1::of(b"wrong provider source").bytes()
+    let schema_source_sha256 = if matches!(fault, Some(ProviderArtifactFaultV1::SchemaSourceDigest))
+    {
+        DigestV1::of(b"wrong provider schema source").bytes()
     } else {
-        provider.source_sha256().bytes()
+        provider.schema_source_sha256().bytes()
     };
-    output.extend_from_slice(&source_sha256);
+    output.extend_from_slice(&schema_source_sha256);
     let semantic_schema_sha256 =
         if matches!(fault, Some(ProviderArtifactFaultV1::SemanticSchemaDigest)) {
             DigestV1::of(b"wrong semantic schema").bytes()

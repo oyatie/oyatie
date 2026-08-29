@@ -178,7 +178,7 @@ fn parse_exact_provider_source_v1<'a>(
         return Err(ReindeerProviderAdaptationErrorV1::SourceTooLarge);
     }
     if format!("{:x}", Sha256::digest(bytes)) != expected_sha256 {
-        return Err(ReindeerProviderAdaptationErrorV1::SourceDigestMismatch);
+        return Err(ReindeerProviderAdaptationErrorV1::SourceFileDigestMismatch);
     }
     let text =
         std::str::from_utf8(bytes).map_err(|_| ReindeerProviderAdaptationErrorV1::InvalidUtf8)?;

@@ -273,8 +273,8 @@ impl ProviderGraphProfileV1 {
 
     /// Returns the digest of the upstream source file whose schema was admitted.
     #[must_use]
-    pub const fn source_sha256(&self) -> DigestV1 {
-        self.source_sha256
+    pub const fn schema_source_sha256(&self) -> DigestV1 {
+        self.schema_source_sha256
     }
 
     /// Returns the complete producer semantic-schema digest.

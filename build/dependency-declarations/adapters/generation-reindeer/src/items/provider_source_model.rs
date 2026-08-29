@@ -47,7 +47,7 @@ impl ReindeerProviderSourceFileV1 {
     }
 }
 
-/// The immutable whole-source tree admitted by the exact Reindeer profile.
+/// A canonical, bounded but unadmitted whole-source candidate.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReindeerProviderSourceSnapshotV1 {
     source_revision: String,
@@ -228,7 +228,7 @@ pub enum ReindeerProviderAdaptationErrorV1 {
     UnsupportedSourceRevision,
     SourceBatchMismatch,
     SourcePresenceMismatch,
-    SourceDigestMismatch,
+    SourceFileDigestMismatch,
     SourceTreeMismatch,
     SourceTooLarge,
     InvalidUtf8,

@@ -73,7 +73,7 @@ impl ReindeerProviderRuleVariantV1 {
 /// The closed schema receipt for the exact pinned Reindeer source profile.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReindeerProviderSchemaV1 {
-    source_sha256: ReindeerProviderDigestV1,
+    schema_source_sha256: ReindeerProviderDigestV1,
     semantic_schema_sha256: ReindeerProviderDigestV1,
     rule_variants: Box<[ReindeerProviderRuleVariantV1]>,
 }
@@ -85,10 +85,10 @@ impl ReindeerProviderSchemaV1 {
         1
     }
 
-    /// Returns the exact source-byte identity.
+    /// Returns the exact schema-bearing source-file identity.
     #[must_use]
-    pub const fn source_sha256(&self) -> ReindeerProviderDigestV1 {
-        self.source_sha256
+    pub const fn schema_source_sha256(&self) -> ReindeerProviderDigestV1 {
+        self.schema_source_sha256
     }
 
     /// Returns the formatting-insensitive semantic schema identity.
