@@ -121,7 +121,7 @@ partial tree or a claimed generation proof.
    qualification; neither is part of the source patcher.
 
 Current Buck qualification is correctly blocked before compilation: the
-generated `third-party/BUCK` still exposes neither `prettyplease-0.2` nor
-`proc-macro2-1` and carries older Syn/token dependency versions than
+generated `third-party/BUCK` contains `prettyplease-0.2` and `proc-macro2-1`
+with private visibility, while its Syn, proc-macro2, and quote versions lag
 `Cargo.lock`. The source recipe records this as declaration-reconciliation
 input. It does not broaden visibility or hand-edit generated third-party rules.

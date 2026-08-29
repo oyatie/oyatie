@@ -53,6 +53,13 @@ package must have one closed admitted purpose: toolchain, rule library,
 schema/proto, asset, or aggregate. Unknown purpose refuses instead of becoming
 a baseline, exception, or micro-package.
 
+For each immutable snapshot, the relation emits the sorted union of discovered
+Cargo and Buck package roots. Every root appears exactly once with its evidence
+and owner disposition; a missing, duplicate, or contradictory entry makes the
+result incomplete and prevents repair. The union and its digest are ephemeral
+query output, not a tracked census or count baseline. A newly added, removed,
+or moved root therefore cannot disappear behind an old inventory.
+
 ## Semantic role proof
 
 Path shape is discovery evidence, not semantic proof. A retained role joins:
