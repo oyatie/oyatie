@@ -27,7 +27,20 @@ impl OccupancyRefused {
     }
 }
 
-/// `in_flight` is other open PRs targeting `dev` (not this PR).
+/// The open hops `this` must yield to: those opened before it.
+///
+/// Ordering is by the forge-assigned pull-request number — never reused, and
+/// ordered by when the hop was opened, so both sides compute it identically.
+/// Comparing against *every* other open hop instead makes the rule symmetric:
+/// two hops sharing one path each refuse the other, so neither can ever land
+/// and the pair is breakable only by closing one. A total order has no such
+/// standoff — the lowest-numbered hop finds nothing ahead of it, lands, and
+/// the rest queue behind it.
+pub fn hops_ahead(open: &BTreeSet<u64>, this: u64) -> Vec<u64> {
+    open.range(..this).copied().collect()
+}
+
+/// `in_flight` is the open PRs ahead of this one (see [`hops_ahead`]).
 pub fn admit(this: &BTreeSet<String>, in_flight: &[OccupiedSet]) -> Result<(), OccupancyRefused> {
     if this.is_empty() {
         return Err(OccupancyRefused::EmptyPathSet);
@@ -82,6 +95,39 @@ mod tests {
                 other: "pr-9".into(),
             })
         );
+    }
+
+    #[test]
+    fn a_hop_yields_only_to_hops_opened_before_it() {
+        let open = BTreeSet::from([2272, 2279, 2280, 2282]);
+        assert_eq!(hops_ahead(&open, 2279), vec![2272]);
+        assert_eq!(hops_ahead(&open, 2282), vec![2272, 2279, 2280]);
+    }
+
+    #[test]
+    fn hops_sharing_one_path_cannot_refuse_each_other() {
+        // The symmetric rule turned a shared file into a deadlock: every hop
+        // saw every other, so a set all touching `Cargo.lock` refused one
+        // another and none could land.
+        let open = BTreeSet::from([2272, 2279, 2280, 2282]);
+        assert!(
+            hops_ahead(&open, 2272).is_empty(),
+            "the lowest-numbered hop must always be admissible"
+        );
+        for number in [2279, 2280, 2282] {
+            assert!(
+                hops_ahead(&open, number).contains(&2272),
+                "hop {number} must still yield to the one ahead of it"
+            );
+        }
+    }
+
+    #[test]
+    fn a_hop_never_yields_to_itself_or_to_later_hops() {
+        let open = BTreeSet::from([2272, 2279, 2280]);
+        let ahead = hops_ahead(&open, 2279);
+        assert!(!ahead.contains(&2279));
+        assert!(!ahead.contains(&2280));
     }
 
     #[test]

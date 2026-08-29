@@ -9,7 +9,9 @@ use std::collections::BTreeSet;
 use std::env;
 use std::process::{Command, ExitCode, Output};
 
-use pipeline_admission::{GitChangePaths, OccupiedSet, admit, git_change_paths_from_name_status_z};
+use pipeline_admission::{
+    GitChangePaths, OccupiedSet, admit, git_change_paths_from_name_status_z, hops_ahead,
+};
 
 const REMOTE: &str = "origin";
 const TRUNK_REF: &str = "refs/remotes/origin/dev";
@@ -50,11 +52,9 @@ fn run() -> Result<(), String> {
     )?;
     let this = git_change_paths(&config.token, &current_base, &current_head)?.occupied;
 
-    let mut in_flight = Vec::with_capacity(open.len().saturating_sub(1));
-    for number in open {
-        if number == config.pull_request {
-            continue;
-        }
+    let ahead = hops_ahead(&open, config.pull_request);
+    let mut in_flight = Vec::with_capacity(ahead.len());
+    for number in ahead {
         let head = pull_head_ref(number);
         let merge_base = git_text(&config.token, &["merge-base", head.as_str(), TRUNK_REF])?;
         let paths = git_change_paths(&config.token, &merge_base, &head)?.occupied;
