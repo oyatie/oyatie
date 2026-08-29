@@ -19,7 +19,7 @@ rust_test(
     },
     mapped_srcs = {
         "Cargo.toml": "intelligence/core/openapi-domain/Cargo.toml",
-        "//contracts/openapi/foundry:capability-v1.yaml": "contracts/openapi/foundry/capability-v1.yaml",
+        "capability-v1.yaml": "intelligence/core/openapi-domain/capability-v1.yaml",
     },
     visibility = ["PUBLIC"],
     deps = [

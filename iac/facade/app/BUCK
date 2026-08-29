@@ -38,12 +38,12 @@ rust_test(
     crate = "iac_app_tests",
     crate_root = "iac/facade/app/tests/iac_app.rs",
     visibility = ["PUBLIC"],
-    # Sandbox layout mirrors the post-rehome repo layout, which is what the test source already
-    # expects: include_str!("../../../tofu/modules/release-index.json") resolves from
-    # iac/facade/app/tests/ to iac/tofu/modules/release-index.json.
+    # The release index is a declared input, not a checkout read: buck2 runs this test in a
+    # hermetic sandbox. The test source includes it as a sibling, so it must land beside the
+    # test in the sandbox -- include_str!("release-index.json") from iac/facade/app/tests/.
     mapped_srcs = {
         "tests/iac_app.rs": "iac/facade/app/tests/iac_app.rs",
-        "//iac/tofu/modules:release-index.json": "iac/tofu/modules/release-index.json",
+        "tests/release-index.json": "iac/facade/app/tests/release-index.json",
     },
     deps = [
         ":iac-app",
