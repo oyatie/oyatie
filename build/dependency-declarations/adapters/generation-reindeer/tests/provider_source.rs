@@ -6,5 +6,7 @@ mod build;
 mod cargo_build;
 #[path = "provider_source/identity.rs"]
 mod identity;
+#[path = "provider_source/snapshot.rs"]
+mod snapshot;
 #[path = "provider_source/support.rs"]
 mod support;

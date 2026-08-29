@@ -1,7 +1,6 @@
-//! Structural home for the pinned Reindeer generation adapter.
+//! Exact-source Reindeer adapter for dependency declarations.
 //!
-//! Wave S establishes module discovery only. Process behavior lands in the
-//! separately reviewed adapter wave.
+//! One pinned provider profile produces a typed graph and rendered BUCK bytes.
 
 #![forbid(unsafe_code)]
 
