@@ -52,7 +52,7 @@ fn every_module_is_reachable_through_the_shim() {
 
 #[test]
 fn every_root_item_is_reachable_through_the_shim() {
-    let mut policies = PolicySet::default();
+    let policies = PolicySet::default();
     assert!(policies.get("pol_absent", "1.0.0").is_none());
 
     let _: fn(&PolicyVersion) -> PolicyLintReport = lint_policy_version;
