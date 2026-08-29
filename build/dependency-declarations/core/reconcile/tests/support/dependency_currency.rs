@@ -28,6 +28,24 @@ pub(super) fn currency_assessment(
     .unwrap()
 }
 
+pub(super) fn qualification_recommendation(
+    candidate: &DependencyCandidateV1,
+    impact: &DependencyImpactV1,
+    msrv: &DependencyMsrvCompatibilityV1,
+    quarantine: &DependencyQuarantineV1,
+    evaluated_at: LifecycleTimestampV1,
+) -> Result<DependencyQualificationRecommendationV1, LifecycleFailureV1> {
+    let currency = currency_assessment(candidate, evaluated_at.unix_seconds());
+    DependencyQualificationRecommendationV1::try_new(
+        candidate,
+        impact,
+        msrv,
+        quarantine,
+        &currency,
+        evaluated_at,
+    )
+}
+
 #[test]
 fn dependency_currency_reports_exact_lag_and_target_state() {
     let candidate = qualified_h2_candidate();
