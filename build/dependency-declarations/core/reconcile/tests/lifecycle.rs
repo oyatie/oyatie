@@ -22,6 +22,8 @@ mod dependency_qualification_refusals;
 mod lifecycle_refusals;
 #[path = "support/lifecycle.rs"]
 mod lifecycle_support;
+#[path = "support/lifecycle_toolchain_refusals.rs"]
+mod lifecycle_toolchain_refusals;
 
 use dependency_declarations_reconcile::*;
 use lifecycle_support::*;

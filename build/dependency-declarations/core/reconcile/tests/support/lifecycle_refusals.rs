@@ -120,47 +120,6 @@ fn ledger_refuses_an_item_without_its_source_batch() {
 }
 
 #[test]
-fn matrix_refuses_an_msrv_newer_than_stable() {
-    let msrv = profile(
-        ToolchainRoleV1::DeclaredMsrvCompatibility,
-        RustVersionV1::try_new(1, 99, 0).unwrap(),
-        LifecycleChannelV1::Stable,
-        SourceMaturityV1::Released,
-        "msrv-rustc",
-        "msrv-cargo",
-    );
-    let stable = profile(
-        ToolchainRoleV1::QualifiedStableExecution,
-        RustVersionV1::try_new(1, 98, 0).unwrap(),
-        LifecycleChannelV1::Stable,
-        SourceMaturityV1::Released,
-        "88d9e12ae",
-        "797e8a9bc",
-    );
-    let beta = profile(
-        ToolchainRoleV1::BetaShadow,
-        RustVersionV1::try_new(1, 99, 0).unwrap(),
-        LifecycleChannelV1::Beta,
-        SourceMaturityV1::Provisional,
-        "f47d5bb13",
-        "eb98b54bc",
-    );
-    let nightly = profile(
-        ToolchainRoleV1::NightlyShadow,
-        RustVersionV1::try_new(1, 100, 0).unwrap(),
-        LifecycleChannelV1::Nightly,
-        SourceMaturityV1::Provisional,
-        "bff8e12ff",
-        "e8cb624d5",
-    );
-    let failure = ToolchainMatrixV1::try_new(msrv, stable, beta, nightly).unwrap_err();
-    assert_eq!(
-        failure.class(),
-        LifecycleFailureClassV1::UnsupportedVersionRelation
-    );
-}
-
-#[test]
 fn extraction_observation_rekeys_the_batch_receipt() {
     let rust = source(
         LifecycleComponentV1::Rust,

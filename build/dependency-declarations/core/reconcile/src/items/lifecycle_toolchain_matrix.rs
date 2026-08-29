@@ -24,7 +24,10 @@ impl ToolchainMatrixV1 {
                 LifecycleFailureClassV1::ToolchainRoleMismatch,
             ));
         }
-        if msrv.version() > stable.version() {
+        if msrv.version() > stable.version()
+            || stable.version() >= beta.version()
+            || beta.version() >= nightly.version()
+        {
             return Err(LifecycleFailureV1::new(
                 LifecycleFailureClassV1::UnsupportedVersionRelation,
             ));
