@@ -18,6 +18,7 @@ network/ @oyatie/network
 observability/ @oyatie/observability
 packs/ @oyatie/packs
 pipeline/ @oyatie/pipeline
+policy/ @oyatie/policy
 secrets/ @oyatie/secrets
 storage/ @oyatie/storage
 tenancy/ @oyatie/tenancy
