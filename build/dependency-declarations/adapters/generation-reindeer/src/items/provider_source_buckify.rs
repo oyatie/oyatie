@@ -82,7 +82,7 @@ fn do_buckify_edits_v1(
             syn::spanned::Spanned::span(final_expression),
             concat!(
                 "buck::sort_rules_for_artifact(rules)\n",
-                "        .context(\"refusing duplicate rule sort key before graph collection\")",
+                "        .context(\"refusing invalid rule graph before graph collection\")",
             )
             .to_owned(),
         )?,
