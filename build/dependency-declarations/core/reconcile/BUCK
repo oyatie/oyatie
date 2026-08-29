@@ -184,6 +184,7 @@ rust_test(
         "tests/support/lifecycle.rs",
         "tests/support/lifecycle_refusals.rs",
         "tests/support/lifecycle_toolchain_refusals.rs",
+        "tests/support/lifecycle_toolchain_transition.rs",
     ],
     crate = "dependency_declarations_reconcile_lifecycle_test",
     crate_root = "tests/lifecycle.rs",
