@@ -24,6 +24,15 @@ impl ToolchainMatrixV1 {
                 LifecycleFailureClassV1::ToolchainRoleMismatch,
             ));
         }
+        let host_triple = msrv.tools().rustc().host_triple();
+        if [&stable, &beta, &nightly]
+            .into_iter()
+            .any(|profile| profile.tools().rustc().host_triple() != host_triple)
+        {
+            return Err(LifecycleFailureV1::new(
+                LifecycleFailureClassV1::ToolchainTargetMismatch,
+            ));
+        }
         if msrv.version() > stable.version()
             || stable.version() >= beta.version()
             || beta.version() >= nightly.version()
