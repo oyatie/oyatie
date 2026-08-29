@@ -8,6 +8,10 @@ mod dependency_candidate;
 mod dependency_candidate_axes;
 #[path = "support/dependency_candidate_refusals.rs"]
 mod dependency_candidate_refusals;
+#[path = "support/dependency_currency.rs"]
+mod dependency_currency;
+#[path = "support/dependency_currency_refusals.rs"]
+mod dependency_currency_refusals;
 #[path = "support/dependency_graph.rs"]
 mod dependency_graph;
 #[path = "support/dependency_graph_control.rs"]

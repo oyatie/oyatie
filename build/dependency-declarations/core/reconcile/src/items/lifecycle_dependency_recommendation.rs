@@ -39,6 +39,7 @@ pub struct DependencyQualificationRecommendationV1 {
     fact_envelope: FactEnvelopeV1,
     msrv: DependencyMsrvCompatibilityV1,
     quarantine: DependencyQuarantineV1,
+    currency: DependencyCurrencyAssessmentV1,
     blockers: Box<[DependencyQualificationBlockerV1]>,
     mode: Option<DependencyQualificationModeV1>,
     identity_sha256: DigestV1,
@@ -50,6 +51,7 @@ impl DependencyQualificationRecommendationV1 {
         impact: &DependencyImpactV1,
         msrv: &DependencyMsrvCompatibilityV1,
         quarantine: &DependencyQuarantineV1,
+        currency: &DependencyCurrencyAssessmentV1,
         evaluated_at: LifecycleTimestampV1,
     ) -> Result<Self, LifecycleFailureV1> {
         impact.fact_envelope().require_safe(evaluated_at)?;
@@ -60,6 +62,8 @@ impl DependencyQualificationRecommendationV1 {
             || msrv.candidate_identity_sha256() != candidate_identity_sha256
             || quarantine.candidate_identity_sha256() != candidate_identity_sha256
             || quarantine.evaluated_at() != evaluated_at
+            || currency.candidate_identity_sha256() != candidate_identity_sha256
+            || currency.evaluated_at() != evaluated_at
         {
             return Err(dependency_analysis_mismatch());
         }
@@ -110,6 +114,7 @@ impl DependencyQualificationRecommendationV1 {
         hash.digest(fact_envelope.identity_sha256());
         hash.digest(msrv.identity_sha256());
         hash.digest(quarantine.identity_sha256());
+        hash.digest(currency.identity_sha256());
         hash.u64(lifecycle_len(blockers.len())?);
         for blocker in &blockers {
             hash.tag(*blocker as u8);
@@ -127,6 +132,7 @@ impl DependencyQualificationRecommendationV1 {
             fact_envelope,
             msrv: msrv.clone(),
             quarantine: quarantine.clone(),
+            currency: currency.clone(),
             blockers: blockers.into_boxed_slice(),
             mode,
             identity_sha256: hash.finish(),
@@ -156,6 +162,11 @@ impl DependencyQualificationRecommendationV1 {
     #[must_use]
     pub const fn quarantine(&self) -> &DependencyQuarantineV1 {
         &self.quarantine
+    }
+
+    #[must_use]
+    pub const fn currency(&self) -> &DependencyCurrencyAssessmentV1 {
+        &self.currency
     }
 
     #[must_use]

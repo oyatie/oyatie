@@ -1,3 +1,4 @@
+use super::dependency_currency::currency_assessment;
 use super::dependency_graph::qualified_candidate;
 use super::dependency_qualification::*;
 use super::lifecycle_support::digest;
@@ -23,11 +24,13 @@ fn absent_or_unknown_msrv_remains_an_explicit_qualification_blocker() {
         let quarantine =
             DependencyQuarantineV1::try_evaluate(&candidate, &policy, None, now).unwrap();
         let impact = candidate_impact(&candidate, 350);
+        let currency = currency_assessment(&candidate, 350);
         let recommendation = DependencyQualificationRecommendationV1::try_new(
             &candidate,
             &impact,
             &compatibility,
             &quarantine,
+            &currency,
             now,
         )
         .unwrap();
@@ -183,11 +186,13 @@ fn exception_reuse_and_cross_candidate_analysis_are_refused() {
     let compatibility = DependencyMsrvCompatibilityV1::new(&tokio, &matrix);
     let quarantine = DependencyQuarantineV1::try_evaluate(&tokio, &policy, None, now).unwrap();
     let h2_impact = candidate_impact(&h2, 250);
+    let currency = currency_assessment(&tokio, 250);
     let mismatch = DependencyQualificationRecommendationV1::try_new(
         &tokio,
         &h2_impact,
         &compatibility,
         &quarantine,
+        &currency,
         now,
     )
     .unwrap_err();
@@ -253,11 +258,13 @@ fn recommendation_rechecks_impact_freshness_at_evaluation_time() {
     let impact = candidate_impact(&candidate, 350);
     let now = LifecycleTimestampV1::from_unix_seconds(1_001);
     let quarantine = DependencyQuarantineV1::try_evaluate(&candidate, &policy, None, now).unwrap();
+    let currency = currency_assessment(&candidate, 1_001);
     let failure = DependencyQualificationRecommendationV1::try_new(
         &candidate,
         &impact,
         &compatibility,
         &quarantine,
+        &currency,
         now,
     )
     .unwrap_err();
