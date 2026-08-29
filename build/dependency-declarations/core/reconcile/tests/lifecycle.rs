@@ -8,6 +8,8 @@ mod dependency_candidate;
 mod dependency_candidate_refusals;
 #[path = "support/dependency_graph.rs"]
 mod dependency_graph;
+#[path = "support/dependency_graph_control.rs"]
+mod dependency_graph_control;
 #[path = "support/dependency_graph_refusals.rs"]
 mod dependency_graph_refusals;
 #[path = "support/dependency_graph_scale.rs"]
