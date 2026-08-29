@@ -1,4 +1,5 @@
 use super::dependency_candidate::*;
+use super::dependency_currency::currency_assessment;
 use super::dependency_graph::{
     complete_envelope, continue_dependency_impact, node, qualified_h2_candidate,
 };
@@ -187,11 +188,13 @@ fn quarantine_holds_both_windows_and_security_bypasses_only_time_gates() {
         }
     );
     let impact = candidate_impact(&candidate, 250);
+    let currency = currency_assessment(&candidate, 250);
     let recommendation = DependencyQualificationRecommendationV1::try_new(
         &candidate,
         &impact,
         &compatibility,
         &held,
+        &currency,
         now,
     )
     .unwrap();
@@ -228,6 +231,7 @@ fn quarantine_holds_both_windows_and_security_bypasses_only_time_gates() {
         &impact,
         &compatibility,
         &expedited,
+        &currency,
         now,
     )
     .unwrap();
@@ -245,6 +249,7 @@ fn quarantine_holds_both_windows_and_security_bypasses_only_time_gates() {
         &impact,
         &higher_floor,
         &expedited,
+        &currency,
         now,
     )
     .unwrap();
@@ -264,11 +269,13 @@ fn mature_candidate_is_ready_for_qualification_not_accepted() {
     let now = LifecycleTimestampV1::from_unix_seconds(350);
     let quarantine = DependencyQuarantineV1::try_evaluate(&candidate, &policy, None, now).unwrap();
     let impact = candidate_impact(&candidate, 350);
+    let currency = currency_assessment(&candidate, 350);
     let recommendation = DependencyQualificationRecommendationV1::try_new(
         &candidate,
         &impact,
         &compatibility,
         &quarantine,
+        &currency,
         now,
     )
     .unwrap();

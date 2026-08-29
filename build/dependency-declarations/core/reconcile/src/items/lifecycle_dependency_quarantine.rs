@@ -93,7 +93,7 @@ impl DependencyQuarantineV1 {
             candidate.current().publication(),
             candidate.proposed().publication(),
         ] {
-            let fresh_until = checked_timestamp_add(
+            let fresh_until = checked_lifecycle_timestamp_add(
                 publication.observed_at(),
                 policy.registry_observation_freshness_seconds(),
             )?;
@@ -115,7 +115,7 @@ impl DependencyQuarantineV1 {
         let active_exception = security_exception
             .filter(|_| security_exception_state == DependencySecurityExceptionStateV1::Active)
             .map(DependencyEmergencySecurityExceptionV1::identity_sha256);
-        let publication_eligible_at = checked_timestamp_add(
+        let publication_eligible_at = checked_lifecycle_timestamp_add(
             publication.published_at(),
             policy.minimum_publication_age_seconds(),
         )?;
@@ -129,7 +129,7 @@ impl DependencyQuarantineV1 {
             .changed(DependencyChangeAxisV1::Maintainers)
         {
             // The exact observation is a conservative change-time upper bound.
-            let eligible_at = checked_timestamp_add(
+            let eligible_at = checked_lifecycle_timestamp_add(
                 publication.observed_at(),
                 policy.maintainer_change_hold_seconds(),
             )?;
@@ -229,22 +229,15 @@ fn exception_state(
     let Some(exception) = security_exception else {
         return DependencySecurityExceptionStateV1::Absent;
     };
-    if evaluated_at < exception.authorized_at() {
-        DependencySecurityExceptionStateV1::NotYetValid
-    } else if evaluated_at > exception.expires_at() {
-        DependencySecurityExceptionStateV1::Expired
-    } else {
-        DependencySecurityExceptionStateV1::Active
+    match lifecycle_window_state(
+        exception.authorized_at(),
+        exception.expires_at(),
+        evaluated_at,
+    ) {
+        LifecycleWindowStateV1::NotYetValid => {
+            DependencySecurityExceptionStateV1::NotYetValid
+        }
+        LifecycleWindowStateV1::Active => DependencySecurityExceptionStateV1::Active,
+        LifecycleWindowStateV1::Expired => DependencySecurityExceptionStateV1::Expired,
     }
-}
-
-fn checked_timestamp_add(
-    timestamp: LifecycleTimestampV1,
-    seconds: u64,
-) -> Result<LifecycleTimestampV1, LifecycleFailureV1> {
-    timestamp
-        .unix_seconds()
-        .checked_add(seconds)
-        .map(LifecycleTimestampV1::from_unix_seconds)
-        .ok_or_else(lifecycle_bounds)
 }
