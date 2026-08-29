@@ -87,8 +87,15 @@ pub fn profile_with_qualification(
         version.minor(),
         version.patch()
     );
+    let rustc_version = match role {
+        ToolchainRoleV1::DeclaredMsrvCompatibility | ToolchainRoleV1::QualifiedStableExecution => {
+            tool_version.clone()
+        }
+        ToolchainRoleV1::BetaShadow => format!("{tool_version}-beta.1"),
+        ToolchainRoleV1::NightlyShadow => format!("{tool_version}-nightly"),
+    };
     let tools = ToolchainToolsV1::try_new(
-        tool("rustc", &tool_version, rustc_commit),
+        tool("rustc", &rustc_version, rustc_commit),
         tool("cargo", &tool_version, cargo_commit),
         tool("rustfmt", &tool_version, rustc_commit),
         tool("clippy", &tool_version, rustc_commit),
