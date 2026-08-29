@@ -38,10 +38,6 @@ pub fn adapt_reindeer_provider_source_v1(
     if snapshot.source_revision != PINNED_SOURCE_REVISION {
         return Err(ReindeerProviderAdaptationErrorV1::UnsupportedSourceRevision);
     }
-    if snapshot.source_tree_sha256 == [0; 32] {
-        return Err(ReindeerProviderAdaptationErrorV1::MissingSourceTreeIdentity);
-    }
-
     let files = canonical_provider_source_batch_v1(&snapshot.files)?;
     let buck = parse_exact_provider_source_v1(&files, "src/buck.rs", REINDEER_BUCK_SHA256_V1)?;
     let buckify =
@@ -123,11 +119,9 @@ pub fn adapt_reindeer_provider_source_v1(
         });
     }
 
-    let adapted_batch_sha256 =
-        provider_adapted_batch_digest_v1(snapshot.source_tree_sha256, &adapted)?;
+    let adapted_batch_sha256 = provider_adapted_batch_digest_v1(&adapted)?;
     let receipt_sha256 = provider_adaptation_receipt_v1(&schema, adapted_batch_sha256)?;
     Ok(ReindeerProviderSourceAdaptationV1 {
-        source_tree_sha256: snapshot.source_tree_sha256,
         adapted_batch_sha256,
         schema,
         files: adapted.into_boxed_slice(),
@@ -207,12 +201,10 @@ fn parse_exact_provider_source_v1<'a>(
 }
 
 fn provider_adapted_batch_digest_v1(
-    source_tree_sha256: [u8; 32],
     files: &[ReindeerProviderAdaptedFileV1],
 ) -> Result<ReindeerProviderDigestV1, ReindeerProviderAdaptationErrorV1> {
     let mut hash = Sha256::new();
     hash.update(b"build.reindeer-provider-adapted-batch.v1\0");
-    hash.update(source_tree_sha256);
     for file in files {
         hash_string(&mut hash, &file.path)?;
         match file.preimage_sha256 {

@@ -43,7 +43,7 @@ pub(super) fn materialized_fixture(
     source_root: &Path,
 ) -> (ReindeerProviderSourceAdaptationV1, SourceFixture) {
     let snapshot =
-        ReindeerProviderSourceSnapshotV1::new(PINNED_REVISION, [7; 32], source_batch(source_root));
+        ReindeerProviderSourceSnapshotV1::new(PINNED_REVISION, source_batch(source_root));
     let adaptation = adapt_reindeer_provider_source_v1(&snapshot).unwrap();
     let fixture = SourceFixture::copy_from(source_root);
     for file in adaptation.files() {

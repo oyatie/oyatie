@@ -38,23 +38,17 @@ impl ReindeerProviderSourceFileV1 {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReindeerProviderSourceSnapshotV1 {
     source_revision: String,
-    source_tree_sha256: [u8; 32],
     files: Box<[ReindeerProviderSourceFileV1]>,
 }
 
 impl ReindeerProviderSourceSnapshotV1 {
-    /// Creates an untrusted snapshot value for exact-profile validation.
-    ///
-    /// The source-tree digest is caller-supplied provenance. The later build
-    /// transaction must independently prove it against the staged full tree.
+    /// Creates an exact-profile candidate from an untrusted source batch.
     pub fn new(
         source_revision: impl Into<String>,
-        source_tree_sha256: [u8; 32],
         files: Vec<ReindeerProviderSourceFileV1>,
     ) -> Self {
         Self {
             source_revision: source_revision.into(),
-            source_tree_sha256,
             files: files.into_boxed_slice(),
         }
     }
@@ -135,7 +129,6 @@ impl ReindeerProviderAdaptedFileV1 {
 /// One deterministic whole-batch provider adaptation.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReindeerProviderSourceAdaptationV1 {
-    source_tree_sha256: [u8; 32],
     adapted_batch_sha256: ReindeerProviderDigestV1,
     schema: ReindeerProviderSchemaV1,
     files: Box<[ReindeerProviderAdaptedFileV1]>,
@@ -153,12 +146,6 @@ impl ReindeerProviderSourceAdaptationV1 {
     #[must_use]
     pub const fn parsed_source_files(&self) -> u64 {
         3
-    }
-
-    /// Returns the caller-supplied identity of the complete upstream tree.
-    #[must_use]
-    pub const fn source_tree_sha256(&self) -> [u8; 32] {
-        self.source_tree_sha256
     }
 
     /// Returns the identity of the complete canonical adaptation batch.
@@ -190,7 +177,6 @@ impl ReindeerProviderSourceAdaptationV1 {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ReindeerProviderAdaptationErrorV1 {
     UnsupportedSourceRevision,
-    MissingSourceTreeIdentity,
     SourceBatchMismatch,
     SourcePresenceMismatch,
     SourceDigestMismatch,
