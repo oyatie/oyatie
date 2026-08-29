@@ -33,6 +33,7 @@ pub enum LifecycleFailureClassV1 {
     DependencyImpactCancelled = 28,
     DependencyImpactDeadlineExceeded = 29,
     ToolchainTargetMismatch = 30,
+    ToolchainVersionMismatch = 31,
 }
 
 /// A matchable lifecycle refusal without ambient diagnostic text.

@@ -2,9 +2,13 @@ use super::lifecycle_support::{digest, profile, source};
 use dependency_declarations_reconcile::*;
 
 fn tool(name: &str, commit: &str) -> ToolIdentityV1 {
+    tool_with_version(name, "1.98.0", commit)
+}
+
+fn tool_with_version(name: &str, version: &str, commit: &str) -> ToolIdentityV1 {
     ToolIdentityV1::try_new(
         name,
-        "1.98.0",
+        version,
         commit,
         "aarch64-apple-darwin",
         digest(&format!("{name}-{commit}")),
@@ -140,4 +144,92 @@ fn profile_refuses_missing_host_target_closure() {
         failure.class(),
         LifecycleFailureClassV1::ToolchainTargetMismatch
     );
+}
+
+#[test]
+fn profile_refuses_rustc_release_mismatch() {
+    for (role, version, channel, maturity, rustc_release) in [
+        (
+            ToolchainRoleV1::DeclaredMsrvCompatibility,
+            RustVersionV1::try_new(1, 64, 0).unwrap(),
+            LifecycleChannelV1::Stable,
+            SourceMaturityV1::Released,
+            "1.63.0",
+        ),
+        (
+            ToolchainRoleV1::QualifiedStableExecution,
+            RustVersionV1::try_new(1, 98, 0).unwrap(),
+            LifecycleChannelV1::Stable,
+            SourceMaturityV1::Released,
+            "1.97.0",
+        ),
+        (
+            ToolchainRoleV1::BetaShadow,
+            RustVersionV1::try_new(1, 99, 0).unwrap(),
+            LifecycleChannelV1::Beta,
+            SourceMaturityV1::Provisional,
+            "1.99.0-nightly",
+        ),
+        (
+            ToolchainRoleV1::BetaShadow,
+            RustVersionV1::try_new(1, 99, 0).unwrap(),
+            LifecycleChannelV1::Beta,
+            SourceMaturityV1::Provisional,
+            "1.99.0-beta.alpha",
+        ),
+        (
+            ToolchainRoleV1::NightlyShadow,
+            RustVersionV1::try_new(1, 100, 0).unwrap(),
+            LifecycleChannelV1::Nightly,
+            SourceMaturityV1::Provisional,
+            "1.100.0-beta.1",
+        ),
+    ] {
+        let qualification = match role {
+            ToolchainRoleV1::DeclaredMsrvCompatibility => ToolchainQualificationV1::Compatibility {
+                qualification_receipt_sha256: digest("msrv-qualification"),
+            },
+            ToolchainRoleV1::QualifiedStableExecution => ToolchainQualificationV1::Production {
+                qualification_receipt_sha256: digest("production-qualification"),
+            },
+            ToolchainRoleV1::BetaShadow | ToolchainRoleV1::NightlyShadow => {
+                ToolchainQualificationV1::Shadow {
+                    observation_receipt_sha256: digest("shadow-observation"),
+                }
+            }
+        };
+        let tools = ToolchainToolsV1::try_new(
+            tool_with_version("rustc", rustc_release, "rustc-commit"),
+            tool("cargo", "cargo-commit"),
+            tool("rustfmt", "rustfmt-commit"),
+            tool("clippy", "clippy-commit"),
+        )
+        .unwrap();
+        let failure = ToolchainProfileV1::try_new(
+            role,
+            version,
+            source(
+                LifecycleComponentV1::RustDistribution,
+                channel,
+                maturity,
+                "rustc-commit",
+            ),
+            tools,
+            qualification,
+            "LLVM 22.1.8",
+            vec![
+                ToolchainTargetV1::try_new(
+                    "aarch64-apple-darwin",
+                    digest("host-std"),
+                    digest("host-components"),
+                )
+                .unwrap(),
+            ],
+        )
+        .unwrap_err();
+        assert_eq!(
+            failure.class(),
+            LifecycleFailureClassV1::ToolchainVersionMismatch
+        );
+    }
 }

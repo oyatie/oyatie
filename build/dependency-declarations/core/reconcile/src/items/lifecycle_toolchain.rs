@@ -24,6 +24,23 @@ impl RustVersionV1 {
         hash.u64(u64::from(self.patch));
     }
 
+    fn matches_rustc_release(self, role: ToolchainRoleV1, release: &str) -> bool {
+        let base = format!("{}.{}.{}", self.major, self.minor, self.patch);
+        let Some(suffix) = release.strip_prefix(&base) else {
+            return false;
+        };
+        match role {
+            ToolchainRoleV1::DeclaredMsrvCompatibility
+            | ToolchainRoleV1::QualifiedStableExecution => suffix.is_empty(),
+            ToolchainRoleV1::BetaShadow => suffix
+                .strip_prefix("-beta.")
+                .is_some_and(|serial| {
+                    !serial.is_empty() && serial.bytes().all(|byte| byte.is_ascii_digit())
+                }),
+            ToolchainRoleV1::NightlyShadow => suffix == "-nightly",
+        }
+    }
+
     #[must_use]
     pub const fn major(self) -> u16 {
         self.major
@@ -121,6 +138,11 @@ impl ToolchainProfileV1 {
         if !qualification.matches_role(role) {
             return Err(LifecycleFailureV1::new(
                 LifecycleFailureClassV1::ToolchainRoleMismatch,
+            ));
+        }
+        if !version.matches_rustc_release(role, tools.rustc().version()) {
+            return Err(LifecycleFailureV1::new(
+                LifecycleFailureClassV1::ToolchainVersionMismatch,
             ));
         }
         if targets.is_empty() || targets.len() > LifecycleBoundsV1::MAX_TOOLCHAIN_TARGETS {
