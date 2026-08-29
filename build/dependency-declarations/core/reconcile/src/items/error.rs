@@ -20,6 +20,7 @@ pub enum FailureClassV1 {
     ReplaceFailed = 15,
     DirectorySyncFailed = 16,
     InternalInvariant = 17,
+    StageCleanupFailed = 18,
 }
 
 impl FailureClassV1 {
@@ -37,6 +38,7 @@ impl FailureClassV1 {
                 | Self::StageSyncFailed
                 | Self::ReplaceFailed
                 | Self::DirectorySyncFailed
+                | Self::StageCleanupFailed
                 | Self::InternalInvariant
         )
     }

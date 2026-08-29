@@ -85,6 +85,21 @@ fn impossible_publication_failure_shape_still_gets_an_indeterminate_receipt() {
 }
 
 #[test]
+fn failed_stage_cleanup_remains_a_definite_no_replacement_receipt() {
+    let attempt = publication_attempt(PublicationOutcomeV1::Failed {
+        failure: FailureV1::new(FailureClassV1::StageCleanupFailed),
+        replacement: ReplacementStateV1::No,
+    });
+    assert!(matches!(
+        attempt.outcome(),
+        PublicationOutcomeV1::Failed {
+            failure,
+            replacement: ReplacementStateV1::No,
+        } if failure.class() == FailureClassV1::StageCleanupFailed
+    ));
+}
+
+#[test]
 fn unsupported_profile_refuses_before_a_publication_attempt() {
     let generation_request = valid_generation_request(false);
     let intent = PublicationIntentV1::new(None, PublisherProfileV1::LinuxXfsV1);
