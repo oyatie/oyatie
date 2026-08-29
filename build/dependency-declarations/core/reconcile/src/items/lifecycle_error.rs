@@ -36,6 +36,7 @@ pub enum LifecycleFailureClassV1 {
     ToolchainVersionMismatch = 31,
     InvalidToolchainCandidate = 32,
     MissingToolchainIntent = 33,
+    ToolchainIntentMismatch = 34,
 }
 
 /// A matchable lifecycle refusal without ambient diagnostic text.

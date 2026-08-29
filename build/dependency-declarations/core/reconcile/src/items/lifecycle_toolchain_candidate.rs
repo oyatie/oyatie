@@ -2,6 +2,8 @@
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct DeclaredMsrvChangeIntentV1 {
     product_owner: Box<str>,
+    current_msrv: RustVersionV1,
+    proposed_msrv: RustVersionV1,
     semantic_intent_sha256: DigestV1,
     postconditions_sha256: DigestV1,
     identity_sha256: DigestV1,
@@ -10,16 +12,25 @@ pub struct DeclaredMsrvChangeIntentV1 {
 impl DeclaredMsrvChangeIntentV1 {
     pub fn try_new(
         product_owner: impl Into<String>,
+        current_msrv: RustVersionV1,
+        proposed_msrv: RustVersionV1,
         semantic_intent_sha256: DigestV1,
         postconditions_sha256: DigestV1,
     ) -> Result<Self, LifecycleFailureV1> {
+        if current_msrv == proposed_msrv {
+            return Err(toolchain_intent_mismatch());
+        }
         let product_owner = lifecycle_identity(product_owner.into())?;
         let mut hash = CanonicalHasherV1::new(b"build.declared-msrv-change-intent.v1\0");
         lifecycle_hash_string(&mut hash, &product_owner)?;
+        current_msrv.encode(&mut hash);
+        proposed_msrv.encode(&mut hash);
         hash.digest(semantic_intent_sha256);
         hash.digest(postconditions_sha256);
         Ok(Self {
             product_owner,
+            current_msrv,
+            proposed_msrv,
             semantic_intent_sha256,
             postconditions_sha256,
             identity_sha256: hash.finish(),
@@ -29,6 +40,16 @@ impl DeclaredMsrvChangeIntentV1 {
     #[must_use]
     pub fn product_owner(&self) -> &str {
         &self.product_owner
+    }
+
+    #[must_use]
+    pub const fn current_msrv(&self) -> RustVersionV1 {
+        self.current_msrv
+    }
+
+    #[must_use]
+    pub const fn proposed_msrv(&self) -> RustVersionV1 {
+        self.proposed_msrv
     }
 
     #[must_use]
@@ -200,11 +221,15 @@ fn msrv_effect(
     let current_msrv = current.msrv();
     let proposed_msrv = proposed.msrv();
     if current_msrv.version() != proposed_msrv.version() {
-        return intent
-            .map(|intent| ToolchainMsrvEffectV1::FloorChange { intent })
-            .ok_or_else(|| {
-                LifecycleFailureV1::new(LifecycleFailureClassV1::MissingToolchainIntent)
-            });
+        let intent = intent.ok_or_else(|| {
+            LifecycleFailureV1::new(LifecycleFailureClassV1::MissingToolchainIntent)
+        })?;
+        if intent.current_msrv() != current_msrv.version()
+            || intent.proposed_msrv() != proposed_msrv.version()
+        {
+            return Err(toolchain_intent_mismatch());
+        }
+        return Ok(ToolchainMsrvEffectV1::FloorChange { intent });
     }
     if intent.is_some() {
         return Err(invalid_toolchain_candidate());
@@ -222,4 +247,8 @@ fn matrix_host(matrix: &ToolchainMatrixV1) -> &str {
 
 const fn invalid_toolchain_candidate() -> LifecycleFailureV1 {
     LifecycleFailureV1::new(LifecycleFailureClassV1::InvalidToolchainCandidate)
+}
+
+const fn toolchain_intent_mismatch() -> LifecycleFailureV1 {
+    LifecycleFailureV1::new(LifecycleFailureClassV1::ToolchainIntentMismatch)
 }

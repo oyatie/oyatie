@@ -68,6 +68,23 @@ fn matrix(fixture: MatrixFixtureV1<'_>) -> ToolchainMatrixV1 {
     .unwrap()
 }
 
+fn try_msrv_intent(
+    current_minor: u16,
+    proposed_minor: u16,
+) -> Result<DeclaredMsrvChangeIntentV1, LifecycleFailureV1> {
+    DeclaredMsrvChangeIntentV1::try_new(
+        "build-product-owner",
+        RustVersionV1::try_new(1, current_minor, 0).unwrap(),
+        RustVersionV1::try_new(1, proposed_minor, 0).unwrap(),
+        digest("semantic-intent"),
+        digest("postconditions"),
+    )
+}
+
+fn msrv_intent(current_minor: u16, proposed_minor: u16) -> DeclaredMsrvChangeIntentV1 {
+    try_msrv_intent(current_minor, proposed_minor).unwrap()
+}
+
 #[test]
 fn same_version_nightly_refresh_changes_only_the_shadow_role() {
     let current = matrix(MatrixFixtureV1::default());
@@ -165,12 +182,7 @@ fn numeric_msrv_change_requires_product_owned_intent() {
         LifecycleFailureClassV1::MissingToolchainIntent
     );
 
-    let intent = DeclaredMsrvChangeIntentV1::try_new(
-        "build-product-owner",
-        digest("semantic-intent"),
-        digest("postconditions"),
-    )
-    .unwrap();
+    let intent = msrv_intent(97, 98);
     let candidate = ToolchainCandidateV1::try_new(
         current,
         proposed,
@@ -199,12 +211,7 @@ fn no_op_and_spurious_msrv_intent_refuse() {
         LifecycleFailureClassV1::InvalidToolchainCandidate
     );
 
-    let intent = DeclaredMsrvChangeIntentV1::try_new(
-        "build-product-owner",
-        digest("semantic-intent"),
-        digest("postconditions"),
-    )
-    .unwrap();
+    let intent = msrv_intent(97, 98);
     let failure = ToolchainCandidateV1::try_new(
         baseline.clone(),
         matrix(MatrixFixtureV1 {
@@ -234,19 +241,40 @@ fn execution_train_regression_refuses() {
     let failure = ToolchainCandidateV1::try_new(
         current,
         proposed,
-        Some(
-            DeclaredMsrvChangeIntentV1::try_new(
-                "build-product-owner",
-                digest("semantic-intent"),
-                digest("postconditions"),
-            )
-            .unwrap(),
-        ),
+        Some(msrv_intent(98, 97)),
         digest("regression-discovery"),
     )
     .unwrap_err();
     assert_eq!(
         failure.class(),
         LifecycleFailureClassV1::UnsupportedVersionRelation
+    );
+}
+
+#[test]
+fn msrv_intent_cannot_be_replayed_across_floor_changes() {
+    let invalid = try_msrv_intent(98, 98).unwrap_err();
+    assert_eq!(
+        invalid.class(),
+        LifecycleFailureClassV1::ToolchainIntentMismatch
+    );
+    let current = matrix(MatrixFixtureV1 {
+        msrv_minor: 96,
+        msrv_commit: "msrv-1.96",
+        ..MatrixFixtureV1::default()
+    });
+    let proposed = matrix(MatrixFixtureV1::default());
+    let intent = msrv_intent(97, 98);
+    let failure = ToolchainCandidateV1::try_new(
+        current,
+        proposed,
+        Some(intent),
+        digest("replayed-msrv-intent"),
+    )
+    .unwrap_err();
+
+    assert_eq!(
+        failure.class(),
+        LifecycleFailureClassV1::ToolchainIntentMismatch
     );
 }
