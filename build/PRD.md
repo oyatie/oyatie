@@ -115,7 +115,7 @@ path has landed.
 
 ## First-party source declarations
 
-- Cargo or BUCK changes trigger complete HEAD under the source-declaration design; deltas only attribute findings/repairs.
+- Cargo or BUCK changes trigger complete HEAD; deltas attribute findings/repairs, never correctness.
 - Maintained parser ports consume a closed, versioned unconfigured grammar and bind every profile identity.
   Every unadmitted form refuses unless proved unable to influence target identity or dependencies.
 - Each participating BUCK edge resolves uniquely in admitted source IR and Cargo permits it; only participating
@@ -141,9 +141,9 @@ path has landed.
 
 - Reindeer `v2026.08.10.00` at `bb681570d2bc47d1446080c12b8681a50a95f628` plus its binary is the sole candidate;
   It stays unqualified pending 11 inherited/four landed run-only fixups and clean generation/consumer evidence.
-- Its binary source keeps the graph private. A native API or exact-source recipe under
-  `build/docs/design/reindeer-provider-adaptation-v1.md` binds recipe/parser/source/adapted-tree/build/binary digests
-  and returns one same-instance graph/byte artifact; authored/fuzzy patches, N+1/manual maps, and unreadable Rust refuse.
+- Its binary source keeps the graph private. A reviewed producer-side exact-source patch/API binds
+  patch/fork/source/binary digests. Generator code returns one `ReindeerGeneratedArtifactV1`: its typed graph and
+  bytes rendered from that same graph instance. Upstreaming is optional; Build owns qualification/rollback.
 - Bind exact manifest/lock/config/fixup/source/platform inputs; generator source/build toolchain/target/flags/binary;
   renderer; closed environment; and sandbox. Run locked/offline in clean roots with explicit tools, read-only sources,
   no network, and no ambient host state.

@@ -54,7 +54,7 @@ absent.
 
 ## Finish the third-party pure reconciliation kernel
 
-Class: behavior after the exact-source producer adaptation in `build/docs/design/reindeer-provider-adaptation-v1.md`.
+Class: behavior, test-driven; the reviewed Reindeer scaffold has landed.
 
 - Amend the execution design inside the six packages for a producer-owned exported typed artifact/API,
   `GenerationPort`, distinct maintained-parser port, full-field DTO/projection, and Buck consumer profile; add no
@@ -77,8 +77,8 @@ design and remain limited to core items/tests.
 
 Class: behavior at owned ports; depends on the pure reconciliation kernel.
 
-- Prefer an upstream-native producer API; otherwise use only the bounded recipe in
-  `build/docs/design/reindeer-provider-adaptation-v1.md`, binding all identities; authored patches/forks refuse. One invocation returns
+- Land/review a producer-side patch/API against exact pinned Reindeer, binding patch/fork/source/binary digests;
+  propose upstream where useful, but Build owns qualification/rollback. One invocation returns
   `ReindeerGeneratedArtifactV1` graph and bytes rendered from that graph instance, refusing duplicate keys before
   `BTreeSet` loss. Implement its adapter with read-only sources, closed env, offline/locked bounds and reaping if
   isolated; no private introspection, second view invocation, text reconstruction, or bare-stdout contract.
@@ -153,8 +153,7 @@ Class: owner design and dependency qualification; documentation may proceed
 while Reindeer finishes, but no parser/package graph changes may land first.
 
 - Freeze `build/docs/design/source-declaration-integrity-v1.md`: exact packages/targets/ports/adapters/profile,
-  admitted/refused Cargo/BUCK, one-Cargo-package-to-one-same-directory-Buck-package semantics, centralized Rust
-  2024/MSRV facts, relation, `DeclarationRepairSetV1`, bounds, fixtures, and root writer.
+  admitted/refused Cargo/BUCK, relation, `DeclarationRepairSetV1`, bounds, fixtures, and root writer.
 - Review exact parser source/version/license/maintenance/advisories/audits/transitives/API/pin-update-rollback. No
   hand parser/interpreter qualifies.
 - Success: independent Build/build-system/supply-chain approval plus RED/property/fuzz/differential acceptance before
@@ -197,13 +196,10 @@ Class: out-of-required-path qualification and owner-grouped remediation; depends
 on the parser/facade and leaves protected integration to Pipeline.
 
 - Compare exact `cargo metadata --offline --locked --no-deps --format-version 1` and non-building `buck2 uquery`;
-  use `buck2 audit file-package` for source ownership; only protected out-of-presubmit qualification invokes them.
+  only protected out-of-presubmit qualification invokes them.
 - Prove every profile form, both triggers, full-HEAD scope, target subsets,
   modeled Cargo semantics, unknown-influence proof/refusal, deterministic
   repairs, precondition mismatch, no effects, and profile requalification.
-- Re-census exact `dev` under the source-declaration design and obtain owner dispositions before canary-first repair.
-  Retain/colocate only proved independent crates; absorb/move/remove pre-reorganization remnants; exclude proved fixtures.
-  Recorded counts are evidence, never an allowlist or a mandate to add packages.
 - Scan current `dev`; hand one neutral V1 set to a separately adopted consumer. Build prescribes no apply/regroup
   behavior. Repair all findings without allowlists, then rerun.
 - Publish a versioned check-only Build facade. Pipeline owner law separately
@@ -285,9 +281,7 @@ Class: verification and consumer-neutral handoff; depends on candidate rendering
 
 <parallelism>
 
-Provider protocol/adaptation, third-party kernel, adapters, conversion, and
-qualification are sequential. No downstream lane may manufacture a producer
-graph while the provider seam is unresolved.
+Third-party kernel, adapters, conversion, and qualification are sequential.
 First-party design may overlap as read-only work, but parser dependency and
 package-graph changes wait for Reindeer qualification; relation, adapters,
 differential qualification, drift repair, and handoff then follow in order.
