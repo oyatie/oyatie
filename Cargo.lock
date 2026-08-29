@@ -108,7 +108,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
-name = "application-app"
+name = "application-foundation"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
@@ -158,7 +158,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "application-surface-domain"
+name = "application-surface"
 version = "0.1.0"
 dependencies = [
  "data-boundary-kernel",
@@ -3734,7 +3734,7 @@ dependencies = [
 name = "intelligence-api"
 version = "0.1.0"
 dependencies = [
- "application-app",
+ "application-foundation",
 ]
 
 [[package]]

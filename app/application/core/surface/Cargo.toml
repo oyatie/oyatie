@@ -1,0 +1,20 @@
+[package]
+name = "application-surface"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Cloud phase-invariant product-surface kernel (ADR-0028): customers bind to one Cloud product surface while the fulfillment substrate moves from rented public-cloud capacity to Oyatie-operated colo to Oyatie-owned datacentres. Pure value types with no I/O."
+
+[dependencies]
+data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }

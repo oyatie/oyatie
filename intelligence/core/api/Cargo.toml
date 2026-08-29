@@ -6,7 +6,7 @@ rust-version.workspace = true
 license = "Apache-2.0"
 
 [dependencies]
-application-app = { path = "../../../app/application/facade/application-app" }
+application-app = { package = "application-foundation", path = "../../../app/application/core/foundation" }
 
 [lints]
 workspace = true
