@@ -1,4 +1,6 @@
-use dependency_declarations_generation::{GenerationPort, RenderedDeclarationProjectionPort};
+use dependency_declarations_generation::{
+    DeclarationProviderCapabilityPort, GenerationPort, RenderedDeclarationProjectionPort,
+};
 use dependency_declarations_publication::{PublicationCapabilityPort, PublicationPort};
 
 /// Runs the pure two-attempt generation, projection, and optional publication transition.
@@ -10,14 +12,28 @@ pub fn reconcile<G, V, P>(
 ) -> ReconciliationResultV1
 where
     G: for<'a> GenerationPort<GenerationInvocationV1<'a>, RawGenerationV1, GenerationPortErrorV1>,
+    G: DeclarationProviderCapabilityPort<GenerationRequestV1>,
     V: RenderedDeclarationProjectionPort<
             Projection = ParsedBuckProjectionV1,
             Error = ProjectionPortErrorV1,
         >,
+    V: DeclarationProviderCapabilityPort<DigestV1>,
     P: PublicationPort<PublicationRequestV1, PublicationObservationV1, PublicationPortErrorV1>,
     P: PublicationCapabilityPort<PublisherProfileV1>,
 {
     let request_id = request.generation.request_id();
+    if !generator.supports(&request.generation) {
+        return refused(
+            Some(request_id),
+            FailureV1::new(FailureClassV1::UnsupportedGenerationProfile),
+        );
+    }
+    if !projector.supports(&request.generation.parser_identity()) {
+        return refused(
+            Some(request_id),
+            FailureV1::new(FailureClassV1::UnsupportedProjectionProfile),
+        );
+    }
     if request
         .publish
         .as_ref()

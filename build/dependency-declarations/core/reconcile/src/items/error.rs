@@ -21,6 +21,8 @@ pub enum FailureClassV1 {
     DirectorySyncFailed = 16,
     InternalInvariant = 17,
     StageCleanupFailed = 18,
+    UnsupportedGenerationProfile = 19,
+    UnsupportedProjectionProfile = 20,
 }
 
 impl FailureClassV1 {

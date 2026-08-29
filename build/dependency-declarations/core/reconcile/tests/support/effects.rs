@@ -2,7 +2,9 @@ use std::collections::VecDeque;
 use std::convert::Infallible;
 use std::sync::Mutex;
 
-use dependency_declarations_generation::{GenerationPort, RenderedDeclarationProjectionPort};
+use dependency_declarations_generation::{
+    DeclarationProviderCapabilityPort, GenerationPort, RenderedDeclarationProjectionPort,
+};
 use dependency_declarations_publication::{PublicationCapabilityPort, PublicationPort};
 use dependency_declarations_reconcile::*;
 
@@ -13,6 +15,7 @@ type ScriptedOutput = Result<(RuleGraphV1, Vec<u8>), GenerationPortErrorV1>;
 pub struct ScriptedGenerator {
     outputs: Mutex<VecDeque<ScriptedOutput>>,
     invocations: Mutex<Vec<DigestV1>>,
+    supported: bool,
     fault: Option<ProviderArtifactFaultV1>,
     stderr: Vec<u8>,
 }
@@ -22,6 +25,17 @@ impl ScriptedGenerator {
         Self {
             outputs: Mutex::new(outputs.into()),
             invocations: Mutex::new(Vec::new()),
+            supported: true,
+            fault: None,
+            stderr: Vec::new(),
+        }
+    }
+
+    pub fn unsupported(outputs: Vec<ScriptedOutput>) -> Self {
+        Self {
+            outputs: Mutex::new(outputs.into()),
+            invocations: Mutex::new(Vec::new()),
+            supported: false,
             fault: None,
             stderr: Vec::new(),
         }
@@ -31,6 +45,7 @@ impl ScriptedGenerator {
         Self {
             outputs: Mutex::new(outputs.into()),
             invocations: Mutex::new(Vec::new()),
+            supported: true,
             fault: None,
             stderr,
         }
@@ -40,6 +55,7 @@ impl ScriptedGenerator {
         Self {
             outputs: Mutex::new(outputs.into()),
             invocations: Mutex::new(Vec::new()),
+            supported: true,
             fault: Some(fault),
             stderr: Vec::new(),
         }
@@ -69,6 +85,12 @@ impl<'a> GenerationPort<GenerationInvocationV1<'a>, RawGenerationV1, GenerationP
             self.stderr.clone(),
             self.fault,
         ))
+    }
+}
+
+impl DeclarationProviderCapabilityPort<GenerationRequestV1> for ScriptedGenerator {
+    fn supports(&self, _profile: &GenerationRequestV1) -> bool {
+        self.supported
     }
 }
 
@@ -103,6 +125,12 @@ impl RenderedDeclarationProjectionPort for FixedProjection {
             self.graph.clone(),
             source,
         ))
+    }
+}
+
+impl DeclarationProviderCapabilityPort<DigestV1> for FixedProjection {
+    fn supports(&self, profile: &DigestV1) -> bool {
+        *profile == self.profile
     }
 }
 

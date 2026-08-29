@@ -7,6 +7,11 @@ pub trait GenerationPort<Request, Output, Error> {
     fn generate(&self, request: &Request) -> Result<Output, Error>;
 }
 
+/// Refuses an unsupported exact provider profile before any provider effect.
+pub trait DeclarationProviderCapabilityPort<Profile> {
+    fn supports(&self, profile: &Profile) -> bool;
+}
+
 /// Projects rendered declarations through an independent maintained parser.
 pub trait RenderedDeclarationProjectionPort {
     type Projection;
