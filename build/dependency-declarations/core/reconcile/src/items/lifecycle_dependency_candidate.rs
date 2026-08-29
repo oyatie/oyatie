@@ -4,7 +4,7 @@
 pub enum DependencyChangeAxisV1 {
     Source = 0,
     Checksum = 1,
-    PublicationState = 2,
+    Publication = 2,
     Maintainers = 3,
     License = 4,
     Features = 5,
@@ -19,6 +19,27 @@ pub enum DependencyChangeAxisV1 {
     Sbom = 14,
 }
 
+impl DependencyChangeAxisV1 {
+    pub const ALL: [Self; 15] = [
+        Self::Source,
+        Self::Checksum,
+        Self::Publication,
+        Self::Maintainers,
+        Self::License,
+        Self::Features,
+        Self::Msrv,
+        Self::BuildScript,
+        Self::ProcMacro,
+        Self::NativeInputs,
+        Self::DependencyManifest,
+        Self::Advisories,
+        Self::Audit,
+        Self::Provenance,
+        Self::Sbom,
+    ];
+    pub const COUNT: usize = Self::ALL.len();
+}
+
 /// Canonical changed axes between two exact dependency releases.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct DependencyCandidateDeltaV1 {
@@ -27,93 +48,12 @@ pub struct DependencyCandidateDeltaV1 {
 
 impl DependencyCandidateDeltaV1 {
     fn between(current: &CargoDependencyReleaseV1, proposed: &CargoDependencyReleaseV1) -> Self {
-        let mut changed = Vec::with_capacity(15);
-        record_dependency_change(
-            &mut changed,
-            current.source().identity_sha256() != proposed.source().identity_sha256(),
-            DependencyChangeAxisV1::Source,
-        );
-        record_dependency_change(
-            &mut changed,
-            current.checksum_sha256() != proposed.checksum_sha256(),
-            DependencyChangeAxisV1::Checksum,
-        );
-        record_dependency_change(
-            &mut changed,
-            current.publication().state() != proposed.publication().state(),
-            DependencyChangeAxisV1::PublicationState,
-        );
-        record_dependency_change(
-            &mut changed,
-            current.metadata().maintainers() != proposed.metadata().maintainers(),
-            DependencyChangeAxisV1::Maintainers,
-        );
-        record_dependency_change(
-            &mut changed,
-            !current
-                .metadata()
-                .license()
-                .same_declaration(proposed.metadata().license()),
-            DependencyChangeAxisV1::License,
-        );
-        record_dependency_change(
-            &mut changed,
-            current.metadata().features() != proposed.metadata().features(),
-            DependencyChangeAxisV1::Features,
-        );
-        record_dependency_change(
-            &mut changed,
-            !current
-                .metadata()
-                .msrv()
-                .same_declaration(proposed.metadata().msrv()),
-            DependencyChangeAxisV1::Msrv,
-        );
-        record_dependency_change(
-            &mut changed,
-            current.build_surface().build_script_sha256()
-                != proposed.build_surface().build_script_sha256(),
-            DependencyChangeAxisV1::BuildScript,
-        );
-        record_dependency_change(
-            &mut changed,
-            current.build_surface().proc_macro() != proposed.build_surface().proc_macro(),
-            DependencyChangeAxisV1::ProcMacro,
-        );
-        record_dependency_change(
-            &mut changed,
-            current.build_surface().native_inputs()
-                != proposed.build_surface().native_inputs(),
-            DependencyChangeAxisV1::NativeInputs,
-        );
-        record_dependency_change(
-            &mut changed,
-            current.evidence().dependency_manifest_sha256()
-                != proposed.evidence().dependency_manifest_sha256(),
-            DependencyChangeAxisV1::DependencyManifest,
-        );
-        record_dependency_change(
-            &mut changed,
-            current.evidence().advisories() != proposed.evidence().advisories(),
-            DependencyChangeAxisV1::Advisories,
-        );
-        record_dependency_change(
-            &mut changed,
-            current.evidence().audit_sha256() != proposed.evidence().audit_sha256(),
-            DependencyChangeAxisV1::Audit,
-        );
-        record_dependency_change(
-            &mut changed,
-            current.evidence().provenance_sha256()
-                != proposed.evidence().provenance_sha256(),
-            DependencyChangeAxisV1::Provenance,
-        );
-        record_dependency_change(
-            &mut changed,
-            current.evidence().sbom_sha256() != proposed.evidence().sbom_sha256(),
-            DependencyChangeAxisV1::Sbom,
-        );
-        changed.sort_unstable();
+        let mut changed = Vec::with_capacity(DependencyChangeAxisV1::COUNT);
+        for axis in DependencyChangeAxisV1::ALL {
+            if current.axes().identity_sha256(axis) != proposed.axes().identity_sha256(axis) {
+                changed.push(axis);
+            }
+        }
         Self {
             changed: changed.into_boxed_slice(),
         }
@@ -135,16 +75,6 @@ impl DependencyCandidateDeltaV1 {
     #[must_use]
     pub fn axes(&self) -> &[DependencyChangeAxisV1] {
         &self.changed
-    }
-}
-
-fn record_dependency_change(
-    changed: &mut Vec<DependencyChangeAxisV1>,
-    condition: bool,
-    axis: DependencyChangeAxisV1,
-) {
-    if condition {
-        changed.push(axis);
     }
 }
 

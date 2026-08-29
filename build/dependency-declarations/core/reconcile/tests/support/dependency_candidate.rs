@@ -85,6 +85,11 @@ pub(super) fn try_release(
             published_at: 100,
             observed_at: 200,
             advisory_identities: advisories,
+            license_evidence_sha256: digest(if changed {
+                "proposed-license"
+            } else {
+                "current-license"
+            }),
         },
     )
 }
@@ -95,6 +100,7 @@ pub(super) struct DependencyReleaseFactsV1 {
     pub published_at: u64,
     pub observed_at: u64,
     pub advisory_identities: Vec<DigestV1>,
+    pub license_evidence_sha256: DigestV1,
 }
 
 pub(super) fn try_release_with_facts(
@@ -128,11 +134,7 @@ pub(super) fn try_release_with_facts(
             } else {
                 "MIT"
             },
-            digest(if facts.changed {
-                "proposed-license"
-            } else {
-                "current-license"
-            }),
+            facts.license_evidence_sha256,
         )
         .unwrap(),
         named(if facts.changed {
@@ -216,25 +218,10 @@ fn candidate_binds_exact_release_facts_and_mechanical_deltas() {
     let delta = candidate.delta();
     assert_eq!(candidate.current().version().as_str(), "0.4.15");
     assert_eq!(candidate.proposed().version().as_str(), "0.4.16");
-    for axis in [
-        DependencyChangeAxisV1::Source,
-        DependencyChangeAxisV1::Checksum,
-        DependencyChangeAxisV1::Maintainers,
-        DependencyChangeAxisV1::License,
-        DependencyChangeAxisV1::Features,
-        DependencyChangeAxisV1::Msrv,
-        DependencyChangeAxisV1::BuildScript,
-        DependencyChangeAxisV1::ProcMacro,
-        DependencyChangeAxisV1::NativeInputs,
-        DependencyChangeAxisV1::DependencyManifest,
-        DependencyChangeAxisV1::Advisories,
-        DependencyChangeAxisV1::Audit,
-        DependencyChangeAxisV1::Provenance,
-        DependencyChangeAxisV1::Sbom,
-    ] {
+    for axis in DependencyChangeAxisV1::ALL {
         assert!(delta.changed(axis));
     }
-    assert!(!delta.changed(DependencyChangeAxisV1::PublicationState));
+    assert_eq!(delta.axes(), DependencyChangeAxisV1::ALL.as_ref());
 
     let refreshed = DependencyCandidateV1::try_new(
         candidate.current().clone(),
@@ -246,7 +233,7 @@ fn candidate_binds_exact_release_facts_and_mechanical_deltas() {
 }
 
 #[test]
-fn moving_away_from_a_yanked_current_release_records_publication_state() {
+fn moving_away_from_a_yanked_current_release_records_publication_change() {
     let current = release(
         dependency_source(
             LifecycleComponentV1::DependencyRegistry,
@@ -276,7 +263,7 @@ fn moving_away_from_a_yanked_current_release_records_publication_state() {
     assert!(
         candidate
             .delta()
-            .changed(DependencyChangeAxisV1::PublicationState)
+            .changed(DependencyChangeAxisV1::Publication)
     );
 }
 

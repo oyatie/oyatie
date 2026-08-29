@@ -162,8 +162,4 @@ impl DependencyLicenseV1 {
     pub const fn identity_sha256(&self) -> DigestV1 {
         self.identity_sha256
     }
-
-    pub(crate) fn same_declaration(&self, other: &Self) -> bool {
-        self.expression == other.expression
-    }
 }

@@ -98,17 +98,6 @@ impl DependencyMsrvDeclarationV1 {
             }
         }
     }
-
-    fn same_declaration(self, other: Self) -> bool {
-        match (self, other) {
-            (Self::Declared { version: left, .. }, Self::Declared { version: right, .. }) => {
-                left == right
-            }
-            (Self::Absent { .. }, Self::Absent { .. })
-            | (Self::Unknown { .. }, Self::Unknown { .. }) => true,
-            _ => false,
-        }
-    }
 }
 
 /// Build-time capability surface of one exact dependency release.
@@ -131,18 +120,6 @@ impl DependencyBuildSurfaceV1 {
             proc_macro,
             native_inputs,
         }
-    }
-
-    fn encode(&self, hash: &mut CanonicalHasherV1) {
-        match self.build_script_sha256 {
-            None => hash.tag(0),
-            Some(identity) => {
-                hash.tag(1);
-                hash.digest(identity);
-            }
-        }
-        hash.tag(u8::from(self.proc_macro));
-        hash.digest(self.native_inputs.identity_sha256());
     }
 
     #[must_use]
@@ -184,13 +161,6 @@ impl DependencyMetadataV1 {
             features,
             msrv,
         }
-    }
-
-    fn encode(&self, hash: &mut CanonicalHasherV1) {
-        hash.digest(self.maintainers.identity_sha256());
-        hash.digest(self.license.identity_sha256());
-        hash.digest(self.features.identity_sha256());
-        self.msrv.encode(hash);
     }
 
     #[must_use]
@@ -240,14 +210,6 @@ impl DependencyReleaseEvidenceV1 {
             provenance_sha256,
             sbom_sha256,
         }
-    }
-
-    fn encode(&self, hash: &mut CanonicalHasherV1) {
-        hash.digest(self.dependency_manifest_sha256);
-        hash.digest(self.advisories.identity_sha256());
-        hash.digest(self.audit_sha256);
-        hash.digest(self.provenance_sha256);
-        hash.digest(self.sbom_sha256);
     }
 
     #[must_use]
