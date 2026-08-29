@@ -1,0 +1,10 @@
+rust_library(
+    name = "policy-rebac-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "policy_rebac_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//policy/core/cedar-domain:policy-cedar-domain",
+    ],
+)
