@@ -1,0 +1,37 @@
+rust_library(
+    name = "shared-resource-provider-contract-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "shared_resource_provider_contract_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "shared-resource-provider-contract-kernel-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "shared_resource_provider_contract_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "shared-resource-provider-contract-kernel-reference-provider",
+    srcs = ["tests/reference_provider.rs"],
+    crate = "shared_resource_provider_contract_kernel_reference_provider",
+    crate_root = "tests/reference_provider.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":shared-resource-provider-contract-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)
