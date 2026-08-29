@@ -20,6 +20,9 @@ pub enum LifecycleFailureClassV1 {
     ConflictingAdvisoryRange = 15,
     ConflictingAdvisoryHistory = 16,
     MixedAdvisoryQualification = 17,
+    DependencySourceMismatch = 18,
+    InvalidDependencyCandidate = 19,
+    UnavailableDependencyRelease = 20,
 }
 
 /// A matchable lifecycle refusal without ambient diagnostic text.

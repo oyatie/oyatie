@@ -246,3 +246,41 @@ fn affected_unit_summary_refuses_inconsistent_or_excessive_bounds() {
     .unwrap_err();
     assert_eq!(excessive.class(), LifecycleFailureClassV1::BoundsExceeded);
 }
+
+#[test]
+fn extraction_profile_bound_to_another_source_is_refused() {
+    let rust = source(
+        LifecycleComponentV1::Rust,
+        LifecycleChannelV1::Stable,
+        SourceMaturityV1::Released,
+        "rust-1.98.0",
+    );
+    let cargo = source(
+        LifecycleComponentV1::Cargo,
+        LifecycleChannelV1::Stable,
+        SourceMaturityV1::Released,
+        "cargo-1.98.0",
+    );
+    let item = release_item(
+        &rust,
+        "rust#format-into",
+        ReleaseItemKindV1::StandardLibrary,
+    );
+    let cargo_extraction = extraction(
+        &cargo,
+        ReleaseExtractionQualificationV1::Qualified {
+            qualification_receipt_sha256: digest("qualified-extraction"),
+        },
+    );
+    let failure = ReleaseSourceBatchV1::try_from_items(
+        rust,
+        cargo_extraction,
+        std::slice::from_ref(&item),
+        digest("mismatched-extraction"),
+    )
+    .unwrap_err();
+    assert_eq!(
+        failure.class(),
+        LifecycleFailureClassV1::ExtractionProfileMismatch
+    );
+}

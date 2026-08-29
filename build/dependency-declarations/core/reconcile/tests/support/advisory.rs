@@ -71,8 +71,8 @@ pub(super) fn active_record(
         primary,
         aliases,
         AdvisoryLifecycleV1::try_active(
-            AdvisoryTimestampV1::from_unix_seconds(100),
-            AdvisoryTimestampV1::from_unix_seconds(modified_at),
+            LifecycleTimestampV1::from_unix_seconds(100),
+            LifecycleTimestampV1::from_unix_seconds(modified_at),
         )
         .unwrap(),
         affected,
@@ -158,9 +158,9 @@ fn later_withdrawal_supersedes_active_history_without_erasing_it() {
         rustsec,
         Vec::new(),
         AdvisoryLifecycleV1::try_withdrawn(
-            AdvisoryTimestampV1::from_unix_seconds(100),
-            AdvisoryTimestampV1::from_unix_seconds(300),
-            AdvisoryTimestampV1::from_unix_seconds(250),
+            LifecycleTimestampV1::from_unix_seconds(100),
+            LifecycleTimestampV1::from_unix_seconds(300),
+            LifecycleTimestampV1::from_unix_seconds(250),
         )
         .unwrap(),
         complete_h2("0.4.16"),

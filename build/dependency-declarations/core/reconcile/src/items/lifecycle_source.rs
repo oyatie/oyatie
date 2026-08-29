@@ -18,6 +18,25 @@ impl LifecycleBoundsV1 {
     pub const MAX_ADVISORY_RANGES_PER_PACKAGE: usize = 256;
     pub const MAX_TOTAL_ADVISORY_PACKAGE_CLAIMS: usize = 1_000_000;
     pub const MAX_TOTAL_ADVISORY_RANGES: usize = 4_000_000;
+    pub const MAX_DEPENDENCY_NAMED_FACTS: usize = 4_096;
+    pub const MAX_DEPENDENCY_NAMED_FACT_BYTES: usize = 1024 * 1024;
+    pub const MAX_DEPENDENCY_ADVISORIES: usize = 4_096;
+}
+
+/// UTC instant represented without parser or locale dependence.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct LifecycleTimestampV1(u64);
+
+impl LifecycleTimestampV1 {
+    #[must_use]
+    pub const fn from_unix_seconds(value: u64) -> Self {
+        Self(value)
+    }
+
+    #[must_use]
+    pub const fn unix_seconds(self) -> u64 {
+        self.0
+    }
 }
 
 /// Upstream component represented by an immutable source object.

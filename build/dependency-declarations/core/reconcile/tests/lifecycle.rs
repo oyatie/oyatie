@@ -2,6 +2,10 @@
 mod advisory;
 #[path = "support/advisory_refusals.rs"]
 mod advisory_refusals;
+#[path = "support/dependency_candidate.rs"]
+mod dependency_candidate;
+#[path = "support/dependency_candidate_refusals.rs"]
+mod dependency_candidate_refusals;
 #[path = "support/lifecycle_refusals.rs"]
 mod lifecycle_refusals;
 #[path = "support/lifecycle.rs"]
@@ -258,43 +262,5 @@ fn candidate_extractor_cannot_authorize_a_released_ledger() {
     assert_eq!(
         ledger.require_released_complete().unwrap_err().class(),
         LifecycleFailureClassV1::UnqualifiedExtraction
-    );
-}
-
-#[test]
-fn extraction_profile_bound_to_another_source_is_refused() {
-    let rust = source(
-        LifecycleComponentV1::Rust,
-        LifecycleChannelV1::Stable,
-        SourceMaturityV1::Released,
-        "rust-1.98.0",
-    );
-    let cargo = source(
-        LifecycleComponentV1::Cargo,
-        LifecycleChannelV1::Stable,
-        SourceMaturityV1::Released,
-        "cargo-1.98.0",
-    );
-    let item = release_item(
-        &rust,
-        "rust#format-into",
-        ReleaseItemKindV1::StandardLibrary,
-    );
-    let cargo_extraction = extraction(
-        &cargo,
-        ReleaseExtractionQualificationV1::Qualified {
-            qualification_receipt_sha256: digest("qualified-extraction"),
-        },
-    );
-    let failure = ReleaseSourceBatchV1::try_from_items(
-        rust,
-        cargo_extraction,
-        std::slice::from_ref(&item),
-        digest("mismatched-extraction"),
-    )
-    .unwrap_err();
-    assert_eq!(
-        failure.class(),
-        LifecycleFailureClassV1::ExtractionProfileMismatch
     );
 }
