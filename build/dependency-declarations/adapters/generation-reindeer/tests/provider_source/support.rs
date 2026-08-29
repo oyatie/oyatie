@@ -190,7 +190,7 @@ pub(super) struct SourceFixture {
 }
 
 impl SourceFixture {
-    fn copy_from(source: &Path) -> Self {
+    pub(super) fn copy_from(source: &Path) -> Self {
         let sequence = NEXT_SOURCE_FIXTURE.fetch_add(1, Ordering::Relaxed);
         let root = std::env::temp_dir().join(format!(
             "reindeer-provider-adaptation-{}-{sequence}",

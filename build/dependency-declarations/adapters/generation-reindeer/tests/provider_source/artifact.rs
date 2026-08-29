@@ -29,11 +29,21 @@ fn one_adapted_binary_produces_distinct_equivalent_whole_graph_runs() {
     let binary = fixture.path().join("target/debug/reindeer");
     let first_bytes = run_artifact(&binary, &run_a, "run-a");
     let second_bytes = run_artifact(&binary, &run_b, "run-b");
+    let help = Command::new(&binary)
+        .arg("-c")
+        .arg(run_a.join("reindeer.toml"))
+        .args(["buckify", "--help"])
+        .output()
+        .expect("provider help must run");
     let first = parse_artifact(&first_bytes);
     let second = parse_artifact(&second_bytes);
     let recipe_identity = adaptation.profile().recipe_identity().as_bytes();
     let semantic_schema = adaptation.schema().semantic_schema_sha256().bytes();
 
+    assert!(help.status.success());
+    assert!(!String::from_utf8_lossy(&help.stdout).contains("--artifact-v1"));
+    assert!(!run_a.join("third-party/BUCK").exists());
+    assert!(!run_b.join("third-party/BUCK").exists());
     assert_eq!(first.invocation_id, b"run-a");
     assert_eq!(second.invocation_id, b"run-b");
     assert_eq!(first.graph, second.graph);
