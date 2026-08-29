@@ -23,6 +23,11 @@ pub enum LifecycleFailureClassV1 {
     DependencySourceMismatch = 18,
     InvalidDependencyCandidate = 19,
     UnavailableDependencyRelease = 20,
+    IncompleteFactCoverage = 21,
+    StaleFact = 22,
+    InvalidDependencyGraph = 23,
+    MissingDependencyRoot = 24,
+    UnsupportedFactEvidence = 25,
 }
 
 /// A matchable lifecycle refusal without ambient diagnostic text.

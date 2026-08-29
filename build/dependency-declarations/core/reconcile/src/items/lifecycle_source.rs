@@ -21,6 +21,11 @@ impl LifecycleBoundsV1 {
     pub const MAX_DEPENDENCY_NAMED_FACTS: usize = 4_096;
     pub const MAX_DEPENDENCY_NAMED_FACT_BYTES: usize = 1024 * 1024;
     pub const MAX_DEPENDENCY_ADVISORIES: usize = 4_096;
+    pub const MAX_DEPENDENCY_GRAPH_NODES: usize = 1_000_000;
+    pub const MAX_DEPENDENCY_GRAPH_EDGES: usize = 8_000_000;
+    pub const MAX_DEPENDENCY_CANDIDATES_PER_ANALYSIS: usize = 1_024;
+    pub const MAX_TOTAL_DEPENDENCY_IMPACT_NODES: usize = 4_000_000;
+    pub const MAX_TOTAL_DEPENDENCY_IMPACT_EDGES: usize = 16_000_000;
 }
 
 /// UTC instant represented without parser or locale dependence.
