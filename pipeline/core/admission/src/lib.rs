@@ -25,7 +25,7 @@ pub use layout::{
     cargo_config_violations, cargo_entrypoint, cargo_entrypoints, cargo_manifest_for_crate_path,
     cargo_manifest_for_entrypoint, cargo_manifest_violations, changed_layout_violations,
     draft_dependency_violations, face_dir_ok, is_capability_root, layout_violations,
-    owner_core_regression_violations, owner_law_regression_violations, proto_package_violations,
+    owner_core_regression_violations, proto_package_violations,
     workspace_draft_dependency_violations, workspace_membership_violations,
 };
 pub use line_budget::file_budget_violations;
