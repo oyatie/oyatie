@@ -44,27 +44,64 @@ fn adapt_reindeer_buck_v1(
 
     let replacement = render_provider_tokens_text_v1(quote::quote! {
         #[derive(Debug)]
-        pub(crate) struct DuplicateRuleSortKeyV1;
+        pub(crate) enum RuleGraphValidationErrorV1 {
+            DuplicateSortKey,
+            DuplicateTargetName(String),
+        }
 
-        impl fmt::Display for DuplicateRuleSortKeyV1 {
+        impl fmt::Display for RuleGraphValidationErrorV1 {
             fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-                formatter.write_str("duplicate rule sort key")
+                match self {
+                    Self::DuplicateSortKey => formatter.write_str("duplicate rule sort key"),
+                    Self::DuplicateTargetName(name) => {
+                        write!(formatter, "duplicate rule target name {name}")
+                    }
+                }
             }
         }
 
-        impl std::error::Error for DuplicateRuleSortKeyV1 {}
+        impl std::error::Error for RuleGraphValidationErrorV1 {}
 
         pub(crate) fn sort_rules_for_artifact(
             mut rules: Vec<Rule>,
-        ) -> Result<Vec<Rule>, DuplicateRuleSortKeyV1> {
+        ) -> Result<Vec<Rule>, RuleGraphValidationErrorV1> {
             rules.sort();
             if rules.windows(2).any(|pair| pair[0].cmp(&pair[1]).is_eq()) {
-                return Err(DuplicateRuleSortKeyV1);
+                return Err(RuleGraphValidationErrorV1::DuplicateSortKey);
+            }
+            let mut target_names = BTreeSet::new();
+            for rule in &rules {
+                let target_name = rule.artifact_target_name().0.as_str();
+                if !target_names.insert(target_name) {
+                    return Err(RuleGraphValidationErrorV1::DuplicateTargetName(
+                        target_name.to_owned(),
+                    ));
+                }
             }
             Ok(rules)
         }
 
         impl Rule {
+            fn artifact_target_name(&self) -> &Name {
+                match self {
+                    Rule::Alias(value) => &value.name,
+                    Rule::Sources(value) => &value.name,
+                    Rule::Filegroup(value) => &value.name,
+                    Rule::ExtractArchive(value) => &value.name,
+                    Rule::HttpArchive(value) => &value.name,
+                    Rule::GitFetch(value) => &value.name,
+                    Rule::Binary(value) | Rule::BuildscriptBinary(value) => {
+                        &value.common.common.name
+                    }
+                    Rule::Library(value) | Rule::RootPackage(value) => {
+                        &value.common.common.name
+                    }
+                    Rule::BuildscriptGenrule(value) => &value.name,
+                    Rule::CxxLibrary(value) => &value.common.name,
+                    Rule::PrebuiltCxxLibrary(value) => &value.common.name,
+                }
+            }
+
             pub(crate) fn serialize_with<S>(
                 &self,
                 config: &BuckConfig,
@@ -97,6 +134,18 @@ fn adapt_reindeer_buck_v1(
 
             let error = super::sort_rules_for_artifact(vec![left, right]).unwrap_err();
             assert!(error.to_string().contains("duplicate rule sort key"));
+        }
+
+        #[test]
+        fn artifact_duplicate_target_names_refuse_before_graph_collection() {
+            let first_owner = aws_lc_sys_owner();
+            let mut second_owner = first_owner.clone();
+            second_owner.version = semver::Version::new(0, 41, 0);
+            let first = http_archive(first_owner, "same");
+            let second = http_archive(second_owner, "same");
+
+            let error = super::sort_rules_for_artifact(vec![first, second]).unwrap_err();
+            assert!(error.to_string().contains("duplicate rule target name same"));
         }
     })?;
     let (tests_start, tests_end) =
