@@ -1,3 +1,7 @@
+#[path = "support/advisory.rs"]
+mod advisory;
+#[path = "support/advisory_refusals.rs"]
+mod advisory_refusals;
 #[path = "support/lifecycle_refusals.rs"]
 mod lifecycle_refusals;
 #[path = "support/lifecycle.rs"]

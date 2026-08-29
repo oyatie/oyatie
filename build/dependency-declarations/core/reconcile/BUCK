@@ -63,11 +63,13 @@ rust_library(
         "//build/dependency-declarations/core/reconcile/...",
         "//build/dependency-declarations/ports/generation/...",
         "//build/dependency-declarations/ports/publication/...",
+        "third-party//:semver",
         "third-party//:sha2",
     ],
     deps = [
         "//build/dependency-declarations/ports/generation:dependency-declarations-generation",
         "//build/dependency-declarations/ports/publication:dependency-declarations-publication",
+        "third-party//:semver",
         "third-party//:sha2",
     ],
 )
@@ -159,6 +161,8 @@ rust_test(
     name = "dependency-declarations-reconcile-lifecycle-test",
     srcs = [
         "tests/lifecycle.rs",
+        "tests/support/advisory.rs",
+        "tests/support/advisory_refusals.rs",
         "tests/support/lifecycle.rs",
         "tests/support/lifecycle_refusals.rs",
     ],
