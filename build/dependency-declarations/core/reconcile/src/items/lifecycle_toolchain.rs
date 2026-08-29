@@ -115,12 +115,7 @@ impl ToolchainTargetV1 {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ToolchainProfileV1 {
     role: ToolchainRoleV1,
-    version: RustVersionV1,
-    source: LifecycleSourceV1,
-    tools: ToolchainToolsV1,
-    qualification: ToolchainQualificationV1,
-    llvm_version: Box<str>,
-    targets: Box<[ToolchainTargetV1]>,
+    axes: ToolchainProfileAxesV1,
     identity_sha256: DigestV1,
 }
 
@@ -169,34 +164,22 @@ impl ToolchainProfileV1 {
                 LifecycleFailureClassV1::DuplicateIdentity,
             ));
         }
-        let mut value = Self {
-            role,
+        let axes = ToolchainProfileAxesV1::try_new(
             version,
             source,
             tools,
             qualification,
-            llvm_version: lifecycle_identity(llvm_version.into())?,
-            targets: targets.into_boxed_slice(),
-            identity_sha256: DigestV1::from_bytes([0; 32]),
-        };
+            lifecycle_identity(llvm_version.into())?,
+            targets.into_boxed_slice(),
+        )?;
         let mut hash = CanonicalHasherV1::new(b"build.toolchain-profile.v1\0");
-        value.encode_fields(&mut hash)?;
-        value.identity_sha256 = hash.finish();
-        Ok(value)
-    }
-
-    fn encode_fields(&self, hash: &mut CanonicalHasherV1) -> Result<(), LifecycleFailureV1> {
-        hash.tag(self.role as u8);
-        self.version.encode(hash);
-        hash.digest(self.source.identity_sha256());
-        self.tools.encode(hash)?;
-        self.qualification.encode(hash);
-        lifecycle_hash_string(hash, &self.llvm_version)?;
-        hash.u64(lifecycle_len(self.targets.len())?);
-        for target in &self.targets {
-            target.encode(hash)?;
-        }
-        Ok(())
+        hash.tag(role as u8);
+        axes.encode(&mut hash);
+        Ok(Self {
+            role,
+            axes,
+            identity_sha256: hash.finish(),
+        })
     }
 
     #[must_use]
@@ -206,7 +189,7 @@ impl ToolchainProfileV1 {
 
     #[must_use]
     pub const fn version(&self) -> RustVersionV1 {
-        self.version
+        self.axes.version
     }
 
     #[must_use]
@@ -216,27 +199,32 @@ impl ToolchainProfileV1 {
 
     #[must_use]
     pub const fn source(&self) -> &LifecycleSourceV1 {
-        &self.source
+        &self.axes.source
     }
 
     #[must_use]
     pub const fn tools(&self) -> &ToolchainToolsV1 {
-        &self.tools
+        &self.axes.tools
     }
 
     #[must_use]
     pub const fn qualification(&self) -> ToolchainQualificationV1 {
-        self.qualification
+        self.axes.qualification
     }
 
     #[must_use]
     pub fn llvm_version(&self) -> &str {
-        &self.llvm_version
+        &self.axes.llvm_version
     }
 
     #[must_use]
     pub fn targets(&self) -> &[ToolchainTargetV1] {
-        &self.targets
+        &self.axes.targets
+    }
+
+    #[must_use]
+    pub const fn axes(&self) -> &ToolchainProfileAxesV1 {
+        &self.axes
     }
 }
 

@@ -178,3 +178,38 @@ fn all_profile_axes_are_reported_once_in_canonical_order() {
     );
     assert_eq!(candidate.changed_roles(), &[ToolchainRoleV1::NightlyShadow]);
 }
+
+#[test]
+fn candidate_delta_is_derived_from_profile_axis_identities() {
+    let current = matrix(nightly_profile(
+        100,
+        "c656540d6",
+        "cargo-c656540d6",
+        "LLVM 22.1.8",
+        "old-target",
+        "old-qualification",
+    ));
+    let proposed = matrix(nightly_profile(
+        101,
+        "nightly-1.101",
+        "cargo-nightly-1.101",
+        "LLVM 23.1.0",
+        "new-target",
+        "new-qualification",
+    ));
+    let candidate =
+        ToolchainCandidateV1::try_new(current, proposed, None, digest("profile-axis-projection"))
+            .unwrap();
+
+    for axis in ToolchainChangeAxisV1::ALL {
+        let current_axis = candidate.current().nightly().axes().identity_sha256(axis);
+        let proposed_axis = candidate.proposed().nightly().axes().identity_sha256(axis);
+        assert_eq!(
+            candidate
+                .delta()
+                .changed(ToolchainRoleV1::NightlyShadow, axis),
+            current_axis != proposed_axis,
+            "candidate delta diverged from the profile-owned {axis:?} identity"
+        );
+    }
+}
