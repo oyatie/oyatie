@@ -13,6 +13,21 @@ pub enum ToolchainChangeAxisV1 {
     Qualification = 8,
 }
 
+impl ToolchainChangeAxisV1 {
+    pub const ALL: [Self; 9] = [
+        Self::RustVersion,
+        Self::DistributionSource,
+        Self::Rustc,
+        Self::Cargo,
+        Self::Rustfmt,
+        Self::Clippy,
+        Self::Llvm,
+        Self::TargetClosure,
+        Self::Qualification,
+    ];
+    pub const COUNT: usize = Self::ALL.len();
+}
+
 /// One role-qualified mechanical toolchain change.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct ToolchainChangeV1 {
@@ -46,7 +61,7 @@ pub struct ToolchainCandidateDeltaV1 {
 impl ToolchainCandidateDeltaV1 {
     pub(crate) fn between(current: &ToolchainMatrixV1, proposed: &ToolchainMatrixV1) -> Self {
         let mut changed_roles = Vec::with_capacity(4);
-        let mut changes = Vec::with_capacity(36);
+        let mut changes = Vec::with_capacity(4 * ToolchainChangeAxisV1::COUNT);
         for (role, current_profile, proposed_profile) in [
             (
                 ToolchainRoleV1::DeclaredMsrvCompatibility,
@@ -117,60 +132,14 @@ fn record_profile_changes(
     current: &ToolchainProfileV1,
     proposed: &ToolchainProfileV1,
 ) {
-    record_toolchain_change(
-        changes,
-        role,
-        ToolchainChangeAxisV1::RustVersion,
-        current.version() != proposed.version(),
-    );
-    record_toolchain_change(
-        changes,
-        role,
-        ToolchainChangeAxisV1::DistributionSource,
-        current.source() != proposed.source(),
-    );
-    for (axis, current_tool, proposed_tool) in [
-        (
-            ToolchainChangeAxisV1::Rustc,
-            current.tools().rustc(),
-            proposed.tools().rustc(),
-        ),
-        (
-            ToolchainChangeAxisV1::Cargo,
-            current.tools().cargo(),
-            proposed.tools().cargo(),
-        ),
-        (
-            ToolchainChangeAxisV1::Rustfmt,
-            current.tools().rustfmt(),
-            proposed.tools().rustfmt(),
-        ),
-        (
-            ToolchainChangeAxisV1::Clippy,
-            current.tools().clippy(),
-            proposed.tools().clippy(),
-        ),
-    ] {
-        record_toolchain_change(changes, role, axis, current_tool != proposed_tool);
+    for axis in ToolchainChangeAxisV1::ALL {
+        record_toolchain_change(
+            changes,
+            role,
+            axis,
+            current.axes().identity_sha256(axis) != proposed.axes().identity_sha256(axis),
+        );
     }
-    record_toolchain_change(
-        changes,
-        role,
-        ToolchainChangeAxisV1::Llvm,
-        current.llvm_version() != proposed.llvm_version(),
-    );
-    record_toolchain_change(
-        changes,
-        role,
-        ToolchainChangeAxisV1::TargetClosure,
-        current.targets() != proposed.targets(),
-    );
-    record_toolchain_change(
-        changes,
-        role,
-        ToolchainChangeAxisV1::Qualification,
-        current.qualification() != proposed.qualification(),
-    );
 }
 
 fn record_toolchain_change(
