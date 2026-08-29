@@ -189,4 +189,24 @@ fn tree_manifests_are_order_independent_and_enforce_aggregate_bounds() {
         .class(),
         FailureClassV1::InvalidRequest
     );
+
+    let too_many_fixups = (0..=ValidationBoundsV1::MAX_FIXUP_FILES)
+        .map(|index| {
+            TreeEntryV1::new(
+                CanonicalPathV1::try_new(format!("fixups/{index}.toml")).unwrap(),
+                0,
+                digest(b""),
+            )
+        })
+        .collect();
+    assert_eq!(
+        InputTreeV1::try_from_entries(
+            TreeRoleV1::Fixups,
+            CanonicalPathV1::try_new("fixups.manifest").unwrap(),
+            too_many_fixups,
+        )
+        .unwrap_err()
+        .class(),
+        FailureClassV1::InvalidRequest
+    );
 }

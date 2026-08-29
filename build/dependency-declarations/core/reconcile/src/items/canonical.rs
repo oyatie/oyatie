@@ -2,6 +2,9 @@
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct CanonicalPathV1(Box<str>);
 
+const TREE_MANIFEST_HEADER_BYTES: usize = 8;
+const TREE_MANIFEST_ENTRY_FIXED_BYTES: usize = 8 + 8 + 32;
+
 impl CanonicalPathV1 {
     /// Validates a path without normalizing caller bytes.
     pub fn try_new(value: impl Into<String>) -> Result<Self, FailureV1> {
@@ -157,10 +160,6 @@ impl InputTreeV1 {
         manifest_path: CanonicalPathV1,
         mut entries: Vec<TreeEntryV1>,
     ) -> Result<Self, FailureV1> {
-        entries.sort_by(|left, right| left.path.cmp(&right.path));
-        if entries.windows(2).any(|pair| pair[0].path == pair[1].path) {
-            return Err(invalid_request());
-        }
         let file_count = checked_u64(entries.len(), invalid_request())?;
         let total_bytes = entries.iter().try_fold(0_u64, |total, entry| {
             total
@@ -168,8 +167,13 @@ impl InputTreeV1 {
                 .ok_or_else(invalid_request)
         })?;
         validate_tree_bounds(role, file_count, total_bytes)?;
+        let manifest_bytes = checked_tree_manifest_bytes(&entries)?;
+        entries.sort_unstable_by(|left, right| left.path.cmp(&right.path));
+        if entries.windows(2).any(|pair| pair[0].path == pair[1].path) {
+            return Err(invalid_request());
+        }
 
-        let mut bytes = Vec::new();
+        let mut bytes = Vec::with_capacity(manifest_bytes);
         append_manifest_raw(&mut bytes, &file_count.to_be_bytes())?;
         for entry in &entries {
             entry.append_manifest(&mut bytes)?;
@@ -200,6 +204,25 @@ impl InputTreeV1 {
         hash.u64(self.total_bytes);
         Ok(())
     }
+}
+
+fn checked_tree_manifest_bytes(entries: &[TreeEntryV1]) -> Result<usize, FailureV1> {
+    entries
+        .iter()
+        .try_fold(TREE_MANIFEST_HEADER_BYTES, |total, entry| {
+            checked_tree_manifest_entry_bytes(total, entry.path.as_str().len())
+        })
+}
+
+fn checked_tree_manifest_entry_bytes(
+    total: usize,
+    path_bytes: usize,
+) -> Result<usize, FailureV1> {
+    total
+        .checked_add(TREE_MANIFEST_ENTRY_FIXED_BYTES)
+        .and_then(|total| total.checked_add(path_bytes))
+        .filter(|total| *total <= ValidationBoundsV1::MAX_DECLARED_FILE_BYTES)
+        .ok_or_else(invalid_request)
 }
 
 fn validate_tree_bounds(
@@ -238,4 +261,27 @@ fn append_manifest_raw(output: &mut Vec<u8>, bytes: &[u8]) -> Result<(), Failure
     }
     output.extend_from_slice(bytes);
     Ok(())
+}
+
+#[cfg(test)]
+mod canonical_tests {
+    use super::*;
+
+    #[test]
+    fn tree_manifest_size_refuses_limit_and_integer_overflow() {
+        let maximum = ValidationBoundsV1::MAX_DECLARED_FILE_BYTES;
+        let entry_bytes = TREE_MANIFEST_ENTRY_FIXED_BYTES + 1;
+        assert_eq!(
+            checked_tree_manifest_entry_bytes(maximum - entry_bytes, 1),
+            Ok(maximum)
+        );
+        for total in [maximum - entry_bytes + 1, usize::MAX] {
+            assert_eq!(
+                checked_tree_manifest_entry_bytes(total, 1)
+                    .unwrap_err()
+                    .class(),
+                FailureClassV1::InvalidRequest
+            );
+        }
+    }
 }

@@ -23,14 +23,6 @@ fn canonical_reindeer_provider_source_snapshot_v1(
     {
         return Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch);
     }
-    files.sort_by(|left, right| left.path.as_bytes().cmp(right.path.as_bytes()));
-    if files
-        .windows(2)
-        .any(|pair| pair[0].path == pair[1].path)
-    {
-        return Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch);
-    }
-
     let mut total_bytes = 0_usize;
     for file in &files {
         if !canonical_reindeer_source_path_v1(&file.path) {
@@ -43,6 +35,13 @@ fn canonical_reindeer_provider_source_snapshot_v1(
             total_bytes,
             file.bytes.len(),
         )?;
+    }
+    files.sort_unstable_by(|left, right| left.path.as_bytes().cmp(right.path.as_bytes()));
+    if files
+        .windows(2)
+        .any(|pair| pair[0].path == pair[1].path)
+    {
+        return Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch);
     }
 
     let source_tree_sha256 = reindeer_provider_source_tree_digest_v1(&files)?;
