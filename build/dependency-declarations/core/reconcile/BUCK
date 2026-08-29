@@ -128,6 +128,16 @@ rust_test(
 )
 
 rust_test(
+    name = "dependency-declarations-reconcile-freshness-test",
+    srcs = ["tests/freshness.rs"] + _KERNEL_TEST_SUPPORT,
+    crate = "dependency_declarations_reconcile_freshness_test",
+    crate_root = "tests/freshness.rs",
+    visibility = [],
+    within_view = _KERNEL_TEST_VIEW,
+    deps = _KERNEL_TEST_DEPS,
+)
+
+rust_test(
     name = "dependency-declarations-reconcile-validation-test",
     srcs = ["tests/validation.rs"] + _KERNEL_TEST_SUPPORT,
     crate = "dependency_declarations_reconcile_validation_test",
