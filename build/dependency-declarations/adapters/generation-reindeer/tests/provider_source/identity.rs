@@ -71,6 +71,10 @@ fn exact_source_batch_produces_one_deterministic_adaptation() {
 
     assert_eq!(first, second);
     assert_eq!(first.source_tree_sha256(), snapshot.source_tree_sha256());
+    assert_ne!(
+        first.source_tree_sha256(),
+        first.schema().schema_source_sha256()
+    );
     assert_eq!(first.parsed_source_files(), 3);
     assert_eq!(first.files().len(), SOURCE_PATHS.len());
     assert_eq!(
@@ -135,7 +139,7 @@ fn exact_revision_with_changed_source_bytes_refuses() {
 
     assert_eq!(
         adapt_reindeer_provider_source_v1(&snapshot),
-        Err(ReindeerProviderAdaptationErrorV1::SourceDigestMismatch)
+        Err(ReindeerProviderAdaptationErrorV1::SourceFileDigestMismatch)
     );
 }
 

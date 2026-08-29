@@ -18,7 +18,7 @@ fn provider_transport_refuses_wrong_identity_receipt_schema_and_shape() {
         ProviderArtifactFaultV1::Receipt,
         ProviderArtifactFaultV1::SourceRevision,
         ProviderArtifactFaultV1::AdaptationRecipe,
-        ProviderArtifactFaultV1::SourceDigest,
+        ProviderArtifactFaultV1::SchemaSourceDigest,
         ProviderArtifactFaultV1::SemanticSchemaDigest,
         ProviderArtifactFaultV1::TrailingGraphByte,
         ProviderArtifactFaultV1::NoncontiguousPosition,

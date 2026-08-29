@@ -173,7 +173,7 @@ impl GeneratorIdentityV1 {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ProviderGraphProfileV1 {
     adaptation_recipe_id: Box<str>,
-    source_sha256: DigestV1,
+    schema_source_sha256: DigestV1,
     semantic_schema_sha256: DigestV1,
 }
 
@@ -181,19 +181,19 @@ impl ProviderGraphProfileV1 {
     /// Binds the source adaptation and the exact upstream schema it admitted.
     pub fn try_new(
         adaptation_recipe_id: impl Into<String>,
-        source_sha256: DigestV1,
+        schema_source_sha256: DigestV1,
         semantic_schema_sha256: DigestV1,
     ) -> Result<Self, FailureV1> {
         Ok(Self {
             adaptation_recipe_id: validated_identity(adaptation_recipe_id.into())?,
-            source_sha256,
+            schema_source_sha256,
             semantic_schema_sha256,
         })
     }
 
     fn encode(&self, hash: &mut CanonicalHasherV1) -> Result<(), FailureV1> {
         hash.string(&self.adaptation_recipe_id)?;
-        hash.digest(self.source_sha256);
+        hash.digest(self.schema_source_sha256);
         hash.digest(self.semantic_schema_sha256);
         Ok(())
     }

@@ -87,7 +87,7 @@ fn inspect_reindeer_provider_schema_syntax_v1(
 
     let semantic_schema_sha256 = semantic_digest(&variants, sort_key, partial_eq, ord, renderer)?;
     Ok(ReindeerProviderSchemaV1 {
-        source_sha256: ReindeerProviderDigestV1::of(source),
+        schema_source_sha256: ReindeerProviderDigestV1::of(source),
         semantic_schema_sha256,
         rule_variants: variants.into_boxed_slice(),
     })
@@ -167,7 +167,10 @@ mod provider_schema_tests_v1 {
         assert_eq!(schema.rule_variants()[0].payload(), "Alias");
         assert_eq!(schema.rule_variants()[0].fields()[1].name(), "value");
         assert_eq!(schema.rule_variants()[0].fields()[1].rust_type(), "String");
-        assert_ne!(schema.source_sha256(), schema.semantic_schema_sha256());
+        assert_ne!(
+            schema.schema_source_sha256(),
+            schema.semantic_schema_sha256()
+        );
     }
 
     #[test]
@@ -181,7 +184,10 @@ mod provider_schema_tests_v1 {
         let second = inspect_reindeer_provider_schema_v1(PINNED_SOURCE_REVISION, &reformatted)
             .expect("reformatted schema");
 
-        assert_ne!(first.source_sha256(), second.source_sha256());
+        assert_ne!(
+            first.schema_source_sha256(),
+            second.schema_source_sha256()
+        );
         assert_eq!(
             first.semantic_schema_sha256(),
             second.semantic_schema_sha256()
