@@ -4,7 +4,7 @@ use std::path::Path;
 use std::process::Command;
 
 use crate::cargo_build::CargoMessageStreamV1;
-use crate::support::{SourceFixture, materialized_fixture, pinned_source_root};
+use crate::support::{SourceFixture, materialized_fixture, pinned_source_root, source_snapshot};
 
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct ClippyDiagnosticV1 {
@@ -17,8 +17,9 @@ struct ClippyDiagnosticV1 {
 #[ignore = "requires the exact upstream Reindeer source snapshot"]
 fn adapted_source_builds_as_the_pinned_provider() {
     let source_root = pinned_source_root();
-    let pristine = SourceFixture::copy_from(&source_root);
-    let (_, fixture) = materialized_fixture(&source_root);
+    let snapshot = source_snapshot(&source_root);
+    let pristine = SourceFixture::from_snapshot(&snapshot);
+    let (_, fixture) = materialized_fixture(&snapshot);
     let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
     let pristine_diagnostics = clippy_diagnostics(&cargo, pristine.path());
     let adapted_diagnostics = clippy_diagnostics(&cargo, fixture.path());

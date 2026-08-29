@@ -1,24 +1,30 @@
-/// One present or absent file in the exact provider adaptation batch.
+/// Build-relevant mode of one file in the exact provider source tree.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[repr(u8)]
+pub enum ReindeerProviderSourceModeV1 {
+    Regular = 0,
+    Executable = 1,
+}
+
+/// One file in the exact provider source tree.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReindeerProviderSourceFileV1 {
     path: String,
-    bytes: Option<Box<[u8]>>,
+    mode: ReindeerProviderSourceModeV1,
+    bytes: Box<[u8]>,
 }
 
 impl ReindeerProviderSourceFileV1 {
-    /// Records a present source file and its exact bytes.
-    pub fn present(path: impl Into<String>, bytes: Vec<u8>) -> Self {
+    /// Records one source file with its exact mode and bytes.
+    pub fn new(
+        path: impl Into<String>,
+        mode: ReindeerProviderSourceModeV1,
+        bytes: Vec<u8>,
+    ) -> Self {
         Self {
             path: path.into(),
-            bytes: Some(bytes.into_boxed_slice()),
-        }
-    }
-
-    /// Records that a generated source path is absent in the upstream tree.
-    pub fn absent(path: impl Into<String>) -> Self {
-        Self {
-            path: path.into(),
-            bytes: None,
+            mode,
+            bytes: bytes.into_boxed_slice(),
         }
     }
 
@@ -28,29 +34,59 @@ impl ReindeerProviderSourceFileV1 {
         &self.path
     }
 
-    /// Replaces the bytes of a present input for adversarial qualification.
-    pub fn replace_present_bytes(&mut self, bytes: Vec<u8>) {
-        self.bytes = Some(bytes.into_boxed_slice());
+    /// Returns the exact source mode.
+    #[must_use]
+    pub const fn mode(&self) -> ReindeerProviderSourceModeV1 {
+        self.mode
+    }
+
+    /// Returns the exact source bytes.
+    #[must_use]
+    pub fn bytes(&self) -> &[u8] {
+        &self.bytes
     }
 }
 
-/// The immutable source batch admitted by the exact Reindeer profile.
+/// The immutable whole-source tree admitted by the exact Reindeer profile.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReindeerProviderSourceSnapshotV1 {
     source_revision: String,
     files: Box<[ReindeerProviderSourceFileV1]>,
+    source_tree_sha256: ReindeerProviderDigestV1,
+    total_bytes: u64,
 }
 
 impl ReindeerProviderSourceSnapshotV1 {
-    /// Creates an exact-profile candidate from an untrusted source batch.
-    pub fn new(
+    /// Canonicalizes and bounds an untrusted whole-source candidate.
+    pub fn try_new(
         source_revision: impl Into<String>,
         files: Vec<ReindeerProviderSourceFileV1>,
-    ) -> Self {
-        Self {
-            source_revision: source_revision.into(),
-            files: files.into_boxed_slice(),
-        }
+    ) -> Result<Self, ReindeerProviderAdaptationErrorV1> {
+        canonical_reindeer_provider_source_snapshot_v1(source_revision.into(), files)
+    }
+
+    /// Returns the claimed immutable upstream revision.
+    #[must_use]
+    pub fn source_revision(&self) -> &str {
+        &self.source_revision
+    }
+
+    /// Returns the canonical complete source tree.
+    #[must_use]
+    pub fn files(&self) -> &[ReindeerProviderSourceFileV1] {
+        &self.files
+    }
+
+    /// Returns the SHA-256 identity of every source path, mode, and byte.
+    #[must_use]
+    pub const fn source_tree_sha256(&self) -> ReindeerProviderDigestV1 {
+        self.source_tree_sha256
+    }
+
+    /// Returns the aggregate source byte count.
+    #[must_use]
+    pub const fn total_bytes(&self) -> u64 {
+        self.total_bytes
     }
 }
 
@@ -75,6 +111,12 @@ impl ReindeerProviderAdaptationProfileV1 {
     #[must_use]
     pub const fn source_revision(self) -> &'static str {
         PINNED_SOURCE_REVISION
+    }
+
+    /// Returns the admitted whole-source tree identity.
+    #[must_use]
+    pub const fn source_tree_sha256(self) -> ReindeerProviderDigestV1 {
+        REINDEER_SOURCE_TREE_SHA256_V1
     }
 
     /// Returns the exact syntax, formatter, token, and digest recipe identity.
@@ -129,6 +171,7 @@ impl ReindeerProviderAdaptedFileV1 {
 /// One deterministic whole-batch provider adaptation.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReindeerProviderSourceAdaptationV1 {
+    source_tree_sha256: ReindeerProviderDigestV1,
     adapted_batch_sha256: ReindeerProviderDigestV1,
     schema: ReindeerProviderSchemaV1,
     files: Box<[ReindeerProviderAdaptedFileV1]>,
@@ -146,6 +189,12 @@ impl ReindeerProviderSourceAdaptationV1 {
     #[must_use]
     pub const fn parsed_source_files(&self) -> u64 {
         3
+    }
+
+    /// Returns the admitted whole-source tree identity.
+    #[must_use]
+    pub const fn source_tree_sha256(&self) -> ReindeerProviderDigestV1 {
+        self.source_tree_sha256
     }
 
     /// Returns the identity of the complete canonical adaptation batch.
@@ -180,6 +229,7 @@ pub enum ReindeerProviderAdaptationErrorV1 {
     SourceBatchMismatch,
     SourcePresenceMismatch,
     SourceDigestMismatch,
+    SourceTreeMismatch,
     SourceTooLarge,
     InvalidUtf8,
     InvalidRust,

@@ -35,7 +35,7 @@ struct ReindeerParsedProviderSourceV1<'a> {
 pub fn adapt_reindeer_provider_source_v1(
     snapshot: &ReindeerProviderSourceSnapshotV1,
 ) -> Result<ReindeerProviderSourceAdaptationV1, ReindeerProviderAdaptationErrorV1> {
-    if snapshot.source_revision != PINNED_SOURCE_REVISION {
+    if snapshot.source_revision() != PINNED_SOURCE_REVISION {
         return Err(ReindeerProviderAdaptationErrorV1::UnsupportedSourceRevision);
     }
     let files = canonical_provider_source_batch_v1(&snapshot.files)?;
@@ -44,6 +44,9 @@ pub fn adapt_reindeer_provider_source_v1(
         parse_exact_provider_source_v1(&files, "src/buckify.rs", REINDEER_BUCKIFY_SHA256_V1)?;
     let main = parse_exact_provider_source_v1(&files, "src/main.rs", REINDEER_MAIN_SHA256_V1)?;
     let schema = inspect_reindeer_provider_schema_syntax_v1(buck.bytes, &buck.syntax)?;
+    if snapshot.source_tree_sha256() != REINDEER_SOURCE_TREE_SHA256_V1 {
+        return Err(ReindeerProviderAdaptationErrorV1::SourceTreeMismatch);
+    }
 
     let generated = BTreeMap::from([
         (
@@ -104,10 +107,7 @@ pub fn adapt_reindeer_provider_source_v1(
         }
         let preimage = files
             .get(path)
-            .ok_or(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch)?
-            .bytes
-            .as_deref()
-            .map(<[u8]>::to_vec)
+            .map(|file| file.bytes.to_vec())
             .map(Vec::into_boxed_slice);
         let preimage_sha256 = preimage.as_deref().map(ReindeerProviderDigestV1::of);
         adapted.push(ReindeerProviderAdaptedFileV1 {
@@ -120,8 +120,11 @@ pub fn adapt_reindeer_provider_source_v1(
     }
 
     let adapted_batch_sha256 = provider_adapted_batch_digest_v1(&adapted)?;
-    let receipt_sha256 = provider_adaptation_receipt_v1(&schema, adapted_batch_sha256)?;
+    let source_tree_sha256 = snapshot.source_tree_sha256();
+    let receipt_sha256 =
+        provider_adaptation_receipt_v1(source_tree_sha256, &schema, adapted_batch_sha256)?;
     Ok(ReindeerProviderSourceAdaptationV1 {
+        source_tree_sha256,
         adapted_batch_sha256,
         schema,
         files: adapted.into_boxed_slice(),
@@ -143,30 +146,20 @@ fn provider_shape_context_v1(
 fn canonical_provider_source_batch_v1(
     files: &[ReindeerProviderSourceFileV1],
 ) -> Result<BTreeMap<&str, &ReindeerProviderSourceFileV1>, ReindeerProviderAdaptationErrorV1> {
-    if files.len() != REINDEER_PROVIDER_SOURCE_PATHS_V1.len() {
-        return Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch);
-    }
     let mut by_path = BTreeMap::new();
     for file in files {
         if by_path.insert(file.path.as_str(), file).is_some() {
             return Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch);
         }
     }
-    if !by_path
-        .keys()
-        .copied()
-        .eq(REINDEER_PROVIDER_SOURCE_PATHS_V1)
-    {
-        return Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch);
-    }
     for path in REINDEER_PROVIDER_GENERATED_PATHS_V1 {
-        if by_path
-            .get(path)
-            .ok_or(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch)?
-            .bytes
-            .is_some()
-        {
+        if by_path.contains_key(path) {
             return Err(ReindeerProviderAdaptationErrorV1::SourcePresenceMismatch);
+        }
+    }
+    for path in ["src/buck.rs", "src/buckify.rs", "src/main.rs"] {
+        if !by_path.contains_key(path) {
+            return Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch);
         }
     }
     Ok(by_path)
@@ -180,9 +173,7 @@ fn parse_exact_provider_source_v1<'a>(
     let bytes = files
         .get(path)
         .ok_or(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch)?
-        .bytes
-        .as_deref()
-        .ok_or(ReindeerProviderAdaptationErrorV1::SourcePresenceMismatch)?;
+        .bytes();
     if bytes.len() > MAX_SOURCE_BYTES {
         return Err(ReindeerProviderAdaptationErrorV1::SourceTooLarge);
     }
@@ -223,6 +214,7 @@ fn provider_adapted_batch_digest_v1(
 }
 
 fn provider_adaptation_receipt_v1(
+    source_tree_sha256: ReindeerProviderDigestV1,
     schema: &ReindeerProviderSchemaV1,
     adapted_batch_sha256: ReindeerProviderDigestV1,
 ) -> Result<ReindeerProviderDigestV1, ReindeerProviderAdaptationErrorV1> {
@@ -236,6 +228,7 @@ fn provider_adaptation_receipt_v1(
     ] {
         hash_string(&mut hash, identity)?;
     }
+    hash.update(source_tree_sha256.0);
     hash.update(schema.semantic_schema_sha256.0);
     hash.update(adapted_batch_sha256.0);
     Ok(ReindeerProviderDigestV1(hash.finalize().into()))

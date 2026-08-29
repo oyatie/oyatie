@@ -2,14 +2,15 @@ use std::process::Command;
 
 use crate::cargo_build::build_reindeer_binary;
 use crate::support::{
-    materialized_fixture, parse_artifact, pinned_source_root, run_artifact,
+    materialized_fixture, parse_artifact, pinned_source_root, run_artifact, source_snapshot,
     write_qualification_workspace,
 };
 
 #[test]
 #[ignore = "requires the exact upstream Reindeer source snapshot"]
 fn one_adapted_binary_produces_distinct_equivalent_whole_graph_runs() {
-    let (adaptation, fixture) = materialized_fixture(&pinned_source_root());
+    let snapshot = source_snapshot(&pinned_source_root());
+    let (adaptation, fixture) = materialized_fixture(&snapshot);
     let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
     let binary = build_reindeer_binary(&cargo, fixture.path());
 

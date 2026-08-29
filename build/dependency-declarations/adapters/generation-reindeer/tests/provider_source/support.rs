@@ -3,7 +3,7 @@ use std::process::Command;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use dependency_declarations_generation_reindeer::{
-    ReindeerProviderSourceAdaptationV1, ReindeerProviderSourceFileV1,
+    ReindeerProviderSourceAdaptationV1, ReindeerProviderSourceFileV1, ReindeerProviderSourceModeV1,
     ReindeerProviderSourceSnapshotV1, adapt_reindeer_provider_source_v1,
 };
 
@@ -26,26 +26,20 @@ pub(super) fn pinned_source_root() -> PathBuf {
 }
 
 pub(super) fn source_batch(root: &Path) -> Vec<ReindeerProviderSourceFileV1> {
-    SOURCE_PATHS
-        .iter()
-        .map(|path| {
-            let source = root.join(path);
-            if source.exists() {
-                ReindeerProviderSourceFileV1::present(*path, std::fs::read(source).unwrap())
-            } else {
-                ReindeerProviderSourceFileV1::absent(*path)
-            }
-        })
-        .collect()
+    let mut files = Vec::new();
+    collect_source_files(root, root, &mut files);
+    files
+}
+
+pub(super) fn source_snapshot(root: &Path) -> ReindeerProviderSourceSnapshotV1 {
+    ReindeerProviderSourceSnapshotV1::try_new(PINNED_REVISION, source_batch(root)).unwrap()
 }
 
 pub(super) fn materialized_fixture(
-    source_root: &Path,
+    snapshot: &ReindeerProviderSourceSnapshotV1,
 ) -> (ReindeerProviderSourceAdaptationV1, SourceFixture) {
-    let snapshot =
-        ReindeerProviderSourceSnapshotV1::new(PINNED_REVISION, source_batch(source_root));
-    let adaptation = adapt_reindeer_provider_source_v1(&snapshot).unwrap();
-    let fixture = SourceFixture::copy_from(source_root);
+    let adaptation = adapt_reindeer_provider_source_v1(snapshot).unwrap();
+    let fixture = SourceFixture::from_snapshot(snapshot);
     for file in adaptation.files() {
         let path = fixture.path().join(file.path());
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
@@ -190,7 +184,7 @@ pub(super) struct SourceFixture {
 }
 
 impl SourceFixture {
-    pub(super) fn copy_from(source: &Path) -> Self {
+    pub(super) fn from_snapshot(snapshot: &ReindeerProviderSourceSnapshotV1) -> Self {
         let sequence = NEXT_SOURCE_FIXTURE.fetch_add(1, Ordering::Relaxed);
         let root = std::env::temp_dir().join(format!(
             "reindeer-provider-adaptation-{}-{sequence}",
@@ -199,7 +193,12 @@ impl SourceFixture {
         if root.exists() {
             std::fs::remove_dir_all(&root).unwrap();
         }
-        copy_tree(source, &root);
+        for file in snapshot.files() {
+            let path = root.join(file.path());
+            std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+            std::fs::write(&path, file.bytes()).unwrap();
+            set_source_mode(&path, file.mode());
+        }
         Self { root }
     }
 
@@ -214,20 +213,67 @@ impl Drop for SourceFixture {
     }
 }
 
-fn copy_tree(source: &Path, destination: &Path) {
-    std::fs::create_dir_all(destination).unwrap();
-    for entry in std::fs::read_dir(source).unwrap() {
+fn collect_source_files(
+    root: &Path,
+    directory: &Path,
+    files: &mut Vec<ReindeerProviderSourceFileV1>,
+) {
+    for entry in std::fs::read_dir(directory).unwrap() {
         let entry = entry.unwrap();
         let name = entry.file_name();
-        if name == ".git" || name == "target" {
+        if directory == root && name == ".git" {
             continue;
         }
-        let source = entry.path();
-        let destination = destination.join(name);
-        if entry.file_type().unwrap().is_dir() {
-            copy_tree(&source, &destination);
+        let path = entry.path();
+        let file_type = entry.file_type().unwrap();
+        if file_type.is_dir() {
+            collect_source_files(root, &path, files);
         } else {
-            std::fs::copy(source, destination).unwrap();
+            assert!(
+                file_type.is_file(),
+                "provider source contains a non-file entry"
+            );
+            let relative = path.strip_prefix(root).unwrap();
+            let relative = relative
+                .components()
+                .map(|component| component.as_os_str().to_str().unwrap())
+                .collect::<Vec<_>>()
+                .join("/");
+            files.push(ReindeerProviderSourceFileV1::new(
+                relative,
+                source_mode(&path),
+                std::fs::read(path).unwrap(),
+            ));
         }
     }
 }
+
+#[cfg(unix)]
+fn source_mode(path: &Path) -> ReindeerProviderSourceModeV1 {
+    use std::os::unix::fs::PermissionsExt;
+
+    if std::fs::metadata(path).unwrap().permissions().mode() & 0o111 == 0 {
+        ReindeerProviderSourceModeV1::Regular
+    } else {
+        ReindeerProviderSourceModeV1::Executable
+    }
+}
+
+#[cfg(not(unix))]
+fn source_mode(_path: &Path) -> ReindeerProviderSourceModeV1 {
+    ReindeerProviderSourceModeV1::Regular
+}
+
+#[cfg(unix)]
+fn set_source_mode(path: &Path, mode: ReindeerProviderSourceModeV1) {
+    use std::os::unix::fs::PermissionsExt;
+
+    let value = match mode {
+        ReindeerProviderSourceModeV1::Regular => 0o644,
+        ReindeerProviderSourceModeV1::Executable => 0o755,
+    };
+    std::fs::set_permissions(path, std::fs::Permissions::from_mode(value)).unwrap();
+}
+
+#[cfg(not(unix))]
+fn set_source_mode(_path: &Path, _mode: ReindeerProviderSourceModeV1) {}

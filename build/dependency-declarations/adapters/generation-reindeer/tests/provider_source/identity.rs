@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 
 use dependency_declarations_generation_reindeer::{
-    ReindeerProviderAdaptationErrorV1, ReindeerProviderSourceSnapshotV1,
+    ReindeerProviderAdaptationErrorV1, ReindeerProviderAdaptationProfileV1,
+    ReindeerProviderSourceFileV1, ReindeerProviderSourceModeV1, ReindeerProviderSourceSnapshotV1,
     adapt_reindeer_provider_source_v1,
 };
 
@@ -58,12 +59,18 @@ fn recipe_identity_matches_the_workspace_lock() {
 #[ignore = "requires the exact upstream Reindeer source snapshot"]
 fn exact_source_batch_produces_one_deterministic_adaptation() {
     let files = source_batch(&pinned_source_root());
-    let snapshot = ReindeerProviderSourceSnapshotV1::new(PINNED_REVISION, files);
+    let snapshot = ReindeerProviderSourceSnapshotV1::try_new(PINNED_REVISION, files).unwrap();
+
+    assert_eq!(
+        snapshot.source_tree_sha256(),
+        ReindeerProviderAdaptationProfileV1.source_tree_sha256()
+    );
 
     let first = adapt_reindeer_provider_source_v1(&snapshot).unwrap();
     let second = adapt_reindeer_provider_source_v1(&snapshot).unwrap();
 
     assert_eq!(first, second);
+    assert_eq!(first.source_tree_sha256(), snapshot.source_tree_sha256());
     assert_eq!(first.parsed_source_files(), 3);
     assert_eq!(first.files().len(), SOURCE_PATHS.len());
     assert_eq!(
@@ -112,11 +119,8 @@ fn source_discovery_order_does_not_change_the_adaptation() {
     let mut reverse = forward.clone();
     reverse.reverse();
     let adapt = |files| {
-        adapt_reindeer_provider_source_v1(&ReindeerProviderSourceSnapshotV1::new(
-            PINNED_REVISION,
-            files,
-        ))
-        .unwrap()
+        let snapshot = ReindeerProviderSourceSnapshotV1::try_new(PINNED_REVISION, files).unwrap();
+        adapt_reindeer_provider_source_v1(&snapshot).unwrap()
     };
 
     assert_eq!(adapt(forward), adapt(reverse));
@@ -126,12 +130,8 @@ fn source_discovery_order_does_not_change_the_adaptation() {
 #[ignore = "requires the exact upstream Reindeer source snapshot"]
 fn exact_revision_with_changed_source_bytes_refuses() {
     let mut files = source_batch(&pinned_source_root());
-    files
-        .iter_mut()
-        .find(|file| file.path() == "src/buck.rs")
-        .unwrap()
-        .replace_present_bytes(b"changed source".to_vec());
-    let snapshot = ReindeerProviderSourceSnapshotV1::new(PINNED_REVISION, files);
+    replace_source_bytes(&mut files, "src/buck.rs", b"changed source".to_vec());
+    let snapshot = ReindeerProviderSourceSnapshotV1::try_new(PINNED_REVISION, files).unwrap();
 
     assert_eq!(
         adapt_reindeer_provider_source_v1(&snapshot),
@@ -141,10 +141,48 @@ fn exact_revision_with_changed_source_bytes_refuses() {
 
 #[test]
 #[ignore = "requires the exact upstream Reindeer source snapshot"]
+fn exact_revision_with_changed_unadapted_source_refuses() {
+    let mut files = source_batch(&pinned_source_root());
+    let manifest = files
+        .iter()
+        .find(|file| file.path() == "Cargo.toml")
+        .unwrap();
+    let mut bytes = manifest.bytes().to_vec();
+    bytes.extend_from_slice(b"\n# changed outside the adaptation paths\n");
+    replace_source_bytes(&mut files, "Cargo.toml", bytes);
+    let snapshot = ReindeerProviderSourceSnapshotV1::try_new(PINNED_REVISION, files).unwrap();
+
+    assert_eq!(
+        adapt_reindeer_provider_source_v1(&snapshot),
+        Err(ReindeerProviderAdaptationErrorV1::SourceTreeMismatch)
+    );
+}
+
+#[cfg(unix)]
+#[test]
+#[ignore = "requires the exact upstream Reindeer source snapshot"]
+fn exact_revision_with_unadapted_mode_change_refuses() {
+    let mut files = source_batch(&pinned_source_root());
+    replace_source_mode(
+        &mut files,
+        "examples/01-intro/setup.sh",
+        ReindeerProviderSourceModeV1::Regular,
+    );
+    let snapshot = ReindeerProviderSourceSnapshotV1::try_new(PINNED_REVISION, files).unwrap();
+
+    assert_eq!(
+        adapt_reindeer_provider_source_v1(&snapshot),
+        Err(ReindeerProviderAdaptationErrorV1::SourceTreeMismatch)
+    );
+}
+
+#[test]
+#[ignore = "requires the exact upstream Reindeer source snapshot"]
 fn unsupported_revision_batch_and_presence_refuse() {
     let files = source_batch(&pinned_source_root());
     let refusal = |revision, files| {
-        adapt_reindeer_provider_source_v1(&ReindeerProviderSourceSnapshotV1::new(revision, files))
+        ReindeerProviderSourceSnapshotV1::try_new(revision, files)
+            .and_then(|snapshot| adapt_reindeer_provider_source_v1(&snapshot))
     };
     assert_eq!(
         refusal("different", files.clone()),
@@ -152,20 +190,23 @@ fn unsupported_revision_batch_and_presence_refuse() {
     );
 
     let mut missing = files.clone();
-    missing.pop();
+    missing.retain(|file| file.path() != "src/main.rs");
     assert_eq!(
         refusal(PINNED_REVISION, missing),
         Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch)
     );
     let mut duplicate = files.clone();
-    duplicate.pop();
     duplicate.push(files[0].clone());
     assert_eq!(
         refusal(PINNED_REVISION, duplicate),
         Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch)
     );
     let mut present_generated = files;
-    present_generated[0].replace_present_bytes(b"mod unexpected;\n".to_vec());
+    present_generated.push(ReindeerProviderSourceFileV1::new(
+        "src/artifact.rs",
+        ReindeerProviderSourceModeV1::Regular,
+        b"mod unexpected;\n".to_vec(),
+    ));
     assert_eq!(
         refusal(PINNED_REVISION, present_generated),
         Err(ReindeerProviderAdaptationErrorV1::SourcePresenceMismatch)
@@ -176,15 +217,25 @@ fn unsupported_revision_batch_and_presence_refuse() {
 #[ignore = "requires the exact upstream Reindeer source snapshot"]
 fn oversized_source_refuses_before_digest_comparison() {
     let mut files = source_batch(&pinned_source_root());
-    files
-        .iter_mut()
-        .find(|file| file.path() == "src/buck.rs")
-        .unwrap()
-        .replace_present_bytes(vec![b' '; 2 * 1024 * 1024 + 1]);
-    let snapshot = ReindeerProviderSourceSnapshotV1::new(PINNED_REVISION, files);
+    replace_source_bytes(&mut files, "src/buck.rs", vec![b' '; 2 * 1024 * 1024 + 1]);
+    let snapshot = ReindeerProviderSourceSnapshotV1::try_new(PINNED_REVISION, files).unwrap();
 
     assert_eq!(
         adapt_reindeer_provider_source_v1(&snapshot),
         Err(ReindeerProviderAdaptationErrorV1::SourceTooLarge)
     );
+}
+
+fn replace_source_bytes(files: &mut [ReindeerProviderSourceFileV1], path: &str, bytes: Vec<u8>) {
+    let file = files.iter_mut().find(|file| file.path() == path).unwrap();
+    *file = ReindeerProviderSourceFileV1::new(path, file.mode(), bytes);
+}
+
+fn replace_source_mode(
+    files: &mut [ReindeerProviderSourceFileV1],
+    path: &str,
+    mode: ReindeerProviderSourceModeV1,
+) {
+    let file = files.iter_mut().find(|file| file.path() == path).unwrap();
+    *file = ReindeerProviderSourceFileV1::new(path, mode, file.bytes().to_vec());
 }
