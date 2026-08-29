@@ -1,10 +1,11 @@
 mod support;
 
-use dependency_declarations_generation::GenerationPort;
+use dependency_declarations_generation::{DeclarationProviderCapabilityPort, GenerationPort};
 use dependency_declarations_reconcile::*;
 
 use support::{
-    FixedProjection, RecordingPublisher, ScriptedGenerator, graph, valid_generation_request,
+    FixedProjection, RecordingPublisher, ScriptedGenerator, graph, rendered,
+    valid_generation_request,
 };
 
 #[test]
@@ -63,6 +64,52 @@ fn generation_port_failures_map_to_stable_failure_classes() {
 }
 
 #[test]
+fn unsupported_generation_provider_refuses_before_every_effect() {
+    let request = valid_generation_request(false);
+    let generator = ScriptedGenerator::unsupported(vec![
+        Ok((graph("demo"), rendered("demo"))),
+        Ok((graph("demo"), rendered("demo"))),
+    ]);
+    let parser = FixedProjection::new(graph("demo"), request.parser_identity());
+    let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
+
+    let result = reconcile(
+        &ReconciliationRequestV1::new(request, None),
+        &generator,
+        &parser,
+        &publisher,
+    );
+
+    assert_refusal(result, FailureClassV1::UnsupportedGenerationProfile);
+    assert!(generator.invocations().is_empty());
+    assert_eq!(parser.calls(), 0);
+    assert_eq!(publisher.calls(), 0);
+}
+
+#[test]
+fn unmatched_projection_profile_refuses_before_every_effect() {
+    let request = valid_generation_request(false);
+    let generator = ScriptedGenerator::new(vec![
+        Ok((graph("demo"), rendered("demo"))),
+        Ok((graph("demo"), rendered("demo"))),
+    ]);
+    let parser = FixedProjection::new(graph("demo"), DigestV1::of(b"another parser profile"));
+    let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
+
+    let result = reconcile(
+        &ReconciliationRequestV1::new(request, None),
+        &generator,
+        &parser,
+        &publisher,
+    );
+
+    assert_refusal(result, FailureClassV1::UnsupportedProjectionProfile);
+    assert!(generator.invocations().is_empty());
+    assert_eq!(parser.calls(), 0);
+    assert_eq!(publisher.calls(), 0);
+}
+
+#[test]
 fn arbitrary_unicode_path_inputs_are_total() {
     for value in ["é", "规则/Δ.rs", "💾/crate.toml", "nul\0inside"] {
         let result = std::panic::catch_unwind(|| CanonicalPathV1::try_new(value));
@@ -101,6 +148,13 @@ struct RawTransportGenerator {
     transport: Vec<u8>,
 }
 
+fn assert_refusal(result: ReconciliationResultV1, expected: FailureClassV1) {
+    let ReconciliationResultV1::Refused { failure, .. } = result else {
+        panic!("expected refusal");
+    };
+    assert_eq!(failure.class(), expected);
+}
+
 impl<'a> GenerationPort<GenerationInvocationV1<'a>, RawGenerationV1, GenerationPortErrorV1>
     for RawTransportGenerator
 {
@@ -112,5 +166,11 @@ impl<'a> GenerationPort<GenerationInvocationV1<'a>, RawGenerationV1, GenerationP
             self.transport.clone(),
             Vec::new(),
         ))
+    }
+}
+
+impl DeclarationProviderCapabilityPort<GenerationRequestV1> for RawTransportGenerator {
+    fn supports(&self, _profile: &GenerationRequestV1) -> bool {
+        true
     }
 }
