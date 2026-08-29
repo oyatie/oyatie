@@ -2,6 +2,8 @@
 mod artifact;
 #[path = "provider_source/build.rs"]
 mod build;
+#[path = "provider_source/cargo_build.rs"]
+mod cargo_build;
 #[path = "provider_source/identity.rs"]
 mod identity;
 #[path = "provider_source/support.rs"]
