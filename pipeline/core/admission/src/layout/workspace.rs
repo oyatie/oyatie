@@ -32,6 +32,14 @@ pub const WORKSPACE_EXCLUDES: &[&str] = &[
 const DEPENDENCY_DECLARATIONS_MEMBER: &str = "build/dependency-declarations/*/*/src/..";
 const DEPENDENCY_DECLARATIONS_EXCLUDE: &str = "build/dependency-declarations/*/*";
 
+/// Member globs mid-retirement: admitted whether present or absent.
+///
+/// Admission policy is compiled from the protected tree, so a candidate is
+/// graded against the previous revision's list. Without this window an entry
+/// could never be removed: dropping it from the manifest and the list in one
+/// change still fails the trusted list that requires it.
+const RETIRING_MEMBER_GLOBS: &[&str] = &["app/foundry/pages/crates/*", "app/foundry/grid/core/*"];
+
 /// Refuse missing, added, or duplicate workspace membership policy entries.
 pub fn workspace_membership_violations(contents: &str) -> Vec<String> {
     let document = match contents.parse::<toml::Value>() {
@@ -57,7 +65,16 @@ pub fn workspace_membership_violations(contents: &str) -> Vec<String> {
             .exclude
             .iter()
             .any(|entry| entry == DEPENDENCY_DECLARATIONS_EXCLUDE);
-    let mut expected_members = WORKSPACE_MEMBER_GLOBS.to_vec();
+    // Filter rather than append: a retiring entry that is still present must
+    // remain in its canonical position.
+    let mut expected_members: Vec<&str> = WORKSPACE_MEMBER_GLOBS
+        .iter()
+        .copied()
+        .filter(|glob| {
+            !RETIRING_MEMBER_GLOBS.contains(glob)
+                || entries.members.iter().any(|entry| entry == glob)
+        })
+        .collect();
     let mut expected_excludes = WORKSPACE_EXCLUDES.to_vec();
     if pair_present {
         expected_members.push(DEPENDENCY_DECLARATIONS_MEMBER);
@@ -133,6 +150,53 @@ mod tests {
         assert!(
             workspace_membership_violations(&manifest(WORKSPACE_MEMBER_GLOBS, WORKSPACE_EXCLUDES))
                 .is_empty()
+        );
+    }
+
+    #[test]
+    fn a_retiring_member_glob_is_admitted_present_or_absent() {
+        assert!(
+            workspace_membership_violations(&manifest(WORKSPACE_MEMBER_GLOBS, WORKSPACE_EXCLUDES))
+                .is_empty()
+        );
+
+        let retired: Vec<&str> = WORKSPACE_MEMBER_GLOBS
+            .iter()
+            .copied()
+            .filter(|glob| !RETIRING_MEMBER_GLOBS.contains(glob))
+            .collect();
+        assert!(
+            workspace_membership_violations(&manifest(&retired, WORKSPACE_EXCLUDES)).is_empty()
+        );
+
+        // The intermediate state: exactly one retiring glob absent must be
+        // admitted too — retirement may land one entry at a time.
+        let one_retired: Vec<&str> = WORKSPACE_MEMBER_GLOBS
+            .iter()
+            .copied()
+            .filter(|glob| *glob != RETIRING_MEMBER_GLOBS[0])
+            .collect();
+        assert!(
+            workspace_membership_violations(&manifest(&one_retired, WORKSPACE_EXCLUDES)).is_empty()
+        );
+
+        // A duplicated retiring entry is still a duplicate.
+        let mut duplicated: Vec<&str> = WORKSPACE_MEMBER_GLOBS.to_vec();
+        duplicated.push(RETIRING_MEMBER_GLOBS[0]);
+        assert!(
+            !workspace_membership_violations(&manifest(&duplicated, WORKSPACE_EXCLUDES)).is_empty()
+        );
+
+        // Tolerance is scoped: a required entry is still required.
+        let required_dropped: Vec<&str> = WORKSPACE_MEMBER_GLOBS
+            .iter()
+            .copied()
+            .filter(|glob| *glob != "app/*/core/*")
+            .collect();
+        assert!(
+            workspace_membership_violations(&manifest(&required_dropped, WORKSPACE_EXCLUDES))
+                .iter()
+                .any(|item| item.contains("is missing"))
         );
     }
 
