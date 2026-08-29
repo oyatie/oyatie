@@ -115,25 +115,7 @@ path has landed.
 
 ## First-party source declarations
 
-- Treat one buildable Cargo package as one Buck package: require `BUCK` beside
-  its `Cargo.toml`; reject parent-owned crates and any nested `BUCK` that splits
-  a crate's sources. Map every Cargo target and buildable source to exactly one
-  compatible Buck target; test native file-to-package resolution.
-- Do not create either package kind to satisfy the relation. Require the
-  consuming owner to classify each unmatched unit as retained independent
-  compilation, pre-reorganization absorb/move/removal, or proved fixture.
-  Classify every non-Cargo Buck package by a closed admitted purpose; ambiguity
-  refuses rather than becoming a baseline or permanent exception.
-- Prove a retained role from Cargo target kind, Buck rule kind, entrypoint,
-  dependency direction, visibility/`within_view`, code ownership, and relevant
-  serving/deployment relationships. Path shape, workspace membership, and a
-  vacant `src/main.rs` are insufficient; structural conformance is not a
-  production-readiness claim.
-- Resolve first-party Cargo edition 2024 through workspace inheritance and
-  first-party Buck edition 2024 through the qualified toolchain default; reject
-  per-package overrides in canonical output. Keep declared `rust-version`
-  (MSRV) independent from the production Rust/Buck toolchain identity.
-- Cargo or BUCK changes trigger complete HEAD; deltas attribute findings/repairs, never correctness.
+- Cargo or BUCK changes trigger complete HEAD under the source-declaration design; deltas only attribute findings/repairs.
 - Maintained parser ports consume a closed, versioned unconfigured grammar and bind every profile identity.
   Every unadmitted form refuses unless proved unable to influence target identity or dependencies.
 - Each participating BUCK edge resolves uniquely in admitted source IR and Cargo permits it; only participating
@@ -159,10 +141,9 @@ path has landed.
 
 - Reindeer `v2026.08.10.00` at `bb681570d2bc47d1446080c12b8681a50a95f628` plus its binary is the sole candidate;
   It stays unqualified pending 11 inherited/four landed run-only fixups and clean generation/consumer evidence.
-- Exact-source fallback follows `build/docs/design/reindeer-provider-adaptation-v1.md`; authored patches, fuzzy
-  reapplication, N+1 work, manual field maps, and unreadable generated Rust refuse on weekly schema drift.
-- Its binary source keeps the graph private. A reviewed native or generated API binds recipe/parser/source/adapted-
-  tree/build/binary digests and returns one `ReindeerGeneratedArtifactV1`: graph plus same-instance bytes.
+- Its binary source keeps the graph private. A native API or exact-source recipe under
+  `build/docs/design/reindeer-provider-adaptation-v1.md` binds recipe/parser/source/adapted-tree/build/binary digests
+  and returns one same-instance graph/byte artifact; authored/fuzzy patches, N+1/manual maps, and unreadable Rust refuse.
 - Bind exact manifest/lock/config/fixup/source/platform inputs; generator source/build toolchain/target/flags/binary;
   renderer; closed environment; and sandbox. Run locked/offline in clean roots with explicit tools, read-only sources,
   no network, and no ambient host state.

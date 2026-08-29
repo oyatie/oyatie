@@ -97,8 +97,7 @@ qualified/publishable binary. A later alias-changing source is comparison eviden
 plus four landed run-only scanner decisions, clean byte/graph equality, and consumer evidence still block promotion.
 
 That source is binary-only and private `do_buckify` returns `BTreeSet<Rule>`, a qualification blocker. A reviewed
-upstream-native API or generated adaptation under `build/docs/design/reindeer-provider-adaptation-v1.md`, bound by
-provider/recipe/parser/source/adapted-tree/build/binary digests, returns one
+upstream-native API or bounded recipe under the Reindeer adaptation design, bound by the complete profile, returns one
 `ReindeerGeneratedArtifactV1 { graph: ReindeerRuleGraphV1, rendered_buck }` per invocation; bytes come from that same
 graph instance. The type lives with generator code; upstream acceptance is preferred, while Build owns
 qualification/rollback. Build never introspects private `Rule`, makes a second invocation for another view, or
@@ -261,23 +260,13 @@ builds/cqueries the representative Buck targets; check-only then reports clean.
 The engine consumes caller-supplied immutable base/head files, changed-path attribution, snapshot identities, and
 ownership facts. Only head bytes determine conformance; deltas identify triggers/repair owners, never graph scope.
 
-A versioned grammar profile binds exact Cargo/Starlark parser identities/versions, admitted Cargo forms, BUCK
-preludes/loads/macros/rules, labels/cells, and bounds. Maintained libraries sit behind ports and yield complete
-normalized facts or typed refusal; Build writes no parser/interpreter. Cargo facts retain package/path/target and
-normal/build/dev/optional/target-specific/path semantics, effective edition, edition origin, and declared MSRV.
-BUCK facts retain package root, target/path/kind/direct edges, source ownership, visibility/`within_view`, and the
-effective qualified toolchain edition. Each buildable first-party Cargo package maps to exactly one same-directory
-Buck package; a parent package or nested package that splits crate sources refuses. The relation never manufactures
-either package kind. Caller-owner facts classify an unmatched unit as retained independent compilation,
-pre-reorganization absorb/move/removal, or a proved non-buildable fixture; ambiguity refuses. A Buck package without
-Cargo must carry one admitted toolchain, rule-library, schema/proto, asset, or aggregate purpose. A retained semantic
-role joins Cargo target kind, Buck rule kind, entrypoint, dependency direction, visibility/`within_view`, code
-ownership, and relevant serving/deployment relationships. Path shape, workspace membership, creation history, or a
-vacant `src/main.rs` cannot prove a facade process, and structural conformance cannot claim production readiness.
-Each admitted edge resolves uniquely in source IR and is Cargo-permitted; only profiled target/dependency pairs
-require coverage, so valid binary/test subsets pass. Canonical first-party output inherits Cargo edition 2024 from
-the workspace and Buck edition 2024 from the toolchain, while declared MSRV remains a separate fact. Unknown,
-unmapped, malformed, duplicate, ambiguous, or unproved-influence forms refuse.
+A versioned grammar binds exact parser/profile identities, admitted forms and `build/docs/design/source-declaration-integrity-v1.md`.
+Maintained ports yield complete facts or refusal; Build writes no parser. Cargo facts retain package/target/dependency
+semantics, effective edition/origin and declared MSRV; Buck facts retain package/target/rule/source/edges/visibility.
+Each retained Cargo package maps to one same-directory `BUCK`; parent/nested splits and manufactured packages refuse.
+Caller owners disposition unmatched roots; role proof joins target/rule/entrypoint/direction/visibility/ownership/serving.
+Path or vacant `main.rs` proves neither role nor readiness. Admitted edges resolve uniquely and Cargo permits them;
+valid subsets pass, while unknown, unmapped, malformed, duplicate, ambiguous or unproved-influence forms refuse.
 
 The engine emits sorted violations and exactly one canonical `DeclarationRepairSetV1` per evaluation, including zero
 actions/groups. It binds engine/snapshot/profile/caller owner-authority/ownership-fact provenance; complete semantic
@@ -302,14 +291,10 @@ a process. `third-party//` and generated `third-party/BUCK` stay in Reindeer.
 
 Before behavior/root mutation, amend the current owner design to freeze the producer artifact API, distinct parser port
 in the six-package topology, exact types/bounds/dependency review, and RED-first property/fuzz/differential fixtures.
-Prove the Reindeer prerequisite without dependency changes; only then may a serialized lane exact-pin
-`starlark_syntax`, followed by full graph/parser/Buck2 qualification. Only the protected out-of-presubmit harness
-invokes `cargo metadata --offline --locked --no-deps --format-version 1` and non-building `buck2 uquery`;
-engine/required check never do. Any bound identity change requalifies. No implementation, dependency, generated bytes,
-qualification, or readiness is claimed.
-
-Qualification also maps every tracked source with native `buck2 audit file-package` and inspects the promoted
-configured toolchain edition. Command exit success is not evidence when structured audit output contains a per-path
-error.
+Prove the Reindeer prerequisite without dependency changes; only then exact-pin `starlark_syntax` and qualify the full
+graph/parser/Buck2 profile. Only protected out-of-presubmit qualification invokes exact `cargo metadata`, native
+`buck2 audit file-package`, non-building `uquery`, and configured-toolchain evidence; structured path errors refuse.
+The engine/required check never do. Any bound identity change requalifies. No implementation, dependency, generated
+bytes, qualification, or readiness is claimed.
 
 </first_party_source_relation>

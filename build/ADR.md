@@ -134,14 +134,11 @@ file are not a proved round trip.
 - **rule:** declaration reconciliation MUST be an owned Rust transaction. It
   MUST run one pinned Reindeer with locked/offline exact inputs, binary/toolchain
   provenance, closed environment/sandbox, and reviewed fixups. Before
-  qualification an upstream-native API or bounded generated source adaptation
-  against that exact source, bound by provider/recipe/parser/source/adapted-tree/
-  build/binary digests, MUST return one invocation's typed graph and bytes
-  rendered from it; generator code owns the type, upstreaming is preferred, and
-  Build owns rollback. Any fallback adaptation MUST follow the bounded batch
-  recipe in `build/docs/design/reindeer-provider-adaptation-v1.md`: no authored
-  patch, N+1 work, provider leak, duplicated field map, comment blob, opaque
-  codegen, or unreadable/non-idiomatic Rust qualifies. Full canonical DTO fields
+  qualification an upstream-native API or bounded generated source adaptation against that exact source, bound by
+  provider/recipe/parser/source/adapted-tree/build/binary digests, MUST return one invocation's typed graph and bytes
+  rendered from it; generator code owns the type, upstreaming is preferred, and Build owns rollback. Fallback MUST
+  follow `build/docs/design/reindeer-provider-adaptation-v1.md`; authored patches, N+1 work, duplicated field maps,
+  provider leaks, comment blobs, opaque codegen, or unreadable/non-idiomatic Rust refuse. Full canonical DTO fields
   determine equality/digest—not private state, a second
   invocation, text reconstruction, `Rule::PartialEq`, or sort keys—and duplicate,
   colliding, unknown, or lossy graphs refuse. Two clean independent runs MUST be
@@ -154,17 +151,14 @@ file are not a proved round trip.
   representative consumer qualification. Publication uses
   only qualified lease-or-CAS, no-follow, same-directory atomic capabilities;
   network, shell wrappers, text overlays, and generated-file hand edits refuse.
-- **ensure:** qualification binds every input, tool, producer API/graph/renderer,
-  parser, environment/sandbox, grammar/platform/Buck2 profile, output and
-  receipt. Red-first tests inject dirty roots, undeclared state, duplicate/sort-
-  key collisions, full-field/parser/byte disagreement, lossy/unknown syntax,
-  malformed fixups, schema drift, work amplification, unreadable output,
-  unsupported publication and every stage/rename/sync fault.
+- **ensure:** qualification binds every input, tool, producer API/graph/renderer, parser, environment/sandbox,
+  grammar/platform/Buck2 profile, output and receipt. Red-first tests inject dirty roots, undeclared state,
+  duplicate/sort-key collisions, full-field/parser/byte disagreement, lossy/unknown syntax, malformed fixups,
+  schema drift, work amplification, unreadable output, unsupported publication and every stage/rename/sync fault.
 - **overturn_when:** Reindeer natively supplies equivalent fixup expressivity,
   independent maintained-parser cross-check, hermetic double-run proof,
   configured Buck2 evidence, validated atomic publication, and the same
-  provenance receipt, allowing the recipe and transaction to shrink without
-  lost proof.
+  provenance receipt, allowing the recipe and transaction to shrink without lost proof.
 
 </reconciliation>
 
@@ -272,9 +266,9 @@ file are not a proved round trip.
   Absent-owner writes; empty/extraneous/missing/duplicate/ambiguous/wrong-owner/
   cross-owner/incomplete/overlapping groups; or any semantic/owner precondition
   mismatch refuse. Snapshot identity is provenance, not a global lock; a
-  disjoint successor remains applicable only while every bound precondition
-  matches. Generated `third-party/BUCK` remains exclusively in Reindeer. Reindeer
-  qualification MUST precede a new parser dependency or package-graph change.
+  disjoint successors require every bound precondition. Package/role/Rust/MSRV conformance MUST follow
+  `build/docs/design/source-declaration-integrity-v1.md`: only retained crates map to colocated `BUCK`; owners disposition
+  pre-reorganization remnants; path or vacant `main.rs` proves neither role nor readiness. Reindeer stays third-party.
 - **ensure:** an owner design freezes participating target/dependency kinds,
   admitted syntax, package/port placement, parser identities and supply-chain
   review before implementation. Pure relation tests precede adapters;
@@ -295,59 +289,6 @@ file are not a proved round trip.
   third-party/Reindeer boundary.
 
 </source_declaration_integrity>
-
-<build_package_boundary>
-
-## Decision: crate-granular Buck packages and centralized Rust edition
-
-- **achieves:** every buildable first-party Rust unit has one queryable,
-  non-overlapping Cargo/Buck package identity while edition policy remains one
-  centrally maintained value rather than hundreds of copied literals.
-- **origin:** Buck2 and Bazel define a package at its `BUCK`/`BUILD` boundary;
-  a nested build file removes that subtree from its parent package. The
-  recorded tree has first-party Cargo packages with no Buck package, three
-  workspace packages resolving to Rust 2021, and manifests without a declared
-  MSRV. Parent-owned crates, nested source packages, and copied edition values
-  would hide graph edges or create N+1 policy updates.
-- **rule:** Every admitted buildable first-party Cargo package MUST have exactly
-  one `BUCK` in the same directory, and every Cargo target and buildable source
-  MUST map to exactly one compatible target in that Buck package. A parent
-  `BUCK` is not a substitute. A `BUCK` below a Cargo package root MUST NOT split
-  that crate's source tree; a nested Buck package is valid only for a genuinely
-  independent build unit with disjoint sources and its own declared identity.
-  First-party Cargo packages MUST resolve edition 2024 from the workspace, and
-  first-party Buck Rust targets MUST resolve edition 2024 from the qualified
-  toolchain default. Canonical repairs remove per-package edition overrides.
-  Dependency editions remain upstream facts. Declared `rust-version` remains
-  the MSRV and MUST NOT be inferred from or mutated with the production
-  toolchain pin. The relation MUST NOT create a Cargo or Buck package merely to
-  satisfy itself. Existing unmatched units require a caller-owner disposition:
-  retain as an independently compiled boundary, absorb/move/remove as
-  pre-reorganization inventory, or exclude as a proved non-buildable fixture.
-  Only retained units receive a Buck package. Retention and target-role proof
-  MUST join Cargo target kind, Buck rule kind, entrypoint, dependency direction,
-  visibility/`within_view`, code ownership, and relevant serving/deployment
-  relationships. Workspace membership, path shape, creation history, or a
-  vacant `src/main.rs` is not proof, and structural conformance MUST NOT imply
-  production readiness. Non-Cargo Buck packages MUST have one admitted purpose
-  such as toolchain, rule library, schema/proto, asset, or aggregate; an unknown
-  purpose refuses.
-- **ensure:** the complete-HEAD source relation checks package-root bijection,
-  target/source ownership, rule kind, dependencies, visibility/`within_view`,
-  effective Cargo/Buck edition, and separately declared MSRV. Fixtures cover a
-  missing, parent-only, duplicate, and nested-source `BUCK`, orphan targets and
-  sources, unjustified micro-packages, migration inventory, vacant entrypoints,
-  structural-but-not-serving units, fixtures, unknown non-Cargo packages, Rust
-  2021, explicit edition overrides, and absent MSRV. Protected qualification
-  cross-checks native Cargo facts plus `buck2 audit
-  file-package`, `uquery`, and configured consumer evidence; activation waits
-  for an automated zero-drift repair campaign rather than a baseline.
-- **overturn_when:** an owner-reviewed five-field amendment preserves
-  non-overlapping queryable build units, complete Cargo/Buck target ownership,
-  centralized edition enforcement, and MSRV/execution-toolchain separation
-  with equal or stronger native-consumer evidence.
-
-</build_package_boundary>
 
 ## Rejected destinations
 
