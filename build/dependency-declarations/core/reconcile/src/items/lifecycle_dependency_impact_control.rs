@@ -111,18 +111,8 @@ where
 }
 
 impl DependencyGraphV1 {
-    pub fn try_analyze_candidates(
-        &self,
-        candidates: &[DependencyCandidateV1],
-        now: LifecycleTimestampV1,
-    ) -> Result<DependencyImpactBatchV1, LifecycleFailureV1> {
-        self.try_analyze_candidates_with_control(candidates, now, |_| {
-            DependencyImpactControlDecisionV1::Continue
-        })
-    }
-
     /// Computes a complete batch or refuses at a bounded in-memory checkpoint.
-    pub fn try_analyze_candidates_with_control<C>(
+    pub fn try_analyze_candidates<C>(
         &self,
         candidates: &[DependencyCandidateV1],
         now: LifecycleTimestampV1,

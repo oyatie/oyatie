@@ -119,6 +119,12 @@ pub(super) fn edge(
     .unwrap()
 }
 
+pub(super) const fn continue_dependency_impact(
+    _: DependencyImpactProgressV1,
+) -> DependencyImpactControlDecisionV1 {
+    DependencyImpactControlDecisionV1::Continue
+}
+
 #[test]
 fn whole_graph_analysis_is_order_independent_cycle_safe_and_closure_complete() {
     let candidate = qualified_h2_candidate();
@@ -179,12 +185,14 @@ fn whole_graph_analysis_is_order_independent_cycle_safe_and_closure_complete() {
         .try_analyze_candidates(
             std::slice::from_ref(&candidate),
             LifecycleTimestampV1::from_unix_seconds(200),
+            continue_dependency_impact,
         )
         .unwrap();
     let reversed_batch = reversed
         .try_analyze_candidates(
             std::slice::from_ref(&candidate),
             LifecycleTimestampV1::from_unix_seconds(200),
+            continue_dependency_impact,
         )
         .unwrap();
     assert_eq!(batch.identity_sha256(), reversed_batch.identity_sha256());

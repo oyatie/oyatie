@@ -1,5 +1,7 @@
 use super::dependency_candidate::*;
-use super::dependency_graph::{complete_envelope, node, qualified_h2_candidate};
+use super::dependency_graph::{
+    complete_envelope, continue_dependency_impact, node, qualified_h2_candidate,
+};
 use super::lifecycle_support::{digest, profile};
 use dependency_declarations_reconcile::*;
 
@@ -126,6 +128,7 @@ pub(super) fn candidate_impact(candidate: &DependencyCandidateV1, now: u64) -> D
         .try_analyze_candidates(
             std::slice::from_ref(candidate),
             LifecycleTimestampV1::from_unix_seconds(now),
+            continue_dependency_impact,
         )
         .unwrap()
         .impacts()[0]
