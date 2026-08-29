@@ -6,6 +6,12 @@ mod advisory_refusals;
 mod dependency_candidate;
 #[path = "support/dependency_candidate_refusals.rs"]
 mod dependency_candidate_refusals;
+#[path = "support/dependency_graph.rs"]
+mod dependency_graph;
+#[path = "support/dependency_graph_refusals.rs"]
+mod dependency_graph_refusals;
+#[path = "support/dependency_graph_scale.rs"]
+mod dependency_graph_scale;
 #[path = "support/lifecycle_refusals.rs"]
 mod lifecycle_refusals;
 #[path = "support/lifecycle.rs"]
