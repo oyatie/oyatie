@@ -1,4 +1,4 @@
-use super::lifecycle_support::{digest, profile, source};
+use super::lifecycle_support::{digest, nightly_profile_on_host, profile, source};
 use dependency_declarations_reconcile::*;
 
 fn tool(name: &str, commit: &str) -> ToolIdentityV1 {
@@ -105,6 +105,43 @@ fn matrix_refuses_non_increasing_release_trains() {
             LifecycleFailureClassV1::UnsupportedVersionRelation
         );
     }
+}
+
+#[test]
+fn matrix_refuses_profiles_from_different_host_cells() {
+    let nightly = nightly_profile_on_host("x86_64-unknown-linux-gnu");
+    let failure = ToolchainMatrixV1::try_new(
+        profile(
+            ToolchainRoleV1::DeclaredMsrvCompatibility,
+            RustVersionV1::try_new(1, 98, 0).unwrap(),
+            LifecycleChannelV1::Stable,
+            SourceMaturityV1::Released,
+            "88d9e12ae-msrv",
+            "797e8a9bc-msrv",
+        ),
+        profile(
+            ToolchainRoleV1::QualifiedStableExecution,
+            RustVersionV1::try_new(1, 98, 0).unwrap(),
+            LifecycleChannelV1::Stable,
+            SourceMaturityV1::Released,
+            "88d9e12ae",
+            "797e8a9bc",
+        ),
+        profile(
+            ToolchainRoleV1::BetaShadow,
+            RustVersionV1::try_new(1, 99, 0).unwrap(),
+            LifecycleChannelV1::Beta,
+            SourceMaturityV1::Provisional,
+            "f47d5bb13",
+            "eb98b54bc",
+        ),
+        nightly,
+    )
+    .unwrap_err();
+    assert_eq!(
+        failure.class(),
+        LifecycleFailureClassV1::ToolchainTargetMismatch
+    );
 }
 
 #[test]

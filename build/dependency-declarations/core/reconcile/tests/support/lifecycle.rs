@@ -124,6 +124,49 @@ pub fn profile_with_qualification(
     )
 }
 
+pub fn nightly_profile_on_host(host_triple: &str) -> ToolchainProfileV1 {
+    let tool = |name, version, commit| {
+        ToolIdentityV1::try_new(
+            name,
+            version,
+            commit,
+            host_triple,
+            digest(&format!("{name}-{commit}-{host_triple}")),
+        )
+        .unwrap()
+    };
+    ToolchainProfileV1::try_new(
+        ToolchainRoleV1::NightlyShadow,
+        RustVersionV1::try_new(1, 100, 0).unwrap(),
+        source(
+            LifecycleComponentV1::RustDistribution,
+            LifecycleChannelV1::Nightly,
+            SourceMaturityV1::Provisional,
+            "bff8e12ff",
+        ),
+        ToolchainToolsV1::try_new(
+            tool("rustc", "1.100.0-nightly", "bff8e12ff"),
+            tool("cargo", "1.100.0", "e8cb624d5"),
+            tool("rustfmt", "1.100.0", "bff8e12ff"),
+            tool("clippy", "1.100.0", "bff8e12ff"),
+        )
+        .unwrap(),
+        ToolchainQualificationV1::Shadow {
+            observation_receipt_sha256: digest("nightly-shadow"),
+        },
+        "LLVM 23.1.0",
+        vec![
+            ToolchainTargetV1::try_new(
+                host_triple,
+                digest("nightly-std"),
+                digest("nightly-components"),
+            )
+            .unwrap(),
+        ],
+    )
+    .unwrap()
+}
+
 pub fn release_item(
     source: &LifecycleSourceV1,
     key: &str,
