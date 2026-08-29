@@ -45,6 +45,7 @@ fn adapt_reindeer_buck_v1(
     let replacement = render_provider_tokens_text_v1(quote::quote! {
         #[derive(Debug)]
         pub(crate) enum RuleGraphValidationErrorV1 {
+            RuleBoundExceeded,
             DuplicateSortKey,
             DuplicateTargetName(String),
         }
@@ -52,6 +53,7 @@ fn adapt_reindeer_buck_v1(
         impl fmt::Display for RuleGraphValidationErrorV1 {
             fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 match self {
+                    Self::RuleBoundExceeded => formatter.write_str("rule graph exceeds rule bound"),
                     Self::DuplicateSortKey => formatter.write_str("duplicate rule sort key"),
                     Self::DuplicateTargetName(name) => {
                         write!(formatter, "duplicate rule target name {name}")
@@ -65,6 +67,9 @@ fn adapt_reindeer_buck_v1(
         pub(crate) fn sort_rules_for_artifact(
             mut rules: Vec<Rule>,
         ) -> Result<Vec<Rule>, RuleGraphValidationErrorV1> {
+            if crate::artifact::validate_rule_count(rules.len()).is_err() {
+                return Err(RuleGraphValidationErrorV1::RuleBoundExceeded);
+            }
             rules.sort();
             if rules.windows(2).any(|pair| pair[0].cmp(&pair[1]).is_eq()) {
                 return Err(RuleGraphValidationErrorV1::DuplicateSortKey);

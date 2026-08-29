@@ -88,7 +88,7 @@ fn adapt_reindeer_main_v1(
                     "            long,\n",
                     "            hide = true,\n",
                     "            value_name = \"INVOCATION_ID\",\n",
-                    "            conflicts_with = \"stdout\"\n",
+                    "            conflicts_with_all = [\"stdout\", \"fast\", \"vendor_cleanup\"]\n",
                     "        )]\n",
                     "        artifact_v1: Option<String>,\n",
                     "        ",

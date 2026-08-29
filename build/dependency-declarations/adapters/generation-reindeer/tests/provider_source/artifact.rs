@@ -33,6 +33,9 @@ fn one_adapted_binary_produces_distinct_equivalent_whole_graph_runs() {
 
     assert!(help.status.success());
     assert!(!String::from_utf8_lossy(&help.stdout).contains("--artifact-v1"));
+    for option in ["--stdout", "--fast", "--vendor-cleanup"] {
+        assert_artifact_option_refused(&binary, &run_a, option);
+    }
     assert!(!run_a.join("third-party/BUCK").exists());
     assert!(!run_b.join("third-party/BUCK").exists());
     assert_eq!(first.invocation_id, b"run-a");
@@ -57,5 +60,24 @@ fn one_adapted_binary_produces_distinct_equivalent_whole_graph_runs() {
             .rendered_buck
             .windows(18)
             .any(|bytes| bytes == b"cargo.rust_library")
+    );
+}
+
+fn assert_artifact_option_refused(binary: &std::path::Path, root: &std::path::Path, option: &str) {
+    let output = Command::new(binary)
+        .arg("--cargo-options=--offline")
+        .arg("-c")
+        .arg(root.join("reindeer.toml"))
+        .args(["buckify", "--artifact-v1", "unsupported-profile", option])
+        .current_dir(root)
+        .env("CARGO_NET_OFFLINE", "true")
+        .output()
+        .expect("unsupported provider profile must be checked");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    assert!(!output.status.success(), "artifact mode admitted {option}");
+    assert!(
+        stderr.contains("cannot be used with") && stderr.contains(option),
+        "artifact mode did not refuse {option} before execution:\n{stderr}",
     );
 }

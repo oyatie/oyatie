@@ -34,7 +34,7 @@ fn render_reindeer_artifact_root_v1(
         const SCHEMA_SOURCE_SHA256: [u8; 32] = [#(#schema_source_sha256),*];
         const SEMANTIC_SCHEMA_SHA256: [u8; 32] = [#(#semantic_schema_sha256),*];
         const GRAPH_DOMAIN: &[u8] = b"reindeer.rule-graph.v1\0";
-        const MAX_RULES: usize = 1_000_000;
+        pub(crate) const MAX_RULES: usize = 1_000_000;
         const MAX_CONTAINER_ITEMS: usize = 1_000_000;
         const MAX_STRING_BYTES: usize = 16 * 1024 * 1024;
         const MAX_VALUE_DEPTH: usize = 128;
@@ -77,7 +77,7 @@ fn render_reindeer_artifact_root_v1(
 
         impl ReindeerRuleGraphV1 {
             fn from_rules(config: &BuckConfig, rules: &[Rule]) -> anyhow::Result<Self> {
-                anyhow::ensure!(rules.len() <= MAX_RULES, "rule graph exceeds rule bound");
+                validate_rule_count(rules.len())?;
                 let prefix = render_prefix(config)?;
                 let mut graph_rules = Vec::with_capacity(rules.len());
                 let value_serializer = ReindeerValueSerializerV1::root();
@@ -146,6 +146,11 @@ fn render_reindeer_artifact_root_v1(
                 }
                 Ok(output.into_boxed_slice())
             }
+        }
+
+        pub(crate) fn validate_rule_count(count: usize) -> anyhow::Result<()> {
+            anyhow::ensure!(count <= MAX_RULES, "rule graph exceeds rule bound");
+            Ok(())
         }
 
         #transport
