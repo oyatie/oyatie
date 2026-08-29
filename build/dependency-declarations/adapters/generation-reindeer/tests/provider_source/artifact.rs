@@ -1,5 +1,6 @@
 use std::process::Command;
 
+use crate::cargo_build::build_reindeer_binary;
 use crate::support::{
     materialized_fixture, parse_artifact, pinned_source_root, run_artifact,
     write_qualification_workspace,
@@ -9,24 +10,13 @@ use crate::support::{
 #[ignore = "requires the exact upstream Reindeer source snapshot"]
 fn one_adapted_binary_produces_distinct_equivalent_whole_graph_runs() {
     let (adaptation, fixture) = materialized_fixture(&pinned_source_root());
-    let build = Command::new(std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into()))
-        .args(["build", "--locked", "--offline", "--bin", "reindeer"])
-        .current_dir(fixture.path())
-        .env("CARGO_TARGET_DIR", fixture.path().join("target"))
-        .output()
-        .unwrap();
-    assert!(
-        build.status.success(),
-        "adapted provider failed to build:\n{}\n{}",
-        String::from_utf8_lossy(&build.stdout),
-        String::from_utf8_lossy(&build.stderr),
-    );
+    let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
+    let binary = build_reindeer_binary(&cargo, fixture.path());
 
     let run_a = fixture.path().join("qualification-a");
     let run_b = fixture.path().join("qualification-b");
     write_qualification_workspace(&run_a);
     write_qualification_workspace(&run_b);
-    let binary = fixture.path().join("target/debug/reindeer");
     let first_bytes = run_artifact(&binary, &run_a, "run-a");
     let second_bytes = run_artifact(&binary, &run_b, "run-b");
     let help = Command::new(&binary)
