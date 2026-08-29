@@ -79,10 +79,17 @@ rule sort keys refuse before any set can discard them.
 
 Generated Rust must look like maintained Rust: semantic identifiers, small
 modules, exhaustive matches, explicit errors, ordinary control flow, and short
-contract rustdoc. It must be deterministic, `rustfmt`-clean, Clippy-clean, and
-independently readable. Comment blobs, comment-controlled behavior, opaque
-metaprogramming, and generated boilerplate that obscures the contract fail
-qualification.
+contract rustdoc. The in-process recipe emits deterministic, pinned
+`prettyplease`-canonical intermediate bytes. A `rustfmt`-clean promotion claim
+waits for the later hermetic build transaction to bind the exact rustfmt
+binary, toolchain, configuration, host profile, whole batch, and final receipt;
+ambient-PATH or hand formatting cannot rewrite recipe evidence.
+
+Clippy qualification is a structured pristine-versus-adapted differential.
+Existing upstream diagnostics remain visible but do not authorize a new
+diagnostic identity or multiplicity in a touched file, and generated files
+admit none. Comment blobs, comment-controlled behavior, opaque metaprogramming,
+and generated boilerplate that obscures the contract fail qualification.
 
 ## Update and retirement loop
 
