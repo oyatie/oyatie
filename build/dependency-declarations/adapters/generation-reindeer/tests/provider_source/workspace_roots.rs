@@ -1,6 +1,12 @@
 use std::fs;
 use std::path::Path;
 
+use dependency_declarations_generation::RenderedDeclarationProjectionPort;
+use dependency_declarations_generation_reindeer::StarlarkSyntaxProjectionV1;
+use dependency_declarations_reconcile::{
+    CallArgumentsRefV1, DigestV1, SemanticValueRefV1, SemanticValueV1,
+};
+
 use crate::cargo_build::build_reindeer_binary;
 use crate::support::{materialized_fixture, parse_artifact, pinned_source_root, run_artifact};
 
@@ -17,6 +23,9 @@ fn artifact_traverses_non_workspace_dependency_kinds_without_generating_workspac
     let bytes = run_artifact(&binary, &root, "workspace-roots");
     let artifact = parse_artifact(&bytes);
     let buck = std::str::from_utf8(artifact.rendered_buck).unwrap();
+    let projection = StarlarkSyntaxProjectionV1::new(DigestV1::of(b"workspace-root-fixture"))
+        .project(artifact.rendered_buck)
+        .unwrap();
 
     for name in ["normal-fixture", "build-fixture", "dev-fixture"] {
         assert!(buck.contains(&format!("name = \"{name}\"")), "{buck}");
@@ -28,6 +37,18 @@ fn artifact_traverses_non_workspace_dependency_kinds_without_generating_workspac
     );
     assert!(!buck.contains("name = \"consumer\""));
     assert!(!buck.contains("consumer-build-script"));
+    let dev_rule = projection
+        .graph()
+        .rules()
+        .iter()
+        .map(|rule| rule.semantic())
+        .find(|rule| named_string_v1(rule, "name") == Some("dev-fixture-1"))
+        .unwrap();
+    assert_eq!(
+        named_strings_v1(dev_rule, "features"),
+        vec!["default", "std"]
+    );
+    assert_eq!(named_strings_v1(dev_rule, "deps"), vec![":dev-support-1"]);
 }
 
 fn write_workspace(root: &Path) {
@@ -37,6 +58,7 @@ fn write_workspace(root: &Path) {
         "local/normal-fixture/src",
         "local/build-fixture/src",
         "local/dev-fixture/src",
+        "local/dev-support/src",
     ] {
         fs::create_dir_all(third_party.join(relative)).unwrap();
     }
@@ -92,6 +114,13 @@ fn write_workspace(root: &Path) {
             "[[package]]\n",
             "name = \"dev-fixture\"\n",
             "version = \"1.0.0\"\n",
+            "dependencies = [\n",
+            " \"dev-support\",\n",
+            "]\n",
+            "\n",
+            "[[package]]\n",
+            "name = \"dev-support\"\n",
+            "version = \"1.0.0\"\n",
             "\n",
             "[[package]]\n",
             "name = \"normal-fixture\"\n",
@@ -125,15 +154,66 @@ fn write_workspace(root: &Path) {
     )
     .unwrap();
     fs::write(third_party.join("apps/consumer/build.rs"), "fn main() {}\n").unwrap();
-    for name in ["normal-fixture", "build-fixture", "dev-fixture"] {
+    for name in [
+        "normal-fixture",
+        "build-fixture",
+        "dev-fixture",
+        "dev-support",
+    ] {
         let package = third_party.join("local").join(name);
+        let dependency = if name == "dev-fixture" {
+            "[dependencies]\ndev-support = { path = \"../dev-support\" }\n"
+        } else {
+            ""
+        };
+        let features = if name == "dev-fixture" {
+            "[features]\ndefault = [\"std\"]\nstd = []\n"
+        } else {
+            ""
+        };
         fs::write(
             package.join("Cargo.toml"),
             format!(
-                "[package]\nname = \"{name}\"\nversion = \"1.0.0\"\nedition = \"2024\"\npublish = false\n"
+                "[package]\nname = \"{name}\"\nversion = \"1.0.0\"\nedition = \"2024\"\npublish = false\n\n{dependency}{features}"
             ),
         )
         .unwrap();
         fs::write(package.join("src/lib.rs"), "pub fn marker() {}\n").unwrap();
     }
+}
+
+fn named_string_v1<'a>(rule: &'a SemanticValueV1, name: &str) -> Option<&'a str> {
+    match named_value_v1(rule, name)?.view() {
+        SemanticValueRefV1::String(value) => Some(value),
+        _ => None,
+    }
+}
+
+fn named_strings_v1<'a>(rule: &'a SemanticValueV1, name: &str) -> Vec<&'a str> {
+    let Some(value) = named_value_v1(rule, name) else {
+        panic!("{name} is absent from {rule:#?}");
+    };
+    let SemanticValueRefV1::List(values) = value.view() else {
+        panic!("{name} must be a list in {rule:#?}");
+    };
+    values
+        .iter()
+        .map(|value| match value.view() {
+            SemanticValueRefV1::String(value) => value,
+            _ => panic!("{name} must contain only strings"),
+        })
+        .collect()
+}
+
+fn named_value_v1<'a>(rule: &'a SemanticValueV1, name: &str) -> Option<&'a SemanticValueV1> {
+    let SemanticValueRefV1::Call {
+        arguments: CallArgumentsRefV1::Named(fields),
+        ..
+    } = rule.view()
+    else {
+        return None;
+    };
+    fields
+        .iter()
+        .find_map(|(field, value)| (field.as_ref() == name).then_some(value))
 }

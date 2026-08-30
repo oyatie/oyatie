@@ -11,16 +11,22 @@ impl GenerationInputsV1 {
         &self.config
     }
 
+    /// Returns the complete repository-side declared read set.
+    #[must_use]
+    pub const fn repository_reads(&self) -> &InputTreeV1 {
+        &self.repository_reads
+    }
+
     /// Returns the complete fixup-tree descriptor.
     #[must_use]
     pub const fn fixups(&self) -> &InputTreeV1 {
         &self.fixups
     }
 
-    /// Returns the complete Cargo-source-tree descriptor.
+    /// Returns the complete isolated Cargo-home declared read set.
     #[must_use]
-    pub const fn cargo_sources(&self) -> &InputTreeV1 {
-        &self.cargo_sources
+    pub const fn cargo_home_reads(&self) -> &InputTreeV1 {
+        &self.cargo_home_reads
     }
 }
 
@@ -41,6 +47,12 @@ impl GenerationToolsV1 {
     #[must_use]
     pub const fn rustc(&self) -> &ToolIdentityV1 {
         &self.rustc
+    }
+
+    /// Returns the exact sandbox runtime image or root artifact.
+    #[must_use]
+    pub const fn execution_runtime(&self) -> &ArtifactIdentityV1 {
+        &self.execution_runtime
     }
 
     /// Returns the semantic qualification tuple.
@@ -177,6 +189,12 @@ impl ValidatedGenerationV1 {
     #[must_use]
     pub const fn graph_sha256(&self) -> DigestV1 {
         self.graph_sha256
+    }
+
+    /// Returns the stable declared-plus-observed execution identity.
+    #[must_use]
+    pub const fn execution_fingerprint_sha256(&self) -> DigestV1 {
+        self.execution_fingerprint_sha256
     }
 
     /// Returns the validated producer graph.

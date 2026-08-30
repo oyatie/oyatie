@@ -10,6 +10,7 @@ fn generation_identity(
     hash.u64(output_length_bytes);
     hash.digest(generated.provider_graph_sha256);
     hash.digest(generated.graph_sha256);
+    hash.digest(generated.execution_fingerprint_sha256);
     hash.digest(projection.receipt_sha256);
     hash.tag(match request.validator() {
         ValidatorProfileV1::ReindeerBuckV1 => 0,

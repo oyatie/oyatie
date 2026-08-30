@@ -93,7 +93,7 @@ impl RuleV1 {
     }
 }
 
-/// Complete producer or maintained-parser rule graph projection.
+/// Complete producer-owned rule graph projection.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct RuleGraphV1 {
     prefix: Box<[u8]>,

@@ -9,6 +9,8 @@ fn adapt_reindeer_index_v1(
     let initializer = exactly_one_index_initializer_v1(constructor)?;
     let public_targets = exactly_one_public_targets_collection_v1(constructor)?;
     let public_package_loop = exactly_one_public_package_loop_v1(constructor)?;
+    let mut workspace_dev_dependency_edits =
+        workspace_dev_dependency_edits_v1(source, &syntax.items)?;
     let syn::Fields::Named(index_fields) = &index.fields else {
         return Err(ReindeerProviderAdaptationErrorV1::UnsupportedSourceShape);
     };
@@ -50,6 +52,7 @@ fn adapt_reindeer_index_v1(
             render_public_rule_name_methods_v1()?,
         )?,
     ];
+    edits.append(&mut workspace_dev_dependency_edits);
     edits.push(ReindeerProviderSourceEditV1 {
         start: source.len(),
         end: source.len(),

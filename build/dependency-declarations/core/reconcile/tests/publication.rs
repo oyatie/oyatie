@@ -29,7 +29,7 @@ fn publication_attempt(outcome: PublicationOutcomeV1) -> PublicationAttemptRecei
         Ok((graph.clone(), rendered("demo"))),
         Ok((graph.clone(), rendered("demo"))),
     ]);
-    let parser = FixedProjection::new(graph, generation_request.parser_identity());
+    let parser = FixedProjection::new(graph, generation_request.projection_profile_sha256());
     let publisher = RecordingPublisher::new(outcome);
 
     let result = reconcile(
@@ -59,7 +59,7 @@ fn impossible_publication_failure_shape_still_gets_an_indeterminate_receipt() {
         Ok((graph.clone(), rendered("demo"))),
         Ok((graph.clone(), rendered("demo"))),
     ]);
-    let parser = FixedProjection::new(graph, generation_request.parser_identity());
+    let parser = FixedProjection::new(graph, generation_request.projection_profile_sha256());
     let publisher = RecordingPublisher::new(PublicationOutcomeV1::Failed {
         failure: FailureV1::new(FailureClassV1::GeneratorFailed),
         replacement: ReplacementStateV1::No,
@@ -108,7 +108,7 @@ fn unsupported_profile_refuses_before_a_publication_attempt() {
         Ok((graph.clone(), rendered("demo"))),
         Ok((graph.clone(), rendered("demo"))),
     ]);
-    let parser = FixedProjection::new(graph, generation_request.parser_identity());
+    let parser = FixedProjection::new(graph, generation_request.projection_profile_sha256());
     let publisher = RecordingPublisher::unsupported(PublicationOutcomeV1::Unchanged);
 
     let result = reconcile(

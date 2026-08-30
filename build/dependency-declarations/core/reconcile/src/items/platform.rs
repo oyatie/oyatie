@@ -4,10 +4,12 @@ pub struct ValidationBoundsV1;
 
 impl ValidationBoundsV1 {
     pub const MAX_DECLARED_FILE_BYTES: usize = 32 * 1024 * 1024;
+    pub const MAX_REPOSITORY_READ_FILES: u64 = 1_000_000;
+    pub const MAX_REPOSITORY_READ_BYTES: u64 = 16 * 1024 * 1024 * 1024;
     pub const MAX_FIXUP_FILES: u64 = 16_384;
     pub const MAX_FIXUP_BYTES: u64 = 64 * 1024 * 1024;
-    pub const MAX_CARGO_SOURCE_FILES: u64 = 1_000_000;
-    pub const MAX_CARGO_SOURCE_BYTES: u64 = 16 * 1024 * 1024 * 1024;
+    pub const MAX_CARGO_HOME_READ_FILES: u64 = 1_000_000;
+    pub const MAX_CARGO_HOME_READ_BYTES: u64 = 16 * 1024 * 1024 * 1024;
     pub const MAX_OUTPUT_BYTES: usize = 64 * 1024 * 1024;
     pub const MAX_STDERR_BYTES: usize = 1024 * 1024;
     pub const MAX_DIAGNOSTIC_BYTES: usize = 8 * 1024;

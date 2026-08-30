@@ -188,7 +188,7 @@ impl ReindeerProviderSourceAdaptationV1 {
     /// Returns how many upstream Rust files were parsed once.
     #[must_use]
     pub const fn parsed_source_files(&self) -> u64 {
-        5
+        7
     }
 
     /// Returns the admitted whole-source tree identity.
@@ -236,6 +236,8 @@ pub enum ReindeerProviderAdaptationErrorV1 {
     UnsupportedSourceShape,
     UnsupportedBuckSourceShape,
     UnsupportedBuckifySourceShape,
+    UnsupportedFixupsSourceShape,
+    UnsupportedFixupSchemaSourceShape,
     UnsupportedIndexSourceShape,
     UnsupportedMainSourceShape,
     UnsupportedVersionNamingSourceShape,

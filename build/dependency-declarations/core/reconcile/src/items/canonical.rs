@@ -2,9 +2,6 @@
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct CanonicalPathV1(Box<str>);
 
-const TREE_MANIFEST_HEADER_BYTES: usize = 8;
-const TREE_MANIFEST_ENTRY_FIXED_BYTES: usize = 8 + 8 + 32;
-
 impl CanonicalPathV1 {
     /// Validates a path without normalizing caller bytes.
     pub fn try_new(value: impl Into<String>) -> Result<Self, FailureV1> {
@@ -47,14 +44,6 @@ pub enum InputFileRoleV1 {
     Lock = 1,
     Config = 2,
     TreeManifest = 3,
-}
-
-/// Role of a manifest-described input tree.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-#[repr(u8)]
-pub enum TreeRoleV1 {
-    Fixups = 0,
-    CargoSource = 1,
 }
 
 /// One bounded file whose bytes and declared identity agree.
@@ -114,174 +103,5 @@ impl InputFileV1 {
         hash.u64(self.length_bytes);
         hash.digest(self.sha256);
         hash.bytes(&self.bytes)
-    }
-}
-
-/// One content-addressed entry in an input-tree manifest.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct TreeEntryV1 {
-    path: CanonicalPathV1,
-    length_bytes: u64,
-    sha256: DigestV1,
-}
-
-impl TreeEntryV1 {
-    /// Creates a bounded tree entry without loading its content.
-    #[must_use]
-    pub const fn new(path: CanonicalPathV1, length_bytes: u64, sha256: DigestV1) -> Self {
-        Self {
-            path,
-            length_bytes,
-            sha256,
-        }
-    }
-
-    fn append_manifest(&self, output: &mut Vec<u8>) -> Result<(), FailureV1> {
-        append_manifest_bytes(output, self.path.as_str().as_bytes())?;
-        append_manifest_raw(output, &self.length_bytes.to_be_bytes())?;
-        append_manifest_raw(output, &self.sha256.bytes())
-    }
-}
-
-/// A bounded tree represented only by its canonical entry manifest.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct InputTreeV1 {
-    pub(crate) role: TreeRoleV1,
-    pub(crate) manifest: InputFileV1,
-    pub(crate) root_sha256: DigestV1,
-    pub(crate) file_count: u64,
-    pub(crate) total_bytes: u64,
-}
-
-impl InputTreeV1 {
-    /// Canonicalizes entries by path and materializes only their metadata manifest.
-    pub fn try_from_entries(
-        role: TreeRoleV1,
-        manifest_path: CanonicalPathV1,
-        mut entries: Vec<TreeEntryV1>,
-    ) -> Result<Self, FailureV1> {
-        let file_count = checked_u64(entries.len(), invalid_request())?;
-        let total_bytes = entries.iter().try_fold(0_u64, |total, entry| {
-            total
-                .checked_add(entry.length_bytes)
-                .ok_or_else(invalid_request)
-        })?;
-        validate_tree_bounds(role, file_count, total_bytes)?;
-        let manifest_bytes = checked_tree_manifest_bytes(&entries)?;
-        entries.sort_unstable_by(|left, right| left.path.cmp(&right.path));
-        if entries.windows(2).any(|pair| pair[0].path == pair[1].path) {
-            return Err(invalid_request());
-        }
-
-        let mut bytes = Vec::with_capacity(manifest_bytes);
-        append_manifest_raw(&mut bytes, &file_count.to_be_bytes())?;
-        for entry in &entries {
-            entry.append_manifest(&mut bytes)?;
-        }
-        let manifest = InputFileV1::try_new(InputFileRoleV1::TreeManifest, manifest_path, bytes)?;
-        let mut hash = CanonicalHasherV1::new(match role {
-            TreeRoleV1::Fixups => b"build.input-tree.fixups.v1\0",
-            TreeRoleV1::CargoSource => b"build.input-tree.cargo-source.v1\0",
-        });
-        hash.tag(role as u8);
-        hash.digest(manifest.sha256);
-        hash.u64(file_count);
-        hash.u64(total_bytes);
-        Ok(Self {
-            role,
-            manifest,
-            root_sha256: hash.finish(),
-            file_count,
-            total_bytes,
-        })
-    }
-
-    pub(crate) fn encode(&self, hash: &mut CanonicalHasherV1) -> Result<(), FailureV1> {
-        hash.tag(self.role as u8);
-        self.manifest.encode(hash)?;
-        hash.digest(self.root_sha256);
-        hash.u64(self.file_count);
-        hash.u64(self.total_bytes);
-        Ok(())
-    }
-}
-
-fn checked_tree_manifest_bytes(entries: &[TreeEntryV1]) -> Result<usize, FailureV1> {
-    entries
-        .iter()
-        .try_fold(TREE_MANIFEST_HEADER_BYTES, |total, entry| {
-            checked_tree_manifest_entry_bytes(total, entry.path.as_str().len())
-        })
-}
-
-fn checked_tree_manifest_entry_bytes(
-    total: usize,
-    path_bytes: usize,
-) -> Result<usize, FailureV1> {
-    total
-        .checked_add(TREE_MANIFEST_ENTRY_FIXED_BYTES)
-        .and_then(|total| total.checked_add(path_bytes))
-        .filter(|total| *total <= ValidationBoundsV1::MAX_DECLARED_FILE_BYTES)
-        .ok_or_else(invalid_request)
-}
-
-fn validate_tree_bounds(
-    role: TreeRoleV1,
-    file_count: u64,
-    total_bytes: u64,
-) -> Result<(), FailureV1> {
-    let valid = match role {
-        TreeRoleV1::Fixups => {
-            file_count <= ValidationBoundsV1::MAX_FIXUP_FILES
-                && total_bytes <= ValidationBoundsV1::MAX_FIXUP_BYTES
-        }
-        TreeRoleV1::CargoSource => {
-            file_count <= ValidationBoundsV1::MAX_CARGO_SOURCE_FILES
-                && total_bytes <= ValidationBoundsV1::MAX_CARGO_SOURCE_BYTES
-        }
-    };
-    valid.then_some(()).ok_or_else(invalid_request)
-}
-
-fn append_manifest_bytes(output: &mut Vec<u8>, bytes: &[u8]) -> Result<(), FailureV1> {
-    append_manifest_raw(
-        output,
-        &checked_u64(bytes.len(), invalid_request())?.to_be_bytes(),
-    )?;
-    append_manifest_raw(output, bytes)
-}
-
-fn append_manifest_raw(output: &mut Vec<u8>, bytes: &[u8]) -> Result<(), FailureV1> {
-    let next = output
-        .len()
-        .checked_add(bytes.len())
-        .ok_or_else(invalid_request)?;
-    if next > ValidationBoundsV1::MAX_DECLARED_FILE_BYTES {
-        return Err(invalid_request());
-    }
-    output.extend_from_slice(bytes);
-    Ok(())
-}
-
-#[cfg(test)]
-mod canonical_tests {
-    use super::*;
-
-    #[test]
-    fn tree_manifest_size_refuses_limit_and_integer_overflow() {
-        let maximum = ValidationBoundsV1::MAX_DECLARED_FILE_BYTES;
-        let entry_bytes = TREE_MANIFEST_ENTRY_FIXED_BYTES + 1;
-        assert_eq!(
-            checked_tree_manifest_entry_bytes(maximum - entry_bytes, 1),
-            Ok(maximum)
-        );
-        for total in [maximum - entry_bytes + 1, usize::MAX] {
-            assert_eq!(
-                checked_tree_manifest_entry_bytes(total, 1)
-                    .unwrap_err()
-                    .class(),
-                FailureClassV1::InvalidRequest
-            );
-        }
     }
 }

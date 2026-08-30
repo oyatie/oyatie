@@ -23,6 +23,9 @@ pub enum FailureClassV1 {
     StageCleanupFailed = 18,
     UnsupportedGenerationProfile = 19,
     UnsupportedProjectionProfile = 20,
+    UndeclaredGenerationAccess = 21,
+    InvalidExecutionEvidence = 22,
+    NondeterministicExecution = 23,
 }
 
 impl FailureClassV1 {
@@ -99,6 +102,7 @@ pub enum GenerationPortErrorV1 {
     GeneratorFailed,
     GeneratorTimedOut,
     GeneratorOutputTooLarge,
+    UndeclaredAccess,
     InternalInvariant,
 }
 
@@ -111,6 +115,7 @@ impl GenerationPortErrorV1 {
             Self::GeneratorFailed => FailureClassV1::GeneratorFailed,
             Self::GeneratorTimedOut => FailureClassV1::GeneratorTimedOut,
             Self::GeneratorOutputTooLarge => FailureClassV1::GeneratorOutputTooLarge,
+            Self::UndeclaredAccess => FailureClassV1::UndeclaredGenerationAccess,
             Self::InternalInvariant => FailureClassV1::InternalInvariant,
         };
         FailureV1::new(class)

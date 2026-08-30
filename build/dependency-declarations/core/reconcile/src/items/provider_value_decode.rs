@@ -81,7 +81,12 @@ fn read_call(
     let callee = read_string(cursor)?;
     match cursor.read_u8()? {
         0 => {
-            SemanticValueV1::call_positional(callee, read_sequence(cursor, depth, remaining_nodes)?)
+            let values = read_sequence(cursor, depth, remaining_nodes)?;
+            if callee == "+" {
+                SemanticValueV1::select_addition(values)
+            } else {
+                SemanticValueV1::call_positional(callee, values)
+            }
         }
         1 => {
             let length = cursor.read_len(ValidationBoundsV1::MAX_ATTRIBUTES_PER_RULE)?;

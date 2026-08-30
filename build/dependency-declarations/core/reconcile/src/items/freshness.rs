@@ -202,6 +202,7 @@ mod freshness_tests {
             output_length_bytes: u64::try_from(bytes.len()).unwrap(),
             provider_graph_sha256: DigestV1::of(b"provider graph"),
             graph_sha256: graph.sha256(),
+            execution_fingerprint_sha256: DigestV1::of(b"execution"),
             graph,
             bytes,
             validator: ValidatorProfileV1::ReindeerBuckV1,

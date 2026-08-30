@@ -1,6 +1,11 @@
 use std::process::Command;
 
+use dependency_declarations_generation::RenderedDeclarationProjectionPort;
+use dependency_declarations_generation_reindeer::StarlarkSyntaxProjectionV1;
+use dependency_declarations_reconcile::DigestV1;
+
 use crate::cargo_build::build_reindeer_binary;
+use crate::qualification::assert_provider_parser_reconciliation;
 use crate::support::{
     materialized_fixture, parse_artifact, pinned_source_root, run_artifact, source_snapshot,
     write_qualification_workspace,
@@ -28,6 +33,9 @@ fn one_adapted_binary_produces_distinct_equivalent_whole_graph_runs() {
         .expect("provider help must run");
     let first = parse_artifact(&first_bytes);
     let second = parse_artifact(&second_bytes);
+    let projection = StarlarkSyntaxProjectionV1::new(DigestV1::of(b"qualification-profile"))
+        .project(first.rendered_buck)
+        .expect("maintained parser must project exact provider output");
     let recipe_identity = adaptation.profile().recipe_identity().as_bytes();
     let semantic_schema = adaptation.schema().semantic_schema_sha256().bytes();
 
@@ -43,6 +51,7 @@ fn one_adapted_binary_produces_distinct_equivalent_whole_graph_runs() {
     assert_eq!(first.graph, second.graph);
     assert_eq!(first.rendered_buck, second.rendered_buck);
     assert_ne!(first.receipt_sha256, second.receipt_sha256);
+    assert!(!projection.graph().rules().is_empty());
     assert!(
         first
             .graph
@@ -61,6 +70,7 @@ fn one_adapted_binary_produces_distinct_equivalent_whole_graph_runs() {
             .windows(18)
             .any(|bytes| bytes == b"cargo.rust_library")
     );
+    assert_provider_parser_reconciliation(&binary, &adaptation, &run_a, &run_b);
 }
 
 fn assert_artifact_option_refused(binary: &std::path::Path, root: &std::path::Path, option: &str) {

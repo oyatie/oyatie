@@ -1,3 +1,5 @@
+#[path = "request/input_reads.rs"]
+mod input_reads;
 mod support;
 
 use dependency_declarations_reconcile::*;
@@ -133,12 +135,13 @@ fn duplicate_platform_and_tree_keys_refuse_before_hashing() {
 
     let entry = TreeEntryV1::new(
         CanonicalPathV1::try_new("crate/src/lib.rs").unwrap(),
+        TreeFileModeV1::Regular,
         1,
         digest(b"x"),
     );
     assert_eq!(
         InputTreeV1::try_from_entries(
-            TreeRoleV1::CargoSource,
+            TreeRoleV1::CargoHomeRead,
             CanonicalPathV1::try_new("sources.manifest").unwrap(),
             vec![entry.clone(), entry],
         )
@@ -152,22 +155,24 @@ fn duplicate_platform_and_tree_keys_refuse_before_hashing() {
 fn tree_manifests_are_order_independent_and_enforce_aggregate_bounds() {
     let first = TreeEntryV1::new(
         CanonicalPathV1::try_new("crate/a.rs").unwrap(),
+        TreeFileModeV1::Regular,
         1,
         digest(b"a"),
     );
     let second = TreeEntryV1::new(
         CanonicalPathV1::try_new("crate/b.rs").unwrap(),
+        TreeFileModeV1::Regular,
         1,
         digest(b"b"),
     );
     let ordered = InputTreeV1::try_from_entries(
-        TreeRoleV1::CargoSource,
+        TreeRoleV1::CargoHomeRead,
         CanonicalPathV1::try_new("sources.manifest").unwrap(),
         vec![first.clone(), second.clone()],
     )
     .unwrap();
     let reversed = InputTreeV1::try_from_entries(
-        TreeRoleV1::CargoSource,
+        TreeRoleV1::CargoHomeRead,
         CanonicalPathV1::try_new("sources.manifest").unwrap(),
         vec![second, first],
     )
@@ -176,6 +181,7 @@ fn tree_manifests_are_order_independent_and_enforce_aggregate_bounds() {
 
     let oversized = TreeEntryV1::new(
         CanonicalPathV1::try_new("crate/fixup.toml").unwrap(),
+        TreeFileModeV1::Regular,
         ValidationBoundsV1::MAX_FIXUP_BYTES + 1,
         digest(b"oversized"),
     );
@@ -194,6 +200,7 @@ fn tree_manifests_are_order_independent_and_enforce_aggregate_bounds() {
         .map(|index| {
             TreeEntryV1::new(
                 CanonicalPathV1::try_new(format!("fixups/{index}.toml")).unwrap(),
+                TreeFileModeV1::Regular,
                 0,
                 digest(b""),
             )

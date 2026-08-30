@@ -18,6 +18,7 @@ pub struct ScriptedGenerator {
     supported: bool,
     fault: Option<ProviderArtifactFaultV1>,
     stderr: Vec<u8>,
+    observed_reads: Mutex<VecDeque<DigestV1>>,
 }
 
 impl ScriptedGenerator {
@@ -28,6 +29,7 @@ impl ScriptedGenerator {
             supported: true,
             fault: None,
             stderr: Vec::new(),
+            observed_reads: Mutex::new(VecDeque::new()),
         }
     }
 
@@ -38,6 +40,7 @@ impl ScriptedGenerator {
             supported: false,
             fault: None,
             stderr: Vec::new(),
+            observed_reads: Mutex::new(VecDeque::new()),
         }
     }
 
@@ -48,6 +51,7 @@ impl ScriptedGenerator {
             supported: true,
             fault: None,
             stderr,
+            observed_reads: Mutex::new(VecDeque::new()),
         }
     }
 
@@ -58,6 +62,21 @@ impl ScriptedGenerator {
             supported: true,
             fault: Some(fault),
             stderr: Vec::new(),
+            observed_reads: Mutex::new(VecDeque::new()),
+        }
+    }
+
+    pub fn with_observed_reads(
+        outputs: Vec<ScriptedOutput>,
+        observed_reads: Vec<DigestV1>,
+    ) -> Self {
+        Self {
+            outputs: Mutex::new(outputs.into()),
+            invocations: Mutex::new(Vec::new()),
+            supported: true,
+            fault: None,
+            stderr: Vec::new(),
+            observed_reads: Mutex::new(observed_reads.into()),
         }
     }
 
@@ -78,11 +97,19 @@ impl<'a> GenerationPort<GenerationInvocationV1<'a>, RawGenerationV1, GenerationP
             .unwrap()
             .push(request.invocation_id());
         let (graph, bytes) = self.outputs.lock().unwrap().pop_front().unwrap()?;
+        let observed_reads = self
+            .observed_reads
+            .lock()
+            .unwrap()
+            .pop_front()
+            .unwrap_or_else(|| DigestV1::of(b"observed repository and Cargo reads"));
         Ok(raw_provider_artifact_with_fault(
             request,
             &graph,
             bytes,
             self.stderr.clone(),
+            observed_reads,
+            DigestV1::of(b"observed stage writes"),
             self.fault,
         ))
     }
@@ -95,7 +122,7 @@ impl DeclarationProviderCapabilityPort<GenerationRequestV1> for ScriptedGenerato
 }
 
 pub struct FixedProjection {
-    graph: RuleGraphV1,
+    graph: RenderedRuleGraphV1,
     profile: DigestV1,
     calls: Mutex<usize>,
 }
@@ -103,7 +130,7 @@ pub struct FixedProjection {
 impl FixedProjection {
     pub fn new(graph: RuleGraphV1, profile: DigestV1) -> Self {
         Self {
-            graph,
+            graph: graph.rendered_projection().unwrap(),
             profile,
             calls: Mutex::new(0),
         }

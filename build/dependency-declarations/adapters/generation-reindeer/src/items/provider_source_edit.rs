@@ -117,6 +117,29 @@ fn apply_source_edits_v1(
     Ok(output.into_bytes())
 }
 
+fn exact_source_fragment_edits_v1(
+    source: &str,
+    preimage: &str,
+    postimage: &str,
+    expected_matches: usize,
+) -> Result<Vec<ReindeerProviderSourceEditV1>, ReindeerProviderAdaptationErrorV1> {
+    if preimage.is_empty() || expected_matches == 0 {
+        return Err(ReindeerProviderAdaptationErrorV1::UnsupportedSourceShape);
+    }
+    let matches = source
+        .match_indices(preimage)
+        .map(|(start, _)| ReindeerProviderSourceEditV1 {
+            start,
+            end: start + preimage.len(),
+            replacement: postimage.to_owned(),
+        })
+        .collect::<Vec<_>>();
+    if matches.len() != expected_matches {
+        return Err(ReindeerProviderAdaptationErrorV1::UnsupportedSourceShape);
+    }
+    Ok(matches)
+}
+
 fn render_provider_module_v1(
     tokens: proc_macro2::TokenStream,
 ) -> Result<Vec<u8>, ReindeerProviderAdaptationErrorV1> {
@@ -133,6 +156,7 @@ fn render_provider_module_v1(
 mod provider_source_edit_tests_v1 {
     use super::{
         ReindeerProviderAdaptationErrorV1, ReindeerProviderSourceEditV1, apply_source_edits_v1,
+        exact_source_fragment_edits_v1,
     };
 
     #[test]
@@ -154,6 +178,20 @@ mod provider_source_edit_tests_v1 {
         assert_eq!(
             apply_source_edits_v1(source, edits),
             Err(ReindeerProviderAdaptationErrorV1::OverlappingSourceEdit)
+        );
+    }
+
+    #[test]
+    fn exact_fragment_edits_require_the_declared_cardinality() {
+        let source = "const FIRST: &str = \"old\";\nconst SECOND: &str = \"old\";\n";
+        let edits = exact_source_fragment_edits_v1(source, "\"old\"", "\"changed\"", 2).unwrap();
+        assert_eq!(
+            apply_source_edits_v1(source, edits).unwrap(),
+            b"const FIRST: &str = \"changed\";\nconst SECOND: &str = \"changed\";\n"
+        );
+        assert_eq!(
+            exact_source_fragment_edits_v1(source, "\"old\"", "\"changed\"", 1),
+            Err(ReindeerProviderAdaptationErrorV1::UnsupportedSourceShape)
         );
     }
 }

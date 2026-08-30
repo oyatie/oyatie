@@ -2,10 +2,14 @@ use dependency_declarations_reconcile::*;
 
 mod effects;
 mod provider;
+mod request_helpers;
 
 pub use effects::{FixedProjection, RecordingPublisher, ScriptedGenerator};
 pub use provider::{
     ProviderArtifactFaultV1, raw_provider_artifact, raw_provider_artifact_with_fault,
+};
+use request_helpers::{
+    artifact, buck_consumer_profile, entry_for_file, platform, tool, tree, tree_entry,
 };
 
 pub fn digest(bytes: &[u8]) -> DigestV1 {
@@ -22,6 +26,14 @@ pub enum BuckConsumerVariation {
     CellConfig,
     BuckConfig,
     QualificationReceipt,
+}
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub enum ProjectionProfileVariation {
+    Baseline,
+    Renderer,
+    Parser,
+    Grammar,
 }
 
 pub fn graph(target: &str) -> RuleGraphV1 {
@@ -62,6 +74,7 @@ pub fn valid_generation_request(platform_order: bool) -> GenerationRequestV1 {
         "oyatie.reindeer.source-adaptation.v1",
         b"provider source",
         b"graph schema",
+        ProjectionProfileVariation::Baseline,
         BuckConsumerVariation::Baseline,
     )
 }
@@ -73,6 +86,7 @@ pub fn generation_request_with_manifest(manifest: &[u8]) -> GenerationRequestV1 
         "oyatie.reindeer.source-adaptation.v1",
         b"provider source",
         b"graph schema",
+        ProjectionProfileVariation::Baseline,
         BuckConsumerVariation::Baseline,
     )
 }
@@ -88,6 +102,21 @@ pub fn generation_request_with_provider_profile(
         recipe,
         source,
         schema,
+        ProjectionProfileVariation::Baseline,
+        BuckConsumerVariation::Baseline,
+    )
+}
+
+pub fn generation_request_with_projection_variation(
+    variation: ProjectionProfileVariation,
+) -> GenerationRequestV1 {
+    generation_request(
+        false,
+        b"[workspace]\n",
+        "oyatie.reindeer.source-adaptation.v1",
+        b"provider source",
+        b"graph schema",
+        variation,
         BuckConsumerVariation::Baseline,
     )
 }
@@ -101,6 +130,7 @@ pub fn generation_request_with_buck_consumer_variation(
         "oyatie.reindeer.source-adaptation.v1",
         b"provider source",
         b"graph schema",
+        ProjectionProfileVariation::Baseline,
         variation,
     )
 }
@@ -111,6 +141,7 @@ fn generation_request(
     provider_recipe: &str,
     provider_source: &[u8],
     provider_schema: &[u8],
+    projection_variation: ProjectionProfileVariation,
     buck_consumer_variation: BuckConsumerVariation,
 ) -> GenerationRequestV1 {
     let manifest = InputFileV1::try_new(
@@ -131,17 +162,38 @@ fn generation_request(
         b"[buck]\n".to_vec(),
     )
     .unwrap();
-    let fixups = tree(
+    let fixup = tree_entry("third-party/fixups/crate/fixups.toml", b"fixup\n");
+    let repository_reads = InputTreeV1::try_from_entries(
+        TreeRoleV1::RepositoryRead,
+        CanonicalPathV1::try_new("snapshots/repository-reads.manifest").unwrap(),
+        vec![
+            entry_for_file(&manifest),
+            entry_for_file(&lock),
+            entry_for_file(&config),
+            fixup.clone(),
+        ],
+    )
+    .unwrap();
+    let fixups = InputTreeV1::try_from_entries(
         TreeRoleV1::Fixups,
-        "snapshots/fixups.manifest",
-        "crate/fixups.toml",
+        CanonicalPathV1::try_new("snapshots/fixups.manifest").unwrap(),
+        vec![fixup],
+    )
+    .unwrap();
+    let cargo_home_reads = tree(
+        TreeRoleV1::CargoHomeRead,
+        "snapshots/cargo-home-reads.manifest",
+        "registry/src/crate/src/lib.rs",
     );
-    let sources = tree(
-        TreeRoleV1::CargoSource,
-        "snapshots/sources.manifest",
-        "registry/crate/src/lib.rs",
-    );
-    let inputs = GenerationInputsV1::try_new(manifest, lock, config, fixups, sources).unwrap();
+    let inputs = GenerationInputsV1::try_new(
+        manifest,
+        lock,
+        config,
+        repository_reads,
+        fixups,
+        cargo_home_reads,
+    )
+    .unwrap();
 
     let generator = GeneratorIdentityV1::try_new(
         "reindeer",
@@ -154,22 +206,42 @@ fn generation_request(
         },
     )
     .unwrap();
+    let version = |field| {
+        if projection_variation == field {
+            "changed"
+        } else {
+            "baseline"
+        }
+    };
     let qualification = GenerationQualificationV1::new(
-        artifact("serde_starlark", "0.1.19"),
-        artifact("starlark_syntax", "0.14.2"),
+        artifact(
+            "serde_starlark",
+            version(ProjectionProfileVariation::Renderer),
+        ),
+        artifact(
+            "starlark_syntax",
+            version(ProjectionProfileVariation::Parser),
+        ),
         ProviderGraphProfileV1::try_new(
             provider_recipe,
             digest(provider_source),
             digest(provider_schema),
         )
         .unwrap(),
-        digest(b"grammar"),
+        digest(
+            if projection_variation == ProjectionProfileVariation::Grammar {
+                b"changed grammar"
+            } else {
+                b"grammar"
+            },
+        ),
         buck_consumer_profile(buck_consumer_variation),
     );
     let tools = GenerationToolsV1::new(
         generator,
         tool("cargo", "1.98.0"),
         tool("rustc", "1.98.0"),
+        artifact("generation-runtime", "v1"),
         qualification,
     );
 
@@ -192,78 +264,6 @@ fn generation_request(
         inputs,
         tools,
         execution,
-    )
-    .unwrap()
-}
-
-fn tree(role: TreeRoleV1, manifest: &str, entry: &str) -> InputTreeV1 {
-    let entry = TreeEntryV1::new(
-        CanonicalPathV1::try_new(entry).unwrap(),
-        7,
-        digest(entry.as_bytes()),
-    );
-    InputTreeV1::try_from_entries(
-        role,
-        CanonicalPathV1::try_new(manifest).unwrap(),
-        vec![entry],
-    )
-    .unwrap()
-}
-
-fn platform(name: &str, triple: &str, execution: bool) -> PlatformIdentityV1 {
-    PlatformIdentityV1::try_new(
-        name,
-        triple,
-        format!("//platform:{name}-select"),
-        format!("//platform:{name}"),
-        execution,
-    )
-    .unwrap()
-}
-
-fn artifact(name: &str, version: &str) -> ArtifactIdentityV1 {
-    ArtifactIdentityV1::try_new(
-        name,
-        version,
-        format!("{name}-revision"),
-        digest(format!("{name}-source").as_bytes()),
-        digest(format!("{name}-artifact").as_bytes()),
-    )
-    .unwrap()
-}
-
-fn buck_consumer_profile(variation: BuckConsumerVariation) -> BuckConsumerProfileV1 {
-    let version = |field| {
-        if variation == field { "changed" } else { "v1" }
-    };
-    let bytes = |field, baseline: &'static [u8]| {
-        if variation == field {
-            b"changed".as_slice()
-        } else {
-            baseline
-        }
-    };
-    BuckConsumerProfileV1::new(
-        artifact("buck2", version(BuckConsumerVariation::Buck2)),
-        artifact("buck2-prelude", version(BuckConsumerVariation::Prelude)),
-        digest(bytes(BuckConsumerVariation::Rules, b"owned rules")),
-        digest(bytes(BuckConsumerVariation::Toolchain, b"buck toolchain")),
-        digest(bytes(BuckConsumerVariation::CellConfig, b"cell config")),
-        digest(bytes(BuckConsumerVariation::BuckConfig, b"buck config")),
-        digest(bytes(
-            BuckConsumerVariation::QualificationReceipt,
-            b"consumer qualification receipt",
-        )),
-    )
-}
-
-fn tool(name: &str, version: &str) -> ToolIdentityV1 {
-    ToolIdentityV1::try_new(
-        name,
-        version,
-        format!("{name}-commit"),
-        "aarch64-apple-darwin",
-        digest(format!("{name}-binary").as_bytes()),
     )
     .unwrap()
 }

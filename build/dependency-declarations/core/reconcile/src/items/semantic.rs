@@ -100,7 +100,7 @@ impl SemanticValueV1 {
         values: Vec<Self>,
     ) -> Result<Self, FailureV1> {
         check_container_len(values.len())?;
-        let callee = graph_text(callee.into(), true)?;
+        let callee = graph_callee(callee.into())?;
         let metrics = call_metrics(&callee, values.iter(), 18)?;
         Ok(Self {
             kind: SemanticValueKindV1::Call {
@@ -119,7 +119,7 @@ impl SemanticValueV1 {
         if fields.len() > ValidationBoundsV1::MAX_ATTRIBUTES_PER_RULE {
             return Err(invalid_graph());
         }
-        let callee = graph_text(callee.into(), true)?;
+        let callee = graph_callee(callee.into())?;
         let mut normalized = Vec::with_capacity(fields.len());
         let mut field_bytes = 0_usize;
         for (name, value) in fields {
@@ -271,6 +271,17 @@ fn is_ascii_identifier(value: &str) -> bool {
             .bytes()
             .skip(1)
             .all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
+}
+
+fn graph_callee(value: String) -> Result<Box<str>, FailureV1> {
+    if value.len() > ValidationBoundsV1::MAX_STRING_BYTES
+        || value
+            .split('.')
+            .any(|component| !is_ascii_identifier(component))
+    {
+        return Err(invalid_graph());
+    }
+    Ok(value.into_boxed_str())
 }
 
 fn checked_add(left: usize, right: usize) -> Result<usize, FailureV1> {
