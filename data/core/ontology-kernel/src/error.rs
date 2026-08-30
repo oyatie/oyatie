@@ -33,18 +33,27 @@ pub enum OntologyEngineError {
     UnknownEntityTypeEndpoint,
     /// A `LinkTypeDefinition` binds an org-pillar endpoint to a person-pillar
     /// endpoint (or vice versa), violating Bominal-ADR-0132 org/person
-    /// isolation. Both endpoints must share the same [`OntologyPillar`], or at
+    /// isolation. Both endpoints must share the same [`OntologyPillar`](crate::OntologyPillar), or at
     /// least one must be pillar-agnostic (`pillar: None`).
     CrossPillarLink,
     /// The candidate revision is not strictly greater than the stored revision.
-    /// [`OntologyEngine::evolve_entity_type`] requires
+    /// [`OntologyEngine::evolve_entity_type`](crate::OntologyEngine::evolve_entity_type) requires
     /// `candidate.revision > stored.revision`.
     NonMonotonicRevision,
-    /// The candidate definition removes or mutates an existing property.
-    /// [`OntologyEngine::evolve_entity_type`] only allows additive changes:
+    /// The candidate definition removes or mutates an existing property, or
+    /// introduces a new property with `required: true`.
+    /// [`OntologyEngine::evolve_entity_type`](crate::OntologyEngine::evolve_entity_type) only allows additive changes:
     /// every prior property must remain with unchanged `tier`, `data_class`,
-    /// and `required` flag. New properties may be introduced freely.
+    /// and `required` flag, and a new property must be optional — every
+    /// object projected under the prior revision lacks it, so a required
+    /// new property would invalidate the existing population.
     IncompatibleSchemaEvolution,
+    /// The candidate definition changes the stored [`OntologyPillar`](crate::OntologyPillar)
+    /// annotation (including adding or removing it). Link types were
+    /// endpoint-validated against the stored pillar at registration time
+    /// ([`OntologyEngineError::CrossPillarLink`]), so the pillar is
+    /// immutable under [`OntologyEngine::evolve_entity_type`](crate::OntologyEngine::evolve_entity_type).
+    PillarChangedOnEvolution,
     /// `register_link_instance` was called with a [`LinkTypeId`] that has not
     /// been registered for the tenant. Register the link type before creating
     /// instances of it.

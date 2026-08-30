@@ -16,7 +16,8 @@ impl OntologyEngine {
     /// - **Evolution** (id already registered): requires
     ///   `definition.revision > stored.revision` (strict monotonicity) and that
     ///   every prior property is retained with unchanged `tier`, `data_class`,
-    ///   and `required` flag. New properties may be introduced freely. On
+    ///   and `required` flag. New properties must be optional
+    ///   (`required: false`), and the pillar annotation is immutable. On
     ///   success the stored definition is replaced with `definition`.
     ///
     /// # Errors
@@ -28,7 +29,8 @@ impl OntologyEngine {
     /// | [`OntologyEngineError::EmptyProperties`] | `properties` is empty. |
     /// | [`OntologyEngineError::EmptyPropertyName`] | A property name is blank. |
     /// | [`OntologyEngineError::NonMonotonicRevision`] | `definition.revision <= stored.revision`. |
-    /// | [`OntologyEngineError::IncompatibleSchemaEvolution`] | A prior property was removed or mutated. |
+    /// | [`OntologyEngineError::IncompatibleSchemaEvolution`] | A prior property was removed or mutated, or a new property is `required`. |
+    /// | [`OntologyEngineError::PillarChangedOnEvolution`] | The pillar annotation differs from the stored definition's. |
     pub fn evolve_entity_type(
         &mut self,
         definition: EntityTypeDefinition,
@@ -46,6 +48,12 @@ impl OntologyEngine {
                 if definition.revision <= stored.revision {
                     return Err(OntologyEngineError::NonMonotonicRevision);
                 }
+                // Pillar immutability: link types were endpoint-validated
+                // against the stored pillar; changing it would void the
+                // CrossPillarLink guarantee for existing link types.
+                if definition.pillar != stored.pillar {
+                    return Err(OntologyEngineError::PillarChangedOnEvolution);
+                }
                 // Backward-compatibility check.
                 check_schema_compatibility(stored, &definition)?;
                 let id = definition.id.clone();
@@ -60,7 +68,10 @@ impl OntologyEngine {
 /// Rules:
 /// - Every property in `prior` must exist in `candidate` with identical
 ///   `tier`, `data_class`, and `required` flag.
-/// - New properties in `candidate` that are absent from `prior` are permitted.
+/// - New properties in `candidate` that are absent from `prior` must be
+///   optional (`required: false`): every object projected under `prior`
+///   lacks them, so a required new property would invalidate the existing
+///   population.
 /// - Revision monotonicity is **not** checked here; the caller is responsible.
 pub(crate) fn check_schema_compatibility(
     prior: &EntityTypeDefinition,
@@ -72,6 +83,14 @@ pub(crate) fn check_schema_compatibility(
         .iter()
         .map(|p| (p.name.as_str(), p))
         .collect();
+
+    let prior_names: std::collections::BTreeSet<&str> =
+        prior.properties.iter().map(|p| p.name.as_str()).collect();
+    for cand_prop in &candidate.properties {
+        if cand_prop.required && !prior_names.contains(cand_prop.name.as_str()) {
+            return Err(OntologyEngineError::IncompatibleSchemaEvolution);
+        }
+    }
 
     for prior_prop in &prior.properties {
         match candidate_map.get(prior_prop.name.as_str()) {
