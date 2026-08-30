@@ -120,6 +120,22 @@ fn run() -> Result<(), String> {
                 break;
             }
         }
+        // Ratchet. A facade admits either root, but that relaxation is about
+        // a surface whose listener has not been attached YET - not about
+        // removing a binary that already runs. Without this, deleting
+        // `src/main.rs` from a facade that has one passes clean, because
+        // `src/lib.rs` answers in its place.
+        if let Some(binary) = candidates.first()
+            && binary.ends_with("/src/main.rs")
+            && repository.path_exists(&merge_base, binary)?
+            && repository.entry_kind(&head, binary)?.is_none()
+        {
+            violations.push(format!(
+                "{manifest}: `{binary}` existed at the merge base and is absent at the head \
+                 commit; a facade may land before its listener is attached, but a running \
+                 one does not become a library by deleting its entry point"
+            ));
+        }
         let (entrypoint_exists, entrypoint_is_blob) = match present {
             None => {
                 violations.push(format!(
