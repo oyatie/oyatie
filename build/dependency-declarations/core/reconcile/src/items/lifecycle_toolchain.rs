@@ -127,51 +127,25 @@ impl ToolchainProfileV1 {
         tools: ToolchainToolsV1,
         qualification: ToolchainQualificationV1,
         llvm_version: impl Into<String>,
-        mut targets: Vec<ToolchainTargetV1>,
+        targets: Vec<ToolchainTargetV1>,
     ) -> Result<Self, LifecycleFailureV1> {
-        validate_toolchain_role(role, &source)?;
-        if !qualification.matches_role(role) {
-            return Err(LifecycleFailureV1::new(
-                LifecycleFailureClassV1::ToolchainRoleMismatch,
-            ));
-        }
-        if !version.matches_rustc_release(role, tools.rustc().version()) {
-            return Err(LifecycleFailureV1::new(
-                LifecycleFailureClassV1::ToolchainVersionMismatch,
-            ));
-        }
-        if targets.is_empty() || targets.len() > LifecycleBoundsV1::MAX_TOOLCHAIN_TARGETS {
-            return Err(lifecycle_bounds());
-        }
-        if !targets
-            .iter()
-            .any(|target| target.target_triple() == tools.rustc().host_triple())
-        {
-            return Err(LifecycleFailureV1::new(
-                LifecycleFailureClassV1::ToolchainTargetMismatch,
-            ));
-        }
-        targets.sort_by(|left, right| {
-            left.target_triple
-                .as_bytes()
-                .cmp(right.target_triple.as_bytes())
-        });
-        if targets
-            .windows(2)
-            .any(|pair| pair[0].target_triple == pair[1].target_triple)
-        {
-            return Err(LifecycleFailureV1::new(
-                LifecycleFailureClassV1::DuplicateIdentity,
-            ));
-        }
-        let axes = ToolchainProfileAxesV1::try_new(
+        let material = ToolchainProfileMaterialV1::try_new(
+            role,
             version,
             source,
             tools,
-            qualification,
-            lifecycle_identity(llvm_version.into())?,
-            targets.into_boxed_slice(),
+            llvm_version,
+            targets,
         )?;
+        Self::try_from_material(material, qualification)
+    }
+
+    pub fn try_from_material(
+        material: ToolchainProfileMaterialV1,
+        qualification: ToolchainQualificationV1,
+    ) -> Result<Self, LifecycleFailureV1> {
+        let role = material.role();
+        let axes = ToolchainProfileAxesV1::try_new(material, qualification)?;
         let mut hash = CanonicalHasherV1::new(b"build.toolchain-profile.v1\0");
         hash.tag(role as u8);
         axes.encode(&mut hash);
@@ -189,7 +163,7 @@ impl ToolchainProfileV1 {
 
     #[must_use]
     pub const fn version(&self) -> RustVersionV1 {
-        self.axes.version
+        self.axes.material().version()
     }
 
     #[must_use]
@@ -198,28 +172,38 @@ impl ToolchainProfileV1 {
     }
 
     #[must_use]
+    pub const fn material_identity_sha256(&self) -> DigestV1 {
+        self.axes.material().identity_sha256()
+    }
+
+    #[must_use]
+    pub const fn material(&self) -> &ToolchainProfileMaterialV1 {
+        self.axes.material()
+    }
+
+    #[must_use]
     pub const fn source(&self) -> &LifecycleSourceV1 {
-        &self.axes.source
+        self.axes.material().source()
     }
 
     #[must_use]
     pub const fn tools(&self) -> &ToolchainToolsV1 {
-        &self.axes.tools
+        self.axes.material().tools()
     }
 
     #[must_use]
     pub const fn qualification(&self) -> ToolchainQualificationV1 {
-        self.axes.qualification
+        self.axes.qualification()
     }
 
     #[must_use]
     pub fn llvm_version(&self) -> &str {
-        &self.axes.llvm_version
+        self.axes.material().llvm_version()
     }
 
     #[must_use]
     pub fn targets(&self) -> &[ToolchainTargetV1] {
-        &self.axes.targets
+        self.axes.material().targets()
     }
 
     #[must_use]

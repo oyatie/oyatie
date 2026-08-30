@@ -28,12 +28,18 @@ mod dependency_qualification_refusals;
 mod lifecycle_refusals;
 #[path = "support/lifecycle.rs"]
 mod lifecycle_support;
+#[path = "support/lifecycle_toolchain_currency.rs"]
+mod lifecycle_toolchain_currency;
+#[path = "support/lifecycle_toolchain_currency_refusals.rs"]
+mod lifecycle_toolchain_currency_refusals;
 #[path = "support/lifecycle_toolchain_delta.rs"]
 mod lifecycle_toolchain_delta;
 #[path = "support/lifecycle_toolchain_refusals.rs"]
 mod lifecycle_toolchain_refusals;
 #[path = "support/lifecycle_toolchain_transition.rs"]
 mod lifecycle_toolchain_transition;
+#[path = "support/toolchain_currency_support.rs"]
+mod toolchain_currency_support;
 
 use dependency_declarations_reconcile::*;
 use lifecycle_support::*;
