@@ -5,6 +5,7 @@ fn adapt_reindeer_buckify_v1(
     let do_buckify = exactly_one_provider_function_v1(&syntax.items, "do_buckify")?;
     let buckify = exactly_one_provider_function_v1(&syntax.items, "buckify")?;
     let mut edits = do_buckify_edits_v1(source, do_buckify)?;
+    edits.push(workspace_dependency_roots_edit_v1(source, do_buckify)?);
     edits.extend(buckify_artifact_edits_v1(source, buckify)?);
     edits.push(public_rule_name_reservation_edit_v1(source, buckify)?);
     apply_source_edits_v1(source, edits)

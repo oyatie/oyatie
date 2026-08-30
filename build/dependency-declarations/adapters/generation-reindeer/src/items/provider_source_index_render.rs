@@ -120,6 +120,18 @@ fn render_public_rule_name_methods_v1(
         pub fn public_rule_names(&self) -> impl Iterator<Item = &str> {
             self.public_rule_names.values().map(|name| name.0.as_str())
         }
+
+        /// Return public dependency roots that are not workspace packages.
+        pub fn non_workspace_public_targets(
+            &self,
+        ) -> impl Iterator<Item = (&'meta Manifest, TargetReq<'meta>)> + '_ {
+            self.public_targets
+                .keys()
+                .filter_map(|&(package_id, target_req)| {
+                    (!self.workspace_packages.contains(&package_id))
+                        .then_some((self.pkgid_to_pkg[&package_id], target_req))
+                })
+        }
     })
 }
 

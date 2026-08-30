@@ -12,3 +12,5 @@ mod identity;
 mod snapshot;
 #[path = "provider_source/support.rs"]
 mod support;
+#[path = "provider_source/workspace_roots.rs"]
+mod workspace_roots;

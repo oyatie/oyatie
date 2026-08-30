@@ -26,7 +26,8 @@ const REINDEER_ADAPTATION_RECIPE_ID_V1: &str = concat!(
     "quote=1.0.47@1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001;",
     "sha2=0.10.9@a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283;",
     "public-naming=resolved-compatibility-slot.v1;",
-    "reserved-targets=source-distinct.v1",
+    "reserved-targets=source-distinct.v1;",
+    "workspace-roots=non-workspace-public-targets.v1",
 );
 
 struct ReindeerParsedProviderSourceV1<'a> {
