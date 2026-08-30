@@ -8,18 +8,26 @@ use crate::layout::path_parts;
 /// A `core`, `ports` or `adapters` leaf is a library and roots at `src/lib.rs`.
 ///
 /// A `facade` leaf is a service *surface*, which is not the same as a running
-/// service. This repository stages the two apart on purpose: a surface lands
-/// with its routes, handlers and middleware, and a later composition attaches
-/// the listener. Crates record that state themselves — `deployed_listener_attached`,
-/// "does not start a listener" — so a facade without `src/main.rs` is declared
-/// intent, not missing work.
+/// service. 31 of 54 have no `src/main.rs`, and every one of those has
+/// `src/lib.rs`. The `iam/facade/tenant-rbac-*` family records why in its own
+/// source — `deployed_listener_attached: false`, "does not start a listener":
+/// the surface lands with its routes and handlers, and a later composition
+/// attaches the listener.
 ///
-/// Requiring `src/main.rs` unconditionally asserted a lifecycle claim those
-/// crates had explicitly deferred, and made every one of them untouchable: any
-/// edit to such a manifest demanded inventing a binary the crate itself says
-/// must not exist yet. That blocked capability extraction repo-wide, since a
-/// moved dependency must repoint its consumers. A facade therefore roots at
-/// `src/main.rs` once it runs, and at `src/lib.rs` until then.
+/// Not all 31 are that deliberate. Some are plainly libraries filed under the
+/// wrong face — `compute/facade/k8s` is package `compute-k8s-api`;
+/// `iam/facade/identity-workload-app` calls itself a usecase ring — and those
+/// belong in `core/`, which this rule does not decide. What the rule decides is
+/// narrower: whether a crate can be EDITED while its face is unresolved.
+///
+/// Requiring `src/main.rs` unconditionally said no. Every one of the 31 was
+/// untouchable, because any edit to such a manifest demanded inventing a binary
+/// — one the tenant-rbac family explicitly defers, and one a misfiled library
+/// should never have. Since a moved crate must repoint its consumers, a single
+/// staged facade anywhere in a dependency chain blocked the extraction. A
+/// facade therefore roots at `src/main.rs` once it runs, and at `src/lib.rs`
+/// until then; the deletion of an existing `src/main.rs` is still refused, so
+/// the door only opens one way.
 ///
 /// What the check is for is unchanged: a touched leaf must present a reachable
 /// root, and that root must be a regular blob.

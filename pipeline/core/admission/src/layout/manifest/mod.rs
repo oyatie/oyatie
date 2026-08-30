@@ -80,19 +80,26 @@ pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
         }
     }
     let package = manifest.get("package");
-    let discovery_switch = if face == "facade" {
-        "autobins"
+    // A facade may root at either `src/main.rs` or `src/lib.rs`, so BOTH
+    // discovery switches guard a canonical target for it. Checking only
+    // `autobins` let a lib-rooted facade disable its own root with
+    // `autolib = false`, and flagged `autobins = false` on a crate with no
+    // binary to discover.
+    let discovery_switches: &[&str] = if face == "facade" {
+        &["autobins", "autolib"]
     } else {
-        "autolib"
+        &["autolib"]
     };
-    if package
-        .and_then(|package| package.get(discovery_switch))
-        .and_then(toml::Value::as_bool)
-        == Some(false)
-    {
-        violations.push(format!(
-            "{path}: package `{discovery_switch} = false` disables the canonical face target"
-        ));
+    for discovery_switch in discovery_switches {
+        if package
+            .and_then(|package| package.get(*discovery_switch))
+            .and_then(toml::Value::as_bool)
+            == Some(false)
+        {
+            violations.push(format!(
+                "{path}: package `{discovery_switch} = false` disables the canonical face target"
+            ));
+        }
     }
     if package
         .and_then(|package| package.get("autotests"))
@@ -239,6 +246,24 @@ mod tests {
                 format!("[package]\nname='dependency-declarations-reconcile'\n[lib]\n{field}\n");
             let violations = cargo_manifest_violations(path, &contents);
             assert!(violations.join("\n").contains(target_kind), "{target_kind}");
+        }
+    }
+
+    #[test]
+    fn both_discovery_switches_guard_a_facade() {
+        // A facade may root at either file, so disabling either discovery
+        // switch can disable its canonical target. Checking only `autobins`
+        // let a lib-rooted facade turn its own root off.
+        for switch in ["autobins", "autolib"] {
+            let manifest = format!("[package]\nname = \"network-edge-app\"\n{switch} = false\n");
+            let violations =
+                cargo_manifest_violations("network/facade/edge-app/Cargo.toml", &manifest);
+            assert!(
+                violations
+                    .iter()
+                    .any(|v| v.contains(&format!("`{switch} = false`"))),
+                "facade must refuse {switch} = false, got {violations:?}"
+            );
         }
     }
 
