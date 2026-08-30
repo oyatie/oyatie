@@ -22,7 +22,10 @@ rust_test(
 
 rust_test(
     name = "data-ontology-kernel-link-action-invariants",
-    srcs = ["tests/link_action_invariants.rs"],
+    srcs = [
+        "tests/link_action_invariants.rs",
+        "tests/link_action_invariants_support.rs",
+    ],
     crate = "data_ontology_kernel_link_action_invariants",
     crate_root = "tests/link_action_invariants.rs",
     visibility = ["PUBLIC"],
@@ -46,7 +49,10 @@ rust_test(
 
 rust_test(
     name = "data-ontology-kernel-schema-evolution",
-    srcs = ["tests/schema_evolution.rs"],
+    srcs = [
+        "tests/schema_evolution.rs",
+        "tests/schema_evolution_support.rs",
+    ],
     crate = "data_ontology_kernel_schema_evolution",
     crate_root = "tests/schema_evolution.rs",
     visibility = ["PUBLIC"],
@@ -65,5 +71,35 @@ rust_test(
     deps = [
         ":data-ontology-kernel",
         "//libs/data-boundary-kernel:data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "data-ontology-kernel-schema-evolution-removals",
+    srcs = [
+        "tests/schema_evolution_removals.rs",
+        "tests/schema_evolution_support.rs",
+    ],
+    crate = "schema_evolution_removals",
+    crate_root = "tests/schema_evolution_removals.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":data-ontology-kernel",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "data-ontology-kernel-link-action-pillars",
+    srcs = [
+        "tests/link_action_pillars.rs",
+        "tests/link_action_invariants_support.rs",
+    ],
+    crate = "link_action_pillars",
+    crate_root = "tests/link_action_pillars.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":data-ontology-kernel",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
     ],
 )
