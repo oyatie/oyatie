@@ -70,7 +70,20 @@ fn run() -> Result<(), String> {
         }
     }
 
-    let attributes = std::fs::read_to_string(".gitattributes").unwrap_or_default();
+    // Read the declaration from TRUNK, never from the candidate tree. The
+    // workflow compiles this binary from a separate trusted checkout precisely
+    // so a pull request cannot supply its own ruleset; reading `.gitattributes`
+    // out of `candidate` would have handed that control straight back. One
+    // line — `some/shared/file.rs merge=union` — would have dropped a shared
+    // source path out of the comparison and self-widened the lane, which D-40
+    // forbids by name. Reading from `dev` also keeps the verdict symmetric:
+    // every open PR's run resolves the same declaration, so a pair cannot
+    // disagree about whether they collide.
+    let attributes = git_text(
+        &config.token,
+        &["show", &format!("{TRUNK_REF}:.gitattributes")],
+    )
+    .unwrap_or_default();
     let mergeable = declared_mergeable(&attributes).map_err(|error| error.message())?;
     admit_authored(&this, &in_flight, &mergeable).map_err(|error| error.message())
 }

@@ -4,9 +4,14 @@
 //!
 //! Occupancy governs what a lane *authored*. A path the repository has
 //! declared structurally mergeable is not authored content: `.gitattributes`
-//! assigns it a `merge=<driver>`, which is a standing statement that
-//! independent lanes are expected to edit it concurrently and that their
-//! edits combine deterministically. `Cargo.lock` carries such a driver
+//! assigns it one of this repository's own merge drivers, which is a standing
+//! statement that independent lanes are expected to edit it concurrently.
+//!
+//! That is a declaration of intent, not a guarantee. Driver registration is
+//! per-clone — an actor without the git config gets an ordinary conflict — and
+//! the lockfile driver itself "exits 1 on same-package version divergence".
+//! What the exemption buys is that such a case fails at MERGE, loudly, instead
+//! of refusing both lanes at spawn. `Cargo.lock` carries such a driver
 //! precisely because "package sections can be added, removed, or
 //! version-replaced by independent branches". Counting those paths as
 //! occupancy made the declaration unreachable: every lane that births or
@@ -18,6 +23,11 @@
 //! rather than a queue; that remains true for content a lane actually wrote.
 
 use std::collections::BTreeSet;
+
+/// Drivers this repository wrote to reconcile concurrent lanes on one file.
+/// An allowlist, not a pattern: see `declared_mergeable`.
+const STRUCTURAL_MERGE_DRIVERS: &[&str] =
+    &["union", "cargo-lock", "fixup-ledger", "friction-ledger"];
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OccupiedSet {
@@ -52,6 +62,10 @@ impl OccupancyRefused {
 /// Fails closed on a non-literal pattern: a glob would require occupancy to
 /// reimplement gitattributes matching, and guessing wrong in the permissive
 /// direction would silently drop authored paths from the set.
+///
+/// A slash-less pattern is treated as root-anchored where git would match it
+/// at any depth. That direction is conservative — a nested `Cargo.lock` stays
+/// authored and can only cause an extra refusal, never a missed one.
 pub fn declared_mergeable(gitattributes: &str) -> Result<BTreeSet<String>, OccupancyRefused> {
     let mut declared = BTreeSet::new();
     for line in gitattributes.lines() {
@@ -63,7 +77,15 @@ pub fn declared_mergeable(gitattributes: &str) -> Result<BTreeSet<String>, Occup
         let Some(pattern) = fields.next() else {
             continue;
         };
-        if !fields.any(|attribute| attribute.starts_with("merge=")) {
+        let Some(driver) = fields.find_map(|attribute| attribute.strip_prefix("merge=")) else {
+            continue;
+        };
+        if !STRUCTURAL_MERGE_DRIVERS.contains(&driver) {
+            // `merge=` alone proves nothing. Git's own `merge=binary` means
+            // "take ours and declare a conflict" — the opposite of combining —
+            // and `merge=text` is just the ordinary three-way merge. Only a
+            // driver this repository wrote to reconcile concurrent lanes earns
+            // the exemption, so an unknown value leaves the path authored.
             continue;
         }
         if pattern.contains(['*', '?', '[']) || pattern.starts_with('/') {
@@ -159,6 +181,18 @@ Cargo.lock merge=cargo-lock
         assert_eq!(declared, set(&["Cargo.lock", "evidence/audit-chain.jsonl"]));
         // `*.rs` carries no `merge=`, so it is authored content like any other.
         assert!(!declared.contains("*.rs"));
+    }
+
+    #[test]
+    fn only_this_repositorys_own_drivers_earn_the_exemption() {
+        // `merge=binary` is git's own: take ours and DECLARE A CONFLICT. It is
+        // the opposite of combining, and accepting any `merge=` value would
+        // have exempted a path on the strength of a word.
+        let declared = declared_mergeable(
+            "shared/thing.rs merge=binary\nother/thing.rs merge=text\nCargo.lock merge=cargo-lock\n",
+        )
+        .expect("literal patterns parse");
+        assert_eq!(declared, set(&["Cargo.lock"]));
     }
 
     #[test]

@@ -2139,8 +2139,9 @@ is path-sets (D-39). For **blast radius / sandbox: default yes** (D-31
 cone). For **contracts: escalate** (D-29). Those are three different
 knobs. Conflating them produced crate-locks and “agent owns `storage/`.”
 
-An agent’s dispatch is a **path-set** `S`. Spawn iff `S` is disjoint
-from every open PR’s path-set (rename occupies `{old, new}`). The set
+An agent’s dispatch is a **path-set** `S` of AUTHORED paths (see the
+D-40 amendment below). Spawn iff `S` is disjoint from every open PR’s
+authored path-set (rename occupies `{old, new}`). The set
 may list files in more than one cap **only** when the dispatcher names
 them (found a correction; D-29). The agent still cannot self-widen.
 
@@ -2233,9 +2234,14 @@ original lane keeps its set.
   lanes were wedged simultaneously on that one path; the gate made its
   own declared remedy unreachable.
 - **rule:** the occupancy path-set is a lane's AUTHORED paths. A path
-  carrying a `merge=` attribute in `.gitattributes` is excluded: the
-  driver is a standing statement that concurrent edits over it combine
-  deterministically. Disjointness over the remaining paths is unchanged,
+  carrying one of this repository's own merge drivers in `.gitattributes`
+  is excluded: the driver is a standing statement that concurrent edits
+  over it are expected. That is intent, not a guarantee — registration is
+  per-clone and the lockfile driver exits 1 on same-package divergence —
+  so what the exclusion buys is that the hard case fails loudly at merge
+  instead of refusing both lanes at spawn. `merge=` alone does not
+  qualify: git's own `merge=binary` declares a conflict rather than
+  combining, so the drivers are an allowlist. Disjointness over the remaining paths is unchanged,
   and a shared authored path remains an assignment rename (D-41), never
   a queue. Occupancy does not reimplement gitattributes matching: a
   non-literal `merge=` pattern fails the gate closed rather than being
