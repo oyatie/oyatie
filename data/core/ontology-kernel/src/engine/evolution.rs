@@ -47,6 +47,7 @@ impl OntologyEngine {
             None => {
                 // First registration: identical to register_entity_type.
                 let id = definition.id.clone();
+                self.retain_entity_type_revision(&definition);
                 self.entity_types.insert(key, definition);
                 Ok(id)
             }
@@ -72,6 +73,7 @@ impl OntologyEngine {
                 // Backward-compatibility check.
                 check_schema_compatibility(stored, &definition)?;
                 let id = definition.id.clone();
+                self.retain_entity_type_revision(&definition);
                 self.entity_types.insert(key, definition);
                 Ok(id)
             }

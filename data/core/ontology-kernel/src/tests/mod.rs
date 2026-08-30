@@ -7,6 +7,7 @@ mod instance_conformance;
 mod key_title_designations;
 mod object_graph;
 mod pillar_links;
+mod revision_retention;
 mod schema_evolution;
 mod support;
 mod value_binding;
