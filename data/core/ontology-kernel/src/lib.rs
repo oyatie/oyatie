@@ -27,6 +27,7 @@
 //! |---------|---------|
 //! | [`OntologyEngineError::UnknownEntityTypeEndpoint`] | A `LinkTypeDefinition` or `ActionTypeDefinition` references an `EntityTypeId` not registered for the same tenant. |
 //! | [`OntologyEngineError::CrossPillarLink`] | A `LinkTypeDefinition` binds an org-pillar endpoint to a person-pillar endpoint (or vice versa). |
+//! | [`OntologyEngineError::PillarChangedOnEvolution`] | An `evolve_entity_type` candidate changes the stored pillar annotation. |
 
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
