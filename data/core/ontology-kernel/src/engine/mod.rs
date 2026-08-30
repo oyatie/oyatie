@@ -58,6 +58,10 @@ impl OntologyEngine {
         definition: EntityTypeDefinition,
     ) -> Result<EntityTypeId, OntologyEngineError> {
         check_designation_integrity(&definition)?;
+        crate::display::check_display_integrity(definition.display.as_ref())?;
+        for property in &definition.properties {
+            crate::display::check_display_integrity(property.display.as_ref())?;
+        }
         check_value_type_integrity(
             definition
                 .properties
@@ -93,6 +97,7 @@ impl OntologyEngine {
                 &definition.to_entity_type.value,
             ))
             .ok_or(OntologyEngineError::UnknownEntityTypeEndpoint)?;
+        crate::display::check_display_integrity(definition.display.as_ref())?;
         // st2: pillar-consistency enforcement (Bominal-ADR-0132)
         if let (Some(from_pillar), Some(to_pillar)) = (from_def.pillar, to_def.pillar)
             && from_pillar != to_pillar
@@ -115,6 +120,7 @@ impl OntologyEngine {
         if !self.has_entity_type(&definition.tenant_id, &definition.entity_type) {
             return Err(OntologyEngineError::UnknownEntityTypeEndpoint);
         }
+        crate::display::check_display_integrity(definition.display.as_ref())?;
         // Parameter-schema integrity: names are unique.
         let mut seen = std::collections::BTreeSet::new();
         for parameter in &definition.parameters {
