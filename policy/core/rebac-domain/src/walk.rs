@@ -22,6 +22,9 @@ pub(crate) struct Walk<'a> {
     max_depth: u32,
     /// `(object, relation)` pairs on the current path, for cycle detection.
     path: BTreeSet<(String, String)>,
+    /// The same pairs in visit order, so a re-entry can be placed relative to
+    /// where each enclosing subtraction began.
+    order: Vec<(String, String)>,
     pub(crate) budget: Budget,
     /// The snapshot every read after the first is served at.
     ///
@@ -34,14 +37,21 @@ pub(crate) struct Walk<'a> {
     /// `StaleSnapshot`, which is an `ExpansionError`, so the walk fails closed
     /// rather than silently drifting.
     pinned: Option<SnapshotToken>,
-    /// How many subtractions enclose the current position.
+    /// Where each enclosing subtraction began.
     ///
     /// Re-entry returns "not a member", which is sound while every enclosing
     /// operator is monotone. Under a subtraction it is not: the re-entry reads
     /// as "not excluded" and grants. The model-time stratifier catches cycles
     /// the MODEL declares; a tuple whose subject is a userset can close the
     /// same cycle in data, where no static check can see it.
-    negations: u32,
+    /// `order.len()` when each enclosing subtraction was entered.
+    ///
+    /// Re-entry is only unsound when the cycle CROSSES the subtraction. A
+    /// monotone cycle sitting wholly inside the subtracted set - two groups
+    /// that contain each other, named by a blocklist - is a legitimate shape,
+    /// and refusing it turns two tenant-writable tuples into a permanently
+    /// failing check.
+    marks: Vec<usize>,
 }
 
 impl<'a> Walk<'a> {
@@ -51,9 +61,10 @@ impl<'a> Walk<'a> {
             depth: 0,
             max_depth,
             path: BTreeSet::new(),
+            order: Vec::new(),
             budget: Budget::new(tuple_budget),
             pinned: None,
-            negations: 0,
+            marks: Vec::new(),
         }
     }
 
@@ -75,16 +86,34 @@ impl<'a> Walk<'a> {
 
     /// Enter the subtracted side of a `Difference`.
     pub(crate) fn enter_negation(&mut self) {
-        self.negations = self.negations.saturating_add(1);
+        self.marks.push(self.order.len());
     }
 
     pub(crate) fn leave_negation(&mut self) {
-        self.negations = self.negations.saturating_sub(1);
+        self.marks.pop();
     }
 
-    /// Is the current position enclosed by a subtraction?
-    pub(crate) fn under_negation(&self) -> bool {
-        self.negations > 0
+    /// Does re-entering `object#relation` close a cycle that CROSSES the
+    /// innermost enclosing subtraction?
+    ///
+    /// True only when the node was already on the path before that
+    /// subtraction was entered: the cycle then runs through the negated edge,
+    /// where "not a member" inverts to "not excluded" and grants. A node first
+    /// visited inside the subtracted set is an ordinary monotone cycle and
+    /// contributes nothing, as it would anywhere else.
+    pub(crate) fn crosses_negation(
+        &self,
+        object: &RebacObjectRef,
+        relation: &RebacRelation,
+    ) -> bool {
+        let Some(&mark) = self.marks.last() else {
+            return false;
+        };
+        let key = (object.to_canonical_string(), relation.as_str().to_owned());
+        self.order
+            .iter()
+            .position(|entry| *entry == key)
+            .is_some_and(|position| position < mark)
     }
 
     /// Descend one level, refusing past the depth bound.
@@ -105,12 +134,19 @@ impl<'a> Walk<'a> {
     /// Record `object#relation` on the current path. `false` means it is
     /// already there — a cycle, which contributes no new grant.
     pub(crate) fn enter(&mut self, object: &RebacObjectRef, relation: &RebacRelation) -> bool {
-        self.path
-            .insert((object.to_canonical_string(), relation.as_str().to_owned()))
+        let key = (object.to_canonical_string(), relation.as_str().to_owned());
+        if self.path.insert(key.clone()) {
+            self.order.push(key);
+            return true;
+        }
+        false
     }
 
     pub(crate) fn leave(&mut self, object: &RebacObjectRef, relation: &RebacRelation) {
-        self.path
-            .remove(&(object.to_canonical_string(), relation.as_str().to_owned()));
+        let key = (object.to_canonical_string(), relation.as_str().to_owned());
+        self.path.remove(&key);
+        if self.order.last() == Some(&key) {
+            self.order.pop();
+        }
     }
 }

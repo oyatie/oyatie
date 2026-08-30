@@ -76,7 +76,7 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
         if !walk.enter(object, relation) {
             // Under a subtraction the least-fixed-point convention inverts:
             // "not a member" becomes "not excluded" and grants. Refuse instead.
-            if walk.under_negation() {
+            if walk.crosses_negation(object, relation) {
                 return Err(ExpansionError::NegatedCycleInData {
                     object_type: object.object_type().to_owned(),
                     relation: relation.as_str().to_owned(),
