@@ -38,6 +38,7 @@ pub use pillar::{OntologyPillar, UnknownPillarLabel};
 
 mod action_parameters;
 mod definitions;
+mod display;
 mod engine;
 mod error;
 mod object_graph;
@@ -55,6 +56,7 @@ pub use definitions::{
     ActionTypeId, AutonomyTier, EntityTypeDefinition, EntityTypeId, EntityTypePropertyDefinition,
     LinkCardinality, LinkTypeDefinition, LinkTypeId,
 };
+pub use display::DisplayMetadata;
 pub use engine::{LinkInstanceOutcome, OntologyEngine};
 pub use error::OntologyEngineError;
 pub use object_graph::{

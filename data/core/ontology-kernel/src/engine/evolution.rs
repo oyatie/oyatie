@@ -39,6 +39,10 @@ impl OntologyEngine {
         definition: EntityTypeDefinition,
     ) -> Result<EntityTypeId, OntologyEngineError> {
         super::check_designation_integrity(&definition)?;
+        crate::display::check_display_integrity(definition.display.as_ref())?;
+        for property in &definition.properties {
+            crate::display::check_display_integrity(property.display.as_ref())?;
+        }
         super::check_value_type_integrity(
             definition
                 .properties
@@ -142,6 +146,7 @@ impl OntologyEngine {
         &mut self,
         definition: LinkTypeDefinition,
     ) -> Result<LinkTypeId, OntologyEngineError> {
+        crate::display::check_display_integrity(definition.display.as_ref())?;
         let key = ontology_scoped_key(&definition.tenant_id, &definition.id.value);
         let stored = self
             .link_types
@@ -187,6 +192,7 @@ impl OntologyEngine {
         &mut self,
         definition: ActionTypeDefinition,
     ) -> Result<ActionTypeId, OntologyEngineError> {
+        crate::display::check_display_integrity(definition.display.as_ref())?;
         let key = ontology_scoped_key(&definition.tenant_id, &definition.id.value);
         let stored = self
             .action_types

@@ -13,6 +13,9 @@ pub struct LinkTypeDefinition {
     pub cardinality: LinkCardinality,   // data_class: INTERNAL_ONLY
     pub allow_cross_tenant: bool,       // data_class: INTERNAL_ONLY
     pub revision: u32,                  // data_class: INTERNAL_ONLY
+    /// Rendering hints; freely evolvable — the first field outside the
+    /// frozen set.
+    pub display: Option<crate::display::DisplayMetadata>, // data_class: INTERNAL_ONLY
 }
 
 impl LinkTypeDefinition {
@@ -34,6 +37,13 @@ impl LinkTypeDefinition {
             cardinality,
             allow_cross_tenant,
             revision: 1,
+            display: None,
         })
+    }
+
+    /// Attach rendering hints. Returns `self` for chaining.
+    pub fn with_display(mut self, display: crate::display::DisplayMetadata) -> Self {
+        self.display = Some(display);
+        self
     }
 }

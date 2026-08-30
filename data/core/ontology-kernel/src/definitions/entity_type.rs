@@ -18,6 +18,8 @@ pub struct EntityTypePropertyDefinition {
     /// Declared value type; `None` is the legacy string contract. Once
     /// `Some`, immutable across revisions (see `check_schema_compatibility`).
     pub value_type: Option<ValueTypeDeclaration>, // data_class: INTERNAL_ONLY
+    /// Rendering hints; freely evolvable, never part of the frozen quadruple.
+    pub display: Option<crate::display::DisplayMetadata>, // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EntityTypeDefinition {
@@ -35,6 +37,8 @@ pub struct EntityTypeDefinition {
     /// population is a breaking change). `None` means instances are keyed
     /// only by their `ent_`-prefixed id.
     pub primary_key_property: Option<String>, // data_class: INTERNAL_ONLY
+    /// Rendering hints; freely evolvable.
+    pub display: Option<crate::display::DisplayMetadata>, // data_class: INTERNAL_ONLY
     /// Name of the property rendered as the default human-readable label.
     /// Must name a declared property; freely changeable across revisions.
     pub title_property: Option<String>, // data_class: INTERNAL_ONLY
@@ -57,7 +61,14 @@ impl EntityTypePropertyDefinition {
             data_class,
             required,
             value_type: None,
+            display: None,
         })
+    }
+
+    /// Attach rendering hints. Returns `self` for chaining.
+    pub fn with_display(mut self, display: crate::display::DisplayMetadata) -> Self {
+        self.display = Some(display);
+        self
     }
 }
 impl EntityTypeDefinition {
@@ -86,6 +97,7 @@ impl EntityTypeDefinition {
             pillar: None,
             primary_key_property: None,
             title_property: None,
+            display: None,
         })
     }
 
@@ -109,6 +121,12 @@ impl EntityTypeDefinition {
     /// registration/evolution.
     pub fn with_title_property(mut self, name: impl Into<String>) -> Self {
         self.title_property = Some(name.into());
+        self
+    }
+
+    /// Attach rendering hints. Returns `self` for chaining.
+    pub fn with_display(mut self, display: crate::display::DisplayMetadata) -> Self {
+        self.display = Some(display);
         self
     }
 }
