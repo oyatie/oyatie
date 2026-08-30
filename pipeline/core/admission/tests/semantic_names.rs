@@ -126,11 +126,19 @@ fn provenance_citations_and_decision_files_remain_valid() {
     let change =
         std::fs::read_to_string(repo_root().join("pipeline/core/admission/src/layout/change.rs"))
             .expect("change admission source");
-    let manifest =
-        std::fs::read_to_string(repo_root().join("pipeline/core/admission/src/layout/manifest.rs"))
-            .expect("manifest admission source");
+    let manifest = std::fs::read_to_string(
+        repo_root().join("pipeline/core/admission/src/layout/manifest/mod.rs"),
+    )
+    .expect("manifest admission source");
+    let entrypoint = std::fs::read_to_string(
+        repo_root().join("pipeline/core/admission/src/layout/manifest/entrypoint.rs"),
+    )
+    .expect("entry-point admission source");
     assert!(change.contains("Provenance: ADR-0719 D-8/D-36"));
     assert!(manifest.contains("Provenance: ADR-0719 D-30/D-41"));
+    // Entry-point resolution split out of `manifest.rs`; it carries the same
+    // provenance because it is the same rule, not a new one.
+    assert!(entrypoint.contains("Provenance: ADR-0719 D-30/D-41"));
 }
 
 #[test]
