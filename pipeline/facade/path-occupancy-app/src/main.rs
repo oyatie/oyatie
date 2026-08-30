@@ -8,7 +8,7 @@
 
 use std::collections::BTreeSet;
 use std::env;
-use std::process::{Command, ExitCode, Output};
+use std::process::{Command, ExitCode};
 
 use pipeline_admission::{
     GitChangePaths, OccupiedSet, admit_authored, declared_mergeable,

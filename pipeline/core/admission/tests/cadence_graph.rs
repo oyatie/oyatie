@@ -160,7 +160,8 @@ fn presubmit_jobs_are_the_occupant_set() {
     // `run()` to a raw `admit()` over every changed path leaves every unit test
     // green while restoring the wedge they exist to prevent.
     assert!(
-        collector.contains("declared_mergeable(&attributes)")
+        collector.contains("git_blob_text(")
+            && collector.contains("declared_mergeable(&attributes)")
             && collector.contains("admit_authored(&this, &in_flight, &mergeable)"),
         "occupancy must admit on authored paths, not on every changed path"
     );

@@ -52,6 +52,7 @@ fn every_declared_driver_is_one_this_repository_wrote() {
     // instead, at the place that decides.
     let text = attributes();
     let mut undeclared = Vec::new();
+    let mut unsupported = Vec::new();
     for line in text.lines() {
         let line = line.trim();
         if line.is_empty() || line.starts_with('#') {
@@ -62,12 +63,24 @@ fn every_declared_driver_is_one_this_repository_wrote() {
             continue;
         };
         if let Some(driver) = fields.find_map(|a| a.strip_prefix("merge=")) {
-            let declared = declared_mergeable(&format!("{pattern} merge={driver}\n"));
-            if declared.map(|set| set.is_empty()).unwrap_or(true) {
-                undeclared.push(format!("{pattern} -> merge={driver}"));
+            match declared_mergeable(&format!("{pattern} merge={driver}\n")) {
+                // The driver is recognised and the pattern is literal.
+                Ok(set) if !set.is_empty() => {}
+                // Recognised driver, but the pattern is not one occupancy can
+                // match. Distinct from an unknown driver: same safe direction,
+                // different cause, and conflating them sends the next reader
+                // to the allowlist when the problem is the glob.
+                Err(reason) => unsupported.push(format!("{pattern}: {}", reason.message())),
+                Ok(_) => undeclared.push(format!("{pattern} -> merge={driver}")),
             }
         }
     }
+    assert!(
+        unsupported.is_empty(),
+        "`.gitattributes` assigns a merge driver to a pattern occupancy cannot \
+         match, so the path stays occupancy-bearing for a reason that has \
+         nothing to do with the allowlist: {unsupported:?}"
+    );
     assert!(
         undeclared.is_empty(),
         "`.gitattributes` names merge drivers occupancy does not recognise, so \
