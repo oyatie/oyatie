@@ -58,6 +58,15 @@ pub enum OntologyEngineError {
     /// been registered for the tenant. Register the link type before creating
     /// instances of it.
     UnknownLinkType,
+    /// An evolution candidate changes a field that is frozen for its
+    /// definition kind: link endpoints, cardinality, or cross-tenant flag;
+    /// an action's entity type, surface, autonomy ceiling, or audit event
+    /// type; or any existing parameter's quadruple. The field label names
+    /// the frozen field.
+    FrozenFieldChangedOnEvolution {
+        /// Static label of the frozen field that differed.
+        field: String,
+    },
     /// A property or parameter declaration carries a malformed value type
     /// ([`ValueTypeDeclaration::validate`](crate::ValueTypeDeclaration::validate)
     /// refused it at registration).

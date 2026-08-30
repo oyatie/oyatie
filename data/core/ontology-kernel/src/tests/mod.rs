@@ -5,6 +5,7 @@ mod engine_registration;
 mod evolution_guards;
 mod instance_conformance;
 mod key_title_designations;
+mod link_action_versioning;
 mod object_graph;
 mod pillar_links;
 mod revision_retention;
