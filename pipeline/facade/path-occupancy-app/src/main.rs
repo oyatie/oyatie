@@ -79,11 +79,14 @@ fn run() -> Result<(), String> {
     // forbids by name. Reading from `dev` also keeps the verdict symmetric:
     // every open PR's run resolves the same declaration, so a pair cannot
     // disagree about whether they collide.
-    let attributes = git_text(
+    // `?`, never a default. "Could not read the policy" is not "there is no
+    // policy": defaulting to an empty declaration silently exempts nothing and
+    // degrades this gate to its pre-amendment behaviour while every check stays
+    // green — which is exactly how the first version of this read shipped dead.
+    let attributes = git_blob_text(
         &config.token,
         &["show", &format!("{TRUNK_REF}:.gitattributes")],
-    )
-    .unwrap_or_default();
+    )?;
     let mergeable = declared_mergeable(&attributes).map_err(|error| error.message())?;
     admit_authored(&this, &in_flight, &mergeable).map_err(|error| error.message())
 }
@@ -204,15 +207,29 @@ fn git_change_paths(token: &str, merge_base: &str, head: &str) -> Result<GitChan
     git_change_paths_from_name_status_z(&output.stdout).map_err(|error| error.message())
 }
 
+/// Reads a git BLOB. Deliberately does no object-id validation: the content is
+/// arbitrary text. `git_text` cannot serve this purpose — it rejects any byte
+/// that is not hex, so `.gitattributes` fails at its first character.
+fn git_blob_text(token: &str, args: &[&str]) -> Result<String, String> {
+    let output = git_output(token, args)?;
+    String::from_utf8(output.stdout)
+        .map_err(|_| format!("git {} returned non-UTF-8 output", args[0]))
+}
+
+/// Reads a git OBJECT ID, and validates that it is one.
 fn git_text(token: &str, args: &[&str]) -> Result<String, String> {
     let output = git_output(token, args)?;
     let value = String::from_utf8(output.stdout)
         .map_err(|_| format!("git {} returned non-UTF-8 output", args[0]))?;
     let value = value.trim_end_matches(['\r', '\n']);
-    if value.is_empty() || value.bytes().any(|b| !b.is_ascii_hexdigit()) {
+    if !is_object_id(value) {
         return Err(format!("git {} returned an invalid object id", args[0]));
     }
     Ok(value.to_owned())
+}
+
+fn is_object_id(value: &str) -> bool {
+    !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
 fn git_output(token: &str, args: &[&str]) -> Result<Output, String> {
@@ -282,6 +299,22 @@ mod tests {
             pull_refspec(2223),
             "+refs/pull/2223/head:refs/oyatie-occupancy/pr-2223"
         );
+    }
+
+    #[test]
+    fn file_content_is_not_an_object_id() {
+        // `git_text` validates its output IS a hex object id, because it was
+        // written for `merge-base`. Reading `.gitattributes` through it always
+        // failed — at the first byte, `#` — and paired with a defaulting
+        // unwrap that made the whole exemption silently empty while every gate
+        // stayed green. `git_blob_text` exists for content; this pins why.
+        assert!(is_object_id("a355428b265db665a18c29e4fc0a35872fbd0053"));
+        assert!(!is_object_id(""));
+        assert!(
+            !is_object_id("# Cargo.lock is generated"),
+            "prose must never pass the object-id validator"
+        );
+        assert!(!is_object_id("Cargo.lock merge=cargo-lock"));
     }
 
     #[test]
