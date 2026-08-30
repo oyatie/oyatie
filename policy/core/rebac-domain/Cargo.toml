@@ -1,0 +1,17 @@
+[package]
+name = "policy-rebac-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Zanzibar relationship expansion: the namespace configuration binding an object type and relation to a userset rewrite, and the bounded evaluator that walks that rewrite against a tuple store at a pinned snapshot. Pure; the store is a port."
+
+[dependencies]
+policy-cedar-domain = { path = "../cedar-domain" }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
