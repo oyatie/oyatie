@@ -15,12 +15,25 @@ date: 2026-08-29
   vocabulary, extracted whole from `iam/core/policy-cedar-domain` with its
   behavior unchanged and its 45 tests at parity.
 - Consumers in `app/application`, `iam/core/app-control`, and
-  `iam/ports/policy-cedar-api` reach the crate through a Cargo
-  dependency-rename alias; their sources are untouched.
+  `iam/ports/policy-cedar-api` reach the crate through a behaviour-free
+  re-export shim that keeps the `iam-policy-cedar-domain` package name at
+  its old path; their sources are untouched.
 
 </baseline>
 
 <remaining>
+
+## Delete the shim, and with it a rule this file already breaks
+
+`ADR.md` states that a capability needing a decision depends on `policy/`,
+never on `iam/`. The three consumers above do exactly what that rule
+forbids: they reach a policy type through an `iam/` crate. The shim is the
+reason, and it is transitional by intent but has no forcing function - no
+gate, no deadline, only a description.
+
+Each consumer drops the shim and depends on `policy-cedar-domain` directly
+the next time it is opened for its own reasons. The shim is deleted with
+the last of them, and the rule stops being aspirational.
 
 ## Extract the decision plane
 

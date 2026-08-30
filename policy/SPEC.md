@@ -69,7 +69,10 @@ authority:
   version is strict three-part semver with no leading zeroes.
 - A tuple's canonical rendering round-trips: parsing the rendered form of any
   valid tuple yields that tuple.
-- A userset rewrite with an empty `Union` or `Intersection` child list is
-  rejected at construction.
+- The `union` and `intersection` constructors reject an empty child list,
+  and `validate()` rejects one anywhere in a tree. This is a constructor
+  convention, not a structural guarantee: `UsersetRewrite` has public
+  variants and derives `Deserialize` plainly, so a tree that arrived over
+  the wire must be `validate()`d before it is trusted.
 
 </invariants>

@@ -10,6 +10,9 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use iam_policy_cedar_domain::authz_engine::{
+    AuthzDecision, AuthzRequest, EvalLogFilter, PrincipalType,
+};
 use iam_policy_cedar_domain::obligations::{AnnotationKind, PolicyAnnotation};
 use iam_policy_cedar_domain::policy_diff::{ImpactReport, RuleDelta, diff_policy_versions};
 use iam_policy_cedar_domain::rebac::{
@@ -36,6 +39,14 @@ fn every_module_is_reachable_through_the_shim() {
     ])
     .expect("a non-empty union is valid");
     rewrite.validate().expect("the rewrite tree validates");
+
+    // `authz_engine` is the module most at risk: it was a public module path
+    // before the move, so a shim narrowed to root items would break a consumer
+    // that never named anything else.
+    let _ = std::mem::size_of::<AuthzRequest>();
+    let _ = std::mem::size_of::<AuthzDecision>();
+    let _ = std::mem::size_of::<EvalLogFilter>();
+    let _ = PrincipalType::User;
 
     // Named so a narrowed shim fails to compile rather than fails a run.
     let _ = std::mem::size_of::<RebacObjectRef>();
