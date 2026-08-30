@@ -65,6 +65,11 @@ impl KnowledgeGraphQueryEngine {
 
         let edge_filter = request.edge_filter();
         let consent_filter = request.consent_filter();
+        for root in &request.additional_root_entity_ids {
+            if graph.get(&request.tenant_id, root).is_none() {
+                return Err(KnowledgeGraphQueryError::MissingRootEntity);
+            }
+        }
         let cursor = request.resume_cursor.unwrap_or_default();
         let node_budget =
             MAX_QUERY_RESULT_NODES + usize::try_from(cursor.nodes_emitted).unwrap_or(usize::MAX);
@@ -72,6 +77,11 @@ impl KnowledgeGraphQueryEngine {
             MAX_QUERY_RESULT_EDGES + usize::try_from(cursor.edges_emitted).unwrap_or(usize::MAX);
         let mut queue = VecDeque::from([(request.root_entity_id.clone(), 0_u32)]);
         let mut seen_nodes = BTreeSet::from([request.root_entity_id.clone()]);
+        for root in &request.additional_root_entity_ids {
+            if seen_nodes.insert(root.clone()) {
+                queue.push_back((root.clone(), 0));
+            }
+        }
         let mut nodes = BTreeMap::new();
         let mut node_order: Vec<String> = Vec::new();
         let mut edges = BTreeSet::new();
@@ -84,6 +94,12 @@ impl KnowledgeGraphQueryEngine {
             &mut nodes,
         )?;
         node_order.push(request.root_entity_id.clone());
+        for root in &request.additional_root_entity_ids {
+            if !nodes.contains_key(root.as_str()) {
+                insert_node(graph, &request.tenant_id, root, &mut nodes)?;
+                node_order.push(root.clone());
+            }
+        }
 
         'bfs: while let Some((entity_id, depth)) = queue.pop_front() {
             if depth >= request.max_depth {
