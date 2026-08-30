@@ -1,4 +1,4 @@
-use iam_policy_cedar_domain::rebac::{
+use policy_cedar_domain::rebac::{
     RebacObjectRef, RebacReadSnapshot, RebacRelation, RebacSubjectRef, RebacTenantScope,
     RebacTuple, RebacTuplePage, RebacTupleQuery, RebacTupleStore, RebacTupleStoreError,
     SnapshotToken, UsersetRewrite, Zookie,
