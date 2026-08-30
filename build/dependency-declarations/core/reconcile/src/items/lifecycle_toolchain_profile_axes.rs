@@ -1,25 +1,60 @@
-/// Producer-owned mechanical projection of one exact toolchain profile.
+const TOOLCHAIN_MATERIAL_AXIS_COUNT: usize = ToolchainChangeAxisV1::Qualification as usize;
+
+/// Exact compiler, tool, LLVM, and target material before local qualification.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct ToolchainProfileAxesV1 {
+pub struct ToolchainProfileMaterialV1 {
+    role: ToolchainRoleV1,
     version: RustVersionV1,
     source: LifecycleSourceV1,
     tools: ToolchainToolsV1,
-    qualification: ToolchainQualificationV1,
     llvm_version: Box<str>,
     targets: Box<[ToolchainTargetV1]>,
-    identities: [DigestV1; ToolchainChangeAxisV1::COUNT],
+    axis_identities: [DigestV1; TOOLCHAIN_MATERIAL_AXIS_COUNT],
+    identity_sha256: DigestV1,
 }
 
-impl ToolchainProfileAxesV1 {
-    pub(crate) fn try_new(
+impl ToolchainProfileMaterialV1 {
+    pub fn try_new(
+        role: ToolchainRoleV1,
         version: RustVersionV1,
         source: LifecycleSourceV1,
         tools: ToolchainToolsV1,
-        qualification: ToolchainQualificationV1,
-        llvm_version: Box<str>,
-        targets: Box<[ToolchainTargetV1]>,
+        llvm_version: impl Into<String>,
+        mut targets: Vec<ToolchainTargetV1>,
     ) -> Result<Self, LifecycleFailureV1> {
-        let identities = [
+        validate_toolchain_role(role, &source)?;
+        if !version.matches_rustc_release(role, tools.rustc().version()) {
+            return Err(LifecycleFailureV1::new(
+                LifecycleFailureClassV1::ToolchainVersionMismatch,
+            ));
+        }
+        if targets.is_empty() || targets.len() > LifecycleBoundsV1::MAX_TOOLCHAIN_TARGETS {
+            return Err(lifecycle_bounds());
+        }
+        if !targets
+            .iter()
+            .any(|target| target.target_triple() == tools.rustc().host_triple())
+        {
+            return Err(LifecycleFailureV1::new(
+                LifecycleFailureClassV1::ToolchainTargetMismatch,
+            ));
+        }
+        targets.sort_by(|left, right| {
+            left.target_triple
+                .as_bytes()
+                .cmp(right.target_triple.as_bytes())
+        });
+        if targets
+            .windows(2)
+            .any(|pair| pair[0].target_triple == pair[1].target_triple)
+        {
+            return Err(LifecycleFailureV1::new(
+                LifecycleFailureClassV1::DuplicateIdentity,
+            ));
+        }
+        let llvm_version = lifecycle_identity(llvm_version.into())?;
+        let targets = targets.into_boxed_slice();
+        let axis_identities = [
             derive_toolchain_axis(ToolchainChangeAxisV1::RustVersion, |hash| {
                 version.encode(hash);
                 Ok(())
@@ -42,18 +77,98 @@ impl ToolchainProfileAxesV1 {
                 }
                 Ok(())
             })?,
-            derive_toolchain_axis(ToolchainChangeAxisV1::Qualification, |hash| {
-                qualification.encode(hash);
-                Ok(())
-            })?,
         ];
+        let mut hash = CanonicalHasherV1::new(b"build.toolchain-profile-material.v1\0");
+        hash.tag(role as u8);
+        hash.u64(TOOLCHAIN_MATERIAL_AXIS_COUNT as u64);
+        for axis in ToolchainChangeAxisV1::ALL
+            .into_iter()
+            .take(TOOLCHAIN_MATERIAL_AXIS_COUNT)
+        {
+            hash.tag(axis as u8);
+            hash.digest(axis_identities[axis as usize]);
+        }
         Ok(Self {
+            role,
             version,
             source,
             tools,
-            qualification,
             llvm_version,
             targets,
+            axis_identities,
+            identity_sha256: hash.finish(),
+        })
+    }
+
+    #[must_use]
+    pub const fn role(&self) -> ToolchainRoleV1 {
+        self.role
+    }
+
+    #[must_use]
+    pub const fn version(&self) -> RustVersionV1 {
+        self.version
+    }
+
+    #[must_use]
+    pub const fn source(&self) -> &LifecycleSourceV1 {
+        &self.source
+    }
+
+    #[must_use]
+    pub const fn tools(&self) -> &ToolchainToolsV1 {
+        &self.tools
+    }
+
+    #[must_use]
+    pub fn llvm_version(&self) -> &str {
+        &self.llvm_version
+    }
+
+    #[must_use]
+    pub fn targets(&self) -> &[ToolchainTargetV1] {
+        &self.targets
+    }
+
+    #[must_use]
+    pub const fn identity_sha256(&self) -> DigestV1 {
+        self.identity_sha256
+    }
+}
+
+/// Producer-owned mechanical projection of one qualified toolchain profile.
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct ToolchainProfileAxesV1 {
+    material: ToolchainProfileMaterialV1,
+    qualification: ToolchainQualificationV1,
+    identities: [DigestV1; ToolchainChangeAxisV1::COUNT],
+}
+
+impl ToolchainProfileAxesV1 {
+    pub(crate) fn try_new(
+        material: ToolchainProfileMaterialV1,
+        qualification: ToolchainQualificationV1,
+    ) -> Result<Self, LifecycleFailureV1> {
+        if !qualification.matches_role(material.role()) {
+            return Err(LifecycleFailureV1::new(
+                LifecycleFailureClassV1::ToolchainRoleMismatch,
+            ));
+        }
+        let qualification_identity =
+            derive_toolchain_axis(ToolchainChangeAxisV1::Qualification, |hash| {
+                qualification.encode(hash);
+                Ok(())
+            })?;
+        let identities = std::array::from_fn(|index| {
+            if index < TOOLCHAIN_MATERIAL_AXIS_COUNT {
+                material.axis_identities[index]
+            } else {
+                qualification_identity
+            }
+        });
+        Ok(Self {
+            material,
+            qualification,
             identities,
         })
     }
@@ -69,6 +184,16 @@ impl ToolchainProfileAxesV1 {
     #[must_use]
     pub const fn identity_sha256(&self, axis: ToolchainChangeAxisV1) -> DigestV1 {
         self.identities[axis as usize]
+    }
+
+    #[must_use]
+    pub const fn material(&self) -> &ToolchainProfileMaterialV1 {
+        &self.material
+    }
+
+    #[must_use]
+    pub const fn qualification(&self) -> ToolchainQualificationV1 {
+        self.qualification
     }
 }
 
