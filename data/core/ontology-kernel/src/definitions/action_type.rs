@@ -14,6 +14,8 @@ pub struct ActionTypeDefinition {
     pub max_autonomy_tier: AutonomyTier, // data_class: INTERNAL_ONLY
     pub audit_event_type: String,        // data_class: INTERNAL_ONLY
     pub revision: u32,                   // data_class: INTERNAL_ONLY
+    /// Rendering hints; freely evolvable.
+    pub display: Option<crate::display::DisplayMetadata>, // data_class: INTERNAL_ONLY
     /// Declared parameter schema. Empty means the action takes no
     /// parameters; submissions carrying any value are then non-conformant.
     pub parameters: Vec<ActionParameterDefinition>, // data_class: INTERNAL_ONLY
@@ -75,8 +77,15 @@ impl ActionTypeDefinition {
             max_autonomy_tier,
             audit_event_type,
             revision: 1,
+            display: None,
             parameters: Vec::new(),
         })
+    }
+
+    /// Attach rendering hints. Returns `self` for chaining.
+    pub fn with_display(mut self, display: crate::display::DisplayMetadata) -> Self {
+        self.display = Some(display);
+        self
     }
 
     /// Attach the declared parameter schema. Returns `self` for chaining,

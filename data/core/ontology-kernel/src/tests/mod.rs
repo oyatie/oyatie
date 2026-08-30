@@ -1,6 +1,7 @@
 //! In-crate unit tests, one file per plane.
 
 mod action_parameters;
+mod display_metadata;
 mod engine_registration;
 mod evolution_guards;
 mod instance_conformance;

@@ -58,6 +58,13 @@ pub enum OntologyEngineError {
     /// been registered for the tenant. Register the link type before creating
     /// instances of it.
     UnknownLinkType,
+    /// A display-metadata field is present but blank. Blank display
+    /// strings render as nothing while looking configured; the field label
+    /// names the offender.
+    BlankDisplayField {
+        /// Static label of the blank display field.
+        field: String,
+    },
     /// An evolution candidate changes a field that is frozen for its
     /// definition kind: link endpoints, cardinality, or cross-tenant flag;
     /// an action's entity type, surface, autonomy ceiling, or audit event
