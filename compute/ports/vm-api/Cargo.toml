@@ -1,24 +1,20 @@
 [package]
-name = "compute-aws-adapter"
+name = "compute-vm-api"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-[lib]
-name = "compute_aws_adapter"
-path = "src/lib.rs"
-doctest = false
-
 [dependencies]
 data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 compute-domain = { path = "../../core/domain" }
-
-[dev-dependencies]
 compute-resource = { path = "../../core/resource" }
 
 network-residency = { path = "../../../network/core/residency" }
+
+[lib]
+doctest = false
 
 [lints]
 workspace = true
