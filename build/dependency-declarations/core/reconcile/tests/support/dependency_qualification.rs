@@ -1,7 +1,8 @@
 use super::dependency_candidate::*;
 use super::dependency_currency::currency_assessment;
 use super::dependency_graph::{
-    complete_envelope, continue_dependency_impact, node, qualified_h2_candidate,
+    complete_envelope, continue_dependency_graph_construction, continue_dependency_impact, node,
+    qualified_h2_candidate,
 };
 use super::lifecycle_support::{digest, profile};
 use dependency_declarations_reconcile::*;
@@ -125,6 +126,7 @@ pub(super) fn candidate_impact(candidate: &DependencyCandidateV1, now: u64) -> D
             Some(candidate.current().identity_sha256()),
         )],
         Vec::new(),
+        continue_dependency_graph_construction,
     )
     .unwrap();
     graph

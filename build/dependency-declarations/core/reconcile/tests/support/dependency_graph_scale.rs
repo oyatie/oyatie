@@ -42,7 +42,13 @@ fn candidate_batch_is_canonical_with_shared_fanout() {
             DependencyGraphEdgeKindV1::ConfiguredBuck,
         ),
     ];
-    let graph = DependencyGraphV1::try_new(safe_envelope(), nodes, edges).unwrap();
+    let graph = DependencyGraphV1::try_new(
+        safe_envelope(),
+        nodes,
+        edges,
+        continue_dependency_graph_construction,
+    )
+    .unwrap();
     let now = LifecycleTimestampV1::from_unix_seconds(200);
     let forward = graph
         .try_analyze_candidates(
@@ -95,7 +101,13 @@ fn long_fanout_chain_is_iterative_and_closure_complete() {
         ));
         dependency = dependent;
     }
-    let graph = DependencyGraphV1::try_new(safe_envelope(), nodes, edges).unwrap();
+    let graph = DependencyGraphV1::try_new(
+        safe_envelope(),
+        nodes,
+        edges,
+        continue_dependency_graph_construction,
+    )
+    .unwrap();
     let batch = graph
         .try_analyze_candidates(
             std::slice::from_ref(&candidate),
@@ -128,6 +140,7 @@ fn conservative_complete_facts_may_widen_the_safe_closure() {
             Some(candidate.current().identity_sha256()),
         )],
         Vec::new(),
+        continue_dependency_graph_construction,
     )
     .unwrap();
     assert!(
@@ -168,7 +181,13 @@ fn every_declared_dependency_role_participates_in_impact() {
         ));
         edges.push(edge(&dependent, "h2-package", role));
     }
-    let graph = DependencyGraphV1::try_new(safe_envelope(), nodes, edges).unwrap();
+    let graph = DependencyGraphV1::try_new(
+        safe_envelope(),
+        nodes,
+        edges,
+        continue_dependency_graph_construction,
+    )
+    .unwrap();
     let batch = graph
         .try_analyze_candidates(
             std::slice::from_ref(&candidate),

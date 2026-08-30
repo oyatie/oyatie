@@ -35,6 +35,7 @@ fn source_batch_refuses_items_from_another_source() {
         extraction,
         std::slice::from_ref(&cargo_item),
         digest("mixed-source-observation"),
+        continue_release_source_batch,
     )
     .unwrap_err();
     assert_eq!(
@@ -63,6 +64,7 @@ fn ledger_refuses_duplicate_batches_and_dispositions() {
         vec![batch.clone(), batch.clone()],
         vec![item.clone()],
         vec![owner_disposition.clone()],
+        continue_release_ledger,
     )
     .unwrap_err();
     assert_eq!(
@@ -74,6 +76,7 @@ fn ledger_refuses_duplicate_batches_and_dispositions() {
         vec![batch],
         vec![item],
         vec![owner_disposition.clone(), owner_disposition],
+        continue_release_ledger,
     )
     .unwrap_err();
     assert_eq!(
@@ -114,6 +117,7 @@ fn ledger_refuses_an_item_without_its_source_batch() {
             disposition(&rust_item, ReleaseDecisionV1::Benchmark),
             disposition(&cargo_item, ReleaseDecisionV1::Benchmark),
         ],
+        continue_release_ledger,
     )
     .unwrap_err();
     assert_eq!(failure.class(), LifecycleFailureClassV1::MissingSource);
@@ -137,6 +141,7 @@ fn extraction_observation_rekeys_the_batch_receipt() {
         qualified_extraction(&rust),
         std::slice::from_ref(&item),
         digest("first-observation"),
+        continue_release_source_batch,
     )
     .unwrap();
     let second = ReleaseSourceBatchV1::try_from_items(
@@ -144,6 +149,7 @@ fn extraction_observation_rekeys_the_batch_receipt() {
         qualified_extraction(&rust),
         std::slice::from_ref(&item),
         digest("second-observation"),
+        continue_release_source_batch,
     )
     .unwrap();
     assert_ne!(
@@ -236,10 +242,55 @@ fn extraction_profile_bound_to_another_source_is_refused() {
         cargo_extraction,
         std::slice::from_ref(&item),
         digest("mismatched-extraction"),
+        continue_release_source_batch,
     )
     .unwrap_err();
     assert_eq!(
         failure.class(),
         LifecycleFailureClassV1::ExtractionProfileMismatch
+    );
+}
+
+#[test]
+fn candidate_extractor_cannot_authorize_a_released_ledger() {
+    let cargo = source(
+        LifecycleComponentV1::Cargo,
+        LifecycleChannelV1::Stable,
+        SourceMaturityV1::Released,
+        "cargo-1.98.0",
+    );
+    let item = release_item(
+        &cargo,
+        "cargo#credential-token-crlf",
+        ReleaseItemKindV1::Cargo,
+    );
+    let candidate = extraction(
+        &cargo,
+        ReleaseExtractionQualificationV1::Candidate {
+            observation_sha256: digest("candidate-observation"),
+        },
+    );
+    let batch = ReleaseSourceBatchV1::try_from_items(
+        cargo,
+        candidate,
+        std::slice::from_ref(&item),
+        digest("candidate-extraction"),
+        continue_release_source_batch,
+    )
+    .unwrap();
+    let ledger = ReleaseLedgerV1::try_new(
+        vec![batch],
+        vec![item.clone()],
+        vec![disposition(&item, ReleaseDecisionV1::Benchmark)],
+        continue_release_ledger,
+    )
+    .unwrap();
+    assert_eq!(
+        ledger.completeness(),
+        ReleaseLedgerCompletenessV1::UnqualifiedExtraction
+    );
+    assert_eq!(
+        ledger.require_released_complete().unwrap_err().class(),
+        LifecycleFailureClassV1::UnqualifiedExtraction
     );
 }

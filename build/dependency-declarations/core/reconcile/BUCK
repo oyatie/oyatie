@@ -172,6 +172,7 @@ rust_test(
     srcs = [
         "tests/lifecycle.rs",
         "tests/support/advisory.rs",
+        "tests/support/advisory_control.rs",
         "tests/support/advisory_refusals.rs",
         "tests/support/dependency_candidate.rs",
         "tests/support/dependency_candidate_axes.rs",
@@ -186,6 +187,7 @@ rust_test(
         "tests/support/dependency_qualification_refusals.rs",
         "tests/support/lifecycle.rs",
         "tests/support/lifecycle_refusals.rs",
+        "tests/support/lifecycle_release_control.rs",
         "tests/support/lifecycle_toolchain_delta.rs",
         "tests/support/lifecycle_toolchain_currency.rs",
         "tests/support/lifecycle_toolchain_currency_refusals.rs",

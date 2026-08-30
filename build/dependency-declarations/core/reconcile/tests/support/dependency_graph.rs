@@ -121,8 +121,14 @@ pub(super) fn edge(
 
 pub(super) const fn continue_dependency_impact(
     _: DependencyImpactProgressV1,
-) -> DependencyImpactControlDecisionV1 {
-    DependencyImpactControlDecisionV1::Continue
+) -> LifecycleControlDecisionV1 {
+    LifecycleControlDecisionV1::Continue
+}
+
+pub(super) const fn continue_dependency_graph_construction(
+    _: DependencyGraphConstructionProgressV1,
+) -> LifecycleControlDecisionV1 {
+    LifecycleControlDecisionV1::Continue
 }
 
 #[test]
@@ -172,11 +178,18 @@ fn whole_graph_analysis_is_order_independent_cycle_safe_and_closure_complete() {
             DependencyGraphEdgeKindV1::ConfiguredBuck,
         ),
     ];
-    let graph = DependencyGraphV1::try_new(safe_envelope(), nodes.clone(), edges.clone()).unwrap();
+    let graph = DependencyGraphV1::try_new(
+        safe_envelope(),
+        nodes.clone(),
+        edges.clone(),
+        continue_dependency_graph_construction,
+    )
+    .unwrap();
     let reversed = DependencyGraphV1::try_new(
         safe_envelope(),
         nodes.into_iter().rev().collect(),
         edges.into_iter().rev().collect(),
+        continue_dependency_graph_construction,
     )
     .unwrap();
     assert_eq!(graph.identity_sha256(), reversed.identity_sha256());

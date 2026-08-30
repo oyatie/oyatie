@@ -1,6 +1,10 @@
-fn latest_advisory_records(
-    records: &[AdvisoryRecordV1],
-) -> Result<Vec<&AdvisoryRecordV1>, LifecycleFailureV1> {
+fn latest_advisory_records<'a, C>(
+    records: &'a [AdvisoryRecordV1],
+    control: &mut AdvisoryNormalizationControlV1<C>,
+) -> Result<Vec<&'a AdvisoryRecordV1>, LifecycleFailureV1>
+where
+    C: FnMut(AdvisoryNormalizationProgressV1) -> LifecycleControlDecisionV1,
+{
     let mut latest: std::collections::BTreeMap<
         (AdvisoryAuthorityV1, AdvisoryIdentifierV1),
         &AdvisoryRecordV1,
@@ -32,6 +36,7 @@ fn latest_advisory_records(
                 }
             }
         }
+        control.record_work()?;
     }
     Ok(latest.into_values().collect())
 }
@@ -44,13 +49,18 @@ fn prefer_advisory_record(candidate: &AdvisoryRecordV1, current: &AdvisoryRecord
             && candidate.source().identity_sha256() > current.source().identity_sha256())
 }
 
-fn normalized_affected_state(
+fn normalized_affected_state<C>(
     records: &[&AdvisoryRecordV1],
-) -> Result<NormalizedAffectedStateV1, LifecycleFailureV1> {
+    control: &mut AdvisoryNormalizationControlV1<C>,
+) -> Result<NormalizedAffectedStateV1, LifecycleFailureV1>
+where
+    C: FnMut(AdvisoryNormalizationProgressV1) -> LifecycleControlDecisionV1,
+{
     let mut affected: Option<AdvisoryAffectedSetV1> = None;
     let mut qualified = false;
     for record in records {
         if record.affected().completeness() == AdvisoryAffectedSetCompletenessV1::ReferenceOnly {
+            control.record_work()?;
             continue;
         }
         match &affected {
@@ -63,6 +73,7 @@ fn normalized_affected_state(
             Some(_) => {}
         }
         qualified |= record.source().qualification().is_qualified();
+        control.record_work()?;
     }
     Ok(match affected {
         None => NormalizedAffectedStateV1::ReferenceOnly,
@@ -71,9 +82,13 @@ fn normalized_affected_state(
     })
 }
 
-fn validate_advisory_source_keys(
+fn validate_advisory_source_keys<C>(
     records: &[AdvisoryRecordV1],
-) -> Result<(), LifecycleFailureV1> {
+    control: &mut AdvisoryNormalizationControlV1<C>,
+) -> Result<(), LifecycleFailureV1>
+where
+    C: FnMut(AdvisoryNormalizationProgressV1) -> LifecycleControlDecisionV1,
+{
     let mut keys = std::collections::BTreeSet::new();
     for record in records {
         let key = (
@@ -85,49 +100,73 @@ fn validate_advisory_source_keys(
                 LifecycleFailureClassV1::DuplicateIdentity,
             ));
         }
+        control.record_work()?;
     }
     Ok(())
 }
 
-fn validate_advisory_qualification_lane(
+fn validate_advisory_qualification_lane<C>(
     records: &[AdvisoryRecordV1],
-) -> Result<(), LifecycleFailureV1> {
+    control: &mut AdvisoryNormalizationControlV1<C>,
+) -> Result<(), LifecycleFailureV1>
+where
+    C: FnMut(AdvisoryNormalizationProgressV1) -> LifecycleControlDecisionV1,
+{
     let qualified = records
         .first()
         .ok_or_else(lifecycle_internal)?
         .source()
         .qualification()
         .is_qualified();
-    if records
-        .iter()
-        .any(|record| record.source().qualification().is_qualified() != qualified)
-    {
-        return Err(LifecycleFailureV1::new(
-            LifecycleFailureClassV1::MixedAdvisoryQualification,
-        ));
+    for record in records {
+        if record.source().qualification().is_qualified() != qualified {
+            return Err(LifecycleFailureV1::new(
+                LifecycleFailureClassV1::MixedAdvisoryQualification,
+            ));
+        }
+        control.record_work()?;
     }
     Ok(())
 }
 
-fn validate_advisory_input_bounds(
+fn validate_advisory_input_bounds<C>(
     records: &[AdvisoryRecordV1],
-) -> Result<(), LifecycleFailureV1> {
+    control: &mut AdvisoryNormalizationControlV1<C>,
+) -> Result<usize, LifecycleFailureV1>
+where
+    C: FnMut(AdvisoryNormalizationProgressV1) -> LifecycleControlDecisionV1,
+{
+    let mut identifier_occurrences = 0_usize;
     let mut package_claims = 0_usize;
     let mut ranges = 0_usize;
     for record in records {
+        for _ in record.identifiers() {
+            identifier_occurrences = identifier_occurrences
+                .checked_add(1)
+                .filter(|count| *count <= LifecycleBoundsV1::MAX_TOTAL_ADVISORY_IDENTIFIERS)
+                .ok_or_else(lifecycle_bounds)?;
+            control.complete_identifier_occurrence()?;
+        }
         let Some(claims) = record.affected().claims() else {
+            control.complete_record()?;
             continue;
         };
-        package_claims = package_claims
-            .checked_add(claims.len())
-            .filter(|count| *count <= LifecycleBoundsV1::MAX_TOTAL_ADVISORY_PACKAGE_CLAIMS)
-            .ok_or_else(lifecycle_bounds)?;
         for claim in claims {
-            ranges = ranges
-                .checked_add(claim.ranges().len())
-                .filter(|count| *count <= LifecycleBoundsV1::MAX_TOTAL_ADVISORY_RANGES)
+            package_claims = package_claims
+                .checked_add(1)
+                .filter(|count| *count <= LifecycleBoundsV1::MAX_TOTAL_ADVISORY_PACKAGE_CLAIMS)
                 .ok_or_else(lifecycle_bounds)?;
+            control.complete_package_claim()?;
+            for _ in claim.ranges() {
+                ranges = ranges
+                    .checked_add(1)
+                    .filter(|count| *count <= LifecycleBoundsV1::MAX_TOTAL_ADVISORY_RANGES)
+                    .ok_or_else(lifecycle_bounds)?;
+                control.complete_range()?;
+            }
         }
+        control.complete_record()?;
     }
-    Ok(())
+    control.checkpoint_and_reset()?;
+    Ok(identifier_occurrences)
 }

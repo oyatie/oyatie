@@ -209,8 +209,15 @@ pub fn qualified_batch(source: LifecycleSourceV1, items: &[ReleaseItemV1]) -> Re
         extraction,
         items,
         digest("extraction-observation"),
+        continue_release_source_batch,
     )
     .unwrap()
+}
+
+pub const fn continue_release_source_batch(
+    _: ReleaseSourceBatchProgressV1,
+) -> LifecycleControlDecisionV1 {
+    LifecycleControlDecisionV1::Continue
 }
 
 pub fn disposition(item: &ReleaseItemV1, decision: ReleaseDecisionV1) -> ReleaseDispositionV1 {
@@ -229,4 +236,8 @@ pub fn disposition(item: &ReleaseItemV1, decision: ReleaseDecisionV1) -> Release
         ),
     )
     .unwrap()
+}
+
+pub const fn continue_release_ledger(_: ReleaseLedgerProgressV1) -> LifecycleControlDecisionV1 {
+    LifecycleControlDecisionV1::Continue
 }

@@ -96,12 +96,16 @@ pub struct ReleaseSourceBatchV1 {
 }
 
 impl ReleaseSourceBatchV1 {
-    pub fn try_from_items(
+    pub fn try_from_items<C>(
         source: LifecycleSourceV1,
         extraction: ReleaseExtractionProfileV1,
         items: &[ReleaseItemV1],
         observation_sha256: DigestV1,
-    ) -> Result<Self, LifecycleFailureV1> {
+        control: C,
+    ) -> Result<Self, LifecycleFailureV1>
+    where
+        C: FnMut(ReleaseSourceBatchProgressV1) -> LifecycleControlDecisionV1,
+    {
         let source_identity = source.identity_sha256();
         if extraction.source_identity() != source_identity
             || extraction.source_schema_sha256() != source.schema_sha256()
@@ -113,16 +117,22 @@ impl ReleaseSourceBatchV1 {
         if items.len() > LifecycleBoundsV1::MAX_RELEASE_ITEMS {
             return Err(lifecycle_bounds());
         }
-        if items
-            .iter()
-            .any(|item| item.source_identity() != source_identity)
-        {
-            return Err(LifecycleFailureV1::new(
-                LifecycleFailureClassV1::SourceCoverageMismatch,
-            ));
+        let mut control = ReleaseSourceBatchControlV1::try_new(control)?;
+        let mut identities = Vec::with_capacity(items.len());
+        for item in items {
+            if item.source_identity() != source_identity {
+                return Err(LifecycleFailureV1::new(
+                    LifecycleFailureClassV1::SourceCoverageMismatch,
+                ));
+            }
+            identities.push(item.identity_sha256());
+            control.complete_item()?;
         }
+        control.checkpoint_and_reset()?;
         let item_count = lifecycle_len(items.len())?;
-        let items_sha256 = release_item_set_sha256(items)?;
+        let items_sha256 =
+            release_identity_set_sha256_with_work(identities, || control.record_work())?;
+        control.checkpoint_and_reset()?;
         let receipt = ReleaseExtractionReceiptV1::new(
             &source,
             &extraction,
@@ -163,29 +173,32 @@ impl ReleaseSourceBatchV1 {
     }
 }
 
-/// Canonical identity of a complete item set for one source.
-pub fn release_item_set_sha256(
-    items: &[ReleaseItemV1],
-) -> Result<DigestV1, LifecycleFailureV1> {
-    release_identity_set_sha256(items.iter().map(ReleaseItemV1::identity_sha256).collect())
-}
-
-pub(crate) fn release_identity_set_sha256(
+pub(crate) fn release_identity_set_sha256_with_work<F>(
     mut identities: Vec<DigestV1>,
-) -> Result<DigestV1, LifecycleFailureV1> {
+    mut record_work: F,
+) -> Result<DigestV1, LifecycleFailureV1>
+where
+    F: FnMut() -> Result<(), LifecycleFailureV1>,
+{
     if identities.len() > LifecycleBoundsV1::MAX_RELEASE_ITEMS {
         return Err(lifecycle_bounds());
     }
+    record_work()?;
     identities.sort_unstable();
-    if identities.windows(2).any(|pair| pair[0] == pair[1]) {
-        return Err(LifecycleFailureV1::new(
-            LifecycleFailureClassV1::DuplicateIdentity,
-        ));
+    record_work()?;
+    for pair in identities.windows(2) {
+        if pair[0] == pair[1] {
+            return Err(LifecycleFailureV1::new(
+                LifecycleFailureClassV1::DuplicateIdentity,
+            ));
+        }
+        record_work()?;
     }
     let mut hash = CanonicalHasherV1::new(b"build.release-item-set.v1\0");
     hash.u64(lifecycle_len(identities.len())?);
     for identity in identities {
         hash.digest(identity);
+        record_work()?;
     }
     Ok(hash.finish())
 }

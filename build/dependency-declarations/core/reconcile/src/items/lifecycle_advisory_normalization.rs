@@ -13,37 +13,6 @@ pub enum NormalizedAdvisoryAffectedSetQualificationV1 {
     Qualified,
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-enum NormalizedAffectedStateV1 {
-    ReferenceOnly,
-    Candidate(AdvisoryAffectedSetV1),
-    Qualified(AdvisoryAffectedSetV1),
-}
-
-impl NormalizedAffectedStateV1 {
-    fn qualification(&self) -> NormalizedAdvisoryAffectedSetQualificationV1 {
-        match self {
-            Self::ReferenceOnly => NormalizedAdvisoryAffectedSetQualificationV1::ReferenceOnly,
-            Self::Candidate(_) => NormalizedAdvisoryAffectedSetQualificationV1::Candidate,
-            Self::Qualified(_) => NormalizedAdvisoryAffectedSetQualificationV1::Qualified,
-        }
-    }
-
-    fn encode(&self, hash: &mut CanonicalHasherV1) {
-        match self {
-            Self::ReferenceOnly => hash.tag(0),
-            Self::Candidate(affected) => {
-                hash.tag(1);
-                hash.digest(affected.identity_sha256());
-            }
-            Self::Qualified(affected) => {
-                hash.tag(2);
-                hash.digest(affected.identity_sha256());
-            }
-        }
-    }
-}
-
 /// One alias-connected vulnerability with complete source history.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct NormalizedAdvisoryFactV1 {
@@ -56,35 +25,57 @@ pub struct NormalizedAdvisoryFactV1 {
 }
 
 impl NormalizedAdvisoryFactV1 {
-    fn try_from_records(
+    fn try_from_records<C>(
         mut records: Vec<AdvisoryRecordV1>,
-    ) -> Result<Self, LifecycleFailureV1> {
-        let mut identifiers: Vec<AdvisoryIdentifierV1> = records
-            .iter()
-            .flat_map(AdvisoryRecordV1::identifiers)
-            .cloned()
-            .collect();
+        control: &mut AdvisoryNormalizationControlV1<C>,
+    ) -> Result<Self, LifecycleFailureV1>
+    where
+        C: FnMut(AdvisoryNormalizationProgressV1) -> LifecycleControlDecisionV1,
+    {
+        let mut identifiers = Vec::new();
+        for record in &records {
+            for identifier in record.identifiers() {
+                identifiers.push(identifier.clone());
+                control.record_work()?;
+            }
+        }
+        control.checkpoint_and_reset()?;
         identifiers.sort();
-        identifiers.dedup();
+        control.checkpoint_and_reset()?;
+        let mut unique_identifiers = Vec::with_capacity(identifiers.len());
+        for identifier in identifiers {
+            if unique_identifiers.last() != Some(&identifier) {
+                unique_identifiers.push(identifier);
+            }
+            control.record_work()?;
+        }
+        let identifiers = unique_identifiers;
+        control.checkpoint_and_reset()?;
         let canonical = identifiers.first().cloned().ok_or_else(lifecycle_internal)?;
 
-        let latest = latest_advisory_records(&records)?;
-        let lifecycle = if latest.iter().all(|record| record.lifecycle().is_withdrawn()) {
+        let latest = latest_advisory_records(&records, control)?;
+        let mut all_withdrawn = true;
+        let mut active = Vec::with_capacity(latest.len());
+        for record in &latest {
+            let withdrawn = record.lifecycle().is_withdrawn();
+            all_withdrawn &= withdrawn;
+            if !withdrawn {
+                active.push(*record);
+            }
+            control.record_work()?;
+        }
+        let lifecycle = if all_withdrawn {
             NormalizedAdvisoryLifecycleV1::Withdrawn
         } else {
             NormalizedAdvisoryLifecycleV1::Active
         };
-        let active: Vec<&AdvisoryRecordV1> = latest
-            .iter()
-            .copied()
-            .filter(|record| !record.lifecycle().is_withdrawn())
-            .collect();
         let affected = if active.is_empty() {
-            normalized_affected_state(&latest)?
+            normalized_affected_state(&latest, control)?
         } else {
-            normalized_affected_state(&active)?
+            normalized_affected_state(&active, control)?
         };
 
+        control.checkpoint_and_reset()?;
         records.sort_by(|left, right| {
             (
                 left.lifecycle().modified_at(),
@@ -97,15 +88,18 @@ impl NormalizedAdvisoryFactV1 {
                     right.identity_sha256(),
                 ))
         });
+        control.checkpoint_and_reset()?;
         let mut hash = CanonicalHasherV1::new(b"build.normalized-advisory-fact.v1\0");
         hash.digest(canonical.identity_sha256());
         hash.u64(lifecycle_len(identifiers.len())?);
         for identifier in &identifiers {
             hash.digest(identifier.identity_sha256());
+            control.record_work()?;
         }
         hash.u64(lifecycle_len(records.len())?);
         for record in &records {
             hash.digest(record.identity_sha256());
+            control.record_work()?;
         }
         hash.tag(match lifecycle {
             NormalizedAdvisoryLifecycleV1::Active => 0,
@@ -163,28 +157,34 @@ pub struct AdvisoryLedgerV1 {
 }
 
 impl AdvisoryLedgerV1 {
-    pub fn try_normalize(
+    pub fn try_normalize<C>(
         mut records: Vec<AdvisoryRecordV1>,
-    ) -> Result<Self, LifecycleFailureV1> {
+        control: C,
+    ) -> Result<Self, LifecycleFailureV1>
+    where
+        C: FnMut(AdvisoryNormalizationProgressV1) -> LifecycleControlDecisionV1,
+    {
         if records.is_empty() || records.len() > LifecycleBoundsV1::MAX_ADVISORY_RECORDS {
             return Err(lifecycle_bounds());
         }
+        let mut control = AdvisoryNormalizationControlV1::try_new(control)?;
         records.sort_by_key(AdvisoryRecordV1::identity_sha256);
-        if records.windows(2).any(|pair| pair[0] == pair[1]) {
-            return Err(LifecycleFailureV1::new(
-                LifecycleFailureClassV1::DuplicateIdentity,
-            ));
+        control.checkpoint_and_reset()?;
+        for pair in records.windows(2) {
+            if pair[0] == pair[1] {
+                return Err(LifecycleFailureV1::new(
+                    LifecycleFailureClassV1::DuplicateIdentity,
+                ));
+            }
+            control.record_work()?;
         }
+        control.checkpoint_and_reset()?;
 
-        let identifier_occurrence_count = records.iter().try_fold(0_usize, |total, record| {
-            total
-                .checked_add(record.identifiers().count())
-                .filter(|count| *count <= LifecycleBoundsV1::MAX_TOTAL_ADVISORY_IDENTIFIERS)
-                .ok_or_else(lifecycle_bounds)
-        })?;
-        validate_advisory_input_bounds(&records)?;
-        validate_advisory_source_keys(&records)?;
-        validate_advisory_qualification_lane(&records)?;
+        let identifier_occurrence_count = validate_advisory_input_bounds(&records, &mut control)?;
+        validate_advisory_source_keys(&records, &mut control)?;
+        control.checkpoint_and_reset()?;
+        validate_advisory_qualification_lane(&records, &mut control)?;
+        control.checkpoint_and_reset()?;
 
         let mut sets = AdvisoryUnionFindV1::new(records.len());
         let mut first_by_identifier: std::collections::HashMap<AdvisoryIdentifierV1, usize> =
@@ -196,33 +196,51 @@ impl AdvisoryLedgerV1 {
                 } else {
                     first_by_identifier.insert(identifier.clone(), index);
                 }
+                control.record_work()?;
             }
         }
+        control.checkpoint_and_reset()?;
 
-        let roots: Vec<usize> = (0..records.len()).map(|index| sets.find(index)).collect();
+        let mut roots = Vec::with_capacity(records.len());
+        for index in 0..records.len() {
+            roots.push(sets.find(index));
+            control.record_work()?;
+        }
+        control.checkpoint_and_reset()?;
         let mut groups: std::collections::BTreeMap<usize, Vec<AdvisoryRecordV1>> =
             std::collections::BTreeMap::new();
         for (root, record) in roots.into_iter().zip(records) {
             groups.entry(root).or_default().push(record);
+            control.record_work()?;
         }
-        let mut facts: Vec<NormalizedAdvisoryFactV1> = groups
-            .into_values()
-            .map(NormalizedAdvisoryFactV1::try_from_records)
-            .collect::<Result<_, _>>()?;
+        control.checkpoint_and_reset()?;
+        let mut facts = Vec::with_capacity(groups.len());
+        for group in groups.into_values() {
+            facts.push(NormalizedAdvisoryFactV1::try_from_records(
+                group,
+                &mut control,
+            )?);
+        }
+        control.checkpoint_and_reset()?;
         facts.sort_by(|left, right| left.canonical.cmp(&right.canonical));
+        control.checkpoint_and_reset()?;
 
-        let record_count = facts.iter().try_fold(0_usize, |total, fact| {
-            total
+        let mut record_count = 0_usize;
+        for fact in &facts {
+            record_count = record_count
                 .checked_add(fact.records.len())
-                .ok_or_else(lifecycle_bounds)
-        })?;
+                .ok_or_else(lifecycle_bounds)?;
+            control.record_work()?;
+        }
         let mut hash = CanonicalHasherV1::new(b"build.advisory-ledger.v1\0");
         hash.u64(lifecycle_len(facts.len())?);
         for fact in &facts {
             hash.digest(fact.identity_sha256());
+            control.record_work()?;
         }
         hash.u64(lifecycle_len(record_count)?);
         hash.u64(lifecycle_len(identifier_occurrence_count)?);
+        control.checkpoint_and_reset()?;
         Ok(Self {
             facts: facts.into_boxed_slice(),
             record_count: lifecycle_len(record_count)?,
