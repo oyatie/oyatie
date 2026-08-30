@@ -74,6 +74,14 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
         // false rather than refusing keeps a legitimately cyclic graph (groups
         // that contain each other) usable instead of unanswerable.
         if !walk.enter(object, relation) {
+            // Under a subtraction the least-fixed-point convention inverts:
+            // "not a member" becomes "not excluded" and grants. Refuse instead.
+            if walk.under_negation() {
+                return Err(ExpansionError::NegatedCycleInData {
+                    object_type: object.object_type().to_owned(),
+                    relation: relation.as_str().to_owned(),
+                });
+            }
             return Ok(false);
         }
         let rewrite = self.namespace.rewrite(object.object_type(), relation)?;
@@ -178,8 +186,10 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
         if !self.eval(walk, base, relation, object)? {
             return Ok(false);
         }
-        let excluded = self.eval(walk, subtract, relation, object)?;
-        Ok(!excluded)
+        walk.enter_negation();
+        let excluded = self.eval(walk, subtract, relation, object);
+        walk.leave_negation();
+        Ok(!excluded?)
     }
 
     /// `This`: tuples written directly against `object#relation`. A tuple

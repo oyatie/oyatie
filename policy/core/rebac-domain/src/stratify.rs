@@ -43,16 +43,94 @@ pub(crate) fn assert_stratified(
         graph.insert(node.clone(), edges);
     }
 
-    for start in graph.keys() {
-        let mut path = BTreeSet::new();
-        if reaches_itself_under_negation(start, start, false, &graph, &mut path) {
-            return Err(ExpansionError::NonStratified {
-                object_type: start.0.clone(),
-                relation: start.1.clone(),
-            });
+    // A cycle through a negated edge exists iff some negated edge has both
+    // endpoints in one strongly connected component. Enumerating simple paths
+    // decides the same question and is factorial: `TupleToUserset` fans out to
+    // every defined type, so k types form a complete digraph with ~(k-1)!
+    // paths, re-walked from each of k starts. Measured on a model with no
+    // negation at all — where the answer is always "fine" — ten object types
+    // took 7.5 seconds and thirteen would take hours. Since this is the only
+    // constructor for an `Expander`, that made ordinary models unbuildable.
+    let component = strongly_connected_components(&graph);
+    for (from, edges) in &graph {
+        for edge in edges {
+            if edge.negated && component.get(from) == component.get(&edge.to) {
+                return Err(ExpansionError::NonStratified {
+                    object_type: edge.to.0.clone(),
+                    relation: edge.to.1.clone(),
+                });
+            }
         }
     }
     Ok(())
+}
+
+/// Tarjan's algorithm, iterative. Recursion here would reintroduce the stack
+/// overflow that `collect` was flattened to avoid.
+fn strongly_connected_components(graph: &BTreeMap<Node, Vec<Edge>>) -> BTreeMap<Node, usize> {
+    let mut index_of: BTreeMap<&Node, usize> = BTreeMap::new();
+    let mut low: BTreeMap<&Node, usize> = BTreeMap::new();
+    let mut on_stack: BTreeSet<&Node> = BTreeSet::new();
+    let mut stack: Vec<&Node> = Vec::new();
+    let mut component: BTreeMap<Node, usize> = BTreeMap::new();
+    let mut next_index = 0usize;
+    let mut next_component = 0usize;
+
+    for root in graph.keys() {
+        if index_of.contains_key(root) {
+            continue;
+        }
+        // (node, how many of its edges have been taken)
+        let mut frames: Vec<(&Node, usize)> = vec![(root, 0)];
+        index_of.insert(root, next_index);
+        low.insert(root, next_index);
+        next_index += 1;
+        stack.push(root);
+        on_stack.insert(root);
+
+        while let Some((node, edge_index)) = frames.pop() {
+            let edges = graph.get(node).map_or(&[][..], Vec::as_slice);
+            if edge_index < edges.len() {
+                frames.push((node, edge_index + 1));
+                let Some(target) = graph.get_key_value(&edges[edge_index].to).map(|(k, _)| k)
+                else {
+                    // An edge to a relation the model never defined. The walk
+                    // will refuse it as UndefinedRelation at check time.
+                    continue;
+                };
+                if !index_of.contains_key(target) {
+                    index_of.insert(target, next_index);
+                    low.insert(target, next_index);
+                    next_index += 1;
+                    stack.push(target);
+                    on_stack.insert(target);
+                    frames.push((target, 0));
+                } else if on_stack.contains(target) {
+                    let target_index = index_of[target];
+                    let entry = low.get_mut(node).expect("visited node has a lowlink");
+                    *entry = (*entry).min(target_index);
+                }
+                continue;
+            }
+
+            if low[node] == index_of[node] {
+                while let Some(member) = stack.pop() {
+                    on_stack.remove(member);
+                    component.insert(member.clone(), next_component);
+                    if member == node {
+                        break;
+                    }
+                }
+                next_component += 1;
+            }
+            if let Some((parent, _)) = frames.last() {
+                let child_low = low[node];
+                let entry = low.get_mut(*parent).expect("parent is visited");
+                *entry = (*entry).min(child_low);
+            }
+        }
+    }
+    component
 }
 
 /// Walk a rewrite tree iteratively.

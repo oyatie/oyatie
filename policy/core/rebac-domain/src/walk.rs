@@ -34,6 +34,14 @@ pub(crate) struct Walk<'a> {
     /// `StaleSnapshot`, which is an `ExpansionError`, so the walk fails closed
     /// rather than silently drifting.
     pinned: Option<SnapshotToken>,
+    /// How many subtractions enclose the current position.
+    ///
+    /// Re-entry returns "not a member", which is sound while every enclosing
+    /// operator is monotone. Under a subtraction it is not: the re-entry reads
+    /// as "not excluded" and grants. The model-time stratifier catches cycles
+    /// the MODEL declares; a tuple whose subject is a userset can close the
+    /// same cycle in data, where no static check can see it.
+    negations: u32,
 }
 
 impl<'a> Walk<'a> {
@@ -45,6 +53,7 @@ impl<'a> Walk<'a> {
             path: BTreeSet::new(),
             budget: Budget::new(tuple_budget),
             pinned: None,
+            negations: 0,
         }
     }
 
@@ -62,6 +71,20 @@ impl<'a> Walk<'a> {
         if self.pinned.is_none() {
             self.pinned = Some(served);
         }
+    }
+
+    /// Enter the subtracted side of a `Difference`.
+    pub(crate) fn enter_negation(&mut self) {
+        self.negations = self.negations.saturating_add(1);
+    }
+
+    pub(crate) fn leave_negation(&mut self) {
+        self.negations = self.negations.saturating_sub(1);
+    }
+
+    /// Is the current position enclosed by a subtraction?
+    pub(crate) fn under_negation(&self) -> bool {
+        self.negations > 0
     }
 
     /// Descend one level, refusing past the depth bound.

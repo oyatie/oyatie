@@ -32,6 +32,14 @@ pub enum ExpansionError {
         object_type: String,
         relation: String,
     },
+    /// A relation re-entered itself while under a subtraction, closed by a
+    /// TUPLE rather than by the model. Model-time stratification cannot see
+    /// this edge — it exists only in data — so the walk refuses rather than
+    /// reading the re-entry as "not excluded" and granting.
+    NegatedCycleInData {
+        object_type: String,
+        relation: String,
+    },
     /// The store refused or failed. Never treated as an absent grant.
     Store(RebacTupleStoreError),
 }
@@ -59,6 +67,14 @@ impl fmt::Display for ExpansionError {
                 f,
                 "{object_type}#{relation} reaches itself through a Difference \
                  subtraction; such a model grants what it excludes"
+            ),
+            Self::NegatedCycleInData {
+                object_type,
+                relation,
+            } => write!(
+                f,
+                "{object_type}#{relation} re-entered itself under a subtraction \
+                 via a relationship tuple; the exclusion cannot be decided"
             ),
             Self::Store(error) => write!(f, "tuple store: {error}"),
         }
