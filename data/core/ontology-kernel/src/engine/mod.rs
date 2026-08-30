@@ -27,6 +27,12 @@ pub struct OntologyEngine {
     entity_types: BTreeMap<OntologyScopedKey, EntityTypeDefinition>,
     link_types: BTreeMap<OntologyScopedKey, LinkTypeDefinition>,
     action_types: BTreeMap<OntologyScopedKey, ActionTypeDefinition>,
+    /// Every ACCEPTED entity-type definition, keyed by
+    /// (tenant_id, type id, revision) — the revision history behind reader
+    /// pinning and instance-to-revision binding. Rejected candidates are
+    /// never retained.
+    /// data_class: INTERNAL_ONLY
+    entity_type_revisions: BTreeMap<(String, String, u32), EntityTypeDefinition>,
     /// Full 4-tuple registry for idempotency checks.
     /// Key: (tenant_id, link_type_id, from_entity_id, to_entity_id)
     /// data_class: INTERNAL_ONLY
@@ -63,6 +69,7 @@ impl OntologyEngine {
             return Err(OntologyEngineError::DuplicateEntityType);
         }
         let id = definition.id.clone();
+        self.retain_entity_type_revision(&definition);
         self.entity_types.insert(key, definition);
         Ok(id)
     }
@@ -134,6 +141,28 @@ impl OntologyEngine {
     pub fn entity_type(&self, tenant_id: &str, id: &EntityTypeId) -> Option<&EntityTypeDefinition> {
         self.entity_types
             .get(&ontology_scoped_key(tenant_id, &id.value))
+    }
+    /// The definition as it was ACCEPTED at `revision`, or `None` if no
+    /// evolution ever landed that exact revision for the tenant. History is
+    /// retained per accepted evolution — rejected candidates never appear.
+    pub fn entity_type_at_revision(
+        &self,
+        tenant_id: &str,
+        id: &EntityTypeId,
+        revision: u32,
+    ) -> Option<&EntityTypeDefinition> {
+        self.entity_type_revisions
+            .get(&(tenant_id.to_string(), id.value.clone(), revision))
+    }
+    pub(crate) fn retain_entity_type_revision(&mut self, definition: &EntityTypeDefinition) {
+        self.entity_type_revisions.insert(
+            (
+                definition.tenant_id.clone(),
+                definition.id.value.clone(),
+                definition.revision,
+            ),
+            definition.clone(),
+        );
     }
     /// Return the [`LinkTypeDefinition`] registered for `tenant_id` and `id`,
     /// or `None` if no such link type has been registered.
