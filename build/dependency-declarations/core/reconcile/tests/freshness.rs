@@ -104,7 +104,7 @@ fn validated_generation() -> ValidatedGenerationV1 {
         Ok((graph("demo"), rendered("demo"))),
         Ok((graph("demo"), rendered("demo"))),
     ]);
-    let projection = FixedProjection::new(graph("demo"), request.parser_identity());
+    let projection = FixedProjection::new(graph("demo"), request.projection_profile_sha256());
     let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
     let result = reconcile(
         &ReconciliationRequestV1::new(request, None),

@@ -45,6 +45,12 @@ impl TreeEntryV1 {
         &self.path
     }
 
+    /// Returns the exact regular-file mode.
+    #[must_use]
+    pub const fn mode(&self) -> TreeFileModeV1 {
+        self.mode
+    }
+
     /// Returns the declared content length.
     #[must_use]
     pub const fn length_bytes(&self) -> u64 {
@@ -69,6 +75,12 @@ impl InputTreeV1 {
     #[must_use]
     pub const fn manifest(&self) -> &InputFileV1 {
         &self.manifest
+    }
+
+    /// Returns entries in canonical path order for batch materialization.
+    #[must_use]
+    pub fn entries(&self) -> &[TreeEntryV1] {
+        &self.entries
     }
 
     /// Returns the tree identity.

@@ -59,15 +59,21 @@ impl<'a> GenerationInvocationV1<'a> {
 pub struct RawGenerationV1 {
     pub(crate) artifact_transport: Box<[u8]>,
     pub(crate) stderr: Box<[u8]>,
+    pub(crate) execution: GenerationExecutionObservationV1,
 }
 
 impl RawGenerationV1 {
     /// Carries exact untrusted producer stdout into the pure validator.
     #[must_use]
-    pub fn unverified_provider_artifact(artifact_transport: Vec<u8>, stderr: Vec<u8>) -> Self {
+    pub fn unverified_provider_artifact(
+        artifact_transport: Vec<u8>,
+        stderr: Vec<u8>,
+        execution: GenerationExecutionObservationV1,
+    ) -> Self {
         Self {
             artifact_transport: artifact_transport.into_boxed_slice(),
             stderr: stderr.into_boxed_slice(),
+            execution,
         }
     }
 }
@@ -80,14 +86,16 @@ pub(crate) struct AdmittedGenerationV1 {
     pub(crate) bytes: Box<[u8]>,
     pub(crate) output_sha256: DigestV1,
     pub(crate) provider_receipt_sha256: DigestV1,
+    pub(crate) execution_fingerprint_sha256: DigestV1,
+    pub(crate) execution_receipt_sha256: DigestV1,
     pub(crate) attempt_receipt_sha256: DigestV1,
 }
 
 /// Untrusted independent parser projection returned across its port.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParsedBuckProjectionV1 {
-    pub(crate) parser_identity: DigestV1,
-    pub(crate) graph: RuleGraphV1,
+    pub(crate) profile_sha256: DigestV1,
+    pub(crate) graph: RenderedRuleGraphV1,
     pub(crate) graph_sha256: DigestV1,
     pub(crate) output_sha256: DigestV1,
     pub(crate) receipt_sha256: DigestV1,
@@ -96,18 +104,18 @@ pub struct ParsedBuckProjectionV1 {
 impl ParsedBuckProjectionV1 {
     /// Builds a self-consistent projection receipt over exact rendered bytes.
     pub fn for_projection(
-        parser_identity: DigestV1,
-        graph: RuleGraphV1,
+        profile_sha256: DigestV1,
+        graph: RenderedRuleGraphV1,
         rendered_buck: &[u8],
     ) -> Self {
         let graph_sha256 = graph.sha256();
         let output_sha256 = DigestV1::of(rendered_buck);
         let mut hash = CanonicalHasherV1::new(b"build.declaration-projection.v1\0");
-        hash.digest(parser_identity);
+        hash.digest(profile_sha256);
         hash.digest(graph_sha256);
         hash.digest(output_sha256);
         Self {
-            parser_identity,
+            profile_sha256,
             graph,
             graph_sha256,
             output_sha256,
@@ -125,6 +133,7 @@ pub struct ValidatedGenerationV1 {
     pub(crate) output_length_bytes: u64,
     pub(crate) provider_graph_sha256: DigestV1,
     pub(crate) graph_sha256: DigestV1,
+    pub(crate) execution_fingerprint_sha256: DigestV1,
     pub(crate) graph: RuleGraphV1,
     pub(crate) bytes: Box<[u8]>,
     pub(crate) validator: ValidatorProfileV1,
@@ -155,6 +164,8 @@ impl ValidatedGenerationV1 {
 pub(crate) struct GenerationAttemptEvidenceV1 {
     pub(crate) invocation_id: DigestV1,
     pub(crate) provider_receipt_sha256: DigestV1,
+    pub(crate) execution_fingerprint_sha256: DigestV1,
+    pub(crate) execution_receipt_sha256: DigestV1,
     pub(crate) provider_graph_sha256: DigestV1,
     pub(crate) provider_graph_length: u64,
     pub(crate) graph_sha256: DigestV1,
@@ -167,6 +178,8 @@ pub(crate) fn generation_attempt_receipt(evidence: &GenerationAttemptEvidenceV1)
     let mut hash = CanonicalHasherV1::new(b"build.declaration-attempt.v1\0");
     hash.digest(evidence.invocation_id);
     hash.digest(evidence.provider_receipt_sha256);
+    hash.digest(evidence.execution_fingerprint_sha256);
+    hash.digest(evidence.execution_receipt_sha256);
     hash.digest(evidence.provider_graph_sha256);
     hash.u64(evidence.provider_graph_length);
     hash.digest(evidence.graph_sha256);

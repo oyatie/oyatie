@@ -1,5 +1,0 @@
-[buildscript]
-run = true
-
-[buildscript.build]
-extra_srcs = ["src/items/**/*.rs"]

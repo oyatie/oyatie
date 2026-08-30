@@ -1,6 +1,5 @@
 load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
 
-_FIXUP = "third-party//fixups/dependency-declarations-reconcile:fixups.toml"
 _PACKAGE_VIEW = ["//build/dependency-declarations/core/reconcile/..."]
 
 rust_binary(
@@ -79,13 +78,8 @@ rust_test(
     srcs = ["build.rs", "tests/module_membership.rs"],
     crate = "dependency_declarations_reconcile_module_membership_test",
     crate_root = "tests/module_membership.rs",
-    env = {
-        "CARGO_MANIFEST_DIR": "build/dependency-declarations/core/reconcile",
-        "DEPENDENCY_DECLARATIONS_RECONCILE_FIXUP": "$(location {})".format(_FIXUP),
-    },
-    resources = [_FIXUP],
     visibility = [],
-    within_view = _PACKAGE_VIEW + [_FIXUP],
+    within_view = _PACKAGE_VIEW,
     deps = [":dependency-declarations-reconcile"],
 )
 
@@ -99,6 +93,7 @@ _KERNEL_TEST_SUPPORT = [
     "tests/support/effects.rs",
     "tests/support/mod.rs",
     "tests/support/provider.rs",
+    "tests/support/request_helpers.rs",
 ]
 
 _KERNEL_TEST_VIEW = [
@@ -109,7 +104,10 @@ _KERNEL_TEST_VIEW = [
 
 rust_test(
     name = "dependency-declarations-reconcile-request-test",
-    srcs = ["tests/request.rs"] + _KERNEL_TEST_SUPPORT,
+    srcs = [
+        "tests/request.rs",
+        "tests/request/input_reads.rs",
+    ] + _KERNEL_TEST_SUPPORT,
     crate = "dependency_declarations_reconcile_request_test",
     crate_root = "tests/request.rs",
     visibility = [],
@@ -139,7 +137,10 @@ rust_test(
 
 rust_test(
     name = "dependency-declarations-reconcile-validation-test",
-    srcs = ["tests/validation.rs"] + _KERNEL_TEST_SUPPORT,
+    srcs = [
+        "tests/validation.rs",
+        "tests/validation/semantic_maps.rs",
+    ] + _KERNEL_TEST_SUPPORT,
     crate = "dependency_declarations_reconcile_validation_test",
     crate_root = "tests/validation.rs",
     visibility = [],

@@ -8,6 +8,8 @@ mod cargo_build;
 mod collision;
 #[path = "provider_source/identity.rs"]
 mod identity;
+#[path = "provider_source/qualification.rs"]
+mod qualification;
 #[path = "provider_source/snapshot.rs"]
 mod snapshot;
 #[path = "provider_source/support.rs"]

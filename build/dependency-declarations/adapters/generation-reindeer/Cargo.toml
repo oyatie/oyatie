@@ -13,9 +13,11 @@ prettyplease.workspace = true
 proc-macro2 = { workspace = true, features = ["span-locations"] }
 quote.workspace = true
 sha2.workspace = true
+starlark_syntax.workspace = true
 syn = { workspace = true, features = ["visit-mut"] }
 
 [dev-dependencies]
+dependency-declarations-publication = { path = "../../ports/publication" }
 serde_json.workspace = true
 
 [lib]

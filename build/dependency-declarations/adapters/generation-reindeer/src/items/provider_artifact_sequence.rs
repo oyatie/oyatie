@@ -17,18 +17,14 @@ fn render_reindeer_artifact_sequence_tokens_v1() -> proc_macro2::TokenStream {
                 serializer: ReindeerValueSerializerV1,
                 len: Option<usize>,
             ) -> Result<Self, ReindeerValueErrorV1> {
-                Self::new(
-                    ReindeerSequenceKindV1::List,
-                    serializer,
-                    len.unwrap_or_default(),
-                )
+                Self::new(ReindeerSequenceKindV1::List, serializer, len)
             }
 
             pub(super) fn tuple(
                 serializer: ReindeerValueSerializerV1,
                 len: usize,
             ) -> Result<Self, ReindeerValueErrorV1> {
-                Self::new(ReindeerSequenceKindV1::Tuple, serializer, len)
+                Self::new(ReindeerSequenceKindV1::Tuple, serializer, Some(len))
             }
 
             pub(super) fn call(
@@ -42,20 +38,20 @@ fn render_reindeer_artifact_sequence_tokens_v1() -> proc_macro2::TokenStream {
                     ));
                 }
                 serializer.charge(name.len().saturating_add(1))?;
-                Self::new(ReindeerSequenceKindV1::Call(name), serializer, len)
+                Self::new(ReindeerSequenceKindV1::Call(name), serializer, Some(len))
             }
 
             fn new(
                 kind: ReindeerSequenceKindV1,
                 serializer: ReindeerValueSerializerV1,
-                len: usize,
+                len: Option<usize>,
             ) -> Result<Self, ReindeerValueErrorV1> {
-                ensure_collection_bound(len)?;
-                reserve_collection_budget(&serializer, len, 1)?;
+                let capacity = collection_capacity_hint(len)?;
+                serializer.charge(1)?;
                 Ok(Self {
                     kind,
                     element_serializer: serializer.child()?,
-                    values: Vec::with_capacity(len),
+                    values: Vec::with_capacity(capacity),
                 })
             }
 
@@ -64,6 +60,7 @@ fn render_reindeer_artifact_sequence_tokens_v1() -> proc_macro2::TokenStream {
                 T: Serialize + ?Sized,
             {
                 ensure_collection_bound(self.values.len().saturating_add(1))?;
+                self.element_serializer.charge(1)?;
                 self.values
                     .push(value.serialize(self.element_serializer.clone())?);
                 Ok(())

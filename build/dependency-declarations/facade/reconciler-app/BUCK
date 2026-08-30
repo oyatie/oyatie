@@ -1,6 +1,5 @@
 load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
 
-_FIXUP = "third-party//fixups/dependency-declarations-reconciler-app:fixups.toml"
 _PACKAGE_VIEW = ["//build/dependency-declarations/facade/reconciler-app/..."]
 
 rust_binary(
@@ -54,7 +53,6 @@ _BUILD_ENV = {
 
 _FACADE_VIEW = [
     "//build/dependency-declarations/adapters/generation-reindeer/...",
-    "//build/dependency-declarations/adapters/publication-filesystem/...",
     "//build/dependency-declarations/core/reconcile/...",
     "//build/dependency-declarations/facade/reconciler-app/...",
     "//build/dependency-declarations/ports/generation/...",
@@ -71,21 +69,10 @@ rust_library(
     within_view = _FACADE_VIEW,
     deps = [
         "//build/dependency-declarations/adapters/generation-reindeer:dependency-declarations-generation-reindeer",
-        "//build/dependency-declarations/adapters/publication-filesystem:dependency-declarations-publication-filesystem",
         "//build/dependency-declarations/core/reconcile:dependency-declarations-reconcile",
         "//build/dependency-declarations/ports/generation:dependency-declarations-generation",
         "//build/dependency-declarations/ports/publication:dependency-declarations-publication",
     ],
-)
-
-rust_binary(
-    name = "dependency-declarations-reconciler-app-bin",
-    srcs = ["src/main.rs"],
-    crate = "dependency_declarations_reconciler_app_bin",
-    crate_root = "src/main.rs",
-    visibility = [],
-    within_view = _PACKAGE_VIEW,
-    deps = [":dependency-declarations-reconciler-app"],
 )
 
 rust_test(
@@ -93,12 +80,7 @@ rust_test(
     srcs = ["build.rs", "tests/module_membership.rs"],
     crate = "dependency_declarations_reconciler_app_module_membership_test",
     crate_root = "tests/module_membership.rs",
-    env = {
-        "CARGO_MANIFEST_DIR": "build/dependency-declarations/facade/reconciler-app",
-        "DEPENDENCY_DECLARATIONS_RECONCILER_APP_FIXUP": "$(location {})".format(_FIXUP),
-    },
-    resources = [_FIXUP],
     visibility = [],
-    within_view = _PACKAGE_VIEW + [_FIXUP],
+    within_view = _PACKAGE_VIEW,
     deps = [":dependency-declarations-reconciler-app"],
 )

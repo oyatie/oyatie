@@ -30,7 +30,15 @@ pub fn raw_provider_artifact(
     rendered: Vec<u8>,
     stderr: Vec<u8>,
 ) -> RawGenerationV1 {
-    raw_provider_artifact_with_fault(invocation, graph, rendered, stderr, None)
+    raw_provider_artifact_with_fault(
+        invocation,
+        graph,
+        rendered,
+        stderr,
+        DigestV1::of(b"observed repository and Cargo reads"),
+        DigestV1::of(b"observed stage writes"),
+        None,
+    )
 }
 
 pub fn raw_provider_artifact_with_fault(
@@ -38,6 +46,8 @@ pub fn raw_provider_artifact_with_fault(
     graph: &RuleGraphV1,
     rendered: Vec<u8>,
     stderr: Vec<u8>,
+    observed_reads_sha256: DigestV1,
+    observed_writes_sha256: DigestV1,
     fault: Option<ProviderArtifactFaultV1>,
 ) -> RawGenerationV1 {
     let mut graph_bytes = encode_graph(invocation.request(), graph, fault);
@@ -74,7 +84,13 @@ pub fn raw_provider_artifact_with_fault(
     if matches!(fault, Some(ProviderArtifactFaultV1::TrailingTransportByte)) {
         transport.push(0);
     }
-    RawGenerationV1::unverified_provider_artifact(transport, stderr)
+    let execution = GenerationExecutionObservationV1::completed(
+        invocation,
+        observed_reads_sha256,
+        observed_writes_sha256,
+        invocation.invocation_id(),
+    );
+    RawGenerationV1::unverified_provider_artifact(transport, stderr, execution)
 }
 
 fn encode_graph(

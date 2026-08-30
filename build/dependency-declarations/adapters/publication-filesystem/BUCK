@@ -1,6 +1,5 @@
 load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
 
-_FIXUP = "third-party//fixups/dependency-declarations-publication-filesystem:fixups.toml"
 _PACKAGE_VIEW = ["//build/dependency-declarations/adapters/publication-filesystem/..."]
 
 rust_binary(
@@ -90,12 +89,7 @@ rust_test(
     srcs = ["build.rs", "tests/module_membership.rs"],
     crate = "dependency_declarations_publication_filesystem_module_membership_test",
     crate_root = "tests/module_membership.rs",
-    env = {
-        "CARGO_MANIFEST_DIR": "build/dependency-declarations/adapters/publication-filesystem",
-        "DEPENDENCY_DECLARATIONS_PUBLICATION_FILESYSTEM_FIXUP": "$(location {})".format(_FIXUP),
-    },
-    resources = [_FIXUP],
     visibility = [],
-    within_view = _PACKAGE_VIEW + [_FIXUP],
+    within_view = _PACKAGE_VIEW,
     deps = [":dependency-declarations-publication-filesystem"],
 )

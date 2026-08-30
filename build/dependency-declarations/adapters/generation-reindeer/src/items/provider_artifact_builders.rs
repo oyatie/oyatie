@@ -7,6 +7,7 @@ fn render_reindeer_artifact_builders_v1() -> Result<Vec<u8>, ReindeerProviderAda
         use serde::ser::SerializeStruct;
         use serde::ser::SerializeTuple;
         use serde::ser::SerializeTupleStruct;
+        use serde_starlark::MULTILINE;
 
         use super::ReindeerValueErrorV1;
         use super::ReindeerValueSerializerV1;
@@ -28,12 +29,11 @@ fn render_reindeer_artifact_builders_v1() -> Result<Vec<u8>, ReindeerProviderAda
                 serializer: ReindeerValueSerializerV1,
                 len: Option<usize>,
             ) -> Result<Self, ReindeerValueErrorV1> {
-                let len = len.unwrap_or_default();
-                ensure_collection_bound(len)?;
-                reserve_collection_budget(&serializer, len, 2)?;
+                let capacity = collection_capacity_hint(len)?;
+                serializer.charge(1)?;
                 Ok(Self {
                     element_serializer: serializer.child()?,
-                    entries: Vec::with_capacity(len),
+                    entries: Vec::with_capacity(capacity),
                     next_key: None,
                 })
             }
@@ -63,6 +63,7 @@ fn render_reindeer_artifact_builders_v1() -> Result<Vec<u8>, ReindeerProviderAda
                     .take()
                     .ok_or_else(|| ReindeerValueErrorV1::refused("map key is missing"))?;
                 ensure_collection_bound(self.entries.len().saturating_add(1))?;
+                self.element_serializer.charge(2)?;
                 self.entries
                     .push((key, value.serialize(self.element_serializer.clone())?));
                 Ok(())
@@ -92,18 +93,17 @@ fn render_reindeer_artifact_builders_v1() -> Result<Vec<u8>, ReindeerProviderAda
                 name: &'static str,
                 len: usize,
             ) -> Result<Self, ReindeerValueErrorV1> {
-                ensure_collection_bound(len)?;
+                let capacity = collection_capacity_hint(Some(len))?;
                 if name.len() > MAX_STRING_BYTES {
                     return Err(ReindeerValueErrorV1::refused(
                         "callee exceeds byte bound",
                     ));
                 }
-                reserve_collection_budget(&serializer, len, 1)?;
-                serializer.charge(name.len().saturating_add(1))?;
+                serializer.charge(name.len().saturating_add(2))?;
                 Ok(Self {
                     name,
                     element_serializer: serializer.child()?,
-                    fields: Vec::with_capacity(len),
+                    fields: Vec::with_capacity(capacity),
                 })
             }
         }
@@ -121,6 +121,7 @@ fn render_reindeer_artifact_builders_v1() -> Result<Vec<u8>, ReindeerProviderAda
                 T: Serialize + ?Sized,
             {
                 ensure_collection_bound(self.fields.len().saturating_add(1))?;
+                self.element_serializer.charge(1)?;
                 if key.len() > MAX_STRING_BYTES {
                     return Err(ReindeerValueErrorV1::refused(
                         "field name exceeds byte bound",
@@ -206,16 +207,35 @@ fn render_reindeer_artifact_builders_v1() -> Result<Vec<u8>, ReindeerProviderAda
             Ok(())
         }
 
-        fn reserve_collection_budget(
-            serializer: &ReindeerValueSerializerV1,
-            len: usize,
-            values_per_item: usize,
-        ) -> Result<(), ReindeerValueErrorV1> {
-            let values = len
-                .checked_mul(values_per_item)
-                .and_then(|value| value.checked_add(1))
-                .ok_or_else(|| ReindeerValueErrorV1::refused("collection budget overflow"))?;
-            serializer.charge(values)
+        fn collection_capacity_hint(
+            len: Option<usize>,
+        ) -> Result<usize, ReindeerValueErrorV1> {
+            match len {
+                None | Some(MULTILINE) => Ok(0),
+                Some(len) => {
+                    ensure_collection_bound(len)?;
+                    Ok(len)
+                }
+            }
+        }
+
+        #[cfg(test)]
+        mod tests {
+            use super::MAX_CONTAINER_ITEMS;
+            use super::collection_capacity_hint;
+
+            #[test]
+            fn artifact_formatting_sentinel_is_not_an_item_count() {
+                assert_eq!(
+                    collection_capacity_hint(Some(serde_starlark::MULTILINE)).unwrap(),
+                    0
+                );
+            }
+
+            #[test]
+            fn artifact_excessive_capacity_hint_is_refused() {
+                assert!(collection_capacity_hint(Some(MAX_CONTAINER_ITEMS + 1)).is_err());
+            }
         }
     })
 }

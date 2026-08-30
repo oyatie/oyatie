@@ -4,8 +4,9 @@ use dependency_declarations_generation::{DeclarationProviderCapabilityPort, Gene
 use dependency_declarations_reconcile::*;
 
 use support::{
-    FixedProjection, RecordingPublisher, ScriptedGenerator, graph, rendered,
-    valid_generation_request,
+    FixedProjection, ProjectionProfileVariation, RecordingPublisher, ScriptedGenerator,
+    generation_request_with_projection_variation, generation_request_with_provider_profile, graph,
+    rendered, valid_generation_request,
 };
 
 #[test]
@@ -36,6 +37,10 @@ fn generation_port_failures_map_to_stable_failure_classes() {
             FailureClassV1::GeneratorOutputTooLarge,
         ),
         (
+            GenerationPortErrorV1::UndeclaredAccess,
+            FailureClassV1::UndeclaredGenerationAccess,
+        ),
+        (
             GenerationPortErrorV1::InternalInvariant,
             FailureClassV1::InternalInvariant,
         ),
@@ -43,7 +48,7 @@ fn generation_port_failures_map_to_stable_failure_classes() {
     for (port_error, expected) in cases {
         let request = valid_generation_request(false);
         let generator = ScriptedGenerator::new(vec![Err(port_error)]);
-        let parser = FixedProjection::new(graph("demo"), request.parser_identity());
+        let parser = FixedProjection::new(graph("demo"), request.projection_profile_sha256());
         let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
         let result = reconcile(
             &ReconciliationRequestV1::new(request, None),
@@ -70,7 +75,7 @@ fn unsupported_generation_provider_refuses_before_every_effect() {
         Ok((graph("demo"), rendered("demo"))),
         Ok((graph("demo"), rendered("demo"))),
     ]);
-    let parser = FixedProjection::new(graph("demo"), request.parser_identity());
+    let parser = FixedProjection::new(graph("demo"), request.projection_profile_sha256());
     let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
 
     let result = reconcile(
@@ -87,26 +92,36 @@ fn unsupported_generation_provider_refuses_before_every_effect() {
 }
 
 #[test]
-fn unmatched_projection_profile_refuses_before_every_effect() {
-    let request = valid_generation_request(false);
-    let generator = ScriptedGenerator::new(vec![
-        Ok((graph("demo"), rendered("demo"))),
-        Ok((graph("demo"), rendered("demo"))),
-    ]);
-    let parser = FixedProjection::new(graph("demo"), DigestV1::of(b"another parser profile"));
-    let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
+fn changed_grammar_or_provider_profile_refuses_before_every_effect() {
+    let admitted_profile = valid_generation_request(false).projection_profile_sha256();
+    let changed = [
+        generation_request_with_projection_variation(ProjectionProfileVariation::Grammar),
+        generation_request_with_provider_profile(
+            "oyatie.reindeer.changed-recipe.v1",
+            b"provider source",
+            b"graph schema",
+        ),
+    ];
+    for request in changed {
+        let generator = ScriptedGenerator::new(vec![
+            Ok((graph("demo"), rendered("demo"))),
+            Ok((graph("demo"), rendered("demo"))),
+        ]);
+        let parser = FixedProjection::new(graph("demo"), admitted_profile);
+        let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
 
-    let result = reconcile(
-        &ReconciliationRequestV1::new(request, None),
-        &generator,
-        &parser,
-        &publisher,
-    );
+        let result = reconcile(
+            &ReconciliationRequestV1::new(request, None),
+            &generator,
+            &parser,
+            &publisher,
+        );
 
-    assert_refusal(result, FailureClassV1::UnsupportedProjectionProfile);
-    assert!(generator.invocations().is_empty());
-    assert_eq!(parser.calls(), 0);
-    assert_eq!(publisher.calls(), 0);
+        assert_refusal(result, FailureClassV1::UnsupportedProjectionProfile);
+        assert!(generator.invocations().is_empty());
+        assert_eq!(parser.calls(), 0);
+        assert_eq!(publisher.calls(), 0);
+    }
 }
 
 #[test]
@@ -126,7 +141,7 @@ fn bounded_arbitrary_provider_bytes_refuse_without_panicking() {
                 .collect();
             let request = valid_generation_request(false);
             let generator = RawTransportGenerator { transport };
-            let parser = FixedProjection::new(graph("demo"), request.parser_identity());
+            let parser = FixedProjection::new(graph("demo"), request.projection_profile_sha256());
             let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 reconcile(
@@ -160,11 +175,18 @@ impl<'a> GenerationPort<GenerationInvocationV1<'a>, RawGenerationV1, GenerationP
 {
     fn generate(
         &self,
-        _request: &GenerationInvocationV1<'a>,
+        request: &GenerationInvocationV1<'a>,
     ) -> Result<RawGenerationV1, GenerationPortErrorV1> {
+        let execution = GenerationExecutionObservationV1::completed(
+            request,
+            DigestV1::of(b"observed reads"),
+            DigestV1::of(b"observed writes"),
+            request.invocation_id(),
+        );
         Ok(RawGenerationV1::unverified_provider_artifact(
             self.transport.clone(),
             Vec::new(),
+            execution,
         ))
     }
 }

@@ -10,7 +10,7 @@ use support::{
 #[test]
 fn two_independent_invocations_produce_one_validated_generation() {
     let request = valid_generation_request(false);
-    let parser_identity = request.parser_identity();
+    let projection_profile = request.projection_profile_sha256();
     let graph_value = graph("demo");
     let generator = ScriptedGenerator::with_stderr(
         vec![
@@ -19,7 +19,7 @@ fn two_independent_invocations_produce_one_validated_generation() {
         ],
         b"first bounded diagnostic".to_vec(),
     );
-    let projection = FixedProjection::new(graph_value, parser_identity);
+    let projection = FixedProjection::new(graph_value, projection_profile);
     let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
 
     let result = reconcile(
@@ -45,7 +45,7 @@ fn two_independent_invocations_produce_one_validated_generation() {
         ],
         b"different bounded diagnostic".to_vec(),
     );
-    let replay_projection = FixedProjection::new(graph("demo"), parser_identity);
+    let replay_projection = FixedProjection::new(graph("demo"), projection_profile);
     let replay = reconcile(
         &ReconciliationRequestV1::new(request, None),
         &replay_generator,
@@ -64,7 +64,7 @@ fn two_independent_invocations_produce_one_validated_generation() {
 #[test]
 fn byte_or_full_graph_disagreement_refuses_before_projection() {
     let request = valid_generation_request(false);
-    let parser = FixedProjection::new(graph("demo"), request.parser_identity());
+    let parser = FixedProjection::new(graph("demo"), request.projection_profile_sha256());
     let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
     let byte_mismatch = ScriptedGenerator::new(vec![
         Ok((
@@ -103,6 +103,34 @@ fn byte_or_full_graph_disagreement_refuses_before_projection() {
     );
     assert_refusal(result, FailureClassV1::NondeterministicOutput);
     assert_eq!(parser.calls(), 0);
+}
+
+#[test]
+fn observed_access_disagreement_refuses_before_projection() {
+    let request = valid_generation_request(false);
+    let parser = FixedProjection::new(graph("demo"), request.projection_profile_sha256());
+    let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
+    let generator = ScriptedGenerator::with_observed_reads(
+        vec![
+            Ok((graph("demo"), rendered("demo"))),
+            Ok((graph("demo"), rendered("demo"))),
+        ],
+        vec![
+            DigestV1::of(b"first observed read set"),
+            DigestV1::of(b"second observed read set"),
+        ],
+    );
+
+    let result = reconcile(
+        &ReconciliationRequestV1::new(request, None),
+        &generator,
+        &parser,
+        &publisher,
+    );
+
+    assert_refusal(result, FailureClassV1::NondeterministicExecution);
+    assert_eq!(parser.calls(), 0);
+    assert_eq!(publisher.calls(), 0);
 }
 
 fn assert_refusal(result: ReconciliationResultV1, expected: FailureClassV1) {
