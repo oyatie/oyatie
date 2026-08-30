@@ -1,5 +1,5 @@
 [package]
-name = "compute-functions-api"
+name = "compute-k8s-api"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -11,13 +11,9 @@ data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 compute-domain = { path = "../../core/domain" }
 compute-resource = { path = "../../core/resource" }
 
-
-[dev-dependencies]
 network-residency = { path = "../../../network/core/residency" }
 
 [lib]
-name = "compute_functions_api"
-path = "src/lib.rs"
 doctest = false
 
 [lints]
