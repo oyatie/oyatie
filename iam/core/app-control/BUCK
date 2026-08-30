@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//iam/core/domain-control:iam-domain",
-        "//libs/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//iam/core/policy-cedar-domain:iam-policy-cedar-domain",
     ],
 )
@@ -20,7 +20,7 @@ rust_test(
     deps = [
         ":iam-control-app",
         "//iam/core/domain-control:iam-domain",
-        "//libs/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//iam/core/policy-cedar-domain:iam-policy-cedar-domain",
     ],
 )

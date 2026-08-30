@@ -1,5 +1,5 @@
 _DEPS = [
-    "//os/core/kernel:os-kernel",
+    "//iam/core/os-kernel:os-kernel",
     # Real X.509 crypto (G002 slice-1b-i; ADR-0561, ADR-0506). All ride the
     # aws-lc-rs backend with NO ring (rcgen default-features disabled at the
     # workspace seam; x509-parser on verify-aws).

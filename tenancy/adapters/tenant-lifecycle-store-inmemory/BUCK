@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//tenancy/core/tenant-lifecycle-kernel:tenancy-tenant-lifecycle-kernel",
-        "//libs/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
     ],
 )
 
@@ -18,8 +18,8 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//tenancy/core/tenant-lifecycle-kernel:tenancy-tenant-lifecycle-kernel",
-        "//libs/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
-        "//libs/shared-resource-provider-contract-kernel:shared-resource-provider-contract-kernel",
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+        "//compute/core/resource-provider-contract-kernel:shared-resource-provider-contract-kernel",
         "third-party//:tokio",
     ],
 )

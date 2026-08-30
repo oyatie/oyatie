@@ -7,9 +7,8 @@ rust_library(
     deps = [
         "//cell/core/region:cell-region",
         "//compute/core/resource:compute-resource",
-        "//iam/core/cloud-domain:iam-cloud-domain",
         "//network/core/residency:network-residency",
-        "//libs/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//audit/core/chain-domain:audit-chain-domain",
         "//observability/core/domain:observability-domain",
     ],
@@ -24,9 +23,8 @@ rust_test(
     deps = [
         "//cell/core/region:cell-region",
         "//compute/core/resource:compute-resource",
-        "//iam/core/cloud-domain:iam-cloud-domain",
         "//network/core/residency:network-residency",
-        "//libs/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//audit/core/chain-domain:audit-chain-domain",
         "//observability/core/domain:observability-domain",
     ],

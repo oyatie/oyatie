@@ -1,6 +1,6 @@
 _DEPS = [
     "//iam/core/identity-workload-svid-kernel:iam-identity-workload-svid-kernel",
-    "//os/core/trustd-domain:os-trustd-domain",
+    "//iam/core/trustd-domain:os-trustd-domain",
     # Real leaf-DER parsing + signature verification (G002 slice-1b-i; ADR-0561).
     # aws-lc-rs backend, NO ring (verify-aws only).
     "third-party//:x509-parser",

@@ -1,0 +1,8 @@
+# The authorization adapter reads this policy through `include_str!`, and buck2
+# runs it in a hermetic sandbox where the checkout tree is unreachable. Exporting
+# the file gives that mapping a target to name, so one include-relative literal
+# satisfies both build systems.
+export_file(
+    name = "cloud-intelligence.cedar",
+    visibility = ["PUBLIC"],
+)
