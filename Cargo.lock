@@ -6452,6 +6452,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "policy-rebac-domain"
+version = "0.1.0"
+dependencies = [
+ "policy-cedar-domain",
+]
+
+[[package]]
+name = "policy-tuple-store-inmemory"
+version = "0.1.0"
+dependencies = [
+ "policy-cedar-domain",
+ "policy-rebac-domain",
+]
+
+[[package]]
 name = "port-engine-analysis"
 version = "0.1.0"
 dependencies = [

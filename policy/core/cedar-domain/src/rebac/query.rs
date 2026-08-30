@@ -17,6 +17,12 @@ pub struct RebacTupleQuery {
     pub object: Option<RebacObjectRef>,   // data_class: TENANT_SCOPED
     pub relation: Option<RebacRelation>,  // data_class: INTERNAL_ONLY
     pub subject: Option<RebacSubjectRef>, // data_class: TENANT_SCOPED
+    /// Continuation from a prior [`RebacTuplePage::next_page_token`]. `None`
+    /// starts at the first page. A reader that ignores this reads only the
+    /// first page of a tupleset, which for an authorization walk is not a
+    /// truncated answer but a wrong one.
+    #[serde(default)]
+    pub page_token: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 impl RebacTupleQuery {
@@ -27,6 +33,7 @@ impl RebacTupleQuery {
             object: None,
             relation: None,
             subject: None,
+            page_token: None,
         }
     }
 
@@ -41,7 +48,15 @@ impl RebacTupleQuery {
             object: Some(object),
             relation: Some(relation),
             subject: None,
+            page_token: None,
         }
+    }
+
+    /// The same query, resumed at `page_token`.
+    #[must_use]
+    pub fn at_page(mut self, page_token: Option<String>) -> Self {
+        self.page_token = page_token;
+        self
     }
 
     #[must_use]
