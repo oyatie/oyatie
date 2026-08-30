@@ -58,6 +58,38 @@ pub enum OntologyEngineError {
     /// been registered for the tenant. Register the link type before creating
     /// instances of it.
     UnknownLinkType,
+    /// An [`ActionParameterDefinition`](crate::ActionParameterDefinition)
+    /// was constructed with a blank name.
+    EmptyParameterName,
+    /// An action type declares two parameters with the same name
+    /// ([`OntologyEngine::register_action_type`](crate::OntologyEngine::register_action_type)).
+    DuplicateParameterName {
+        /// The duplicated parameter name.
+        name: String,
+    },
+    /// A submission omits a declared parameter with `required: true`
+    /// ([`OntologyEngine::check_action_parameter_conformance`](crate::OntologyEngine::check_action_parameter_conformance)).
+    MissingRequiredParameter {
+        /// Name of the required parameter the submission lacks.
+        name: String,
+    },
+    /// A submission carries a parameter the action type does not declare.
+    /// Conformance is fail-closed on vocabulary.
+    UndeclaredParameter {
+        /// Name of the parameter the action type does not declare.
+        name: String,
+    },
+    /// A submitted parameter's [`PropertyTier`](crate::PropertyTier) differs
+    /// from the declared tier.
+    ParameterTierMismatch {
+        /// Name of the mismatched parameter.
+        name: String,
+    },
+    /// A submitted parameter's data class differs from the declared class.
+    ParameterDataClassMismatch {
+        /// Name of the mismatched parameter.
+        name: String,
+    },
     /// An instance names a definition property with `required: true` that is
     /// absent from the instance's property set
     /// ([`OntologyEngine::check_instance_conformance`](crate::OntologyEngine::check_instance_conformance)).

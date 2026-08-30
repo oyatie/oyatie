@@ -14,6 +14,7 @@ use data_boundary_kernel::DataClassification;
 
 use crate::error::OntologyEngineError;
 use crate::object_graph::ObjectEntity;
+use crate::property::ObjectProperty;
 
 use super::{OntologyEngine, ontology_scoped_key};
 
@@ -59,6 +60,58 @@ impl OntologyEngine {
             }
             if property.value.data_class != DataClassification::from(declared.data_class) {
                 return Err(OntologyEngineError::PropertyDataClassMismatch { name: name.clone() });
+            }
+        }
+        Ok(())
+    }
+
+    /// Check that submitted parameter `values` conform to the parameter
+    /// schema declared by the action type registered for
+    /// `(tenant_id, action_id)`.
+    ///
+    /// Fail-closed contract, in check order:
+    ///
+    /// | Error | Condition |
+    /// |-------|-----------|
+    /// | [`OntologyEngineError::UnknownActionType`](crate::OntologyEngineError::UnknownActionType) | No action type registered under `(tenant_id, action_id)`. |
+    /// | [`OntologyEngineError::MissingRequiredParameter`](crate::OntologyEngineError::MissingRequiredParameter) | A declared `required: true` parameter is absent. |
+    /// | [`OntologyEngineError::UndeclaredParameter`](crate::OntologyEngineError::UndeclaredParameter) | A submitted value names no declared parameter. |
+    /// | [`OntologyEngineError::ParameterTierMismatch`](crate::OntologyEngineError::ParameterTierMismatch) | A submitted value's tier differs from the declaration. |
+    /// | [`OntologyEngineError::ParameterDataClassMismatch`](crate::OntologyEngineError::ParameterDataClassMismatch) | A submitted value's data class differs from the declaration. |
+    pub fn check_action_parameter_conformance(
+        &self,
+        tenant_id: &str,
+        action_id: &crate::definitions::ActionTypeId,
+        values: &[ObjectProperty],
+    ) -> Result<(), OntologyEngineError> {
+        let action = self
+            .action_types
+            .get(&ontology_scoped_key(tenant_id, &action_id.value))
+            .ok_or(OntologyEngineError::UnknownActionType)?;
+
+        for declared in &action.parameters {
+            if declared.required && !values.iter().any(|v| v.name == declared.name) {
+                return Err(OntologyEngineError::MissingRequiredParameter {
+                    name: declared.name.clone(),
+                });
+            }
+        }
+
+        for value in values {
+            let Some(declared) = action.parameters.iter().find(|p| p.name == value.name) else {
+                return Err(OntologyEngineError::UndeclaredParameter {
+                    name: value.name.clone(),
+                });
+            };
+            if value.tier != declared.tier {
+                return Err(OntologyEngineError::ParameterTierMismatch {
+                    name: value.name.clone(),
+                });
+            }
+            if value.value.data_class != DataClassification::from(declared.data_class) {
+                return Err(OntologyEngineError::ParameterDataClassMismatch {
+                    name: value.name.clone(),
+                });
             }
         }
         Ok(())

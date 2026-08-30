@@ -4,6 +4,7 @@
 
 use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
+use crate::action_parameters::ActionParameterDefinition;
 use crate::error::OntologyEngineError;
 use crate::pillar::OntologyPillar;
 use crate::property::PropertyTier;
@@ -70,6 +71,9 @@ pub struct ActionTypeDefinition {
     pub surface: String,                 // data_class: INTERNAL_ONLY
     pub max_autonomy_tier: AutonomyTier, // data_class: INTERNAL_ONLY
     pub audit_event_type: String,        // data_class: INTERNAL_ONLY
+    /// Declared parameter schema. Empty means the action takes no
+    /// parameters; submissions carrying any value are then non-conformant.
+    pub parameters: Vec<ActionParameterDefinition>, // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ActionPolicyDecision {
@@ -225,7 +229,15 @@ impl ActionTypeDefinition {
             surface,
             max_autonomy_tier,
             audit_event_type,
+            parameters: Vec::new(),
         })
+    }
+
+    /// Attach the declared parameter schema. Returns `self` for chaining,
+    /// mirroring [`EntityTypeDefinition::with_pillar`].
+    pub fn with_parameters(mut self, parameters: Vec<ActionParameterDefinition>) -> Self {
+        self.parameters = parameters;
+        self
     }
 }
 
