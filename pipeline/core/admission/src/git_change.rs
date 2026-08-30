@@ -12,6 +12,7 @@ use std::str;
 pub struct GitChangePaths {
     pub occupied: BTreeSet<String>,
     pub layout_candidates: BTreeSet<String>,
+    pub unchanged_rename_destinations: BTreeSet<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -96,6 +97,9 @@ pub fn git_change_paths_from_name_status_z(
             };
             let second = path(second)?;
             changes.occupied.insert(second.clone());
+            if status == "R100" {
+                changes.unchanged_rename_destinations.insert(second.clone());
+            }
             changes.layout_candidates.insert(second);
             index += 1;
         } else if code != b'D' {
@@ -115,20 +119,34 @@ mod tests {
     use super::*;
 
     #[test]
-    fn rename_and_copy_occupy_both_ends_but_check_only_destinations() {
+    fn only_exact_renames_are_classified_as_unchanged_content() {
         let changes = git_change_paths_from_name_status_z(
-            b"R100\0old/name.rs\0new/name.rs\0C090\0source.rs\0copy.rs\0",
+            b"R100\0old/name.rs\0new/name.rs\0R099\0old/edited.rs\0new/edited.rs\0C100\0source.rs\0copy.rs\0M\0modified.rs\0",
         )
         .unwrap();
         assert_eq!(
             changes.occupied,
-            ["copy.rs", "new/name.rs", "old/name.rs", "source.rs"]
+            [
+                "copy.rs",
+                "modified.rs",
+                "new/edited.rs",
+                "new/name.rs",
+                "old/edited.rs",
+                "old/name.rs",
+                "source.rs",
+            ]
+            .map(str::to_owned)
+            .into()
+        );
+        assert_eq!(
+            changes.layout_candidates,
+            ["copy.rs", "modified.rs", "new/edited.rs", "new/name.rs"]
                 .map(str::to_owned)
                 .into()
         );
         assert_eq!(
-            changes.layout_candidates,
-            ["copy.rs", "new/name.rs"].map(str::to_owned).into()
+            changes.unchanged_rename_destinations,
+            ["new/name.rs"].map(str::to_owned).into()
         );
     }
 

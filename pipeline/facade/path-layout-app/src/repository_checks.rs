@@ -108,13 +108,16 @@ pub(super) fn live_candidate_violations(
     repository: &impl RepositoryRead,
     head: &str,
     candidates: &BTreeSet<String>,
+    unchanged_rename_destinations: &BTreeSet<String>,
 ) -> Result<Vec<String>, String> {
     let mut violations = Vec::new();
     for path in candidates {
         match repository.entry_kind(head, path)? {
             Some(kind) if regular_blob(Some(kind)) => {
                 let contents = repository.blob_bytes(head, path)?;
-                violations.extend(file_budget_violations(path, &contents));
+                if !unchanged_rename_destinations.contains(path) {
+                    violations.extend(file_budget_violations(path, &contents));
+                }
             }
             Some(kind) => violations.push(format!(
                 "{path}: live changed content must be a regular Git blob, got {kind:?}"
