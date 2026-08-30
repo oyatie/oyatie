@@ -65,10 +65,17 @@ impl KnowledgeGraphQueryEngine {
 
         let edge_filter = request.edge_filter();
         let consent_filter = request.consent_filter();
+        let cursor = request.resume_cursor.unwrap_or_default();
+        let node_budget =
+            MAX_QUERY_RESULT_NODES + usize::try_from(cursor.nodes_emitted).unwrap_or(usize::MAX);
+        let edge_budget =
+            MAX_QUERY_RESULT_EDGES + usize::try_from(cursor.edges_emitted).unwrap_or(usize::MAX);
         let mut queue = VecDeque::from([(request.root_entity_id.clone(), 0_u32)]);
         let mut seen_nodes = BTreeSet::from([request.root_entity_id.clone()]);
         let mut nodes = BTreeMap::new();
+        let mut node_order: Vec<String> = Vec::new();
         let mut edges = BTreeSet::new();
+        let mut edge_order: Vec<crate::contract::KnowledgeGraphEdge> = Vec::new();
         let mut result_truncated = false;
         insert_node(
             graph,
@@ -76,6 +83,7 @@ impl KnowledgeGraphQueryEngine {
             &request.root_entity_id,
             &mut nodes,
         )?;
+        node_order.push(request.root_entity_id.clone());
 
         'bfs: while let Some((entity_id, depth)) = queue.pop_front() {
             if depth >= request.max_depth {
@@ -127,23 +135,24 @@ impl KnowledgeGraphQueryEngine {
                 // Node cap: stop before emitting an edge to a node that cannot
                 // be included in the response. Returning an edge without both
                 // endpoints would create a dangling/orphaned graph slice.
-                if !nodes.contains_key(neighbor_id.as_str())
-                    && nodes.len() >= MAX_QUERY_RESULT_NODES
-                {
+                if !nodes.contains_key(neighbor_id.as_str()) && nodes.len() >= node_budget {
                     result_truncated = true;
                     break 'bfs;
                 }
 
                 // Edge cap: stop before inserting when at limit.
-                if edges.len() >= MAX_QUERY_RESULT_EDGES {
+                if edges.len() >= edge_budget {
                     result_truncated = true;
                     break 'bfs;
                 }
                 // Emit edge in canonical from→to orientation regardless of traversal direction.
-                edges.insert(link.as_contract_edge());
+                if edges.insert(link.as_contract_edge()) {
+                    edge_order.push(link.as_contract_edge());
+                }
 
                 if !nodes.contains_key(neighbor_id.as_str()) {
                     insert_node(graph, &request.tenant_id, neighbor_id, &mut nodes)?;
+                    node_order.push(neighbor_id.clone());
                 }
 
                 if seen_nodes.insert(neighbor_id.clone()) {
@@ -152,13 +161,31 @@ impl KnowledgeGraphQueryEngine {
             }
         }
 
+        // Page = the emission-order slice past the cursor, canonically
+        // sorted within the page. Pages partition the full result.
+        let skip_nodes = usize::try_from(cursor.nodes_emitted).unwrap_or(usize::MAX);
+        let skip_edges = usize::try_from(cursor.edges_emitted).unwrap_or(usize::MAX);
+        let mut page_nodes: Vec<crate::contract::KnowledgeGraphNode> = node_order
+            .iter()
+            .skip(skip_nodes)
+            .filter_map(|id| nodes.get(id.as_str()).cloned())
+            .collect();
+        page_nodes.sort();
+        let mut page_edges: Vec<crate::contract::KnowledgeGraphEdge> =
+            edge_order.iter().skip(skip_edges).cloned().collect();
+        page_edges.sort();
+        let next_cursor = result_truncated.then_some(QueryCursor {
+            nodes_emitted: node_order.len() as u64,
+            edges_emitted: edge_order.len() as u64,
+        });
         Ok(KnowledgeGraphQueryResponse {
             query_id: request.query_id,
             tenant_id: request.tenant_id,
-            nodes: nodes.into_values().collect(),
-            edges: edges.into_iter().collect(),
+            nodes: page_nodes,
+            edges: page_edges,
             observed_at_epoch_seconds: request.observed_at_epoch_seconds,
             result_truncated,
+            next_cursor,
         })
     }
 
