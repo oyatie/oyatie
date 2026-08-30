@@ -48,6 +48,7 @@ pub enum LifecycleFailureClassV1 {
     DependencyGraphConstructionDeadlineExceeded = 43,
     AdvisoryNormalizationCancelled = 44,
     AdvisoryNormalizationDeadlineExceeded = 45,
+    InvalidToolchainRecovery = 46,
 }
 
 /// A matchable lifecycle refusal without ambient diagnostic text.

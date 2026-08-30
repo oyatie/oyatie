@@ -42,12 +42,22 @@ mod lifecycle_toolchain_delta;
 mod lifecycle_toolchain_posture;
 #[path = "support/lifecycle_toolchain_posture_refusals.rs"]
 mod lifecycle_toolchain_posture_refusals;
+#[path = "support/lifecycle_toolchain_recovery.rs"]
+mod lifecycle_toolchain_recovery;
+#[path = "support/lifecycle_toolchain_recovery_refusals.rs"]
+mod lifecycle_toolchain_recovery_refusals;
 #[path = "support/lifecycle_toolchain_refusals.rs"]
 mod lifecycle_toolchain_refusals;
+#[path = "support/lifecycle_toolchain_safety.rs"]
+mod lifecycle_toolchain_safety;
+#[path = "support/lifecycle_toolchain_safety_refusals.rs"]
+mod lifecycle_toolchain_safety_refusals;
 #[path = "support/lifecycle_toolchain_transition.rs"]
 mod lifecycle_toolchain_transition;
 #[path = "support/toolchain_currency_support.rs"]
 mod toolchain_currency_support;
+#[path = "support/toolchain_safety_support.rs"]
+mod toolchain_safety_support;
 
 use dependency_declarations_reconcile::*;
 use lifecycle_support::*;
