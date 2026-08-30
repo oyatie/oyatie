@@ -209,6 +209,24 @@ impl ValueTypeDeclaration {
     }
 }
 
+impl crate::definitions::EntityTypePropertyDefinition {
+    /// A typed property definition: the tier is DERIVED from the
+    /// declaration's projection, so tier/type incoherence is
+    /// unrepresentable here. (Lives here rather than `definitions.rs`
+    /// purely for the file-budget split.)
+    pub fn typed(
+        name: impl Into<String>,
+        value_type: ValueTypeDeclaration,
+        data_class: data_boundary_kernel::PrivacyDataClass,
+        required: bool,
+    ) -> Result<Self, crate::error::OntologyEngineError> {
+        let tier = value_type.tier();
+        let mut property = Self::new(name, tier, data_class, required)?;
+        property.value_type = Some(value_type);
+        Ok(property)
+    }
+}
+
 fn join_path(path: &str, name: &str) -> String {
     if path.is_empty() {
         name.to_string()
