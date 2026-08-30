@@ -53,6 +53,14 @@ pub struct EntityTypeDefinition {
     /// `None` means the entity type is pillar-agnostic and does not
     /// participate in cross-pillar link rejection.
     pub pillar: Option<OntologyPillar>, // data_class: INTERNAL_ONLY
+    /// Name of the property that identifies instances of this type. Must
+    /// name a declared `required` property; immutable once set (re-keying a
+    /// population is a breaking change). `None` means instances are keyed
+    /// only by their `ent_`-prefixed id.
+    pub primary_key_property: Option<String>, // data_class: INTERNAL_ONLY
+    /// Name of the property rendered as the default human-readable label.
+    /// Must name a declared property; freely changeable across revisions.
+    pub title_property: Option<String>, // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LinkTypeDefinition {
@@ -170,6 +178,8 @@ impl EntityTypeDefinition {
             properties,
             revision,
             pillar: None,
+            primary_key_property: None,
+            title_property: None,
         })
     }
 
@@ -179,6 +189,20 @@ impl EntityTypeDefinition {
     /// participate in cross-pillar link rejection.
     pub fn with_pillar(mut self, pillar: OntologyPillar) -> Self {
         self.pillar = Some(pillar);
+        self
+    }
+
+    /// Designate the primary-key property. Integrity (declared, required,
+    /// immutable across revisions) is enforced at registration/evolution.
+    pub fn with_primary_key_property(mut self, name: impl Into<String>) -> Self {
+        self.primary_key_property = Some(name.into());
+        self
+    }
+
+    /// Designate the title property. Integrity (declared) is enforced at
+    /// registration/evolution.
+    pub fn with_title_property(mut self, name: impl Into<String>) -> Self {
+        self.title_property = Some(name.into());
         self
     }
 }

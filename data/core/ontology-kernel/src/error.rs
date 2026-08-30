@@ -58,6 +58,22 @@ pub enum OntologyEngineError {
     /// been registered for the tenant. Register the link type before creating
     /// instances of it.
     UnknownLinkType,
+    /// A designated primary-key or title property names no declared
+    /// property of the entity type.
+    DesignatedPropertyNotDeclared {
+        /// The designated name that no declared property carries.
+        name: String,
+    },
+    /// The designated primary-key property is declared `required: false`.
+    /// A key property must be present on every conformant instance.
+    PrimaryKeyPropertyNotRequired {
+        /// The designated primary-key property name.
+        name: String,
+    },
+    /// The candidate definition changes an already-set primary-key
+    /// designation (including removing it). Re-keying a population is a
+    /// breaking change; adopting a key where none was set remains allowed.
+    PrimaryKeyChangedOnEvolution,
     /// An [`ActionParameterDefinition`](crate::ActionParameterDefinition)
     /// was constructed with a blank name.
     EmptyParameterName,

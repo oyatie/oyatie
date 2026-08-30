@@ -35,6 +35,7 @@ impl OntologyEngine {
         &mut self,
         definition: EntityTypeDefinition,
     ) -> Result<EntityTypeId, OntologyEngineError> {
+        super::check_designation_integrity(&definition)?;
         let key = ontology_scoped_key(&definition.tenant_id, &definition.id.value);
         match self.entity_types.get(&key) {
             None => {
@@ -53,6 +54,14 @@ impl OntologyEngine {
                 // CrossPillarLink guarantee for existing link types.
                 if definition.pillar != stored.pillar {
                     return Err(OntologyEngineError::PillarChangedOnEvolution);
+                }
+                // Primary-key immutability: adopting a key (None -> Some) is
+                // allowed; changing or removing a set key re-keys the
+                // population, a breaking change.
+                if stored.primary_key_property.is_some()
+                    && definition.primary_key_property != stored.primary_key_property
+                {
+                    return Err(OntologyEngineError::PrimaryKeyChangedOnEvolution);
                 }
                 // Backward-compatibility check.
                 check_schema_compatibility(stored, &definition)?;
