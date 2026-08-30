@@ -137,7 +137,15 @@ fn presubmit_jobs_are_the_occupant_set() {
         "the admission build must reach crates.io on a cold cache"
     );
 
-    let collector = read("pipeline/facade/path-occupancy-app/src/main.rs");
+    // The collector spans two files: `main.rs` decides, `git.rs` reads. Freeze
+    // both, as the layout app below does — reading only `main.rs` would have
+    // let the git plumbing move out from under these assertions and report
+    // green, which is the failure mode this freeze exists to prevent.
+    let collector = format!(
+        "{}\n{}",
+        read("pipeline/facade/path-occupancy-app/src/main.rs"),
+        read("pipeline/facade/path-occupancy-app/src/git.rs")
+    );
     assert!(collector.contains("Command::new(\"gh\")"));
     assert!(collector.contains("--paginate"));
     assert!(collector.contains("refs/pull/{number}/head"));
