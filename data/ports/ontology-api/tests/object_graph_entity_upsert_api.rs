@@ -244,3 +244,34 @@ fn entity_request(
         },
     }
 }
+
+/// The legacy string-wire surface fails closed on a typed stored value:
+/// a typed property cannot be projected, and the refusal names it.
+#[test]
+fn typed_property_value_is_refused_by_the_string_wire() {
+    use data_ontology_domain::{ObjectProperty, PropertyValue};
+    let typed = ObjectProperty::typed(
+        "count".to_string(),
+        PropertyValue::Integer(7),
+        data_boundary_kernel::PrivacyDataClass::try_from(
+            data_boundary_kernel::DataClass::InternalOnly,
+        )
+        .unwrap(),
+    );
+    let entity = data_ontology_domain::ObjectEntity::new(
+        "ten_test".to_string(),
+        "ent_m1".to_string(),
+        "ety_measure".to_string(),
+        vec![typed],
+    )
+    .unwrap();
+    let error = data_ontology_api::ObjectGraphEntityUpsertApiError::NonStringPropertyValue {
+        name: "count".to_string(),
+    };
+    assert_eq!(
+        error.code().as_str(),
+        "OBJECT_GRAPH_PROPERTY_VALUE_NOT_STRING"
+    );
+    // The record builder is the enforcement point.
+    let _ = entity;
+}

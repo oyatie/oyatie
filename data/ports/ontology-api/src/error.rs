@@ -53,6 +53,14 @@ pub enum ObjectGraphEntityUpsertApiError {
         idempotency_key: String,
     },
     Kernel(ObjectGraphError),
+    /// The stored property carries a typed (non-String) value, which this
+    /// legacy string-wire surface cannot project. Fail-closed: the typed
+    /// read path is the ontology surface's own; this port never lies by
+    /// stringifying.
+    NonStringPropertyValue {
+        /// Name of the property whose value is typed.
+        name: String,
+    },
 }
 
 impl ObjectGraphEntityUpsertApiError {
@@ -116,6 +124,9 @@ impl ObjectGraphEntityUpsertApiError {
                 ObjectGraphEntityUpsertApiErrorCode::IdempotencyKeyReused
             }
             Self::Kernel(error) => object_graph_kernel_error_code(error),
+            Self::NonStringPropertyValue { .. } => {
+                ObjectGraphEntityUpsertApiErrorCode::PropertyValueNotString
+            }
         }
     }
 
@@ -156,6 +167,9 @@ impl ObjectGraphEntityUpsertApiError {
             | Self::InvalidPropertyTier { .. }
             | Self::InvalidPropertyDataClass { .. }
             | Self::Kernel(_) => ObjectGraphEntityUpsertApiStatusKind::BadRequest,
+            Self::NonStringPropertyValue { .. } => {
+                ObjectGraphEntityUpsertApiStatusKind::UnprocessableEntity
+            }
         }
     }
 
@@ -196,11 +210,17 @@ impl ObjectGraphEntityUpsertApiError {
                 "Idempotency key was already used with a different request"
             }
             Self::Kernel(error) => object_graph_kernel_error_message(error),
+            Self::NonStringPropertyValue { .. } => {
+                "Stored property value is typed; this string-wire surface cannot project it"
+            }
         }
     }
 
     fn details(&self) -> Vec<ObjectGraphEntityUpsertApiErrorDetail> {
         match self {
+            Self::NonStringPropertyValue { name } => {
+                vec![detail(name, "typed value has no string projection")]
+            }
             Self::EmptyRequestId => vec![detail("header.X-Request-Id", "must be non-empty")],
             Self::EmptyTenantHeader => vec![detail("header.X-Tenant-Id", "must be non-empty")],
             Self::EmptyIdempotencyKey => {
