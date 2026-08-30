@@ -6444,6 +6444,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "policy-pdp-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "shared-platform-contracts-kernel",
+]
+
+[[package]]
 name = "port-engine-analysis"
 version = "0.1.0"
 dependencies = [
