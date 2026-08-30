@@ -27,8 +27,8 @@ pub use change::{
 pub use dependency::{draft_dependency_violations, workspace_draft_dependency_violations};
 use inner::validate_owner_path;
 pub use manifest::{
-    cargo_entrypoint, cargo_manifest_for_crate_path, cargo_manifest_for_entrypoint,
-    cargo_manifest_violations,
+    cargo_entrypoint, cargo_entrypoints, cargo_manifest_for_crate_path,
+    cargo_manifest_for_entrypoint, cargo_manifest_violations,
 };
 pub use proto::proto_package_violations;
 pub use workspace::{WORKSPACE_EXCLUDES, WORKSPACE_MEMBER_GLOBS, workspace_membership_violations};
