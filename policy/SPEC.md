@@ -67,8 +67,11 @@ authority:
 - Annotations are empty on every Deny, explicit or by default.
 - A policy identifier is `pol_`-prefixed and non-empty beyond the prefix; a
   version is strict three-part semver with no leading zeroes.
-- A tuple's canonical rendering round-trips: parsing the rendered form of any
-  valid tuple yields that tuple.
+- A tuple's canonical rendering round-trips within a tenant: parsing the
+  rendered form of any valid tuple, with its tenant supplied again, yields
+  that tuple. The rendering carries `object#relation@subject` and not the
+  tenant, so the scope is a parameter of `parse`, never recovered from the
+  string.
 - The `union` and `intersection` constructors reject an empty child list,
   and `validate()` rejects one anywhere in a tree. This is a constructor
   convention, not a structural guarantee: `UsersetRewrite` has public
