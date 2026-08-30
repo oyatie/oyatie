@@ -128,7 +128,7 @@ fn assert_rejected(root: &Path, base: &str, head: &str, expected: &str) -> Strin
 }
 
 #[test]
-fn byte_identical_move_does_not_reinspect_existing_content_debt() {
+fn an_exact_rename_of_already_oversized_content_is_not_recharged() {
     let root = fixture();
     write_complete_owner(&root);
     write(&root, LEGACY_SOURCE, &oversized_text());
@@ -161,7 +161,7 @@ fn edited_move_remains_content_budgeted() {
 }
 
 #[test]
-fn unchanged_copy_remains_content_budgeted() {
+fn duplicated_content_arrives_as_an_addition_and_is_budgeted() {
     let root = fixture();
     write_complete_owner(&root);
     write(&root, LEGACY_SOURCE, &oversized_text());
@@ -202,5 +202,69 @@ fn byte_identical_symlink_move_still_requires_a_regular_blob() {
     let head = commit(&root, "move symlink");
 
     assert_rejected(&root, &base, &head, "regular Git blob");
+    let _ = std::fs::remove_dir_all(root);
+}
+
+// The budget is PATH-keyed, so an exact rename can carry content from a path
+// where the budget never applied to one where it does. Skipping the
+// destination on the strength of the rename score alone admits oversized
+// content that owes nothing and never did - the exemption is inherited from a
+// source that had none to give. Each test below moves an oversized file out of
+// one exempt class into a budgeted path and requires a refusal.
+
+#[test]
+fn an_exact_rename_out_of_third_party_is_still_budgeted() {
+    let root = fixture();
+    write_complete_owner(&root);
+    write(&root, "third-party/vendor/huge.rs", &oversized_text());
+    let base = commit(&root, "vendored content, exempt where it sits");
+    git(&root, &["mv", "third-party/vendor/huge.rs", MOVED_SOURCE]);
+    let head = commit(&root, "relocate vendored content into a budgeted path");
+
+    assert_rejected(&root, &base, &head, "repository 300-line file budget");
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn an_exact_rename_that_drops_a_generated_marker_is_still_budgeted() {
+    let root = fixture();
+    write_complete_owner(&root);
+    write(
+        &root,
+        "network/core/engine/src/table.generated.rs",
+        &oversized_text(),
+    );
+    let base = commit(&root, "generated content, exempt by name");
+    git(
+        &root,
+        &[
+            "mv",
+            "network/core/engine/src/table.generated.rs",
+            MOVED_SOURCE,
+        ],
+    );
+    let head = commit(&root, "rename away the generated marker");
+
+    assert_rejected(&root, &base, &head, "repository 300-line file budget");
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn an_exact_rename_out_of_owner_law_is_still_budgeted() {
+    let root = fixture();
+    write_complete_owner(&root);
+    // Owner law is exempt at its exact two-segment path only, and a real
+    // `git mv` of one scores R100 - the source must be deleted for Git to
+    // call it a rename at all, which is exactly the shape here.
+    write(&root, "network/SPEC.md", &oversized_text());
+    let base = commit(&root, "oversized owner law, exempt where it sits");
+    git(&root, &["mv", "network/SPEC.md", MOVED_SOURCE]);
+    let head = commit(&root, "relocate owner law into a budgeted path");
+
+    let error = assert_rejected(&root, &base, &head, "repository 300-line file budget");
+    assert!(
+        error.contains(MOVED_SOURCE),
+        "the refusal must name the destination that now owes the debt: {error}"
+    );
     let _ = std::fs::remove_dir_all(root);
 }

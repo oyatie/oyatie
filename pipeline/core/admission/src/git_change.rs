@@ -5,14 +5,28 @@
 //! Layout checks only changed paths that remain after the diff is applied, so
 //! deleting legacy debt or renaming it into the canonical layout stays green.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::str;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct GitChangePaths {
     pub occupied: BTreeSet<String>,
     pub layout_candidates: BTreeSet<String>,
-    pub unchanged_rename_destinations: BTreeSet<String>,
+    /// Destination -> source for renames Git scored exactly (`R100`).
+    ///
+    /// The SOURCE is what makes this usable. A destination alone cannot say
+    /// whether the content it carries was ever subject to the budget: the
+    /// budget is path-keyed, so an exact rename out of an exempt path
+    /// (`third-party/`, `Cargo.lock`, a live apex ADR, owner law) into a
+    /// budgeted one is oversized content arriving where the budget applies,
+    /// carrying no debt to inherit. Keeping the source lets the caller ask
+    /// the only question that justifies the exception - was this same
+    /// violation already visible where the file lived?
+    ///
+    /// `R100` is Git's similarity SCORE, not a byte-identity proof. It forces
+    /// equal length and a sub-multiset of chunk hashes, so line count cannot
+    /// grow across one; it does not certify the bytes are the same.
+    pub exact_rename_sources: BTreeMap<String, String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -98,7 +112,9 @@ pub fn git_change_paths_from_name_status_z(
             let second = path(second)?;
             changes.occupied.insert(second.clone());
             if status == "R100" {
-                changes.unchanged_rename_destinations.insert(second.clone());
+                changes
+                    .exact_rename_sources
+                    .insert(second.clone(), first.clone());
             }
             changes.layout_candidates.insert(second);
             index += 1;
@@ -145,8 +161,9 @@ mod tests {
                 .into()
         );
         assert_eq!(
-            changes.unchanged_rename_destinations,
-            ["new/name.rs"].map(str::to_owned).into()
+            changes.exact_rename_sources,
+            [("new/name.rs".to_owned(), "old/name.rs".to_owned())].into(),
+            "an exact rename must expose its source, not just its destination"
         );
     }
 

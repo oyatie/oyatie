@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use pipeline_admission::{
     ALLOWED_ROOT_DIRS, APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, cargo_config_violations,
@@ -108,14 +108,24 @@ pub(super) fn live_candidate_violations(
     repository: &impl RepositoryRead,
     head: &str,
     candidates: &BTreeSet<String>,
-    unchanged_rename_destinations: &BTreeSet<String>,
+    exact_rename_sources: &BTreeMap<String, String>,
 ) -> Result<Vec<String>, String> {
     let mut violations = Vec::new();
     for path in candidates {
         match repository.entry_kind(head, path)? {
             Some(kind) if regular_blob(Some(kind)) => {
                 let contents = repository.blob_bytes(head, path)?;
-                if !unchanged_rename_destinations.contains(path) {
+                // Relocating a file that ALREADY broke the budget charges its
+                // debt to whoever moved it, which is why the exception exists.
+                // But the budget is path-keyed, so the exemption must be
+                // judged at the SOURCE: grading the same bytes where they came
+                // from is the difference between forgiving pre-existing debt
+                // and laundering oversized content out of an exempt path into
+                // a budgeted one, which no longer costs anybody anything.
+                let already_owed = exact_rename_sources
+                    .get(path)
+                    .is_some_and(|source| !file_budget_violations(source, &contents).is_empty());
+                if !already_owed {
                     violations.extend(file_budget_violations(path, &contents));
                 }
             }
