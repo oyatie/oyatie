@@ -3,6 +3,7 @@
 
 mod support;
 
+mod multiroot;
 mod pagination;
 mod part_1;
 mod part_2;
