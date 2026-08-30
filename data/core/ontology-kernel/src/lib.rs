@@ -42,6 +42,7 @@ mod engine;
 mod error;
 mod object_graph;
 mod property;
+mod value;
 
 #[cfg(test)]
 mod tests;
@@ -59,3 +60,4 @@ pub use object_graph::{
     ObjectPropertyUpsertOutcome,
 };
 pub use property::{ObjectProperty, PropertyTier};
+pub use value::{CalendarDate, FiniteDouble, PropertyValue, StorageClass, ValueTypeError};
