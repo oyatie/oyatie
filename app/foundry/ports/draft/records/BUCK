@@ -1,0 +1,24 @@
+rust_library(
+    name = "foundry-records-draft",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_records_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "foundry-records-draft-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_records_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "foundry-records-draft-reference",
+    srcs = ["tests/reference_records.rs"],
+    crate = "reference_records",
+    crate_root = "tests/reference_records.rs",
+    visibility = ["PUBLIC"],
+    deps = [":foundry-records-draft"],
+)
