@@ -2,14 +2,18 @@
 //!
 //! Success means every open pull request targeting `dev` was enumerated, its
 //! Git head was fetched, and its complete NUL-delimited Git path-set was
-//! disjoint from the current pull request. API, fetch, diff, parse, and empty
+//! disjoint from the current pull request over AUTHORED paths (paths `.gitattributes`
+//! declares structurally mergeable are excluded; see `pipeline_admission::occupancy`). API, fetch, diff, parse, and empty
 //! current-set failures are all red.
 
 use std::collections::BTreeSet;
 use std::env;
-use std::process::{Command, ExitCode, Output};
+use std::process::{Command, ExitCode};
 
-use pipeline_admission::{GitChangePaths, OccupiedSet, admit, git_change_paths_from_name_status_z};
+use pipeline_admission::{
+    GitChangePaths, OccupiedSet, admit_authored, declared_mergeable,
+    git_change_paths_from_name_status_z,
+};
 
 const REMOTE: &str = "origin";
 const TRUNK_REF: &str = "refs/remotes/origin/dev";
@@ -66,7 +70,25 @@ fn run() -> Result<(), String> {
         }
     }
 
-    admit(&this, &in_flight).map_err(|error| error.message())
+    // Read the declaration from TRUNK, never from the candidate tree. The
+    // workflow compiles this binary from a separate trusted checkout precisely
+    // so a pull request cannot supply its own ruleset; reading `.gitattributes`
+    // out of `candidate` would have handed that control straight back. One
+    // line — `some/shared/file.rs merge=union` — would have dropped a shared
+    // source path out of the comparison and self-widened the lane, which D-40
+    // forbids by name. Reading from `dev` also keeps the verdict symmetric:
+    // every open PR's run resolves the same declaration, so a pair cannot
+    // disagree about whether they collide.
+    // `?`, never a default. "Could not read the policy" is not "there is no
+    // policy": defaulting to an empty declaration silently exempts nothing and
+    // degrades this gate to its pre-amendment behaviour while every check stays
+    // green — which is exactly how the first version of this read shipped dead.
+    let attributes = git_blob_text(
+        &config.token,
+        &["show", &format!("{TRUNK_REF}:.gitattributes")],
+    )?;
+    let mergeable = declared_mergeable(&attributes).map_err(|error| error.message())?;
+    admit_authored(&this, &in_flight, &mergeable).map_err(|error| error.message())
 }
 
 fn config_from_env() -> Result<Config, String> {
@@ -177,85 +199,13 @@ fn pull_head_ref(number: u64) -> String {
     format!("refs/oyatie-occupancy/pr-{number}")
 }
 
-fn git_change_paths(token: &str, merge_base: &str, head: &str) -> Result<GitChangePaths, String> {
-    let output = git_output(
-        token,
-        &["diff", "--name-status", "-z", "-M", merge_base, head, "--"],
-    )?;
-    git_change_paths_from_name_status_z(&output.stdout).map_err(|error| error.message())
-}
+mod git;
 
-fn git_text(token: &str, args: &[&str]) -> Result<String, String> {
-    let output = git_output(token, args)?;
-    let value = String::from_utf8(output.stdout)
-        .map_err(|_| format!("git {} returned non-UTF-8 output", args[0]))?;
-    let value = value.trim_end_matches(['\r', '\n']);
-    if value.is_empty() || value.bytes().any(|b| !b.is_ascii_hexdigit()) {
-        return Err(format!("git {} returned an invalid object id", args[0]));
-    }
-    Ok(value.to_owned())
-}
-
-fn git_output(token: &str, args: &[&str]) -> Result<Output, String> {
-    let auth = format!(
-        "AUTHORIZATION: basic {}",
-        base64(format!("x-access-token:{token}").as_bytes())
-    );
-    let mut command = Command::new("git");
-    command
-        .args(args)
-        .env("GIT_CONFIG_COUNT", "1")
-        .env("GIT_CONFIG_KEY_0", "http.https://github.com/.extraheader")
-        .env("GIT_CONFIG_VALUE_0", auth);
-    command_output(command, &format!("git {}", args[0]))
-}
-
-fn command_output(mut command: Command, label: &str) -> Result<Output, String> {
-    let output = command
-        .output()
-        .map_err(|error| format!("start {label}: {error}"))?;
-    if output.status.success() {
-        Ok(output)
-    } else {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        Err(format!("{label} failed: {}", stderr.trim()))
-    }
-}
-
-fn base64(input: &[u8]) -> String {
-    const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    let mut encoded = String::with_capacity(input.len().div_ceil(3) * 4);
-    for chunk in input.chunks(3) {
-        let a = chunk[0];
-        let b = *chunk.get(1).unwrap_or(&0);
-        let c = *chunk.get(2).unwrap_or(&0);
-        encoded.push(TABLE[(a >> 2) as usize] as char);
-        encoded.push(TABLE[(((a & 0x03) << 4) | (b >> 4)) as usize] as char);
-        if chunk.len() > 1 {
-            encoded.push(TABLE[(((b & 0x0f) << 2) | (c >> 6)) as usize] as char);
-        } else {
-            encoded.push('=');
-        }
-        if chunk.len() > 2 {
-            encoded.push(TABLE[(c & 0x3f) as usize] as char);
-        } else {
-            encoded.push('=');
-        }
-    }
-    encoded
-}
+use git::{command_output, git_blob_text, git_change_paths, git_output, git_text};
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn basic_auth_encoding_matches_git_https() {
-        assert_eq!(
-            base64(b"x-access-token:test"),
-            "eC1hY2Nlc3MtdG9rZW46dGVzdA=="
-        );
-    }
 
     #[test]
     fn pull_refspec_has_an_explicit_destination() {
