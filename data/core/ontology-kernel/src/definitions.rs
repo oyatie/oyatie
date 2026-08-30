@@ -74,6 +74,7 @@ pub struct LinkTypeDefinition {
     pub to_entity_type: EntityTypeId,   // data_class: INTERNAL_ONLY
     pub cardinality: LinkCardinality,   // data_class: INTERNAL_ONLY
     pub allow_cross_tenant: bool,       // data_class: INTERNAL_ONLY
+    pub revision: u32,                  // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ActionTypeDefinition {
@@ -83,6 +84,7 @@ pub struct ActionTypeDefinition {
     pub surface: String,                 // data_class: INTERNAL_ONLY
     pub max_autonomy_tier: AutonomyTier, // data_class: INTERNAL_ONLY
     pub audit_event_type: String,        // data_class: INTERNAL_ONLY
+    pub revision: u32,                   // data_class: INTERNAL_ONLY
     /// Declared parameter schema. Empty means the action takes no
     /// parameters; submissions carrying any value are then non-conformant.
     pub parameters: Vec<ActionParameterDefinition>, // data_class: INTERNAL_ONLY
@@ -229,6 +231,7 @@ impl LinkTypeDefinition {
             to_entity_type,
             cardinality,
             allow_cross_tenant,
+            revision: 1,
         })
     }
 }
@@ -258,6 +261,7 @@ impl ActionTypeDefinition {
             surface,
             max_autonomy_tier,
             audit_event_type,
+            revision: 1,
             parameters: Vec::new(),
         })
     }

@@ -42,6 +42,7 @@ mod engine;
 mod error;
 mod object_graph;
 mod property;
+mod revisioning;
 mod value;
 mod value_type;
 
