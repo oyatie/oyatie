@@ -25,6 +25,15 @@ rust_test(
 )
 
 rust_test(
+    name = "policy-tuple-store-inmemory-negation-marks",
+    srcs = ["tests/negation_marks.rs", "tests/common/mod.rs"],
+    crate = "negation_marks",
+    crate_root = "tests/negation_marks.rs",
+    visibility = ["PUBLIC"],
+    deps = _CONFORMANCE_DEPS,
+)
+
+rust_test(
     name = "policy-tuple-store-inmemory-set-algebra-and-cycles",
     srcs = ["tests/set_algebra_and_cycles.rs", "tests/common/mod.rs"],
     crate = "set_algebra_and_cycles",

@@ -145,8 +145,16 @@ impl<'a> Walk<'a> {
     pub(crate) fn leave(&mut self, object: &RebacObjectRef, relation: &RebacRelation) {
         let key = (object.to_canonical_string(), relation.as_str().to_owned());
         self.path.remove(&key);
-        if self.order.last() == Some(&key) {
-            self.order.pop();
-        }
+        // `resolve` calls `leave` only on the frame whose `enter` returned
+        // true, and takes no `?` between the two, so this frame is the last
+        // one pushed. Popping unconditionally keeps `order` and `path` the
+        // same set; the assertion states the invariant that makes reading
+        // `order` by position meaningful.
+        debug_assert_eq!(
+            self.order.last(),
+            Some(&key),
+            "leave must unwind the frame enter pushed"
+        );
+        self.order.pop();
     }
 }

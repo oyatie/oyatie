@@ -70,6 +70,18 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
         relation: &RebacRelation,
         object: &RebacObjectRef,
     ) -> Result<bool, ExpansionError> {
+        // Resolve the rewrite BEFORE claiming the path entry, so that every
+        // `enter` returning true is matched by exactly one `leave`. With this
+        // lookup inside the guarded region its `?` skipped the `leave`, and
+        // the frame stayed in `order` after `path` had dropped it. Nothing in
+        // this crate recovers an `ExpansionError`, so the stale entry was
+        // unreachable - but `crosses_negation` reads `order` BY POSITION, and
+        // a stale position below a mark is a wrong DENY waiting for the first
+        // caller that treats an undefined relation as deny-by-omission.
+        // Reordering cannot surface a new error: a node already on the path
+        // resolved this same (object type, relation) when it was first
+        // entered.
+        let rewrite = self.namespace.rewrite(object.object_type(), relation)?;
         // A relation already on this path contributes no new grant. Answering
         // false rather than refusing keeps a legitimately cyclic graph (groups
         // that contain each other) usable instead of unanswerable.
@@ -84,7 +96,6 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
             }
             return Ok(false);
         }
-        let rewrite = self.namespace.rewrite(object.object_type(), relation)?;
         let held = self.eval(walk, rewrite, relation, object);
         walk.leave(object, relation);
         held

@@ -94,9 +94,13 @@ fn a_monotone_cycle_inside_the_subtracted_set_still_answers() {
 }
 
 #[test]
-fn a_subtraction_does_not_leak_into_the_one_after_it() {
-    // Two sequential subtractions: leaving the first must clear its mark, or
-    // the second inherits a negation depth it never entered.
+fn a_walk_does_not_inherit_a_previous_walks_negation_state() {
+    // Each `check` builds a fresh `Walk`, so marks cannot outlive one
+    // decision. This says nothing about a mark leaking WITHIN a walk - it
+    // passes with `leave_negation` gutted, because a fresh walk has an empty
+    // stack either way. That property is
+    // `a_completed_subtraction_leaves_no_mark_behind_it` in
+    // `negation_marks.rs`; do not read this test as covering it.
     let model = editor_excludes_banned();
     let mut store = InMemoryTupleStore::new();
     write(&mut store, "doc:spec#writer@user:alice");
@@ -122,8 +126,6 @@ fn a_subtraction_does_not_leak_into_the_one_after_it() {
         "a walk must not inherit a prior walk's negation state"
     );
 
-    // And within one walk: the banned side is evaluated after the base, so a
-    // mark left behind by the base's traversal would misclassify it.
     assert_eq!(
         expander.check(&user("user:bob"), &relation("editor"), &object("doc:spec")),
         Ok(false),
