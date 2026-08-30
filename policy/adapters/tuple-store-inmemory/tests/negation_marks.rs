@@ -1,12 +1,13 @@
 //! The arithmetic of the negation marks, one property per mutation it admits.
 //!
 //! `crosses_negation` asks whether a re-entered node sits BELOW the innermost
-//! enclosing subtraction. Three numbers decide that: where a mark is recorded,
-//! whether the comparison is strict, and which mark is consulted. Every test
-//! in `negation_in_data.rs` passes with all three perturbed — they pin only
-//! that the guard exists, not that it is placed correctly. Each test here
-//! fails under exactly one such perturbation, and each asserts a value that
-//! stratified semantics fixes independently of this implementation.
+//! enclosing subtraction. Five things decide that: where a mark is recorded,
+//! whether the comparison is strict, which mark is consulted, where the mark
+//! is entered relative to the base, and whether push and pop stay balanced.
+//! Every test in `negation_in_data.rs` passes with all five perturbed — they
+//! pin only that the guard exists, not that it is placed correctly. Each test
+//! here fails under exactly one such perturbation, and each asserts a value
+//! that stratified semantics fixes independently of this implementation.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 mod common;
@@ -157,5 +158,101 @@ fn a_cycle_crossing_only_the_inner_subtraction_is_still_refused() {
             relation: "blocked".to_owned(),
         }),
         "an exclusion that depends on its own negation must refuse, however deeply nested"
+    );
+}
+
+#[test]
+fn the_base_of_a_difference_is_not_evaluated_under_its_own_mark() {
+    // The mark belongs to the subtracted side only. Recording it before the
+    // base is evaluated puts the base under a negation it is not inside, and
+    // an ordinary monotone cycle through the base — a group whose membership
+    // is defined by the very relation being checked — refuses instead of
+    // answering.
+    let model = NamespaceConfig::new()
+        .define("doc", &relation("writer"), UsersetRewrite::this())
+        .define("doc", &relation("banned"), UsersetRewrite::this())
+        .define("group", &relation("member"), UsersetRewrite::this())
+        .define(
+            "doc",
+            &relation("editor"),
+            UsersetRewrite::difference(
+                UsersetRewrite::computed_userset(relation("writer")),
+                UsersetRewrite::computed_userset(relation("banned")),
+            ),
+        )
+        .validated()
+        .expect("the model is stratified");
+
+    let mut store = InMemoryTupleStore::new();
+    write(&mut store, "doc:spec#writer@group:a#member");
+    // The cycle runs through the BASE: writer -> group -> back to editor.
+    write(&mut store, "group:a#member@doc:spec#editor");
+
+    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    assert_eq!(
+        expander.check(
+            &user("user:alice"),
+            &relation("editor"),
+            &object("doc:spec")
+        ),
+        Ok(false),
+        "the cycle never crosses the subtraction; nobody is granted, and it is decidable"
+    );
+}
+
+#[test]
+fn leaving_an_inner_subtraction_keeps_the_outer_mark() {
+    // Nesting again, but the inner subtraction runs to COMPLETION inside the
+    // outer one and the walk carries on. Popping more than one mark on the
+    // way out discards the outer subtraction, and the cycle that crosses it
+    // is then invisible — the exclusion grants what it exists to withhold.
+    let model = NamespaceConfig::new()
+        .define("doc", &relation("flagged"), UsersetRewrite::this())
+        .define("doc", &relation("exempt"), UsersetRewrite::this())
+        .define("doc", &relation("cyclic"), UsersetRewrite::this())
+        .define(
+            "doc",
+            &relation("banned"),
+            UsersetRewrite::union(vec![
+                UsersetRewrite::difference(
+                    UsersetRewrite::computed_userset(relation("flagged")),
+                    UsersetRewrite::computed_userset(relation("exempt")),
+                ),
+                UsersetRewrite::computed_userset(relation("cyclic")),
+            ])
+            .expect("a two-child union is valid"),
+        )
+        .define(
+            "doc",
+            &relation("editor"),
+            UsersetRewrite::difference(
+                UsersetRewrite::this(),
+                UsersetRewrite::computed_userset(relation("banned")),
+            ),
+        )
+        .validated()
+        .expect("the model itself is stratified; the cycle is in the data");
+
+    let mut store = InMemoryTupleStore::new();
+    write(&mut store, "doc:spec#editor@user:alice");
+    // Inner difference: flagged holds, exempt holds, so it yields false and
+    // the union goes on to `cyclic` — having entered and left the inner mark.
+    write(&mut store, "doc:spec#flagged@user:alice");
+    write(&mut store, "doc:spec#exempt@user:alice");
+    // Which cycles back across the OUTER subtraction.
+    write(&mut store, "doc:spec#cyclic@doc:spec#editor");
+
+    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    assert_eq!(
+        expander.check(
+            &user("user:alice"),
+            &relation("editor"),
+            &object("doc:spec")
+        ),
+        Err(ExpansionError::NegatedCycleInData {
+            object_type: "doc".to_owned(),
+            relation: "editor".to_owned(),
+        }),
+        "the outer exclusion still depends on its own negation and must not grant"
     );
 }

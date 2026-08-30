@@ -16,6 +16,42 @@ _CONFORMANCE_DEPS = [
 ]
 
 rust_test(
+    name = "policy-tuple-store-inmemory-bounds-and-negation",
+    srcs = ["tests/bounds_and_negation.rs", "tests/common/mod.rs"],
+    crate = "bounds_and_negation",
+    crate_root = "tests/bounds_and_negation.rs",
+    visibility = ["PUBLIC"],
+    deps = _CONFORMANCE_DEPS,
+)
+
+rust_test(
+    name = "policy-tuple-store-inmemory-negation-in-data",
+    srcs = ["tests/negation_in_data.rs", "tests/common/mod.rs"],
+    crate = "negation_in_data",
+    crate_root = "tests/negation_in_data.rs",
+    visibility = ["PUBLIC"],
+    deps = _CONFORMANCE_DEPS,
+)
+
+rust_test(
+    name = "policy-tuple-store-inmemory-snapshot-pin",
+    srcs = ["tests/snapshot_pin.rs", "tests/common/mod.rs"],
+    crate = "snapshot_pin",
+    crate_root = "tests/snapshot_pin.rs",
+    visibility = ["PUBLIC"],
+    deps = _CONFORMANCE_DEPS,
+)
+
+rust_test(
+    name = "policy-tuple-store-inmemory-stratification-differential",
+    srcs = ["tests/stratification_differential.rs", "tests/common/mod.rs"],
+    crate = "stratification_differential",
+    crate_root = "tests/stratification_differential.rs",
+    visibility = ["PUBLIC"],
+    deps = _CONFORMANCE_DEPS,
+)
+
+rust_test(
     name = "policy-tuple-store-inmemory-inheritance-and-consistency",
     srcs = ["tests/inheritance_and_consistency.rs", "tests/common/mod.rs"],
     crate = "inheritance_and_consistency",
