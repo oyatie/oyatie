@@ -39,6 +39,21 @@ pub struct KnowledgeGraphQueryResponse {
     /// True when the result was truncated by node or edge cardinality caps.
     /// Callers must treat a truncated result as incomplete. // data_class: INTERNAL_ONLY
     pub result_truncated: bool,
+    /// Present exactly when `result_truncated`: resume the walk by passing
+    /// this cursor on the next request. Pages partition the full result by
+    /// deterministic emission order (each page internally canonical-sorted);
+    /// the cursor is exact against an unchanged store — the engine replays
+    /// the same walk and continues past the emissions already returned.
+    /// data_class: INTERNAL_ONLY
+    pub next_cursor: Option<QueryCursor>,
+}
+
+/// Deterministic resumption point for a capped query: how many node and
+/// edge emissions the caller has already received.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct QueryCursor {
+    pub nodes_emitted: u64, // data_class: INTERNAL_ONLY
+    pub edges_emitted: u64, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]

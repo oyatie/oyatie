@@ -15,6 +15,8 @@ pub struct KnowledgeGraphQueryRequest {
     pub observed_at_epoch_seconds: u64,       // data_class: INTERNAL_ONLY
     pub consented_edge_type_ids: Vec<String>, // data_class: INTERNAL_ONLY
     pub direction: TraversalDirection,        // data_class: INTERNAL_ONLY
+    /// Resume a previously truncated walk; `None` starts from the top.
+    pub resume_cursor: Option<QueryCursor>, // data_class: INTERNAL_ONLY
 }
 
 impl KnowledgeGraphQueryRequest {
@@ -43,9 +45,17 @@ impl KnowledgeGraphQueryRequest {
                 .map(Into::into)
                 .collect(),
             direction,
+            resume_cursor: None,
         };
         request.validate()?;
         Ok(request)
+    }
+
+    /// Resume from the cursor a truncated response handed back. Returns
+    /// `self` for chaining.
+    pub fn with_resume_cursor(mut self, cursor: QueryCursor) -> Self {
+        self.resume_cursor = Some(cursor);
+        self
     }
 
     pub fn validate(&self) -> Result<(), KnowledgeGraphQueryError> {
