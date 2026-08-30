@@ -12,46 +12,60 @@ pub struct DependencyImpactV1 {
 }
 
 impl DependencyImpactV1 {
-    fn try_from_indices(
+    fn try_from_indices<C>(
         graph: &DependencyGraphV1,
         candidate: &DependencyCandidateV1,
         root_indices: &[usize],
         affected_node_indices: &[usize],
         affected_edge_indices: &[usize],
-    ) -> Result<Self, LifecycleFailureV1> {
-        let root_nodes: Box<_> = root_indices
-            .iter()
-            .map(|index| graph.nodes()[*index].clone())
-            .collect();
-        let affected_nodes: Box<_> = affected_node_indices
-            .iter()
-            .map(|index| graph.nodes()[*index].clone())
-            .collect();
-        let affected_edges: Box<_> = affected_edge_indices
-            .iter()
-            .map(|index| graph.edges()[*index].clone())
-            .collect();
+        control: &mut DependencyImpactControlV1<C>,
+    ) -> Result<Self, LifecycleFailureV1>
+    where
+        C: FnMut(DependencyImpactProgressV1) -> LifecycleControlDecisionV1,
+    {
+        let mut root_nodes = Vec::with_capacity(root_indices.len());
+        for index in root_indices {
+            root_nodes.push(graph.nodes()[*index].clone());
+            control.materialize_root_node()?;
+        }
+        control.checkpoint_and_reset()?;
+        let mut affected_nodes = Vec::with_capacity(affected_node_indices.len());
+        for index in affected_node_indices {
+            affected_nodes.push(graph.nodes()[*index].clone());
+            control.materialize_node()?;
+        }
+        control.checkpoint_and_reset()?;
+        let mut affected_edges = Vec::with_capacity(affected_edge_indices.len());
+        for index in affected_edge_indices {
+            affected_edges.push(graph.edges()[*index].clone());
+            control.materialize_edge()?;
+        }
+        control.checkpoint_and_reset()?;
         let graph_identity_sha256 = graph.identity_sha256();
         let fact_envelope = graph.envelope().clone();
         let candidate_identity_sha256 = candidate.identity_sha256();
         let current_release_identity_sha256 = candidate.current().identity_sha256();
-        let identity_sha256 = dependency_impact_identity(
+        let identity_context = DependencyImpactIdentityContextV1 {
             graph_identity_sha256,
-            fact_envelope.identity_sha256(),
+            fact_envelope_identity_sha256: fact_envelope.identity_sha256(),
             candidate_identity_sha256,
             current_release_identity_sha256,
+        };
+        let identity_sha256 = dependency_impact_identity(
+            identity_context,
             &root_nodes,
             &affected_nodes,
             &affected_edges,
+            control,
         )?;
         Ok(Self {
             graph_identity_sha256,
             fact_envelope,
             candidate_identity_sha256,
             current_release_identity_sha256,
-            root_nodes,
-            affected_nodes,
-            affected_edges,
+            root_nodes: root_nodes.into_boxed_slice(),
+            affected_nodes: affected_nodes.into_boxed_slice(),
+            affected_edges: affected_edges.into_boxed_slice(),
             identity_sha256,
         })
     }
@@ -163,17 +177,23 @@ fn checked_dependency_impact_total(
         .ok_or_else(lifecycle_bounds)
 }
 
-fn dependency_impact_batch(
+fn dependency_impact_batch<C>(
     graph: &DependencyGraphV1,
     impacts: Vec<DependencyImpactV1>,
-) -> Result<DependencyImpactBatchV1, LifecycleFailureV1> {
+    control: &mut DependencyImpactControlV1<C>,
+) -> Result<DependencyImpactBatchV1, LifecycleFailureV1>
+where
+    C: FnMut(DependencyImpactProgressV1) -> LifecycleControlDecisionV1,
+{
     let mut hash = CanonicalHasherV1::new(b"build.dependency-impact-batch.v1\0");
     hash.digest(graph.identity_sha256());
     hash.digest(graph.envelope().identity_sha256());
     hash.u64(lifecycle_len(impacts.len())?);
     for impact in &impacts {
         hash.digest(impact.identity_sha256());
+        control.record_work()?;
     }
+    control.checkpoint_and_reset()?;
     Ok(DependencyImpactBatchV1 {
         graph_identity_sha256: graph.identity_sha256(),
         fact_envelope: graph.envelope().clone(),

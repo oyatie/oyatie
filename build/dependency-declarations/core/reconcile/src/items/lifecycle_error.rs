@@ -40,6 +40,14 @@ pub enum LifecycleFailureClassV1 {
     InvalidCurrencyException = 35,
     ToolchainAnalysisMismatch = 36,
     InvalidToolchainCurrencyException = 37,
+    ReleaseLedgerCancelled = 38,
+    ReleaseLedgerDeadlineExceeded = 39,
+    ReleaseSourceBatchCancelled = 40,
+    ReleaseSourceBatchDeadlineExceeded = 41,
+    DependencyGraphConstructionCancelled = 42,
+    DependencyGraphConstructionDeadlineExceeded = 43,
+    AdvisoryNormalizationCancelled = 44,
+    AdvisoryNormalizationDeadlineExceeded = 45,
 }
 
 /// A matchable lifecycle refusal without ambient diagnostic text.

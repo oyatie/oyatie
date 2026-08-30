@@ -14,6 +14,7 @@ fn graph_for_candidate(
             Some(candidate.current().identity_sha256()),
         )],
         Vec::new(),
+        continue_dependency_graph_construction,
     )
     .unwrap()
 }
@@ -124,6 +125,7 @@ fn graph_refuses_duplicate_units_edges_unknown_endpoints_and_self_edges() {
         safe_envelope(),
         vec![duplicate.clone(), duplicate],
         Vec::new(),
+        continue_dependency_graph_construction,
     )
     .unwrap_err();
     assert_eq!(
@@ -152,6 +154,7 @@ fn graph_refuses_duplicate_units_edges_unknown_endpoints_and_self_edges() {
         safe_envelope(),
         nodes.clone(),
         vec![duplicate_edge, conflicting_evidence],
+        continue_dependency_graph_construction,
     )
     .unwrap_err();
     assert_eq!(
@@ -164,7 +167,13 @@ fn graph_refuses_duplicate_units_edges_unknown_endpoints_and_self_edges() {
         "missing",
         DependencyGraphEdgeKindV1::NormalTarget,
     );
-    let failure = DependencyGraphV1::try_new(safe_envelope(), nodes, vec![unknown]).unwrap_err();
+    let failure = DependencyGraphV1::try_new(
+        safe_envelope(),
+        nodes,
+        vec![unknown],
+        continue_dependency_graph_construction,
+    )
+    .unwrap_err();
     assert_eq!(
         failure.class(),
         LifecycleFailureClassV1::InvalidDependencyGraph
@@ -183,7 +192,13 @@ fn graph_refuses_duplicate_units_edges_unknown_endpoints_and_self_edges() {
         LifecycleFailureClassV1::InvalidDependencyGraph
     );
 
-    let failure = DependencyGraphV1::try_new(safe_envelope(), Vec::new(), Vec::new()).unwrap_err();
+    let failure = DependencyGraphV1::try_new(
+        safe_envelope(),
+        Vec::new(),
+        Vec::new(),
+        continue_dependency_graph_construction,
+    )
+    .unwrap_err();
     assert_eq!(
         failure.class(),
         LifecycleFailureClassV1::InvalidDependencyGraph
@@ -193,8 +208,13 @@ fn graph_refuses_duplicate_units_edges_unknown_endpoints_and_self_edges() {
         DependencyGraphNodeKindV1::CargoTarget,
         Some(digest("release")),
     );
-    let failure = DependencyGraphV1::try_new(safe_envelope(), vec![misplaced_release], Vec::new())
-        .unwrap_err();
+    let failure = DependencyGraphV1::try_new(
+        safe_envelope(),
+        vec![misplaced_release],
+        Vec::new(),
+        continue_dependency_graph_construction,
+    )
+    .unwrap_err();
     assert_eq!(
         failure.class(),
         LifecycleFailureClassV1::InvalidDependencyGraph
@@ -212,6 +232,7 @@ fn analysis_refuses_missing_or_duplicate_candidate_roots() {
             None,
         )],
         Vec::new(),
+        continue_dependency_graph_construction,
     )
     .unwrap();
     let failure = graph

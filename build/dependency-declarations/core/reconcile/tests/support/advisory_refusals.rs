@@ -31,7 +31,11 @@ fn conflicting_complete_ranges_refuse_a_normalized_fact() {
         210,
     );
 
-    let failure = AdvisoryLedgerV1::try_normalize(vec![rustsec_record, ghsa_record]).unwrap_err();
+    let failure = AdvisoryLedgerV1::try_normalize(
+        vec![rustsec_record, ghsa_record],
+        continue_advisory_normalization,
+    )
+    .unwrap_err();
     assert_eq!(
         failure.class(),
         LifecycleFailureClassV1::ConflictingAdvisoryRange
@@ -52,7 +56,9 @@ fn candidate_and_reference_only_records_remain_unqualified() {
         complete_h2("0.4.16"),
         200,
     );
-    let candidate_ledger = AdvisoryLedgerV1::try_normalize(vec![candidate_record]).unwrap();
+    let candidate_ledger =
+        AdvisoryLedgerV1::try_normalize(vec![candidate_record], continue_advisory_normalization)
+            .unwrap();
     assert_eq!(
         candidate_ledger.facts()[0].affected_set_qualification(),
         NormalizedAdvisoryAffectedSetQualificationV1::Candidate
@@ -70,7 +76,9 @@ fn candidate_and_reference_only_records_remain_unqualified() {
         AdvisoryAffectedSetV1::reference_only(digest("reference-only")),
         200,
     );
-    let reference_ledger = AdvisoryLedgerV1::try_normalize(vec![reference_record]).unwrap();
+    let reference_ledger =
+        AdvisoryLedgerV1::try_normalize(vec![reference_record], continue_advisory_normalization)
+            .unwrap();
     assert_eq!(
         reference_ledger.facts()[0].affected_set_qualification(),
         NormalizedAdvisoryAffectedSetQualificationV1::ReferenceOnly
@@ -106,8 +114,11 @@ fn candidate_aliases_cannot_merge_a_qualified_identity_graph() {
         210,
     );
 
-    let failure =
-        AdvisoryLedgerV1::try_normalize(vec![candidate_record, qualified_record]).unwrap_err();
+    let failure = AdvisoryLedgerV1::try_normalize(
+        vec![candidate_record, qualified_record],
+        continue_advisory_normalization,
+    )
+    .unwrap_err();
     assert_eq!(
         failure.class(),
         LifecycleFailureClassV1::MixedAdvisoryQualification
@@ -142,7 +153,9 @@ fn ambiguous_same_timestamp_history_is_refused() {
         200,
     );
 
-    let failure = AdvisoryLedgerV1::try_normalize(vec![first, second]).unwrap_err();
+    let failure =
+        AdvisoryLedgerV1::try_normalize(vec![first, second], continue_advisory_normalization)
+            .unwrap_err();
     assert_eq!(
         failure.class(),
         LifecycleFailureClassV1::ConflictingAdvisoryHistory
@@ -264,11 +277,7 @@ fn duplicate_aliases_and_source_records_are_refused() {
         source.clone(),
         rustsec.clone(),
         vec![rustsec.clone()],
-        AdvisoryLifecycleV1::try_active(
-            LifecycleTimestampV1::from_unix_seconds(100),
-            LifecycleTimestampV1::from_unix_seconds(200),
-        )
-        .unwrap(),
+        active_lifecycle(200),
         complete_h2("0.4.16"),
         digest("duplicate-alias"),
     )
@@ -279,8 +288,11 @@ fn duplicate_aliases_and_source_records_are_refused() {
     );
 
     let record = active_record(source, rustsec, Vec::new(), complete_h2("0.4.16"), 200);
-    let duplicate_record =
-        AdvisoryLedgerV1::try_normalize(vec![record.clone(), record]).unwrap_err();
+    let duplicate_record = AdvisoryLedgerV1::try_normalize(
+        vec![record.clone(), record],
+        continue_advisory_normalization,
+    )
+    .unwrap_err();
     assert_eq!(
         duplicate_record.class(),
         LifecycleFailureClassV1::DuplicateIdentity

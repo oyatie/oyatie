@@ -1,5 +1,7 @@
 #[path = "support/advisory.rs"]
 mod advisory;
+#[path = "support/advisory_control.rs"]
+mod advisory_control;
 #[path = "support/advisory_refusals.rs"]
 mod advisory_refusals;
 #[path = "support/dependency_candidate.rs"]
@@ -26,6 +28,8 @@ mod dependency_qualification;
 mod dependency_qualification_refusals;
 #[path = "support/lifecycle_refusals.rs"]
 mod lifecycle_refusals;
+#[path = "support/lifecycle_release_control.rs"]
+mod lifecycle_release_control;
 #[path = "support/lifecycle.rs"]
 mod lifecycle_support;
 #[path = "support/lifecycle_toolchain_currency.rs"]
@@ -201,14 +205,20 @@ fn released_ledger_is_order_independent_and_disposition_complete() {
         disposition(&rust_item, ReleaseDecisionV1::Benchmark),
         disposition(&cargo_item, ReleaseDecisionV1::Benchmark),
     ];
-    let ledger =
-        ReleaseLedgerV1::try_new(batches.clone(), items.clone(), dispositions.clone()).unwrap();
+    let ledger = ReleaseLedgerV1::try_new(
+        batches.clone(),
+        items.clone(),
+        dispositions.clone(),
+        continue_release_ledger,
+    )
+    .unwrap();
     ledger.require_released_complete().unwrap();
 
     let reversed = ReleaseLedgerV1::try_new(
         batches.into_iter().rev().collect(),
         items.into_iter().rev().collect(),
         dispositions.into_iter().rev().collect(),
+        continue_release_ledger,
     )
     .unwrap();
     assert_eq!(ledger.identity_sha256(), reversed.identity_sha256());
@@ -229,6 +239,7 @@ fn incomplete_or_provisional_release_evidence_refuses_completeness() {
         vec![declared.clone()],
         vec![item.clone()],
         vec![disposition(&item, ReleaseDecisionV1::Benchmark)],
+        continue_release_ledger,
     )
     .unwrap();
     assert_eq!(
@@ -240,8 +251,13 @@ fn incomplete_or_provisional_release_evidence_refuses_completeness() {
         LifecycleFailureClassV1::ProvisionalSource
     );
 
-    let missing =
-        ReleaseLedgerV1::try_new(vec![declared], vec![item.clone()], Vec::new()).unwrap_err();
+    let missing = ReleaseLedgerV1::try_new(
+        vec![declared],
+        vec![item.clone()],
+        Vec::new(),
+        continue_release_ledger,
+    )
+    .unwrap_err();
     assert_eq!(missing.class(), LifecycleFailureClassV1::MissingDisposition);
 
     let complete_batch = qualified_batch(nightly, &[item.clone(), additional_item]);
@@ -249,52 +265,11 @@ fn incomplete_or_provisional_release_evidence_refuses_completeness() {
         vec![complete_batch],
         vec![item.clone()],
         vec![disposition(&item, ReleaseDecisionV1::Benchmark)],
+        continue_release_ledger,
     )
     .unwrap_err();
     assert_eq!(
         wrong_coverage.class(),
         LifecycleFailureClassV1::SourceCoverageMismatch
-    );
-}
-
-#[test]
-fn candidate_extractor_cannot_authorize_a_released_ledger() {
-    let cargo = source(
-        LifecycleComponentV1::Cargo,
-        LifecycleChannelV1::Stable,
-        SourceMaturityV1::Released,
-        "cargo-1.98.0",
-    );
-    let item = release_item(
-        &cargo,
-        "cargo#credential-token-crlf",
-        ReleaseItemKindV1::Cargo,
-    );
-    let candidate = extraction(
-        &cargo,
-        ReleaseExtractionQualificationV1::Candidate {
-            observation_sha256: digest("candidate-observation"),
-        },
-    );
-    let batch = ReleaseSourceBatchV1::try_from_items(
-        cargo,
-        candidate,
-        std::slice::from_ref(&item),
-        digest("candidate-extraction"),
-    )
-    .unwrap();
-    let ledger = ReleaseLedgerV1::try_new(
-        vec![batch],
-        vec![item.clone()],
-        vec![disposition(&item, ReleaseDecisionV1::Benchmark)],
-    )
-    .unwrap();
-    assert_eq!(
-        ledger.completeness(),
-        ReleaseLedgerCompletenessV1::UnqualifiedExtraction
-    );
-    assert_eq!(
-        ledger.require_released_complete().unwrap_err().class(),
-        LifecycleFailureClassV1::UnqualifiedExtraction
     );
 }

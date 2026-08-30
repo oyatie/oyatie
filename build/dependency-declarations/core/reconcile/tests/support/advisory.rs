@@ -42,6 +42,12 @@ pub(super) fn candidate() -> AdvisoryRecordQualificationV1 {
     }
 }
 
+pub(super) const fn continue_advisory_normalization(
+    _: AdvisoryNormalizationProgressV1,
+) -> LifecycleControlDecisionV1 {
+    LifecycleControlDecisionV1::Continue
+}
+
 pub(super) fn h2_package() -> CargoPackageIdentityV1 {
     CargoPackageIdentityV1::try_new("https://github.com/rust-lang/crates.io-index", "h2").unwrap()
 }
@@ -70,13 +76,17 @@ pub(super) fn active_record(
         source,
         primary,
         aliases,
-        AdvisoryLifecycleV1::try_active(
-            LifecycleTimestampV1::from_unix_seconds(100),
-            LifecycleTimestampV1::from_unix_seconds(modified_at),
-        )
-        .unwrap(),
+        active_lifecycle(modified_at),
         affected,
         content_sha256,
+    )
+    .unwrap()
+}
+
+pub(super) fn active_lifecycle(modified_at: u64) -> AdvisoryLifecycleV1 {
+    AdvisoryLifecycleV1::try_active(
+        LifecycleTimestampV1::from_unix_seconds(100),
+        LifecycleTimestampV1::from_unix_seconds(modified_at),
     )
     .unwrap()
 }
@@ -111,9 +121,16 @@ fn rustsec_and_ghsa_aliases_form_one_normalized_vulnerability() {
         210,
     );
 
-    let ledger =
-        AdvisoryLedgerV1::try_normalize(vec![rustsec_record.clone(), ghsa_record.clone()]).unwrap();
-    let reversed = AdvisoryLedgerV1::try_normalize(vec![ghsa_record, rustsec_record]).unwrap();
+    let ledger = AdvisoryLedgerV1::try_normalize(
+        vec![rustsec_record.clone(), ghsa_record.clone()],
+        continue_advisory_normalization,
+    )
+    .unwrap();
+    let reversed = AdvisoryLedgerV1::try_normalize(
+        vec![ghsa_record, rustsec_record],
+        continue_advisory_normalization,
+    )
+    .unwrap();
     assert_eq!(ledger.identity_sha256(), reversed.identity_sha256());
     assert_eq!(ledger.facts().len(), 1);
     assert_eq!(ledger.record_count(), 2);
@@ -168,7 +185,9 @@ fn later_withdrawal_supersedes_active_history_without_erasing_it() {
     )
     .unwrap();
 
-    let ledger = AdvisoryLedgerV1::try_normalize(vec![withdrawn, active]).unwrap();
+    let ledger =
+        AdvisoryLedgerV1::try_normalize(vec![withdrawn, active], continue_advisory_normalization)
+            .unwrap();
     assert_eq!(ledger.facts()[0].records().len(), 2);
     assert_eq!(
         ledger.facts()[0].lifecycle(),
@@ -206,7 +225,11 @@ fn cna_and_upstream_aliases_retain_cna_identity_without_assigning_ids() {
         AdvisoryAffectedSetV1::reference_only(digest("upstream-reference")),
         210,
     );
-    let ledger = AdvisoryLedgerV1::try_normalize(vec![upstream_record, cna]).unwrap();
+    let ledger = AdvisoryLedgerV1::try_normalize(
+        vec![upstream_record, cna],
+        continue_advisory_normalization,
+    )
+    .unwrap();
     assert_eq!(ledger.facts()[0].canonical(), &cve);
     assert_eq!(
         ledger.facts()[0].affected_set_qualification(),

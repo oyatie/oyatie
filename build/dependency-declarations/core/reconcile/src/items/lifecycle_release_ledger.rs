@@ -17,55 +17,33 @@ pub struct ReleaseLedgerV1 {
 }
 
 impl ReleaseLedgerV1 {
-    pub fn try_new(
+    pub fn try_new<C>(
         mut batches: Vec<ReleaseSourceBatchV1>,
         mut items: Vec<ReleaseItemV1>,
         mut dispositions: Vec<ReleaseDispositionV1>,
-    ) -> Result<Self, LifecycleFailureV1> {
-        validate_lifecycle_collection_bounds(&batches, &items, &dispositions)?;
-        batches.sort_by_key(|batch| batch.source().identity_sha256());
-        if batches.windows(2).any(|pair| {
-            pair[0].source().identity_sha256() == pair[1].source().identity_sha256()
-        }) {
-            return Err(duplicate_lifecycle_identity());
-        }
-        items.sort_by(|left, right| {
-            (left.source_identity, left.stable_key.as_bytes())
-                .cmp(&(right.source_identity, right.stable_key.as_bytes()))
-        });
-        if items.windows(2).any(|pair| {
-            pair[0].source_identity == pair[1].source_identity
-                && pair[0].stable_key == pair[1].stable_key
-        }) {
-            return Err(duplicate_lifecycle_identity());
-        }
-        validate_source_coverage(&batches, &items)?;
-        dispositions.sort_by_key(ReleaseDispositionV1::item_identity);
-        if dispositions
-            .windows(2)
-            .any(|pair| pair[0].item_identity == pair[1].item_identity)
-        {
-            return Err(LifecycleFailureV1::new(
-                LifecycleFailureClassV1::DuplicateDisposition,
-            ));
-        }
-        validate_dispositions(&items, &dispositions)?;
+        control: C,
+    ) -> Result<Self, LifecycleFailureV1>
+    where
+        C: FnMut(ReleaseLedgerProgressV1) -> LifecycleControlDecisionV1,
+    {
+        validate_lifecycle_collection_shape(&batches, &items, &dispositions)?;
+        let mut control = ReleaseLedgerControlV1::try_new(control)?;
+        validate_lifecycle_source_bounds(&batches, &mut control)?;
+        canonicalize_release_batches(&mut batches, &mut control)?;
+        canonicalize_release_items(&mut items, &mut control)?;
+        validate_source_coverage(&batches, &items, &mut control)?;
+        canonicalize_release_dispositions(&mut dispositions, &mut control)?;
+        validate_dispositions(&items, &dispositions, &mut control)?;
 
-        let completeness = if batches
-            .iter()
-            .any(|batch| batch.source().maturity() == SourceMaturityV1::Provisional)
-        {
-            ReleaseLedgerCompletenessV1::Provisional
-        } else if batches
-            .iter()
-            .any(|batch| !batch.extraction().qualification().is_qualified())
-        {
-            ReleaseLedgerCompletenessV1::UnqualifiedExtraction
-        } else {
-            ReleaseLedgerCompletenessV1::ReleasedComplete
-        };
-        let identity_sha256 =
-            release_ledger_identity(&batches, &items, &dispositions, completeness)?;
+        let completeness = release_ledger_completeness(&batches, &mut control)?;
+        let identity_sha256 = release_ledger_identity(
+            &batches,
+            &items,
+            &dispositions,
+            completeness,
+            &mut control,
+        )?;
+        control.checkpoint_and_reset()?;
         Ok(Self {
             batches: batches.into_boxed_slice(),
             items: items.into_boxed_slice(),
