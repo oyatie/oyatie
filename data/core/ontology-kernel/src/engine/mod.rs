@@ -101,6 +101,15 @@ impl OntologyEngine {
         if !self.has_entity_type(&definition.tenant_id, &definition.entity_type) {
             return Err(OntologyEngineError::UnknownEntityTypeEndpoint);
         }
+        // Parameter-schema integrity: names are unique.
+        let mut seen = std::collections::BTreeSet::new();
+        for parameter in &definition.parameters {
+            if !seen.insert(parameter.name.as_str()) {
+                return Err(OntologyEngineError::DuplicateParameterName {
+                    name: parameter.name.clone(),
+                });
+            }
+        }
         let key = ontology_scoped_key(&definition.tenant_id, &definition.id.value);
         if self.action_types.contains_key(&key) {
             return Err(OntologyEngineError::DuplicateActionType);

@@ -36,6 +36,7 @@
 pub mod pillar;
 pub use pillar::{OntologyPillar, UnknownPillarLabel};
 
+mod action_parameters;
 mod definitions;
 mod engine;
 mod error;
@@ -45,6 +46,7 @@ mod property;
 #[cfg(test)]
 mod tests;
 
+pub use action_parameters::ActionParameterDefinition;
 pub use definitions::{
     ActionInvocationReceipt, ActionInvocationRequest, ActionPolicyDecision, ActionTypeDefinition,
     ActionTypeId, AutonomyTier, EntityTypeDefinition, EntityTypeId, EntityTypePropertyDefinition,
