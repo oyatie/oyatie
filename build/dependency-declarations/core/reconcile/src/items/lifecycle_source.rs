@@ -9,6 +9,7 @@ impl LifecycleBoundsV1 {
     pub const MAX_RELEASE_ITEMS: usize = 100_000;
     pub const MAX_DISPOSITIONS: usize = 100_000;
     pub const MAX_TOOLCHAIN_TARGETS: usize = 64;
+    pub const MAX_TOOLCHAIN_BLOCKING_DEFECTS: usize = 4_096;
     pub const MAX_AFFECTED_UNITS: u64 = 1_000_000;
     pub const MAX_AFFECTED_UNIT_BYTES: u64 = 256 * 1024 * 1024;
     pub const MAX_ADVISORY_RECORDS: usize = 100_000;
