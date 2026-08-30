@@ -58,6 +58,22 @@ pub enum OntologyEngineError {
     /// been registered for the tenant. Register the link type before creating
     /// instances of it.
     UnknownLinkType,
+    /// A property or parameter declaration carries a malformed value type
+    /// ([`ValueTypeDeclaration::validate`](crate::ValueTypeDeclaration::validate)
+    /// refused it at registration).
+    InvalidValueType {
+        /// The property or parameter name carrying the bad declaration.
+        name: String,
+        /// The precise structural cause.
+        cause: crate::value::ValueTypeError,
+    },
+    /// A literal-built definition states a tier that differs from its value
+    /// type's projection (or declares a value type on a tier the projection
+    /// never yields — the exotic tiers stay untyped in V1).
+    ValueTypeTierMismatch {
+        /// The property or parameter name.
+        name: String,
+    },
     /// A designated primary-key or title property names no declared
     /// property of the entity type.
     DesignatedPropertyNotDeclared {

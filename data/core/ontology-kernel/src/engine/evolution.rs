@@ -36,6 +36,12 @@ impl OntologyEngine {
         definition: EntityTypeDefinition,
     ) -> Result<EntityTypeId, OntologyEngineError> {
         super::check_designation_integrity(&definition)?;
+        super::check_value_type_integrity(
+            definition
+                .properties
+                .iter()
+                .map(|p| (p.name.as_str(), &p.tier, p.value_type.as_ref())),
+        )?;
         let key = ontology_scoped_key(&definition.tenant_id, &definition.id.value);
         match self.entity_types.get(&key) {
             None => {
@@ -81,6 +87,9 @@ impl OntologyEngine {
 ///   optional (`required: false`): every object projected under `prior`
 ///   lacks them, so a required new property would invalidate the existing
 ///   population.
+/// - The `value_type` declaration is part of the frozen quadruple: `Some`
+///   is immutable, and `None -> Some` in-place typing is rejected — the
+///   blessed idiom is a NEW optional typed property.
 /// - Revision monotonicity is **not** checked here; the caller is responsible.
 pub(crate) fn check_schema_compatibility(
     prior: &EntityTypeDefinition,
@@ -108,6 +117,7 @@ pub(crate) fn check_schema_compatibility(
                 if cand_prop.tier != prior_prop.tier
                     || cand_prop.data_class != prior_prop.data_class
                     || cand_prop.required != prior_prop.required
+                    || cand_prop.value_type != prior_prop.value_type
                 {
                     return Err(OntologyEngineError::IncompatibleSchemaEvolution);
                 }

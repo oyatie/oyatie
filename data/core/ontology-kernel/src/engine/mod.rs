@@ -52,6 +52,12 @@ impl OntologyEngine {
         definition: EntityTypeDefinition,
     ) -> Result<EntityTypeId, OntologyEngineError> {
         check_designation_integrity(&definition)?;
+        check_value_type_integrity(
+            definition
+                .properties
+                .iter()
+                .map(|p| (p.name.as_str(), &p.tier, p.value_type.as_ref())),
+        )?;
         let key = ontology_scoped_key(&definition.tenant_id, &definition.id.value);
         if self.entity_types.contains_key(&key) {
             return Err(OntologyEngineError::DuplicateEntityType);
@@ -111,6 +117,12 @@ impl OntologyEngine {
                 });
             }
         }
+        check_value_type_integrity(
+            definition
+                .parameters
+                .iter()
+                .map(|p| (p.name.as_str(), &p.tier, p.value_type.as_ref())),
+        )?;
         let key = ontology_scoped_key(&definition.tenant_id, &definition.id.value);
         if self.action_types.contains_key(&key) {
             return Err(OntologyEngineError::DuplicateActionType);
@@ -140,6 +152,36 @@ impl OntologyEngine {
         self.entity_types
             .contains_key(&ontology_scoped_key(tenant_id, &id.value))
     }
+}
+
+/// Value-type integrity: every `Some` declaration must validate and its
+/// tier projection must equal the stated tier — a `Some` on a tier the
+/// projection never yields (Timeseries/Geo/Ciphertext) is thereby rejected.
+pub(crate) fn check_value_type_integrity<'a>(
+    declarations: impl Iterator<
+        Item = (
+            &'a str,
+            &'a crate::PropertyTier,
+            Option<&'a crate::ValueTypeDeclaration>,
+        ),
+    >,
+) -> Result<(), OntologyEngineError> {
+    for (name, tier, value_type) in declarations {
+        if let Some(declaration) = value_type {
+            declaration
+                .validate()
+                .map_err(|cause| OntologyEngineError::InvalidValueType {
+                    name: name.to_string(),
+                    cause,
+                })?;
+            if &declaration.tier() != tier {
+                return Err(OntologyEngineError::ValueTypeTierMismatch {
+                    name: name.to_string(),
+                });
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Designation integrity: a primary-key or title designation must name a
