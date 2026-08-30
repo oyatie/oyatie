@@ -4,6 +4,8 @@ mod artifact;
 mod build;
 #[path = "provider_source/cargo_build.rs"]
 mod cargo_build;
+#[path = "provider_source/collision.rs"]
+mod collision;
 #[path = "provider_source/identity.rs"]
 mod identity;
 #[path = "provider_source/snapshot.rs"]
