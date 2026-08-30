@@ -5,17 +5,13 @@ version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
-
-[lib]
-name = "iam_policy_cedar_domain"
-path = "src/lib.rs"
-doctest = false
+description = "Transitional re-export of policy-cedar-domain, which now lives at policy/core/cedar-domain. Carries no behavior of its own. Each consumer drops this indirection and depends on the policy crate directly the next time it is opened for its own reasons; this crate is deleted when the last consumer has."
 
 [dependencies]
-serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
+policy-cedar-domain = { path = "../../../policy/core/cedar-domain" }
 
-[dev-dependencies]
+[lib]
+doctest = false
 
 [lints]
 workspace = true

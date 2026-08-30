@@ -1,0 +1,141 @@
+rust_library(
+    name = "policy-cedar-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "policy_cedar_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "policy-cedar-domain-annotation-propagation",
+    srcs = ["tests/annotation_propagation.rs", "tests/common/mod.rs"],
+    crate = "policy_cedar_domain_annotation_propagation",
+    crate_root = "tests/annotation_propagation.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":policy-cedar-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "policy-cedar-domain-annotation-surfacing",
+    srcs = ["tests/annotation_surfacing.rs", "tests/common/mod.rs"],
+    crate = "policy_cedar_domain_annotation_surfacing",
+    crate_root = "tests/annotation_surfacing.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":policy-cedar-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "policy-cedar-domain-authz-engine-contract",
+    srcs = ["tests/authz_engine_contract.rs", "tests/common/mod.rs"],
+    crate = "policy_cedar_domain_authz_engine_contract",
+    crate_root = "tests/authz_engine_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":policy-cedar-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "policy-cedar-domain-backbone-write-pack",
+    srcs = ["tests/backbone_write_pack.rs", "tests/common/mod.rs"],
+    crate = "policy_cedar_domain_backbone_write_pack",
+    crate_root = "tests/backbone_write_pack.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":policy-cedar-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "policy-cedar-domain-policy-diff-scope",
+    srcs = ["tests/policy_diff_scope.rs", "tests/common/mod.rs"],
+    crate = "policy_cedar_domain_policy_diff_scope",
+    crate_root = "tests/policy_diff_scope.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":policy-cedar-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "policy-cedar-domain-policy-diff-widening",
+    srcs = ["tests/policy_diff_widening.rs", "tests/common/mod.rs"],
+    crate = "policy_cedar_domain_policy_diff_widening",
+    crate_root = "tests/policy_diff_widening.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":policy-cedar-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "policy-cedar-domain-policy-lint-conflicts",
+    srcs = ["tests/policy_lint_conflicts.rs", "tests/common/mod.rs"],
+    crate = "policy_cedar_domain_policy_lint_conflicts",
+    crate_root = "tests/policy_lint_conflicts.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":policy-cedar-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "policy-cedar-domain-policy-lint-shadowing",
+    srcs = ["tests/policy_lint_shadowing.rs", "tests/common/mod.rs"],
+    crate = "policy_cedar_domain_policy_lint_shadowing",
+    crate_root = "tests/policy_lint_shadowing.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":policy-cedar-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "policy-cedar-domain-policy-publish",
+    srcs = ["tests/policy_publish.rs", "tests/common/mod.rs"],
+    crate = "policy_cedar_domain_policy_publish",
+    crate_root = "tests/policy_publish.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":policy-cedar-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "policy-cedar-domain-rebac-tuple-port",
+    srcs = ["tests/rebac_tuple_port.rs", "tests/common/mod.rs"],
+    crate = "policy_cedar_domain_rebac_tuple_port",
+    crate_root = "tests/rebac_tuple_port.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":policy-cedar-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
