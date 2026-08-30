@@ -108,11 +108,18 @@ pub(super) fn live_candidate_violations(
     repository: &impl RepositoryRead,
     head: &str,
     candidates: &BTreeSet<String>,
+    moved_unchanged: &BTreeSet<String>,
 ) -> Result<Vec<String>, String> {
     let mut violations = Vec::new();
     for path in candidates {
         match repository.entry_kind(head, path)? {
             Some(kind) if regular_blob(Some(kind)) => {
+                // Every candidate is still proved to be a regular blob. Only the
+                // content budget is skipped, and only where this change wrote no
+                // content: the file arrived byte-identical.
+                if moved_unchanged.contains(path) {
+                    continue;
+                }
                 let contents = repository.blob_bytes(head, path)?;
                 violations.extend(file_budget_violations(path, &contents));
             }

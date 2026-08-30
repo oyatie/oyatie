@@ -12,6 +12,10 @@ use std::str;
 pub struct GitChangePaths {
     pub occupied: BTreeSet<String>,
     pub layout_candidates: BTreeSet<String>,
+    /// Destinations that arrived byte-identical, as a rename with similarity
+    /// 100. Their content is unchanged, so content rules have nothing of this
+    /// change's making to grade.
+    pub moved_unchanged: BTreeSet<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -95,6 +99,11 @@ pub fn git_change_paths_from_name_status_z(
                 return Err(PathSetParseError::MissingPath(status.to_owned()));
             };
             let second = path(second)?;
+            // A rename at similarity 100 moved the bytes and wrote none. A copy
+            // does add a second body, so it is not treated as unchanged.
+            if code == b'R' && &status[1..] == "100" {
+                changes.moved_unchanged.insert(second.clone());
+            }
             changes.occupied.insert(second.clone());
             changes.layout_candidates.insert(second);
             index += 1;
@@ -113,6 +122,23 @@ pub fn paths_from_name_status_z(input: &[u8]) -> Result<BTreeSet<String>, PathSe
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_identical_rename_is_recorded_as_unchanged_content() {
+        let changes = git_change_paths_from_name_status_z(
+            b"R100\0old/big.rs\0new/big.rs\0R087\0old/edited.rs\0new/edited.rs\0C100\0src.rs\0copy.rs\0M\0plain.rs\0",
+        )
+        .unwrap();
+        // Only the identical rename. An edited rename still wrote content, and a
+        // copy adds a second body that did not exist before.
+        assert_eq!(
+            changes.moved_unchanged,
+            ["new/big.rs"].map(str::to_owned).into()
+        );
+        // Every destination is still graded for path-derived rules.
+        assert!(changes.layout_candidates.contains("new/edited.rs"));
+        assert!(changes.layout_candidates.contains("copy.rs"));
+    }
 
     #[test]
     fn rename_and_copy_occupy_both_ends_but_check_only_destinations() {
