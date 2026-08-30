@@ -9,3 +9,4 @@ mod object_graph;
 mod pillar_links;
 mod schema_evolution;
 mod support;
+mod value_kernel;
