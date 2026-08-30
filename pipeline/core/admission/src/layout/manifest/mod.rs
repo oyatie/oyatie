@@ -83,8 +83,8 @@ pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
     // A facade may root at either `src/main.rs` or `src/lib.rs`, so BOTH
     // discovery switches guard a canonical target for it. Checking only
     // `autobins` let a lib-rooted facade disable its own root with
-    // `autolib = false`, and flagged `autobins = false` on a crate with no
-    // binary to discover.
+    // `autolib = false`. Both directions still fail closed, so a facade
+    // that sets either switch is refused whether or not it has that target.
     let discovery_switches: &[&str] = if face == "facade" {
         &["autobins", "autolib"]
     } else {

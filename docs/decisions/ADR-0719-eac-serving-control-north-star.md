@@ -1626,16 +1626,20 @@ module names are ordinary `snake_case` as the code needs them.
   refused. It is also one-way: a facade that HAD `src/main.rs` at the
   merge base must still have it at head, so a running service cannot
   become a library by deleting its entry point.
-- **ensure:** admission tests fix all three directions — a lib-rooted
-  facade is admitted, a binary-rooted library face is refused, and
-  deleting a facade's existing `src/main.rs` is refused. Both `autobins`
-  and `autolib` guard a facade, since either may carry its canonical
-  target. The ratchet's boundary is a fourth case it does NOT cover:
+- **ensure:** admission tests fix four directions — a lib-rooted facade
+  is admitted, a binary-rooted library face is refused, deleting a
+  facade's existing `src/main.rs` is refused, and when both roots are
+  present the BINARY one decides, so a malformed `src/main.rs` is not
+  excused by a well-formed library beside it. Both `autobins` and
+  `autolib` guard a facade, since either may carry its canonical target.
+  The ratchet's boundary is a fifth case it does NOT cover:
   renaming a facade's whole directory while dropping `src/main.rs`
-  passes, because the change parser discards rename pairing and the
-  destination leaf never had a binary at the merge base. That case is a
-  reviewed crate move under D-8/D-41, not a silent demotion; closing it
-  needs a rename-pairing contract the path-set does not carry.
+  passes, because the destination leaf never had a binary at the merge
+  base. That case is a reviewed crate move under D-8/D-41, not a silent
+  demotion. Closing it needs SUB-EXACT rename pairing: the path-set does
+  carry an exact-rename contract, but a moved crate rewrites its package
+  name to match its new leaf, so its manifest never scores R100 and the
+  dropped `src/main.rs` arrives as an unpaired delete.
 - **overturn_when:** a five-field ADR shows that a staged surface and its
   attached listener should be different faces, so that `facade/` can mean
   a running process again without making staged crates unedittable.
