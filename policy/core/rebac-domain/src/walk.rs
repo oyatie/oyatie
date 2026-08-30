@@ -7,7 +7,9 @@
 
 use std::collections::BTreeSet;
 
-use policy_cedar_domain::rebac::{RebacObjectRef, RebacRelation, RebacSubjectRef};
+use policy_cedar_domain::rebac::{
+    RebacObjectRef, RebacReadSnapshot, RebacRelation, RebacSubjectRef, SnapshotToken,
+};
 
 use crate::bounds::Budget;
 use crate::error::ExpansionError;
@@ -21,6 +23,17 @@ pub(crate) struct Walk<'a> {
     /// `(object, relation)` pairs on the current path, for cycle detection.
     path: BTreeSet<(String, String)>,
     pub(crate) budget: Budget,
+    /// The snapshot every read after the first is served at.
+    ///
+    /// A decision must see one state. Passing the caller's `Latest` to each
+    /// read re-resolves it to whatever head is at that moment, so a write
+    /// landing mid-walk becomes visible to later reads but not earlier ones —
+    /// the new-enemy problem, and an answer about a tree that never existed.
+    /// The first read reports the snapshot it was served at; every subsequent
+    /// read pins to it. If the store later cannot serve that pin it returns
+    /// `StaleSnapshot`, which is an `ExpansionError`, so the walk fails closed
+    /// rather than silently drifting.
+    pinned: Option<SnapshotToken>,
 }
 
 impl<'a> Walk<'a> {
@@ -31,6 +44,23 @@ impl<'a> Walk<'a> {
             max_depth,
             path: BTreeSet::new(),
             budget: Budget::new(tuple_budget),
+            pinned: None,
+        }
+    }
+
+    /// The snapshot to read at: the pin once taken, else the caller's request.
+    pub(crate) fn read_at(&self, requested: &RebacReadSnapshot) -> RebacReadSnapshot {
+        match &self.pinned {
+            Some(token) => RebacReadSnapshot::at(token.clone()),
+            None => requested.clone(),
+        }
+    }
+
+    /// Record the snapshot the first read was served at. Later calls are
+    /// ignored: the pin is taken once and holds for the whole decision.
+    pub(crate) fn pin(&mut self, served: SnapshotToken) {
+        if self.pinned.is_none() {
+            self.pinned = Some(served);
         }
     }
 

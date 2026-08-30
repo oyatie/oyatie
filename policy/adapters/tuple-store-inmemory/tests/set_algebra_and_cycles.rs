@@ -7,11 +7,11 @@ mod common;
 
 use common::*;
 use policy_cedar_domain::rebac::{RebacReadSnapshot, UsersetRewrite};
-use policy_rebac_domain::{Expander, ExpansionError, NamespaceConfig};
+use policy_rebac_domain::{Expander, ExpansionError, NamespaceConfig, ValidatedNamespace};
 use policy_tuple_store_inmemory::InMemoryTupleStore;
 
 /// `editor` is anyone with `writer`, except anyone with `banned`.
-fn difference_model() -> NamespaceConfig {
+fn difference_model() -> ValidatedNamespace {
     NamespaceConfig::new()
         .define("doc", &relation("writer"), UsersetRewrite::this())
         .define("doc", &relation("banned"), UsersetRewrite::this())
@@ -23,6 +23,8 @@ fn difference_model() -> NamespaceConfig {
                 UsersetRewrite::computed_userset(relation("banned")),
             ),
         )
+        .validated()
+        .expect("stratified")
 }
 
 #[test]
@@ -70,7 +72,9 @@ fn intersection_requires_every_child() {
                 UsersetRewrite::computed_userset(relation("onboarded")),
             ])
             .expect("a two-child intersection is valid"),
-        );
+        )
+        .validated()
+        .expect("stratified");
 
     let mut store = InMemoryTupleStore::new();
     write(&mut store, "doc:spec#writer@user:alice");
@@ -103,7 +107,9 @@ fn intersection_requires_every_child() {
 fn a_userset_subject_expands_to_its_members() {
     let model = NamespaceConfig::new()
         .define("group", &relation("member"), UsersetRewrite::this())
-        .define("doc", &relation("viewer"), UsersetRewrite::this());
+        .define("doc", &relation("viewer"), UsersetRewrite::this())
+        .validated()
+        .expect("stratified");
 
     let mut store = InMemoryTupleStore::new();
     write(&mut store, "group:platform#member@user:alice");
@@ -127,7 +133,10 @@ fn a_cycle_answers_instead_of_hanging() {
     // Two groups that contain each other is a legitimate shape to write, and
     // a walk that revisits a relation on its own path must contribute nothing
     // rather than recurse forever.
-    let model = NamespaceConfig::new().define("group", &relation("member"), UsersetRewrite::this());
+    let model = NamespaceConfig::new()
+        .define("group", &relation("member"), UsersetRewrite::this())
+        .validated()
+        .expect("stratified");
 
     let mut store = InMemoryTupleStore::new();
     write(&mut store, "group:a#member@group:b#member");
@@ -150,7 +159,7 @@ fn an_undefined_relation_denies_rather_than_falling_back() {
     // The tuple exists, but nothing defines what `doc#viewer` means. Falling
     // back to direct tuples would make a typo in the config grant exactly the
     // access the config meant to constrain.
-    let model = NamespaceConfig::new();
+    let model = NamespaceConfig::new().validated().expect("stratified");
     let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
 
     assert_eq!(

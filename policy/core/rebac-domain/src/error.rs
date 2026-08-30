@@ -24,6 +24,14 @@ pub enum ExpansionError {
     /// from the tuple bound so an operator can tell a wide relation from a
     /// store that is not terminating its pagination.
     PageBudgetExceeded { limit: usize },
+    /// A relation reaches itself through the subtracted side of a
+    /// `Difference`. Least-fixed-point re-entry is sound only for monotone
+    /// operators, so such a model grants exactly what its author wrote it to
+    /// exclude. Refused when the model is built, never at decision time.
+    NonStratified {
+        object_type: String,
+        relation: String,
+    },
     /// The store refused or failed. Never treated as an absent grant.
     Store(RebacTupleStoreError),
 }
@@ -44,6 +52,14 @@ impl fmt::Display for ExpansionError {
             Self::PageBudgetExceeded { limit } => {
                 write!(f, "one tupleset exceeded the page bound of {limit}")
             }
+            Self::NonStratified {
+                object_type,
+                relation,
+            } => write!(
+                f,
+                "{object_type}#{relation} reaches itself through a Difference \
+                 subtraction; such a model grants what it excludes"
+            ),
             Self::Store(error) => write!(f, "tuple store: {error}"),
         }
     }

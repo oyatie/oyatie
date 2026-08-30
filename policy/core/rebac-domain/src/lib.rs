@@ -17,9 +17,10 @@ mod bounds;
 mod error;
 mod expander;
 mod namespace;
+mod stratify;
 mod walk;
 
 pub use bounds::ExpansionBounds;
 pub use error::ExpansionError;
 pub use expander::Expander;
-pub use namespace::NamespaceConfig;
+pub use namespace::{NamespaceConfig, ValidatedNamespace};

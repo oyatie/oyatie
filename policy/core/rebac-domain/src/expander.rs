@@ -12,13 +12,13 @@ use policy_cedar_domain::rebac::{
 
 use crate::bounds::{Budget, ExpansionBounds};
 use crate::error::ExpansionError;
-use crate::namespace::NamespaceConfig;
+use crate::namespace::ValidatedNamespace;
 use crate::walk::Walk;
 
 /// Evaluates relationship questions for one tenant at one snapshot.
 pub struct Expander<'a, S: RebacTupleStore> {
     store: &'a S,
-    namespace: &'a NamespaceConfig,
+    namespace: &'a ValidatedNamespace,
     tenant: RebacTenantScope,
     snapshot: RebacReadSnapshot,
     bounds: ExpansionBounds,
@@ -28,7 +28,7 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
     #[must_use]
     pub fn new(
         store: &'a S,
-        namespace: &'a NamespaceConfig,
+        namespace: &'a ValidatedNamespace,
         tenant: RebacTenantScope,
         snapshot: RebacReadSnapshot,
     ) -> Self {
@@ -111,30 +111,75 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
                 tupleset_relation,
                 computed_userset_relation,
             } => self.tuple_to_userset(walk, tupleset_relation, computed_userset_relation, object),
+            // Composite arms recurse over the rewrite TREE, which is
+            // attacker-shaped just as the object graph is: a config can nest
+            // `Union` to any depth. Charging only object-graph descent left
+            // this path unbounded, and a deep enough tree aborted the process
+            // on a stack overflow instead of refusing.
             UsersetRewrite::Union { children } => {
-                for child in children {
-                    if self.eval(walk, child, relation, object)? {
-                        return Ok(true);
-                    }
-                }
-                Ok(false)
+                walk.descend()?;
+                let held = self.any_child(walk, children, relation, object);
+                walk.ascend();
+                held
             }
             UsersetRewrite::Intersection { children } => {
-                for child in children {
-                    if !self.eval(walk, child, relation, object)? {
-                        return Ok(false);
-                    }
-                }
-                Ok(true)
+                walk.descend()?;
+                let held = self.every_child(walk, children, relation, object);
+                walk.ascend();
+                held
             }
             UsersetRewrite::Difference { base, subtract } => {
-                if !self.eval(walk, base, relation, object)? {
-                    return Ok(false);
-                }
-                let excluded = self.eval(walk, subtract, relation, object)?;
-                Ok(!excluded)
+                walk.descend()?;
+                let held = self.difference(walk, base, subtract, relation, object);
+                walk.ascend();
+                held
             }
         }
+    }
+
+    fn any_child(
+        &self,
+        walk: &mut Walk<'_>,
+        children: &[UsersetRewrite],
+        relation: &RebacRelation,
+        object: &RebacObjectRef,
+    ) -> Result<bool, ExpansionError> {
+        for child in children {
+            if self.eval(walk, child, relation, object)? {
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
+    fn every_child(
+        &self,
+        walk: &mut Walk<'_>,
+        children: &[UsersetRewrite],
+        relation: &RebacRelation,
+        object: &RebacObjectRef,
+    ) -> Result<bool, ExpansionError> {
+        for child in children {
+            if !self.eval(walk, child, relation, object)? {
+                return Ok(false);
+            }
+        }
+        Ok(true)
+    }
+
+    fn difference(
+        &self,
+        walk: &mut Walk<'_>,
+        base: &UsersetRewrite,
+        subtract: &UsersetRewrite,
+        relation: &RebacRelation,
+        object: &RebacObjectRef,
+    ) -> Result<bool, ExpansionError> {
+        if !self.eval(walk, base, relation, object)? {
+            return Ok(false);
+        }
+        let excluded = self.eval(walk, subtract, relation, object)?;
+        Ok(!excluded)
     }
 
     /// `This`: tuples written directly against `object#relation`. A tuple
@@ -145,7 +190,7 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
         relation: &RebacRelation,
         object: &RebacObjectRef,
     ) -> Result<bool, ExpansionError> {
-        for tuple in self.read_tupleset(object, relation, &mut walk.budget)? {
+        for tuple in self.read_tupleset(object, relation, walk)? {
             match &tuple.subject {
                 candidate if candidate == walk.subject => return Ok(true),
                 RebacSubjectRef::Userset {
@@ -172,10 +217,14 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
         computed: &RebacRelation,
         object: &RebacObjectRef,
     ) -> Result<bool, ExpansionError> {
-        for tuple in self.read_tupleset(object, tupleset_relation, &mut walk.budget)? {
+        for tuple in self.read_tupleset(object, tupleset_relation, walk)? {
             let via = match &tuple.subject {
                 RebacSubjectRef::Object { object } => object,
-                RebacSubjectRef::Userset { object, .. } => object,
+                // A userset here names no single object to ask. Treating it as
+                // its object silently drops the `#relation` half and grants off
+                // the bare object, which is strictly more access than written.
+                // Skip it: an unusable tupleset entry contributes nothing.
+                RebacSubjectRef::Userset { .. } => continue,
             };
             if self.descend_into(walk, computed, via)? {
                 return Ok(true);
@@ -190,7 +239,7 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
         &self,
         object: &RebacObjectRef,
         relation: &RebacRelation,
-        budget: &mut Budget,
+        walk: &mut Walk<'_>,
     ) -> Result<Vec<RebacTuple>, ExpansionError> {
         let mut collected = Vec::new();
         let mut page_token = None;
@@ -201,8 +250,13 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
                 relation.clone(),
             )
             .at_page(page_token);
-            let page = self.store.read_tuples(&query, self.snapshot.clone())?;
-            budget.charge(page.tuples.len())?;
+            let page = self
+                .store
+                .read_tuples(&query, walk.read_at(&self.snapshot))?;
+            // Pin to what the first read was actually served, so the rest of
+            // this decision cannot observe a later write.
+            walk.pin(page.snapshot.clone());
+            walk.budget.charge(page.tuples.len())?;
             collected.extend(page.tuples);
             match page.next_page_token {
                 Some(token) => page_token = Some(token),

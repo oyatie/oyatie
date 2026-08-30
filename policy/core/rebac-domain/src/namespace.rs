@@ -10,6 +10,7 @@ use std::collections::BTreeMap;
 use policy_cedar_domain::rebac::{RebacRelation, UsersetRewrite};
 
 use crate::error::ExpansionError;
+use crate::stratify::assert_stratified;
 
 /// `(object_type, relation)` → the rewrite that defines it.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -57,6 +58,18 @@ impl NamespaceConfig {
             })
     }
 
+    /// Check the model and hand back the only form an `Expander` accepts.
+    ///
+    /// # Errors
+    /// [`ExpansionError::NonStratified`] when a relation reaches itself
+    /// through a `Difference` subtraction. Refusing here rather than at check
+    /// time is deliberate: the failure belongs to whoever wrote the model, and
+    /// a type that cannot be built wrong cannot be evaluated wrong.
+    pub fn validated(self) -> Result<ValidatedNamespace, ExpansionError> {
+        assert_stratified(&self.relations)?;
+        Ok(ValidatedNamespace(self))
+    }
+
     #[must_use]
     pub fn is_defined(&self, object_type: &str, relation: &RebacRelation) -> bool {
         self.relations
@@ -71,5 +84,24 @@ impl NamespaceConfig {
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.relations.is_empty()
+    }
+}
+
+/// A [`NamespaceConfig`] that has passed stratification. The only model an
+/// [`crate::Expander`] will evaluate.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ValidatedNamespace(NamespaceConfig);
+
+impl ValidatedNamespace {
+    /// The rewrite for `object_type#relation`.
+    ///
+    /// # Errors
+    /// [`ExpansionError::UndefinedRelation`] when none is defined.
+    pub fn rewrite(
+        &self,
+        object_type: &str,
+        relation: &RebacRelation,
+    ) -> Result<&UsersetRewrite, ExpansionError> {
+        self.0.rewrite(object_type, relation)
     }
 }

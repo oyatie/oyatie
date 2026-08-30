@@ -4,7 +4,7 @@ use policy_cedar_domain::rebac::{
     RebacObjectRef, RebacReadSnapshot, RebacRelation, RebacSubjectRef, RebacTenantScope,
     RebacTuple, RebacTupleStore, UsersetRewrite, Zookie,
 };
-use policy_rebac_domain::NamespaceConfig;
+use policy_rebac_domain::{NamespaceConfig, ValidatedNamespace};
 use policy_tuple_store_inmemory::InMemoryTupleStore;
 
 pub fn tenant() -> RebacTenantScope {
@@ -34,7 +34,7 @@ pub fn at(zookie: Zookie) -> RebacReadSnapshot {
 
 /// `folder#viewer` is direct. `document#viewer` is direct, or inherited from
 /// the viewer of the folder the document names as its parent.
-pub fn document_model() -> NamespaceConfig {
+pub fn document_model() -> ValidatedNamespace {
     NamespaceConfig::new()
         .define("folder", &relation("viewer"), UsersetRewrite::this())
         .define(
@@ -47,4 +47,6 @@ pub fn document_model() -> NamespaceConfig {
             .expect("a two-child union is valid"),
         )
         .define("document", &relation("parent"), UsersetRewrite::this())
+        .validated()
+        .expect("the document model is stratified")
 }
