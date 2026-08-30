@@ -137,7 +137,15 @@ fn presubmit_jobs_are_the_occupant_set() {
         "the admission build must reach crates.io on a cold cache"
     );
 
-    let collector = read("pipeline/facade/path-occupancy-app/src/main.rs");
+    // The collector spans two files: `main.rs` decides, `git.rs` reads. Freeze
+    // both, as the layout app below does — reading only `main.rs` would have
+    // let the git plumbing move out from under these assertions and report
+    // green, which is the failure mode this freeze exists to prevent.
+    let collector = format!(
+        "{}\n{}",
+        read("pipeline/facade/path-occupancy-app/src/main.rs"),
+        read("pipeline/facade/path-occupancy-app/src/git.rs")
+    );
     assert!(collector.contains("Command::new(\"gh\")"));
     assert!(collector.contains("--paginate"));
     assert!(collector.contains("refs/pull/{number}/head"));
@@ -148,6 +156,19 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(collector.contains("git_change_paths_from_name_status_z"));
     assert!(collector.contains("required_env(\"GITHUB_REF\")"));
     assert!(!collector.contains("/files"));
+    // Bind the call site to the authored-path rule. Without these, reverting
+    // `run()` to a raw `admit()` over every changed path leaves every unit test
+    // green while restoring the wedge they exist to prevent.
+    assert!(
+        collector.contains("git_blob_text(")
+            && collector.contains("declared_mergeable(&attributes)")
+            && collector.contains("admit_authored(&this, &in_flight, &mergeable)"),
+        "occupancy must admit on authored paths, not on every changed path"
+    );
+    assert!(
+        !collector.contains("admit(&this, &in_flight)"),
+        "the raw all-paths admit is the wedge; it must not return"
+    );
 
     let layout = format!(
         "{}\n{}",
