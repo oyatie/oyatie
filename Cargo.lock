@@ -2209,6 +2209,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundry-blob-sqlite-draft"
+version = "0.1.0"
+dependencies = [
+ "foundry-blob-draft",
+ "rusqlite",
+]
+
+[[package]]
 name = "foundry-records-draft"
 version = "0.1.0"
 
