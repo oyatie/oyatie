@@ -2,7 +2,8 @@
 //!
 //! Success means every open pull request targeting `dev` was enumerated, its
 //! Git head was fetched, and its complete NUL-delimited Git path-set was
-//! disjoint from the current pull request. API, fetch, diff, parse, and empty
+//! disjoint from the current pull request over AUTHORED paths (paths `.gitattributes`
+//! declares structurally mergeable are excluded; see `pipeline_admission::occupancy`). API, fetch, diff, parse, and empty
 //! current-set failures are all red.
 
 use std::collections::BTreeSet;
@@ -10,7 +11,8 @@ use std::env;
 use std::process::{Command, ExitCode, Output};
 
 use pipeline_admission::{
-    GitChangePaths, OccupiedSet, admit, git_change_paths_from_name_status_z, hops_ahead,
+    GitChangePaths, OccupiedSet, admit_authored, declared_mergeable,
+    git_change_paths_from_name_status_z,
 };
 
 const REMOTE: &str = "origin";
@@ -52,9 +54,11 @@ fn run() -> Result<(), String> {
     )?;
     let this = git_change_paths(&config.token, &current_base, &current_head)?.occupied;
 
-    let ahead = hops_ahead(&open, config.pull_request);
-    let mut in_flight = Vec::with_capacity(ahead.len());
-    for number in ahead {
+    let mut in_flight = Vec::with_capacity(open.len().saturating_sub(1));
+    for number in open {
+        if number == config.pull_request {
+            continue;
+        }
         let head = pull_head_ref(number);
         let merge_base = git_text(&config.token, &["merge-base", head.as_str(), TRUNK_REF])?;
         let paths = git_change_paths(&config.token, &merge_base, &head)?.occupied;
@@ -66,7 +70,9 @@ fn run() -> Result<(), String> {
         }
     }
 
-    admit(&this, &in_flight).map_err(|error| error.message())
+    let attributes = std::fs::read_to_string(".gitattributes").unwrap_or_default();
+    let mergeable = declared_mergeable(&attributes).map_err(|error| error.message())?;
+    admit_authored(&this, &in_flight, &mergeable).map_err(|error| error.message())
 }
 
 fn config_from_env() -> Result<Config, String> {

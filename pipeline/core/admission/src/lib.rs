@@ -29,5 +29,7 @@ pub use layout::{
     workspace_draft_dependency_violations, workspace_membership_violations,
 };
 pub use line_budget::file_budget_violations;
-pub use occupancy::{OccupancyRefused, OccupiedSet, admit, hops_ahead};
+pub use occupancy::{
+    OccupancyRefused, OccupiedSet, admit, admit_authored, authored_paths, declared_mergeable,
+};
 pub use owners::{ROOT_OCCUPANT, owners_occupant};

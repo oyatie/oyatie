@@ -2217,6 +2217,38 @@ original lane keeps its set.
   that still makes same-path dual write unspawnable without a sidecar
   VCS or a capability mutex.
 
+#### D-40 amendment (2026-08-30) — the grain is AUTHORED paths
+
+- **achieves:** structural lanes spawn concurrently again, while a
+  same-path dual write over content a lane actually wrote stays
+  unspawnable. This is the other occupancy grain D-40's `overturn_when`
+  invites, not a relaxation of disjointness.
+- **origin:** the grain was every changed path, including paths this
+  repository had already declared concurrently editable. `.gitattributes`
+  assigns `Cargo.lock` a structural `merge=cargo-lock` driver *because*
+  "package sections can be added, removed, or version-replaced by
+  independent branches". Every capability lane births or renames a crate,
+  so every lane rewrote the lockfile, so every structural lane refused
+  every other and the driver written to combine them never ran. Four
+  lanes were wedged simultaneously on that one path; the gate made its
+  own declared remedy unreachable.
+- **rule:** the occupancy path-set is a lane's AUTHORED paths. A path
+  carrying a `merge=` attribute in `.gitattributes` is excluded: the
+  driver is a standing statement that concurrent edits over it combine
+  deterministically. Disjointness over the remaining paths is unchanged,
+  and a shared authored path remains an assignment rename (D-41), never
+  a queue. Occupancy does not reimplement gitattributes matching: a
+  non-literal `merge=` pattern fails the gate closed rather than being
+  guessed at.
+- **ensure:** admission tests fix both directions — two lanes sharing
+  only the lockfile both spawn; two lanes sharing one source file are
+  still refused — and the facade call site is frozen so reverting to a
+  raw all-paths admit fails a test rather than passing silently.
+- **overturn_when:** a five-field ADR shows a `merge=` declaration that
+  does not in fact make concurrent edits combine deterministically, so
+  that excluding its path admits a collision the driver cannot resolve.
+
+
 ### D-41 — Simplest commute: stable indexes + unique files + queue
 
 **Challenge.** D-37 fragments, D-39 committed generated `mods`, D-40

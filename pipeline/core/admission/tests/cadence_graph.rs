@@ -148,6 +148,18 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(collector.contains("git_change_paths_from_name_status_z"));
     assert!(collector.contains("required_env(\"GITHUB_REF\")"));
     assert!(!collector.contains("/files"));
+    // Bind the call site to the authored-path rule. Without these, reverting
+    // `run()` to a raw `admit()` over every changed path leaves every unit test
+    // green while restoring the wedge they exist to prevent.
+    assert!(
+        collector.contains("declared_mergeable(&attributes)")
+            && collector.contains("admit_authored(&this, &in_flight, &mergeable)"),
+        "occupancy must admit on authored paths, not on every changed path"
+    );
+    assert!(
+        !collector.contains("admit(&this, &in_flight)"),
+        "the raw all-paths admit is the wedge; it must not return"
+    );
 
     let layout = format!(
         "{}\n{}",
