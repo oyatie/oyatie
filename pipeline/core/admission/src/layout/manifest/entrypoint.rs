@@ -1,4 +1,4 @@
-//! Which source file is a face leaf's root.
+//! Which source file is a face leaf's root. Provenance: ADR-0719 D-30/D-41.
 
 use super::expected_manifest_identity;
 use crate::layout::path_parts;
