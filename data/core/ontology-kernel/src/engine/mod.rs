@@ -51,6 +51,7 @@ impl OntologyEngine {
         &mut self,
         definition: EntityTypeDefinition,
     ) -> Result<EntityTypeId, OntologyEngineError> {
+        check_designation_integrity(&definition)?;
         let key = ontology_scoped_key(&definition.tenant_id, &definition.id.value);
         if self.entity_types.contains_key(&key) {
             return Err(OntologyEngineError::DuplicateEntityType);
@@ -139,6 +140,38 @@ impl OntologyEngine {
         self.entity_types
             .contains_key(&ontology_scoped_key(tenant_id, &id.value))
     }
+}
+
+/// Designation integrity: a primary-key or title designation must name a
+/// declared property, and the key property must be `required` — a key
+/// absent from a conformant instance is a contradiction.
+pub(crate) fn check_designation_integrity(
+    definition: &EntityTypeDefinition,
+) -> Result<(), OntologyEngineError> {
+    for name in [
+        definition.primary_key_property.as_deref(),
+        definition.title_property.as_deref(),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        if !definition.properties.iter().any(|p| p.name == name) {
+            return Err(OntologyEngineError::DesignatedPropertyNotDeclared {
+                name: name.to_string(),
+            });
+        }
+    }
+    if let Some(key_name) = definition.primary_key_property.as_deref()
+        && definition
+            .properties
+            .iter()
+            .any(|p| p.name == key_name && !p.required)
+    {
+        return Err(OntologyEngineError::PrimaryKeyPropertyNotRequired {
+            name: key_name.to_string(),
+        });
+    }
+    Ok(())
 }
 
 fn ontology_scoped_key(tenant_id: &str, id: &str) -> OntologyScopedKey {

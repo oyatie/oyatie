@@ -4,6 +4,7 @@ mod action_parameters;
 mod engine_registration;
 mod evolution_guards;
 mod instance_conformance;
+mod key_title_designations;
 mod object_graph;
 mod pillar_links;
 mod schema_evolution;
