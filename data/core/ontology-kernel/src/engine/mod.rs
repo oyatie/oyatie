@@ -4,6 +4,7 @@
 //! registration, and action-invocation authorization live in the sibling
 //! modules of this directory, each as its own `impl OntologyEngine` block.
 
+mod conformance;
 mod evolution;
 mod invocation;
 mod links;

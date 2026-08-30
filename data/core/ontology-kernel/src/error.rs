@@ -58,6 +58,32 @@ pub enum OntologyEngineError {
     /// been registered for the tenant. Register the link type before creating
     /// instances of it.
     UnknownLinkType,
+    /// An instance names a definition property with `required: true` that is
+    /// absent from the instance's property set
+    /// ([`OntologyEngine::check_instance_conformance`](crate::OntologyEngine::check_instance_conformance)).
+    MissingRequiredProperty {
+        /// Name of the required property the instance lacks.
+        name: String,
+    },
+    /// An instance carries a property its entity type definition does not
+    /// declare. Conformance is fail-closed on vocabulary: evolve the type
+    /// (additively) before writing the property.
+    UndeclaredProperty {
+        /// Name of the property the definition does not declare.
+        name: String,
+    },
+    /// An instance property's [`PropertyTier`](crate::PropertyTier) differs
+    /// from the tier its definition declares.
+    PropertyTierMismatch {
+        /// Name of the mismatched property.
+        name: String,
+    },
+    /// An instance property's data class differs from the class its
+    /// definition declares.
+    PropertyDataClassMismatch {
+        /// Name of the mismatched property.
+        name: String,
+    },
     /// A link instance would violate the [`LinkCardinality`] declared on the
     /// [`LinkTypeDefinition`]. The `cardinality` field carries the constraint
     /// that was violated.
