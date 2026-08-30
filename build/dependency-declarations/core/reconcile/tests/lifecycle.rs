@@ -34,6 +34,10 @@ mod lifecycle_toolchain_currency;
 mod lifecycle_toolchain_currency_refusals;
 #[path = "support/lifecycle_toolchain_delta.rs"]
 mod lifecycle_toolchain_delta;
+#[path = "support/lifecycle_toolchain_posture.rs"]
+mod lifecycle_toolchain_posture;
+#[path = "support/lifecycle_toolchain_posture_refusals.rs"]
+mod lifecycle_toolchain_posture_refusals;
 #[path = "support/lifecycle_toolchain_refusals.rs"]
 mod lifecycle_toolchain_refusals;
 #[path = "support/lifecycle_toolchain_transition.rs"]
