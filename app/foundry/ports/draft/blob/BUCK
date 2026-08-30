@@ -1,0 +1,26 @@
+rust_library(
+    name = "foundry-blob-draft",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_blob_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = ["third-party//:sha2"],
+)
+
+rust_test(
+    name = "foundry-blob-draft-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_blob_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = ["third-party//:sha2"],
+)
+
+rust_test(
+    name = "foundry-blob-draft-reference",
+    srcs = ["tests/reference_blob.rs"],
+    crate = "reference_blob",
+    crate_root = "tests/reference_blob.rs",
+    visibility = ["PUBLIC"],
+    deps = [":foundry-blob-draft", "third-party//:sha2"],
+)
