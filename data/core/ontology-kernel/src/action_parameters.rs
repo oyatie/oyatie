@@ -6,6 +6,7 @@ use data_boundary_kernel::PrivacyDataClass;
 
 use crate::error::OntologyEngineError;
 use crate::property::PropertyTier;
+use crate::value_type::ValueTypeDeclaration;
 
 /// One declared parameter of an action type: name, tier, data class, and
 /// whether a submission must carry it.
@@ -15,6 +16,9 @@ pub struct ActionParameterDefinition {
     pub tier: PropertyTier, // data_class: INTERNAL_ONLY
     pub data_class: PrivacyDataClass,
     pub required: bool, // data_class: INTERNAL_ONLY
+    /// Declared value type; `None` is the legacy string contract.
+    /// Action types are register-once, so a declaration is immutable.
+    pub value_type: Option<ValueTypeDeclaration>, // data_class: INTERNAL_ONLY
 }
 
 impl ActionParameterDefinition {
@@ -33,6 +37,21 @@ impl ActionParameterDefinition {
             tier,
             data_class,
             required,
+            value_type: None,
         })
+    }
+
+    /// A typed parameter: the tier is DERIVED from the declaration's
+    /// projection, so tier/type incoherence is unrepresentable here.
+    pub fn typed(
+        name: impl Into<String>,
+        value_type: ValueTypeDeclaration,
+        data_class: PrivacyDataClass,
+        required: bool,
+    ) -> Result<Self, OntologyEngineError> {
+        let tier = value_type.tier();
+        let mut parameter = Self::new(name, tier, data_class, required)?;
+        parameter.value_type = Some(value_type);
+        Ok(parameter)
     }
 }

@@ -8,6 +8,7 @@ use crate::action_parameters::ActionParameterDefinition;
 use crate::error::OntologyEngineError;
 use crate::pillar::OntologyPillar;
 use crate::property::PropertyTier;
+use crate::value_type::ValueTypeDeclaration;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct EntityTypeId {
@@ -41,6 +42,9 @@ pub struct EntityTypePropertyDefinition {
     pub tier: PropertyTier, // data_class: INTERNAL_ONLY
     pub data_class: PrivacyDataClass,
     pub required: bool, // data_class: INTERNAL_ONLY
+    /// Declared value type; `None` is the legacy string contract. Once
+    /// `Some`, immutable across revisions (see `check_schema_compatibility`).
+    pub value_type: Option<ValueTypeDeclaration>, // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EntityTypeDefinition {
@@ -151,6 +155,7 @@ impl EntityTypePropertyDefinition {
             tier,
             data_class,
             required,
+            value_type: None,
         })
     }
 }
