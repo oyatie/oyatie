@@ -189,6 +189,8 @@ rust_test(
         "tests/support/lifecycle_toolchain_delta.rs",
         "tests/support/lifecycle_toolchain_currency.rs",
         "tests/support/lifecycle_toolchain_currency_refusals.rs",
+        "tests/support/lifecycle_toolchain_posture.rs",
+        "tests/support/lifecycle_toolchain_posture_refusals.rs",
         "tests/support/lifecycle_toolchain_refusals.rs",
         "tests/support/lifecycle_toolchain_transition.rs",
         "tests/support/toolchain_currency_support.rs",

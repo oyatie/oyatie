@@ -29,15 +29,7 @@ impl ToolchainCurrencyAssessmentV1 {
         exception: Option<&ToolchainCurrencyExceptionV1>,
         evaluated_at: LifecycleTimestampV1,
     ) -> Result<Self, LifecycleFailureV1> {
-        let fresh_until = checked_lifecycle_timestamp_add(
-            snapshot.observed_at(),
-            policy.observation_freshness_seconds(),
-        )?;
-        if evaluated_at < snapshot.observed_at() || evaluated_at > fresh_until {
-            return Err(LifecycleFailureV1::new(
-                LifecycleFailureClassV1::StaleFact,
-            ));
-        }
+        validate_toolchain_currency_observation(snapshot, policy, evaluated_at)?;
         let candidate_identity_sha256 = candidate.identity_sha256();
         if snapshot.host_triple() != candidate.current().stable().tools().rustc().host_triple()
             || exception.is_some_and(|exception| {
@@ -140,6 +132,23 @@ impl ToolchainCurrencyAssessmentV1 {
     pub const fn identity_sha256(&self) -> DigestV1 {
         self.identity_sha256
     }
+}
+
+pub(crate) fn validate_toolchain_currency_observation(
+    snapshot: &ToolchainChannelSnapshotV1,
+    policy: &ToolchainCurrencyPolicyV1,
+    evaluated_at: LifecycleTimestampV1,
+) -> Result<(), LifecycleFailureV1> {
+    let fresh_until = checked_lifecycle_timestamp_add(
+        snapshot.observed_at(),
+        policy.observation_freshness_seconds(),
+    )?;
+    if evaluated_at < snapshot.observed_at() || evaluated_at > fresh_until {
+        return Err(LifecycleFailureV1::new(
+            LifecycleFailureClassV1::StaleFact,
+        ));
+    }
+    Ok(())
 }
 
 fn matrix_profile(
