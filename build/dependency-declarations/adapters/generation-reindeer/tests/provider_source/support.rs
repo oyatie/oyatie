@@ -8,14 +8,16 @@ use dependency_declarations_generation_reindeer::{
 };
 
 pub(super) const PINNED_REVISION: &str = "bb681570d2bc47d1446080c12b8681a50a95f628";
-pub(super) const SOURCE_PATHS: [&str; 7] = [
+pub(super) const SOURCE_PATHS: [&str; 9] = [
     "src/artifact.rs",
     "src/artifact/serializer.rs",
     "src/artifact/serializer/builders.rs",
     "src/artifact/value.rs",
     "src/buck.rs",
     "src/buckify.rs",
+    "src/index.rs",
     "src/main.rs",
+    "src/version_naming.rs",
 ];
 static NEXT_SOURCE_FIXTURE: AtomicUsize = AtomicUsize::new(0);
 const MAX_SOURCE_FIXTURE_CREATE_ATTEMPTS: usize = 64;

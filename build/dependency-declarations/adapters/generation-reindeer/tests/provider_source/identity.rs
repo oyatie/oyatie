@@ -75,7 +75,7 @@ fn exact_source_batch_produces_one_deterministic_adaptation() {
         first.source_tree_sha256(),
         first.schema().schema_source_sha256()
     );
-    assert_eq!(first.parsed_source_files(), 3);
+    assert_eq!(first.parsed_source_files(), 5);
     assert_eq!(first.files().len(), SOURCE_PATHS.len());
     assert_eq!(
         first

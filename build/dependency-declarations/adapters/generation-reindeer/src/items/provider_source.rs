@@ -1,11 +1,13 @@
-const REINDEER_PROVIDER_SOURCE_PATHS_V1: [&str; 7] = [
+const REINDEER_PROVIDER_SOURCE_PATHS_V1: [&str; 9] = [
     "src/artifact.rs",
     "src/artifact/serializer.rs",
     "src/artifact/serializer/builders.rs",
     "src/artifact/value.rs",
     "src/buck.rs",
     "src/buckify.rs",
+    "src/index.rs",
     "src/main.rs",
+    "src/version_naming.rs",
 ];
 const REINDEER_PROVIDER_GENERATED_PATHS_V1: [&str; 4] = [
     "src/artifact.rs",
@@ -22,7 +24,9 @@ const REINDEER_ADAPTATION_RECIPE_ID_V1: &str = concat!(
     "prettyplease=0.2.37@479ca8adacdd7ce8f1fb39ce9ecccbfe93a3f1344b3d0d97f20bc0196208f62b;",
     "proc-macro2=1.0.107@985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9;",
     "quote=1.0.47@1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001;",
-    "sha2=0.10.9@a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283",
+    "sha2=0.10.9@a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283;",
+    "public-naming=resolved-compatibility-slot.v1;",
+    "reserved-targets=source-distinct.v1",
 );
 
 struct ReindeerParsedProviderSourceV1<'a> {
@@ -42,7 +46,13 @@ pub fn adapt_reindeer_provider_source_v1(
     let buck = parse_exact_provider_source_v1(&files, "src/buck.rs", REINDEER_BUCK_SHA256_V1)?;
     let buckify =
         parse_exact_provider_source_v1(&files, "src/buckify.rs", REINDEER_BUCKIFY_SHA256_V1)?;
+    let index = parse_exact_provider_source_v1(&files, "src/index.rs", REINDEER_INDEX_SHA256_V1)?;
     let main = parse_exact_provider_source_v1(&files, "src/main.rs", REINDEER_MAIN_SHA256_V1)?;
+    let version_naming = parse_exact_provider_source_v1(
+        &files,
+        "src/version_naming.rs",
+        REINDEER_VERSION_NAMING_SHA256_V1,
+    )?;
     let schema = inspect_reindeer_provider_schema_syntax_v1(buck.bytes, &buck.syntax)?;
     if snapshot.source_tree_sha256() != REINDEER_SOURCE_TREE_SHA256_V1 {
         return Err(ReindeerProviderAdaptationErrorV1::SourceTreeMismatch);
@@ -86,6 +96,15 @@ pub fn adapt_reindeer_provider_source_v1(
             })?,
         ),
         (
+            "src/index.rs",
+            adapt_reindeer_index_v1(index.text, &index.syntax).map_err(|error| {
+                provider_shape_context_v1(
+                    error,
+                    ReindeerProviderAdaptationErrorV1::UnsupportedIndexSourceShape,
+                )
+            })?,
+        ),
+        (
             "src/main.rs",
             adapt_reindeer_main_v1(main.text, &main.syntax).map_err(|error| {
                 provider_shape_context_v1(
@@ -93,6 +112,16 @@ pub fn adapt_reindeer_provider_source_v1(
                     ReindeerProviderAdaptationErrorV1::UnsupportedMainSourceShape,
                 )
             })?,
+        ),
+        (
+            "src/version_naming.rs",
+            adapt_reindeer_version_naming_v1(version_naming.text, &version_naming.syntax)
+                .map_err(|error| {
+                    provider_shape_context_v1(
+                        error,
+                        ReindeerProviderAdaptationErrorV1::UnsupportedVersionNamingSourceShape,
+                    )
+                })?,
         ),
     ]);
 
@@ -157,7 +186,13 @@ fn canonical_provider_source_batch_v1(
             return Err(ReindeerProviderAdaptationErrorV1::SourcePresenceMismatch);
         }
     }
-    for path in ["src/buck.rs", "src/buckify.rs", "src/main.rs"] {
+    for path in [
+        "src/buck.rs",
+        "src/buckify.rs",
+        "src/index.rs",
+        "src/main.rs",
+        "src/version_naming.rs",
+    ] {
         if !by_path.contains_key(path) {
             return Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch);
         }
@@ -238,5 +273,9 @@ const REINDEER_BUCK_SHA256_V1: &str =
     "49d79a30a880c042f3c383b6b5d17d3152caacbf82e402ab7d1875087e56237b";
 const REINDEER_BUCKIFY_SHA256_V1: &str =
     "6d09d2b7a51b7fca101d2fbd356d96e626467a8b8b02090747eb3979d4f61ecf";
+const REINDEER_INDEX_SHA256_V1: &str =
+    "23546695e322a9d86298f6aeb38abbeff4e10503674fca251eb153917beb6689";
 const REINDEER_MAIN_SHA256_V1: &str =
     "2b53f3680985fec0974441ad37b80397ca3cc85e52c259917af15277ec874a27";
+const REINDEER_VERSION_NAMING_SHA256_V1: &str =
+    "547603f2df2e163a12d719c290d94e14f56bdaa2451208f093f06d469aab0415";

@@ -6,7 +6,52 @@ fn adapt_reindeer_buckify_v1(
     let buckify = exactly_one_provider_function_v1(&syntax.items, "buckify")?;
     let mut edits = do_buckify_edits_v1(source, do_buckify)?;
     edits.extend(buckify_artifact_edits_v1(source, buckify)?);
+    edits.push(public_rule_name_reservation_edit_v1(source, buckify)?);
     apply_source_edits_v1(source, edits)
+}
+
+fn public_rule_name_reservation_edit_v1(
+    source: &str,
+    function: &syn::ItemFn,
+) -> Result<ReindeerProviderSourceEditV1, ReindeerProviderAdaptationErrorV1> {
+    struct CallCollectorV1<'ast> {
+        matches: Vec<&'ast syn::ExprCall>,
+    }
+
+    impl<'ast> syn::visit::Visit<'ast> for CallCollectorV1<'ast> {
+        fn visit_expr_call(&mut self, call: &'ast syn::ExprCall) {
+            let is_constructor = matches!(
+                call.func.as_ref(),
+                syn::Expr::Path(path)
+                    if path.path.segments.len() == 2
+                        && path.path.segments[0].ident == "CollisionInfo"
+                        && path.path.segments[1].ident == "new_with_reserved"
+            );
+            if is_constructor {
+                self.matches.push(call);
+            }
+            syn::visit::visit_expr_call(self, call);
+        }
+    }
+
+    let mut collector = CallCollectorV1 {
+        matches: Vec::new(),
+    };
+    syn::visit::Visit::visit_block(&mut collector, &function.block);
+    let call = exactly_one_iterator_v1(collector.matches.into_iter())?;
+    let reserved_names = call
+        .args
+        .iter()
+        .nth(1)
+        .ok_or(ReindeerProviderAdaptationErrorV1::UnsupportedSourceShape)?;
+    if call.args.len() != 2 {
+        return Err(ReindeerProviderAdaptationErrorV1::UnsupportedSourceShape);
+    }
+    ReindeerProviderSourceEditV1::replace(
+        source,
+        syn::spanned::Spanned::span(reserved_names),
+        "index.public_rule_names()".to_owned(),
+    )
 }
 
 fn exactly_one_provider_function_v1<'a>(
