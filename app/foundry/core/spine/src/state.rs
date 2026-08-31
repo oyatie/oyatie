@@ -31,6 +31,11 @@ pub struct ObjectBinding {
 pub struct ProjectionState {
     /// The tenant this projection is scoped to.
     pub tenant_id: String, // data_class: INTERNAL_ONLY
+    /// The registry snapshot this projection was seeded with, held
+    /// verbatim so a checkpoint can prove it resumes against the SAME
+    /// fold input. Definitions never change during a fold, so this stays
+    /// the untouched seed while `engine` accumulates link instances.
+    pub registry_input: OntologyEngine, // data_class: INTERNAL_ONLY
     /// The registry snapshot plus accumulated link instances. Links are
     /// written ONLY through `register_link_instance`, so kernel
     /// cardinality law holds by construction.
@@ -55,6 +60,7 @@ impl ProjectionState {
     pub fn new(tenant_id: impl Into<String>, registry: &OntologyEngine) -> Self {
         Self {
             tenant_id: tenant_id.into(),
+            registry_input: registry.clone(),
             engine: registry.clone(),
             objects: ObjectGraph::default(),
             bindings: BTreeMap::new(),
