@@ -8,6 +8,7 @@ mod conformance;
 mod evolution;
 mod invocation;
 mod links;
+mod value_conformance;
 
 pub use links::LinkInstanceOutcome;
 

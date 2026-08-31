@@ -55,15 +55,12 @@ fn app_roster_is_closed_and_missing_products_cannot_be_scaffolds() {
             .any(|item| item.contains("app/ledger") && item.contains("core crate"))
     );
 
-    let implementation_without_law = git_change_paths_from_name_status_z(
+    // A core crate with no prose beside it is the whole proof.
+    let implementation_without_prose = git_change_paths_from_name_status_z(
         b"A\0app/ledger/OWNERS\0A\0app/ledger/core/posting/Cargo.toml\0A\0app/ledger/core/posting/src/lib.rs\0",
     )
     .unwrap();
-    assert!(
-        changed_layout_violations(&implementation_without_law, &BTreeSet::new())
-            .iter()
-            .any(|item| item.contains("canonical owner-law") && item.contains("ADR.md"))
-    );
+    assert!(changed_layout_violations(&implementation_without_prose, &BTreeSet::new()).is_empty());
 
     let implementation = git_change_paths_from_name_status_z(
         b"A\0app/ledger/OWNERS\0A\0app/ledger/ADR.md\0A\0app/ledger/PRD.md\0A\0app/ledger/SPEC.md\0A\0app/ledger/PLAN.md\0A\0app/ledger/core/posting/Cargo.toml\0A\0app/ledger/core/posting/src/lib.rs\0",
@@ -147,7 +144,8 @@ fn owner_docs_and_app_meta_do_not_reintroduce_global_law() {
     assert!(rejected("network/docs/design/shadow/Cargo.toml"));
     assert!(rejected("network/docs/design/shadow/src/lib.rs"));
     assert!(rejected("network/docs/runbooks/example/build.rs"));
-    assert!(!rejected("network/docs/design/routing.md"));
+    // The owner docs face is withdrawn: tracked Markdown has three root homes.
+    assert!(rejected("network/docs/design/routing.md"));
     for path in ["app/ADR.md", "app/PRD.md", "app/SPEC.md", "app/PLAN.md"] {
         assert!(rejected(path), "expected rejection: {path}");
     }
@@ -210,7 +208,7 @@ fn sold_proto_and_owner_docs_reject_draft_and_law_dumps() {
     ] {
         assert!(rejected(path), "expected rejection: {path}");
     }
-    assert!(!rejected(
+    assert!(rejected(
         "network/docs/design/cache/invalidation_strategy.md"
     ));
 }

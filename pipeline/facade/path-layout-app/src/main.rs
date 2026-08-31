@@ -5,11 +5,11 @@ use std::collections::BTreeSet;
 use std::process::ExitCode;
 
 use pipeline_admission::{
-    base_admission_violations, cargo_entrypoint, cargo_manifest_for_crate_path,
+    base_admission_violations, cargo_entrypoints, cargo_manifest_for_crate_path,
     cargo_manifest_violations, changed_layout_violations, draft_dependency_violations,
     git_change_paths_from_name_status_z, owner_core_regression_violations,
-    owner_law_regression_violations, proto_package_violations,
-    workspace_draft_dependency_violations, workspace_membership_violations,
+    proto_package_violations, workspace_draft_dependency_violations,
+    workspace_membership_violations,
 };
 use pipeline_repository_draft::RepositoryRead;
 use pipeline_repository_git_draft::GitRepository;
@@ -47,13 +47,6 @@ fn run() -> Result<(), String> {
         &owners_before.complete,
         &owners_after.live,
         &owners_after.complete,
-    ));
-    violations.extend(owner_law_regression_violations(
-        &changes,
-        &owners_before.complete,
-        &owners_after.live,
-        &owners_after.complete,
-        &owners_after.lawful,
     ));
     violations.extend(workspace_membership_violations(&workspace_contents));
     violations.extend(workspace_draft_dependency_violations(
@@ -108,26 +101,57 @@ fn run() -> Result<(), String> {
             )),
             Some(_) => {}
         }
-        let entrypoint = cargo_entrypoint(&manifest).expect("canonical crate manifest");
-        let entrypoint_kind = repository.entry_kind(&head, &entrypoint)?;
-        let entrypoint_exists = entrypoint_kind.is_some();
-        let entrypoint_is_blob = regular_blob(entrypoint_kind);
-        match entrypoint_kind {
-            None => violations.push(format!(
-                "{manifest}: canonical entry point `{entrypoint}` is absent at the head commit"
-            )),
-            Some(kind) if !regular_blob(Some(kind)) => violations.push(format!(
-                "{manifest}: canonical entry point `{entrypoint}` must be a regular Git blob, got {kind:?}"
-            )),
-            Some(_) => {}
+        let candidates = cargo_entrypoints(&manifest);
+        let canonical = candidates
+            .first()
+            .cloned()
+            .expect("canonical crate manifest");
+        let mut present = None;
+        for candidate in &candidates {
+            if let Some(kind) = repository.entry_kind(&head, candidate)? {
+                present = Some((candidate.clone(), kind));
+                break;
+            }
         }
+        // Ratchet. A facade admits either root, but that relaxation is about
+        // a surface whose listener has not been attached YET - not about
+        // removing a binary that already runs. Without this, deleting
+        // `src/main.rs` from a facade that has one passes clean, because
+        // `src/lib.rs` answers in its place.
+        if let Some(binary) = candidates.first()
+            && binary.ends_with("/src/main.rs")
+            && repository.path_exists(&merge_base, binary)?
+            && repository.entry_kind(&head, binary)?.is_none()
+        {
+            violations.push(format!(
+                "{manifest}: `{binary}` existed at the merge base and is absent at the head \
+                 commit; a facade may land before its listener is attached, but a running \
+                 one does not become a library by deleting its entry point"
+            ));
+        }
+        let (entrypoint_exists, entrypoint_is_blob) = match present {
+            None => {
+                violations.push(format!(
+                    "{manifest}: no canonical entry point at the head commit; expected one of {}",
+                    candidates.join(", ")
+                ));
+                (false, false)
+            }
+            Some((path, kind)) if !regular_blob(Some(kind)) => {
+                violations.push(format!(
+                    "{manifest}: canonical entry point `{path}` must be a regular Git blob, got {kind:?}"
+                ));
+                (true, false)
+            }
+            Some(_) => (true, true),
+        };
         if manifest.starts_with("base/core/")
             && manifest_exists
             && manifest_is_blob
             && entrypoint_exists
             && entrypoint_is_blob
             && (!repository.path_exists(&merge_base, &manifest)?
-                || !repository.path_exists(&merge_base, &entrypoint)?)
+                || !repository.path_exists(&merge_base, &canonical)?)
         {
             added_base_manifests.push(manifest);
         }

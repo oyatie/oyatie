@@ -18,8 +18,9 @@ impl OntologyEngine {
     ///   returned by this method.
     /// - **Evolution** (id already registered): requires
     ///   `definition.revision > stored.revision` (strict monotonicity) and that
-    ///   every prior property is retained with unchanged `tier`, `data_class`,
-    ///   and `required` flag. New properties must be optional
+    ///   every prior property is retained with an unchanged frozen quadruple
+    ///   (`tier`, `data_class`, `required`, `value_type` — `Some` immutable,
+    ///   `None` -> `Some` rejected alike). New properties must be optional
     ///   (`required: false`), and the pillar annotation is immutable. On
     ///   success the stored definition is replaced with `definition`.
     ///
@@ -32,7 +33,7 @@ impl OntologyEngine {
     /// | [`OntologyEngineError::EmptyProperties`] | `properties` is empty. |
     /// | [`OntologyEngineError::EmptyPropertyName`] | A property name is blank. |
     /// | [`OntologyEngineError::NonMonotonicRevision`] | `definition.revision <= stored.revision`. |
-    /// | [`OntologyEngineError::IncompatibleSchemaEvolution`] | A prior property was removed or mutated, or a new property is `required`. |
+    /// | [`OntologyEngineError::IncompatibleSchemaEvolution`] | A prior property was removed or its quadruple (tier, data class, required, value type) mutated, or a new property is `required`. |
     /// | [`OntologyEngineError::PillarChangedOnEvolution`] | The pillar annotation differs from the stored definition's. |
     pub fn evolve_entity_type(
         &mut self,

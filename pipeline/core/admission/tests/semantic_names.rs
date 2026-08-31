@@ -100,13 +100,12 @@ fn emitted_admission_diagnostics_are_semantic() {
     assert!(manifest.contains("stable item-scanner `build.rs`"));
     assert_semantic("manifest diagnostic", &manifest);
 
-    let change = git_change_paths_from_name_status_z(
-        b"A\0app/ledger/OWNERS\0A\0app/ledger/core/posting/Cargo.toml\0A\0app/ledger/core/posting/src/lib.rs\0",
-    )
-    .expect("change paths");
-    let owner_law = changed_layout_violations(&change, &BTreeSet::new()).join("\n");
-    assert!(owner_law.contains("canonical owner-law files"));
-    assert_semantic("owner-law diagnostic", &owner_law);
+    let change =
+        git_change_paths_from_name_status_z(b"A\0app/ledger/OWNERS\0A\0app/ledger/README.md\0")
+            .expect("change paths");
+    let new_owner = changed_layout_violations(&change, &BTreeSet::new()).join("\n");
+    assert!(new_owner.contains("requires one core crate"));
+    assert_semantic("new-owner diagnostic", &new_owner);
 }
 
 #[test]
@@ -126,11 +125,19 @@ fn provenance_citations_and_decision_files_remain_valid() {
     let change =
         std::fs::read_to_string(repo_root().join("pipeline/core/admission/src/layout/change.rs"))
             .expect("change admission source");
-    let manifest =
-        std::fs::read_to_string(repo_root().join("pipeline/core/admission/src/layout/manifest.rs"))
-            .expect("manifest admission source");
+    let manifest = std::fs::read_to_string(
+        repo_root().join("pipeline/core/admission/src/layout/manifest/mod.rs"),
+    )
+    .expect("manifest admission source");
+    let entrypoint = std::fs::read_to_string(
+        repo_root().join("pipeline/core/admission/src/layout/manifest/entrypoint.rs"),
+    )
+    .expect("entry-point admission source");
     assert!(change.contains("Provenance: ADR-0719 D-8/D-36"));
     assert!(manifest.contains("Provenance: ADR-0719 D-30/D-41"));
+    // Entry-point resolution split out of `manifest.rs`; it carries the same
+    // provenance because it is the same rule, not a new one.
+    assert!(entrypoint.contains("Provenance: ADR-0719 D-30/D-41"));
 }
 
 #[test]

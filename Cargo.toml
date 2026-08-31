@@ -24,8 +24,6 @@ members = [
   "app/*/ports/draft/*/src/..",
   "app/*/adapters/draft/*/src/..",
   "app/*/facade/*/src/..",
-  "app/foundry/pages/crates/*",
-  "app/foundry/grid/core/*",
 
   # Named ADR-0538 exception for the owned build-meta port engine (ADR-0704). Two segments admit
   # its capability-shaped face crates without moving the engine into pipeline/.
