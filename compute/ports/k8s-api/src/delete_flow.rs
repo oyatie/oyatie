@@ -29,60 +29,18 @@ pub fn validate_cloud_compute_k8s_cluster_delete_request_with_authorization_veri
     Ok(resource_id)
 }
 
-/// Full delete execution: validates, checks idempotency, looks up the cluster,
-/// projects its state to `Deleting`, records the ledger entry, and returns the
-/// typed success response.
-///
-/// The catalog is accessed read-only — actual teardown is the reconciler's
-/// concern. Only the boundary-owned idempotency ledger is mutated.
+/// Full delete execution: validates the boundary, then delegates the atomic
+/// idempotency-and-intent transition to the deletion repository.
 pub fn delete_cloud_compute_k8s_cluster_from_api(
-    catalog: &CloudComputeCatalog,
-    idempotency_ledger: &mut CloudComputeK8sDeleteIdempotencyLedger,
+    repository: &mut impl CloudComputeK8sDeleteRepository,
     request: CloudComputeK8sClusterDeleteApiRequest,
 ) -> Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError> {
     let resource_id = validate_cloud_compute_k8s_cluster_delete_request(&request)?;
-    let key = idempotency_key_for(
-        &request.boundary,
-        &request.principal,
-        CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
-    );
-    if let Some(entry) = idempotency_ledger.entries.get(&key) {
-        if entry.path_cluster_id == request.path_cluster_id {
-            return entry.result.clone();
-        }
-        return Err(CloudComputeK8sApiError::IdempotencyKeyReused {
-            idempotency_key: request.boundary.idempotency_key,
-        });
-    }
-
-    let cluster = catalog
-        .kubernetes_clusters()
-        .find(|c| c.resource_id.value == resource_id)
-        .ok_or_else(|| CloudComputeK8sApiError::ClusterNotFound {
-            cluster_id: request.path_cluster_id.clone(),
-        })?;
-
-    let mut record = cluster_record(cluster.clone());
-    record.state = cluster_state_label(KubernetesClusterState::Draining).to_string();
-
-    let request_id = request.boundary.request_id.clone();
-    let result: CloudComputeK8sDeleteApiResult = Ok(
-        CloudComputeK8sClusterDeleteSuccessResponse::accepted(record, request_id),
-    );
-
-    idempotency_ledger.remember(
-        key,
-        CloudComputeK8sDeleteLedgerEntry {
-            path_cluster_id: request.path_cluster_id,
-            result: result.clone(),
-        },
-    );
-    result
+    delete_validated_cloud_compute_k8s_cluster(repository, request, resource_id)
 }
 
 pub fn delete_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
-    catalog: &CloudComputeCatalog,
-    idempotency_ledger: &mut CloudComputeK8sDeleteIdempotencyLedger,
+    repository: &mut impl CloudComputeK8sDeleteRepository,
     request: CloudComputeK8sClusterDeleteApiRequest,
     authorization_verifier: &impl CloudComputeK8sAuthorizationVerifier,
 ) -> Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError> {
@@ -91,43 +49,64 @@ pub fn delete_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
             &request,
             authorization_verifier,
         )?;
-    let key = idempotency_key_for(
-        &request.boundary,
-        &request.principal,
-        CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
-    );
-    if let Some(entry) = idempotency_ledger.entries.get(&key) {
-        if entry.path_cluster_id == request.path_cluster_id {
-            return entry.result.clone();
-        }
-        return Err(CloudComputeK8sApiError::IdempotencyKeyReused {
-            idempotency_key: request.boundary.idempotency_key,
-        });
+    delete_validated_cloud_compute_k8s_cluster(repository, request, resource_id)
+}
+
+fn delete_validated_cloud_compute_k8s_cluster(
+    repository: &mut impl CloudComputeK8sDeleteRepository,
+    request: CloudComputeK8sClusterDeleteApiRequest,
+    resource_id: ResourceId,
+) -> Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError> {
+    let cluster_id = request.path_cluster_id.clone();
+    let expected_resource_id = resource_id.clone();
+    let expected_tenant_id = request.boundary.tenant_id.clone();
+    let receipt = repository
+        .commit_deletion(CloudComputeK8sDeleteCommand {
+            operation_key: CloudComputeK8sDeleteOperationKey {
+                tenant_id: request.boundary.tenant_id,
+                principal_id: request.principal.principal_id,
+                idempotency_key: request.boundary.idempotency_key,
+            },
+            resource_id,
+            request_id: request.boundary.request_id,
+        })
+        .map_err(|error| delete_repository_error(error, cluster_id))?;
+    validate_delete_receipt(&receipt, &expected_resource_id, &expected_tenant_id)?;
+    Ok(CloudComputeK8sClusterDeleteSuccessResponse::accepted(
+        cluster_record(receipt.cluster),
+        receipt.request_id,
+    ))
+}
+
+fn validate_delete_receipt(
+    receipt: &CloudComputeK8sDeleteReceipt,
+    expected_resource_id: &ResourceId,
+    expected_tenant_id: &str,
+) -> Result<(), CloudComputeK8sApiError> {
+    if receipt.cluster.resource_id.value != *expected_resource_id
+        || receipt.cluster.tenant_id.value != expected_tenant_id
+        || receipt.cluster.desired_state.value != KubernetesClusterDesiredState::Deleted
+    {
+        return Err(CloudComputeK8sApiError::DeletionRepositoryInvariantViolation);
     }
+    Ok(())
+}
 
-    let cluster = catalog
-        .kubernetes_clusters()
-        .find(|c| c.resource_id.value == resource_id)
-        .ok_or_else(|| CloudComputeK8sApiError::ClusterNotFound {
-            cluster_id: request.path_cluster_id.clone(),
-        })?;
-
-    let mut record = cluster_record(cluster.clone());
-    record.state = cluster_state_label(KubernetesClusterState::Draining).to_string();
-
-    let request_id = request.boundary.request_id.clone();
-    let result: CloudComputeK8sDeleteApiResult = Ok(
-        CloudComputeK8sClusterDeleteSuccessResponse::accepted(record, request_id),
-    );
-
-    idempotency_ledger.remember(
-        key,
-        CloudComputeK8sDeleteLedgerEntry {
-            path_cluster_id: request.path_cluster_id,
-            result: result.clone(),
+fn delete_repository_error(
+    error: CloudComputeK8sDeleteRepositoryError,
+    cluster_id: String,
+) -> CloudComputeK8sApiError {
+    match error {
+        CloudComputeK8sDeleteRepositoryError::ClusterNotFound => {
+            CloudComputeK8sApiError::ClusterNotFound { cluster_id }
+        }
+        CloudComputeK8sDeleteRepositoryError::IdempotencyKeyReused { idempotency_key } => {
+            CloudComputeK8sApiError::IdempotencyKeyReused { idempotency_key }
         },
-    );
-    result
+        CloudComputeK8sDeleteRepositoryError::Unavailable => {
+            CloudComputeK8sApiError::DeletionRepositoryUnavailable
+        }
+    }
 }
 
 /// Stable planned entrypoint for `cloud.compute.k8s.cluster.delete`.
@@ -135,22 +114,19 @@ pub fn delete_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
 /// Delegates to [`delete_cloud_compute_k8s_cluster_from_api`] so the plan
 /// symbol remains stable without adding a second validation path.
 pub fn delete_cluster(
-    catalog: &CloudComputeCatalog,
-    idempotency_ledger: &mut CloudComputeK8sDeleteIdempotencyLedger,
+    repository: &mut impl CloudComputeK8sDeleteRepository,
     request: CloudComputeK8sClusterDeleteApiRequest,
 ) -> Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError> {
-    delete_cloud_compute_k8s_cluster_from_api(catalog, idempotency_ledger, request)
+    delete_cloud_compute_k8s_cluster_from_api(repository, request)
 }
 
 pub fn delete_cluster_with_authorization_verifier(
-    catalog: &CloudComputeCatalog,
-    idempotency_ledger: &mut CloudComputeK8sDeleteIdempotencyLedger,
+    repository: &mut impl CloudComputeK8sDeleteRepository,
     request: CloudComputeK8sClusterDeleteApiRequest,
     authorization_verifier: &impl CloudComputeK8sAuthorizationVerifier,
 ) -> Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError> {
     delete_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
-        catalog,
-        idempotency_ledger,
+        repository,
         request,
         authorization_verifier,
     )

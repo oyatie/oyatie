@@ -47,8 +47,9 @@ fn k8s_create_api_creates_cluster_once_and_replays_same_idempotent_result() {
     assert_eq!(first.data.node_pool_count, 3);
     assert_eq!(first.data.residency, "strict_home_region");
     assert_eq!(first.data.state, "creating");
+    assert_eq!(first.data.desired_state, "present");
     assert_eq!(first.data.data_class, "PUBLIC");
-    assert_eq!(first.data.schema_version, 1);
+    assert_eq!(first.data.schema_version, 2);
 }
 
 #[test]
@@ -66,6 +67,7 @@ fn planned_create_cluster_entrypoint_delegates_to_api_create() {
     assert_eq!(response.metadata.request_id, "req-compute-k8s-create-alias");
     assert_eq!(response.data.resource_id, CLUSTER_ID);
     assert_eq!(response.data.state, "creating");
+    assert_eq!(response.data.desired_state, "present");
     assert_eq!(ledger.len(), 1);
     assert_eq!(catalog.kubernetes_clusters().count(), 1);
 }

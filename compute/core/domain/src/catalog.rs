@@ -5,7 +5,8 @@ use compute_resource::ResourceId;
 use crate::{
     CloudComputeError, FunctionDeployment, FunctionDeploymentCreate, FunctionDeploymentState,
     FunctionInvocationReceipt, FunctionInvocationRequest, Instance, InstanceCreate, InvocationId,
-    KubernetesCluster, KubernetesClusterCreate, internal, map_resource_error, public,
+    KubernetesCluster, KubernetesClusterCreate, KubernetesClusterMutationError, internal,
+    map_resource_error, public,
 };
 
 const DEFAULT_FUNCTION_INVOCATION_RETENTION_LIMIT: usize = 1024;
@@ -31,6 +32,10 @@ pub trait ComputeRepo {
         &mut self,
         input: KubernetesClusterCreate,
     ) -> Result<KubernetesCluster, CloudComputeError>;
+    fn request_kubernetes_cluster_deletion(
+        &mut self,
+        id: &ResourceId,
+    ) -> Result<KubernetesCluster, KubernetesClusterMutationError>;
     fn register_function(
         &mut self,
         input: FunctionDeploymentCreate,
@@ -69,6 +74,19 @@ impl ComputeRepo for CloudComputeCatalog {
         self.kubernetes_clusters
             .insert(cluster.resource_id.value.clone(), cluster.clone());
         Ok(cluster)
+    }
+
+    fn request_kubernetes_cluster_deletion(
+        &mut self,
+        id: &ResourceId,
+    ) -> Result<KubernetesCluster, KubernetesClusterMutationError> {
+        let current = self
+            .kubernetes_clusters
+            .get(id)
+            .ok_or(KubernetesClusterMutationError::UnknownCluster)?;
+        let next = current.request_deletion();
+        self.kubernetes_clusters.insert(id.clone(), next.clone());
+        Ok(next)
     }
 
     fn register_function(

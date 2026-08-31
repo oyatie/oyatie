@@ -161,6 +161,7 @@ pub struct CloudComputeK8sClusterRecord {
     pub node_pool_count: u32,          // data_class: PUBLIC
     pub residency: String,             // data_class: INTERNAL_ONLY
     pub state: String,                 // data_class: PUBLIC
+    pub desired_state: String,         // data_class: PUBLIC
     pub data_class: String,            // data_class: PUBLIC
     pub created_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
     pub schema_version: u32,           // data_class: PUBLIC
@@ -251,4 +252,6 @@ pub enum CloudComputeK8sApiError {
     ClusterNotFound {
         cluster_id: String, // data_class: INTERNAL_ONLY
     },
+    DeletionRepositoryUnavailable,
+    DeletionRepositoryInvariantViolation,
 }

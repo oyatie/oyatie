@@ -14,7 +14,9 @@ use std::collections::BTreeMap;
 
 use compute_domain::{
     CloudComputeCatalog, CloudComputeError, ComputeFlavorSpec, ComputeQuotaEnvelope, ComputeRepo,
-    KubernetesCluster, KubernetesClusterCreate, KubernetesClusterState, KubernetesNodePoolCreate,
+    KubernetesCluster, KubernetesClusterCreate, KubernetesClusterDesiredState,
+    KubernetesClusterState, KubernetesNodePoolCreate, kubernetes_cluster_desired_state_label,
+    kubernetes_cluster_state_label,
 };
 use compute_resource::{InstanceFlavor, K8sFlavor, ResourceId};
 use data_boundary_kernel::{DataClass, parse_data_class_label};

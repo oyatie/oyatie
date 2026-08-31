@@ -12,6 +12,7 @@ pub enum CloudComputeK8sClusterDeleteApiStatus {
     Forbidden,
     NotFound,
     UnprocessableEntity,
+    ServiceUnavailable,
 }
 
 impl CloudComputeK8sClusterDeleteApiStatus {
@@ -23,6 +24,7 @@ impl CloudComputeK8sClusterDeleteApiStatus {
             Self::Forbidden => 403,
             Self::NotFound => 404,
             Self::UnprocessableEntity => 422,
+            Self::ServiceUnavailable => 503,
         }
     }
 }
@@ -57,60 +59,40 @@ impl CloudComputeK8sClusterDeleteSuccessResponse {
     }
 }
 
-type CloudComputeK8sDeleteApiResult =
-    Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError>;
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct CloudComputeK8sDeleteOperationKey {
+    pub tenant_id: String,       // data_class: INTERNAL_ONLY
+    pub principal_id: String,    // data_class: INTERNAL_ONLY
+    pub idempotency_key: String, // data_class: INTERNAL_ONLY
+}
 
-/// Idempotency ledger for cluster delete requests.
-///
-/// Keyed on `(tenant_id, principal_id, "cloud.compute.k8s.cluster.delete",
-/// idempotency_key)`. A replayed key with the same `path_cluster_id`
-/// fingerprint returns the identical response without a second teardown.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct CloudComputeK8sDeleteIdempotencyLedger {
-    entries: BTreeMap<CloudComputeK8sIdempotencyLedgerKey, CloudComputeK8sDeleteLedgerEntry>, // data_class: INTERNAL_ONLY
-    max_entries: usize, // data_class: INTERNAL_ONLY
+pub struct CloudComputeK8sDeleteCommand {
+    pub operation_key: CloudComputeK8sDeleteOperationKey, // data_class: INTERNAL_ONLY
+    pub resource_id: ResourceId,                          // data_class: INTERNAL_ONLY
+    pub request_id: String,                               // data_class: INTERNAL_ONLY
 }
 
-impl Default for CloudComputeK8sDeleteIdempotencyLedger {
-    fn default() -> Self {
-        Self::with_max_entries(DEFAULT_K8S_DELETE_IDEMPOTENCY_LEDGER_MAX_ENTRIES)
-    }
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudComputeK8sDeleteReceipt {
+    pub cluster: KubernetesCluster, // data_class: INTERNAL_ONLY
+    pub request_id: String,         // data_class: INTERNAL_ONLY
 }
 
-impl CloudComputeK8sDeleteIdempotencyLedger {
-    pub fn with_max_entries(max_entries: usize) -> Self {
-        Self {
-            entries: BTreeMap::new(),
-            max_entries: max_entries.max(1),
-        }
-    }
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum CloudComputeK8sDeleteRepositoryError {
+    ClusterNotFound,
+    IdempotencyKeyReused {
+        idempotency_key: String, // data_class: INTERNAL_ONLY
+    },
+    Unavailable,
+}
 
-    pub fn len(&self) -> usize {
-        self.entries.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.entries.is_empty()
-    }
-
-    fn remember(
+pub trait CloudComputeK8sDeleteRepository {
+    fn commit_deletion(
         &mut self,
-        key: CloudComputeK8sIdempotencyLedgerKey,
-        entry: CloudComputeK8sDeleteLedgerEntry,
-    ) {
-        if self.entries.len() >= self.max_entries
-            && let Some(evicted) = self.entries.keys().next().cloned()
-        {
-            self.entries.remove(&evicted);
-        }
-        self.entries.insert(key, entry);
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-struct CloudComputeK8sDeleteLedgerEntry {
-    path_cluster_id: String,                // data_class: INTERNAL_ONLY
-    result: CloudComputeK8sDeleteApiResult, // data_class: INTERNAL_ONLY
+        command: CloudComputeK8sDeleteCommand,
+    ) -> Result<CloudComputeK8sDeleteReceipt, CloudComputeK8sDeleteRepositoryError>;
 }
 
 impl CloudComputeK8sApiError {
@@ -135,6 +117,9 @@ impl CloudComputeK8sApiError {
             }
             CloudComputeK8sApiStatusKind::UnprocessableEntity => {
                 CloudComputeK8sClusterDeleteApiStatus::UnprocessableEntity
+            }
+            CloudComputeK8sApiStatusKind::ServiceUnavailable => {
+                CloudComputeK8sClusterDeleteApiStatus::ServiceUnavailable
             }
         }
     }

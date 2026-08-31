@@ -2,7 +2,13 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use compute_domain::{CloudComputeCatalog, CloudComputeError};
+use std::collections::BTreeMap;
+use std::sync::{Arc, Mutex};
+
+use compute_domain::{
+    CloudComputeCatalog, CloudComputeError, ComputeRepo, KubernetesClusterDesiredState,
+    KubernetesClusterMutationError, KubernetesClusterState,
+};
 use compute_k8s_api::{
     CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE, CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
     CloudComputeK8sApiAuthorization, CloudComputeK8sApiAuthorizationProof,
@@ -11,9 +17,11 @@ use compute_k8s_api::{
     CloudComputeK8sClusterCreateRequest, CloudComputeK8sClusterCreateSuccessResponse,
     CloudComputeK8sClusterDeleteApiRequest, CloudComputeK8sClusterDeleteApiStatus,
     CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sCreateIdempotencyLedger,
-    CloudComputeK8sDeleteIdempotencyLedger, CloudComputeK8sNodePoolCreateRequest,
-    CloudComputeK8sNodePoolFlavorSpec, CloudComputeK8sQuotaEnvelope,
-    CloudComputeK8sSecurityGroupRef, CloudComputeK8sTrustedAuthorizationVerifier,
+    CloudComputeK8sDeleteCommand, CloudComputeK8sDeleteOperationKey, CloudComputeK8sDeleteReceipt,
+    CloudComputeK8sDeleteRepository, CloudComputeK8sDeleteRepositoryError,
+    CloudComputeK8sNodePoolCreateRequest, CloudComputeK8sNodePoolFlavorSpec,
+    CloudComputeK8sQuotaEnvelope, CloudComputeK8sSecurityGroupRef,
+    CloudComputeK8sTrustedAuthorizationVerifier,
     create_cloud_compute_k8s_cluster_from_api as create_cloud_compute_k8s_cluster_from_api_without_authorization_verifier,
     create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier,
     create_cluster as create_cluster_without_authorization_verifier,

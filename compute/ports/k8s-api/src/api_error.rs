@@ -19,6 +19,9 @@ impl CloudComputeK8sApiError {
             CloudComputeK8sApiStatusKind::UnprocessableEntity => {
                 CloudComputeK8sClusterCreateApiStatus::UnprocessableEntity
             }
+            CloudComputeK8sApiStatusKind::ServiceUnavailable => {
+                CloudComputeK8sClusterCreateApiStatus::ServiceUnavailable
+            }
         }
     }
 
@@ -74,8 +77,17 @@ impl CloudComputeK8sApiError {
                 CloudComputeK8sApiStatusKind::Conflict => {
                     CloudComputeK8sApiErrorCode::ComputeConflict
                 }
+                CloudComputeK8sApiStatusKind::ServiceUnavailable => {
+                    CloudComputeK8sApiErrorCode::DeletionRepositoryUnavailable
+                }
             },
             Self::ClusterNotFound { .. } => CloudComputeK8sApiErrorCode::ComputeNotFound,
+            Self::DeletionRepositoryUnavailable => {
+                CloudComputeK8sApiErrorCode::DeletionRepositoryUnavailable
+            }
+            Self::DeletionRepositoryInvariantViolation => {
+                CloudComputeK8sApiErrorCode::DeletionRepositoryUnavailable
+            }
         }
     }
 
@@ -87,7 +99,11 @@ impl CloudComputeK8sApiError {
                 message_localized: None,
                 request_id: request_id.into(),
                 details: self.details(),
-                retry_after_seconds: None,
+                retry_after_seconds: match self {
+                    Self::DeletionRepositoryUnavailable
+                    | Self::DeletionRepositoryInvariantViolation => Some(1),
+                    _ => None,
+                },
             },
         }
     }
@@ -105,6 +121,9 @@ impl CloudComputeK8sApiError {
             }
             Self::IdempotencyKeyReused { .. } => CloudComputeK8sApiStatusKind::UnprocessableEntity,
             Self::ClusterNotFound { .. } => CloudComputeK8sApiStatusKind::NotFound,
+            Self::DeletionRepositoryUnavailable | Self::DeletionRepositoryInvariantViolation => {
+                CloudComputeK8sApiStatusKind::ServiceUnavailable
+            }
             Self::Compute(error) => cloud_compute_status_kind(error),
             Self::EmptyRequestId
             | Self::EmptyTenantHeader
@@ -157,6 +176,9 @@ impl CloudComputeK8sApiError {
             }
             Self::Compute(error) => cloud_compute_message(error),
             Self::ClusterNotFound { .. } => "Kubernetes cluster was not found",
+            Self::DeletionRepositoryUnavailable | Self::DeletionRepositoryInvariantViolation => {
+                "Kubernetes deletion repository is temporarily unavailable"
+            }
         }
     }
 
@@ -228,6 +250,12 @@ impl CloudComputeK8sApiError {
             Self::ClusterNotFound { .. } => {
                 vec![detail("path.cluster_id", "no cluster found with this id")]
             }
+            Self::DeletionRepositoryUnavailable | Self::DeletionRepositoryInvariantViolation => {
+                vec![detail(
+                    "deletion_repository",
+                    "retry after the repository becomes available",
+                )]
+            }
         }
     }
 }
@@ -240,4 +268,5 @@ enum CloudComputeK8sApiStatusKind {
     NotFound,
     Conflict,
     UnprocessableEntity,
+    ServiceUnavailable,
 }

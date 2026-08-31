@@ -1,6 +1,5 @@
 pub const CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE: &str = "cloud.compute.k8s.cluster.create";
 const DEFAULT_K8S_CREATE_IDEMPOTENCY_LEDGER_MAX_ENTRIES: usize = 1024;
-const DEFAULT_K8S_DELETE_IDEMPOTENCY_LEDGER_MAX_ENTRIES: usize = 1024;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CloudComputeK8sClusterCreateApiStatus {
@@ -11,6 +10,7 @@ pub enum CloudComputeK8sClusterCreateApiStatus {
     NotFound,
     Conflict,
     UnprocessableEntity,
+    ServiceUnavailable,
 }
 
 impl CloudComputeK8sClusterCreateApiStatus {
@@ -23,6 +23,7 @@ impl CloudComputeK8sClusterCreateApiStatus {
             Self::NotFound => 404,
             Self::Conflict => 409,
             Self::UnprocessableEntity => 422,
+            Self::ServiceUnavailable => 503,
         }
     }
 }
@@ -52,6 +53,7 @@ pub enum CloudComputeK8sApiErrorCode {
     ComputeForbidden,
     ComputeNotFound,
     ComputeConflict,
+    DeletionRepositoryUnavailable,
 }
 
 impl CloudComputeK8sApiErrorCode {
@@ -86,6 +88,9 @@ impl CloudComputeK8sApiErrorCode {
             Self::ComputeForbidden => "CLOUD_COMPUTE_K8S_FORBIDDEN",
             Self::ComputeNotFound => "CLOUD_COMPUTE_K8S_NOT_FOUND",
             Self::ComputeConflict => "CLOUD_COMPUTE_K8S_CONFLICT",
+            Self::DeletionRepositoryUnavailable => {
+                "CLOUD_COMPUTE_K8S_DELETION_REPOSITORY_UNAVAILABLE"
+            }
         }
     }
 }
