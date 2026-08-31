@@ -52,6 +52,28 @@ impl MemoryProjectionStore {
                 detail: "zero page limit",
             });
         }
+        // Kind drift refuses window-independently: the whole type scope
+        // is checked before any cursor or limit narrows the walk.
+        if let Some(predicate) = predicate
+            && let Some((property, kind)) = predicate.range_kind()
+        {
+            for (_, object) in self
+                .objects
+                .range((tenant_id.to_owned(), String::new())..)
+                .take_while(|((tenant, _), _)| tenant == tenant_id)
+            {
+                if object.entity.entity_type.value != entity_type {
+                    continue;
+                }
+                if let Some(stored) = object.entity.properties.get(property)
+                    && stored.value.value.type_label() != kind
+                {
+                    return Err(ProjectionStoreError::KindMismatch {
+                        property: property.to_owned(),
+                    });
+                }
+            }
+        }
         let after = page
             .cursor
             .as_ref()

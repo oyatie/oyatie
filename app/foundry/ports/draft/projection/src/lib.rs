@@ -7,9 +7,12 @@
 //! loud, a poison spends its ordinal visibly); reads are tenant-isolated
 //! and deterministic (`object_ref` order) with typed cursors whose pages
 //! partition the full result; predicates are `Equals` (exact typed
-//! equality) and inclusive class-scoped `Range` keyed off
-//! [`data_ontology_kernel::StorageClass`], where a class-mismatched
-//! stored value refuses loudly instead of matching false. The port
+//! equality) and inclusive kind-scoped `Range` over the scalar value
+//! kinds — one kind per range, arrays and structs unrankable, and a
+//! kind-mismatched stored value refuses loudly instead of matching
+//! false ([`data_ontology_kernel::StorageClass`] stays the adapters'
+//! index affinity, but a class groups several kinds, so the kind is
+//! the comparison unit). The port
 //! speaks the kernel's own types — this is Foundry's read plane for
 //! Foundry's domain, not a foreign wire seam. A store failure is
 //! infrastructure, never a poison: the projector halts, the log stays
