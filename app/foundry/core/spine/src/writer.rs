@@ -59,6 +59,21 @@ pub enum WriteError {
 pub fn submit(
     submission: ActionSubmission,
     log: &mut dyn RecordsLog,
+    denial_log: &mut dyn RecordsLog,
+    projection: &mut ProjectionState,
+) -> Result<ApplyOutcome, WriteError> {
+    match submit_gated(&submission, log, projection) {
+        Err(WriteError::Refused(refused)) => {
+            crate::audit::record_denial(denial_log, &submission, &refused);
+            Err(WriteError::Refused(refused))
+        }
+        other => other,
+    }
+}
+
+fn submit_gated(
+    submission: &ActionSubmission,
+    log: &mut dyn RecordsLog,
     projection: &mut ProjectionState,
 ) -> Result<ApplyOutcome, WriteError> {
     let registry = projection.registry_input.clone();

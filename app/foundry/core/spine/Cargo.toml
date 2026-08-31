@@ -13,6 +13,7 @@ foundry-edits = { path = "../edits" }
 foundry-records-draft = { path = "../../ports/draft/records" }
 
 [dev-dependencies]
+cedar-policy = { workspace = true }
 foundry-records-sqlite-draft = { path = "../../adapters/draft/records-sqlite" }
 
 [lints]

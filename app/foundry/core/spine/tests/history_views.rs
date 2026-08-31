@@ -144,6 +144,7 @@ fn submission(
 fn populated() -> (ProjectionState, MemoryLog) {
     let registry = registry();
     let mut log = MemoryLog::default();
+    let mut denials = MemoryLog::default();
     let mut projection = ProjectionState::new("ten_test", &registry);
     submit(
         submission(
@@ -153,6 +154,7 @@ fn populated() -> (ProjectionState, MemoryLog) {
             vec![OntologyEdit::create_object("ety_reading", vec![name_property("Ada")]).unwrap()],
         ),
         &mut log,
+        &mut denials,
         &mut projection,
     )
     .unwrap();
@@ -218,6 +220,7 @@ fn populated() -> (ProjectionState, MemoryLog) {
             vec![OntologyEdit::upsert_properties(vec![name_property("Renamed")]).unwrap()],
         ),
         &mut log,
+        &mut denials,
         &mut projection,
     )
     .unwrap();

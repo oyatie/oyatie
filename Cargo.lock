@@ -2529,6 +2529,7 @@ dependencies = [
 name = "foundry-spine"
 version = "0.1.0"
 dependencies = [
+ "cedar-policy",
  "data-boundary-kernel",
  "data-ontology-kernel",
  "foundry-edits",
