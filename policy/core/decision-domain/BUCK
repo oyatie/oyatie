@@ -1,0 +1,58 @@
+# Buck2 exposes a dependency only under its `crate` attribute. Several deps
+# here keep pre-move crate names for their existing consumers, so this file
+# maps each to the name this crate's Cargo build derives, via `named_deps` -
+# the Buck analogue of Cargo's `package =` rename.
+
+_JOIN_NAMED_DEPS = {
+    "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+}
+
+_JOIN_TEST_NAMED_DEPS = {
+    "policy_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar",
+    "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+}
+
+rust_library(
+    name = "policy-decision-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "policy_decision_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _JOIN_NAMED_DEPS,
+    deps = [
+        "//policy/core/cedar-domain:policy-cedar-domain",
+        "//policy/core/rebac-domain:policy-rebac-domain",
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+_JOIN_TEST_DEPS = [
+    ":policy-decision-domain",
+    "//policy/core/cedar-domain:policy-cedar-domain",
+    "//policy/core/rebac-domain:policy-rebac-domain",
+    "//policy/adapters/tuple-store-inmemory:policy-tuple-store-inmemory",
+    "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+    "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
+    "third-party//:serde_json",
+]
+
+rust_test(
+    name = "policy-decision-domain-expansion-decides",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "expansion_decides",
+    crate_root = "tests/expansion_decides.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _JOIN_TEST_NAMED_DEPS,
+    deps = _JOIN_TEST_DEPS,
+)
+
+rust_test(
+    name = "policy-decision-domain-expansion-refusal",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "expansion_refusal",
+    crate_root = "tests/expansion_refusal.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _JOIN_TEST_NAMED_DEPS,
+    deps = _JOIN_TEST_DEPS,
+)

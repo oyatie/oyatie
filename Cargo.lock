@@ -6440,6 +6440,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "policy-decision-domain"
+version = "0.1.0"
+dependencies = [
+ "policy-cedar-domain",
+ "policy-pdp-cedar",
+ "policy-pdp-kernel",
+ "policy-rebac-domain",
+ "policy-tuple-store-inmemory",
+ "serde_json",
+ "shared-platform-contracts-kernel",
+ "shared-ulid-id-kernel",
+]
+
+[[package]]
 name = "policy-decision-service-kernel"
 version = "0.1.0"
 dependencies = [
