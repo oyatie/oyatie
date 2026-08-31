@@ -1,5 +1,14 @@
+# Library target renamed to `policy-pdp-cedar`; its `crate` stays
+# `iam_pdp_cedar` because Buck2 exposes a dependency only under its `crate`
+# attribute and external consumers still say `use iam_pdp_cedar::` (Cargo
+# covers them with a `package =` rename). The crate's OWN tests are the
+# opposite case: under Cargo they must import the derived name
+# `policy_pdp_cedar`, so each test target maps it back via `named_deps` -
+# the Buck analogue of the Cargo rename, in the direction tests need.
+# Both names converge when the consumers' imports are renamed.
+
 rust_library(
-    name = "iam-pdp-cedar",
+    name = "policy-pdp-cedar",
     srcs = glob(["src/**/*.rs"]),
     crate = "iam_pdp_cedar",
     crate_root = "src/lib.rs",
@@ -17,13 +26,13 @@ rust_library(
 )
 
 rust_test(
-    name = "iam-pdp-cedar-cedar-rbac-abac-pbac-grants",
-    srcs = glob(["tests/**/*.rs", "cedar/**"]),
+    name = "policy-pdp-cedar-cedar-rbac-abac-pbac-grants",
+    srcs = glob(["tests/**/*.rs"]),
     crate = "cedar_rbac_abac_pbac_grants",
     crate_root = "tests/cedar_rbac_abac_pbac_grants.rs",
     visibility = ["PUBLIC"],
+    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        ":iam-pdp-cedar",
         "//audit/adapters/file:audit-file-adapter",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
@@ -35,13 +44,13 @@ rust_test(
 )
 
 rust_test(
-    name = "iam-pdp-cedar-cedar-tenant-overlays",
-    srcs = glob(["tests/**/*.rs", "cedar/**"]),
+    name = "policy-pdp-cedar-cedar-tenant-overlays",
+    srcs = glob(["tests/**/*.rs"]),
     crate = "cedar_tenant_overlays",
     crate_root = "tests/cedar_tenant_overlays.rs",
     visibility = ["PUBLIC"],
+    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        ":iam-pdp-cedar",
         "//audit/adapters/file:audit-file-adapter",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
@@ -53,13 +62,13 @@ rust_test(
 )
 
 rust_test(
-    name = "iam-pdp-cedar-cedar-cross-tenant-evasion",
-    srcs = glob(["tests/**/*.rs", "cedar/**"]),
+    name = "policy-pdp-cedar-cedar-cross-tenant-evasion",
+    srcs = glob(["tests/**/*.rs"]),
     crate = "cedar_cross_tenant_evasion",
     crate_root = "tests/cedar_cross_tenant_evasion.rs",
     visibility = ["PUBLIC"],
+    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        ":iam-pdp-cedar",
         "//audit/adapters/file:audit-file-adapter",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
@@ -71,13 +80,13 @@ rust_test(
 )
 
 rust_test(
-    name = "iam-pdp-cedar-cedar-step-up-forbid",
-    srcs = glob(["tests/**/*.rs", "cedar/**"]),
+    name = "policy-pdp-cedar-cedar-step-up-forbid",
+    srcs = glob(["tests/**/*.rs"]),
     crate = "cedar_step_up_forbid",
     crate_root = "tests/cedar_step_up_forbid.rs",
     visibility = ["PUBLIC"],
+    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        ":iam-pdp-cedar",
         "//audit/adapters/file:audit-file-adapter",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
@@ -89,13 +98,13 @@ rust_test(
 )
 
 rust_test(
-    name = "iam-pdp-cedar-cedar-cache-and-bundle-swap",
-    srcs = glob(["tests/**/*.rs", "cedar/**"]),
+    name = "policy-pdp-cedar-cedar-cache-and-bundle-swap",
+    srcs = glob(["tests/**/*.rs"]),
     crate = "cedar_cache_and_bundle_swap",
     crate_root = "tests/cedar_cache_and_bundle_swap.rs",
     visibility = ["PUBLIC"],
+    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        ":iam-pdp-cedar",
         "//audit/adapters/file:audit-file-adapter",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
@@ -107,13 +116,13 @@ rust_test(
 )
 
 rust_test(
-    name = "iam-pdp-cedar-cedar-audit-chain",
-    srcs = glob(["tests/**/*.rs", "cedar/**"]),
+    name = "policy-pdp-cedar-cedar-audit-chain",
+    srcs = glob(["tests/**/*.rs"]),
     crate = "cedar_audit_chain",
     crate_root = "tests/cedar_audit_chain.rs",
     visibility = ["PUBLIC"],
+    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        ":iam-pdp-cedar",
         "//audit/adapters/file:audit-file-adapter",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
@@ -125,13 +134,13 @@ rust_test(
 )
 
 rust_test(
-    name = "iam-pdp-cedar-cedar-contract-surface",
-    srcs = glob(["tests/**/*.rs", "cedar/**"]),
+    name = "policy-pdp-cedar-cedar-contract-surface",
+    srcs = glob(["tests/**/*.rs"]),
     crate = "cedar_contract_surface",
     crate_root = "tests/cedar_contract_surface.rs",
     visibility = ["PUBLIC"],
+    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        ":iam-pdp-cedar",
         "//audit/adapters/file:audit-file-adapter",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",

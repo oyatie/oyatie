@@ -1,0 +1,25 @@
+[package]
+name = "policy-pdp-cedar"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Embedded cedar-policy PDP adapter (G004 / ADR-0536 D-2): the policy/adapters/pdp-cedar home for the shared PolicyDecisionPoint implementation over the formally-verified upstream cedar-policy engine — in-process evaluation (no network hop), strict bundle validation before load, (request-fingerprint, policy-version) decision cache with zookie freshness refusal, atomic bundle swap for sub-60s revocation, and one audit record per decision. Terminal engine per ADR-0536 D-2; retires the hand-rolled policy-cedar evaluator."
+
+[dependencies]
+shared-ulid-id-kernel = { path = "../../../data/core/ulid-id-kernel" }
+shared-pdp-kernel = { package = "policy-pdp-kernel", path = "../../../policy/core/pdp-kernel" }
+shared-platform-contracts-kernel = { path = "../../../iam/core/platform-contracts-kernel" }
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
+cedar-policy = { workspace = true }
+audit-chain-domain = { path = "../../../audit/core/chain-domain" }
+audit-file-adapter = { path = "../../../audit/adapters/file" }
+
+serde_json = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
