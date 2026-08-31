@@ -1,5 +1,5 @@
 [package]
-name = "pipeline-repository-git-draft"
+name = "pipeline-repository-git"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,7 +7,9 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-pipeline-repository-draft = { path = "../../../ports/draft/repository" }
+pipeline-repository = { path = "../../ports/repository" }
+sha1-checked.workspace = true
+sha2.workspace = true
 
 [lints]
 workspace = true

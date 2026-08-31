@@ -1,0 +1,37 @@
+_VISIBILITY = ["//pipeline/..."]
+_VIEW = [
+    "//pipeline/adapters/repository-git/...",
+    "//pipeline/ports/repository/...",
+    "third-party//:sha1-checked",
+    "third-party//:sha2",
+]
+
+rust_library(
+    name = "pipeline-repository-git",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "pipeline_repository_git",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    visibility = _VISIBILITY,
+    within_view = _VIEW,
+    deps = [
+        "//pipeline/ports/repository:pipeline-repository",
+        "third-party//:sha1-checked",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "pipeline-repository-git-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "pipeline_repository_git",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    visibility = _VISIBILITY,
+    within_view = _VIEW,
+    deps = [
+        "//pipeline/ports/repository:pipeline-repository",
+        "third-party//:sha1-checked",
+        "third-party//:sha2",
+    ],
+)

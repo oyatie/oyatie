@@ -2365,7 +2365,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -6845,8 +6845,8 @@ name = "pipeline-path-layout-app"
 version = "0.1.0"
 dependencies = [
  "pipeline-admission",
- "pipeline-repository-draft",
- "pipeline-repository-git-draft",
+ "pipeline-repository",
+ "pipeline-repository-git",
 ]
 
 [[package]]
@@ -6857,14 +6857,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "pipeline-repository-draft"
-version = "0.1.0"
-
-[[package]]
-name = "pipeline-repository-git-draft"
+name = "pipeline-repository"
 version = "0.1.0"
 dependencies = [
- "pipeline-repository-draft",
+ "sha2",
+]
+
+[[package]]
+name = "pipeline-repository-git"
+version = "0.1.0"
+dependencies = [
+ "pipeline-repository",
+ "sha1-checked",
+ "sha2",
 ]
 
 [[package]]
@@ -7441,7 +7446,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -7919,7 +7924,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -7978,7 +7983,7 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "webpki-root-certs",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -8510,6 +8515,16 @@ dependencies = [
  "cfg-if",
  "cpufeatures 0.2.17",
  "digest 0.10.7",
+]
+
+[[package]]
+name = "sha1-checked"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "89f599ac0c323ebb1c6082821a54962b839832b03984598375bff3975b804423"
+dependencies = [
+ "digest 0.10.7",
+ "sha1",
 ]
 
 [[package]]
@@ -9248,7 +9263,7 @@ dependencies = [
  "getrandom 0.4.3",
  "once_cell",
  "rustix",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -10383,7 +10398,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

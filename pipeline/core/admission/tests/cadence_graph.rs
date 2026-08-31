@@ -171,18 +171,21 @@ fn presubmit_jobs_are_the_occupant_set() {
     );
 
     let layout = format!(
-        "{}\n{}",
+        "{}\n{}\n{}",
         read("pipeline/facade/path-layout-app/src/main.rs"),
-        read("pipeline/facade/path-layout-app/src/repository_checks.rs")
+        read("pipeline/facade/path-layout-app/src/repository_checks.rs"),
+        read("pipeline/facade/path-layout-app/src/snapshot_input.rs")
     );
     assert!(layout.contains("changed_layout_violations"));
-    assert!(layout.contains("git_change_paths_from_name_status_z"));
+    assert!(layout.contains("admission_changes(session.prepared().delta())"));
+    assert!(layout.contains("selected_content(session.prepared(), &changes)"));
+    assert!(layout.contains("RepositoryView::new"));
     assert!(layout.contains("BUILD_ROOT_DIRS"));
     assert!(layout.contains("APP_PRODUCT_DIRS"));
     assert!(layout.contains("cargo_manifest_violations"));
     assert!(layout.contains("touched_manifests"));
     assert!(layout.contains("cargo_manifest_for_crate_path"));
-    assert!(layout.contains("directory_exists(&head"));
+    assert!(layout.contains("directory_exists(head_manifest"));
     assert!(layout.contains("draft_dependency_violations"));
     assert!(layout.contains("workspace_draft_dependency_violations"));
     assert!(layout.contains("workspace_membership_violations"));
@@ -190,24 +193,43 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(layout.contains("live_candidate_violations"));
     assert!(layout.contains("file_budget_violations"));
     assert!(layout.contains("owner_core_regression_violations"));
-    assert!(layout.contains("entry_kind(&head"));
-    assert!(layout.contains("RepositoryRead"));
+    assert!(layout.contains("entry_kind(head_manifest"));
+    assert!(layout.contains("RepositorySnapshot"));
+    assert!(layout.contains("SnapshotSession"));
     assert!(layout.contains("GitRepository"));
+    assert!(!layout.contains("git_change_paths_from_name_status_z"));
+    assert!(!layout.contains("RepositoryRead"));
 
-    let repository_port = read("pipeline/ports/draft/repository/src/lib.rs");
-    assert!(repository_port.contains("pub trait RepositoryRead"));
-    assert!(repository_port.contains("changed_name_status"));
-    assert!(repository_port.contains("blob_text"));
-    assert!(repository_port.contains("blob_bytes"));
-    assert!(repository_port.contains("files_under"));
+    let repository_port = format!(
+        "{}\n{}\n{}\n{}",
+        read("pipeline/ports/repository/src/snapshot.rs"),
+        read("pipeline/ports/repository/src/manifest.rs"),
+        read("pipeline/ports/repository/src/profile.rs"),
+        read("pipeline/ports/repository/src/receipt.rs")
+    );
+    assert!(repository_port.contains("pub trait RepositorySnapshot"));
+    assert!(repository_port.contains("pub trait SnapshotSession"));
+    assert!(repository_port.contains("fn capture("));
+    assert!(repository_port.contains("fn hydrate("));
+    assert!(repository_port.contains("struct SnapshotReceipt"));
+    assert!(repository_port.contains("struct SnapshotLimits"));
+    assert!(!repository_port.contains("fn blob_text("));
+    assert!(!repository_port.contains("fn path_exists("));
 
-    let git_adapter = read("pipeline/adapters/draft/repository-git/src/lib.rs");
+    let git_adapter = format!(
+        "{}\n{}\n{}",
+        read("pipeline/adapters/repository-git/src/repository.rs"),
+        read("pipeline/adapters/repository-git/src/command.rs"),
+        read("pipeline/adapters/repository-git/src/parse.rs")
+    );
     assert!(git_adapter.contains("merge-base"));
-    assert!(git_adapter.contains("--name-status"));
-    assert!(git_adapter.contains("\"-z\""));
-    assert!(git_adapter.contains("\"-M\""));
+    assert!(git_adapter.contains("--all"));
+    assert!(git_adapter.contains("--full-tree"));
+    assert!(git_adapter.contains("--batch-command"));
     assert!(git_adapter.contains("cat-file"));
     assert!(git_adapter.contains("ls-tree"));
+    assert!(!git_adapter.contains("--name-status"));
+    assert!(!git_adapter.contains("Command::output"));
 }
 
 #[test]
