@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//tenancy/ports/tenant-lifecycle-authz:tenancy-tenant-lifecycle-authz-port",
         "//policy/core/pdp-kernel:policy-pdp-kernel",
-        "//iam/adapters/pdp-cedar:iam-pdp-cedar",
+        "//policy/adapters/pdp-cedar:policy-pdp-cedar",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
         "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
         "third-party//:aws-lc-rs",
@@ -26,7 +26,7 @@ rust_test(
     deps = [
         "//tenancy/ports/tenant-lifecycle-authz:tenancy-tenant-lifecycle-authz-port",
         "//policy/core/pdp-kernel:policy-pdp-kernel",
-        "//iam/adapters/pdp-cedar:iam-pdp-cedar",
+        "//policy/adapters/pdp-cedar:policy-pdp-cedar",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
         "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
         "third-party//:aws-lc-rs",

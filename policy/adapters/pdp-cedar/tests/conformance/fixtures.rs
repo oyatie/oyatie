@@ -7,7 +7,7 @@ pub use audit_chain_domain::{
 };
 pub use audit_file_adapter::FileAuditLedger;
 pub use data_boundary_kernel::{DataClass, Purpose};
-pub use iam_pdp_cedar::{
+pub use policy_pdp_cedar::{
     AuditChainCedarPdp, CedarPdp, PDP_DECISION_AUDIT_SURFACE, PdpAuditChainError,
     PdpDecisionAuditChainLogger,
 };
@@ -19,16 +19,12 @@ pub use shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, Decision, EntityRef, PolicyVersion,
 };
 pub use shared_ulid_id_kernel::SeededIdGenerator;
+
+pub use super::seeds::{POLICIES_SRC, SCHEMA_SRC, TEMPLATE_SRC};
 pub use std::collections::BTreeMap;
 pub use std::path::{Path, PathBuf};
 pub use std::sync::Arc;
 pub use std::time::{SystemTime, UNIX_EPOCH};
-
-pub const SCHEMA_SRC: &str = include_str!("../../cedar/platform.cedarschema");
-
-pub const POLICIES_SRC: &str = include_str!("../../cedar/platform-policies.cedar");
-
-pub const TEMPLATE_SRC: &str = include_str!("../../cedar/platform-templates.cedar");
 
 pub const TEMPLATE_ID: &str = "pbac-resource-read-grant";
 

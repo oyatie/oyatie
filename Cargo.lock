@@ -3166,10 +3166,10 @@ dependencies = [
  "iam-identity-workload-svid-operator-k8s",
  "iam-identity-workload-svid-operator-kernel",
  "iam-identity-workload-svid-trustd",
- "iam-pdp-cedar",
  "os-trustd-domain",
  "policy-decision-service-kernel",
  "policy-pdp-bundle-file",
+ "policy-pdp-cedar",
  "policy-pdp-kernel",
  "prost",
  "protoc-bin-vendored",
@@ -3190,20 +3190,6 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "x509-parser",
-]
-
-[[package]]
-name = "iam-pdp-cedar"
-version = "0.1.0"
-dependencies = [
- "audit-chain-domain",
- "audit-file-adapter",
- "cedar-policy",
- "data-boundary-kernel",
- "policy-pdp-kernel",
- "serde_json",
- "shared-platform-contracts-kernel",
- "shared-ulid-id-kernel",
 ]
 
 [[package]]
@@ -6474,6 +6460,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "policy-pdp-cedar"
+version = "0.1.0"
+dependencies = [
+ "audit-chain-domain",
+ "audit-file-adapter",
+ "cedar-policy",
+ "data-boundary-kernel",
+ "policy-pdp-kernel",
+ "serde_json",
+ "shared-platform-contracts-kernel",
+ "shared-ulid-id-kernel",
+]
+
+[[package]]
 name = "policy-pdp-kernel"
 version = "0.1.0"
 dependencies = [
@@ -8751,7 +8751,7 @@ name = "tenancy-tenant-lifecycle-authz-pdp"
 version = "0.1.0"
 dependencies = [
  "aws-lc-rs",
- "iam-pdp-cedar",
+ "policy-pdp-cedar",
  "policy-pdp-kernel",
  "reqwest 0.13.4",
  "serde",

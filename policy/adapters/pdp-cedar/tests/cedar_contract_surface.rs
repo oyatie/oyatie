@@ -64,19 +64,19 @@ fn obligations_ride_out_with_annotated_permits() {
 fn crate_local_cedar_seeds_match_canonical() {
     const PAIRS: &[(&str, &str)] = &[
         (
-            "cedar/platform.cedarschema",
+            SCHEMA_SRC,
             "iam/core/platform-contracts-kernel/cedar/platform.cedarschema",
         ),
         (
-            "cedar/platform-policies.cedar",
+            POLICIES_SRC,
             "iam/core/platform-contracts-kernel/cedar/platform-policies.cedar",
         ),
         (
-            "cedar/platform-templates.cedar",
+            TEMPLATE_SRC,
             "iam/core/platform-contracts-kernel/cedar/platform-templates.cedar",
         ),
     ];
-    let (Some(crate_dir), Some(root)) = (manifest_dir(), repo_root()) else {
+    let Some(root) = repo_root() else {
         eprintln!(
             "cedar_seed_parity: repo root marker not reachable (hermetic sandbox); \
              skipped {} pairs — cargo CI lane enforces parity",
@@ -85,9 +85,8 @@ fn crate_local_cedar_seeds_match_canonical() {
         return;
     };
     let mut mismatches = Vec::new();
-    for (local, canonical) in PAIRS {
-        let local_bytes = std::fs::read(crate_dir.join(local))
-            .unwrap_or_else(|e| panic!("crate-local cedar seed missing: {local}: {e}"));
+    for (embedded, canonical) in PAIRS {
+        let local_bytes = embedded.as_bytes().to_vec();
         let canonical_path = root.join(canonical);
         let canonical_bytes = std::fs::read(&canonical_path).unwrap_or_else(|e| {
             panic!(
@@ -96,7 +95,7 @@ fn crate_local_cedar_seeds_match_canonical() {
             )
         });
         if local_bytes != canonical_bytes {
-            mismatches.push(format!("{local} != {canonical}"));
+            mismatches.push(format!("embedded seed != {canonical}"));
         }
     }
     assert!(

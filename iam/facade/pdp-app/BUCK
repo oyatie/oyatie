@@ -45,7 +45,7 @@ _DEPS = [
     "//policy/core/decision-service-kernel:policy-decision-service-kernel",
     "//policy/adapters/pdp-bundle-file:policy-pdp-bundle-file",
     "//policy/core/pdp-kernel:policy-pdp-kernel",
-    "//iam/adapters/pdp-cedar:iam-pdp-cedar",
+    "//policy/adapters/pdp-cedar:policy-pdp-cedar",
     "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
     "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
     "//iam/core/identity-workload-domain:iam-identity-workload-domain",

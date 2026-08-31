@@ -13,7 +13,7 @@ shared-ulid-id-kernel = { path = "../../../data/core/ulid-id-kernel" }
 shared-platform-contracts-kernel = { path = "../../../iam/core/platform-contracts-kernel" }
 tenancy-tenant-lifecycle-authz-port = { path = "../../ports/tenant-lifecycle-authz" }
 
-iam-pdp-cedar = { path = "../../../iam/adapters/pdp-cedar" }
+iam-pdp-cedar = { package = "policy-pdp-cedar", path = "../../../policy/adapters/pdp-cedar" }
 
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
