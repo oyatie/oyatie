@@ -64,7 +64,6 @@ impl KnowledgeGraphQueryEngine {
         }
 
         let edge_filter = request.edge_filter();
-        let consent_filter = request.consent_filter();
         for root in &request.additional_root_entity_ids {
             if graph.get(&request.tenant_id, root).is_none() {
                 return Err(KnowledgeGraphQueryError::MissingRootEntity);
@@ -134,9 +133,7 @@ impl KnowledgeGraphQueryEngine {
                 if link.observed_at_epoch_seconds < request.freshness_floor_epoch_seconds {
                     continue;
                 }
-                if !consent_filter.is_empty()
-                    && !consent_filter.contains(link.edge_type_id.as_str())
-                {
+                if !request.edge_consent.permits(link.edge_type_id.as_str()) {
                     continue;
                 }
                 validate_link_endpoints(graph, link)?;
