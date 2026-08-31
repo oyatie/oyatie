@@ -9,26 +9,17 @@ description = "Embedded cedar-policy PDP adapter (G004 / ADR-0536 D-2): the de-b
 
 [dependencies]
 shared-ulid-id-kernel = { path = "../../../data/core/ulid-id-kernel" }
-shared-pdp-kernel = { path = "../../core/shared-pdp-kernel" }
+shared-pdp-kernel = { package = "policy-pdp-kernel", path = "../../../policy/core/pdp-kernel" }
 shared-platform-contracts-kernel = { path = "../../core/platform-contracts-kernel" }
 data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 cedar-policy = { workspace = true }
 audit-chain-domain = { path = "../../../audit/core/chain-domain" }
 audit-file-adapter = { path = "../../../audit/adapters/file" }
 
-
-
-
 serde_json = { workspace = true }
 
 [lib]
-name = "iam_pdp_cedar"
-path = "src/lib.rs"
 doctest = false
-
-[[test]]
-name = "cedar_pdp_conformance"
-path = "tests/cedar_pdp_conformance.rs"
 
 [lints]
 workspace = true
