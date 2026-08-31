@@ -17,3 +17,4 @@ mod value_declarations;
 mod value_enforcement;
 mod value_enforcement_params;
 mod value_kernel;
+mod value_surface;
