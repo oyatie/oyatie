@@ -51,7 +51,7 @@ fn request() -> KnowledgeGraphQueryRequest {
         3,
         0,
         100,
-        Vec::<String>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     )
     .unwrap()

@@ -58,7 +58,7 @@ pub(super) fn request(
         max_depth,
         freshness_floor_epoch_seconds,
         12,
-        Vec::<&str>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     )
     .unwrap()

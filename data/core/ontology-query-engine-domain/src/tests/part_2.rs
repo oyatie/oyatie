@@ -89,7 +89,7 @@ fn node_cap_triggers_result_truncated_deterministically() {
         1,
         0,
         0,
-        Vec::<&str>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     )
     .unwrap();
@@ -182,7 +182,7 @@ fn edge_cap_triggers_result_truncated() {
         1,
         0,
         0,
-        Vec::<&str>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     )
     .unwrap();

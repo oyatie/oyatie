@@ -4,17 +4,45 @@ use std::collections::BTreeSet;
 
 use crate::contract::*;
 
+/// The caller's consent posture over edge traversal. Consent is an
+/// authorization-shaped input, so it has no silent default: a surface
+/// where consent semantics do not apply must SAY so, and a grant list
+/// that names nothing traverses nothing — deny by default, never open.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum EdgeConsent {
+    /// Consent does not govern this surface; every edge type may traverse.
+    Unrestricted,
+    /// Only these `lty_` grants may traverse; an empty list grants none.
+    Granted(Vec<String>),
+}
+
+impl EdgeConsent {
+    /// A granted posture from any string-ish ids.
+    pub fn granted(ids: Vec<impl Into<String>>) -> Self {
+        Self::Granted(ids.into_iter().map(Into::into).collect())
+    }
+
+    /// Whether this posture lets `edge_type_id` traverse — the one place
+    /// the consent law lives.
+    pub fn permits(&self, edge_type_id: &str) -> bool {
+        match self {
+            Self::Unrestricted => true,
+            Self::Granted(grants) => grants.iter().any(|grant| grant == edge_type_id),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KnowledgeGraphQueryRequest {
-    pub tenant_id: String,                    // data_class: INTERNAL_ONLY
-    pub query_id: String,                     // data_class: INTERNAL_ONLY
-    pub root_entity_id: String,               // data_class: INTERNAL_ONLY
-    pub edge_type_ids: Vec<String>,           // data_class: INTERNAL_ONLY
-    pub max_depth: u32,                       // data_class: INTERNAL_ONLY
-    pub freshness_floor_epoch_seconds: u64,   // data_class: INTERNAL_ONLY
-    pub observed_at_epoch_seconds: u64,       // data_class: INTERNAL_ONLY
-    pub consented_edge_type_ids: Vec<String>, // data_class: INTERNAL_ONLY
-    pub direction: TraversalDirection,        // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                  // data_class: INTERNAL_ONLY
+    pub query_id: String,                   // data_class: INTERNAL_ONLY
+    pub root_entity_id: String,             // data_class: INTERNAL_ONLY
+    pub edge_type_ids: Vec<String>,         // data_class: INTERNAL_ONLY
+    pub max_depth: u32,                     // data_class: INTERNAL_ONLY
+    pub freshness_floor_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub observed_at_epoch_seconds: u64,     // data_class: INTERNAL_ONLY
+    pub edge_consent: EdgeConsent,          // data_class: INTERNAL_ONLY
+    pub direction: TraversalDirection,      // data_class: INTERNAL_ONLY
     /// Resume a previously truncated walk; `None` starts from the top.
     pub resume_cursor: Option<QueryCursor>, // data_class: INTERNAL_ONLY
     /// Further roots for multi-root search-around (the object-set seam):
@@ -33,7 +61,7 @@ impl KnowledgeGraphQueryRequest {
         max_depth: u32,
         freshness_floor_epoch_seconds: u64,
         observed_at_epoch_seconds: u64,
-        consented_edge_type_ids: Vec<impl Into<String>>,
+        edge_consent: EdgeConsent,
         direction: TraversalDirection,
     ) -> Result<Self, KnowledgeGraphQueryError> {
         let request = Self {
@@ -44,10 +72,7 @@ impl KnowledgeGraphQueryRequest {
             max_depth,
             freshness_floor_epoch_seconds,
             observed_at_epoch_seconds,
-            consented_edge_type_ids: consented_edge_type_ids
-                .into_iter()
-                .map(Into::into)
-                .collect(),
+            edge_consent,
             direction,
             resume_cursor: None,
             additional_root_entity_ids: Vec::new(),
@@ -82,8 +107,10 @@ impl KnowledgeGraphQueryRequest {
         for edge_type_id in &self.edge_type_ids {
             validate_edge_type_id(edge_type_id)?;
         }
-        for grant_id in &self.consented_edge_type_ids {
-            validate_consent_grant_id(grant_id)?;
+        if let EdgeConsent::Granted(grants) = &self.edge_consent {
+            for grant_id in grants {
+                validate_consent_grant_id(grant_id)?;
+            }
         }
         for root in &self.additional_root_entity_ids {
             validate_entity_id(root)?;
@@ -93,12 +120,5 @@ impl KnowledgeGraphQueryRequest {
 
     pub(crate) fn edge_filter(&self) -> BTreeSet<&str> {
         self.edge_type_ids.iter().map(String::as_str).collect()
-    }
-
-    pub fn consent_filter(&self) -> BTreeSet<&str> {
-        self.consented_edge_type_ids
-            .iter()
-            .map(String::as_str)
-            .collect()
     }
 }

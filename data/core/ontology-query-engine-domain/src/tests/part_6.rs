@@ -58,7 +58,7 @@ fn inbound_tenant_isolation() {
         2,
         0,
         1,
-        Vec::<&str>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Inbound,
     )
     .unwrap();
@@ -120,7 +120,7 @@ fn inbound_cycle_no_unbounded_revisit() {
         16,
         0,
         1,
-        Vec::<&str>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Inbound,
     )
     .unwrap();
