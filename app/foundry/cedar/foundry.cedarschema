@@ -1,0 +1,21 @@
+// The Foundry authorization vocabulary, V1: who may invoke which Action
+// surface against a tenant's ontology objects. The PDP evaluates this
+// contract and emits the kernel's ActionPolicyDecision; the production
+// surface stays Cedar-free (policy-engine separation) — cedar-policy is
+// a dev-only validator of this seed.
+entity Tenant;
+entity Role in [Tenant];
+entity Principal in [Role] {
+  tenant: String,
+};
+entity OntologyObject in [Tenant] {
+  tenant: String,
+};
+action InvokeAction appliesTo {
+  principal: [Principal],
+  resource: [OntologyObject],
+  context: {
+    surface: String,
+    autonomy_tier: Long,
+  },
+};
