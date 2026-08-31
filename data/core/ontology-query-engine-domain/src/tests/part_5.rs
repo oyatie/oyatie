@@ -17,7 +17,7 @@ fn default_direction_reproduces_outbound_result() {
         2,
         0,
         1,
-        Vec::<&str>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     )
     .unwrap();
@@ -70,6 +70,7 @@ fn inbound_consent_prunes_non_consented_edges() {
     let mut engine = KnowledgeGraphQueryEngine::default();
     engine
         .upsert_link(
+            &registry(),
             &g,
             KnowledgeGraphLinkInstance::new("ten_alpha", "ent_pred", "ent_root", "lty_owns", 1)
                 .unwrap(),
@@ -77,6 +78,7 @@ fn inbound_consent_prunes_non_consented_edges() {
         .unwrap();
     engine
         .upsert_link(
+            &registry(),
             &g,
             KnowledgeGraphLinkInstance::new("ten_alpha", "ent_other", "ent_root", "lty_partner", 1)
                 .unwrap(),
@@ -91,7 +93,7 @@ fn inbound_consent_prunes_non_consented_edges() {
         2,
         0,
         1,
-        vec!["lty_partner"],
+        EdgeConsent::granted(vec!["lty_partner"]),
         TraversalDirection::Inbound,
     )
     .unwrap();
@@ -128,6 +130,7 @@ fn inbound_freshness_floor_prunes_stale_edges() {
     // stale inbound edge: observed_at=5, freshness_floor=10
     engine
         .upsert_link(
+            &registry(),
             &g,
             KnowledgeGraphLinkInstance::new("ten_alpha", "ent_pred", "ent_root", "lty_owns", 5)
                 .unwrap(),
@@ -142,7 +145,7 @@ fn inbound_freshness_floor_prunes_stale_edges() {
         2,
         10,
         1,
-        Vec::<&str>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Inbound,
     )
     .unwrap();
@@ -189,6 +192,7 @@ fn inbound_node_cap_triggers_result_truncated() {
     for i in 0..pred_count {
         engine
             .upsert_link(
+                &registry(),
                 &g,
                 KnowledgeGraphLinkInstance::new(
                     "ten_alpha",
@@ -210,7 +214,7 @@ fn inbound_node_cap_triggers_result_truncated() {
         1,
         0,
         0,
-        Vec::<&str>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Inbound,
     )
     .unwrap();

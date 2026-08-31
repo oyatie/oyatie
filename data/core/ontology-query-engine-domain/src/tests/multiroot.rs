@@ -29,6 +29,7 @@ fn additional_roots_expand_disconnected_components() {
     for (from, to) in [("ent_a", "ent_a1"), ("ent_b", "ent_b1")] {
         engine
             .upsert_link(
+                &registry(),
                 &graph,
                 KnowledgeGraphLinkInstance::new("ten_alpha", from, to, "lty_knows", 100).unwrap(),
             )
@@ -43,7 +44,7 @@ fn additional_roots_expand_disconnected_components() {
         2,
         0,
         100,
-        Vec::<String>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     )
     .unwrap();
@@ -82,7 +83,7 @@ fn additional_roots_fail_closed() {
         2,
         0,
         100,
-        Vec::<String>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     )
     .unwrap();
@@ -127,7 +128,7 @@ fn duplicate_roots_deduplicated() {
         2,
         0,
         100,
-        Vec::<String>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     )
     .unwrap()

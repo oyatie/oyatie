@@ -15,7 +15,7 @@ fn max_depth_above_ceiling_returns_depth_ceiling_exceeded_not_invalid_max_depth(
         MAX_QUERY_DEPTH + 1,
         0,
         1,
-        Vec::<&str>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     );
     // DepthCeilingExceeded variant must exist and be returned here
@@ -39,7 +39,7 @@ fn max_depth_at_ceiling_is_accepted() {
             MAX_QUERY_DEPTH,
             0,
             1,
-            Vec::<&str>::new(),
+            EdgeConsent::Unrestricted,
             TraversalDirection::Outbound,
         )
         .is_ok(),
@@ -61,7 +61,7 @@ fn max_depth_zero_returns_invalid_max_depth_not_depth_ceiling_exceeded() {
             0,
             0,
             1,
-            Vec::<&str>::new(),
+            EdgeConsent::Unrestricted,
             TraversalDirection::Outbound,
         ),
         Err(KnowledgeGraphQueryError::InvalidMaxDepth),
@@ -81,7 +81,7 @@ fn malformed_consent_grant_id_rejected() {
         1,
         0,
         1,
-        vec!["bad_id"],
+        EdgeConsent::granted(vec!["bad_id"]),
         TraversalDirection::Outbound,
     );
     assert_eq!(
@@ -105,7 +105,7 @@ fn well_formed_consent_grant_id_accepted() {
         1,
         0,
         1,
-        vec!["lty_partner"],
+        EdgeConsent::granted(vec!["lty_partner"]),
         TraversalDirection::Outbound,
     );
     assert!(
@@ -114,35 +114,18 @@ fn well_formed_consent_grant_id_accepted() {
     );
 }
 
-// ST1 acceptance: consent_filter() on a non-empty scope returns the
-// expected BTreeSet of string slices.
+// The consent law lives on the type: a granted posture permits exactly
+// its named grants, and an unrestricted posture permits every edge.
 #[test]
-fn consent_filter_returns_set_of_consented_edge_type_ids() {
-    let req = KnowledgeGraphQueryRequest::new(
-        "ten_alpha",
-        "kgq_filter_set",
-        "ent_root",
-        Vec::<&str>::new(),
-        1,
-        0,
-        1,
-        vec!["lty_partner", "lty_member"],
-        TraversalDirection::Outbound,
-    )
-    .unwrap();
-    let filter = req.consent_filter();
+fn edge_consent_permits_exactly_the_named_grants() {
+    let granted = EdgeConsent::granted(vec!["lty_partner", "lty_member"]);
+    assert!(granted.permits("lty_partner"));
+    assert!(granted.permits("lty_member"));
     assert!(
-        filter.contains("lty_partner"),
-        "consent_filter must contain lty_partner"
+        !granted.permits("lty_owns"),
+        "an unnamed edge type is not consented"
     );
-    assert!(
-        filter.contains("lty_member"),
-        "consent_filter must contain lty_member"
-    );
-    assert!(
-        !filter.contains("lty_owns"),
-        "consent_filter must not contain lty_owns"
-    );
+    assert!(EdgeConsent::Unrestricted.permits("lty_owns"));
 }
 
 // ST2 acceptance: when a non-empty consent scope is supplied, the BFS must
@@ -168,7 +151,7 @@ fn consent_filter_prunes_non_consented_edges() {
         3,
         0,
         1,
-        vec!["lty_partner"],
+        EdgeConsent::granted(vec!["lty_partner"]),
         TraversalDirection::Outbound,
     )
     .unwrap();

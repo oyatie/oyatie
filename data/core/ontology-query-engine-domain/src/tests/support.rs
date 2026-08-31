@@ -6,7 +6,70 @@ pub(super) use data_ontology_kernel::ObjectGraph;
 
 pub(super) use crate::*;
 pub(super) use data_boundary_kernel::{DataClass, PrivacyDataClass};
-pub(super) use data_ontology_kernel::{ObjectEntity, ObjectProperty, PropertyTier};
+pub(super) use data_ontology_kernel::{
+    EntityTypeDefinition, EntityTypeId, EntityTypePropertyDefinition, LinkCardinality,
+    LinkTypeDefinition, LinkTypeId, ObjectEntity, ObjectProperty, OntologyEngine, PropertyTier,
+};
+
+/// The registry every link upsert consults: entity types per tenant,
+/// then every lty_ id the corpus uses. Endpoint pairs are DECLARED
+/// loosely for the heterogeneous fixtures (lty_partner spans
+/// account->contact and contact->contact) — endpoint-type law is not
+/// enforced in this store and arrives with the re-root, so the pairs
+/// here are registration vocabulary, not law.
+pub(super) fn registry() -> OntologyEngine {
+    let mut engine = OntologyEngine::default();
+    for (tenant, ety) in [
+        ("ten_alpha", "ety_account"),
+        ("ten_alpha", "ety_contact"),
+        ("ten_alpha", "ety_case"),
+        ("ten_beta", "ety_account"),
+    ] {
+        engine
+            .register_entity_type(
+                EntityTypeDefinition::new(
+                    tenant,
+                    EntityTypeId::new(ety).unwrap(),
+                    "Fixture",
+                    vec![
+                        EntityTypePropertyDefinition::new(
+                            "name",
+                            PropertyTier::Scalar,
+                            PrivacyDataClass::try_from(DataClass::InternalOnly).unwrap(),
+                            true,
+                        )
+                        .unwrap(),
+                    ],
+                    1,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+    }
+    for (tenant, lty, from, to) in [
+        ("ten_alpha", "lty_owns", "ety_account", "ety_contact"),
+        ("ten_alpha", "lty_partner", "ety_account", "ety_contact"),
+        ("ten_alpha", "lty_member", "ety_account", "ety_contact"),
+        ("ten_alpha", "lty_related", "ety_account", "ety_contact"),
+        ("ten_alpha", "lty_knows", "ety_account", "ety_contact"),
+        ("ten_beta", "lty_owns", "ety_account", "ety_account"),
+    ] {
+        engine
+            .register_link_type(
+                LinkTypeDefinition::new(
+                    tenant,
+                    LinkTypeId::new(lty).unwrap(),
+                    EntityTypeId::new(from).unwrap(),
+                    EntityTypeId::new(to).unwrap(),
+                    LinkCardinality::ManyToMany,
+                    false,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+    }
+    engine
+}
 
 pub(super) fn property(name: &str) -> ObjectProperty {
     ObjectProperty::new(
@@ -58,7 +121,7 @@ pub(super) fn request(
         max_depth,
         freshness_floor_epoch_seconds,
         12,
-        Vec::<&str>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     )
     .unwrap()
@@ -126,6 +189,7 @@ pub(super) fn consent_engine(g: &ObjectGraph) -> KnowledgeGraphQueryEngine {
     ] {
         engine
             .upsert_link(
+                &registry(),
                 g,
                 KnowledgeGraphLinkInstance::new("ten_alpha", from, to, edge_type, 1).unwrap(),
             )
@@ -167,6 +231,7 @@ pub(super) fn dir_engine(g: &ObjectGraph) -> KnowledgeGraphQueryEngine {
     for (from, to) in [("ent_pred", "ent_root"), ("ent_root", "ent_succ")] {
         engine
             .upsert_link(
+                &registry(),
                 g,
                 KnowledgeGraphLinkInstance::new("ten_alpha", from, to, "lty_owns", 1).unwrap(),
             )

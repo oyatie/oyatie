@@ -19,7 +19,7 @@ http-runtime-hyper-adapter = { path = "../../../gateway/adapters/http-runtime-hy
 iam-pdp-kernel = { package = "policy-decision-service-kernel", path = "../../../policy/core/decision-service-kernel" }
 iam-pdp-bundle-file = { package = "policy-pdp-bundle-file", path = "../../../policy/adapters/pdp-bundle-file" }
 
-iam-pdp-cedar = { path = "../../adapters/pdp-cedar" }
+iam-pdp-cedar = { package = "policy-pdp-cedar", path = "../../../policy/adapters/pdp-cedar" }
 
 iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
 iam-identity-workload-svid-kernel = { path = "../../core/identity-workload-svid-kernel" }

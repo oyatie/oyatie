@@ -15,16 +15,25 @@
 mod audit;
 mod boundary;
 mod checkpoint;
+mod emission;
 mod error;
 mod fold;
 mod history;
+mod migrate;
+mod revision;
 mod state;
 mod writer;
 
 pub use boundary::BoundaryError;
 pub use checkpoint::{Checkpoint, SyncStatus};
+pub use emission::{
+    DENIED_AUDIT_EVENT_TYPE, DerivedEvents, POISONED_AUDIT_EVENT_TYPE, Underivable,
+    UnderivableReason, derive_action_events, derive_denial_events, poison_label,
+};
 pub use error::{RefusalGate, Refused};
 pub use fold::{FoldOutcome, PoisonReason, apply_sealed, fold_from_scratch};
 pub use history::{AuditDisposition, AuditEntry, HistoryEntry, audit_view, object_history};
+pub use migrate::{DefaultValue, MigrationPlan, PlanError, UpcastTransform, ValueConversion};
+pub use revision::{PinnedObject, UpcastState, ViewError, object_at_revision};
 pub use state::{ObjectBinding, ProjectionState};
 pub use writer::{ActionSubmission, ApplyOutcome, WriteError, submit};

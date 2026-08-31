@@ -86,6 +86,9 @@ pub enum KnowledgeGraphQueryError {
     /// `max_depth` exceeds [`MAX_QUERY_DEPTH`]; reduce the requested depth.
     DepthCeilingExceeded,
     MissingRootEntity,
+    /// The edge's `lty_` type is not registered for its tenant — an
+    /// unregistered (or unparseable) link type never enters the store.
+    UnregisteredLinkType,
     DanglingLinkEndpoint {
         entity_id: String,
     },
