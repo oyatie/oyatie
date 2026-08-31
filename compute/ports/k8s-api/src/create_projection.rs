@@ -132,16 +132,6 @@ fn parse_api_data_class(label: String) -> Result<DataClass, CloudComputeK8sApiEr
         .ok_or(CloudComputeK8sApiError::InvalidDataClassLabel { data_class: label })
 }
 
-fn cluster_state_label(state: KubernetesClusterState) -> &'static str {
-    match state {
-        KubernetesClusterState::Creating => "creating",
-        KubernetesClusterState::Ready => "ready",
-        KubernetesClusterState::Reconciling => "reconciling",
-        KubernetesClusterState::Draining => "draining",
-        KubernetesClusterState::Deleted => "deleted",
-    }
-}
-
 fn idempotency_key_for(
     boundary: &CloudComputeK8sApiBoundaryContext,
     principal: &CloudComputeK8sApiPrincipal,
