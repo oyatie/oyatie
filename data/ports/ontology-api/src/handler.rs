@@ -60,7 +60,7 @@ pub fn upsert_object_graph_entity_from_api(
     let event = object_graph_entity_mutation_event(&request, result);
     directory.events.push(event.clone());
     let response = ObjectGraphEntityUpsertSuccessResponse {
-        data: object_graph_entity_record(&entity),
+        data: object_graph_entity_record(&entity)?,
         metadata: ObjectGraphEntityUpsertMetadata {
             request_id: request.boundary.request_id.clone(),
             tenant_id: request.boundary.tenant_id.clone(),
