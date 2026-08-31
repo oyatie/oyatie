@@ -1,11 +1,17 @@
+# Target renamed to `policy-pdp-bundle-file`; the Rust crate stays
+# `iam_pdp_bundle_file`. Buck2 exposes a dependency only under its `crate`
+# attribute and has no equivalent of Cargo's `package =` rename, so renaming
+# the crate here breaks `use iam_pdp_bundle_file::` in its consumer. Both
+# names change together when that import is renamed, not before.
+
 rust_library(
-    name = "iam-pdp-bundle-file",
+    name = "policy-pdp-bundle-file",
     srcs = glob(["src/**/*.rs"]),
     crate = "iam_pdp_bundle_file",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//iam/core/pdp-kernel:iam-pdp-kernel",
+        "//policy/core/decision-service-kernel:policy-decision-service-kernel",
         "//audit/adapters/digest-awslc:shared-audit-digest-adapter-awslc",
         "//audit/core/event-kernel:shared-audit-event-kernel",
         "//policy/core/pdp-kernel:policy-pdp-kernel",
@@ -16,13 +22,13 @@ rust_library(
 )
 
 rust_test(
-    name = "iam-pdp-bundle-file-unittest",
+    name = "policy-pdp-bundle-file-unittest",
     srcs = glob(["src/**/*.rs"]),
     crate = "iam_pdp_bundle_file",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//iam/core/pdp-kernel:iam-pdp-kernel",
+        "//policy/core/decision-service-kernel:policy-decision-service-kernel",
         "//audit/adapters/digest-awslc:shared-audit-digest-adapter-awslc",
         "//audit/core/event-kernel:shared-audit-event-kernel",
         "//policy/core/pdp-kernel:policy-pdp-kernel",

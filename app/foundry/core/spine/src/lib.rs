@@ -16,6 +16,7 @@ mod boundary;
 mod checkpoint;
 mod error;
 mod fold;
+mod history;
 mod state;
 mod writer;
 
@@ -23,5 +24,6 @@ pub use boundary::BoundaryError;
 pub use checkpoint::{Checkpoint, SyncStatus};
 pub use error::{RefusalGate, Refused};
 pub use fold::{FoldOutcome, PoisonReason, apply_sealed, fold_from_scratch};
+pub use history::{AuditDisposition, AuditEntry, HistoryEntry, audit_view, object_history};
 pub use state::{ObjectBinding, ProjectionState};
 pub use writer::{ActionSubmission, ApplyOutcome, WriteError, submit};
