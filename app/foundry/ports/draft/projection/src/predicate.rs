@@ -1,9 +1,11 @@
 //! Property predicates: the indexed read surface. `Equals` is exact
-//! typed equality; `Range` is inclusive and class-scoped — comparison
-//! only means something within one [`StorageClass`], so a mixed-class
-//! range is refused at construction and a class-mismatched stored value
-//! is refused at match time (schema drift is loud, never a silent
-//! false). An absent property is simply no match.
+//! typed equality; `Range` is inclusive and KIND-scoped — comparison
+//! only means something within one value kind (a `StorageClass` groups
+//! several kinds, so class scoping was too coarse: an Integer range
+//! over a Boolean is incoherent, not empty). A mixed-kind or unrankable
+//! (array/struct) range is refused at construction, and a
+//! kind-mismatched stored value is refused at match time — schema drift
+//! is loud, never a silent false. An absent property is no match.
 
 use data_ontology_kernel::{ObjectEntity, PropertyValue};
 
@@ -13,8 +15,11 @@ use crate::store::ProjectionStoreError;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PredicateError {
     BlankProperty,
-    /// `from` and `to` carry different storage classes.
-    MixedStorageClasses,
+    /// `from` and `to` carry different value kinds.
+    MixedValueKinds,
+    /// Arrays and structs have no meaningful order; a range over them
+    /// would pin the derived structural order into every adapter.
+    UnrankedValueKind,
     /// `from` sorts after `to`; an inverted range is ambiguity, not an
     /// empty result.
     InvertedRange,
@@ -43,16 +48,19 @@ impl PropertyPredicate {
         Ok(Self::Equals { property, value })
     }
 
-    /// An inclusive range; both bounds must share one storage class and
-    /// `from` must not sort after `to`.
+    /// An inclusive range; both bounds must share one scalar value kind
+    /// and `from` must not sort after `to`.
     pub fn range(
         property: impl Into<String>,
         from: PropertyValue,
         to: PropertyValue,
     ) -> Result<Self, PredicateError> {
         let property = non_blank(property.into())?;
-        if from.storage_class() != to.storage_class() {
-            return Err(PredicateError::MixedStorageClasses);
+        if from.type_label() != to.type_label() {
+            return Err(PredicateError::MixedValueKinds);
+        }
+        if matches!(from, PropertyValue::Array(_) | PropertyValue::Struct(_)) {
+            return Err(PredicateError::UnrankedValueKind);
         }
         if from > to {
             return Err(PredicateError::InvertedRange);
@@ -60,8 +68,18 @@ impl PropertyPredicate {
         Ok(Self::Range { property, from, to })
     }
 
+    /// The (property, kind label) a `Range` compares under; `None` for
+    /// `Equals`. Stores and adapters use it to refuse kind drift
+    /// window-independently — a cursor or page limit never hides it.
+    pub fn range_kind(&self) -> Option<(&str, &'static str)> {
+        match self {
+            Self::Equals { .. } => None,
+            Self::Range { property, from, .. } => Some((property.as_str(), from.type_label())),
+        }
+    }
+
     /// Whether `entity` matches. `Ok(false)` is a real answer; a
-    /// class-mismatched stored value under a `Range` is an error.
+    /// kind-mismatched stored value under a `Range` is an error.
     pub(crate) fn matches(&self, entity: &ObjectEntity) -> Result<bool, ProjectionStoreError> {
         match self {
             Self::Equals { property, value } => Ok(entity
@@ -73,8 +91,8 @@ impl PropertyPredicate {
                     return Ok(false);
                 };
                 let stored = &stored.value.value;
-                if stored.storage_class() != from.storage_class() {
-                    return Err(ProjectionStoreError::ClassMismatch {
+                if stored.type_label() != from.type_label() {
+                    return Err(ProjectionStoreError::KindMismatch {
                         property: property.clone(),
                     });
                 }

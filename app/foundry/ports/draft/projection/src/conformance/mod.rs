@@ -1,12 +1,16 @@
 //! The executable contract: check functions any [`ProjectionStore`]
 //! implementation must pass, mirroring the records-port suite idiom.
 
+mod predicates;
 mod reads;
 
+pub use predicates::{
+    check_cross_kind_comparisons_fail_closed, check_equals_predicate_matches_exactly,
+    check_range_kind_mismatch_is_refused, check_range_predicate_is_kind_scoped,
+};
 pub use reads::{
-    check_equals_predicate_matches_exactly, check_get_returns_the_projected_object,
-    check_range_class_mismatch_is_refused, check_range_predicate_is_class_scoped,
-    check_reads_are_tenant_isolated, check_type_scan_pages_partition_deterministically,
+    check_get_returns_the_projected_object, check_reads_are_tenant_isolated,
+    check_type_scan_pages_partition_deterministically,
 };
 
 use data_boundary_kernel::{DataClass, PrivacyDataClass};
