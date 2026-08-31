@@ -6,8 +6,8 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//secrets/core/domain:secrets-domain",
-        "//libs/check-cost-budget:check-cost-budget",
-        "//libs/data-boundary-kernel:data-boundary-kernel",
+        "//billing/core/check-cost-budget:check-cost-budget",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//intelligence/core/capability-domain:intelligence-capability-domain",
     ],
 )
@@ -21,8 +21,8 @@ rust_test(
     deps = [
         ":intelligence-adapter-kernel",
         "//secrets/core/domain:secrets-domain",
-        "//libs/check-cost-budget:check-cost-budget",
-        "//libs/data-boundary-kernel:data-boundary-kernel",
+        "//billing/core/check-cost-budget:check-cost-budget",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//intelligence/core/capability-domain:intelligence-capability-domain",
     ],
 )

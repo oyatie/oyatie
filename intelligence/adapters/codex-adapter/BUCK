@@ -49,7 +49,7 @@ rust_test(
     deps = [
         ":intelligence-codex-adapter",
         "third-party//:futures-util",
-        "//intelligence/testing/scripted-http-server:scripted-http-server",
+        "//intelligence/adapters/scripted-http-server:scripted-http-server",
         "third-party//:reqwest",
         "third-party//:tokio",
     ],

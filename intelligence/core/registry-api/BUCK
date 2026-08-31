@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/data-boundary-kernel:data-boundary-kernel",
-        "//libs/governance-eval-domain:governance-eval-domain",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//pipeline/core/eval-domain:governance-eval-domain",
         "//intelligence/core/capability-domain:intelligence-capability-domain",
     ],
 )
@@ -19,8 +19,8 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":intelligence-registry-api",
-        "//libs/data-boundary-kernel:data-boundary-kernel",
-        "//libs/governance-eval-domain:governance-eval-domain",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//pipeline/core/eval-domain:governance-eval-domain",
         "//intelligence/core/capability-domain:intelligence-capability-domain",
     ],
 )

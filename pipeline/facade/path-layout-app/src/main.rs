@@ -65,6 +65,7 @@ fn run() -> Result<(), String> {
         &repository,
         &head,
         &changes.layout_candidates,
+        &changes.exact_rename_sources,
     )?);
     let mut manifests = Vec::new();
     for path in changes

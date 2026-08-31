@@ -1,0 +1,23 @@
+rust_library(
+    name = "shared-transactional-outbox-kernel",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "shared_transactional_outbox_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//data/core/postgres-command-kernel:shared-postgres-command-kernel",
+        "//gateway/core/protocol-parity-kernel:shared-protocol-parity-kernel",
+    ],
+)
+
+rust_test(
+    name = "shared-transactional-outbox-kernel-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "shared_transactional_outbox_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//data/core/postgres-command-kernel:shared-postgres-command-kernel",
+        "//gateway/core/protocol-parity-kernel:shared-protocol-parity-kernel",
+    ],
+)

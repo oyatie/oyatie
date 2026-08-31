@@ -1,0 +1,82 @@
+rust_binary(
+    name = "pipeline-path-layout-app",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "pipeline_path_layout_app",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pipeline/core/admission:pipeline-admission",
+        "//pipeline/ports/draft/repository:pipeline-repository-draft",
+        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
+    ],
+)
+
+rust_test(
+    name = "pipeline-path-layout-app-completeness",
+    srcs = ["tests/completeness.rs"],
+    crate = "pipeline_path_layout_app_completeness",
+    crate_root = "tests/completeness.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-path-layout-app",
+        "//pipeline/core/admission:pipeline-admission",
+        "//pipeline/ports/draft/repository:pipeline-repository-draft",
+        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
+    ],
+)
+
+rust_test(
+    name = "pipeline-path-layout-app-review-bypasses",
+    srcs = ["tests/review_bypasses.rs"],
+    crate = "pipeline_path_layout_app_review_bypasses",
+    crate_root = "tests/review_bypasses.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-path-layout-app",
+        "//pipeline/core/admission:pipeline-admission",
+        "//pipeline/ports/draft/repository:pipeline-repository-draft",
+        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
+    ],
+)
+
+rust_test(
+    name = "pipeline-path-layout-app-review-followup",
+    srcs = ["tests/review_followup.rs"],
+    crate = "pipeline_path_layout_app_review_followup",
+    crate_root = "tests/review_followup.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-path-layout-app",
+        "//pipeline/core/admission:pipeline-admission",
+        "//pipeline/ports/draft/repository:pipeline-repository-draft",
+        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
+    ],
+)
+
+rust_test(
+    name = "pipeline-path-layout-app-review-third",
+    srcs = ["tests/review_third.rs"],
+    crate = "pipeline_path_layout_app_review_third",
+    crate_root = "tests/review_third.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-path-layout-app",
+        "//pipeline/core/admission:pipeline-admission",
+        "//pipeline/ports/draft/repository:pipeline-repository-draft",
+        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
+    ],
+)
+
+rust_test(
+    name = "pipeline-path-layout-app-semantic-names",
+    srcs = ["tests/semantic_names.rs"],
+    crate = "pipeline_path_layout_app_semantic_names",
+    crate_root = "tests/semantic_names.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-path-layout-app",
+        "//pipeline/core/admission:pipeline-admission",
+        "//pipeline/ports/draft/repository:pipeline-repository-draft",
+        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
+    ],
+)

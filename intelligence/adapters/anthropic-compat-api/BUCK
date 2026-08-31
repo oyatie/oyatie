@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/http-router-kernel:http-router-kernel",
-        "//libs/http-sse-kernel:http-sse-kernel",
+        "//gateway/core/http-router-kernel:http-router-kernel",
+        "//gateway/core/http-sse-kernel:http-sse-kernel",
         "//intelligence/core/account-kernel:intelligence-account-kernel",
         "//intelligence/core/provider-pool-kernel:intelligence-provider-pool-kernel",
     ],
@@ -19,8 +19,8 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/http-router-kernel:http-router-kernel",
-        "//libs/http-sse-kernel:http-sse-kernel",
+        "//gateway/core/http-router-kernel:http-router-kernel",
+        "//gateway/core/http-sse-kernel:http-sse-kernel",
         "//intelligence/core/account-kernel:intelligence-account-kernel",
         "//intelligence/core/provider-pool-kernel:intelligence-provider-pool-kernel",
     ],

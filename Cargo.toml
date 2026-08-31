@@ -62,6 +62,7 @@ unused_imports = "allow"
 # NOTE: do NOT set default-features = false — aws-lc-rs requires a backend feature
 # (aws-lc-sys|non-fips|fips) or its build script panics.
 aws-lc-rs = { version = "1" }
+rusqlite = { version = "0.32.1", features = ["bundled"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 # Phase -1 corpus extractor (ADR-0580): the source-level Rust AST parser behind the corpus
