@@ -138,9 +138,38 @@ pub fn check_range_kind_mismatch_is_refused<F: ProjectionFixture>(
     )
     .map_err(|error| fail("range constructs", format!("{error:?}")))?;
     match store.filter("ten_a", "ety_reading", &predicate, &PageRequest::first(10)) {
+        Err(ProjectionStoreError::KindMismatch { property }) if property == "celsius" => {}
+        other => {
+            return Err(fail(
+                "a kind-mismatched stored value is loud, never silent false",
+                format!("{other:?}"),
+            ));
+        }
+    }
+    for (ordinal, (object_ref, celsius)) in [("ent_a2", 3), ("ent_a3", 5)].into_iter().enumerate() {
+        store
+            .apply(applied(
+                "ten_a",
+                ordinal as u64 + 2,
+                vec![object(
+                    "ten_a",
+                    object_ref,
+                    "ety_reading",
+                    vec![("celsius", PropertyValue::Integer(celsius))],
+                )],
+            ))
+            .map_err(|error| fail("seed apply", format!("{error:?}")))?;
+    }
+    let after_bad = PageRequest::after(
+        1,
+        crate::store::ProjectionCursor {
+            after_object_ref: "ent_a1".to_owned(),
+        },
+    );
+    match store.filter("ten_a", "ety_reading", &predicate, &after_bad) {
         Err(ProjectionStoreError::KindMismatch { property }) if property == "celsius" => Ok(()),
         other => Err(fail(
-            "a kind-mismatched stored value is loud, never silent false",
+            "kind drift refuses window-independently - a cursor never hides it",
             format!("{other:?}"),
         )),
     }

@@ -68,6 +68,16 @@ impl PropertyPredicate {
         Ok(Self::Range { property, from, to })
     }
 
+    /// The (property, kind label) a `Range` compares under; `None` for
+    /// `Equals`. Stores and adapters use it to refuse kind drift
+    /// window-independently — a cursor or page limit never hides it.
+    pub fn range_kind(&self) -> Option<(&str, &'static str)> {
+        match self {
+            Self::Equals { .. } => None,
+            Self::Range { property, from, .. } => Some((property.as_str(), from.type_label())),
+        }
+    }
+
     /// Whether `entity` matches. `Ok(false)` is a real answer; a
     /// kind-mismatched stored value under a `Range` is an error.
     pub(crate) fn matches(&self, entity: &ObjectEntity) -> Result<bool, ProjectionStoreError> {
