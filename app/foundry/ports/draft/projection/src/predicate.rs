@@ -79,8 +79,10 @@ impl PropertyPredicate {
     }
 
     /// Whether `entity` matches. `Ok(false)` is a real answer; a
-    /// kind-mismatched stored value under a `Range` is an error.
-    pub(crate) fn matches(&self, entity: &ObjectEntity) -> Result<bool, ProjectionStoreError> {
+    /// kind-mismatched stored value under a `Range` is an error. Public
+    /// because adapters use THIS as the final word on every candidate —
+    /// their indexes accelerate, they never decide.
+    pub fn matches(&self, entity: &ObjectEntity) -> Result<bool, ProjectionStoreError> {
         match self {
             Self::Equals { property, value } => Ok(entity
                 .properties

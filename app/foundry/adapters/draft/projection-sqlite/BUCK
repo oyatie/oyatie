@@ -1,0 +1,54 @@
+rust_library(
+    name = "foundry-projection-sqlite-draft",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_projection_sqlite_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:rusqlite",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)
+
+rust_test(
+    name = "foundry-projection-sqlite-draft-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_projection_sqlite_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:rusqlite",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)
+
+rust_test(
+    name = "foundry-projection-sqlite-draft-conformance",
+    srcs = ["tests/sqlite_conformance.rs"],
+    crate = "sqlite_conformance",
+    crate_root = "tests/sqlite_conformance.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-projection-sqlite-draft",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+    ],
+)
+
+rust_test(
+    name = "foundry-projection-sqlite-draft-laws",
+    srcs = ["tests/adapter_laws.rs"],
+    crate = "adapter_laws",
+    crate_root = "tests/adapter_laws.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-projection-sqlite-draft",
+        "third-party//:rusqlite",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)

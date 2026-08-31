@@ -1,0 +1,16 @@
+[package]
+name = "foundry-projection-sqlite-draft"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+data-boundary-kernel = { path = "../../../../../data/core/data-boundary-kernel" }
+data-ontology-kernel = { path = "../../../../../data/core/ontology-kernel" }
+foundry-projection-draft = { path = "../../../ports/draft/projection" }
+rusqlite = { workspace = true }
+
+[lints]
+workspace = true
