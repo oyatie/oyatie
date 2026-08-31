@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
-use data_ontology_kernel::ObjectGraph;
+use data_ontology_kernel::{ObjectGraph, OntologyEngine};
 
 use crate::contract::*;
 use crate::link::KnowledgeGraphLinkInstance;
@@ -35,9 +35,11 @@ struct KnowledgeGraphLinkInboundKey {
 impl KnowledgeGraphQueryEngine {
     pub fn upsert_link(
         &mut self,
+        registry: &OntologyEngine,
         graph: &ObjectGraph,
         link: KnowledgeGraphLinkInstance,
     ) -> Result<KnowledgeGraphLinkUpsertOutcome, KnowledgeGraphQueryError> {
+        crate::link_law::check_registered(registry, &link)?;
         validate_link_endpoints(graph, &link)?;
         let key = link.key();
         let inbound_key = link.inbound_key();

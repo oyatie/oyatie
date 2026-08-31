@@ -13,6 +13,7 @@
 mod contract;
 mod engine;
 mod link;
+mod link_law;
 mod request;
 
 pub use contract::{

@@ -14,11 +14,11 @@ fn upsert_link_updates_observed_time_for_same_tenant_edge_key() {
             .unwrap();
 
     assert_eq!(
-        engine.upsert_link(&graph, first),
+        engine.upsert_link(&registry(), &graph, first),
         Ok(KnowledgeGraphLinkUpsertOutcome::Inserted)
     );
     assert_eq!(
-        engine.upsert_link(&graph, updated),
+        engine.upsert_link(&registry(), &graph, updated),
         Ok(KnowledgeGraphLinkUpsertOutcome::Updated)
     );
     let response = engine
@@ -68,6 +68,7 @@ fn node_cap_triggers_result_truncated_deterministically() {
     for i in 0..leaf_count {
         engine
             .upsert_link(
+                &registry(),
                 &g,
                 KnowledgeGraphLinkInstance::new(
                     "ten_alpha",
@@ -161,6 +162,7 @@ fn edge_cap_triggers_result_truncated() {
     for i in 0..leaf_count {
         engine
             .upsert_link(
+                &registry(),
                 &g,
                 KnowledgeGraphLinkInstance::new(
                     "ten_alpha",
@@ -206,6 +208,7 @@ fn under_cap_query_returns_complete_results_with_result_truncated_false() {
     let mut engine = KnowledgeGraphQueryEngine::default();
     engine
         .upsert_link(
+            &registry(),
             &g,
             KnowledgeGraphLinkInstance::new("ten_alpha", "ent_root", "ent_contact", "lty_owns", 10)
                 .unwrap(),
@@ -213,6 +216,7 @@ fn under_cap_query_returns_complete_results_with_result_truncated_false() {
         .unwrap();
     engine
         .upsert_link(
+            &registry(),
             &g,
             KnowledgeGraphLinkInstance::new(
                 "ten_alpha",
