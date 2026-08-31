@@ -61,7 +61,7 @@ pub(super) fn buck_consumer_profile(variation: BuckConsumerVariation) -> BuckCon
             baseline
         }
     };
-    BuckConsumerProfileV1::new(
+    BuckConsumerProfileV1::try_new(
         artifact("buck2", version(BuckConsumerVariation::Buck2)),
         artifact("buck2-prelude", version(BuckConsumerVariation::Prelude)),
         digest(bytes(BuckConsumerVariation::Rules, b"owned rules")),
@@ -69,10 +69,11 @@ pub(super) fn buck_consumer_profile(variation: BuckConsumerVariation) -> BuckCon
         digest(bytes(BuckConsumerVariation::CellConfig, b"cell config")),
         digest(bytes(BuckConsumerVariation::BuckConfig, b"buck config")),
         digest(bytes(
-            BuckConsumerVariation::QualificationReceipt,
-            b"consumer qualification receipt",
+            BuckConsumerVariation::QualificationPlan,
+            b"configured query and representative consumption plan",
         )),
     )
+    .unwrap()
 }
 
 pub(super) fn tool(name: &str, version: &str) -> ToolIdentityV1 {

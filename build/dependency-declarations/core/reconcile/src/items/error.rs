@@ -26,6 +26,13 @@ pub enum FailureClassV1 {
     UndeclaredGenerationAccess = 21,
     InvalidExecutionEvidence = 22,
     NondeterministicExecution = 23,
+    UnsupportedBuckConsumerProfile = 24,
+    BuckConsumerUnavailable = 25,
+    BuckConsumerQueryFailed = 26,
+    BuckConsumerConsumptionFailed = 27,
+    BuckConsumerTimedOut = 28,
+    BuckConsumerOutputTooLarge = 29,
+    InvalidBuckConsumerEvidence = 30,
 }
 
 impl FailureClassV1 {
@@ -137,5 +144,30 @@ impl ProjectionPortErrorV1 {
             Self::InternalInvariant => internal_invariant(),
             Self::InvalidSyntax | Self::UnsupportedSyntax | Self::OutputTooLarge => invalid_graph(),
         }
+    }
+}
+
+/// Failures returned by the configured Buck consumer adapter.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum BuckConsumerPortErrorV1 {
+    Unavailable,
+    QueryFailed,
+    ConsumptionFailed,
+    TimedOut,
+    OutputTooLarge,
+    InternalInvariant,
+}
+
+impl BuckConsumerPortErrorV1 {
+    pub(crate) const fn failure(self) -> FailureV1 {
+        let class = match self {
+            Self::Unavailable => FailureClassV1::BuckConsumerUnavailable,
+            Self::QueryFailed => FailureClassV1::BuckConsumerQueryFailed,
+            Self::ConsumptionFailed => FailureClassV1::BuckConsumerConsumptionFailed,
+            Self::TimedOut => FailureClassV1::BuckConsumerTimedOut,
+            Self::OutputTooLarge => FailureClassV1::BuckConsumerOutputTooLarge,
+            Self::InternalInvariant => FailureClassV1::InternalInvariant,
+        };
+        FailureV1::new(class)
     }
 }

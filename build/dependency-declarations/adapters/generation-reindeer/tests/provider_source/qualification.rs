@@ -10,6 +10,10 @@ use dependency_declarations_generation_reindeer::{
 use dependency_declarations_publication::{PublicationCapabilityPort, PublicationPort};
 use dependency_declarations_reconcile::*;
 
+#[path = "qualification/consumer.rs"]
+mod consumer;
+use consumer::{FixtureBuckConsumer, profile as buck_consumer};
+
 pub(super) fn assert_provider_parser_reconciliation(
     binary: &Path,
     adaptation: &ReindeerProviderSourceAdaptationV1,
@@ -19,12 +23,14 @@ pub(super) fn assert_provider_parser_reconciliation(
     let request = generation_request(binary, adaptation, first_root);
     let generator = FixtureGenerator::new(binary, first_root, second_root, request.request_id());
     let projector = StarlarkSyntaxProjectionV1::new(request.projection_profile_sha256());
+    let consumer = FixtureBuckConsumer;
     let publisher = CheckOnlyPublisher;
 
     let result = reconcile(
         &ReconciliationRequestV1::new(request, None),
         &generator,
         &projector,
+        &consumer,
         &publisher,
     );
 
@@ -282,16 +288,4 @@ fn artifact(name: &str, version: &str) -> ArtifactIdentityV1 {
         DigestV1::of(format!("{name}-artifact").as_bytes()),
     )
     .unwrap()
-}
-
-fn buck_consumer() -> BuckConsumerProfileV1 {
-    BuckConsumerProfileV1::new(
-        artifact("buck2", "qualification"),
-        artifact("buck2-prelude", "qualification"),
-        DigestV1::of(b"rules"),
-        DigestV1::of(b"toolchain"),
-        DigestV1::of(b"cell config"),
-        DigestV1::of(b"buck config"),
-        DigestV1::of(b"consumer qualification"),
-    )
 }

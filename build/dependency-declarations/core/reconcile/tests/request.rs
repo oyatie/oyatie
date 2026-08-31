@@ -57,7 +57,7 @@ fn request_identity_binds_every_buck_consumer_profile_field() {
         BuckConsumerVariation::Toolchain,
         BuckConsumerVariation::CellConfig,
         BuckConsumerVariation::BuckConfig,
-        BuckConsumerVariation::QualificationReceipt,
+        BuckConsumerVariation::QualificationPlan,
     ];
     assert!(variations.into_iter().all(|variation| {
         generation_request_with_buck_consumer_variation(variation).request_id() != baseline

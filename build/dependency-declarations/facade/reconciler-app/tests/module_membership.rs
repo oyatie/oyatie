@@ -128,6 +128,7 @@ fn facade_exposes_a_declarative_reconciler_api() {
     let _reconciler = dependency_declarations_reconciler_app::ReindeerDeclarationReconcilerV1::new(
         (),
         (),
-        dependency_declarations_reconciler_app::DigestV1::of(b"qualified projection"),
+        (),
+        (),
     );
 }

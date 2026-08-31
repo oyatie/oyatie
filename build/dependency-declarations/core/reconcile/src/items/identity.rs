@@ -199,7 +199,7 @@ impl ProviderGraphProfileV1 {
     }
 }
 
-/// Exact renderer, parser, provider graph, grammar, and Buck consumer qualification.
+/// Exact renderer, parser, provider graph, grammar, and Buck consumer profile.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct GenerationQualificationV1 {
     pub(crate) renderer: ArtifactIdentityV1,

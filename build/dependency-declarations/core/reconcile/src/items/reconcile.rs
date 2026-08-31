@@ -1,23 +1,31 @@
 use dependency_declarations_generation::{
+    DeclarationConsumerCapabilityPort, DeclarationConsumerQualificationPort,
     DeclarationProviderCapabilityPort, GenerationPort, RenderedDeclarationProjectionPort,
 };
 use dependency_declarations_publication::{PublicationCapabilityPort, PublicationPort};
 
-/// Runs the pure two-attempt generation, projection, and optional publication transition.
-pub fn reconcile<G, V, P>(
+/// Coordinates two-attempt generation, projection, consumer qualification, and publication.
+pub fn reconcile<G, V, Q, P>(
     request: &ReconciliationRequestV1,
     generator: &G,
     projector: &V,
+    consumer: &Q,
     publisher: &P,
 ) -> ReconciliationResultV1
 where
     G: for<'a> GenerationPort<GenerationInvocationV1<'a>, RawGenerationV1, GenerationPortErrorV1>,
     G: DeclarationProviderCapabilityPort<GenerationRequestV1>,
     V: RenderedDeclarationProjectionPort<
+            Profile = DigestV1,
             Projection = ParsedBuckProjectionV1,
             Error = ProjectionPortErrorV1,
         >,
-    V: DeclarationProviderCapabilityPort<DigestV1>,
+    Q: for<'a> DeclarationConsumerQualificationPort<
+            BuckConsumerQualificationInvocationV1<'a>,
+            BuckConsumerQualificationObservationV1,
+            BuckConsumerPortErrorV1,
+        >,
+    Q: DeclarationConsumerCapabilityPort<BuckConsumerProfileV1>,
     P: PublicationPort<PublicationRequestV1, PublicationObservationV1, PublicationPortErrorV1>,
     P: PublicationCapabilityPort<PublisherProfileV1>,
 {
@@ -28,10 +36,22 @@ where
             FailureV1::new(FailureClassV1::UnsupportedGenerationProfile),
         );
     }
-    if !projector.supports(&request.generation.projection_profile_sha256()) {
+    if projector.profile() != &request.generation.projection_profile_sha256() {
         return refused(
             Some(request_id),
             FailureV1::new(FailureClassV1::UnsupportedProjectionProfile),
+        );
+    }
+    if !consumer.supports(
+        request
+            .generation
+            .tools()
+            .qualification()
+            .buck_consumer(),
+    ) {
+        return refused(
+            Some(request_id),
+            FailureV1::new(FailureClassV1::UnsupportedBuckConsumerProfile),
         );
     }
     if request
@@ -76,6 +96,17 @@ where
     if let Err(failure) = validate_projection(&request.generation, &first, &projection) {
         return refused(Some(request_id), failure);
     }
+    let consumer_invocation =
+        BuckConsumerQualificationInvocationV1::new(&request.generation, &first, &projection);
+    let consumer_qualification = match consumer.qualify(&consumer_invocation) {
+        Ok(value) => value,
+        Err(error) => return refused(Some(request_id), error.failure()),
+    };
+    if let Err(failure) =
+        validate_buck_consumer_qualification(&consumer_invocation, &consumer_qualification)
+    {
+        return refused(Some(request_id), failure);
+    }
 
     let output_length_bytes = match checked_u64(first.bytes.len(), internal_invariant()) {
         Ok(value) => value,
@@ -85,6 +116,7 @@ where
         &request.generation,
         &first,
         &projection,
+        &consumer_qualification,
         output_length_bytes,
     );
     let generation = ValidatedGenerationV1 {
@@ -100,6 +132,8 @@ where
         validator: request.generation.validator(),
         attempts: [first.attempt_receipt_sha256, second.attempt_receipt_sha256],
         projection_receipt: projection.receipt_sha256,
+        consumer_qualification_fingerprint: consumer_qualification.fingerprint_sha256(),
+        consumer_qualification_receipt: consumer_qualification.receipt_sha256(),
     };
 
     let Some(intent) = request.publish.clone() else {

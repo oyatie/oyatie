@@ -275,7 +275,6 @@ where
     control.checkpoint_and_reset()?;
     Ok(roots.into_boxed_slice())
 }
-
 fn dependency_graph_identity<C>(
     envelope: &FactEnvelopeV1,
     nodes: &[DependencyGraphNodeV1],

@@ -3,8 +3,8 @@ mod support;
 use dependency_declarations_reconcile::*;
 
 use support::{
-    FixedProjection, RecordingPublisher, ScriptedGenerator, digest, graph, rendered,
-    valid_generation_request,
+    FixedBuckConsumer, FixedProjection, RecordingPublisher, ScriptedGenerator, digest, graph,
+    rendered, valid_generation_request,
 };
 
 #[test]
@@ -30,12 +30,14 @@ fn publication_attempt(outcome: PublicationOutcomeV1) -> PublicationAttemptRecei
         Ok((graph.clone(), rendered("demo"))),
     ]);
     let parser = FixedProjection::new(graph, generation_request.projection_profile_sha256());
+    let consumer = FixedBuckConsumer::new();
     let publisher = RecordingPublisher::new(outcome);
 
     let result = reconcile(
         &ReconciliationRequestV1::new(generation_request, Some(intent)),
         &generator,
         &parser,
+        &consumer,
         &publisher,
     );
     let ReconciliationResultV1::Published {
@@ -60,6 +62,7 @@ fn impossible_publication_failure_shape_still_gets_an_indeterminate_receipt() {
         Ok((graph.clone(), rendered("demo"))),
     ]);
     let parser = FixedProjection::new(graph, generation_request.projection_profile_sha256());
+    let consumer = FixedBuckConsumer::new();
     let publisher = RecordingPublisher::new(PublicationOutcomeV1::Failed {
         failure: FailureV1::new(FailureClassV1::GeneratorFailed),
         replacement: ReplacementStateV1::No,
@@ -69,6 +72,7 @@ fn impossible_publication_failure_shape_still_gets_an_indeterminate_receipt() {
         &ReconciliationRequestV1::new(generation_request, Some(intent)),
         &generator,
         &parser,
+        &consumer,
         &publisher,
     );
     let ReconciliationResultV1::Published { attempt, .. } = result else {
@@ -109,12 +113,14 @@ fn unsupported_profile_refuses_before_a_publication_attempt() {
         Ok((graph.clone(), rendered("demo"))),
     ]);
     let parser = FixedProjection::new(graph, generation_request.projection_profile_sha256());
+    let consumer = FixedBuckConsumer::new();
     let publisher = RecordingPublisher::unsupported(PublicationOutcomeV1::Unchanged);
 
     let result = reconcile(
         &ReconciliationRequestV1::new(generation_request, Some(intent)),
         &generator,
         &parser,
+        &consumer,
         &publisher,
     );
     let ReconciliationResultV1::Refused { failure, .. } = result else {
@@ -126,5 +132,6 @@ fn unsupported_profile_refuses_before_a_publication_attempt() {
     );
     assert!(generator.invocations().is_empty());
     assert_eq!(parser.calls(), 0);
+    assert_eq!(consumer.calls(), 0);
     assert_eq!(publisher.calls(), 0);
 }

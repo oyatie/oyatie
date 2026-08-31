@@ -2018,7 +2018,6 @@ name = "dependency-declarations-reconciler-app"
 version = "0.1.0"
 dependencies = [
  "dependency-declarations-generation",
- "dependency-declarations-generation-reindeer",
  "dependency-declarations-publication",
  "dependency-declarations-reconcile",
 ]

@@ -7,30 +7,35 @@ pub struct BuckConsumerProfileV1 {
     toolchain_sha256: DigestV1,
     cell_config_sha256: DigestV1,
     buckconfig_sha256: DigestV1,
-    qualification_receipt_sha256: DigestV1,
+    qualification_plan_sha256: DigestV1,
+    identity_sha256: DigestV1,
 }
 
 impl BuckConsumerProfileV1 {
-    /// Groups the independently versioned consumer inputs and qualification.
-    #[must_use]
-    pub const fn new(
+    /// Groups the independently versioned configured-consumer inputs.
+    pub fn try_new(
         buck2: ArtifactIdentityV1,
         prelude: ArtifactIdentityV1,
         rules_sha256: DigestV1,
         toolchain_sha256: DigestV1,
         cell_config_sha256: DigestV1,
         buckconfig_sha256: DigestV1,
-        qualification_receipt_sha256: DigestV1,
-    ) -> Self {
-        Self {
+        qualification_plan_sha256: DigestV1,
+    ) -> Result<Self, FailureV1> {
+        let mut profile = Self {
             buck2,
             prelude,
             rules_sha256,
             toolchain_sha256,
             cell_config_sha256,
             buckconfig_sha256,
-            qualification_receipt_sha256,
-        }
+            qualification_plan_sha256,
+            identity_sha256: DigestV1::from_bytes([0; 32]),
+        };
+        let mut hash = CanonicalHasherV1::new(b"build.buck-consumer-profile.v1\0");
+        profile.encode(&mut hash)?;
+        profile.identity_sha256 = hash.finish();
+        Ok(profile)
     }
 
     pub(crate) fn encode(&self, hash: &mut CanonicalHasherV1) -> Result<(), FailureV1> {
@@ -40,7 +45,7 @@ impl BuckConsumerProfileV1 {
         hash.digest(self.toolchain_sha256);
         hash.digest(self.cell_config_sha256);
         hash.digest(self.buckconfig_sha256);
-        hash.digest(self.qualification_receipt_sha256);
+        hash.digest(self.qualification_plan_sha256);
         Ok(())
     }
 
@@ -80,9 +85,15 @@ impl BuckConsumerProfileV1 {
         self.buckconfig_sha256
     }
 
-    /// Returns the representative configured-consumer qualification receipt.
+    /// Returns the configured query and representative-consumption plan identity.
     #[must_use]
-    pub const fn qualification_receipt_sha256(&self) -> DigestV1 {
-        self.qualification_receipt_sha256
+    pub const fn qualification_plan_sha256(&self) -> DigestV1 {
+        self.qualification_plan_sha256
+    }
+
+    /// Returns the configured consumer identity without execution evidence.
+    #[must_use]
+    pub const fn identity_sha256(&self) -> DigestV1 {
+        self.identity_sha256
     }
 }

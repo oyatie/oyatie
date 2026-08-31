@@ -90,6 +90,7 @@ _KERNEL_TEST_DEPS = [
 ]
 
 _KERNEL_TEST_SUPPORT = [
+    "tests/support/consumer.rs",
     "tests/support/effects.rs",
     "tests/support/mod.rs",
     "tests/support/provider.rs",

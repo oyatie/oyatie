@@ -8,7 +8,6 @@ license = "Apache-2.0"
 
 [dependencies]
 dependency-declarations-generation = { path = "../../ports/generation" }
-dependency-declarations-generation-reindeer = { path = "../../adapters/generation-reindeer" }
 dependency-declarations-publication = { path = "../../ports/publication" }
 dependency-declarations-reconcile = { path = "../../core/reconcile" }
 

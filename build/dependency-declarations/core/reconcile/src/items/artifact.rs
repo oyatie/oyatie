@@ -124,7 +124,7 @@ impl ParsedBuckProjectionV1 {
     }
 }
 
-/// One graph-and-byte generation admitted by both independent proofs.
+/// One graph-and-byte generation admitted by all required proofs.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ValidatedGenerationV1 {
     pub(crate) request_id: DigestV1,
@@ -139,6 +139,8 @@ pub struct ValidatedGenerationV1 {
     pub(crate) validator: ValidatorProfileV1,
     pub(crate) attempts: [DigestV1; 2],
     pub(crate) projection_receipt: DigestV1,
+    pub(crate) consumer_qualification_fingerprint: DigestV1,
+    pub(crate) consumer_qualification_receipt: DigestV1,
 }
 
 impl ValidatedGenerationV1 {
@@ -158,6 +160,18 @@ impl ValidatedGenerationV1 {
     #[must_use]
     pub fn bytes(&self) -> &[u8] {
         &self.bytes
+    }
+
+    /// Returns the configured Buck consumer qualification receipt.
+    #[must_use]
+    pub const fn consumer_qualification_receipt(&self) -> DigestV1 {
+        self.consumer_qualification_receipt
+    }
+
+    /// Returns the deterministic configured-query and consumption-result identity.
+    #[must_use]
+    pub const fn consumer_qualification_fingerprint(&self) -> DigestV1 {
+        self.consumer_qualification_fingerprint
     }
 }
 

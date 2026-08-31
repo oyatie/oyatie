@@ -3,7 +3,7 @@ mod support;
 use dependency_declarations_reconcile::*;
 
 use support::{
-    FixedProjection, RecordingPublisher, ScriptedGenerator, graph, rendered,
+    FixedBuckConsumer, FixedProjection, RecordingPublisher, ScriptedGenerator, graph, rendered,
     valid_generation_request,
 };
 
@@ -105,11 +105,13 @@ fn validated_generation() -> ValidatedGenerationV1 {
         Ok((graph("demo"), rendered("demo"))),
     ]);
     let projection = FixedProjection::new(graph("demo"), request.projection_profile_sha256());
+    let consumer = FixedBuckConsumer::new();
     let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
     let result = reconcile(
         &ReconciliationRequestV1::new(request, None),
         &generator,
         &projection,
+        &consumer,
         &publisher,
     );
     let ReconciliationResultV1::Generated { generation } = result else {

@@ -1,7 +1,8 @@
 //! Pure dependency-declaration reconciliation over immutable typed values.
 //!
-//! Generation, independent syntax projection, validation, and publication are
-//! composed through ports; filesystem, process, network, SCM, and campaigns stay outside.
+//! Generation, independent syntax projection, configured-consumer qualification,
+//! validation, and publication are composed through ports; filesystem, process,
+//! network, SCM, and campaigns stay outside.
 
 #![forbid(unsafe_code)]
 

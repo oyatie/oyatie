@@ -1,6 +1,4 @@
-use dependency_declarations_generation::{
-    DeclarationProviderCapabilityPort, RenderedDeclarationProjectionPort,
-};
+use dependency_declarations_generation::RenderedDeclarationProjectionPort;
 use dependency_declarations_reconcile::{
     DigestV1, ParsedBuckProjectionV1, ProjectionPortErrorV1, RenderedRuleGraphV1,
     RenderedRuleV1, SemanticValueV1, ValidationBoundsV1,
@@ -25,8 +23,13 @@ impl StarlarkSyntaxProjectionV1 {
 }
 
 impl RenderedDeclarationProjectionPort for StarlarkSyntaxProjectionV1 {
+    type Profile = DigestV1;
     type Projection = ParsedBuckProjectionV1;
     type Error = ProjectionPortErrorV1;
+
+    fn profile(&self) -> &Self::Profile {
+        &self.profile_sha256
+    }
 
     fn project(&self, rendered: &[u8]) -> Result<Self::Projection, Self::Error> {
         let graph = project_reindeer_buck_v1(rendered)?;
@@ -35,11 +38,5 @@ impl RenderedDeclarationProjectionPort for StarlarkSyntaxProjectionV1 {
             graph,
             rendered,
         ))
-    }
-}
-
-impl DeclarationProviderCapabilityPort<DigestV1> for StarlarkSyntaxProjectionV1 {
-    fn supports(&self, profile: &DigestV1) -> bool {
-        self.profile_sha256 == *profile
     }
 }

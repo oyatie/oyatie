@@ -5,8 +5,8 @@ mod support;
 use dependency_declarations_reconcile::*;
 
 use support::{
-    FixedProjection, ProjectionProfileVariation, ProviderArtifactFaultV1, RecordingPublisher,
-    ScriptedGenerator, digest, generation_request_with_projection_variation,
+    FixedBuckConsumer, FixedProjection, ProjectionProfileVariation, ProviderArtifactFaultV1,
+    RecordingPublisher, ScriptedGenerator, digest, generation_request_with_projection_variation,
     generation_request_with_provider_profile, graph, graph_with_fragment, rendered,
     rendered_fragment, valid_generation_request,
 };
@@ -36,12 +36,14 @@ fn provider_transport_refuses_wrong_identity_receipt_schema_and_shape() {
         let generator =
             ScriptedGenerator::with_fault(vec![Ok((graph("demo"), rendered("demo")))], fault);
         let projection = FixedProjection::new(graph("demo"), request.projection_profile_sha256());
+        let consumer = FixedBuckConsumer::new();
         let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
 
         let result = reconcile(
             &ReconciliationRequestV1::new(request, None),
             &generator,
             &projection,
+            &consumer,
             &publisher,
         );
         let ReconciliationResultV1::Refused { failure, .. } = result else {
@@ -62,12 +64,14 @@ fn maintained_projection_must_match_every_render_visible_field() {
         Ok((generated, rendered("demo"))),
     ]);
     let projection = FixedProjection::new(graph("different"), request.projection_profile_sha256());
+    let consumer = FixedBuckConsumer::new();
     let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
 
     let result = reconcile(
         &ReconciliationRequestV1::new(request, None),
         &generator,
         &projection,
+        &consumer,
         &publisher,
     );
     let ReconciliationResultV1::Refused { failure, .. } = result else {
@@ -117,12 +121,14 @@ fn maintained_projection_fragment_digest_must_bind_rendered_bytes() {
         graph_with_fragment("demo", b"unrelated"),
         request.projection_profile_sha256(),
     );
+    let consumer = FixedBuckConsumer::new();
     let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
 
     let result = reconcile(
         &ReconciliationRequestV1::new(request, None),
         &generator,
         &projection,
+        &consumer,
         &publisher,
     );
     let ReconciliationResultV1::Refused { failure, .. } = result else {

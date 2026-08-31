@@ -4,9 +4,9 @@ use dependency_declarations_generation::{DeclarationProviderCapabilityPort, Gene
 use dependency_declarations_reconcile::*;
 
 use support::{
-    FixedProjection, ProjectionProfileVariation, RecordingPublisher, ScriptedGenerator,
-    generation_request_with_projection_variation, generation_request_with_provider_profile, graph,
-    rendered, valid_generation_request,
+    FixedBuckConsumer, FixedProjection, ProjectionProfileVariation, RecordingPublisher,
+    ScriptedGenerator, generation_request_with_projection_variation,
+    generation_request_with_provider_profile, graph, rendered, valid_generation_request,
 };
 
 #[test]
@@ -49,11 +49,13 @@ fn generation_port_failures_map_to_stable_failure_classes() {
         let request = valid_generation_request(false);
         let generator = ScriptedGenerator::new(vec![Err(port_error)]);
         let parser = FixedProjection::new(graph("demo"), request.projection_profile_sha256());
+        let consumer = FixedBuckConsumer::new();
         let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
         let result = reconcile(
             &ReconciliationRequestV1::new(request, None),
             &generator,
             &parser,
+            &consumer,
             &publisher,
         );
         let ReconciliationResultV1::Refused {
@@ -76,18 +78,21 @@ fn unsupported_generation_provider_refuses_before_every_effect() {
         Ok((graph("demo"), rendered("demo"))),
     ]);
     let parser = FixedProjection::new(graph("demo"), request.projection_profile_sha256());
+    let consumer = FixedBuckConsumer::new();
     let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
 
     let result = reconcile(
         &ReconciliationRequestV1::new(request, None),
         &generator,
         &parser,
+        &consumer,
         &publisher,
     );
 
     assert_refusal(result, FailureClassV1::UnsupportedGenerationProfile);
     assert!(generator.invocations().is_empty());
     assert_eq!(parser.calls(), 0);
+    assert_eq!(consumer.calls(), 0);
     assert_eq!(publisher.calls(), 0);
 }
 
@@ -108,18 +113,101 @@ fn changed_grammar_or_provider_profile_refuses_before_every_effect() {
             Ok((graph("demo"), rendered("demo"))),
         ]);
         let parser = FixedProjection::new(graph("demo"), admitted_profile);
+        let consumer = FixedBuckConsumer::new();
         let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
 
         let result = reconcile(
             &ReconciliationRequestV1::new(request, None),
             &generator,
             &parser,
+            &consumer,
             &publisher,
         );
 
         assert_refusal(result, FailureClassV1::UnsupportedProjectionProfile);
         assert!(generator.invocations().is_empty());
         assert_eq!(parser.calls(), 0);
+        assert_eq!(consumer.calls(), 0);
+        assert_eq!(publisher.calls(), 0);
+    }
+}
+
+#[test]
+fn unsupported_buck_consumer_refuses_before_every_effect() {
+    let request = valid_generation_request(false);
+    let generator = ScriptedGenerator::new(vec![
+        Ok((graph("demo"), rendered("demo"))),
+        Ok((graph("demo"), rendered("demo"))),
+    ]);
+    let parser = FixedProjection::new(graph("demo"), request.projection_profile_sha256());
+    let consumer = FixedBuckConsumer::unsupported();
+    let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
+
+    let result = reconcile(
+        &ReconciliationRequestV1::new(request, None),
+        &generator,
+        &parser,
+        &consumer,
+        &publisher,
+    );
+
+    assert_refusal(result, FailureClassV1::UnsupportedBuckConsumerProfile);
+    assert!(generator.invocations().is_empty());
+    assert_eq!(parser.calls(), 0);
+    assert_eq!(consumer.calls(), 0);
+    assert_eq!(publisher.calls(), 0);
+}
+
+#[test]
+fn buck_consumer_failures_map_to_stable_failure_classes() {
+    let cases = [
+        (
+            BuckConsumerPortErrorV1::Unavailable,
+            FailureClassV1::BuckConsumerUnavailable,
+        ),
+        (
+            BuckConsumerPortErrorV1::QueryFailed,
+            FailureClassV1::BuckConsumerQueryFailed,
+        ),
+        (
+            BuckConsumerPortErrorV1::ConsumptionFailed,
+            FailureClassV1::BuckConsumerConsumptionFailed,
+        ),
+        (
+            BuckConsumerPortErrorV1::TimedOut,
+            FailureClassV1::BuckConsumerTimedOut,
+        ),
+        (
+            BuckConsumerPortErrorV1::OutputTooLarge,
+            FailureClassV1::BuckConsumerOutputTooLarge,
+        ),
+        (
+            BuckConsumerPortErrorV1::InternalInvariant,
+            FailureClassV1::InternalInvariant,
+        ),
+    ];
+    for (port_error, expected) in cases {
+        let request = valid_generation_request(false);
+        let generator = ScriptedGenerator::new(vec![
+            Ok((graph("demo"), rendered("demo"))),
+            Ok((graph("demo"), rendered("demo"))),
+        ]);
+        let parser = FixedProjection::new(graph("demo"), request.projection_profile_sha256());
+        let consumer = FixedBuckConsumer::failing(port_error);
+        let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
+
+        let result = reconcile(
+            &ReconciliationRequestV1::new(request, None),
+            &generator,
+            &parser,
+            &consumer,
+            &publisher,
+        );
+
+        assert_refusal(result, expected);
+        assert_eq!(generator.invocations().len(), 2);
+        assert_eq!(parser.calls(), 1);
+        assert_eq!(consumer.calls(), 1);
         assert_eq!(publisher.calls(), 0);
     }
 }
@@ -142,12 +230,14 @@ fn bounded_arbitrary_provider_bytes_refuse_without_panicking() {
             let request = valid_generation_request(false);
             let generator = RawTransportGenerator { transport };
             let parser = FixedProjection::new(graph("demo"), request.projection_profile_sha256());
+            let consumer = FixedBuckConsumer::new();
             let publisher = RecordingPublisher::new(PublicationOutcomeV1::Unchanged);
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 reconcile(
                     &ReconciliationRequestV1::new(request, None),
                     &generator,
                     &parser,
+                    &consumer,
                     &publisher,
                 )
             }));

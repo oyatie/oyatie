@@ -2,6 +2,7 @@ fn generation_identity(
     request: &GenerationRequestV1,
     generated: &AdmittedGenerationV1,
     projection: &ParsedBuckProjectionV1,
+    consumer_qualification: &BuckConsumerQualificationObservationV1,
     output_length_bytes: u64,
 ) -> DigestV1 {
     let mut hash = CanonicalHasherV1::new(b"build.declaration-generation.v1\0");
@@ -12,6 +13,7 @@ fn generation_identity(
     hash.digest(generated.graph_sha256);
     hash.digest(generated.execution_fingerprint_sha256);
     hash.digest(projection.receipt_sha256);
+    hash.digest(consumer_qualification.fingerprint_sha256());
     hash.tag(match request.validator() {
         ValidatorProfileV1::ReindeerBuckV1 => 0,
     });

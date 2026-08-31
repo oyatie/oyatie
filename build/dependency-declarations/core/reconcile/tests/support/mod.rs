@@ -1,9 +1,11 @@
 use dependency_declarations_reconcile::*;
 
+mod consumer;
 mod effects;
 mod provider;
 mod request_helpers;
 
+pub use consumer::FixedBuckConsumer;
 pub use effects::{FixedProjection, RecordingPublisher, ScriptedGenerator};
 pub use provider::{
     ProviderArtifactFaultV1, raw_provider_artifact, raw_provider_artifact_with_fault,
@@ -25,7 +27,7 @@ pub enum BuckConsumerVariation {
     Toolchain,
     CellConfig,
     BuckConfig,
-    QualificationReceipt,
+    QualificationPlan,
 }
 
 #[derive(Clone, Copy, Eq, PartialEq)]

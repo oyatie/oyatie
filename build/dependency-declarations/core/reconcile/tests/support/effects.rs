@@ -142,8 +142,13 @@ impl FixedProjection {
 }
 
 impl RenderedDeclarationProjectionPort for FixedProjection {
+    type Profile = DigestV1;
     type Projection = ParsedBuckProjectionV1;
     type Error = ProjectionPortErrorV1;
+
+    fn profile(&self) -> &Self::Profile {
+        &self.profile
+    }
 
     fn project(&self, source: &[u8]) -> Result<ParsedBuckProjectionV1, ProjectionPortErrorV1> {
         *self.calls.lock().unwrap() += 1;
@@ -152,12 +157,6 @@ impl RenderedDeclarationProjectionPort for FixedProjection {
             self.graph.clone(),
             source,
         ))
-    }
-}
-
-impl DeclarationProviderCapabilityPort<DigestV1> for FixedProjection {
-    fn supports(&self, profile: &DigestV1) -> bool {
-        *profile == self.profile
     }
 }
 

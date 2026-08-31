@@ -208,6 +208,8 @@ mod freshness_tests {
             validator: ValidatorProfileV1::ReindeerBuckV1,
             attempts: [DigestV1::of(b"first"), DigestV1::of(b"second")],
             projection_receipt: DigestV1::of(b"projection"),
+            consumer_qualification_fingerprint: DigestV1::of(b"consumer fingerprint"),
+            consumer_qualification_receipt: DigestV1::of(b"consumer qualification"),
         };
         let observation = GeneratedArtifactObservationV1 {
             request_id,

@@ -1,8 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use dependency_declarations_generation::{
-    DeclarationProviderCapabilityPort, RenderedDeclarationProjectionPort,
-};
+use dependency_declarations_generation::RenderedDeclarationProjectionPort;
 use dependency_declarations_generation_reindeer::StarlarkSyntaxProjectionV1;
 use dependency_declarations_reconcile::{
     DigestV1, ProjectionPortErrorV1, RenderedRuleGraphV1, RenderedRuleV1, SemanticValueV1,
@@ -58,8 +56,7 @@ fn whole_artifact_projection_recovers_every_rendered_semantic_field() {
     let adapter = StarlarkSyntaxProjectionV1::new(profile);
     let projection = adapter.project(RENDERED.as_bytes()).unwrap();
 
-    assert!(adapter.supports(&profile));
-    assert!(!adapter.supports(&DigestV1::of(b"another profile")));
+    assert_eq!(adapter.profile(), &profile);
     assert_eq!(projection.profile_sha256(), profile);
     assert_eq!(
         projection.output_sha256(),
