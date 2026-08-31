@@ -19,6 +19,10 @@ pub enum AuditDisposition {
     Applied { ordinal: u64 },
     /// The Action was refused at the named gate; no ordinal was spent.
     Denied { gate: String },
+    /// The entry was consumed at this ordinal but the projection refused
+    /// it for the named deterministic reason — the ordinal WAS spent,
+    /// which is exactly what distinguishes a poison from a denial.
+    Poisoned { ordinal: u64, reason: String },
 }
 
 /// One auditable Foundry fact, validated at construction.
@@ -68,10 +72,6 @@ impl FoundryAuditEvent {
             disposition,
             occurred_at_epoch_ms,
         };
-        let gate = match &event.disposition {
-            AuditDisposition::Denied { gate } => Some(gate.clone()),
-            AuditDisposition::Applied { .. } => None,
-        };
         for (field, value) in [
             ("tenant_id", &event.tenant_id),
             ("audit_event_type", &event.audit_event_type),
@@ -81,8 +81,10 @@ impl FoundryAuditEvent {
         ] {
             check(field, value)?;
         }
-        if let Some(gate) = gate {
-            check("gate", &gate)?;
+        match &event.disposition {
+            AuditDisposition::Denied { gate } => check("gate", gate)?,
+            AuditDisposition::Poisoned { reason, .. } => check("reason", reason)?,
+            AuditDisposition::Applied { .. } => {}
         }
         Ok(event)
     }
@@ -92,7 +94,10 @@ impl FoundryAuditEvent {
     pub fn event_id(&self) -> String {
         let discriminant = match &self.disposition {
             AuditDisposition::Applied { ordinal } => format!("applied_{ordinal}"),
-            AuditDisposition::Denied { gate } => format!("denied_{gate}"),
+            // A gate can refuse many submissions in one instant; the
+            // decision id keeps each refusal its own fact.
+            AuditDisposition::Denied { gate } => format!("denied_{gate}_{}", self.decision_id),
+            AuditDisposition::Poisoned { ordinal, .. } => format!("poisoned_{ordinal}"),
         };
         format!(
             "fae_{}_{}_{}",
