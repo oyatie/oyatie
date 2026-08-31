@@ -2210,6 +2210,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundry-edits"
+version = "0.1.0"
+
+[[package]]
 name = "foundry-records-draft"
 version = "0.1.0"
 
@@ -2220,6 +2224,10 @@ dependencies = [
  "foundry-records-draft",
  "rusqlite",
 ]
+
+[[package]]
+name = "foundry-spine"
+version = "0.1.0"
 
 [[package]]
 name = "fs_extra"
