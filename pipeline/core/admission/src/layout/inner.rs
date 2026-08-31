@@ -7,7 +7,6 @@ use super::{FORBIDDEN_NAMES, cap_root_file_ok, face_dir_ok};
 // D-41 explicitly amends the earlier closed list with a tiny owned build.rs
 // that writes generated module membership to OUT_DIR.
 const CRATE_FILES: &[&str] = &["Cargo.toml", "OWNERS", "BUCK", "build.rs"];
-const DOC_DIRS: &[&str] = &["concepts", "runbooks", "design"];
 const INNER_DUMP_DIRS: &[&str] = &["plan", "tasks"];
 
 pub(super) fn validate_owner_path(
@@ -47,7 +46,6 @@ pub(super) fn validate_owner_path(
         "observability" => {
             validate_observability(file, &parts[child_index + 1..], violations);
         }
-        "docs" => validate_docs(file, &parts[child_index + 1..], violations),
         _ => violations.push(format!("{file}: `{child}` is not an owner face")),
     }
 }
@@ -229,69 +227,4 @@ fn validate_observability(file: &str, parts: &[&str], violations: &mut Vec<Strin
             "{file}: SLO payloads must be direct `<name>.generated.openslo.yaml` outputs from IR"
         ));
     }
-}
-
-fn validate_docs(file: &str, parts: &[&str], violations: &mut Vec<String>) {
-    if parts == ["README.md"] {
-        return;
-    }
-    let Some(section) = parts.first() else {
-        violations.push(format!("{file}: owner docs require a canonical entry"));
-        return;
-    };
-    if !DOC_DIRS.contains(section) {
-        violations.push(format!("{file}: `{section}` is not an owner docs section"));
-    } else if parts.len() == 1 {
-        violations.push(format!("{file}: `docs/{section}` must be a directory"));
-    } else if parts[1..].iter().any(|part| cargo_or_rust_payload(part)) {
-        violations.push(format!(
-            "{file}: owner docs must not contain Cargo or Rust payloads"
-        ));
-    } else if parts[1..].iter().any(|part| forbidden_doc_dump(part)) {
-        violations.push(format!(
-            "{file}: owner docs must not contain law copies, IPs, catalogs, scorecards, plan/tasks, or evidence dumps"
-        ));
-    }
-}
-
-fn cargo_or_rust_payload(part: &str) -> bool {
-    matches!(
-        part,
-        "Cargo.toml" | "Cargo.lock" | "build.rs" | "rust-toolchain.toml" | "rustfmt.toml"
-    ) || part.ends_with(".rs")
-}
-
-fn forbidden_doc_dump(part: &str) -> bool {
-    let normalized = part.to_ascii_lowercase();
-    let stem = normalized.split('.').next().unwrap_or(&normalized);
-    matches!(
-        stem,
-        "adr"
-            | "adrs"
-            | "prd"
-            | "spec"
-            | "specs"
-            | "plan"
-            | "plans"
-            | "tasks"
-            | "decisions"
-            | "ips"
-            | "catalog"
-            | "catalogs"
-            | "scorecard"
-            | "scorecards"
-            | "dpia"
-            | "capabilities"
-            | "evidence"
-            | "handoff"
-    ) || reserved_doc_prefix(stem)
-        || stem.starts_with("audit-findings-")
-        || stem.starts_with("remediation-notes-")
-}
-
-fn reserved_doc_prefix(stem: &str) -> bool {
-    ["adr", "prd", "spec", "plan", "ip"].iter().any(|name| {
-        stem.strip_prefix(name)
-            .is_some_and(|tail| tail.starts_with('-') || tail.starts_with('_'))
-    })
 }
