@@ -3493,10 +3493,10 @@ dependencies = [
  "iam-identity-workload-svid-operator-k8s",
  "iam-identity-workload-svid-operator-kernel",
  "iam-identity-workload-svid-trustd",
- "iam-pdp-bundle-file",
  "iam-pdp-cedar",
- "iam-pdp-kernel",
  "os-trustd-domain",
+ "policy-decision-service-kernel",
+ "policy-pdp-bundle-file",
  "policy-pdp-kernel",
  "prost",
  "protoc-bin-vendored",
@@ -3520,19 +3520,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "iam-pdp-bundle-file"
-version = "0.1.0"
-dependencies = [
- "iam-pdp-kernel",
- "policy-pdp-kernel",
- "serde",
- "serde_json",
- "shared-audit-digest-adapter-awslc",
- "shared-audit-event-kernel",
- "shared-platform-contracts-kernel",
-]
-
-[[package]]
 name = "iam-pdp-cedar"
 version = "0.1.0"
 dependencies = [
@@ -3544,14 +3531,6 @@ dependencies = [
  "serde_json",
  "shared-platform-contracts-kernel",
  "shared-ulid-id-kernel",
-]
-
-[[package]]
-name = "iam-pdp-kernel"
-version = "0.1.0"
-dependencies = [
- "policy-pdp-kernel",
- "shared-platform-contracts-kernel",
 ]
 
 [[package]]
@@ -6915,6 +6894,27 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "policy-decision-service-kernel"
+version = "0.1.0"
+dependencies = [
+ "policy-pdp-kernel",
+ "shared-platform-contracts-kernel",
+]
+
+[[package]]
+name = "policy-pdp-bundle-file"
+version = "0.1.0"
+dependencies = [
+ "policy-decision-service-kernel",
+ "policy-pdp-kernel",
+ "serde",
+ "serde_json",
+ "shared-audit-digest-adapter-awslc",
+ "shared-audit-event-kernel",
+ "shared-platform-contracts-kernel",
 ]
 
 [[package]]
