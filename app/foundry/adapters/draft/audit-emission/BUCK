@@ -1,0 +1,39 @@
+rust_library(
+    name = "foundry-audit-emission-draft",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_audit_emission_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/foundry/ports/draft/audit:foundry-audit-draft",
+        "//audit/ports/emission-api:audit-emission-api",
+        "//audit/ports/emission-kernel:audit-emission-kernel",
+    ],
+)
+
+rust_test(
+    name = "foundry-audit-emission-draft-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_audit_emission_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/foundry/ports/draft/audit:foundry-audit-draft",
+        "//audit/ports/emission-api:audit-emission-api",
+        "//audit/ports/emission-kernel:audit-emission-kernel",
+    ],
+)
+
+rust_test(
+    name = "foundry-audit-emission-draft-mapping",
+    srcs = ["tests/chain_mapping.rs"],
+    crate = "chain_mapping",
+    crate_root = "tests/chain_mapping.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-audit-emission-draft",
+        "//app/foundry/ports/draft/audit:foundry-audit-draft",
+        "//audit/ports/emission-api:audit-emission-api",
+        "//audit/ports/emission-kernel:audit-emission-kernel",
+    ],
+)

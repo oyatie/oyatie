@@ -2,16 +2,16 @@
 
 use super::support::*;
 
-// ST2 acceptance: an empty consent scope must preserve prior traversal
-// behaviour — all reachable nodes and edges are returned.
+// An UNRESTRICTED posture traverses everything — the explicit opt-out
+// that replaced the empty-scope fail-open (the old pin
+// `empty_consent_scope_preserves_prior_behavior` pinned open-on-empty;
+// deny-by-default overturned it and absence is now a named posture).
 //
 // Graph (same as above):
 //   ent_root --lty_partner--> ent_b --lty_partner--> ent_c
 //   ent_root --lty_member-->  ent_d
-// Scope: [] (empty)
-// Expected: ent_b, ent_c, and ent_d all present; all 3 edges present.
 #[test]
-fn empty_consent_scope_preserves_prior_behavior() {
+fn unrestricted_consent_traverses_every_edge() {
     let g = consent_graph();
     let engine = consent_engine(&g);
 
@@ -23,7 +23,7 @@ fn empty_consent_scope_preserves_prior_behavior() {
         3,
         0,
         1,
-        Vec::<&str>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     )
     .unwrap();
@@ -71,7 +71,7 @@ fn consent_gate_fires_before_cap_check_and_does_not_set_result_truncated() {
         3,
         0,
         1,
-        vec!["lty_partner"],
+        EdgeConsent::granted(vec!["lty_partner"]),
         TraversalDirection::Outbound,
     )
     .unwrap();
@@ -119,7 +119,8 @@ fn freshness_filter_still_applies_to_consented_edges() {
         2,
         10, // freshness floor is 10
         1,
-        vec!["lty_partner"], // lty_partner is consented, but observed_at=5 < floor=10
+        // lty_partner is consented, but observed_at=5 < floor=10
+        EdgeConsent::granted(vec!["lty_partner"]),
         TraversalDirection::Outbound,
     )
     .unwrap();
@@ -151,7 +152,7 @@ fn inbound_reaches_predecessors_outbound_cannot() {
         2,
         0,
         1,
-        Vec::<&str>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Inbound,
     )
     .unwrap();
@@ -179,7 +180,7 @@ fn inbound_reaches_predecessors_outbound_cannot() {
         2,
         0,
         1,
-        Vec::<&str>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     )
     .unwrap();
@@ -215,7 +216,7 @@ fn both_yields_union_of_outbound_and_inbound() {
         2,
         0,
         1,
-        Vec::<&str>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Both,
     )
     .unwrap();
@@ -240,5 +241,41 @@ fn both_yields_union_of_outbound_and_inbound() {
             .iter()
             .any(|e| e.from_entity_id == "ent_root" && e.to_entity_id == "ent_succ"),
         "root->succ edge must be present in canonical orientation"
+    );
+}
+
+// Deny-by-default law (parity row: consent-scoped traversal): a consent
+// posture that grants nothing traverses nothing — only the root comes
+// back. RED-observed against the fail-open this lane removed.
+#[test]
+fn a_consent_input_granting_nothing_traverses_no_edges() {
+    let g = consent_graph();
+    let engine = consent_engine(&g);
+    let req = KnowledgeGraphQueryRequest::new(
+        "ten_alpha",
+        "kgq_consent_nothing",
+        "ent_root",
+        Vec::<&str>::new(),
+        3,
+        0,
+        1,
+        EdgeConsent::Granted(Vec::new()),
+        TraversalDirection::Outbound,
+    )
+    .unwrap();
+    let response = engine.query_graph_slice(&g, req).unwrap();
+    let node_ids: Vec<&str> = response
+        .nodes
+        .iter()
+        .map(|n| n.entity_id.as_str())
+        .collect();
+    assert_eq!(
+        node_ids,
+        vec!["ent_root"],
+        "grant-nothing consent must return the root alone"
+    );
+    assert!(
+        response.edges.is_empty(),
+        "grant-nothing consent must traverse zero edges"
     );
 }

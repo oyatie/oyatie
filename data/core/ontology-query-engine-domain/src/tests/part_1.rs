@@ -125,7 +125,7 @@ fn tenant_isolation_blocks_cross_tenant_and_query_leakage() {
                 2,
                 0,
                 2,
-                Vec::<&str>::new(),
+                EdgeConsent::Unrestricted,
                 TraversalDirection::Outbound,
             )
             .unwrap(),
@@ -148,7 +148,7 @@ fn validation_rejects_bad_ids_missing_root_and_unbounded_depth() {
             1,
             0,
             1,
-            Vec::<&str>::new(),
+            EdgeConsent::Unrestricted,
             TraversalDirection::Outbound,
         ),
         Err(KnowledgeGraphQueryError::InvalidTenantId)
@@ -162,7 +162,7 @@ fn validation_rejects_bad_ids_missing_root_and_unbounded_depth() {
             1,
             0,
             1,
-            Vec::<&str>::new(),
+            EdgeConsent::Unrestricted,
             TraversalDirection::Outbound,
         ),
         Err(KnowledgeGraphQueryError::InvalidQueryId)
@@ -176,7 +176,7 @@ fn validation_rejects_bad_ids_missing_root_and_unbounded_depth() {
             MAX_QUERY_DEPTH + 1,
             0,
             1,
-            Vec::<&str>::new(),
+            EdgeConsent::Unrestricted,
             TraversalDirection::Outbound,
         ),
         Err(KnowledgeGraphQueryError::DepthCeilingExceeded)

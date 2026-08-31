@@ -3,7 +3,7 @@
 use crate::*;
 use data_ontology_kernel::ObjectGraph;
 use data_ontology_query_engine_domain::{
-    KnowledgeGraphQueryEngine, KnowledgeGraphQueryError, KnowledgeGraphQueryRequest,
+    EdgeConsent, KnowledgeGraphQueryEngine, KnowledgeGraphQueryError, KnowledgeGraphQueryRequest,
     TraversalDirection,
 };
 
@@ -61,7 +61,7 @@ fn input(idempotency_key: &str) -> OntologyQueryExecutionInput {
             1,
             0,
             12,
-            vec!["lty_owns"],
+            EdgeConsent::granted(vec!["lty_owns"]),
             TraversalDirection::Outbound,
         )
         .unwrap(),
@@ -134,7 +134,7 @@ fn same_idempotency_key_with_different_intent_is_denied_without_replacing_origin
         1,
         0,
         12,
-        vec!["lty_owns"],
+        EdgeConsent::granted(vec!["lty_owns"]),
         TraversalDirection::Outbound,
     )
     .unwrap();
@@ -212,7 +212,7 @@ fn query_domain_failure_returns_failed_receipt_and_audit_event() {
         1,
         0,
         12,
-        vec!["lty_owns"],
+        EdgeConsent::granted(vec!["lty_owns"]),
         TraversalDirection::Outbound,
     )
     .unwrap();
@@ -265,4 +265,30 @@ fn missing_policy_decision_or_trace_refs_are_invalid_before_audit() {
     );
     assert!(usecase.audit_events().is_empty());
     assert_eq!(usecase.receipt_count(), 0);
+}
+
+// Composed-path pin for the deny-by-default consent law: a grant-nothing
+// posture through the policy-checked entry point completes with the root
+// alone — the fail-closed traversal survives composition.
+#[test]
+fn a_grant_nothing_consent_completes_with_the_root_alone() {
+    let (graph, engine) = graph_and_engine();
+    let mut usecase = OntologyQueryExecutionUsecase::default();
+    let mut input = input("idem_consent_nothing");
+    input.request.edge_consent = EdgeConsent::Granted(Vec::new());
+    let receipt = usecase.execute(&graph, &engine, input);
+    assert_eq!(receipt.status, OntologyQueryExecutionStatus::Completed);
+    let response = receipt
+        .response
+        .expect("completed receipts carry the response");
+    let node_ids: Vec<&str> = response
+        .nodes
+        .iter()
+        .map(|n| n.entity_id.as_str())
+        .collect();
+    assert_eq!(node_ids, vec!["ent_root"]);
+    assert!(
+        response.edges.is_empty(),
+        "no consent grant, no traversed edge"
+    );
 }

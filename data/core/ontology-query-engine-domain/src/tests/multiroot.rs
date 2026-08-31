@@ -43,7 +43,7 @@ fn additional_roots_expand_disconnected_components() {
         2,
         0,
         100,
-        Vec::<String>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     )
     .unwrap();
@@ -82,7 +82,7 @@ fn additional_roots_fail_closed() {
         2,
         0,
         100,
-        Vec::<String>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     )
     .unwrap();
@@ -127,7 +127,7 @@ fn duplicate_roots_deduplicated() {
         2,
         0,
         100,
-        Vec::<String>::new(),
+        EdgeConsent::Unrestricted,
         TraversalDirection::Outbound,
     )
     .unwrap()

@@ -59,19 +59,16 @@ fn changed_layout_checks_only_paths_present_after_the_change() {
 }
 
 #[test]
-fn every_new_capability_requires_core_and_owner_law() {
+fn every_new_capability_requires_a_core_crate_and_not_prose() {
     let paperwork =
         git_change_paths_from_name_status_z(b"A\0network/OWNERS\0A\0network/README.md\0").unwrap();
     let violations = changed_layout_violations(&paperwork, &BTreeSet::new());
     assert!(violations.iter().any(|item| item.contains("core crate")));
-    assert!(
-        violations
-            .iter()
-            .any(|item| item.contains("canonical owner-law"))
-    );
+    assert!(!violations.iter().any(|item| item.contains("owner-law")));
 
+    // The implemented unit alone admits the owner.
     let implementation = git_change_paths_from_name_status_z(
-        b"A\0network/OWNERS\0A\0network/ADR.md\0A\0network/PRD.md\0A\0network/SPEC.md\0A\0network/PLAN.md\0A\0network/core/route/Cargo.toml\0A\0network/core/route/src/lib.rs\0",
+        b"A\0network/OWNERS\0A\0network/core/route/Cargo.toml\0A\0network/core/route/src/lib.rs\0",
     )
     .unwrap();
     assert!(changed_layout_violations(&implementation, &BTreeSet::new()).is_empty());

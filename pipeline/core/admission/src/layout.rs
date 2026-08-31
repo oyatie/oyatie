@@ -21,9 +21,7 @@ mod workspace;
 
 pub use base::base_admission_violations;
 pub use cargo_config::cargo_config_violations;
-pub use change::{
-    changed_layout_violations, owner_core_regression_violations, owner_law_regression_violations,
-};
+pub use change::{changed_layout_violations, owner_core_regression_violations};
 pub use dependency::{draft_dependency_violations, workspace_draft_dependency_violations};
 use inner::validate_owner_path;
 pub use manifest::{
@@ -110,7 +108,7 @@ pub const ALLOWED_ROOT_FILES: &[&str] = &[
 
 pub const FACES: &[&str] = &["core", "ports", "adapters", "facade"];
 
-pub const CAP_EXTRAS: &[&str] = &["cedar", "observability", "iac", "docs"];
+pub const CAP_EXTRAS: &[&str] = &["cedar", "observability", "iac"];
 
 pub const FORBIDDEN_NAMES: &[&str] = &[
     "plan",

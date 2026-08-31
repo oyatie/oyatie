@@ -67,8 +67,10 @@ pub(crate) fn parse_property_data_class(
     })
 }
 
-pub(crate) fn object_graph_entity_record(entity: &ObjectEntity) -> ObjectGraphEntityRecord {
-    ObjectGraphEntityRecord {
+pub(crate) fn object_graph_entity_record(
+    entity: &ObjectEntity,
+) -> Result<ObjectGraphEntityRecord, ObjectGraphEntityUpsertApiError> {
+    Ok(ObjectGraphEntityRecord {
         tenant_id: entity.tenant_id.clone(),
         entity_id: entity.id.clone(),
         entity_type: entity.entity_type.value.clone(),
@@ -76,18 +78,25 @@ pub(crate) fn object_graph_entity_record(entity: &ObjectEntity) -> ObjectGraphEn
             .properties
             .values()
             .map(object_graph_property_ref)
-            .collect(),
+            .collect::<Result<Vec<_>, _>>()?,
         schema_version: 1,
-    }
+    })
 }
 
-pub(crate) fn object_graph_property_ref(property: &ObjectProperty) -> ObjectGraphEntityPropertyRef {
-    ObjectGraphEntityPropertyRef {
+pub(crate) fn object_graph_property_ref(
+    property: &ObjectProperty,
+) -> Result<ObjectGraphEntityPropertyRef, ObjectGraphEntityUpsertApiError> {
+    let value = property.value.value.as_str().ok_or_else(|| {
+        ObjectGraphEntityUpsertApiError::NonStringPropertyValue {
+            name: property.name.clone(),
+        }
+    })?;
+    Ok(ObjectGraphEntityPropertyRef {
         name: property.name.clone(),
-        value: property.value.value.clone(),
+        value: value.to_string(),
         tier: property_tier_label(property.tier).to_string(),
         data_class: property.value.data_class.label().to_string(),
-    }
+    })
 }
 
 pub(crate) fn object_graph_entity_mutation_event(

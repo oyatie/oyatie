@@ -1,0 +1,24 @@
+rust_library(
+    name = "foundry-audit-draft",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_audit_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "foundry-audit-draft-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_audit_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "foundry-audit-draft-contract",
+    srcs = ["tests/audit_contract.rs"],
+    crate = "audit_contract",
+    crate_root = "tests/audit_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [":foundry-audit-draft"],
+)

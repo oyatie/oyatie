@@ -1,0 +1,33 @@
+# The target is `policy-pdp-kernel`; the Rust crate stays `shared_pdp_kernel`.
+# Buck2 exposes a dependency only under its `crate` attribute and has no
+# equivalent of Cargo's `package =` rename in these files, so renaming the
+# crate here breaks `use shared_pdp_kernel::` in all six consumers with
+# `unresolved import`. Target names and crate names are independent; this
+# mirrors the Cargo alias exactly. Both names change together when the
+# consumers' imports are renamed, not before.
+
+rust_library(
+    name = "policy-pdp-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "shared_pdp_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "policy-pdp-kernel-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "shared_pdp_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
