@@ -14,7 +14,7 @@ rust_library(
 
 rust_test(
     name = "compute-vm-api-cloud-compute-vm-api",
-    srcs = ["tests/cloud_compute_vm_api.rs"],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "compute_vm_api_cloud_compute_vm_api",
     crate_root = "tests/cloud_compute_vm_api.rs",
     visibility = ["PUBLIC"],

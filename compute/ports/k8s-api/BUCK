@@ -14,7 +14,7 @@ rust_library(
 
 rust_test(
     name = "compute-k8s-api-cloud-compute-k8s-api",
-    srcs = ["tests/cloud_compute_k8s_api.rs"],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "compute_k8s_api_cloud_compute_k8s_api",
     crate_root = "tests/cloud_compute_k8s_api.rs",
     visibility = ["PUBLIC"],
