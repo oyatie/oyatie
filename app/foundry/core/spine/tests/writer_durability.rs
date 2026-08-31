@@ -94,6 +94,41 @@ fn submission(object: &str, key: &str, name: &str) -> ActionSubmission {
     }
 }
 
+#[derive(Default)]
+struct MemoryDenials {
+    entries: Vec<SealedEnvelope>,
+}
+
+impl RecordsLog for MemoryDenials {
+    fn append(
+        &mut self,
+        envelope: ActionEnvelope,
+    ) -> Result<foundry_records_draft::Receipt, foundry_records_draft::RecordsLogError> {
+        let receipt = foundry_records_draft::Receipt {
+            ordinal: self.entries.len() as u64 + 1,
+            object_sequence: 1,
+            deduplicated: false,
+        };
+        self.entries.push(SealedEnvelope {
+            envelope,
+            receipt: receipt.clone(),
+        });
+        Ok(receipt)
+    }
+
+    fn replay(
+        &self,
+        _tenant_id: &str,
+        _from_ordinal: u64,
+    ) -> Result<Vec<SealedEnvelope>, foundry_records_draft::RecordsLogError> {
+        Ok(self.entries.clone())
+    }
+
+    fn head(&self, _tenant_id: &str) -> Result<u64, foundry_records_draft::RecordsLogError> {
+        Ok(self.entries.len() as u64)
+    }
+}
+
 fn scratch_db(case: &str) -> PathBuf {
     let path = std::env::temp_dir().join(format!(
         "foundry-spine-{case}-{}-{}.sqlite",
@@ -113,16 +148,19 @@ fn kill_reopen_refold_is_byte_identical() {
     let path = scratch_db("kill-reopen");
     let live = {
         let mut log = SqliteRecordsLog::open(&path).unwrap();
+        let mut denials = MemoryDenials::default();
         let mut projection = ProjectionState::new("ten_test", &registry);
         submit(
             submission("ent_r1", "idem_1", "Ada"),
             &mut log,
+            &mut denials,
             &mut projection,
         )
         .unwrap();
         submit(
             submission("ent_r2", "idem_2", "Grace"),
             &mut log,
+            &mut denials,
             &mut projection,
         )
         .unwrap();
@@ -150,6 +188,7 @@ fn kill_reopen_refold_is_byte_identical() {
         submit(
             submission("ent_r4", "idem_4", "Edsger"),
             &mut log,
+            &mut denials,
             &mut projection,
         )
         .unwrap();

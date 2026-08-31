@@ -178,11 +178,24 @@ fn create_submission(idempotency_key: &str) -> ActionSubmission {
 fn byte_identical_retry_dedups_to_the_original_outcome() {
     let registry = registry();
     let mut log = MemoryLog::default();
+    let mut denials = MemoryLog::default();
     let mut projection = ProjectionState::new("ten_test", &registry);
-    submit(create_submission("idem_1"), &mut log, &mut projection).unwrap();
+    submit(
+        create_submission("idem_1"),
+        &mut log,
+        &mut denials,
+        &mut projection,
+    )
+    .unwrap();
     let before = projection.clone();
 
-    let retried = submit(create_submission("idem_1"), &mut log, &mut projection).unwrap();
+    let retried = submit(
+        create_submission("idem_1"),
+        &mut log,
+        &mut denials,
+        &mut projection,
+    )
+    .unwrap();
     let ApplyOutcome::Applied { receipt } = retried else {
         panic!("expected the original applied outcome");
     };
@@ -196,12 +209,19 @@ fn byte_identical_retry_dedups_to_the_original_outcome() {
 fn a_fresh_decision_retry_conflicts_loudly() {
     let registry = registry();
     let mut log = MemoryLog::default();
+    let mut denials = MemoryLog::default();
     let mut projection = ProjectionState::new("ten_test", &registry);
-    submit(create_submission("idem_1"), &mut log, &mut projection).unwrap();
+    submit(
+        create_submission("idem_1"),
+        &mut log,
+        &mut denials,
+        &mut projection,
+    )
+    .unwrap();
 
     let mut fresh = create_submission("idem_1");
     fresh.decision.decision_id = "dec_2".into();
-    let error = submit(fresh, &mut log, &mut projection).unwrap_err();
+    let error = submit(fresh, &mut log, &mut denials, &mut projection).unwrap_err();
     assert!(
         matches!(
             error,
@@ -215,6 +235,7 @@ fn a_fresh_decision_retry_conflicts_loudly() {
 fn dedup_against_a_poisoned_entry_reports_poisoned() {
     let registry = registry();
     let mut log = MemoryLog::default();
+    let mut denials = MemoryLog::default();
     let mut projection = ProjectionState::new("ten_test", &registry);
 
     // Plant a poisoned entry: corrupt bytes appended around the writer.
@@ -241,7 +262,7 @@ fn dedup_against_a_poisoned_entry_reports_poisoned() {
     // A writer submission deduplicating onto that entry must say so.
     let mut submission = create_submission("idem_1");
     submission.request.idempotency_key = "idem_1".into();
-    let result = submit(submission, &mut log, &mut projection);
+    let result = submit(submission, &mut log, &mut denials, &mut projection);
     match result {
         Ok(ApplyOutcome::Poisoned { receipt, .. }) => {
             assert!(receipt.deduplicated);
