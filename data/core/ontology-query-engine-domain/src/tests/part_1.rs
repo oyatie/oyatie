@@ -8,6 +8,7 @@ fn bounded_query_returns_deterministic_two_hop_subgraph() {
     let mut engine = KnowledgeGraphQueryEngine::default();
     engine
         .upsert_link(
+            &registry(),
             &graph,
             KnowledgeGraphLinkInstance::new("ten_alpha", "ent_root", "ent_contact", "lty_owns", 10)
                 .unwrap(),
@@ -15,6 +16,7 @@ fn bounded_query_returns_deterministic_two_hop_subgraph() {
         .unwrap();
     engine
         .upsert_link(
+            &registry(),
             &graph,
             KnowledgeGraphLinkInstance::new(
                 "ten_alpha",
@@ -70,6 +72,7 @@ fn edge_type_filter_and_freshness_floor_prune_traversal() {
     ] {
         engine
             .upsert_link(
+                &registry(),
                 &graph,
                 KnowledgeGraphLinkInstance::new("ten_alpha", from, to, edge, observed_at).unwrap(),
             )
@@ -101,7 +104,7 @@ fn tenant_isolation_blocks_cross_tenant_and_query_leakage() {
             .unwrap();
 
     assert_eq!(
-        engine.upsert_link(&graph, cross_tenant_link),
+        engine.upsert_link(&registry(), &graph, cross_tenant_link),
         Err(KnowledgeGraphQueryError::DanglingLinkEndpoint {
             entity_id: "ent_beta_root".to_string()
         })
@@ -109,6 +112,7 @@ fn tenant_isolation_blocks_cross_tenant_and_query_leakage() {
 
     engine
         .upsert_link(
+            &registry(),
             &graph,
             KnowledgeGraphLinkInstance::new("ten_alpha", "ent_root", "ent_contact", "lty_owns", 1)
                 .unwrap(),
@@ -200,6 +204,7 @@ fn cycle_edges_are_reported_without_unbounded_revisit() {
     ] {
         engine
             .upsert_link(
+                &registry(),
                 &graph,
                 KnowledgeGraphLinkInstance::new("ten_alpha", from, to, "lty_owns", 1).unwrap(),
             )
@@ -217,5 +222,31 @@ fn cycle_edges_are_reported_without_unbounded_revisit() {
             .edges
             .iter()
             .any(|edge| edge.from_entity_id == "ent_cycle" && edge.to_entity_id == "ent_root")
+    );
+}
+
+// Deny-by-default law (parity row: link types with cardinality
+// enforcement): an edge whose lty_ type was never registered for the
+// tenant must be refused at upsert. RED against the fail-open (any
+// lty_-prefixed edge is accepted with no registry consultation).
+#[test]
+fn an_unregistered_link_type_is_refused_at_upsert() {
+    let g = graph();
+    let mut engine = KnowledgeGraphQueryEngine::default();
+    let outcome = engine.upsert_link(
+        &registry(),
+        &g,
+        KnowledgeGraphLinkInstance::new(
+            "ten_alpha",
+            "ent_root",
+            "ent_contact",
+            "lty_never_registered",
+            10,
+        )
+        .unwrap(),
+    );
+    assert!(
+        matches!(outcome, Err(KnowledgeGraphQueryError::UnregisteredLinkType)),
+        "an unregistered link type must not enter the store: {outcome:?}"
     );
 }
