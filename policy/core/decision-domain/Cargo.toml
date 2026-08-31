@@ -1,0 +1,26 @@
+[package]
+name = "policy-decision-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "The authorization join: Zanzibar relationship expansion materialised into the entity slice the embedded Cedar PDP decides against. Runs the bounded userset-rewrite walk at one pinned snapshot, turns the memberships that hold into EntityRecord.parents, and only then calls PolicyDecisionPoint::authorize - expansion strictly precedes evaluation, the PDP never reaches out mid-decision, and every error on either half is a fail-closed denial."
+
+[dependencies]
+policy-cedar-domain = { path = "../cedar-domain" }
+policy-rebac-domain = { path = "../rebac-domain" }
+policy-pdp-kernel = { path = "../pdp-kernel" }
+shared-platform-contracts-kernel = { path = "../../../iam/core/platform-contracts-kernel" }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+policy-pdp-cedar = { path = "../../adapters/pdp-cedar" }
+policy-tuple-store-inmemory = { path = "../../adapters/tuple-store-inmemory" }
+shared-ulid-id-kernel = { path = "../../../data/core/ulid-id-kernel" }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
