@@ -26,7 +26,10 @@ rust_test(
 
 rust_test(
     name = "shared-resource-provider-contract-kernel-reference-provider",
-    srcs = ["tests/reference_provider.rs"],
+    srcs = glob([
+        "tests/reference_provider.rs",
+        "tests/reference_provider/**/*.rs",
+    ]),
     crate = "shared_resource_provider_contract_kernel_reference_provider",
     crate_root = "tests/reference_provider.rs",
     visibility = ["PUBLIC"],
