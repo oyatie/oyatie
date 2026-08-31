@@ -17,8 +17,6 @@ pub const WORKSPACE_MEMBER_GLOBS: &[&str] = &[
     "app/*/ports/draft/*/src/..",
     "app/*/adapters/draft/*/src/..",
     "app/*/facade/*/src/..",
-    "app/foundry/pages/crates/*",
-    "app/foundry/grid/core/*",
     "build/port-engine/*/*",
 ];
 
@@ -126,6 +124,29 @@ mod tests {
             .map(|entry| format!("  {entry:?},\n"))
             .collect::<String>();
         format!("[workspace]\nmembers = [\n{members}]\nexclude = [\n{excludes}]\nresolver = '2'\n")
+    }
+
+    /// The retirement is closed both ways: a candidate that re-adds a
+    /// retired glob is refused as unexpected, and a duplicated member is
+    /// still a duplicate.
+    #[test]
+    fn retired_globs_stay_retired_and_duplicates_stay_refused() {
+        for retired in ["app/foundry/pages/crates/*", "app/foundry/grid/core/*"] {
+            let mut readded: Vec<&str> = WORKSPACE_MEMBER_GLOBS.to_vec();
+            readded.push(retired);
+            assert!(
+                workspace_membership_violations(&manifest(&readded, WORKSPACE_EXCLUDES))
+                    .iter()
+                    .any(|item| item.contains("unexpected") && item.contains(retired)),
+                "re-adding {retired} must refuse",
+            );
+        }
+
+        let mut duplicated: Vec<&str> = WORKSPACE_MEMBER_GLOBS.to_vec();
+        duplicated.push(WORKSPACE_MEMBER_GLOBS[0]);
+        assert!(
+            !workspace_membership_violations(&manifest(&duplicated, WORKSPACE_EXCLUDES)).is_empty()
+        );
     }
 
     #[test]

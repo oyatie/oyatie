@@ -1938,13 +1938,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "docs-domain"
-version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
-
-[[package]]
 name = "dotenvy"
 version = "0.15.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2202,6 +2195,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundry-audit-draft"
+version = "0.1.0"
+
+[[package]]
+name = "foundry-audit-emission-draft"
+version = "0.1.0"
+dependencies = [
+ "audit-emission-api",
+ "audit-emission-kernel",
+ "foundry-audit-draft",
+]
+
+[[package]]
 name = "foundry-blob-draft"
 version = "0.1.0"
 dependencies = [
@@ -2217,6 +2223,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundry-edits"
+version = "0.1.0"
+
+[[package]]
+name = "foundry-projection-draft"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+ "data-ontology-kernel",
+]
+
+[[package]]
+name = "foundry-projection-sqlite-draft"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+ "data-ontology-kernel",
+ "foundry-projection-draft",
+ "rusqlite",
+]
+
+[[package]]
 name = "foundry-records-draft"
 version = "0.1.0"
 
@@ -2226,6 +2254,19 @@ version = "0.1.0"
 dependencies = [
  "foundry-records-draft",
  "rusqlite",
+]
+
+[[package]]
+name = "foundry-spine"
+version = "0.1.0"
+dependencies = [
+ "cedar-policy",
+ "data-boundary-kernel",
+ "data-ontology-kernel",
+ "foundry-audit-draft",
+ "foundry-edits",
+ "foundry-records-draft",
+ "foundry-records-sqlite-draft",
 ]
 
 [[package]]
@@ -3144,10 +3185,11 @@ dependencies = [
  "iam-identity-workload-svid-operator-k8s",
  "iam-identity-workload-svid-operator-kernel",
  "iam-identity-workload-svid-trustd",
- "iam-pdp-bundle-file",
- "iam-pdp-cedar",
- "iam-pdp-kernel",
  "os-trustd-domain",
+ "policy-decision-service-kernel",
+ "policy-pdp-bundle-file",
+ "policy-pdp-cedar",
+ "policy-pdp-kernel",
  "prost",
  "protoc-bin-vendored",
  "reqwest 0.13.4",
@@ -3156,7 +3198,6 @@ dependencies = [
  "serde_json",
  "shared-audit-digest-adapter-awslc",
  "shared-audit-event-kernel",
- "shared-pdp-kernel",
  "shared-platform-contracts-kernel",
  "shared-ulid-id-kernel",
  "tokio",
@@ -3168,41 +3209,6 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "x509-parser",
-]
-
-[[package]]
-name = "iam-pdp-bundle-file"
-version = "0.1.0"
-dependencies = [
- "iam-pdp-kernel",
- "serde",
- "serde_json",
- "shared-audit-digest-adapter-awslc",
- "shared-audit-event-kernel",
- "shared-pdp-kernel",
- "shared-platform-contracts-kernel",
-]
-
-[[package]]
-name = "iam-pdp-cedar"
-version = "0.1.0"
-dependencies = [
- "audit-chain-domain",
- "audit-file-adapter",
- "cedar-policy",
- "data-boundary-kernel",
- "serde_json",
- "shared-pdp-kernel",
- "shared-platform-contracts-kernel",
- "shared-ulid-id-kernel",
-]
-
-[[package]]
-name = "iam-pdp-kernel"
-version = "0.1.0"
-dependencies = [
- "shared-pdp-kernel",
- "shared-platform-contracts-kernel",
 ]
 
 [[package]]
@@ -3254,9 +3260,9 @@ dependencies = [
  "iam-tenant-rbac-api",
  "iam-tenant-rbac-domain",
  "iam-tenant-rbac-usecase",
+ "policy-pdp-kernel",
  "serde",
  "serde_json",
- "shared-pdp-kernel",
  "shared-platform-contracts-kernel",
 ]
 
@@ -6452,6 +6458,64 @@ dependencies = [
 ]
 
 [[package]]
+name = "policy-decision-domain"
+version = "0.1.0"
+dependencies = [
+ "policy-cedar-domain",
+ "policy-pdp-cedar",
+ "policy-pdp-kernel",
+ "policy-rebac-domain",
+ "policy-tuple-store-inmemory",
+ "serde_json",
+ "shared-platform-contracts-kernel",
+ "shared-ulid-id-kernel",
+]
+
+[[package]]
+name = "policy-decision-service-kernel"
+version = "0.1.0"
+dependencies = [
+ "policy-pdp-kernel",
+ "shared-platform-contracts-kernel",
+]
+
+[[package]]
+name = "policy-pdp-bundle-file"
+version = "0.1.0"
+dependencies = [
+ "policy-decision-service-kernel",
+ "policy-pdp-kernel",
+ "serde",
+ "serde_json",
+ "shared-audit-digest-adapter-awslc",
+ "shared-audit-event-kernel",
+ "shared-platform-contracts-kernel",
+]
+
+[[package]]
+name = "policy-pdp-cedar"
+version = "0.1.0"
+dependencies = [
+ "audit-chain-domain",
+ "audit-file-adapter",
+ "cedar-policy",
+ "data-boundary-kernel",
+ "policy-pdp-kernel",
+ "serde_json",
+ "shared-platform-contracts-kernel",
+ "shared-ulid-id-kernel",
+]
+
+[[package]]
+name = "policy-pdp-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "shared-platform-contracts-kernel",
+]
+
+[[package]]
 name = "policy-rebac-domain"
 version = "0.1.0"
 dependencies = [
@@ -8064,15 +8128,6 @@ name = "shared-olap-client-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "shared-pdp-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "shared-platform-contracts-kernel",
-]
-
-[[package]]
 name = "shared-platform-contracts-kernel"
 version = "0.1.0"
 dependencies = [
@@ -8143,14 +8198,6 @@ dependencies = [
 [[package]]
 name = "shared-ulid-id-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "sheets-domain"
-version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
- "intelligence-collab-runtime-domain",
-]
 
 [[package]]
 name = "shlex"
@@ -8737,11 +8784,11 @@ name = "tenancy-tenant-lifecycle-authz-pdp"
 version = "0.1.0"
 dependencies = [
  "aws-lc-rs",
- "iam-pdp-cedar",
+ "policy-pdp-cedar",
+ "policy-pdp-kernel",
  "reqwest 0.13.4",
  "serde",
  "serde_json",
- "shared-pdp-kernel",
  "shared-platform-contracts-kernel",
  "shared-ulid-id-kernel",
  "tenancy-tenant-lifecycle-authz-port",

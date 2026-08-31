@@ -1,0 +1,104 @@
+//! Reader pinning: one pure view over the projection and the kernel's
+//! retained revision history. Behind the pin the view filters down to the
+//! pinned vocabulary — lossless under additive-only evolution, and the
+//! per-object deprecation window D80 names. Ahead of the pin the view shows
+//! honest absence: a value the log never carried is never synthesized at
+//! read. Refusals are typed; a read never touches the poison ledger. The
+//! migration runner's shared pending predicate refines [`UpcastState`] when
+//! it lands (D80 design of record); until then written-below-pin IS pending.
+
+use std::collections::{BTreeMap, BTreeSet};
+
+use data_ontology_kernel::{EntityTypeId, ObjectProperty};
+
+use crate::state::ProjectionState;
+
+/// Where one object stands relative to a pinned revision.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum UpcastState {
+    /// The object's last applied write is at or beyond the pin.
+    Current,
+    /// The object was last written below the pin; properties the pin
+    /// declares beyond that write are honestly absent until a logged
+    /// upcast lands.
+    UpcastPending,
+}
+
+/// One object as a reader pinned at a revision sees it.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PinnedObject {
+    /// The object's applied properties, filtered to the names the pinned
+    /// definition declares. Every value is log-derived.
+    pub properties: BTreeMap<String, ObjectProperty>, // data_class: PROPERTY_VALUE_PRIVACY_CLASS
+    /// The schema revision the writer stamped on the object's last applied
+    /// envelope.
+    pub written_revision: u32, // data_class: INTERNAL_ONLY
+    /// Standing of this object relative to the pin.
+    pub upcast_state: UpcastState, // data_class: INTERNAL_ONLY
+}
+
+/// Typed refusals of the pinned view.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ViewError {
+    /// No applied envelope ever bound this `object_ref` in this tenant's
+    /// projection.
+    UnknownObject,
+    /// The pinned revision was never accepted for the object's entity type
+    /// — retention holds accepted evolutions only, so an unretained pin is
+    /// a caller error, not history.
+    UnretainedRevision,
+}
+
+/// The object at `object_ref` as a reader pinned at `pinned` sees it.
+///
+/// Pure over (projection facts, retained definitions):
+///
+/// | Case | Result |
+/// |---|---|
+/// | `pinned` > written revision | stored properties (pin declares a superset under additive law), [`UpcastState::UpcastPending`] |
+/// | `pinned` <= written revision | properties filtered to the pinned vocabulary, [`UpcastState::Current`] |
+/// | no binding for `object_ref` | [`ViewError::UnknownObject`] |
+/// | `pinned` never accepted | [`ViewError::UnretainedRevision`] |
+pub fn object_at_revision(
+    state: &ProjectionState,
+    object_ref: &str,
+    pinned: u32,
+) -> Result<PinnedObject, ViewError> {
+    let binding = state
+        .bindings
+        .get(object_ref)
+        .ok_or(ViewError::UnknownObject)?;
+    // Bindings hold only fold-validated `ety_` ids; a malformed one means
+    // the projection cannot know this object.
+    let type_id =
+        EntityTypeId::new(binding.entity_type.clone()).map_err(|_| ViewError::UnknownObject)?;
+    let definition = state
+        .engine
+        .entity_type_at_revision(&state.tenant_id, &type_id, pinned)
+        .ok_or(ViewError::UnretainedRevision)?;
+    let entity = state
+        .objects
+        .get(&state.tenant_id, object_ref)
+        .ok_or(ViewError::UnknownObject)?;
+    let declared: BTreeSet<&str> = definition
+        .properties
+        .iter()
+        .map(|property| property.name.as_str())
+        .collect();
+    let properties = entity
+        .properties
+        .iter()
+        .filter(|(name, _)| declared.contains(name.as_str()))
+        .map(|(name, property)| (name.clone(), property.clone()))
+        .collect();
+    let upcast_state = if binding.schema_revision < pinned {
+        UpcastState::UpcastPending
+    } else {
+        UpcastState::Current
+    };
+    Ok(PinnedObject {
+        properties,
+        written_revision: binding.schema_revision,
+        upcast_state,
+    })
+}
