@@ -75,6 +75,28 @@ rust_library(
     ],
 )
 
+rust_binary(
+    name = "dependency-declarations-reconciler-app-bin",
+    srcs = ["src/main.rs"],
+    crate = "dependency_declarations_reconciler_app_bin",
+    crate_root = "src/main.rs",
+    visibility = [],
+    within_view = _PACKAGE_VIEW,
+)
+
+rust_test(
+    name = "dependency-declarations-reconciler-app-process-boundary-test",
+    srcs = ["tests/process_boundary.rs"],
+    crate = "dependency_declarations_reconciler_app_process_boundary_test",
+    crate_root = "tests/process_boundary.rs",
+    env = {
+        "CARGO_BIN_EXE_dependency-declarations-reconciler-app": "$(location :dependency-declarations-reconciler-app-bin)",
+    },
+    resources = [":dependency-declarations-reconciler-app-bin"],
+    visibility = [],
+    within_view = _PACKAGE_VIEW,
+)
+
 rust_test(
     name = "dependency-declarations-reconciler-app-module-membership-test",
     srcs = ["build.rs", "tests/module_membership.rs"],
