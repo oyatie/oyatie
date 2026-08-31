@@ -18,7 +18,7 @@ mod request;
 pub use contract::{
     KnowledgeGraphEdge, KnowledgeGraphLinkUpsertOutcome, KnowledgeGraphNode,
     KnowledgeGraphQueryError, KnowledgeGraphQueryResponse, MAX_QUERY_DEPTH, MAX_QUERY_RESULT_EDGES,
-    MAX_QUERY_RESULT_NODES, TraversalDirection,
+    MAX_QUERY_RESULT_NODES, QueryCursor, TraversalDirection,
 };
 pub use engine::KnowledgeGraphQueryEngine;
 pub use link::KnowledgeGraphLinkInstance;

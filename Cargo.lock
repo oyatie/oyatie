@@ -2202,6 +2202,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundry-blob-draft"
+version = "0.1.0"
+dependencies = [
+ "sha2",
+]
+
+[[package]]
+name = "foundry-blob-sqlite-draft"
+version = "0.1.0"
+dependencies = [
+ "foundry-blob-draft",
+ "rusqlite",
+]
+
+[[package]]
 name = "foundry-records-draft"
 version = "0.1.0"
 
@@ -6434,6 +6449,21 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "policy-rebac-domain"
+version = "0.1.0"
+dependencies = [
+ "policy-cedar-domain",
+]
+
+[[package]]
+name = "policy-tuple-store-inmemory"
+version = "0.1.0"
+dependencies = [
+ "policy-cedar-domain",
+ "policy-rebac-domain",
 ]
 
 [[package]]
