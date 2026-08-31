@@ -19,6 +19,7 @@ mod emission;
 mod error;
 mod fold;
 mod history;
+mod revision;
 mod state;
 mod writer;
 
@@ -31,5 +32,6 @@ pub use emission::{
 pub use error::{RefusalGate, Refused};
 pub use fold::{FoldOutcome, PoisonReason, apply_sealed, fold_from_scratch};
 pub use history::{AuditDisposition, AuditEntry, HistoryEntry, audit_view, object_history};
+pub use revision::{PinnedObject, UpcastState, ViewError, object_at_revision};
 pub use state::{ObjectBinding, ProjectionState};
 pub use writer::{ActionSubmission, ApplyOutcome, WriteError, submit};
