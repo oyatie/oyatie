@@ -12,6 +12,12 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+mod boundary;
 mod error;
+mod fold;
+mod state;
 
+pub use boundary::BoundaryError;
 pub use error::{RefusalGate, Refused};
+pub use fold::{FoldOutcome, PoisonReason, apply_sealed, fold_from_scratch};
+pub use state::{ObjectBinding, ProjectionState};
