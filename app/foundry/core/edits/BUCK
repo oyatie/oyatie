@@ -31,3 +31,21 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [":foundry-edits"],
 )
+
+rust_test(
+    name = "foundry-edits-codec-golden",
+    srcs = ["tests/codec_golden.rs"],
+    crate = "codec_golden",
+    crate_root = "tests/codec_golden.rs",
+    visibility = ["PUBLIC"],
+    deps = [":foundry-edits"],
+)
+
+rust_test(
+    name = "foundry-edits-codec-roundtrip",
+    srcs = ["tests/codec_roundtrip.rs"],
+    crate = "codec_roundtrip",
+    crate_root = "tests/codec_roundtrip.rs",
+    visibility = ["PUBLIC"],
+    deps = [":foundry-edits"],
+)
