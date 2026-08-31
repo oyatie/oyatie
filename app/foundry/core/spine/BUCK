@@ -4,6 +4,12 @@ rust_library(
     crate = "foundry_spine",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = [
+        "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
 )
 
 rust_test(
@@ -12,6 +18,12 @@ rust_test(
     crate = "foundry_spine",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = [
+        "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
 )
 
 rust_test(
@@ -21,4 +33,49 @@ rust_test(
     crate_root = "tests/refusal_taxonomy.rs",
     visibility = ["PUBLIC"],
     deps = [":foundry-spine"],
+)
+
+rust_test(
+    name = "foundry-spine-projector",
+    srcs = ["tests/projector_fold.rs"],
+    crate = "projector_fold",
+    crate_root = "tests/projector_fold.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-spine",
+        "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)
+
+rust_test(
+    name = "foundry-spine-fold-law",
+    srcs = ["tests/fold_law.rs"],
+    crate = "fold_law",
+    crate_root = "tests/fold_law.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-spine",
+        "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)
+
+rust_test(
+    name = "foundry-spine-determinism",
+    srcs = ["tests/fold_determinism.rs"],
+    crate = "fold_determinism",
+    crate_root = "tests/fold_determinism.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-spine",
+        "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
 )
