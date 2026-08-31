@@ -8,6 +8,9 @@ use std::collections::BTreeMap;
 pub enum WireValueError {
     NonFiniteDouble,
     InvalidDate,
+    /// A stored sort key that construction could never produce — the
+    /// second spelling of a number the canonical-bytes law forbids.
+    NonCanonicalDoubleKey,
 }
 
 /// A finite IEEE double stored as its monotone order-preserving u64 key
@@ -41,9 +44,27 @@ impl WireDouble {
         }
     }
 
-    /// The monotone key itself — the future index sort key.
+    /// The monotone key itself — the wire representation and the future
+    /// index sort key.
     pub const fn sort_key(self) -> u64 {
         self.0
+    }
+
+    /// Reconstruct from a stored sort key, refusing any key construction
+    /// could never produce (non-finite values, and the folded `-0.0` key):
+    /// every number has exactly one key, so byte-equality dedup stays
+    /// honest.
+    pub fn from_sort_key(key: u64) -> Result<Self, WireValueError> {
+        let candidate = Self(key);
+        let value = candidate.get();
+        if !value.is_finite() {
+            return Err(WireValueError::NonCanonicalDoubleKey);
+        }
+        let canonical = Self::new(value)?;
+        if canonical.0 != key {
+            return Err(WireValueError::NonCanonicalDoubleKey);
+        }
+        Ok(candidate)
     }
 }
 
