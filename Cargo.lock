@@ -1938,13 +1938,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "docs-domain"
-version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
-
-[[package]]
 name = "dotenvy"
 version = "0.15.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8143,14 +8136,6 @@ dependencies = [
 [[package]]
 name = "shared-ulid-id-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "sheets-domain"
-version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
- "intelligence-collab-runtime-domain",
-]
 
 [[package]]
 name = "shlex"
