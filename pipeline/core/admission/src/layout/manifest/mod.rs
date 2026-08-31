@@ -1,5 +1,12 @@
 //! Cargo identity checks for changed manifests. Provenance: ADR-0719 D-30/D-41.
 
+mod entrypoint;
+
+pub use entrypoint::{
+    cargo_entrypoint, cargo_entrypoints, cargo_manifest_for_crate_path,
+    cargo_manifest_for_entrypoint,
+};
+
 use super::{is_capability_root, path_parts};
 
 pub(super) type PackagePolicy = (&'static str, bool);
@@ -73,19 +80,26 @@ pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
         }
     }
     let package = manifest.get("package");
-    let discovery_switch = if face == "facade" {
-        "autobins"
+    // A facade may root at either `src/main.rs` or `src/lib.rs`, so BOTH
+    // discovery switches guard a canonical target for it. Checking only
+    // `autobins` let a lib-rooted facade disable its own root with
+    // `autolib = false`. Both directions still fail closed, so a facade
+    // that sets either switch is refused whether or not it has that target.
+    let discovery_switches: &[&str] = if face == "facade" {
+        &["autobins", "autolib"]
     } else {
-        "autolib"
+        &["autolib"]
     };
-    if package
-        .and_then(|package| package.get(discovery_switch))
-        .and_then(toml::Value::as_bool)
-        == Some(false)
-    {
-        violations.push(format!(
-            "{path}: package `{discovery_switch} = false` disables the canonical face target"
-        ));
+    for discovery_switch in discovery_switches {
+        if package
+            .and_then(|package| package.get(*discovery_switch))
+            .and_then(toml::Value::as_bool)
+            == Some(false)
+        {
+            violations.push(format!(
+                "{path}: package `{discovery_switch} = false` disables the canonical face target"
+            ));
+        }
     }
     if package
         .and_then(|package| package.get("autotests"))
@@ -126,38 +140,6 @@ pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
         }
     }
     violations
-}
-
-pub fn cargo_entrypoint(path: &str) -> Option<String> {
-    let (_, face, _) = expected_manifest_identity(path)?;
-    let directory = path.strip_suffix("/Cargo.toml")?;
-    let source = if face == "facade" {
-        "src/main.rs"
-    } else {
-        "src/lib.rs"
-    };
-    Some(format!("{directory}/{source}"))
-}
-
-pub fn cargo_manifest_for_entrypoint(path: &str) -> Option<String> {
-    let directory = path
-        .strip_suffix("/src/lib.rs")
-        .or_else(|| path.strip_suffix("/src/main.rs"))?;
-    let manifest = format!("{directory}/Cargo.toml");
-    (cargo_entrypoint(&manifest).as_deref() == Some(path)).then_some(manifest)
-}
-
-/// Map any path below a canonical face leaf back to that crate's manifest.
-pub fn cargo_manifest_for_crate_path(path: &str) -> Option<String> {
-    let parts = path_parts(path);
-    (1..=parts.len()).find_map(|end| {
-        let manifest = format!("{}/Cargo.toml", parts[..end].join("/"));
-        if expected_manifest_identity(&manifest).is_some() {
-            Some(manifest)
-        } else {
-            None
-        }
-    })
 }
 
 pub(super) fn expected_manifest_identity(path: &str) -> Option<(String, &str, bool)> {
@@ -268,6 +250,24 @@ mod tests {
     }
 
     #[test]
+    fn both_discovery_switches_guard_a_facade() {
+        // A facade may root at either file, so disabling either discovery
+        // switch can disable its canonical target. Checking only `autobins`
+        // let a lib-rooted facade turn its own root off.
+        for switch in ["autobins", "autolib"] {
+            let manifest = format!("[package]\nname = \"network-edge-app\"\n{switch} = false\n");
+            let violations =
+                cargo_manifest_violations("network/facade/edge-app/Cargo.toml", &manifest);
+            assert!(
+                violations
+                    .iter()
+                    .any(|v| v.contains(&format!("`{switch} = false`"))),
+                "facade must refuse {switch} = false, got {violations:?}"
+            );
+        }
+    }
+
+    #[test]
     fn canonical_entrypoint_follows_the_face() {
         let core = cargo_entrypoint("network/core/route/Cargo.toml");
         assert_eq!(core.as_deref(), Some("network/core/route/src/lib.rs"));
@@ -277,7 +277,6 @@ mod tests {
         let manifest = cargo_manifest_for_entrypoint("network/facade/edge-app/src/main.rs");
         let manifest_path = Some("network/facade/edge-app/Cargo.toml");
         assert_eq!(manifest.as_deref(), manifest_path);
-        assert!(cargo_manifest_for_entrypoint("network/facade/edge-app/src/lib.rs").is_none());
     }
 
     #[test]

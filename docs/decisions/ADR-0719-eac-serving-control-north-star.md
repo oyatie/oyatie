@@ -624,7 +624,7 @@ No nested IPs, catalog.yaml, Helm, `plan/`, `tasks/`. Do not flatten `src/`
 | `ports/draft/<port>/` | **Unagreed** (`owner-port-draft`). Other owners must not `path =`. | Sold proto |
 | `adapters/<port>-<backend>/` | One backend of an agreed port. Dir leaf = `<port>-<backend>`. | Domain rules |
 | `adapters/draft/<port>-<backend>/` | Draft impl; `git mv` with the port | — |
-| `facade/<surface>-app/` | Process: `src/main.rs` (and `lib.rs` if tests need it). Handlers call core. | sqlite, business novels |
+| `facade/<surface>-app/` | Service surface. Roots at `src/main.rs` once its listener is attached, `src/lib.rs` until then (D-30 amendment 2026-08-30). Handlers call core. | sqlite, business novels |
 | `facade/proto/<owner>/<api>/v1/` | Sold proto (AIP-191): dir **is** the proto package; files `snake_case.proto` | Draft names, `v1.proto` as filename |
 | `cedar/` | This owner's Cedar only | Platform templates |
 | `observability/slos/` | Generated from IR | Hand YAML novels |
@@ -1571,7 +1571,7 @@ already exist. Do not invent a per-repo dialect.
 | rustc crate / `use` path | hyphen → underscore. **Omit** `[lib] name` so Cargo does this | RFC 940 |
 | Directory leaf | last grammar token: `blob`, `blob-sqlite`, `pdp-app` | google3 path identity; matklad: don't strip prefixes *from the Cargo name* |
 | Cargo name | full `owner-port` / `owner-port-backend` / `owner-app` (Cargo's namespace is **flat**, so the prefix lives in the name) | matklad large workspaces; not a `crates/` dump — faces stay D-8 |
-| Modules / files | `snake_case.rs`; `src/lib.rs` (lib), `src/main.rs` (facade bin) | RFC 430; Cargo book |
+| Modules / files | `snake_case.rs`; `src/lib.rs` (lib), `src/main.rs` (facade bin, once attached — D-30 amendment) | RFC 430; Cargo book |
 | Types / traits | `UpperCamelCase` (`BlobStore`, not `BLOBStore`) | RFC 430 |
 | fns / methods | `snake_case`; getters are `blob()`, not `get_blob()` | C-GETTER |
 | Consts / statics | `SCREAMING_SNAKE_CASE` | RFC 430 |
@@ -1604,6 +1604,45 @@ module names are ordinary `snake_case` as the code needs them.
   layout still rejects extra faces.
 - **overturn_when:** a five-field ADR cites a different *established*
   (Cargo or AIP or google3) convention and lands same-wave.
+
+#### D-30 amendment (2026-08-30) — a facade roots at a library until its listener attaches
+
+- **achieves:** a service surface can be edited while it is still staged,
+  so a crate move can repoint its consumers. The Cargo convention this
+  table cites is unchanged: a binary crate roots at `src/main.rs`.
+- **origin:** the row read `Process: src/main.rs`, and admission enforced
+  it on every touched `facade/` leaf. 31 of 54 facades have no
+  `src/main.rs`; the `iam/facade/tenant-rbac-*` family records why in its
+  own source — `deployed_listener_attached: false`, "does not start a
+  listener". Those crates were unedittable: any change to such a manifest
+  demanded inventing a binary the crate says must not exist yet. Because a
+  moved crate must repoint its consumers, one staged facade anywhere in a
+  dependency chain blocked the extraction; `shared-pdp-kernel` could not
+  reach `policy/` for that reason alone.
+- **rule:** a `facade/` leaf roots at `src/main.rs` when it has one and at
+  `src/lib.rs` otherwise. Both are canonical; a touched leaf must present
+  one as a regular blob. The relaxation is facade-only — a `core`, `ports`
+  or `adapters` leaf that ships a binary instead of a library is still
+  refused. It is also one-way: a facade that HAD `src/main.rs` at the
+  merge base must still have it at head, so a running service cannot
+  become a library by deleting its entry point.
+- **ensure:** admission tests fix four directions — a lib-rooted facade
+  is admitted, a binary-rooted library face is refused, deleting a
+  facade's existing `src/main.rs` is refused, and when both roots are
+  present the BINARY one decides, so a malformed `src/main.rs` is not
+  excused by a well-formed library beside it. Both `autobins` and
+  `autolib` guard a facade, since either may carry its canonical target.
+  The ratchet's boundary is a fifth case it does NOT cover:
+  renaming a facade's whole directory while dropping `src/main.rs`
+  passes, because the destination leaf never had a binary at the merge
+  base. That case is a reviewed crate move under D-8/D-41, not a silent
+  demotion. Closing it needs SUB-EXACT rename pairing: the path-set does
+  carry an exact-rename contract, but a moved crate rewrites its package
+  name to match its new leaf, so its manifest never scores R100 and the
+  dropped `src/main.rs` arrives as an unpaired delete.
+- **overturn_when:** a five-field ADR shows that a staged surface and its
+  attached listener should be different faces, so that `facade/` can mean
+  a running process again without making staged crates unedittable.
 
 #### Semantic operational names
 
