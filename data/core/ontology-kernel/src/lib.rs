@@ -21,6 +21,18 @@
 //! annotation (`pillar: None`) are pillar-agnostic and do not trigger this
 //! check.
 //!
+//! ## Typed value model
+//!
+//! [`PropertyValue`] is the carrier (every String-taking constructor wraps
+//! [`PropertyValue::String`] — the legacy bridge) and
+//! [`ValueTypeDeclaration`] the declaration plane. A declaration's tier is
+//! a derived projection (Scalar -> Scalar, Array -> Vector, Struct ->
+//! Struct); the Timeseries, Geo, and Ciphertext tiers admit NO declaration
+//! in V1 — their typed deepening is a future loosen-only widening. The
+//! declared `value_type` joins the frozen evolution quadruple, and
+//! conformance enforces it as the final per-property/per-parameter step —
+//! an untyped (`None`) declaration requires the legacy `String` carrier.
+//!
 //! ## New error variants
 //!
 //! | Variant | Trigger |

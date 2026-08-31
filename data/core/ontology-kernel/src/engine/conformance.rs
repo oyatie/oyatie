@@ -32,6 +32,7 @@ impl OntologyEngine {
     /// | [`OntologyEngineError::UndeclaredProperty`](crate::OntologyEngineError::UndeclaredProperty) | The instance carries a property the definition does not declare. |
     /// | [`OntologyEngineError::PropertyTierMismatch`](crate::OntologyEngineError::PropertyTierMismatch) | An instance property's tier differs from the declared tier. |
     /// | [`OntologyEngineError::PropertyDataClassMismatch`](crate::OntologyEngineError::PropertyDataClassMismatch) | An instance property's data class differs from the declared class. |
+    /// | [`OntologyEngineError::PropertyValueTypeMismatch`](crate::OntologyEngineError::PropertyValueTypeMismatch) | The FINAL step: the carrier fails its declared value type; for an untyped (`None`) declaration, the carrier is not the legacy `String`. |
     pub fn check_instance_conformance(
         &self,
         entity: &ObjectEntity,
@@ -84,6 +85,7 @@ impl OntologyEngine {
     /// | [`OntologyEngineError::UndeclaredParameter`](crate::OntologyEngineError::UndeclaredParameter) | A submitted value names no declared parameter. |
     /// | [`OntologyEngineError::ParameterTierMismatch`](crate::OntologyEngineError::ParameterTierMismatch) | A submitted value's tier differs from the declaration. |
     /// | [`OntologyEngineError::ParameterDataClassMismatch`](crate::OntologyEngineError::ParameterDataClassMismatch) | A submitted value's data class differs from the declaration. |
+    /// | [`OntologyEngineError::ParameterValueTypeMismatch`](crate::OntologyEngineError::ParameterValueTypeMismatch) | The FINAL step: the carrier fails its declared value type; for an untyped (`None`) declaration, the carrier is not the legacy `String`. |
     pub fn check_action_parameter_conformance(
         &self,
         tenant_id: &str,
