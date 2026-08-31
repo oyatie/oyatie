@@ -2227,6 +2227,14 @@ name = "foundry-edits"
 version = "0.1.0"
 
 [[package]]
+name = "foundry-projection-draft"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+ "data-ontology-kernel",
+]
+
+[[package]]
 name = "foundry-records-draft"
 version = "0.1.0"
 
