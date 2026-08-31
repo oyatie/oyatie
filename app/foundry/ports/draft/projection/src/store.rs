@@ -53,9 +53,9 @@ pub enum ProjectionStoreError {
     /// The entry is malformed (blank tenant, tenant-mismatched object,
     /// blank poison reason, zero page limit, ...).
     Entry { detail: &'static str },
-    /// A range predicate met a stored value of a different storage
-    /// class — schema drift surfaces loudly, never as a silent false.
-    ClassMismatch { property: String },
+    /// A range predicate met a stored value of a different kind —
+    /// schema drift surfaces loudly, never as a silent false.
+    KindMismatch { property: String },
     /// The backing store failed; the detail is diagnostic.
     Storage { detail: String },
 }
