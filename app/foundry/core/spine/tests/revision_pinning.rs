@@ -158,7 +158,7 @@ fn mixed_revision_state() -> ProjectionState {
 #[test]
 fn pinned_ahead_of_written_shows_honest_absence_and_pending() {
     let state = mixed_revision_state();
-    let pinned = object_at_revision(&state, "ent_old", 2).unwrap();
+    let pinned = object_at_revision(&state, "ent_old", 2, None).unwrap();
     assert_eq!(pinned.written_revision, 1);
     assert_eq!(pinned.upcast_state, UpcastState::UpcastPending);
     assert_eq!(
@@ -174,7 +174,7 @@ fn pinned_ahead_of_written_shows_honest_absence_and_pending() {
 #[test]
 fn pinned_behind_written_filters_down_to_pinned_vocabulary() {
     let state = mixed_revision_state();
-    let pinned = object_at_revision(&state, "ent_new", 1).unwrap();
+    let pinned = object_at_revision(&state, "ent_new", 1, None).unwrap();
     assert_eq!(pinned.written_revision, 2);
     assert_eq!(pinned.upcast_state, UpcastState::Current);
     assert_eq!(
@@ -190,7 +190,7 @@ fn pinned_behind_written_filters_down_to_pinned_vocabulary() {
 #[test]
 fn pinned_at_written_revision_is_current_and_complete() {
     let state = mixed_revision_state();
-    let pinned = object_at_revision(&state, "ent_new", 2).unwrap();
+    let pinned = object_at_revision(&state, "ent_new", 2, None).unwrap();
     assert_eq!(pinned.written_revision, 2);
     assert_eq!(pinned.upcast_state, UpcastState::Current);
     assert_eq!(
@@ -203,7 +203,7 @@ fn pinned_at_written_revision_is_current_and_complete() {
 fn unretained_pin_is_a_typed_refusal_never_a_poison() {
     let state = mixed_revision_state();
     assert_eq!(
-        object_at_revision(&state, "ent_old", 3),
+        object_at_revision(&state, "ent_old", 3, None),
         Err(ViewError::UnretainedRevision)
     );
     assert!(
@@ -216,7 +216,7 @@ fn unretained_pin_is_a_typed_refusal_never_a_poison() {
 fn unknown_object_is_a_typed_refusal() {
     let state = mixed_revision_state();
     assert_eq!(
-        object_at_revision(&state, "ent_ghost", 1),
+        object_at_revision(&state, "ent_ghost", 1, None),
         Err(ViewError::UnknownObject)
     );
 }
