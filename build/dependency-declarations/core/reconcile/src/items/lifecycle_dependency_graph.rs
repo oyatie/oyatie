@@ -8,19 +8,47 @@ pub(crate) struct DependencyReleaseRootV1 {
 struct ReverseDependencyIndexV1 {
     offsets: Box<[usize]>,
     dependents: Box<[usize]>,
-    edges: Box<[usize]>,
+    dependencies_by_edge: Box<[u32]>,
 }
 
-/// Canonical bounded graph with one reverse adjacency index.
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// Canonical bounded graph with shared immutable indexes.
+#[derive(Clone)]
 pub struct DependencyGraphV1 {
-    envelope: FactEnvelopeV1,
-    nodes: Box<[DependencyGraphNodeV1]>,
-    edges: Box<[DependencyGraphEdgeV1]>,
-    reverse: ReverseDependencyIndexV1,
-    release_roots: Box<[DependencyReleaseRootV1]>,
+    envelope: std::sync::Arc<FactEnvelopeV1>,
+    nodes: std::sync::Arc<[DependencyGraphNodeV1]>,
+    edges: std::sync::Arc<[DependencyGraphEdgeV1]>,
+    reverse: std::sync::Arc<ReverseDependencyIndexV1>,
+    closure: std::sync::Arc<DependencyClosureIndexV1>,
+    release_roots: std::sync::Arc<[DependencyReleaseRootV1]>,
     identity_sha256: DigestV1,
+    retained_bytes_upper_bound: usize,
 }
+
+impl std::fmt::Debug for DependencyGraphV1 {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("DependencyGraphV1")
+            .field("fact_envelope_identity_sha256", &self.envelope.identity_sha256())
+            .field("node_count", &self.nodes.len())
+            .field("edge_count", &self.edges.len())
+            .field("component_count", &self.closure.component_count())
+            .field("release_root_count", &self.release_roots.len())
+            .field("identity_sha256", &self.identity_sha256)
+            .field("retained_bytes_upper_bound", &self.retained_bytes_upper_bound)
+            .finish()
+    }
+}
+
+impl PartialEq for DependencyGraphV1 {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity_sha256 == other.identity_sha256
+            && self.envelope == other.envelope
+            && self.nodes == other.nodes
+            && self.edges == other.edges
+    }
+}
+
+impl Eq for DependencyGraphV1 {}
 
 impl DependencyGraphV1 {
     pub fn try_new<C>(
@@ -33,8 +61,9 @@ impl DependencyGraphV1 {
         C: FnMut(DependencyGraphConstructionProgressV1) -> LifecycleControlDecisionV1,
     {
         validate_dependency_graph_bounds(&nodes, &edges)?;
+        let retained_bytes_upper_bound = validate_dependency_graph_memory(&nodes, &edges)?;
         let mut control = DependencyGraphConstructionControlV1::try_new(control)?;
-        nodes.sort_by_key(DependencyGraphNodeV1::unit_identity_sha256);
+        nodes.sort_unstable_by_key(DependencyGraphNodeV1::unit_identity_sha256);
         control.checkpoint_and_reset()?;
         for (index, node) in nodes.iter().enumerate() {
             let duplicate = index > 0
@@ -47,7 +76,7 @@ impl DependencyGraphV1 {
             control.complete_node()?;
         }
         control.checkpoint_and_reset()?;
-        edges.sort_by_key(DependencyGraphEdgeV1::semantic_key);
+        edges.sort_unstable_by_key(DependencyGraphEdgeV1::semantic_key);
         control.checkpoint_and_reset()?;
         for (index, edge) in edges.iter().enumerate() {
             if index > 0 && edges[index - 1].semantic_key() == edge.semantic_key() {
@@ -57,29 +86,44 @@ impl DependencyGraphV1 {
         }
         control.checkpoint_and_reset()?;
 
-        let mut node_indices = std::collections::HashMap::with_capacity(nodes.len());
+        let mut node_indices = std::collections::HashMap::new();
+        node_indices
+            .try_reserve(nodes.len())
+            .map_err(|_| lifecycle_bounds())?;
         for (index, node) in nodes.iter().enumerate() {
             node_indices.insert(node.unit_identity_sha256(), index);
             control.record_work()?;
         }
         control.checkpoint_and_reset()?;
-        let reverse = build_reverse_index(&nodes, &edges, &node_indices, &mut control)?;
+        let reverse = std::sync::Arc::new(build_reverse_index(
+            &nodes,
+            &edges,
+            &node_indices,
+            &mut control,
+        )?);
+        let closure = std::sync::Arc::new(build_dependency_closure_index(
+            nodes.len(),
+            &reverse,
+            &mut control,
+        )?);
         let release_roots = dependency_release_roots(&nodes, &mut control)?;
         let identity_sha256 =
             dependency_graph_identity(&envelope, &nodes, &edges, &mut control)?;
         control.checkpoint_and_reset()?;
         Ok(Self {
-            envelope,
-            nodes: nodes.into_boxed_slice(),
-            edges: edges.into_boxed_slice(),
+            envelope: std::sync::Arc::new(envelope),
+            nodes: std::sync::Arc::from(nodes.into_boxed_slice()),
+            edges: std::sync::Arc::from(edges.into_boxed_slice()),
             reverse,
-            release_roots,
+            closure,
+            release_roots: std::sync::Arc::from(release_roots),
             identity_sha256,
+            retained_bytes_upper_bound,
         })
     }
 
     #[must_use]
-    pub const fn envelope(&self) -> &FactEnvelopeV1 {
+    pub fn envelope(&self) -> &FactEnvelopeV1 {
         &self.envelope
     }
 
@@ -98,6 +142,15 @@ impl DependencyGraphV1 {
         self.identity_sha256
     }
 
+    #[must_use]
+    pub const fn retained_bytes_upper_bound(&self) -> usize {
+        self.retained_bytes_upper_bound
+    }
+
+    pub(crate) fn shared_envelope(&self) -> std::sync::Arc<FactEnvelopeV1> {
+        std::sync::Arc::clone(&self.envelope)
+    }
+
     pub(crate) fn release_roots(
         &self,
         release_identity_sha256: DigestV1,
@@ -111,16 +164,12 @@ impl DependencyGraphV1 {
         &self.release_roots[start..end]
     }
 
-    pub(crate) fn reverse_range(&self, dependency_index: usize) -> std::ops::Range<usize> {
-        self.reverse.offsets[dependency_index]..self.reverse.offsets[dependency_index + 1]
+    pub(crate) fn edge_dependency_node(&self, edge_index: usize) -> usize {
+        self.reverse.dependencies_by_edge[edge_index] as usize
     }
 
-    pub(crate) const fn reverse_dependent(&self, position: usize) -> usize {
-        self.reverse.dependents[position]
-    }
-
-    pub(crate) const fn reverse_edge(&self, position: usize) -> usize {
-        self.reverse.edges[position]
+    pub(crate) fn closure_index(&self) -> &DependencyClosureIndexV1 {
+        &self.closure
     }
 }
 
@@ -150,8 +199,8 @@ fn build_reverse_index<C>(
 where
     C: FnMut(DependencyGraphConstructionProgressV1) -> LifecycleControlDecisionV1,
 {
-    let mut counts = vec![0_usize; nodes.len()];
-    let mut endpoints = Vec::with_capacity(edges.len());
+    let mut counts = lifecycle_try_filled_vec(nodes.len(), 0_usize)?;
+    let mut endpoints = lifecycle_try_vec(edges.len())?;
     for edge in edges {
         let dependent = node_indices
             .get(&edge.dependent_unit_sha256())
@@ -170,7 +219,7 @@ where
     control.checkpoint_and_reset()?;
 
     let capacity = nodes.len().checked_add(1).ok_or_else(lifecycle_bounds)?;
-    let mut offsets = Vec::with_capacity(capacity);
+    let mut offsets = lifecycle_try_vec(capacity)?;
     offsets.push(0_usize);
     for count in counts {
         let next = offsets
@@ -185,13 +234,14 @@ where
         return Err(lifecycle_internal());
     }
 
-    let mut cursors = offsets[..nodes.len()].to_vec();
-    let mut dependents = vec![0_usize; edges.len()];
-    let mut edge_indices = vec![0_usize; edges.len()];
+    let mut cursors = lifecycle_try_vec(nodes.len())?;
+    cursors.extend_from_slice(&offsets[..nodes.len()]);
+    let mut dependents = lifecycle_try_filled_vec(edges.len(), 0_usize)?;
+    let mut dependencies_by_edge = lifecycle_try_filled_vec(edges.len(), 0_u32)?;
     for (edge_index, (dependent, dependency)) in endpoints.into_iter().enumerate() {
         let position = cursors[dependency];
         dependents[position] = dependent;
-        edge_indices[position] = edge_index;
+        dependencies_by_edge[edge_index] = lifecycle_u32_index(dependency)?;
         cursors[dependency] = position.checked_add(1).ok_or_else(lifecycle_bounds)?;
         control.record_work()?;
     }
@@ -199,7 +249,7 @@ where
     Ok(ReverseDependencyIndexV1 {
         offsets: offsets.into_boxed_slice(),
         dependents: dependents.into_boxed_slice(),
-        edges: edge_indices.into_boxed_slice(),
+        dependencies_by_edge: dependencies_by_edge.into_boxed_slice(),
     })
 }
 
@@ -210,7 +260,7 @@ fn dependency_release_roots<C>(
 where
     C: FnMut(DependencyGraphConstructionProgressV1) -> LifecycleControlDecisionV1,
 {
-    let mut roots = Vec::new();
+    let mut roots = lifecycle_try_vec(nodes.len())?;
     for (node_index, node) in nodes.iter().enumerate() {
         if let Some(release_identity_sha256) = node.package_release_identity_sha256() {
             roots.push(DependencyReleaseRootV1 {
@@ -221,7 +271,7 @@ where
         control.record_work()?;
     }
     control.checkpoint_and_reset()?;
-    roots.sort_by_key(|root| (root.release_identity_sha256, root.node_index));
+    roots.sort_unstable_by_key(|root| (root.release_identity_sha256, root.node_index));
     control.checkpoint_and_reset()?;
     Ok(roots.into_boxed_slice())
 }

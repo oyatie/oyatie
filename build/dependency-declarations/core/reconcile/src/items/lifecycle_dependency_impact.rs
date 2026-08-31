@@ -1,88 +1,110 @@
-/// Closure-complete in-memory impact for one dependency candidate.
 #[derive(Clone, Debug, Eq, PartialEq)]
+struct DependencyImpactRangesV1 {
+    root_nodes: std::ops::Range<usize>,
+    affected_nodes: std::ops::Range<usize>,
+    affected_edges: std::ops::Range<usize>,
+}
+
+/// Closure-complete impact for one candidate over shared graph storage.
+#[derive(Clone)]
 pub struct DependencyImpactV1 {
-    graph_identity_sha256: DigestV1,
-    fact_envelope: FactEnvelopeV1,
+    storage: std::sync::Arc<DependencyImpactStorageV1>,
     candidate_identity_sha256: DigestV1,
     current_release_identity_sha256: DigestV1,
-    root_nodes: Box<[DependencyGraphNodeV1]>,
-    affected_nodes: Box<[DependencyGraphNodeV1]>,
-    affected_edges: Box<[DependencyGraphEdgeV1]>,
+    ranges: DependencyImpactRangesV1,
     identity_sha256: DigestV1,
 }
 
+impl std::fmt::Debug for DependencyImpactV1 {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("DependencyImpactV1")
+            .field("graph_identity_sha256", &self.graph_identity_sha256())
+            .field(
+                "fact_envelope_identity_sha256",
+                &self.fact_envelope_identity_sha256(),
+            )
+            .field("candidate_identity_sha256", &self.candidate_identity_sha256)
+            .field(
+                "current_release_identity_sha256",
+                &self.current_release_identity_sha256,
+            )
+            .field("root_node_count", &self.root_nodes().len())
+            .field("affected_node_count", &self.affected_nodes().len())
+            .field("affected_edge_count", &self.affected_edges().len())
+            .field("identity_sha256", &self.identity_sha256)
+            .finish()
+    }
+}
+
+impl PartialEq for DependencyImpactV1 {
+    fn eq(&self, other: &Self) -> bool {
+        self.graph_identity_sha256() == other.graph_identity_sha256()
+            && self.fact_envelope() == other.fact_envelope()
+            && self.candidate_identity_sha256 == other.candidate_identity_sha256
+            && self.current_release_identity_sha256 == other.current_release_identity_sha256
+            && self.identity_sha256 == other.identity_sha256
+            && self.root_nodes().iter().eq(other.root_nodes().iter())
+            && self
+                .affected_nodes()
+                .iter()
+                .eq(other.affected_nodes().iter())
+            && self
+                .affected_edges()
+                .iter()
+                .eq(other.affected_edges().iter())
+    }
+}
+
+impl Eq for DependencyImpactV1 {}
+
 impl DependencyImpactV1 {
-    fn try_from_indices<C>(
-        graph: &DependencyGraphV1,
+    fn try_from_ranges<C>(
+        storage: std::sync::Arc<DependencyImpactStorageV1>,
         candidate: &DependencyCandidateV1,
-        root_indices: &[usize],
-        affected_node_indices: &[usize],
-        affected_edge_indices: &[usize],
+        ranges: DependencyImpactRangesV1,
         control: &mut DependencyImpactControlV1<C>,
     ) -> Result<Self, LifecycleFailureV1>
     where
         C: FnMut(DependencyImpactProgressV1) -> LifecycleControlDecisionV1,
     {
-        let mut root_nodes = Vec::with_capacity(root_indices.len());
-        for index in root_indices {
-            root_nodes.push(graph.nodes()[*index].clone());
-            control.materialize_root_node()?;
-        }
-        control.checkpoint_and_reset()?;
-        let mut affected_nodes = Vec::with_capacity(affected_node_indices.len());
-        for index in affected_node_indices {
-            affected_nodes.push(graph.nodes()[*index].clone());
-            control.materialize_node()?;
-        }
-        control.checkpoint_and_reset()?;
-        let mut affected_edges = Vec::with_capacity(affected_edge_indices.len());
-        for index in affected_edge_indices {
-            affected_edges.push(graph.edges()[*index].clone());
-            control.materialize_edge()?;
-        }
-        control.checkpoint_and_reset()?;
-        let graph_identity_sha256 = graph.identity_sha256();
-        let fact_envelope = graph.envelope().clone();
         let candidate_identity_sha256 = candidate.identity_sha256();
         let current_release_identity_sha256 = candidate.current().identity_sha256();
         let identity_context = DependencyImpactIdentityContextV1 {
-            graph_identity_sha256,
-            fact_envelope_identity_sha256: fact_envelope.identity_sha256(),
+            graph_identity_sha256: storage.graph_identity_sha256,
+            fact_envelope_identity_sha256: storage.fact_envelope.identity_sha256(),
             candidate_identity_sha256,
             current_release_identity_sha256,
         };
         let identity_sha256 = dependency_impact_identity(
             identity_context,
-            &root_nodes,
-            &affected_nodes,
-            &affected_edges,
+            storage.root_nodes(ranges.root_nodes.clone()),
+            storage.affected_nodes(ranges.affected_nodes.clone()),
+            storage.affected_edges(ranges.affected_edges.clone()),
             control,
         )?;
         Ok(Self {
-            graph_identity_sha256,
-            fact_envelope,
+            storage,
             candidate_identity_sha256,
             current_release_identity_sha256,
-            root_nodes: root_nodes.into_boxed_slice(),
-            affected_nodes: affected_nodes.into_boxed_slice(),
-            affected_edges: affected_edges.into_boxed_slice(),
+            ranges,
             identity_sha256,
         })
     }
 
     #[must_use]
-    pub const fn graph_identity_sha256(&self) -> DigestV1 {
-        self.graph_identity_sha256
+    pub fn graph_identity_sha256(&self) -> DigestV1 {
+        self.storage.graph_identity_sha256
     }
 
     #[must_use]
-    pub const fn fact_envelope_identity_sha256(&self) -> DigestV1 {
-        self.fact_envelope.identity_sha256()
+    pub fn fact_envelope_identity_sha256(&self) -> DigestV1 {
+        self.storage.fact_envelope.identity_sha256()
     }
 
     #[must_use]
-    pub const fn fact_envelope(&self) -> &FactEnvelopeV1 {
-        &self.fact_envelope
+    pub fn fact_envelope(&self) -> &FactEnvelopeV1 {
+        &self.storage.fact_envelope
     }
 
     #[must_use]
@@ -96,18 +118,20 @@ impl DependencyImpactV1 {
     }
 
     #[must_use]
-    pub fn root_nodes(&self) -> &[DependencyGraphNodeV1] {
-        &self.root_nodes
+    pub fn root_nodes(&self) -> DependencyImpactNodesV1<'_> {
+        self.storage.root_nodes(self.ranges.root_nodes.clone())
     }
 
     #[must_use]
-    pub fn affected_nodes(&self) -> &[DependencyGraphNodeV1] {
-        &self.affected_nodes
+    pub fn affected_nodes(&self) -> DependencyImpactNodesV1<'_> {
+        self.storage
+            .affected_nodes(self.ranges.affected_nodes.clone())
     }
 
     #[must_use]
-    pub fn affected_edges(&self) -> &[DependencyGraphEdgeV1] {
-        &self.affected_edges
+    pub fn affected_edges(&self) -> DependencyImpactEdgesV1<'_> {
+        self.storage
+            .affected_edges(self.ranges.affected_edges.clone())
     }
 
     #[must_use]
@@ -116,14 +140,45 @@ impl DependencyImpactV1 {
     }
 }
 
-/// Canonical batch result over one already-materialized graph.
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// Canonical candidate batch over one shared immutable dependency graph.
+#[derive(Clone)]
 pub struct DependencyImpactBatchV1 {
-    graph_identity_sha256: DigestV1,
-    fact_envelope: FactEnvelopeV1,
+    storage: std::sync::Arc<DependencyImpactStorageV1>,
     impacts: Box<[DependencyImpactV1]>,
     identity_sha256: DigestV1,
 }
+
+impl std::fmt::Debug for DependencyImpactBatchV1 {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("DependencyImpactBatchV1")
+            .field("graph_identity_sha256", &self.graph_identity_sha256())
+            .field(
+                "fact_envelope_identity_sha256",
+                &self.fact_envelope_identity_sha256(),
+            )
+            .field("impact_count", &self.impacts.len())
+            .field("selection_bytes", &self.selection_bytes())
+            .field(
+                "retained_bytes_upper_bound",
+                &self.retained_bytes_upper_bound(),
+            )
+            .field("identity_sha256", &self.identity_sha256)
+            .finish()
+    }
+}
+
+impl PartialEq for DependencyImpactBatchV1 {
+    fn eq(&self, other: &Self) -> bool {
+        self.graph_identity_sha256() == other.graph_identity_sha256()
+            && self.fact_envelope() == other.fact_envelope()
+            && self.selection_bytes() == other.selection_bytes()
+            && self.identity_sha256 == other.identity_sha256
+            && self.impacts == other.impacts
+    }
+}
+
+impl Eq for DependencyImpactBatchV1 {}
 
 impl DependencyImpactBatchV1 {
     #[must_use]
@@ -132,18 +187,28 @@ impl DependencyImpactBatchV1 {
     }
 
     #[must_use]
-    pub const fn graph_identity_sha256(&self) -> DigestV1 {
-        self.graph_identity_sha256
+    pub fn graph_identity_sha256(&self) -> DigestV1 {
+        self.storage.graph_identity_sha256
     }
 
     #[must_use]
-    pub const fn fact_envelope_identity_sha256(&self) -> DigestV1 {
-        self.fact_envelope.identity_sha256()
+    pub fn fact_envelope_identity_sha256(&self) -> DigestV1 {
+        self.storage.fact_envelope.identity_sha256()
     }
 
     #[must_use]
-    pub const fn fact_envelope(&self) -> &FactEnvelopeV1 {
-        &self.fact_envelope
+    pub fn fact_envelope(&self) -> &FactEnvelopeV1 {
+        &self.storage.fact_envelope
+    }
+
+    #[must_use]
+    pub fn selection_bytes(&self) -> usize {
+        self.storage.selection_bytes
+    }
+
+    #[must_use]
+    pub fn retained_bytes_upper_bound(&self) -> usize {
+        self.storage.retained_bytes_upper_bound
     }
 
     #[must_use]
@@ -152,33 +217,8 @@ impl DependencyImpactBatchV1 {
     }
 }
 
-fn mark_dependency_node(
-    node_index: usize,
-    generation: usize,
-    node_marks: &mut [usize],
-    affected_node_indices: &mut Vec<usize>,
-    queue: &mut Vec<usize>,
-) {
-    if node_marks[node_index] != generation {
-        node_marks[node_index] = generation;
-        affected_node_indices.push(node_index);
-        queue.push(node_index);
-    }
-}
-
-fn checked_dependency_impact_total(
-    current: usize,
-    additional: usize,
-    limit: usize,
-) -> Result<usize, LifecycleFailureV1> {
-    current
-        .checked_add(additional)
-        .filter(|total| *total <= limit)
-        .ok_or_else(lifecycle_bounds)
-}
-
 fn dependency_impact_batch<C>(
-    graph: &DependencyGraphV1,
+    storage: std::sync::Arc<DependencyImpactStorageV1>,
     impacts: Vec<DependencyImpactV1>,
     control: &mut DependencyImpactControlV1<C>,
 ) -> Result<DependencyImpactBatchV1, LifecycleFailureV1>
@@ -186,8 +226,8 @@ where
     C: FnMut(DependencyImpactProgressV1) -> LifecycleControlDecisionV1,
 {
     let mut hash = CanonicalHasherV1::new(b"build.dependency-impact-batch.v1\0");
-    hash.digest(graph.identity_sha256());
-    hash.digest(graph.envelope().identity_sha256());
+    hash.digest(storage.graph_identity_sha256);
+    hash.digest(storage.fact_envelope.identity_sha256());
     hash.u64(lifecycle_len(impacts.len())?);
     for impact in &impacts {
         hash.digest(impact.identity_sha256());
@@ -195,8 +235,7 @@ where
     }
     control.checkpoint_and_reset()?;
     Ok(DependencyImpactBatchV1 {
-        graph_identity_sha256: graph.identity_sha256(),
-        fact_envelope: graph.envelope().clone(),
+        storage,
         impacts: impacts.into_boxed_slice(),
         identity_sha256: hash.finish(),
     })

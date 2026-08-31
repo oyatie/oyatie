@@ -157,12 +157,14 @@ fn deadline_refuses_at_a_bounded_mid_closure_checkpoint() {
     let candidate = qualified_h2_candidate();
     let graph = chain_graph(&candidate, 4_096);
     let mut checkpoint_count = 0;
+    let mut final_progress = None;
     let failure = graph
         .try_analyze_candidates(
             std::slice::from_ref(&candidate),
             LifecycleTimestampV1::from_unix_seconds(200),
             |progress| {
                 checkpoint_count += 1;
+                final_progress = Some(progress);
                 if progress.visited_edges() >= 1_000 {
                     LifecycleControlDecisionV1::DeadlineExceeded
                 } else {
@@ -177,7 +179,9 @@ fn deadline_refuses_at_a_bounded_mid_closure_checkpoint() {
         LifecycleFailureClassV1::DependencyImpactDeadlineExceeded
     );
     assert!(checkpoint_count > 1);
-    assert!(checkpoint_count < 16);
+    let progress = final_progress.unwrap();
+    assert!(progress.visited_edges() >= 1_000);
+    assert!(progress.visited_edges() < 2_024);
 }
 
 #[test]

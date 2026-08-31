@@ -141,13 +141,13 @@ impl DependencyGraphV1 {
             return Err(lifecycle_bounds());
         }
         let mut control = DependencyImpactControlV1::try_new(control)?;
-        let mut ordered_candidates = Vec::with_capacity(candidates.len());
+        let mut ordered_candidates = lifecycle_try_vec(candidates.len())?;
         for candidate in candidates {
             ordered_candidates.push(candidate);
             control.record_work()?;
         }
         control.checkpoint_and_reset()?;
-        ordered_candidates.sort_by_key(|candidate| candidate.identity_sha256());
+        ordered_candidates.sort_unstable_by_key(|candidate| candidate.identity_sha256());
         control.checkpoint_and_reset()?;
         for pair in ordered_candidates.windows(2) {
             if pair[0].identity_sha256() == pair[1].identity_sha256() {
@@ -158,87 +158,6 @@ impl DependencyGraphV1 {
             control.record_work()?;
         }
         control.checkpoint_and_reset()?;
-        let mut node_marks = vec![0_usize; self.nodes().len()];
-        let mut edge_marks = vec![0_usize; self.edges().len()];
-        let mut queue = Vec::new();
-        let mut root_indices = Vec::new();
-        let mut affected_node_indices = Vec::new();
-        let mut affected_edge_indices = Vec::new();
-        let mut total_nodes = 0_usize;
-        let mut total_edges = 0_usize;
-        let mut impacts = Vec::with_capacity(candidates.len());
-
-        for (candidate_index, candidate) in ordered_candidates.into_iter().enumerate() {
-            let roots = self.release_roots(candidate.current().identity_sha256());
-            if roots.is_empty() {
-                return Err(LifecycleFailureV1::new(
-                    LifecycleFailureClassV1::MissingDependencyRoot,
-                ));
-            }
-            let generation = candidate_index + 1;
-            queue.clear();
-            root_indices.clear();
-            affected_node_indices.clear();
-            affected_edge_indices.clear();
-            for root in roots {
-                root_indices.push(root.node_index);
-                mark_dependency_node(
-                    root.node_index,
-                    generation,
-                    &mut node_marks,
-                    &mut affected_node_indices,
-                    &mut queue,
-                );
-                control.record_work()?;
-            }
-            let mut cursor = 0_usize;
-            while cursor < queue.len() {
-                let dependency_index = queue[cursor];
-                cursor += 1;
-                control.visit_node()?;
-                for position in self.reverse_range(dependency_index) {
-                    let edge_index = self.reverse_edge(position);
-                    control.visit_edge()?;
-                    if edge_marks[edge_index] != generation {
-                        edge_marks[edge_index] = generation;
-                        affected_edge_indices.push(edge_index);
-                    }
-                    mark_dependency_node(
-                        self.reverse_dependent(position),
-                        generation,
-                        &mut node_marks,
-                        &mut affected_node_indices,
-                        &mut queue,
-                    );
-                }
-            }
-            control.checkpoint_and_reset()?;
-            root_indices.sort_unstable();
-            control.checkpoint_and_reset()?;
-            affected_node_indices.sort_unstable();
-            control.checkpoint_and_reset()?;
-            affected_edge_indices.sort_unstable();
-            control.checkpoint_and_reset()?;
-            total_nodes = checked_dependency_impact_total(
-                total_nodes,
-                affected_node_indices.len(),
-                LifecycleBoundsV1::MAX_TOTAL_DEPENDENCY_IMPACT_NODES,
-            )?;
-            total_edges = checked_dependency_impact_total(
-                total_edges,
-                affected_edge_indices.len(),
-                LifecycleBoundsV1::MAX_TOTAL_DEPENDENCY_IMPACT_EDGES,
-            )?;
-            impacts.push(DependencyImpactV1::try_from_indices(
-                self,
-                candidate,
-                &root_indices,
-                &affected_node_indices,
-                &affected_edge_indices,
-                &mut control,
-            )?);
-            control.complete_candidate()?;
-        }
-        dependency_impact_batch(self, impacts, &mut control)
+        analyze_dependency_impact_batch(self, &ordered_candidates, &mut control)
     }
 }

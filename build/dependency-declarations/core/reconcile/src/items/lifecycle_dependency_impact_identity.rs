@@ -7,9 +7,9 @@ pub(crate) struct DependencyImpactIdentityContextV1 {
 
 pub(crate) fn dependency_impact_identity<C>(
     context: DependencyImpactIdentityContextV1,
-    root_nodes: &[DependencyGraphNodeV1],
-    affected_nodes: &[DependencyGraphNodeV1],
-    affected_edges: &[DependencyGraphEdgeV1],
+    root_nodes: DependencyImpactNodesV1<'_>,
+    affected_nodes: DependencyImpactNodesV1<'_>,
+    affected_edges: DependencyImpactEdgesV1<'_>,
     control: &mut DependencyImpactControlV1<C>,
 ) -> Result<DigestV1, LifecycleFailureV1>
 where
@@ -21,17 +21,17 @@ where
     hash.digest(context.candidate_identity_sha256);
     hash.digest(context.current_release_identity_sha256);
     hash.u64(lifecycle_len(root_nodes.len())?);
-    for node in root_nodes {
+    for node in root_nodes.iter() {
         hash.digest(node.identity_sha256());
         control.record_work()?;
     }
     hash.u64(lifecycle_len(affected_nodes.len())?);
-    for node in affected_nodes {
+    for node in affected_nodes.iter() {
         hash.digest(node.identity_sha256());
         control.record_work()?;
     }
     hash.u64(lifecycle_len(affected_edges.len())?);
-    for edge in affected_edges {
+    for edge in affected_edges.iter() {
         hash.digest(edge.identity_sha256());
         control.record_work()?;
     }
