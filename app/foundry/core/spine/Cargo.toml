@@ -1,0 +1,21 @@
+[package]
+name = "foundry-spine"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
+data-ontology-kernel = { path = "../../../../data/core/ontology-kernel" }
+foundry-audit-draft = { path = "../../ports/draft/audit" }
+foundry-edits = { path = "../edits" }
+foundry-records-draft = { path = "../../ports/draft/records" }
+
+[dev-dependencies]
+cedar-policy = { workspace = true }
+foundry-records-sqlite-draft = { path = "../../adapters/draft/records-sqlite" }
+
+[lints]
+workspace = true

@@ -105,6 +105,12 @@ fn assert_rejected(root: &Path, base: &str, head: &str, expected: &str) {
     assert!(error.contains(expected), "{error}");
 }
 
+fn assert_admitted(root: &Path, base: &str, head: &str) {
+    let output = admit(root, base, head);
+    let error = String::from_utf8_lossy(&output.stderr);
+    assert!(output.status.success(), "{error}");
+}
+
 fn write_owner(root: &Path, owner: &str, with_law: bool) {
     write(
         root,
@@ -146,24 +152,24 @@ fn github_cannot_hide_a_workspace_crate() {
 }
 
 #[test]
-fn existing_scaffold_needs_law_when_its_first_core_lands() {
+fn existing_scaffold_is_admitted_by_its_first_core() {
     let root = fixture();
     write(&root, "app/calendar/README.md", "scaffold\n");
     let base = commit(&root, "scaffold");
     write_owner(&root, "app/calendar", false);
     let head = commit(&root, "first implementation");
-    assert_rejected(&root, &base, &head, "first complete core requires");
+    assert_admitted(&root, &base, &head);
     let _ = std::fs::remove_dir_all(root);
 }
 
 #[test]
-fn retained_implemented_owner_cannot_delete_law() {
+fn retained_owner_may_delete_its_frozen_law_files() {
     let root = fixture();
     write_owner(&root, "network", true);
     let base = commit(&root, "implemented owner");
     git(&root, &["rm", "--quiet", "network/PRD.md"]);
     let head = commit(&root, "delete law");
-    assert_rejected(&root, &base, &head, "cannot delete canonical owner-law");
+    assert_admitted(&root, &base, &head);
     let _ = std::fs::remove_dir_all(root);
 }
 
