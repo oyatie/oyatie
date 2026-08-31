@@ -2235,6 +2235,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundry-projection-sqlite-draft"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+ "data-ontology-kernel",
+ "foundry-projection-draft",
+ "rusqlite",
+]
+
+[[package]]
 name = "foundry-records-draft"
 version = "0.1.0"
 
