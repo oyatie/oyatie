@@ -6,6 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/ports/draft/audit:foundry-audit-draft",
         "//app/foundry/ports/draft/records:foundry-records-draft",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//data/core/ontology-kernel:data-ontology-kernel",
@@ -20,6 +21,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/ports/draft/audit:foundry-audit-draft",
         "//app/foundry/ports/draft/records:foundry-records-draft",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//data/core/ontology-kernel:data-ontology-kernel",
@@ -194,4 +196,20 @@ rust_test(
     crate_root = "tests/cedar_seed.rs",
     visibility = ["PUBLIC"],
     deps = ["third-party//:cedar-policy"],
+)
+
+rust_test(
+    name = "foundry-spine-audit-emission",
+    srcs = ["tests/audit_emission.rs"],
+    crate = "audit_emission",
+    crate_root = "tests/audit_emission.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-spine",
+        "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/ports/draft/audit:foundry-audit-draft",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
 )
