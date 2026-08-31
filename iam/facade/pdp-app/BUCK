@@ -44,7 +44,7 @@ buildscript_run(
 _DEPS = [
     "//iam/core/pdp-kernel:iam-pdp-kernel",
     "//iam/adapters/pdp-bundle-file:iam-pdp-bundle-file",
-    "//iam/core/shared-pdp-kernel:shared-pdp-kernel",
+    "//policy/core/pdp-kernel:policy-pdp-kernel",
     "//iam/adapters/pdp-cedar:iam-pdp-cedar",
     "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
     "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
