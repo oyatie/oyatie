@@ -6,6 +6,7 @@
 //! canonical bytes — fixed width over unbounded inputs, so the runner's
 //! per-object idempotency key can never overflow the envelope cap.
 
+mod runner;
 mod value;
 
 use std::collections::BTreeSet;
@@ -15,6 +16,10 @@ use data_ontology_kernel::{
     ValueTypeDeclaration,
 };
 
+pub use runner::{
+    MigrationAuthority, MigrationStatus, PendingUpcast, pending_objects, run_to_fixpoint,
+    upcast_idempotency_key,
+};
 use value::Fnv1a64;
 pub use value::{DefaultValue, ValueConversion};
 
@@ -66,6 +71,8 @@ pub struct MigrationPlan {
 pub enum PlanError {
     /// `entity_type` is not an `ety_`-prefixed id.
     InvalidEntityType,
+    /// `action_type` is not an `aty_`-prefixed id.
+    InvalidActionType,
     /// No definition registered under `(tenant_id, entity_type)`.
     UnknownEntityType,
     /// The registry head is not the plan's `to_revision` — evolve first.
@@ -99,6 +106,8 @@ impl MigrationPlan {
         }
         let type_id = data_ontology_kernel::EntityTypeId::new(self.entity_type.clone())
             .map_err(|_| PlanError::InvalidEntityType)?;
+        data_ontology_kernel::ActionTypeId::new(self.action_type.clone())
+            .map_err(|_| PlanError::InvalidActionType)?;
         let head = registry
             .entity_type(&self.tenant_id, &type_id)
             .ok_or(PlanError::UnknownEntityType)?;
@@ -182,7 +191,7 @@ impl MigrationPlan {
     }
 }
 
-fn declared<'a>(
+pub(super) fn declared<'a>(
     definition: &'a EntityTypeDefinition,
     name: &str,
 ) -> Option<&'a EntityTypePropertyDefinition> {
