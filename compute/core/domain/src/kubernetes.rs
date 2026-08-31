@@ -8,11 +8,12 @@ use network_residency::ResidencyClass;
 
 use crate::capacity::ComputeUnits;
 use crate::{
-    COMPUTE_SCHEMA_VERSION, CloudComputeError, ComputeFlavorSpec, ComputeQuotaEnvelope,
-    ControlPlaneVersion, NodePoolId, internal, public, public_metadata_class, region_for,
-    resource_id_for, resource_ref_for, security_groups, validate_az_region, validate_cell_az,
-    validate_tenant_id,
+    CloudComputeError, ComputeFlavorSpec, ComputeQuotaEnvelope, ControlPlaneVersion, NodePoolId,
+    internal, public, public_metadata_class, region_for, resource_id_for, resource_ref_for,
+    security_groups, validate_az_region, validate_cell_az, validate_tenant_id,
 };
+
+pub const KUBERNETES_CLUSTER_SCHEMA_VERSION: u32 = 2;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum KubernetesClusterState {
@@ -22,6 +23,47 @@ pub enum KubernetesClusterState {
     Draining,
     Deleted,
 }
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum KubernetesClusterDesiredState {
+    Present,
+    Deleted,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum KubernetesClusterObservation {
+    Known(KubernetesClusterState),
+    Unknown,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct KubernetesClusterReconcileInput {
+    pub desired_state: KubernetesClusterDesiredState,
+    pub observation: KubernetesClusterObservation,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum KubernetesClusterReconcileAction {
+    AwaitObservation,
+    BeginDraining,
+    ActuateDeletion,
+    Noop,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum KubernetesClusterReconcileError {
+    UnknownObservation,
+    InconsistentLifecycle {
+        desired_state: KubernetesClusterDesiredState,
+        observed_state: KubernetesClusterState,
+    },
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum KubernetesClusterMutationError {
+    UnknownCluster,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KubernetesNodePoolCreate {
     pub id: String,                   // data_class: INTERNAL_ONLY
@@ -75,6 +117,7 @@ pub struct KubernetesCluster {
     pub node_pools: Classified<Vec<KubernetesNodePool>>, // data_class: INTERNAL_ONLY
     pub residency: Classified<ResidencyClass>, // data_class: INTERNAL_ONLY
     pub state: Classified<KubernetesClusterState>, // data_class: PUBLIC
+    pub desired_state: Classified<KubernetesClusterDesiredState>, // data_class: PUBLIC
     pub data_class: Classified<PrivacyDataClass>, // data_class: PUBLIC
     pub created_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
     pub schema_version: Classified<u32>,     // data_class: PUBLIC
@@ -116,10 +159,77 @@ impl KubernetesCluster {
             node_pools: internal(node_pools),
             residency: internal(input.residency),
             state: public(input.state),
+            desired_state: public(KubernetesClusterDesiredState::Present),
             data_class: public(public_metadata_class(input.data_class)?),
             created_at_epoch_seconds: internal(input.created_at_epoch_seconds),
-            schema_version: public(COMPUTE_SCHEMA_VERSION),
+            schema_version: public(KUBERNETES_CLUSTER_SCHEMA_VERSION),
         })
+    }
+
+    #[must_use]
+    pub fn request_deletion(&self) -> Self {
+        let mut next = self.clone();
+        next.desired_state = public(KubernetesClusterDesiredState::Deleted);
+        next
+    }
+}
+
+pub const fn kubernetes_cluster_state_label(state: KubernetesClusterState) -> &'static str {
+    match state {
+        KubernetesClusterState::Creating => "creating",
+        KubernetesClusterState::Ready => "ready",
+        KubernetesClusterState::Reconciling => "reconciling",
+        KubernetesClusterState::Draining => "draining",
+        KubernetesClusterState::Deleted => "deleted",
+    }
+}
+
+pub const fn kubernetes_cluster_desired_state_label(
+    state: KubernetesClusterDesiredState,
+) -> &'static str {
+    match state {
+        KubernetesClusterDesiredState::Present => "present",
+        KubernetesClusterDesiredState::Deleted => "deleted",
+    }
+}
+
+pub fn reconcile_kubernetes_cluster(
+    input: KubernetesClusterReconcileInput,
+) -> Result<KubernetesClusterReconcileAction, KubernetesClusterReconcileError> {
+    let observed_state = match input.observation {
+        KubernetesClusterObservation::Known(state) => state,
+        KubernetesClusterObservation::Unknown => {
+            return Err(KubernetesClusterReconcileError::UnknownObservation);
+        }
+    };
+
+    match (input.desired_state, observed_state) {
+        (
+            KubernetesClusterDesiredState::Present,
+            KubernetesClusterState::Creating | KubernetesClusterState::Reconciling,
+        ) => Ok(KubernetesClusterReconcileAction::AwaitObservation),
+        (KubernetesClusterDesiredState::Present, KubernetesClusterState::Ready) => {
+            Ok(KubernetesClusterReconcileAction::Noop)
+        }
+        (
+            KubernetesClusterDesiredState::Present,
+            KubernetesClusterState::Draining | KubernetesClusterState::Deleted,
+        ) => Err(KubernetesClusterReconcileError::InconsistentLifecycle {
+            desired_state: input.desired_state,
+            observed_state,
+        }),
+        (
+            KubernetesClusterDesiredState::Deleted,
+            KubernetesClusterState::Creating
+            | KubernetesClusterState::Ready
+            | KubernetesClusterState::Reconciling,
+        ) => Ok(KubernetesClusterReconcileAction::BeginDraining),
+        (KubernetesClusterDesiredState::Deleted, KubernetesClusterState::Draining) => {
+            Ok(KubernetesClusterReconcileAction::ActuateDeletion)
+        }
+        (KubernetesClusterDesiredState::Deleted, KubernetesClusterState::Deleted) => {
+            Ok(KubernetesClusterReconcileAction::Noop)
+        }
     }
 }
 fn node_pools(

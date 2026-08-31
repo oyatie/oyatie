@@ -1,5 +1,5 @@
 #[test]
-fn k8s_delete_api_rejects_trusted_verifier_mismatches_before_ledger() {
+fn k8s_delete_api_rejects_trusted_verifier_mismatches_before_repository() {
     for case in [
         "forged",
         "tenant",
@@ -9,8 +9,7 @@ fn k8s_delete_api_rejects_trusted_verifier_mismatches_before_ledger() {
         "expired",
         "stale",
     ] {
-        let (catalog, _) = catalog_with_cluster();
-        let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+        let mut repository = delete_repository_with_cluster();
         let req = delete_request(
             &format!("req-del-authz-{case}"),
             &format!("idem-del-authz-{case}"),
@@ -60,8 +59,7 @@ fn k8s_delete_api_rejects_trusted_verifier_mismatches_before_ledger() {
         }
 
         let error = delete_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
-            &catalog,
-            &mut delete_ledger,
+            &mut repository,
             req,
             &verifier,
         )
@@ -74,14 +72,20 @@ fn k8s_delete_api_rejects_trusted_verifier_mismatches_before_ledger() {
             }
         );
         assert_eq!(error.cluster_delete_status_code(), 403);
-        assert!(delete_ledger.is_empty());
+        assert!(repository.is_empty());
+        assert_eq!(
+            stored_cluster_lifecycle(&repository),
+            (
+                KubernetesClusterState::Creating,
+                KubernetesClusterDesiredState::Present,
+            )
+        );
     }
 }
 
 #[test]
 fn k8s_delete_api_ignores_caller_supplied_authorization_proof() {
-    let (catalog, _) = catalog_with_cluster();
-    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+    let mut repository = delete_repository_with_cluster();
     let mut req = delete_request("req-del-ignore-proof", "idem-del-ignore-proof");
     req.authorization.tenant_id = "ten_forged".to_string();
     req.authorization.principal_id = "sp_forged_compute".to_string();
@@ -90,26 +94,25 @@ fn k8s_delete_api_ignores_caller_supplied_authorization_proof() {
     let verifier = trusted_delete_verifier_for(&req);
 
     let response = delete_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
-        &catalog,
-        &mut delete_ledger,
+        &mut repository,
         req,
         &verifier,
     )
     .expect("trusted verifier state, not caller proof fields, authorizes delete");
 
     assert_eq!(response.data.resource_id, CLUSTER_ID);
-    assert_eq!(response.data.state, "draining");
-    assert_eq!(delete_ledger.len(), 1);
+    assert_eq!(response.data.state, "creating");
+    assert_eq!(response.data.desired_state, "deleted");
+    assert_eq!(repository.entry_count(), 1);
 }
 
 #[test]
 fn k8s_delete_api_rejects_tenant_mismatch_as_forbidden() {
-    let (catalog, _) = catalog_with_cluster();
-    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+    let mut repository = delete_repository_with_cluster();
     let mut req = delete_request("req-del-mismatch", "idem-del-mismatch");
     req.principal.tenant_id = "ten_other".to_string();
 
-    let error = delete_cloud_compute_k8s_cluster_from_api(&catalog, &mut delete_ledger, req)
+    let error = delete_cloud_compute_k8s_cluster_from_api(&mut repository, req)
         .expect_err("tenant mismatch rejected");
 
     assert!(matches!(
@@ -117,17 +120,22 @@ fn k8s_delete_api_rejects_tenant_mismatch_as_forbidden() {
         CloudComputeK8sApiError::TenantMismatch { .. }
     ));
     assert_eq!(error.cluster_delete_status_code(), 403);
-    assert!(delete_ledger.is_empty());
+    assert!(repository.is_empty());
+    assert_eq!(
+        stored_cluster_lifecycle(&repository),
+        (
+            KubernetesClusterState::Creating,
+            KubernetesClusterDesiredState::Present,
+        )
+    );
 }
 
 #[test]
 fn k8s_delete_api_rejects_unknown_cluster_as_not_found() {
-    let catalog = CloudComputeCatalog::default(); // empty — no cluster
-    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+    let mut repository = DeleteTestRepository::new(CloudComputeCatalog::default());
 
     let error = delete_cloud_compute_k8s_cluster_from_api(
-        &catalog,
-        &mut delete_ledger,
+        &mut repository,
         delete_request("req-del-missing", "idem-del-missing"),
     )
     .expect_err("missing cluster returns 404");
@@ -137,5 +145,5 @@ fn k8s_delete_api_rejects_unknown_cluster_as_not_found() {
         CloudComputeK8sApiError::ClusterNotFound { .. }
     ));
     assert_eq!(error.cluster_delete_status_code(), 404);
-    assert!(delete_ledger.is_empty());
+    assert!(repository.is_empty());
 }
