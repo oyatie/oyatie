@@ -13,7 +13,7 @@ shared-audit-digest-adapter-awslc = { path = "../../../audit/adapters/digest-aws
 shared-audit-event-kernel = { path = "../../../audit/core/event-kernel" }
 os-trustd-domain = { path = "../../core/trustd-domain" }
 shared-ulid-id-kernel = { path = "../../../data/core/ulid-id-kernel" }
-shared-pdp-kernel = { path = "../../core/shared-pdp-kernel" }
+shared-pdp-kernel = { package = "policy-pdp-kernel", path = "../../../policy/core/pdp-kernel" }
 shared-platform-contracts-kernel = { path = "../../core/platform-contracts-kernel" }
 http-runtime-hyper-adapter = { path = "../../../gateway/adapters/http-runtime-hyper" }
 iam-pdp-kernel = { path = "../../core/pdp-kernel" }
@@ -21,11 +21,9 @@ iam-pdp-bundle-file = { path = "../../adapters/pdp-bundle-file" }
 
 iam-pdp-cedar = { path = "../../adapters/pdp-cedar" }
 
-
 iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
 iam-identity-workload-svid-kernel = { path = "../../core/identity-workload-svid-kernel" }
 iam-identity-workload-svid-trustd = { path = "../../adapters/identity-workload-svid-trustd" }
-
 
 x509-parser = { workspace = true }
 aws-lc-rs = "1.17.0"
@@ -72,16 +70,8 @@ base64 = { version = "0.22", default-features = false, features = ["std"] }
 # write signed bundle fixtures and trust-anchor dirs (production key custody is a
 # deferred founder-gated slice). Dev-only — the lib never signs.
 
-
-
 [lib]
-name = "iam_pdp_app"
-path = "src/lib.rs"
 doctest = false
-
-[[bin]]
-name = "iam-pdp-app"
-path = "src/main.rs"
 
 [lints]
 workspace = true

@@ -10,22 +10,18 @@ description = "File-backed PolicyBundleStore adapter for the iam PDP service (AD
 [dependencies]
 shared-audit-digest-adapter-awslc = { path = "../../../audit/adapters/digest-awslc" }
 shared-audit-event-kernel = { path = "../../../audit/core/event-kernel" }
-shared-pdp-kernel = { path = "../../core/shared-pdp-kernel" }
+shared-pdp-kernel = { package = "policy-pdp-kernel", path = "../../../policy/core/pdp-kernel" }
 shared-platform-contracts-kernel = { path = "../../core/platform-contracts-kernel" }
 iam-pdp-kernel = { path = "../../core/pdp-kernel" }
-
 
 # First legal iam/ -> libs/shared-audit-* lib->lib edge (no inversion): the
 # OWNED aws-lc-rs Ed25519 verifier (ADR-0506, ring-free) for signed-bundle
 # verify-on-load, and its ports (ChainVerifier, hex codec).
 
-
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
 [lib]
-name = "iam_pdp_bundle_file"
-path = "src/lib.rs"
 doctest = false
 
 [lints]
