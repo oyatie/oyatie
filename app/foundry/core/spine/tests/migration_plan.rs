@@ -288,3 +288,13 @@ fn digest_is_deterministic_and_fixed_width_over_unbounded_inputs() {
     long.audit_event_type = "x".repeat(4096);
     assert_eq!(long.digest16().len(), 16);
 }
+
+#[test]
+fn action_type_must_be_a_well_formed_action_id() {
+    let mut misnamed = plan(vec![copy("score", "score_copy")]);
+    misnamed.action_type = "upcast-reading".into();
+    assert_eq!(
+        misnamed.validate(&registry()),
+        Err(PlanError::InvalidActionType)
+    );
+}

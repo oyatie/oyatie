@@ -13,7 +13,9 @@ fn cluster_record(cluster: KubernetesCluster) -> CloudComputeK8sClusterRecord {
             .label()
             .unwrap_or("per_pack")
             .to_string(),
-        state: cluster_state_label(cluster.state.value).to_string(),
+        state: kubernetes_cluster_state_label(cluster.state.value).to_string(),
+        desired_state: kubernetes_cluster_desired_state_label(cluster.desired_state.value)
+            .to_string(),
         data_class: cluster.data_class.value.label().to_string(),
         created_at_epoch_seconds: cluster.created_at_epoch_seconds.value,
         schema_version: cluster.schema_version.value,
@@ -76,6 +78,9 @@ fn cloud_compute_message(error: &CloudComputeError) -> &'static str {
         CloudComputeK8sApiStatusKind::Conflict => "Cloud Compute resource already exists",
         CloudComputeK8sApiStatusKind::UnprocessableEntity => {
             "Cloud Compute rejected request idempotency"
+        }
+        CloudComputeK8sApiStatusKind::ServiceUnavailable => {
+            "Cloud Compute is temporarily unavailable"
         }
     }
 }

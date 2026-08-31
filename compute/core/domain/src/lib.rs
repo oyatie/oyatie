@@ -38,8 +38,12 @@ pub use identity::{
 };
 pub use instance::{Instance, InstanceCreate, InstanceState, instance_state_label};
 pub use kubernetes::{
-    KubernetesCluster, KubernetesClusterCreate, KubernetesClusterState, KubernetesNodePool,
-    KubernetesNodePoolCreate,
+    KUBERNETES_CLUSTER_SCHEMA_VERSION, KubernetesCluster, KubernetesClusterCreate,
+    KubernetesClusterDesiredState, KubernetesClusterMutationError, KubernetesClusterObservation,
+    KubernetesClusterReconcileAction, KubernetesClusterReconcileError,
+    KubernetesClusterReconcileInput, KubernetesClusterState, KubernetesNodePool,
+    KubernetesNodePoolCreate, kubernetes_cluster_desired_state_label,
+    kubernetes_cluster_state_label, reconcile_kubernetes_cluster,
 };
 pub use provider::{
     ComputeProviderKind, ComputeProviderVmCreateRequest, ComputeProviderVmError,

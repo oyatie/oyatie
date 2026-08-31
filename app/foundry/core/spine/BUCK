@@ -241,3 +241,60 @@ rust_test(
         "//data/core/ontology-kernel:data-ontology-kernel",
     ],
 )
+
+rust_test(
+    name = "foundry-spine-migration-runner",
+    srcs = [
+        "tests/migration_runner.rs",
+        "tests/migration_support/log.rs",
+        "tests/migration_support/mod.rs",
+    ],
+    crate = "migration_runner",
+    crate_root = "tests/migration_runner.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-spine",
+        "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)
+
+rust_test(
+    name = "foundry-spine-migration-runner-faults",
+    srcs = [
+        "tests/migration_runner_faults.rs",
+        "tests/migration_support/log.rs",
+        "tests/migration_support/mod.rs",
+    ],
+    crate = "migration_runner_faults",
+    crate_root = "tests/migration_runner_faults.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-spine",
+        "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)
+
+rust_test(
+    name = "foundry-spine-migration-audit",
+    srcs = [
+        "tests/migration_audit.rs",
+        "tests/migration_support/log.rs",
+        "tests/migration_support/mod.rs",
+    ],
+    crate = "migration_audit",
+    crate_root = "tests/migration_audit.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-spine",
+        "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)
