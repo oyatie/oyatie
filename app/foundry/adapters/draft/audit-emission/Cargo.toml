@@ -1,0 +1,15 @@
+[package]
+name = "foundry-audit-emission-draft"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+audit-emission-api = { path = "../../../../../audit/ports/emission-api" }
+audit-emission-kernel = { path = "../../../../../audit/ports/emission-kernel" }
+foundry-audit-draft = { path = "../../../ports/draft/audit" }
+
+[lints]
+workspace = true
