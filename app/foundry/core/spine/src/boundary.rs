@@ -91,3 +91,67 @@ pub fn property(wire: &WireProperty) -> Result<ObjectProperty, BoundaryError> {
         tier: tier(wire.tier),
     })
 }
+
+pub(crate) fn wire_tier(kernel: PropertyTier) -> WireTier {
+    match kernel {
+        PropertyTier::Scalar => WireTier::Scalar,
+        PropertyTier::Vector => WireTier::Vector,
+        PropertyTier::Timeseries => WireTier::Timeseries,
+        PropertyTier::Geo => WireTier::Geo,
+        PropertyTier::Ciphertext => WireTier::Ciphertext,
+        PropertyTier::Struct => WireTier::Struct,
+    }
+}
+
+/// The wire label for a kernel class, recovered by searching the ONE
+/// frozen forward table above — no second mapping exists to drift.
+pub(crate) fn wire_label(kernel: &PrivacyDataClass) -> Option<WireDataClass> {
+    const LABELS: [WireDataClass; 13] = [
+        WireDataClass::Public,
+        WireDataClass::InternalOnly,
+        WireDataClass::PiiIdentifying,
+        WireDataClass::PiiQuasiIdentifier,
+        WireDataClass::Phi,
+        WireDataClass::Pci,
+        WireDataClass::Financial,
+        WireDataClass::FinancialRegulatedCredit,
+        WireDataClass::BehavioralTenantProduct,
+        WireDataClass::BehavioralAds,
+        WireDataClass::DeclaredPreference,
+        WireDataClass::SearchQuery,
+        WireDataClass::SensitivePipaArt23,
+    ];
+    LABELS
+        .into_iter()
+        .find(|label| data_class(*label).as_ref() == Ok(kernel))
+}
+
+/// The inverse of [`value`]: total over every kernel carrier, because the
+/// wire vocabulary mirrors the kernel's by construction.
+pub(crate) fn wire_value(kernel: &PropertyValue) -> Result<WireValue, BoundaryError> {
+    Ok(match kernel {
+        PropertyValue::String(text) => WireValue::String(text.clone()),
+        PropertyValue::Integer(number) => WireValue::Integer(*number),
+        PropertyValue::Double(double) => WireValue::Double(
+            foundry_edits::WireDouble::new(double.get())
+                .map_err(|_| BoundaryError::UnrepresentableValue)?,
+        ),
+        PropertyValue::Boolean(flag) => WireValue::Boolean(*flag),
+        PropertyValue::Date(date) => WireValue::Date(
+            foundry_edits::WireDate::new(date.year(), date.month(), date.day())
+                .map_err(|_| BoundaryError::UnrepresentableValue)?,
+        ),
+        PropertyValue::Timestamp { epoch_millis } => WireValue::Timestamp {
+            epoch_millis: *epoch_millis,
+        },
+        PropertyValue::Array(items) => {
+            WireValue::Array(items.iter().map(wire_value).collect::<Result<_, _>>()?)
+        }
+        PropertyValue::Struct(entries) => WireValue::Struct(
+            entries
+                .iter()
+                .map(|(k, v)| Ok((k.clone(), wire_value(v)?)))
+                .collect::<Result<_, BoundaryError>>()?,
+        ),
+    })
+}
