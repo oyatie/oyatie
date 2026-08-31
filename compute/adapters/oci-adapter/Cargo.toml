@@ -1,0 +1,22 @@
+[package]
+name = "compute-oci-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+doctest = false
+
+[dependencies]
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
+compute-domain = { path = "../../core/domain" }
+
+[dev-dependencies]
+compute-resource = { path = "../../core/resource" }
+
+network-residency = { path = "../../../network/core/residency" }
+
+[lints]
+workspace = true
