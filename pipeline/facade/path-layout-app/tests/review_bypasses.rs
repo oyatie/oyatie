@@ -126,6 +126,27 @@ fn every_live_changed_file_must_be_a_regular_git_blob() {
     let _ = std::fs::remove_dir_all(root);
 }
 
+#[cfg(unix)]
+#[test]
+fn root_workspace_manifest_must_be_a_regular_git_blob() {
+    use std::os::unix::fs::symlink;
+
+    let root = fixture();
+    std::fs::remove_file(root.join("Cargo.toml")).expect("remove regular workspace manifest");
+    symlink(workspace_manifest(), root.join("Cargo.toml"))
+        .expect("create workspace manifest symlink");
+    let base = commit(&root, "symlink workspace manifest");
+    write(&root, "README.md", "fixture\n");
+    let head = commit(&root, "unrelated change");
+
+    let rejected = admit(&root, &base, &head);
+    assert!(!rejected.status.success());
+    let error = String::from_utf8_lossy(&rejected.stderr);
+    assert!(error.contains("Cargo.toml"), "{error}");
+    assert!(error.contains("regular Git blob"), "{error}");
+    let _ = std::fs::remove_dir_all(root);
+}
+
 fn assert_config_rejected(config: &str, expected: &str) {
     let root = fixture();
     let base = commit(&root, "base");

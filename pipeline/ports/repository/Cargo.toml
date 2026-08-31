@@ -1,5 +1,5 @@
 [package]
-name = "pipeline-repository-draft"
+name = "pipeline-repository"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -8,3 +8,6 @@ license = "Apache-2.0"
 
 [lints]
 workspace = true
+
+[dependencies]
+sha2.workspace = true

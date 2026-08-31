@@ -5266,10 +5266,10 @@ cargo.rust_library(
             deps = [":libc-0.2"],
         ),
         "windows-gnu": dict(
-            deps = [":windows-sys-0.52"],
+            deps = [":windows-sys-0.61"],
         ),
         "windows-msvc": dict(
-            deps = [":windows-sys-0.52"],
+            deps = [":windows-sys-0.61"],
         ),
     },
     visibility = [],
@@ -14906,13 +14906,13 @@ cargo.rust_library(
             named_deps = {
                 "libc_errno": ":errno-0.3",
             },
-            deps = [":windows-sys-0.52"],
+            deps = [":windows-sys-0.61"],
         ),
         "windows-msvc": dict(
             named_deps = {
                 "libc_errno": ":errno-0.3",
             },
-            deps = [":windows-sys-0.52"],
+            deps = [":windows-sys-0.61"],
         ),
     },
     rustc_flags = ["@$(location :rustix-1-build-script-run[rustc_flags])"],
@@ -15206,10 +15206,10 @@ cargo.rust_library(
             ],
         ),
         "windows-gnu": dict(
-            deps = [":windows-sys-0.52"],
+            deps = [":windows-sys-0.61"],
         ),
         "windows-msvc": dict(
-            deps = [":windows-sys-0.52"],
+            deps = [":windows-sys-0.61"],
         ),
     },
     visibility = [],
@@ -16598,6 +16598,7 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
     },
     features = [
+        "compress",
         "default",
         "std",
     ],
@@ -16606,6 +16607,42 @@ cargo.rust_library(
         ":cfg-if-1",
         ":cpufeatures-0.2",
         ":digest-0.10",
+    ],
+)
+
+alias(
+    name = "sha1-checked",
+    actual = ":sha1-checked-0.10",
+    visibility = ["PUBLIC"],
+)
+
+http_archive(
+    name = "sha1-checked-0.10.0.crate",
+    sha256 = "89f599ac0c323ebb1c6082821a54962b839832b03984598375bff3975b804423",
+    strip_prefix = "sha1-checked-0.10.0",
+    urls = ["https://static.crates.io/crates/sha1-checked/0.10.0/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "sha1-checked-0.10",
+    srcs = [":sha1-checked-0.10.0.crate"],
+    crate = "sha1_checked",
+    crate_root = "sha1-checked-0.10.0.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "sha1-checked-0.10.0.crate",
+        "CARGO_PKG_NAME": "sha1-checked",
+        "CARGO_PKG_VERSION": "0.10.0",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "10",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+    deps = [
+        ":digest-0.10",
+        ":sha1-0.10",
     ],
 )
 
@@ -18267,10 +18304,10 @@ cargo.rust_library(
             deps = [":rustix-1"],
         ),
         "windows-gnu": dict(
-            deps = [":windows-sys-0.52"],
+            deps = [":windows-sys-0.61"],
         ),
         "windows-msvc": dict(
-            deps = [":windows-sys-0.52"],
+            deps = [":windows-sys-0.61"],
         ),
     },
     visibility = [],
@@ -21649,7 +21686,7 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
     },
     visibility = [],
-    deps = [":windows-sys-0.48"],
+    deps = [":windows-sys-0.61"],
 )
 
 http_archive(
@@ -21704,58 +21741,12 @@ cargo.rust_library(
     features = [
         "Win32",
         "Win32_Foundation",
-        "Win32_Storage",
-        "Win32_Storage_FileSystem",
-        "Win32_System",
-        "Win32_System_Console",
-        "Win32_System_SystemInformation",
         "Win32_UI",
         "Win32_UI_Shell",
         "default",
     ],
     visibility = [],
     deps = [":windows-targets-0.48"],
-)
-
-http_archive(
-    name = "windows-sys-0.52.0.crate",
-    sha256 = "282be5f36a8ce781fad8c8ae18fa3f9beff57ec1b52cb3de0789201425d9a33d",
-    strip_prefix = "windows-sys-0.52.0",
-    urls = ["https://static.crates.io/crates/windows-sys/0.52.0/download"],
-    visibility = [],
-)
-
-cargo.rust_library(
-    name = "windows-sys-0.52",
-    srcs = [":windows-sys-0.52.0.crate"],
-    crate = "windows_sys",
-    crate_root = "windows-sys-0.52.0.crate/src/lib.rs",
-    edition = "2021",
-    env = {
-        "CARGO_MANIFEST_DIR": "windows-sys-0.52.0.crate",
-        "CARGO_PKG_NAME": "windows-sys",
-        "CARGO_PKG_VERSION": "0.52.0",
-        "CARGO_PKG_VERSION_MAJOR": "0",
-        "CARGO_PKG_VERSION_MINOR": "52",
-        "CARGO_PKG_VERSION_PATCH": "0",
-        "CARGO_PKG_VERSION_PRE": "",
-    },
-    features = [
-        "Win32",
-        "Win32_Foundation",
-        "Win32_Networking",
-        "Win32_Networking_WinSock",
-        "Win32_Security",
-        "Win32_Security_Cryptography",
-        "Win32_Storage",
-        "Win32_Storage_FileSystem",
-        "Win32_System",
-        "Win32_System_Diagnostics",
-        "Win32_System_Diagnostics_Debug",
-        "default",
-    ],
-    visibility = [],
-    deps = [":windows-targets-0.52"],
 )
 
 http_archive(
@@ -21802,6 +21793,8 @@ cargo.rust_library(
         "Win32_System",
         "Win32_System_Com",
         "Win32_System_Console",
+        "Win32_System_Diagnostics",
+        "Win32_System_Diagnostics_Debug",
         "Win32_System_IO",
         "Win32_System_LibraryLoader",
         "Win32_System_Memory",
@@ -21853,40 +21846,6 @@ cargo.rust_library(
 )
 
 http_archive(
-    name = "windows-targets-0.52.6.crate",
-    sha256 = "9b724f72796e036ab90c1021d4780d4d3d648aca59e491e6b98e725b84e99973",
-    strip_prefix = "windows-targets-0.52.6",
-    urls = ["https://static.crates.io/crates/windows-targets/0.52.6/download"],
-    visibility = [],
-)
-
-cargo.rust_library(
-    name = "windows-targets-0.52",
-    srcs = [":windows-targets-0.52.6.crate"],
-    crate = "windows_targets",
-    crate_root = "windows-targets-0.52.6.crate/src/lib.rs",
-    edition = "2021",
-    env = {
-        "CARGO_MANIFEST_DIR": "windows-targets-0.52.6.crate",
-        "CARGO_PKG_NAME": "windows-targets",
-        "CARGO_PKG_VERSION": "0.52.6",
-        "CARGO_PKG_VERSION_MAJOR": "0",
-        "CARGO_PKG_VERSION_MINOR": "52",
-        "CARGO_PKG_VERSION_PATCH": "6",
-        "CARGO_PKG_VERSION_PRE": "",
-    },
-    platform = {
-        "windows-gnu": dict(
-            deps = [":windows_x86_64_gnu-0.52"],
-        ),
-        "windows-msvc": dict(
-            deps = [":windows_x86_64_msvc-0.52"],
-        ),
-    },
-    visibility = [],
-)
-
-http_archive(
     name = "windows_x86_64_gnu-0.48.5.crate",
     sha256 = "53d40abd2583d23e4718fddf1ebec84dbff8381c07cae67ff7768bbf19c6718e",
     strip_prefix = "windows_x86_64_gnu-0.48.5",
@@ -21913,32 +21872,6 @@ cargo.rust_library(
 )
 
 http_archive(
-    name = "windows_x86_64_gnu-0.52.6.crate",
-    sha256 = "147a5c80aabfbf0c7d901cb5895d1de30ef2907eb21fbbab29ca94c5b08b1a78",
-    strip_prefix = "windows_x86_64_gnu-0.52.6",
-    urls = ["https://static.crates.io/crates/windows_x86_64_gnu/0.52.6/download"],
-    visibility = [],
-)
-
-cargo.rust_library(
-    name = "windows_x86_64_gnu-0.52",
-    srcs = [":windows_x86_64_gnu-0.52.6.crate"],
-    crate = "windows_x86_64_gnu",
-    crate_root = "windows_x86_64_gnu-0.52.6.crate/src/lib.rs",
-    edition = "2021",
-    env = {
-        "CARGO_MANIFEST_DIR": "windows_x86_64_gnu-0.52.6.crate",
-        "CARGO_PKG_NAME": "windows_x86_64_gnu",
-        "CARGO_PKG_VERSION": "0.52.6",
-        "CARGO_PKG_VERSION_MAJOR": "0",
-        "CARGO_PKG_VERSION_MINOR": "52",
-        "CARGO_PKG_VERSION_PATCH": "6",
-        "CARGO_PKG_VERSION_PRE": "",
-    },
-    visibility = [],
-)
-
-http_archive(
     name = "windows_x86_64_msvc-0.48.5.crate",
     sha256 = "ed94fce61571a4006852b7389a063ab983c02eb1bb37b47f8272ce92d06d9538",
     strip_prefix = "windows_x86_64_msvc-0.48.5",
@@ -21959,32 +21892,6 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_MAJOR": "0",
         "CARGO_PKG_VERSION_MINOR": "48",
         "CARGO_PKG_VERSION_PATCH": "5",
-        "CARGO_PKG_VERSION_PRE": "",
-    },
-    visibility = [],
-)
-
-http_archive(
-    name = "windows_x86_64_msvc-0.52.6.crate",
-    sha256 = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec",
-    strip_prefix = "windows_x86_64_msvc-0.52.6",
-    urls = ["https://static.crates.io/crates/windows_x86_64_msvc/0.52.6/download"],
-    visibility = [],
-)
-
-cargo.rust_library(
-    name = "windows_x86_64_msvc-0.52",
-    srcs = [":windows_x86_64_msvc-0.52.6.crate"],
-    crate = "windows_x86_64_msvc",
-    crate_root = "windows_x86_64_msvc-0.52.6.crate/src/lib.rs",
-    edition = "2021",
-    env = {
-        "CARGO_MANIFEST_DIR": "windows_x86_64_msvc-0.52.6.crate",
-        "CARGO_PKG_NAME": "windows_x86_64_msvc",
-        "CARGO_PKG_VERSION": "0.52.6",
-        "CARGO_PKG_VERSION_MAJOR": "0",
-        "CARGO_PKG_VERSION_MINOR": "52",
-        "CARGO_PKG_VERSION_PATCH": "6",
         "CARGO_PKG_VERSION_PRE": "",
     },
     visibility = [],

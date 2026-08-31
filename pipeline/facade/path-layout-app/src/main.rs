@@ -3,23 +3,30 @@
 
 use std::collections::BTreeSet;
 use std::process::ExitCode;
+use std::time::{Duration, Instant};
 
 use pipeline_admission::{
-    base_admission_violations, cargo_entrypoints, cargo_manifest_for_crate_path,
+    GitChangePaths, base_admission_violations, cargo_entrypoints, cargo_manifest_for_crate_path,
     cargo_manifest_violations, changed_layout_violations, draft_dependency_violations,
-    git_change_paths_from_name_status_z, owner_core_regression_violations,
-    proto_package_violations, workspace_draft_dependency_violations,
-    workspace_membership_violations,
+    owner_core_regression_violations, proto_package_violations,
+    workspace_draft_dependency_violations, workspace_membership_violations,
 };
-use pipeline_repository_draft::RepositoryRead;
-use pipeline_repository_git_draft::GitRepository;
+use pipeline_repository::{
+    EntryKind, NoCancellation, RepositoryId, RepositoryManifest, RepositoryPath,
+    RepositorySnapshot, RevisionId, SnapshotRequest, SnapshotSession,
+};
+use pipeline_repository_git::GitRepository;
 
 mod repository_checks;
+mod snapshot_input;
+
+const SNAPSHOT_TIMEOUT: Duration = Duration::from_secs(5 * 60);
 
 use repository_checks::{
-    live_candidate_violations, owner_tree_state, regular_blob,
-    reject_indirect_dependency_components, repository_cargo_config_violations,
+    RepositoryView, live_candidate_violations, owner_tree_state, regular_blob,
+    reject_indirect_dependency_components, repository_cargo_config_violations, snapshot_error,
 };
+use snapshot_input::{admission_changes, layout_profile, selected_content};
 
 fn main() -> ExitCode {
     match run() {
@@ -33,14 +40,32 @@ fn main() -> ExitCode {
 
 fn run() -> Result<(), String> {
     let (base, head) = required_shas()?;
-    let repository = GitRepository;
-    let merge_base = repository.merge_base(&base, &head)?;
-    let name_status = repository.changed_name_status(&merge_base, &head)?;
-    let changes =
-        git_change_paths_from_name_status_z(&name_status).map_err(|error| error.message())?;
-    let owners_before = owner_tree_state(&repository, &merge_base)?;
-    let owners_after = owner_tree_state(&repository, &head)?;
-    let workspace_contents = repository.blob_text(&head, "Cargo.toml")?;
+    let control = NoCancellation::until(Instant::now() + SNAPSHOT_TIMEOUT);
+    let repository_id = RepositoryId::new("oyatie/oyatie").map_err(|error| error.to_string())?;
+    let repository =
+        GitRepository::current(repository_id.clone(), &control).map_err(snapshot_error)?;
+    let session = repository
+        .capture(
+            SnapshotRequest::new(repository_id, base, head, layout_profile()?)
+                .map_err(snapshot_error)?,
+            &control,
+        )
+        .map_err(snapshot_error)?;
+    let changes = admission_changes(session.prepared().delta())?;
+    let selected = selected_content(session.prepared(), &changes)?;
+    let selection = session
+        .prepared()
+        .select_content(selected)
+        .map_err(snapshot_error)?;
+    let snapshot = session
+        .hydrate(selection, &control)
+        .map_err(snapshot_error)?;
+    let merge_manifest = snapshot.prepared().merge_base();
+    let head_manifest = snapshot.prepared().head();
+    let head_repository = RepositoryView::new(head_manifest, &snapshot);
+    let owners_before = owner_tree_state(merge_manifest)?;
+    let owners_after = owner_tree_state(head_manifest)?;
+    let workspace_contents = head_repository.blob_text("Cargo.toml")?;
     let mut violations = changed_layout_violations(&changes, &owners_before.live);
     violations.extend(owner_core_regression_violations(
         &changes,
@@ -51,12 +76,11 @@ fn run() -> Result<(), String> {
     violations.extend(workspace_membership_violations(&workspace_contents));
     violations.extend(workspace_draft_dependency_violations(
         &workspace_contents,
-        |visited| reject_indirect_dependency_components(&repository, &head, visited),
+        |visited| reject_indirect_dependency_components(head_manifest, visited),
     ));
-    violations.extend(repository_cargo_config_violations(&repository, &head)?);
+    violations.extend(repository_cargo_config_violations(&head_repository)?);
     violations.extend(live_candidate_violations(
-        &repository,
-        &head,
+        &head_repository,
         &changes.layout_candidates,
         &changes.exact_rename_sources,
     )?);
@@ -66,13 +90,13 @@ fn run() -> Result<(), String> {
         .iter()
         .filter(|path| path.ends_with("/Cargo.toml"))
     {
-        let contents = repository.blob_text(&head, path)?;
+        let contents = head_repository.blob_text(path)?;
         violations.extend(cargo_manifest_violations(path, &contents));
         violations.extend(draft_dependency_violations(
             path,
             &contents,
             &workspace_contents,
-            |visited| reject_indirect_dependency_components(&repository, &head, visited),
+            |visited| reject_indirect_dependency_components(head_manifest, visited),
         ));
         manifests.push((path.clone(), contents));
     }
@@ -86,10 +110,10 @@ fn run() -> Result<(), String> {
         let directory = manifest
             .strip_suffix("/Cargo.toml")
             .expect("canonical crate manifest suffix");
-        if !repository.directory_exists(&head, directory)? {
+        if !directory_exists(head_manifest, directory)? {
             continue;
         }
-        let manifest_kind = repository.entry_kind(&head, &manifest)?;
+        let manifest_kind = entry_kind(head_manifest, &manifest)?;
         let manifest_exists = manifest_kind.is_some();
         let manifest_is_blob = regular_blob(manifest_kind);
         match manifest_kind {
@@ -108,20 +132,14 @@ fn run() -> Result<(), String> {
             .expect("canonical crate manifest");
         let mut present = None;
         for candidate in &candidates {
-            if let Some(kind) = repository.entry_kind(&head, candidate)? {
+            if let Some(kind) = entry_kind(head_manifest, candidate)? {
                 present = Some((candidate.clone(), kind));
                 break;
             }
         }
-        // Ratchet. A facade admits either root, but that relaxation is about
-        // a surface whose listener has not been attached YET - not about
-        // removing a binary that already runs. Without this, deleting
-        // `src/main.rs` from a facade that has one passes clean, because
-        // `src/lib.rs` answers in its place.
         if let Some(binary) = candidates.first()
             && binary.ends_with("/src/main.rs")
-            && repository.path_exists(&merge_base, binary)?
-            && repository.entry_kind(&head, binary)?.is_none()
+            && removed_existing_entrypoint(merge_manifest, head_manifest, binary)?
         {
             violations.push(format!(
                 "{manifest}: `{binary}` existed at the merge base and is absent at the head \
@@ -150,8 +168,8 @@ fn run() -> Result<(), String> {
             && manifest_is_blob
             && entrypoint_exists
             && entrypoint_is_blob
-            && (!repository.path_exists(&merge_base, &manifest)?
-                || !repository.path_exists(&merge_base, &canonical)?)
+            && (!path_exists(merge_manifest, &manifest)?
+                || !path_exists(merge_manifest, &canonical)?)
         {
             added_base_manifests.push(manifest);
         }
@@ -161,7 +179,7 @@ fn run() -> Result<(), String> {
         .iter()
         .filter(|path| path.ends_with(".proto"))
     {
-        let contents = repository.blob_text(&head, path)?;
+        let contents = head_repository.blob_text(path)?;
         violations.extend(proto_package_violations(path, &contents));
     }
     for base_manifest in added_base_manifests {
@@ -183,7 +201,7 @@ fn run() -> Result<(), String> {
     }
 }
 
-fn required_shas() -> Result<(String, String), String> {
+fn required_shas() -> Result<(RevisionId, RevisionId), String> {
     let mut arguments = std::env::args().skip(1);
     let base = arguments
         .next()
@@ -200,9 +218,28 @@ fn required_shas() -> Result<(String, String), String> {
     ))
 }
 
-fn validated_sha(name: &str, value: String) -> Result<String, String> {
-    if value.len() != 40 || !value.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-        return Err(format!("{name} must be a 40-digit Git object id"));
-    }
-    Ok(value)
+fn validated_sha(name: &str, value: String) -> Result<RevisionId, String> {
+    RevisionId::from_hex(&value)
+        .map_err(|_| format!("{name} must be a complete 40- or 64-digit Git object id"))
+}
+
+fn entry_kind(manifest: &RepositoryManifest, path: &str) -> Result<Option<EntryKind>, String> {
+    let path = RepositoryPath::from_utf8(path).map_err(|error| error.to_string())?;
+    Ok(manifest.entry(&path).map(|entry| entry.kind()))
+}
+
+fn path_exists(manifest: &RepositoryManifest, path: &str) -> Result<bool, String> {
+    Ok(entry_kind(manifest, path)?.is_some())
+}
+
+fn directory_exists(manifest: &RepositoryManifest, path: &str) -> Result<bool, String> {
+    Ok(entry_kind(manifest, path)? == Some(EntryKind::Tree))
+}
+
+fn removed_existing_entrypoint(
+    merge_manifest: &RepositoryManifest,
+    head_manifest: &RepositoryManifest,
+    path: &str,
+) -> Result<bool, String> {
+    Ok(path_exists(merge_manifest, path)? && !path_exists(head_manifest, path)?)
 }

@@ -1,28 +1,69 @@
+_VISIBILITY = ["//pipeline/..."]
+_VIEW = [
+    "//pipeline/facade/path-layout-app/...",
+    "//pipeline/core/admission/...",
+    "//pipeline/ports/repository/...",
+    "//pipeline/adapters/repository-git/...",
+]
+_TEST_DEPS = [
+    ":pipeline-path-layout-app",
+    "//pipeline/core/admission:pipeline-admission",
+    "//pipeline/ports/repository:pipeline-repository",
+    "//pipeline/adapters/repository-git:pipeline-repository-git",
+]
+_TEST_ENV = {
+    "CARGO_BIN_EXE_pipeline-path-layout-app": "$(location :pipeline-path-layout-app)",
+}
+
 rust_binary(
     name = "pipeline-path-layout-app",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "pipeline_path_layout_app",
     crate_root = "src/main.rs",
-    visibility = ["PUBLIC"],
+    edition = "2024",
+    visibility = _VISIBILITY,
+    within_view = _VIEW,
     deps = [
         "//pipeline/core/admission:pipeline-admission",
-        "//pipeline/ports/draft/repository:pipeline-repository-draft",
-        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
+        "//pipeline/ports/repository:pipeline-repository",
+        "//pipeline/adapters/repository-git:pipeline-repository-git",
     ],
 )
 
 rust_test(
     name = "pipeline-path-layout-app-completeness",
-    srcs = ["tests/completeness.rs"],
+    srcs = ["tests/completeness.rs", "tests/support/mod.rs"],
     crate = "pipeline_path_layout_app_completeness",
     crate_root = "tests/completeness.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":pipeline-path-layout-app",
-        "//pipeline/core/admission:pipeline-admission",
-        "//pipeline/ports/draft/repository:pipeline-repository-draft",
-        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
-    ],
+    edition = "2024",
+    visibility = _VISIBILITY,
+    within_view = _VIEW,
+    deps = _TEST_DEPS,
+    env = _TEST_ENV,
+)
+
+rust_test(
+    name = "pipeline-path-layout-app-facade-entrypoint",
+    srcs = ["tests/facade_entrypoint.rs", "tests/support/mod.rs"],
+    crate = "pipeline_path_layout_app_facade_entrypoint",
+    crate_root = "tests/facade_entrypoint.rs",
+    edition = "2024",
+    visibility = _VISIBILITY,
+    within_view = _VIEW,
+    deps = _TEST_DEPS,
+    env = _TEST_ENV,
+)
+
+rust_test(
+    name = "pipeline-path-layout-app-move-content-budget",
+    srcs = ["tests/move_content_budget.rs"],
+    crate = "pipeline_path_layout_app_move_content_budget",
+    crate_root = "tests/move_content_budget.rs",
+    edition = "2024",
+    visibility = _VISIBILITY,
+    within_view = _VIEW,
+    deps = _TEST_DEPS,
+    env = _TEST_ENV,
 )
 
 rust_test(
@@ -30,13 +71,11 @@ rust_test(
     srcs = ["tests/review_bypasses.rs"],
     crate = "pipeline_path_layout_app_review_bypasses",
     crate_root = "tests/review_bypasses.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":pipeline-path-layout-app",
-        "//pipeline/core/admission:pipeline-admission",
-        "//pipeline/ports/draft/repository:pipeline-repository-draft",
-        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
-    ],
+    edition = "2024",
+    visibility = _VISIBILITY,
+    within_view = _VIEW,
+    deps = _TEST_DEPS,
+    env = _TEST_ENV,
 )
 
 rust_test(
@@ -44,13 +83,11 @@ rust_test(
     srcs = ["tests/review_followup.rs"],
     crate = "pipeline_path_layout_app_review_followup",
     crate_root = "tests/review_followup.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":pipeline-path-layout-app",
-        "//pipeline/core/admission:pipeline-admission",
-        "//pipeline/ports/draft/repository:pipeline-repository-draft",
-        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
-    ],
+    edition = "2024",
+    visibility = _VISIBILITY,
+    within_view = _VIEW,
+    deps = _TEST_DEPS,
+    env = _TEST_ENV,
 )
 
 rust_test(
@@ -58,13 +95,11 @@ rust_test(
     srcs = ["tests/review_third.rs"],
     crate = "pipeline_path_layout_app_review_third",
     crate_root = "tests/review_third.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":pipeline-path-layout-app",
-        "//pipeline/core/admission:pipeline-admission",
-        "//pipeline/ports/draft/repository:pipeline-repository-draft",
-        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
-    ],
+    edition = "2024",
+    visibility = _VISIBILITY,
+    within_view = _VIEW,
+    deps = _TEST_DEPS,
+    env = _TEST_ENV,
 )
 
 rust_test(
@@ -72,11 +107,9 @@ rust_test(
     srcs = ["tests/semantic_names.rs"],
     crate = "pipeline_path_layout_app_semantic_names",
     crate_root = "tests/semantic_names.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":pipeline-path-layout-app",
-        "//pipeline/core/admission:pipeline-admission",
-        "//pipeline/ports/draft/repository:pipeline-repository-draft",
-        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
-    ],
+    edition = "2024",
+    visibility = _VISIBILITY,
+    within_view = _VIEW,
+    deps = _TEST_DEPS,
+    env = _TEST_ENV,
 )
