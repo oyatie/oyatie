@@ -179,29 +179,3 @@ fn value_type_frozen_across_revisions() {
         .evolve_entity_type(def_with(2, vec![typed, untyped, new_optional]))
         .expect("new optional typed property must stay additive");
 }
-
-/// The dark window is real: conformance does not yet consume declarations.
-/// A typed declaration with a mismatching instance value still conforms in
-/// this lane — Lane 5 flips this, and this pin is DELETED there.
-#[test]
-fn conformance_ignores_declarations_in_this_lane() {
-    let typed = EntityTypePropertyDefinition::typed("count", int_decl(), internal(), true).unwrap();
-    let mut engine = OntologyEngine::default();
-    engine
-        .register_entity_type(def_with(1, vec![typed]))
-        .unwrap();
-
-    let entity = ObjectEntity::new(
-        "ten_test".into(),
-        "ent_m1".into(),
-        "ety_measure".into(),
-        vec![ObjectProperty::new(
-            "count".into(),
-            "not an integer".into(),
-            PropertyTier::Scalar,
-            internal(),
-        )],
-    )
-    .unwrap();
-    assert_eq!(engine.check_instance_conformance(&entity), Ok(()));
-}

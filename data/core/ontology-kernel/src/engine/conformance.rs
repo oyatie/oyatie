@@ -16,6 +16,7 @@ use crate::error::OntologyEngineError;
 use crate::object_graph::ObjectEntity;
 use crate::property::ObjectProperty;
 
+use super::value_conformance::{ValueCheckSubject, check_declared_value};
 use super::{OntologyEngine, ontology_scoped_key};
 
 impl OntologyEngine {
@@ -61,6 +62,11 @@ impl OntologyEngine {
             if property.value.data_class != DataClassification::from(declared.data_class) {
                 return Err(OntologyEngineError::PropertyDataClassMismatch { name: name.clone() });
             }
+            check_declared_value(
+                declared.value_type.as_ref(),
+                property,
+                ValueCheckSubject::Property,
+            )?;
         }
         Ok(())
     }
@@ -113,6 +119,11 @@ impl OntologyEngine {
                     name: value.name.clone(),
                 });
             }
+            check_declared_value(
+                declared.value_type.as_ref(),
+                value,
+                ValueCheckSubject::Parameter,
+            )?;
         }
         Ok(())
     }
