@@ -22,7 +22,7 @@ pub use contract::{
 };
 pub use engine::KnowledgeGraphQueryEngine;
 pub use link::KnowledgeGraphLinkInstance;
-pub use request::KnowledgeGraphQueryRequest;
+pub use request::{EdgeConsent, KnowledgeGraphQueryRequest};
 
 #[cfg(test)]
 mod tests;
