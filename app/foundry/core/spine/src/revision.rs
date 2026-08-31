@@ -3,14 +3,15 @@
 //! pinned vocabulary — lossless under additive-only evolution, and the
 //! per-object deprecation window D80 names. Ahead of the pin the view shows
 //! honest absence: a value the log never carried is never synthesized at
-//! read. Refusals are typed; a read never touches the poison ledger. The
-//! migration runner's shared pending predicate refines [`UpcastState`] when
-//! it lands (D80 design of record); until then written-below-pin IS pending.
+//! read. Refusals are typed; a read never touches the poison ledger. With
+//! a matching plan, [`UpcastState`] is refined by the SAME predicate the
+//! runner scans with; without one, written-below-pin is pending.
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use data_ontology_kernel::{EntityTypeId, ObjectProperty};
 
+use crate::migrate::MigrationPlan;
 use crate::state::ProjectionState;
 
 /// Where one object stands relative to a pinned revision.
@@ -59,10 +60,17 @@ pub enum ViewError {
 /// | `pinned` <= written revision | properties filtered to the pinned vocabulary, [`UpcastState::Current`] |
 /// | no binding for `object_ref` | [`ViewError::UnknownObject`] |
 /// | `pinned` never accepted | [`ViewError::UnretainedRevision`] |
+///
+/// With a plan whose entity type matches the object and whose
+/// `to_revision` is the pin, `UpcastPending` is refined by the SAME
+/// predicate the runner scans with: an object behind the pin that owes no
+/// computed target reads [`UpcastState::Current`]. Any other plan says
+/// nothing about this object and the structural rule stands.
 pub fn object_at_revision(
     state: &ProjectionState,
     object_ref: &str,
     pinned: u32,
+    plan: Option<&MigrationPlan>,
 ) -> Result<PinnedObject, ViewError> {
     let binding = state
         .bindings
@@ -91,10 +99,19 @@ pub fn object_at_revision(
         .filter(|(name, _)| declared.contains(name.as_str()))
         .map(|(name, property)| (name.clone(), property.clone()))
         .collect();
-    let upcast_state = if binding.schema_revision < pinned {
-        UpcastState::UpcastPending
-    } else {
+    let upcast_state = if binding.schema_revision >= pinned {
         UpcastState::Current
+    } else {
+        match plan {
+            Some(plan) if plan.entity_type == binding.entity_type && plan.to_revision == pinned => {
+                if crate::migrate::plan_owes(state, plan, object_ref) {
+                    UpcastState::UpcastPending
+                } else {
+                    UpcastState::Current
+                }
+            }
+            _ => UpcastState::UpcastPending,
+        }
     };
     Ok(PinnedObject {
         properties,

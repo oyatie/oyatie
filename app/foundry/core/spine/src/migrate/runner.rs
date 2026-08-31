@@ -200,7 +200,7 @@ pub fn run_to_fixpoint(
 /// the transform owes nothing: source absent, default already present, or
 /// the current value already equal (compared in kernel space through the
 /// one boundary seam).
-fn computed_target(
+pub(super) fn computed_target(
     transform: &UpcastTransform,
     entity: &ObjectEntity,
     head: &EntityTypeDefinition,
