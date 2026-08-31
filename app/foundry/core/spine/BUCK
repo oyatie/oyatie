@@ -94,3 +94,49 @@ rust_test(
         "//data/core/ontology-kernel:data-ontology-kernel",
     ],
 )
+
+rust_test(
+    name = "foundry-spine-writer-gates",
+    srcs = ["tests/writer_gates.rs"],
+    crate = "writer_gates",
+    crate_root = "tests/writer_gates.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-spine",
+        "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)
+
+rust_test(
+    name = "foundry-spine-writer-retry",
+    srcs = ["tests/writer_retry.rs"],
+    crate = "writer_retry",
+    crate_root = "tests/writer_retry.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-spine",
+        "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)
+
+rust_test(
+    name = "foundry-spine-writer-durability",
+    srcs = ["tests/writer_durability.rs"],
+    crate = "writer_durability",
+    crate_root = "tests/writer_durability.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-spine",
+        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
+        "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)
