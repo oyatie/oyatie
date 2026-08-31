@@ -33,7 +33,10 @@ pub use emission::{
 pub use error::{RefusalGate, Refused};
 pub use fold::{FoldOutcome, PoisonReason, apply_sealed, fold_from_scratch};
 pub use history::{AuditDisposition, AuditEntry, HistoryEntry, audit_view, object_history};
-pub use migrate::{DefaultValue, MigrationPlan, PlanError, UpcastTransform, ValueConversion};
+pub use migrate::{
+    DefaultValue, MigrationAuthority, MigrationPlan, MigrationStatus, PendingUpcast, PlanError,
+    UpcastTransform, ValueConversion, pending_objects, run_to_fixpoint, upcast_idempotency_key,
+};
 pub use revision::{PinnedObject, UpcastState, ViewError, object_at_revision};
 pub use state::{ObjectBinding, ProjectionState};
 pub use writer::{ActionSubmission, ApplyOutcome, WriteError, submit};
