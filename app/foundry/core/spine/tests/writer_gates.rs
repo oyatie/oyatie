@@ -65,21 +65,9 @@ struct MemoryLog {
 }
 
 impl RecordsLog for MemoryLog {
+    // Dedup never fires in these tests; the retry contract has its own
+    // file and fixture.
     fn append(&mut self, envelope: ActionEnvelope) -> Result<Receipt, RecordsLogError> {
-        if let Some(stored) = self.entries.iter().find(|sealed| {
-            sealed.envelope.tenant_id == envelope.tenant_id
-                && sealed.envelope.idempotency_key == envelope.idempotency_key
-        }) {
-            if stored.envelope == envelope {
-                let mut receipt = stored.receipt.clone();
-                receipt.deduplicated = true;
-                return Ok(receipt);
-            }
-            return Err(RecordsLogError::IdempotencyConflict {
-                tenant_id: envelope.tenant_id,
-                idempotency_key: envelope.idempotency_key,
-            });
-        }
         let ordinal = self
             .entries
             .iter()
@@ -178,8 +166,15 @@ fn create_submission(idempotency_key: &str) -> ActionSubmission {
 fn authorized_write_applies_end_to_end() {
     let registry = registry();
     let mut log = MemoryLog::default();
+    let mut denials = MemoryLog::default();
     let mut projection = ProjectionState::new("ten_test", &registry);
-    let outcome = submit(create_submission("idem_1"), &mut log, &mut projection).unwrap();
+    let outcome = submit(
+        create_submission("idem_1"),
+        &mut log,
+        &mut denials,
+        &mut projection,
+    )
+    .unwrap();
     let ApplyOutcome::Applied { receipt } = outcome else {
         panic!("expected an applied outcome, got {outcome:?}");
     };
@@ -202,10 +197,11 @@ fn authorized_write_applies_end_to_end() {
 fn unauthorized_caller_appends_nothing() {
     let registry = registry();
     let mut log = MemoryLog::default();
+    let mut denials = MemoryLog::default();
     let mut projection = ProjectionState::new("ten_test", &registry);
     let mut submission = create_submission("idem_1");
     submission.decision.allowed_surfaces = vec!["someone-elses-console".into()];
-    let refused = submit(submission, &mut log, &mut projection).unwrap_err();
+    let refused = submit(submission, &mut log, &mut denials, &mut projection).unwrap_err();
     let WriteError::Refused(refused) = refused else {
         panic!("expected a gate refusal, got {refused:?}");
     };
@@ -218,10 +214,12 @@ fn unauthorized_caller_appends_nothing() {
 fn undeclared_parameter_refuses_before_the_log() {
     let registry = registry();
     let mut log = MemoryLog::default();
+    let mut denials = MemoryLog::default();
     let mut projection = ProjectionState::new("ten_test", &registry);
     let mut submission = create_submission("idem_1");
     submission.parameters = vec![name_property("Ada")];
-    let WriteError::Refused(refused) = submit(submission, &mut log, &mut projection).unwrap_err()
+    let WriteError::Refused(refused) =
+        submit(submission, &mut log, &mut denials, &mut projection).unwrap_err()
     else {
         panic!("expected a gate refusal");
     };
@@ -233,6 +231,7 @@ fn undeclared_parameter_refuses_before_the_log() {
 fn admission_dry_run_refuses_bad_edits_before_the_log() {
     let registry = registry();
     let mut log = MemoryLog::default();
+    let mut denials = MemoryLog::default();
     let mut projection = ProjectionState::new("ten_test", &registry);
     let rogue = WireProperty::new(
         "rogue",
@@ -246,7 +245,8 @@ fn admission_dry_run_refuses_bad_edits_before_the_log() {
         OntologyEdit::create_object("ety_reading", vec![name_property("Ada"), rogue]).unwrap(),
     ])
     .unwrap();
-    let WriteError::Refused(refused) = submit(submission, &mut log, &mut projection).unwrap_err()
+    let WriteError::Refused(refused) =
+        submit(submission, &mut log, &mut denials, &mut projection).unwrap_err()
     else {
         panic!("expected a gate refusal");
     };
@@ -278,13 +278,15 @@ fn an_edit_for_a_foreign_entity_type_is_refused_at_admission() {
         )
         .unwrap();
     let mut log = MemoryLog::default();
+    let mut denials = MemoryLog::default();
     let mut projection = ProjectionState::new("ten_test", &registry);
     let mut submission = create_submission("idem_1");
     submission.edits = EditSet::new(vec![
         OntologyEdit::create_object("ety_other", vec![name_property("Ada")]).unwrap(),
     ])
     .unwrap();
-    let WriteError::Refused(refused) = submit(submission, &mut log, &mut projection).unwrap_err()
+    let WriteError::Refused(refused) =
+        submit(submission, &mut log, &mut denials, &mut projection).unwrap_err()
     else {
         panic!("expected a gate refusal");
     };
