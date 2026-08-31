@@ -2528,6 +2528,13 @@ dependencies = [
 [[package]]
 name = "foundry-spine"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+ "data-ontology-kernel",
+ "foundry-edits",
+ "foundry-records-draft",
+ "foundry-records-sqlite-draft",
+]
 
 [[package]]
 name = "fs_extra"
