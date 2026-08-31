@@ -6,6 +6,7 @@
 //! canonical bytes — fixed width over unbounded inputs, so the runner's
 //! per-object idempotency key can never overflow the envelope cap.
 
+mod attest;
 mod runner;
 mod value;
 
@@ -16,6 +17,8 @@ use data_ontology_kernel::{
     ValueTypeDeclaration,
 };
 
+pub(crate) use attest::plan_owes;
+pub use attest::{MigrationAttestation, migration_attestation};
 pub use runner::{
     MigrationAuthority, MigrationStatus, PendingUpcast, pending_objects, run_to_fixpoint,
     upcast_idempotency_key,
