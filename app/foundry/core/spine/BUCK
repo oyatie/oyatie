@@ -228,3 +228,16 @@ rust_test(
         "//data/core/ontology-kernel:data-ontology-kernel",
     ],
 )
+
+rust_test(
+    name = "foundry-spine-migration-plan",
+    srcs = ["tests/migration_plan.rs"],
+    crate = "migration_plan",
+    crate_root = "tests/migration_plan.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-spine",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)
