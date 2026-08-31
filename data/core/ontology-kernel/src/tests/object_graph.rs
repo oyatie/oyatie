@@ -91,7 +91,7 @@ fn object_entity_upsert_inserts_and_updates_property_by_name() {
     assert_eq!(entity.properties.len(), 2);
     assert_eq!(
         entity.properties["embedding"].value.value,
-        "[0.3,0.4]".to_string()
+        PropertyValue::String("[0.3,0.4]".to_string())
     );
     assert_eq!(
         entity.properties["last_seen"].tier,
@@ -199,13 +199,13 @@ fn object_graph_upsert_keeps_tenants_row_isolated() {
         graph.get("tenant_a", "ent_profile").unwrap().properties["config"]
             .value
             .value,
-        "tenant_a"
+        PropertyValue::String("tenant_a".to_string())
     );
     assert_eq!(
         graph.get("tenant_b", "ent_profile").unwrap().properties["config"]
             .value
             .value,
-        "tenant_b"
+        PropertyValue::String("tenant_b".to_string())
     );
     assert_eq!(graph.entities_for_tenant("tenant_a").count(), 1);
     assert_eq!(graph.entities_for_tenant("tenant_b").count(), 1);

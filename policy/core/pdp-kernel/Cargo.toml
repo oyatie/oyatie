@@ -1,0 +1,19 @@
+[package]
+name = "policy-pdp-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Embedded-PDP port kernel (G004 / ADR-0536 D-2): vendor-neutral PolicyDecisionPoint trait over the locked FD-001 PDP contract, policy-bundle + entity-slice value types, (request-fingerprint, policy-version)-keyed decision cache, and the per-decision audit record. Engine-free; a Cedar engine lives behind an adapter."
+
+[dependencies]
+shared-platform-contracts-kernel = { path = "../../../iam/core/platform-contracts-kernel" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true

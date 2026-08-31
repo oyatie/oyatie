@@ -4,6 +4,7 @@
 use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 use crate::object_graph::ObjectGraphError;
+use crate::value::PropertyValue;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PropertyTier {
@@ -51,9 +52,11 @@ impl PropertyTier {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ObjectProperty {
-    pub name: String,              // data_class: INTERNAL_ONLY
-    pub value: Classified<String>, // data_class: PROPERTY_VALUE_PRIVACY_CLASS
-    pub tier: PropertyTier,        // data_class: INTERNAL_ONLY
+    pub name: String, // data_class: INTERNAL_ONLY
+    /// The typed carrier. Every String-taking constructor wraps
+    /// [`PropertyValue::String`] — the legacy bridge.
+    pub value: Classified<PropertyValue>, // data_class: PROPERTY_VALUE_PRIVACY_CLASS
+    pub tier: PropertyTier, // data_class: INTERNAL_ONLY
 }
 
 impl ObjectProperty {
@@ -87,6 +90,22 @@ impl ObjectProperty {
         tier: PropertyTier,
         data_class: PrivacyDataClass,
     ) -> Self {
+        Self {
+            name,
+            value: Classified::new(PropertyValue::String(value), data_class),
+            tier,
+        }
+    }
+
+    /// A typed property: the tier is DERIVED from the value's shape
+    /// (scalars -> Scalar, Array -> Vector, Struct -> Struct), so a typed
+    /// carrier can never disagree with its tier.
+    pub fn typed(name: String, value: PropertyValue, data_class: PrivacyDataClass) -> Self {
+        let tier = match &value {
+            PropertyValue::Array(_) => PropertyTier::Vector,
+            PropertyValue::Struct(_) => PropertyTier::Struct,
+            _ => PropertyTier::Scalar,
+        };
         Self {
             name,
             value: Classified::new(value, data_class),

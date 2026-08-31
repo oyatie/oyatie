@@ -1,0 +1,33 @@
+rust_library(
+    name = "foundry-edits",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_edits",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "foundry-edits-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_edits",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "foundry-edits-vocabulary",
+    srcs = ["tests/edit_vocabulary.rs"],
+    crate = "edit_vocabulary",
+    crate_root = "tests/edit_vocabulary.rs",
+    visibility = ["PUBLIC"],
+    deps = [":foundry-edits"],
+)
+
+rust_test(
+    name = "foundry-edits-records",
+    srcs = ["tests/record_validation.rs"],
+    crate = "record_validation",
+    crate_root = "tests/record_validation.rs",
+    visibility = ["PUBLIC"],
+    deps = [":foundry-edits"],
+)

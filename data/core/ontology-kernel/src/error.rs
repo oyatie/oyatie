@@ -164,6 +164,37 @@ pub enum OntologyEngineError {
         /// Name of the mismatched property.
         name: String,
     },
+    /// An instance property's carrier does not conform to its declared
+    /// value type — or, for an untyped (`None`) declaration, the carrier is
+    /// not the legacy `PropertyValue::String` the bridge constructors
+    /// produce. The FINAL per-property conformance step; diagnostics carry
+    /// names, paths, and static type labels only, never classified values.
+    PropertyValueTypeMismatch {
+        /// Name of the nonconforming property.
+        name: String,
+        /// Dotted/indexed path from the value root, `""` at the root.
+        path: String,
+        /// The declared expectation at that path.
+        expected: &'static str,
+        /// What the carrier actually held (`"absent"` for a missing
+        /// required struct field).
+        found: &'static str,
+    },
+    /// A submitted action parameter's carrier does not conform to its
+    /// declared value type — the parameter mirror of
+    /// [`OntologyEngineError::PropertyValueTypeMismatch`], same `None`
+    /// rule, same diagnostic shape.
+    ParameterValueTypeMismatch {
+        /// Name of the nonconforming parameter.
+        name: String,
+        /// Dotted/indexed path from the value root, `""` at the root.
+        path: String,
+        /// The declared expectation at that path.
+        expected: &'static str,
+        /// What the carrier actually held (`"absent"` for a missing
+        /// required struct field).
+        found: &'static str,
+    },
     /// A link instance would violate the [`LinkCardinality`] declared on the
     /// [`LinkTypeDefinition`]. The `cardinality` field carries the constraint
     /// that was violated.

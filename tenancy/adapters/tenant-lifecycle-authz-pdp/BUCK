@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//tenancy/ports/tenant-lifecycle-authz:tenancy-tenant-lifecycle-authz-port",
-        "//iam/core/shared-pdp-kernel:shared-pdp-kernel",
+        "//policy/core/pdp-kernel:policy-pdp-kernel",
         "//iam/adapters/pdp-cedar:iam-pdp-cedar",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
         "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
@@ -25,7 +25,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//tenancy/ports/tenant-lifecycle-authz:tenancy-tenant-lifecycle-authz-port",
-        "//iam/core/shared-pdp-kernel:shared-pdp-kernel",
+        "//policy/core/pdp-kernel:policy-pdp-kernel",
         "//iam/adapters/pdp-cedar:iam-pdp-cedar",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
         "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
