@@ -5,13 +5,28 @@
 //! Layout checks only changed paths that remain after the diff is applied, so
 //! deleting legacy debt or renaming it into the canonical layout stays green.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::str;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct GitChangePaths {
     pub occupied: BTreeSet<String>,
     pub layout_candidates: BTreeSet<String>,
+    /// Destination -> source for renames Git scored exactly (`R100`).
+    ///
+    /// The SOURCE is what makes this usable. A destination alone cannot say
+    /// whether the content it carries was ever subject to the budget: the
+    /// budget is path-keyed, so an exact rename out of an exempt path
+    /// (`third-party/`, `Cargo.lock`, a live apex ADR, owner law) into a
+    /// budgeted one is oversized content arriving where the budget applies,
+    /// carrying no debt to inherit. Keeping the source lets the caller ask
+    /// the only question that justifies the exception - was this same
+    /// violation already visible where the file lived?
+    ///
+    /// `R100` is Git's similarity SCORE, not a byte-identity proof. It forces
+    /// equal length and a sub-multiset of chunk hashes, so line count cannot
+    /// grow across one; it does not certify the bytes are the same.
+    pub exact_rename_sources: BTreeMap<String, String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -96,6 +111,11 @@ pub fn git_change_paths_from_name_status_z(
             };
             let second = path(second)?;
             changes.occupied.insert(second.clone());
+            if status == "R100" {
+                changes
+                    .exact_rename_sources
+                    .insert(second.clone(), first.clone());
+            }
             changes.layout_candidates.insert(second);
             index += 1;
         } else if code != b'D' {
@@ -115,20 +135,35 @@ mod tests {
     use super::*;
 
     #[test]
-    fn rename_and_copy_occupy_both_ends_but_check_only_destinations() {
+    fn only_exact_renames_are_classified_as_unchanged_content() {
         let changes = git_change_paths_from_name_status_z(
-            b"R100\0old/name.rs\0new/name.rs\0C090\0source.rs\0copy.rs\0",
+            b"R100\0old/name.rs\0new/name.rs\0R099\0old/edited.rs\0new/edited.rs\0C100\0source.rs\0copy.rs\0M\0modified.rs\0",
         )
         .unwrap();
         assert_eq!(
             changes.occupied,
-            ["copy.rs", "new/name.rs", "old/name.rs", "source.rs"]
+            [
+                "copy.rs",
+                "modified.rs",
+                "new/edited.rs",
+                "new/name.rs",
+                "old/edited.rs",
+                "old/name.rs",
+                "source.rs",
+            ]
+            .map(str::to_owned)
+            .into()
+        );
+        assert_eq!(
+            changes.layout_candidates,
+            ["copy.rs", "modified.rs", "new/edited.rs", "new/name.rs"]
                 .map(str::to_owned)
                 .into()
         );
         assert_eq!(
-            changes.layout_candidates,
-            ["copy.rs", "new/name.rs"].map(str::to_owned).into()
+            changes.exact_rename_sources,
+            [("new/name.rs".to_owned(), "old/name.rs".to_owned())].into(),
+            "an exact rename must expose its source, not just its destination"
         );
     }
 

@@ -1,0 +1,20 @@
+[package]
+name = "policy-tuple-store-inmemory"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "In-memory RebacTupleStore. Writes are totally ordered and each yields a zookie naming that point, so a read at an earlier snapshot cannot observe a later write. The conformance substrate for relationship expansion; durability belongs to a persistent adapter behind the same port."
+
+[dependencies]
+policy-cedar-domain = { path = "../../core/cedar-domain" }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+policy-rebac-domain = { path = "../../core/rebac-domain" }

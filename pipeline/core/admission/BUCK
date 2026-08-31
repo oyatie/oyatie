@@ -1,0 +1,153 @@
+rust_library(
+    name = "pipeline-admission",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "pipeline_admission",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:toml",
+        "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
+    ],
+)
+
+rust_test(
+    name = "pipeline-admission-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "pipeline_admission",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:toml",
+        "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
+    ],
+)
+
+rust_test(
+    name = "pipeline-admission-cadence-graph",
+    srcs = ["tests/cadence_graph.rs"],
+    crate = "pipeline_admission_cadence_graph",
+    crate_root = "tests/cadence_graph.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-admission",
+        "third-party//:toml",
+        "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
+    ],
+)
+
+rust_test(
+    name = "pipeline-admission-dependency-declarations-package",
+    srcs = ["tests/dependency_declarations_package.rs"],
+    crate = "pipeline_admission_dependency_declarations_package",
+    crate_root = "tests/dependency_declarations_package.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-admission",
+        "third-party//:toml",
+        "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
+    ],
+)
+
+rust_test(
+    name = "pipeline-admission-layout",
+    srcs = ["tests/layout.rs"],
+    crate = "pipeline_admission_layout",
+    crate_root = "tests/layout.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-admission",
+        "third-party//:toml",
+        "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
+    ],
+)
+
+rust_test(
+    name = "pipeline-admission-layout-adversarial",
+    srcs = ["tests/layout_adversarial.rs"],
+    crate = "pipeline_admission_layout_adversarial",
+    crate_root = "tests/layout_adversarial.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-admission",
+        "third-party//:toml",
+        "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
+    ],
+)
+
+rust_test(
+    name = "pipeline-admission-layout-change",
+    srcs = ["tests/layout_change.rs"],
+    crate = "pipeline_admission_layout_change",
+    crate_root = "tests/layout_change.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-admission",
+        "third-party//:toml",
+        "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
+    ],
+)
+
+rust_test(
+    name = "pipeline-admission-live-postgres-contract",
+    srcs = ["tests/live_postgres_contract.rs"],
+    crate = "pipeline_admission_live_postgres_contract",
+    crate_root = "tests/live_postgres_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-admission",
+        "third-party//:toml",
+        "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
+    ],
+)
+
+rust_test(
+    name = "pipeline-admission-owners",
+    srcs = ["tests/owners.rs"],
+    crate = "pipeline_admission_owners",
+    crate_root = "tests/owners.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-admission",
+        "third-party//:toml",
+        "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
+    ],
+)
+
+rust_test(
+    name = "pipeline-admission-protected-policy-execution-context",
+    srcs = ["tests/protected_policy_execution_context.rs"],
+    crate = "pipeline_admission_protected_policy_execution_context",
+    crate_root = "tests/protected_policy_execution_context.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-admission",
+        "third-party//:toml",
+        "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
+    ],
+)
+
+rust_test(
+    name = "pipeline-admission-protected-policy-workflow",
+    srcs = ["tests/protected_policy_workflow.rs"],
+    crate = "pipeline_admission_protected_policy_workflow",
+    crate_root = "tests/protected_policy_workflow.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-admission",
+        "third-party//:toml",
+        "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
+    ],
+)
+
+rust_test(
+    name = "pipeline-admission-semantic-names",
+    srcs = ["tests/semantic_names.rs"],
+    crate = "pipeline_admission_semantic_names",
+    crate_root = "tests/semantic_names.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-admission",
+        "third-party//:toml",
+        "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
+    ],
+)
