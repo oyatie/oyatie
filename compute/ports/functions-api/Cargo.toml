@@ -1,0 +1,22 @@
+[package]
+name = "compute-functions-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
+compute-domain = { path = "../../core/domain" }
+compute-resource = { path = "../../core/resource" }
+
+
+[dev-dependencies]
+network-residency = { path = "../../../network/core/residency" }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
