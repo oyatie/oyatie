@@ -27,6 +27,7 @@ fn star(spokes: usize) -> (ObjectGraph, KnowledgeGraphQueryEngine) {
     for n in 0..spokes {
         engine
             .upsert_link(
+                &registry(),
                 &graph,
                 KnowledgeGraphLinkInstance::new(
                     "ten_alpha",

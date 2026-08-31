@@ -105,6 +105,7 @@ fn freshness_filter_still_applies_to_consented_edges() {
     // Insert a consented edge that is stale (observed_at = 5, freshness_floor = 10).
     engine
         .upsert_link(
+            &registry(),
             &g,
             KnowledgeGraphLinkInstance::new("ten_alpha", "ent_root", "ent_b", "lty_partner", 5)
                 .unwrap(),

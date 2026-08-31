@@ -29,6 +29,7 @@ fn additional_roots_expand_disconnected_components() {
     for (from, to) in [("ent_a", "ent_a1"), ("ent_b", "ent_b1")] {
         engine
             .upsert_link(
+                &registry(),
                 &graph,
                 KnowledgeGraphLinkInstance::new("ten_alpha", from, to, "lty_knows", 100).unwrap(),
             )

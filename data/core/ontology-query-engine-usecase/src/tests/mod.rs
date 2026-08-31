@@ -1,80 +1,8 @@
-//! The original inline test corpus, body verbatim.
+//! Idempotent-execution tests over the query engine.
 
-use crate::*;
-use data_ontology_kernel::ObjectGraph;
-use data_ontology_query_engine_domain::{
-    EdgeConsent, KnowledgeGraphQueryEngine, KnowledgeGraphQueryError, KnowledgeGraphQueryRequest,
-    TraversalDirection,
-};
+mod fixtures;
 
-use data_boundary_kernel::{DataClass, PrivacyDataClass};
-use data_ontology_kernel::{ObjectEntity, ObjectProperty, PropertyTier};
-use data_ontology_query_engine_domain::KnowledgeGraphLinkInstance;
-
-fn property(name: &str) -> ObjectProperty {
-    ObjectProperty::new(
-        name.to_string(),
-        "value".to_string(),
-        PropertyTier::Scalar,
-        PrivacyDataClass::try_from(DataClass::InternalOnly).unwrap(),
-    )
-}
-
-fn graph_and_engine() -> (ObjectGraph, KnowledgeGraphQueryEngine) {
-    let mut graph = ObjectGraph::default();
-    for (entity_id, entity_type) in [("ent_root", "ety_account"), ("ent_child", "ety_contact")] {
-        graph
-            .upsert_entity(
-                ObjectEntity::new(
-                    "ten_alpha".to_string(),
-                    entity_id.to_string(),
-                    entity_type.to_string(),
-                    vec![property("name")],
-                )
-                .unwrap(),
-            )
-            .unwrap();
-    }
-    let mut engine = KnowledgeGraphQueryEngine::default();
-    engine
-        .upsert_link(
-            &graph,
-            KnowledgeGraphLinkInstance::new("ten_alpha", "ent_root", "ent_child", "lty_owns", 10)
-                .unwrap(),
-        )
-        .unwrap();
-    (graph, engine)
-}
-
-fn input(idempotency_key: &str) -> OntologyQueryExecutionInput {
-    OntologyQueryExecutionInput {
-        idempotency_key: idempotency_key.to_string(),
-        principal_id: "usr_alice".to_string(),
-        query_surface: "ontology.query.graph_slice".to_string(),
-        request_evidence_ref: "evidence://query/request/kgq_alpha".to_string(),
-        trace_context_ref: "trace://kgq_alpha".to_string(),
-        request: KnowledgeGraphQueryRequest::new(
-            "ten_alpha",
-            "kgq_alpha",
-            "ent_root",
-            vec!["lty_owns"],
-            1,
-            0,
-            12,
-            EdgeConsent::granted(vec!["lty_owns"]),
-            TraversalDirection::Outbound,
-        )
-        .unwrap(),
-        policy_decision: OntologyQueryPolicyDecision {
-            decision_id: "dec_allow_query".to_string(),
-            tenant_id: "ten_alpha".to_string(),
-            principal_id: "usr_alice".to_string(),
-            allowed_query_surfaces: vec!["ontology.query.graph_slice".to_string()],
-            max_depth_ceiling: 4,
-            evidence_ref: "evidence://policy/dec_allow_query".to_string(),
-        },
-    }
-}
+use fixtures::*;
 
 #[test]
 fn executes_authorized_query_with_audit_metadata_and_receipt() {

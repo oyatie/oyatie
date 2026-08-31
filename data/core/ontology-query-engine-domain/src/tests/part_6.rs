@@ -30,6 +30,7 @@ fn inbound_tenant_isolation() {
     // ten_alpha: ent_pred -> ent_root
     engine
         .upsert_link(
+            &registry(),
             &g,
             KnowledgeGraphLinkInstance::new("ten_alpha", "ent_pred", "ent_root", "lty_owns", 1)
                 .unwrap(),
@@ -38,6 +39,7 @@ fn inbound_tenant_isolation() {
     // ten_beta: ent_beta_pred -> ent_beta_root (different tenant — must not leak)
     engine
         .upsert_link(
+            &registry(),
             &g,
             KnowledgeGraphLinkInstance::new(
                 "ten_beta",
@@ -106,6 +108,7 @@ fn inbound_cycle_no_unbounded_revisit() {
     for (from, to) in [("ent_a", "ent_b"), ("ent_b", "ent_c"), ("ent_c", "ent_a")] {
         engine
             .upsert_link(
+                &registry(),
                 &g,
                 KnowledgeGraphLinkInstance::new("ten_alpha", from, to, "lty_owns", 1).unwrap(),
             )
