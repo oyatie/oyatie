@@ -16,6 +16,8 @@ mod dependency_currency;
 mod dependency_currency_refusals;
 #[path = "support/dependency_graph.rs"]
 mod dependency_graph;
+#[path = "support/dependency_graph_closure_scale.rs"]
+mod dependency_graph_closure_scale;
 #[path = "support/dependency_graph_control.rs"]
 mod dependency_graph_control;
 #[path = "support/dependency_graph_refusals.rs"]
