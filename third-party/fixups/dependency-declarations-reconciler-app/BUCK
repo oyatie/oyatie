@@ -1,5 +1,0 @@
-export_file(
-    name = "fixups.toml",
-    visibility = ["root//build/dependency-declarations/facade/reconciler-app:dependency-declarations-reconciler-app-module-membership-test"],
-    within_view = ["third-party//fixups/dependency-declarations-reconciler-app/..."],
-)

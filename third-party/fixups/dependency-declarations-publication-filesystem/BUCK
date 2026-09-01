@@ -1,5 +1,0 @@
-export_file(
-    name = "fixups.toml",
-    visibility = ["root//build/dependency-declarations/adapters/publication-filesystem:dependency-declarations-publication-filesystem-module-membership-test"],
-    within_view = ["third-party//fixups/dependency-declarations-publication-filesystem/..."],
-)

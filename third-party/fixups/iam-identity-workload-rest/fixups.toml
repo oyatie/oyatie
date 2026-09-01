@@ -1,3 +1,0 @@
-[buildscript]
-# Generates the identity workload REST service's gRPC Rust bindings.
-run = true

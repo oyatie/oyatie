@@ -170,7 +170,7 @@ fn repository_cargo_substitutions_are_forbidden() {
 fn pull_request_merge_tree_uses_current_dev_ownership() {
     let root = fixture();
     let initial = commit(&root, "initial");
-    write(&root, "policy/README.md", "candidate note\n");
+    write(&root, "policy/OWNERS", "policy\n");
     let candidate = commit(&root, "stale candidate");
     git(&root, &["branch", "candidate"]);
 
@@ -185,9 +185,6 @@ fn pull_request_merge_tree_uses_current_dev_ownership() {
         "policy/core/evaluate/src/lib.rs",
         "pub fn check() {}\n",
     );
-    for law in ["ADR.md", "PRD.md", "SPEC.md", "PLAN.md"] {
-        write(&root, &format!("policy/{law}"), "law\n");
-    }
     let dev = commit(&root, "dev creates policy");
 
     git(&root, &["checkout", "--quiet", "candidate"]);

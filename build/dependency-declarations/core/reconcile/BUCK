@@ -1,6 +1,5 @@
 load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
 
-_FIXUP = "third-party//fixups/dependency-declarations-reconcile:fixups.toml"
 _PACKAGE_VIEW = ["//build/dependency-declarations/core/reconcile/..."]
 
 rust_binary(
@@ -63,11 +62,13 @@ rust_library(
         "//build/dependency-declarations/core/reconcile/...",
         "//build/dependency-declarations/ports/generation/...",
         "//build/dependency-declarations/ports/publication/...",
+        "third-party//:semver",
         "third-party//:sha2",
     ],
     deps = [
         "//build/dependency-declarations/ports/generation:dependency-declarations-generation",
         "//build/dependency-declarations/ports/publication:dependency-declarations-publication",
+        "third-party//:semver",
         "third-party//:sha2",
     ],
 )
@@ -77,12 +78,138 @@ rust_test(
     srcs = ["build.rs", "tests/module_membership.rs"],
     crate = "dependency_declarations_reconcile_module_membership_test",
     crate_root = "tests/module_membership.rs",
-    env = {
-        "CARGO_MANIFEST_DIR": "build/dependency-declarations/core/reconcile",
-        "DEPENDENCY_DECLARATIONS_RECONCILE_FIXUP": "$(location {})".format(_FIXUP),
-    },
-    resources = [_FIXUP],
     visibility = [],
-    within_view = _PACKAGE_VIEW + [_FIXUP],
+    within_view = _PACKAGE_VIEW,
     deps = [":dependency-declarations-reconcile"],
+)
+
+_KERNEL_TEST_DEPS = [
+    ":dependency-declarations-reconcile",
+    "//build/dependency-declarations/ports/generation:dependency-declarations-generation",
+    "//build/dependency-declarations/ports/publication:dependency-declarations-publication",
+]
+
+_KERNEL_TEST_SUPPORT = [
+    "tests/support/consumer.rs",
+    "tests/support/effects.rs",
+    "tests/support/mod.rs",
+    "tests/support/provider.rs",
+    "tests/support/request_helpers.rs",
+]
+
+_KERNEL_TEST_VIEW = [
+    "//build/dependency-declarations/core/reconcile/...",
+    "//build/dependency-declarations/ports/generation/...",
+    "//build/dependency-declarations/ports/publication/...",
+]
+
+rust_test(
+    name = "dependency-declarations-reconcile-request-test",
+    srcs = [
+        "tests/request.rs",
+        "tests/request/input_reads.rs",
+    ] + _KERNEL_TEST_SUPPORT,
+    crate = "dependency_declarations_reconcile_request_test",
+    crate_root = "tests/request.rs",
+    visibility = [],
+    within_view = _KERNEL_TEST_VIEW,
+    deps = _KERNEL_TEST_DEPS,
+)
+
+rust_test(
+    name = "dependency-declarations-reconcile-determinism-test",
+    srcs = ["tests/determinism.rs"] + _KERNEL_TEST_SUPPORT,
+    crate = "dependency_declarations_reconcile_determinism_test",
+    crate_root = "tests/determinism.rs",
+    visibility = [],
+    within_view = _KERNEL_TEST_VIEW,
+    deps = _KERNEL_TEST_DEPS,
+)
+
+rust_test(
+    name = "dependency-declarations-reconcile-freshness-test",
+    srcs = ["tests/freshness.rs"] + _KERNEL_TEST_SUPPORT,
+    crate = "dependency_declarations_reconcile_freshness_test",
+    crate_root = "tests/freshness.rs",
+    visibility = [],
+    within_view = _KERNEL_TEST_VIEW,
+    deps = _KERNEL_TEST_DEPS,
+)
+
+rust_test(
+    name = "dependency-declarations-reconcile-validation-test",
+    srcs = [
+        "tests/validation.rs",
+        "tests/validation/semantic_maps.rs",
+    ] + _KERNEL_TEST_SUPPORT,
+    crate = "dependency_declarations_reconcile_validation_test",
+    crate_root = "tests/validation.rs",
+    visibility = [],
+    within_view = _KERNEL_TEST_VIEW,
+    deps = _KERNEL_TEST_DEPS,
+)
+
+rust_test(
+    name = "dependency-declarations-reconcile-publication-test",
+    srcs = ["tests/publication.rs"] + _KERNEL_TEST_SUPPORT,
+    crate = "dependency_declarations_reconcile_publication_test",
+    crate_root = "tests/publication.rs",
+    visibility = [],
+    within_view = _KERNEL_TEST_VIEW,
+    deps = _KERNEL_TEST_DEPS,
+)
+
+rust_test(
+    name = "dependency-declarations-reconcile-refusals-test",
+    srcs = ["tests/refusals.rs"] + _KERNEL_TEST_SUPPORT,
+    crate = "dependency_declarations_reconcile_refusals_test",
+    crate_root = "tests/refusals.rs",
+    visibility = [],
+    within_view = _KERNEL_TEST_VIEW,
+    deps = _KERNEL_TEST_DEPS,
+)
+
+rust_test(
+    name = "dependency-declarations-reconcile-lifecycle-test",
+    srcs = [
+        "tests/lifecycle.rs",
+        "tests/support/advisory.rs",
+        "tests/support/advisory_control.rs",
+        "tests/support/advisory_refusals.rs",
+        "tests/support/dependency_candidate.rs",
+        "tests/support/dependency_candidate_axes.rs",
+        "tests/support/dependency_candidate_refusals.rs",
+        "tests/support/dependency_currency.rs",
+        "tests/support/dependency_currency_refusals.rs",
+        "tests/support/dependency_graph.rs",
+        "tests/support/dependency_graph_closure_scale.rs",
+        "tests/support/dependency_graph_control.rs",
+        "tests/support/dependency_graph_refusals.rs",
+        "tests/support/dependency_graph_scale.rs",
+        "tests/support/dependency_qualification.rs",
+        "tests/support/dependency_qualification_refusals.rs",
+        "tests/support/lifecycle.rs",
+        "tests/support/lifecycle_producer_artifact.rs",
+        "tests/support/lifecycle_producer_artifact_fixture.rs",
+        "tests/support/lifecycle_refusals.rs",
+        "tests/support/lifecycle_release_control.rs",
+        "tests/support/lifecycle_toolchain_delta.rs",
+        "tests/support/lifecycle_toolchain_currency.rs",
+        "tests/support/lifecycle_toolchain_currency_refusals.rs",
+        "tests/support/lifecycle_toolchain_posture.rs",
+        "tests/support/lifecycle_toolchain_posture_refusals.rs",
+        "tests/support/lifecycle_toolchain_refusals.rs",
+        "tests/support/lifecycle_toolchain_recovery.rs",
+        "tests/support/lifecycle_toolchain_recovery_refusals.rs",
+        "tests/support/lifecycle_toolchain_safety.rs",
+        "tests/support/lifecycle_toolchain_safety_refusals.rs",
+        "tests/support/lifecycle_toolchain_transition.rs",
+        "tests/support/toolchain_currency_support.rs",
+        "tests/support/toolchain_safety_support.rs",
+    ],
+    crate = "dependency_declarations_reconcile_lifecycle_test",
+    crate_root = "tests/lifecycle.rs",
+    visibility = [],
+    within_view = _KERNEL_TEST_VIEW,
+    deps = _KERNEL_TEST_DEPS,
 )
