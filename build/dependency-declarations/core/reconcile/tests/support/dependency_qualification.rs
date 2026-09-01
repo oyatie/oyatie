@@ -1,8 +1,8 @@
 use super::dependency_candidate::*;
 use super::dependency_currency::currency_assessment;
 use super::dependency_graph::{
-    complete_envelope, continue_dependency_graph_construction, continue_dependency_impact, node,
-    qualified_h2_candidate,
+    complete_envelope_for_toolchain, continue_dependency_graph_construction,
+    continue_dependency_impact, node, qualified_h2_candidate,
 };
 use super::lifecycle_support::{digest, profile};
 use dependency_declarations_reconcile::*;
@@ -107,14 +107,19 @@ pub(super) fn candidate_with_proposed_msrv(
     DependencyCandidateV1::try_new(current, proposed, digest("qualified-candidate")).unwrap()
 }
 
-pub(super) fn candidate_impact(candidate: &DependencyCandidateV1, now: u64) -> DependencyImpactV1 {
-    let envelope = complete_envelope(
+pub(super) fn candidate_impact(
+    candidate: &DependencyCandidateV1,
+    matrix: &ToolchainMatrixV1,
+    now: u64,
+) -> DependencyImpactV1 {
+    let envelope = complete_envelope_for_toolchain(
         vec![FactEvidenceClassV1::Declared, FactEvidenceClassV1::Proven],
         FactCertaintyV1::Exact,
         FactCoverageV1::CompleteForScope {
             scope_sha256: digest("dependency-impact-scope"),
             exclusions_sha256: digest("dependency-impact-exclusions"),
         },
+        matrix.identity_sha256(),
         100,
         1_000,
     );
@@ -139,7 +144,6 @@ pub(super) fn candidate_impact(candidate: &DependencyCandidateV1, now: u64) -> D
         .impacts()[0]
         .clone()
 }
-
 #[test]
 fn msrv_precheck_keeps_declared_floor_and_stable_execution_separate() {
     let candidate = qualified_h2_candidate();
@@ -189,7 +193,7 @@ fn quarantine_holds_both_windows_and_security_bypasses_only_time_gates() {
             eligible_at: LifecycleTimestampV1::from_unix_seconds(320),
         }
     );
-    let impact = candidate_impact(&candidate, 250);
+    let impact = candidate_impact(&candidate, &matrix, 250);
     let currency = currency_assessment(&candidate, 250);
     let recommendation = DependencyQualificationRecommendationV1::try_new(
         &candidate,
@@ -245,10 +249,11 @@ fn quarantine_holds_both_windows_and_security_bypasses_only_time_gates() {
         })
     );
 
-    let higher_floor = DependencyMsrvCompatibilityV1::new(&candidate, &qualification_matrix(63));
+    let higher_floor_matrix = qualification_matrix(63);
+    let higher_floor = DependencyMsrvCompatibilityV1::new(&candidate, &higher_floor_matrix);
     let blocked = DependencyQualificationRecommendationV1::try_new(
         &candidate,
-        &impact,
+        &candidate_impact(&candidate, &higher_floor_matrix, 250),
         &higher_floor,
         &expedited,
         &currency,
@@ -270,7 +275,7 @@ fn mature_candidate_is_ready_for_qualification_not_accepted() {
     let policy = quarantine_policy();
     let now = LifecycleTimestampV1::from_unix_seconds(350);
     let quarantine = DependencyQuarantineV1::try_evaluate(&candidate, &policy, None, now).unwrap();
-    let impact = candidate_impact(&candidate, 350);
+    let impact = candidate_impact(&candidate, &matrix, 350);
     let currency = currency_assessment(&candidate, 350);
     let recommendation = DependencyQualificationRecommendationV1::try_new(
         &candidate,

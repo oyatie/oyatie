@@ -7,20 +7,15 @@ use dependency_declarations_reconcile::{
     CallArgumentsRefV1, DigestV1, SemanticValueRefV1, SemanticValueV1,
 };
 
-use crate::cargo_build::build_reindeer_binary;
-use crate::support::{materialized_fixture, parse_artifact, pinned_source_root, run_artifact};
+use crate::support::{QualifiedProvider, parse_artifact, run_artifact};
 
-#[test]
-#[ignore = "requires the exact upstream Reindeer source snapshot"]
-fn artifact_traverses_non_workspace_dependency_kinds_without_generating_workspace_rules() {
-    let snapshot = crate::support::source_snapshot(&pinned_source_root());
-    let (_, fixture) = materialized_fixture(&snapshot);
-    let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
-    let binary = build_reindeer_binary(&cargo, fixture.path());
-    let root = fixture.path().join("qualification-workspace-roots");
+pub(super) fn artifact_traverses_non_workspace_dependency_kinds_without_generating_workspace_rules(
+    provider: &QualifiedProvider,
+) {
+    let root = provider.source_root().join("qualification-workspace-roots");
     write_workspace(&root);
 
-    let bytes = run_artifact(&binary, &root, "workspace-roots");
+    let bytes = run_artifact(provider.binary(), &root, "workspace-roots");
     let artifact = parse_artifact(&bytes);
     let buck = std::str::from_utf8(artifact.rendered_buck).unwrap();
     let projection = StarlarkSyntaxProjectionV1::new(DigestV1::of(b"workspace-root-fixture"))

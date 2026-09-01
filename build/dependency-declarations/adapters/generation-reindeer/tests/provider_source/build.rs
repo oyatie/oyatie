@@ -3,8 +3,10 @@ use std::ffi::OsStr;
 use std::path::Path;
 use std::process::Command;
 
-use crate::cargo_build::CargoMessageStreamV1;
-use crate::support::{SourceFixture, materialized_fixture, pinned_source_root, source_snapshot};
+use dependency_declarations_generation_reindeer::ReindeerProviderSourceSnapshotV1;
+
+use crate::cargo_build::{CargoMessageStreamV1, qualification_target_dir};
+use crate::support::{QualifiedProvider, SourceFixture};
 
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct ClippyDiagnosticV1 {
@@ -13,16 +15,14 @@ struct ClippyDiagnosticV1 {
     message: String,
 }
 
-#[test]
-#[ignore = "requires the exact upstream Reindeer source snapshot"]
-fn adapted_source_builds_as_the_pinned_provider() {
-    let source_root = pinned_source_root();
-    let snapshot = source_snapshot(&source_root);
-    let pristine = SourceFixture::from_snapshot(&snapshot);
-    let (_, fixture) = materialized_fixture(&snapshot);
+pub(super) fn adapted_source_builds_as_the_pinned_provider(
+    snapshot: &ReindeerProviderSourceSnapshotV1,
+    provider: &QualifiedProvider,
+) {
+    let pristine = SourceFixture::from_snapshot(snapshot);
     let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
     let pristine_diagnostics = clippy_diagnostics(&cargo, pristine.path());
-    let adapted_diagnostics = clippy_diagnostics(&cargo, fixture.path());
+    let adapted_diagnostics = clippy_diagnostics(&cargo, provider.source_root());
     for (diagnostic, adapted_count) in adapted_diagnostics {
         let pristine_count = pristine_diagnostics
             .get(&diagnostic)
@@ -36,8 +36,11 @@ fn adapted_source_builds_as_the_pinned_provider() {
 
     let fault_tests = Command::new(cargo)
         .args(["test", "--locked", "--offline", "artifact_"])
-        .current_dir(fixture.path())
-        .env("CARGO_TARGET_DIR", fixture.path().join("target"))
+        .current_dir(provider.source_root())
+        .env(
+            "CARGO_TARGET_DIR",
+            qualification_target_dir(provider.source_root()),
+        )
         .output()
         .expect("adapted provider fault tests must run");
     assert_command_succeeded(&fault_tests, "fault tests");
@@ -54,7 +57,7 @@ fn clippy_diagnostics(cargo: &OsStr, root: &Path) -> BTreeMap<ClippyDiagnosticV1
             "--message-format=json",
         ])
         .current_dir(root)
-        .env("CARGO_TARGET_DIR", root.join("target"))
+        .env("CARGO_TARGET_DIR", qualification_target_dir(root))
         .output()
         .expect("provider Clippy differential must run");
     assert_command_succeeded(&output, "Clippy differential");

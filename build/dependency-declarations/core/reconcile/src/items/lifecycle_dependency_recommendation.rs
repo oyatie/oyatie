@@ -60,6 +60,12 @@ impl DependencyQualificationRecommendationV1 {
             || impact.current_release_identity_sha256()
                 != candidate.current().identity_sha256()
             || msrv.candidate_identity_sha256() != candidate_identity_sha256
+            || msrv.toolchain_matrix_identity_sha256()
+                != impact
+                    .fact_envelope()
+                    .temporal()
+                    .scope()
+                    .toolchain_sha256()
             || quarantine.candidate_identity_sha256() != candidate_identity_sha256
             || quarantine.evaluated_at() != evaluated_at
             || currency.candidate_identity_sha256() != candidate_identity_sha256

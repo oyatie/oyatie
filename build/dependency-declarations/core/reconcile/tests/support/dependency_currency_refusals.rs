@@ -1,8 +1,44 @@
-use super::dependency_currency::{currency_decision, currency_policy};
+use super::dependency_currency::{
+    currency_decision, currency_policy, qualification_recommendation,
+};
 use super::dependency_graph::{qualified_candidate, qualified_h2_candidate};
 use super::dependency_qualification::{candidate_impact, qualification_matrix, quarantine_policy};
 use super::lifecycle_support::digest;
 use dependency_declarations_reconcile::*;
+
+#[test]
+fn recommendation_refuses_msrv_evidence_from_an_alternate_toolchain_matrix() {
+    let candidate = qualified_h2_candidate();
+    let impact_matrix = qualification_matrix(64);
+    let alternate_matrix = qualification_matrix(65);
+    let alternate_compatibility = DependencyMsrvCompatibilityV1::new(&candidate, &alternate_matrix);
+    let now = LifecycleTimestampV1::from_unix_seconds(350);
+    let quarantine =
+        DependencyQuarantineV1::try_evaluate(&candidate, &quarantine_policy(), None, now).unwrap();
+    let impact = candidate_impact(&candidate, &impact_matrix, 350);
+
+    assert!(matches!(
+        alternate_compatibility.proposed(),
+        DependencyMsrvRelationV1::WithinDeclaredFloor { .. }
+    ));
+    assert_ne!(
+        alternate_compatibility.toolchain_matrix_identity_sha256(),
+        impact.fact_envelope().temporal().scope().toolchain_sha256()
+    );
+    let failure = qualification_recommendation(
+        &candidate,
+        &impact,
+        &alternate_compatibility,
+        &quarantine,
+        now,
+    )
+    .unwrap_err();
+
+    assert_eq!(
+        failure.class(),
+        LifecycleFailureClassV1::DependencyAnalysisMismatch
+    );
+}
 
 #[test]
 fn currency_policy_identity_binds_every_control() {
@@ -155,7 +191,7 @@ fn recommendation_refuses_mismatched_currency_evidence() {
     let compatibility = DependencyMsrvCompatibilityV1::new(&tokio, &matrix);
     let quarantine =
         DependencyQuarantineV1::try_evaluate(&tokio, &quarantine_policy(), None, now).unwrap();
-    let impact = candidate_impact(&tokio, 250);
+    let impact = candidate_impact(&tokio, &matrix, 250);
     let h2_currency =
         DependencyCurrencyAssessmentV1::try_evaluate(&h2, &currency_policy(), None, now).unwrap();
     let wrong_time_currency = DependencyCurrencyAssessmentV1::try_evaluate(

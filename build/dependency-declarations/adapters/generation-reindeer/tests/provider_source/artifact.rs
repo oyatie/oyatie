@@ -4,28 +4,23 @@ use dependency_declarations_generation::RenderedDeclarationProjectionPort;
 use dependency_declarations_generation_reindeer::StarlarkSyntaxProjectionV1;
 use dependency_declarations_reconcile::DigestV1;
 
-use crate::cargo_build::build_reindeer_binary;
 use crate::qualification::assert_provider_parser_reconciliation;
 use crate::support::{
-    materialized_fixture, parse_artifact, pinned_source_root, run_artifact, source_snapshot,
-    write_qualification_workspace,
+    QualifiedProvider, parse_artifact, run_artifact, write_qualification_workspace,
 };
 
-#[test]
-#[ignore = "requires the exact upstream Reindeer source snapshot"]
-fn one_adapted_binary_produces_distinct_equivalent_whole_graph_runs() {
-    let snapshot = source_snapshot(&pinned_source_root());
-    let (adaptation, fixture) = materialized_fixture(&snapshot);
-    let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
-    let binary = build_reindeer_binary(&cargo, fixture.path());
+pub(super) fn one_adapted_binary_produces_distinct_equivalent_whole_graph_runs(
+    provider: &QualifiedProvider,
+) {
+    let binary = provider.binary();
 
-    let run_a = fixture.path().join("qualification-a");
-    let run_b = fixture.path().join("qualification-b");
+    let run_a = provider.source_root().join("qualification-a");
+    let run_b = provider.source_root().join("qualification-b");
     write_qualification_workspace(&run_a);
     write_qualification_workspace(&run_b);
-    let first_bytes = run_artifact(&binary, &run_a, "run-a");
-    let second_bytes = run_artifact(&binary, &run_b, "run-b");
-    let help = Command::new(&binary)
+    let first_bytes = run_artifact(binary, &run_a, "run-a");
+    let second_bytes = run_artifact(binary, &run_b, "run-b");
+    let help = Command::new(binary)
         .arg("-c")
         .arg(run_a.join("reindeer.toml"))
         .args(["buckify", "--help"])
@@ -36,13 +31,17 @@ fn one_adapted_binary_produces_distinct_equivalent_whole_graph_runs() {
     let projection = StarlarkSyntaxProjectionV1::new(DigestV1::of(b"qualification-profile"))
         .project(first.rendered_buck)
         .expect("maintained parser must project exact provider output");
-    let recipe_identity = adaptation.profile().recipe_identity().as_bytes();
-    let semantic_schema = adaptation.schema().semantic_schema_sha256().bytes();
+    let recipe_identity = provider.adaptation().profile().recipe_identity().as_bytes();
+    let semantic_schema = provider
+        .adaptation()
+        .schema()
+        .semantic_schema_sha256()
+        .bytes();
 
     assert!(help.status.success());
     assert!(!String::from_utf8_lossy(&help.stdout).contains("--artifact-v1"));
     for option in ["--stdout", "--fast", "--vendor-cleanup"] {
-        assert_artifact_option_refused(&binary, &run_a, option);
+        assert_artifact_option_refused(binary, &run_a, option);
     }
     assert!(!run_a.join("third-party/BUCK").exists());
     assert!(!run_b.join("third-party/BUCK").exists());
@@ -70,7 +69,7 @@ fn one_adapted_binary_produces_distinct_equivalent_whole_graph_runs() {
             .windows(18)
             .any(|bytes| bytes == b"cargo.rust_library")
     );
-    assert_provider_parser_reconciliation(&binary, &adaptation, &run_a, &run_b);
+    assert_provider_parser_reconciliation(binary, provider.adaptation(), &run_a, &run_b);
 }
 
 fn assert_artifact_option_refused(binary: &std::path::Path, root: &std::path::Path, option: &str) {

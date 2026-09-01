@@ -159,7 +159,7 @@ fn currency_exception_is_temporal_and_never_bypasses_qualification_safety() {
         LifecycleTimestampV1::from_unix_seconds(270),
     )
     .unwrap();
-    let impact = candidate_impact(&candidate, 270);
+    let impact = candidate_impact(&candidate, &matrix, 270);
     let recommendation = DependencyQualificationRecommendationV1::try_new(
         &candidate,
         &impact,
@@ -203,8 +203,9 @@ fn currency_and_security_exceptions_keep_independent_authority() {
         now,
     )
     .unwrap();
-    let compatibility = DependencyMsrvCompatibilityV1::new(&candidate, &qualification_matrix(64));
-    let impact = candidate_impact(&candidate, 250);
+    let matrix = qualification_matrix(64);
+    let compatibility = DependencyMsrvCompatibilityV1::new(&candidate, &matrix);
+    let impact = candidate_impact(&candidate, &matrix, 250);
     let recommendation = DependencyQualificationRecommendationV1::try_new(
         &candidate,
         &impact,

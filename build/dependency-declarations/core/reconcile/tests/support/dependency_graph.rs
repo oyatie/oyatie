@@ -50,12 +50,30 @@ pub(super) fn complete_envelope(
     observed_at: u64,
     fresh_until: u64,
 ) -> FactEnvelopeV1 {
+    complete_envelope_for_toolchain(
+        evidence,
+        certainty,
+        coverage,
+        digest("rust-toolchain-profile"),
+        observed_at,
+        fresh_until,
+    )
+}
+
+pub(super) fn complete_envelope_for_toolchain(
+    evidence: Vec<FactEvidenceClassV1>,
+    certainty: FactCertaintyV1,
+    coverage: FactCoverageV1,
+    toolchain_sha256: DigestV1,
+    observed_at: u64,
+    fresh_until: u64,
+) -> FactEnvelopeV1 {
     let scope = FactTemporalScopeV1::try_new(
         "oyatie/oyatie",
         digest("repository-revision"),
         digest("repository-snapshot"),
         digest("cargo-buck-configurations"),
-        digest("rust-toolchain-profile"),
+        toolchain_sha256,
         digest("dependency-graph-producer"),
         digest("dependency-graph-schema"),
     )

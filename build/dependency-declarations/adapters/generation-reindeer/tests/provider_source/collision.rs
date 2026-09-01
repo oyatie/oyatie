@@ -1,20 +1,15 @@
 use std::fs;
 use std::path::Path;
 
-use crate::cargo_build::build_reindeer_binary;
-use crate::support::{materialized_fixture, parse_artifact, pinned_source_root, run_artifact};
+use crate::support::{QualifiedProvider, parse_artifact, run_artifact};
 
-#[test]
-#[ignore = "requires the exact upstream Reindeer source snapshot"]
-fn artifact_public_aliases_are_version_qualified_when_logical_names_collide() {
-    let snapshot = crate::support::source_snapshot(&pinned_source_root());
-    let (_, fixture) = materialized_fixture(&snapshot);
-    let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
-    let binary = build_reindeer_binary(&cargo, fixture.path());
-    let root = fixture.path().join("qualification-collision");
+pub(super) fn artifact_public_aliases_are_version_qualified_when_logical_names_collide(
+    provider: &QualifiedProvider,
+) {
+    let root = provider.source_root().join("qualification-collision");
     write_collision_workspace(&root);
 
-    let bytes = run_artifact(&binary, &root, "public-name-collision");
+    let bytes = run_artifact(provider.binary(), &root, "public-name-collision");
     let artifact = parse_artifact(&bytes);
     let buck = std::str::from_utf8(artifact.rendered_buck).unwrap();
 

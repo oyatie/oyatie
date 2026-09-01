@@ -44,6 +44,37 @@ pub(super) fn source_snapshot(root: &Path) -> ReindeerProviderSourceSnapshotV1 {
     ReindeerProviderSourceSnapshotV1::try_new(PINNED_REVISION, source_batch(root)).unwrap()
 }
 
+pub(super) struct QualifiedProvider {
+    adaptation: ReindeerProviderSourceAdaptationV1,
+    fixture: SourceFixture,
+    binary: PathBuf,
+}
+
+impl QualifiedProvider {
+    pub(super) fn adaptation(&self) -> &ReindeerProviderSourceAdaptationV1 {
+        &self.adaptation
+    }
+
+    pub(super) fn source_root(&self) -> &Path {
+        self.fixture.path()
+    }
+
+    pub(super) fn binary(&self) -> &Path {
+        &self.binary
+    }
+}
+
+pub(super) fn qualify_provider(snapshot: &ReindeerProviderSourceSnapshotV1) -> QualifiedProvider {
+    let (adaptation, fixture) = materialized_fixture(snapshot);
+    let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
+    let binary = crate::cargo_build::build_reindeer_binary(&cargo, fixture.path());
+    QualifiedProvider {
+        adaptation,
+        fixture,
+        binary,
+    }
+}
+
 pub(super) fn materialized_fixture(
     snapshot: &ReindeerProviderSourceSnapshotV1,
 ) -> (ReindeerProviderSourceAdaptationV1, SourceFixture) {

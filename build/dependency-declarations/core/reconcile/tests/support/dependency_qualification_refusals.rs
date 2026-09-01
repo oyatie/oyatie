@@ -23,7 +23,7 @@ fn absent_or_unknown_msrv_remains_an_explicit_qualification_blocker() {
         let compatibility = DependencyMsrvCompatibilityV1::new(&candidate, &matrix);
         let quarantine =
             DependencyQuarantineV1::try_evaluate(&candidate, &policy, None, now).unwrap();
-        let impact = candidate_impact(&candidate, 350);
+        let impact = candidate_impact(&candidate, &matrix, 350);
         let recommendation =
             qualification_recommendation(&candidate, &impact, &compatibility, &quarantine, now)
                 .unwrap();
@@ -178,7 +178,7 @@ fn exception_reuse_and_cross_candidate_analysis_are_refused() {
     let matrix = qualification_matrix(64);
     let compatibility = DependencyMsrvCompatibilityV1::new(&tokio, &matrix);
     let quarantine = DependencyQuarantineV1::try_evaluate(&tokio, &policy, None, now).unwrap();
-    let h2_impact = candidate_impact(&h2, 250);
+    let h2_impact = candidate_impact(&h2, &matrix, 250);
     let mismatch =
         qualification_recommendation(&tokio, &h2_impact, &compatibility, &quarantine, now)
             .unwrap_err();
@@ -241,7 +241,7 @@ fn recommendation_rechecks_impact_freshness_at_evaluation_time() {
     let policy = quarantine_policy();
     let matrix = qualification_matrix(64);
     let compatibility = DependencyMsrvCompatibilityV1::new(&candidate, &matrix);
-    let impact = candidate_impact(&candidate, 350);
+    let impact = candidate_impact(&candidate, &matrix, 350);
     let now = LifecycleTimestampV1::from_unix_seconds(1_001);
     let quarantine = DependencyQuarantineV1::try_evaluate(&candidate, &policy, None, now).unwrap();
     let failure =

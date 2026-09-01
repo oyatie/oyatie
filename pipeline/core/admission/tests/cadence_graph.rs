@@ -56,7 +56,9 @@ fn presubmit_jobs_are_the_occupant_set() {
         "ruleset-required workflows must not cancel or supersede an admission run"
     );
     assert!(
-        y.contains("needs: [layout, occupancy, lint, clippy, test, deny, pg-gate, live-postgres]")
+        y.contains(
+            "needs: [layout, occupancy, lint, clippy, test, deny, change-gates, reindeer-source-qualification, live-postgres]"
+        )
     );
     assert!(y.contains("needs: [layout, occupancy]"));
     let protected_source = "ref: ${{ github.workflow_sha }}";
@@ -114,6 +116,13 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("occ \"${{ needs.occupancy.result }}\""));
     assert!(y.contains("OYATIE_PULL_REQUEST: ${{ github.event.pull_request.number }}"));
     assert!(y.contains("OYATIE_REPOSITORY"));
+    assert!(y.contains("--run-ignored only"));
+    assert!(y.contains("--no-tests=fail"));
+    assert!(y.contains("--max-fail 1:immediate"));
+    assert!(y.contains("CARGO_NET_OFFLINE: \"true\""));
+    assert!(y.contains("REINDEER_PINNED_SOURCE_ROOT"));
+    assert!(y.contains("req \"${{ needs.change-gates.result }}\""));
+    assert!(y.contains("reindeer \"${{ needs.reindeer-source-qualification.result }}\""));
     assert!(
         !y.contains("gh pr diff"),
         "gh pr diff 406s when the unified diff exceeds 20k lines"

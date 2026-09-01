@@ -76,9 +76,44 @@ fn presubmit_display_names_are_semantic_and_required_fan_in_is_stable() {
     assert!(workflow.contains("\n  presubmit:\n    name: presubmit\n"));
     assert!(
         workflow.contains(
-            "needs: [layout, occupancy, lint, clippy, test, deny, pg-gate, live-postgres]"
+            "needs: [layout, occupancy, lint, clippy, test, deny, change-gates, reindeer-source-qualification, live-postgres]"
         )
     );
+}
+
+#[test]
+fn real_reindeer_qualification_is_pinned_offline_and_fail_closed() {
+    let workflow = std::fs::read_to_string(repo_root().join(".github/workflows/presubmit.yml"))
+        .expect("presubmit workflow");
+    let job = workflow
+        .split_once("\n  reindeer-source-qualification:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  change-gates:\n"))
+        .map(|(job, _)| job)
+        .expect("bounded Reindeer qualification job");
+
+    for fact in [
+        "needs: [layout, change-gates]",
+        "timeout-minutes: 50",
+        "repository: facebookincubator/reindeer",
+        "ref: bb681570d2bc47d1446080c12b8681a50a95f628",
+        "153f32a846b5e1f460e61fff1cecbbf5177c8c90",
+        "d4644db6bee4fce06425c6802dfc5b3c2d2a12ba93ea3d635e076700bc34d614",
+        "CARGO_NET_OFFLINE: \"true\"",
+        "--run-ignored only",
+        "--no-tests=fail",
+        "--test-threads 1",
+        "--max-fail 1:immediate",
+    ] {
+        assert!(job.contains(fact), "Reindeer qualification missing {fact}");
+    }
+    assert_eq!(
+        job.matches("actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9")
+            .count(),
+        1
+    );
+    assert_eq!(job.matches("cargo fetch --locked").count(), 2);
+    assert!(job.contains("timeout --signal=TERM --kill-after=30s 40m"));
+    assert!(!job.contains("restore-keys:") && !job.contains("latest"));
 }
 
 #[test]

@@ -62,7 +62,7 @@ pub(super) fn build_reindeer_binary(cargo: &OsStr, source_root: &Path) -> PathBu
             "--message-format=json-render-diagnostics",
         ])
         .current_dir(source_root)
-        .env("CARGO_TARGET_DIR", source_root.join("target"))
+        .env("CARGO_TARGET_DIR", qualification_target_dir(source_root))
         .output()
         .expect("adapted provider build must run");
     assert!(
@@ -78,6 +78,12 @@ pub(super) fn build_reindeer_binary(cargo: &OsStr, source_root: &Path) -> PathBu
     } else {
         source_root.join(binary)
     }
+}
+
+pub(super) fn qualification_target_dir(source_root: &Path) -> PathBuf {
+    std::env::var_os("REINDEER_QUALIFICATION_TARGET_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| source_root.join("target"))
 }
 
 fn reindeer_binary_from_cargo_messages(
