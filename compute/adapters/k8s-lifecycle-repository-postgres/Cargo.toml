@@ -13,6 +13,7 @@ shared-postgres-command-adapter-sqlx = { path = "../../../data/adapters/postgres
 shared-postgres-command-kernel = { path = "../../../data/core/postgres-command-kernel" }
 serde.workspace = true
 serde_json.workspace = true
+sha2.workspace = true
 sqlx.workspace = true
 
 [dev-dependencies]

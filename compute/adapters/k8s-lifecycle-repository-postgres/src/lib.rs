@@ -8,6 +8,7 @@
 #![forbid(unsafe_code)]
 
 mod error;
+mod integrity;
 mod migrations;
 mod operation;
 mod repository;
@@ -61,6 +62,7 @@ mod tests {
         COMPLETE_OPERATION_SQL, INSERT_CLUSTER_SQL, RESERVE_OPERATION_SQL,
         SELECT_CLUSTER_FOR_UPDATE_SQL, SELECT_OPERATION_FOR_UPDATE_SQL, UPDATE_CLUSTER_SQL,
     };
+    use compute_k8s_api::CLOUD_COMPUTE_K8S_CLUSTER_RECORD_SCHEMA_VERSION;
     use shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, force_rls_tables};
 
     #[test]
@@ -114,5 +116,31 @@ mod tests {
     fn runtime_role_is_shared_by_role_and_policy_migrations() {
         assert!(K8S_LIFECYCLE_RUNTIME_ROLE_MIGRATION.contains(RUNTIME_ROLE));
         assert!(K8S_LIFECYCLE_REPOSITORY_MIGRATION.contains(&format!("TO {RUNTIME_ROLE}")));
+    }
+
+    #[test]
+    fn migrations_bind_native_projection_and_completed_receipt_digest() {
+        for constraint in [
+            "clusters_region_matches_desired",
+            "clusters_flavor_matches_desired",
+            "clusters_version_matches_desired",
+            "clusters_privacy_matches_desired",
+            "clusters_node_count_matches_desired",
+            "clusters_residency_matches_desired",
+            "clusters_data_class_matches_desired",
+            "clusters_created_at_matches_desired",
+            "clusters_record_schema_version",
+            "operations_receipt_atomicity",
+            "operations_receipt_digest_shape",
+        ] {
+            assert!(
+                K8S_LIFECYCLE_REPOSITORY_MIGRATION.contains(constraint),
+                "missing {constraint}"
+            );
+        }
+        assert!(K8S_LIFECYCLE_REPOSITORY_MIGRATION.contains(&format!(
+            "cluster_json -> 'schema_version' = '{CLOUD_COMPUTE_K8S_CLUSTER_RECORD_SCHEMA_VERSION}'::jsonb"
+        )));
+        assert!(COMPLETE_OPERATION_SQL.contains("receipt_digest = $7"));
     }
 }

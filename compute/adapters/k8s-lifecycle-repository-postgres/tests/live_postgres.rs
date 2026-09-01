@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+mod corruption;
 mod support;
 
 use compute_k8s_api::{
@@ -234,6 +235,8 @@ async fn live_repository_is_durable_isolated_concurrent_and_atomic() {
         .await
         .expect("same operation succeeds after injected failure is removed");
     assert_eq!(retried.cluster.desired_state, "deleted");
+
+    corruption::assert_corruption_fails_closed(&setup, &app, &repository).await;
 
     let app_flags =
         sqlx::query("SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user")

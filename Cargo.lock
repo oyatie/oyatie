@@ -1384,6 +1384,7 @@ dependencies = [
  "compute-resource",
  "serde",
  "serde_json",
+ "sha2",
  "shared-postgres-command-adapter-sqlx",
  "shared-postgres-command-kernel",
  "sqlx",

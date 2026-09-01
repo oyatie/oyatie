@@ -85,9 +85,30 @@ fn validate_delete_receipt(
     expected_resource_id: &ResourceId,
     expected_tenant_id: &str,
 ) -> Result<(), CloudComputeK8sApiError> {
-    if receipt.cluster.resource_id != expected_resource_id.value
+    let resource_region = expected_resource_id
+        .region()
+        .map_err(|_| CloudComputeK8sApiError::LifecycleRepositoryInvariantViolation)?;
+    let residency = parse_residency_class_label(&receipt.cluster.residency)
+        .ok_or(CloudComputeK8sApiError::LifecycleRepositoryInvariantViolation)?;
+    let valid_node_pool_count = match receipt.cluster.flavor.as_str() {
+        "standard" => receipt.cluster.node_pool_count >= 1,
+        "high_availability" => receipt.cluster.node_pool_count >= 3,
+        _ => false,
+    };
+    if receipt.request_id.trim().is_empty()
+        || receipt.cluster.resource_id != expected_resource_id.value
         || receipt.cluster.tenant_id != expected_tenant_id
+        || receipt.cluster.region != resource_region.value
+        || ControlPlaneVersion::new(receipt.cluster.control_plane_version.clone()).is_err()
+        || !valid_node_pool_count
+        || !residency_class_allows_home_region_label(&residency, &receipt.cluster.region)
+        || !matches!(
+            receipt.cluster.state.as_str(),
+            "creating" | "ready" | "reconciling" | "draining" | "deleted"
+        )
         || receipt.cluster.desired_state != "deleted"
+        || receipt.cluster.data_class != "PUBLIC"
+        || receipt.cluster.schema_version != CLOUD_COMPUTE_K8S_CLUSTER_RECORD_SCHEMA_VERSION
     {
         return Err(CloudComputeK8sApiError::LifecycleRepositoryInvariantViolation);
     }

@@ -172,4 +172,73 @@ async fn k8s_create_repository_failure_before_commit_is_atomic_and_retryable() {
     assert_eq!(repository.cluster_count(), 1);
 }
 
+#[tokio::test]
+async fn k8s_record_projection_rejects_every_immutable_field_drift() {
+    let desired = body(CLUSTER_ID);
+    let valid = create_cloud_compute_k8s_cluster_from_api(
+        &LifecycleTestRepository::default(),
+        request("req-projection", "idem-projection"),
+    )
+    .await
+    .expect("valid projection fixture creates")
+    .data;
+    assert_eq!(
+        validate_cloud_compute_k8s_cluster_record_projection(&desired, &valid),
+        Ok(())
+    );
+
+    for case in [
+        "resource",
+        "tenant",
+        "region",
+        "flavor",
+        "control_plane_version",
+        "control_plane_private",
+        "node_pool_count",
+        "residency",
+        "data_class",
+        "created_at",
+        "schema_version",
+        "state",
+        "desired_state",
+        "inconsistent_lifecycle",
+    ] {
+        let mut drifted = valid.clone();
+        match case {
+            "resource" => drifted.resource_id.push_str("-drift"),
+            "tenant" => drifted.tenant_id = "ten_beta".to_string(),
+            "region" => drifted.region = "region-away".to_string(),
+            "flavor" => drifted.flavor = "standard".to_string(),
+            "control_plane_version" => drifted.control_plane_version.push_str("-drift"),
+            "control_plane_private" => {
+                drifted.control_plane_private = !drifted.control_plane_private;
+            }
+            "node_pool_count" => drifted.node_pool_count += 1,
+            "residency" => drifted.residency = "global".to_string(),
+            "data_class" => drifted.data_class = "INTERNAL_ONLY".to_string(),
+            "created_at" => drifted.created_at_epoch_seconds += 1,
+            "schema_version" => drifted.schema_version += 1,
+            "state" => drifted.state = "corrupt".to_string(),
+            "desired_state" => drifted.desired_state = "corrupt".to_string(),
+            "inconsistent_lifecycle" => drifted.state = "draining".to_string(),
+            _ => unreachable!("test case is exhaustive"),
+        }
+        assert_eq!(
+            validate_cloud_compute_k8s_cluster_record_projection(&desired, &drifted),
+            Err(CloudComputeK8sApiError::LifecycleRepositoryInvariantViolation),
+            "{case} drift must fail closed"
+        );
+    }
+
+    let mut corrupted_desired = desired.clone();
+    corrupted_desired.data_class = "INTERNAL_ONLY".to_string();
+    let mut matching_corruption = valid;
+    matching_corruption.data_class = "INTERNAL_ONLY".to_string();
+    assert!(validate_cloud_compute_k8s_cluster_record_projection(
+        &corrupted_desired,
+        &matching_corruption
+    )
+    .is_err());
+}
+
 // ── Delete surface tests ──────────────────────────────────────────────────────

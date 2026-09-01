@@ -5,13 +5,15 @@ use compute_k8s_api::{
     CloudComputeK8sOperationKey,
 };
 use serde::{Serialize, de::DeserializeOwned};
+use sha2::{Digest, Sha256};
 use sqlx::{Row, postgres::PgRow};
 
+use crate::integrity::validate_cluster_projection;
 use crate::{SCHEMA_VERSION, error::integrity, error::unavailable};
 
 pub(crate) const RESERVE_OPERATION_SQL: &str = "INSERT INTO compute_k8s_lifecycle.operations (tenant_id, principal_id, surface, idempotency_key, resource_id, request_fingerprint, schema_version) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (tenant_id, principal_id, surface, idempotency_key) DO NOTHING RETURNING 1 AS inserted";
-pub(crate) const SELECT_OPERATION_FOR_UPDATE_SQL: &str = "SELECT resource_id, request_fingerprint, receipt_kind, receipt_json, schema_version FROM compute_k8s_lifecycle.operations WHERE tenant_id = $1 AND principal_id = $2 AND surface = $3 AND idempotency_key = $4 FOR UPDATE";
-pub(crate) const COMPLETE_OPERATION_SQL: &str = "UPDATE compute_k8s_lifecycle.operations SET receipt_kind = $5, receipt_json = $6, completed_at = now() WHERE tenant_id = $1 AND principal_id = $2 AND surface = $3 AND idempotency_key = $4";
+pub(crate) const SELECT_OPERATION_FOR_UPDATE_SQL: &str = "SELECT resource_id, request_fingerprint, receipt_kind, receipt_json, receipt_digest, schema_version FROM compute_k8s_lifecycle.operations WHERE tenant_id = $1 AND principal_id = $2 AND surface = $3 AND idempotency_key = $4 FOR UPDATE";
+pub(crate) const COMPLETE_OPERATION_SQL: &str = "UPDATE compute_k8s_lifecycle.operations SET receipt_kind = $5, receipt_json = $6, receipt_digest = $7, completed_at = now() WHERE tenant_id = $1 AND principal_id = $2 AND surface = $3 AND idempotency_key = $4";
 
 pub(crate) const INSERT_CLUSTER_SQL: &str = "INSERT INTO compute_k8s_lifecycle.clusters (tenant_id, resource_id, desired_spec_json, cluster_json, observed_state, desired_state, schema_version) VALUES ($1, $2, $3, $4, $5, $6, $7)";
 pub(crate) const SELECT_CLUSTER_FOR_UPDATE_SQL: &str = "SELECT desired_spec_json, cluster_json, observed_state, desired_state, schema_version FROM compute_k8s_lifecycle.clusters WHERE tenant_id = $1 AND resource_id = $2 FOR UPDATE";
@@ -23,6 +25,7 @@ struct StoredOperation {
     request_fingerprint: String,
     receipt_kind: Option<String>,
     receipt_json: Option<serde_json::Value>,
+    receipt_digest: Option<String>,
     schema_version: i32,
 }
 
@@ -98,8 +101,24 @@ fn stored_operation(
         request_fingerprint: row.try_get("request_fingerprint").map_err(integrity)?,
         receipt_kind: row.try_get("receipt_kind").map_err(integrity)?,
         receipt_json: row.try_get("receipt_json").map_err(integrity)?,
+        receipt_digest: row.try_get("receipt_digest").map_err(integrity)?,
         schema_version: row.try_get("schema_version").map_err(integrity)?,
     })
+}
+
+fn verified_receipt_json(
+    stored: StoredOperation,
+) -> Result<serde_json::Value, CloudComputeK8sLifecycleRepositoryError> {
+    let receipt_json = stored
+        .receipt_json
+        .ok_or(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation)?;
+    let receipt_digest = stored
+        .receipt_digest
+        .ok_or(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation)?;
+    if json_digest(&receipt_json)? != receipt_digest {
+        return Err(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation);
+    }
+    Ok(receipt_json)
 }
 
 pub(crate) fn replay_create(
@@ -119,11 +138,7 @@ pub(crate) fn replay_create(
     if stored.schema_version != SCHEMA_VERSION || stored.receipt_kind.as_deref() != Some("create") {
         return Err(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation);
     }
-    let receipt: CloudComputeK8sCreateReceipt = decode(
-        stored
-            .receipt_json
-            .ok_or(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation)?,
-    )?;
+    let receipt: CloudComputeK8sCreateReceipt = decode(verified_receipt_json(stored)?)?;
     if receipt.cluster != command.cluster {
         return Err(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation);
     }
@@ -133,6 +148,7 @@ pub(crate) fn replay_create(
 pub(crate) fn replay_delete(
     row: &PgRow,
     command: &CloudComputeK8sDeleteCommand,
+    desired_spec: &compute_k8s_api::CloudComputeK8sClusterCreateRequest,
 ) -> Result<CloudComputeK8sDeleteReceipt, CloudComputeK8sLifecycleRepositoryError> {
     let stored = stored_operation(row)?;
     if stored.resource_id != command.resource_id.value
@@ -147,11 +163,8 @@ pub(crate) fn replay_delete(
     if stored.schema_version != SCHEMA_VERSION || stored.receipt_kind.as_deref() != Some("delete") {
         return Err(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation);
     }
-    let receipt: CloudComputeK8sDeleteReceipt = decode(
-        stored
-            .receipt_json
-            .ok_or(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation)?,
-    )?;
+    let receipt: CloudComputeK8sDeleteReceipt = decode(verified_receipt_json(stored)?)?;
+    validate_cluster_projection(desired_spec, &receipt.cluster)?;
     if receipt.cluster.resource_id != command.resource_id.value
         || receipt.cluster.tenant_id != command.operation_key.tenant_id
         || receipt.cluster.desired_state != "deleted"
@@ -202,6 +215,7 @@ pub(crate) async fn complete_operation(
     receipt_kind: &str,
     receipt_json: &serde_json::Value,
 ) -> Result<(), CloudComputeK8sLifecycleRepositoryError> {
+    let receipt_digest = json_digest(receipt_json)?;
     let result = sqlx::query(COMPLETE_OPERATION_SQL)
         .bind(&operation_key.tenant_id)
         .bind(&operation_key.principal_id)
@@ -209,6 +223,7 @@ pub(crate) async fn complete_operation(
         .bind(&operation_key.idempotency_key)
         .bind(receipt_kind)
         .bind(receipt_json)
+        .bind(receipt_digest)
         .execute(&mut **tx)
         .await
         .map_err(unavailable)?;
@@ -216,6 +231,13 @@ pub(crate) async fn complete_operation(
         return Err(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation);
     }
     Ok(())
+}
+
+fn json_digest(
+    value: &serde_json::Value,
+) -> Result<String, CloudComputeK8sLifecycleRepositoryError> {
+    let bytes = serde_json::to_vec(value).map_err(integrity)?;
+    Ok(format!("{:x}", Sha256::digest(bytes)))
 }
 
 pub(crate) fn is_unique_violation(error: &sqlx::Error) -> bool {

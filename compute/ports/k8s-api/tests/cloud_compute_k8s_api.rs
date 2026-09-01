@@ -28,6 +28,7 @@ use compute_k8s_api::{
     delete_cloud_compute_k8s_cluster_from_api_with_authorization_verifier,
     delete_cluster as delete_cluster_without_authorization_verifier,
     delete_cluster_with_authorization_verifier,
+    validate_cloud_compute_k8s_cluster_record_projection,
 };
 
 const CLUSTER_ID: &str = "oyatie:cloud:region-home:ten_alpha:k8s:prod";

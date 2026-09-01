@@ -79,12 +79,12 @@ fn desired_spec(tenant_id: &str, name: &str) -> CloudComputeK8sClusterCreateRequ
         control_plane_version: "v1.30.2-oyatie.1".to_string(),
         control_plane_private: true,
         node_pools: vec![CloudComputeK8sNodePoolCreateRequest {
-            id: "np-a".to_string(),
+            id: "np_a".to_string(),
             az: "region-home-a".to_string(),
             cell_id: "cell-region-home-a-001".to_string(),
             subnet_id: format!("oyatie:cloud:region-home:{tenant_id}:subnet:prod-a"),
             security_groups: vec![CloudComputeK8sSecurityGroupRef {
-                value: "sg-workload".to_string(),
+                value: "sg_workload".to_string(),
                 tenant_id: tenant_id.to_string(),
                 region: "region-home".to_string(),
                 subnet_id: format!("oyatie:cloud:region-home:{tenant_id}:subnet:prod-a"),

@@ -10,6 +10,7 @@ rust_library(
         "//data/core/postgres-command-kernel:shared-postgres-command-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
+        "third-party//:sha2",
         "third-party//:sqlx",
     ],
 )
@@ -26,6 +27,7 @@ rust_test(
         "//data/core/postgres-command-kernel:shared-postgres-command-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
+        "third-party//:sha2",
         "third-party//:sqlx",
     ],
 )

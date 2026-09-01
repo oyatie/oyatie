@@ -1,18 +1,17 @@
 use compute_k8s_api::{
-    CloudComputeK8sClusterCreateRequest, CloudComputeK8sClusterRecord,
     CloudComputeK8sCreateCommand, CloudComputeK8sCreateReceipt, CloudComputeK8sDeleteCommand,
     CloudComputeK8sDeleteReceipt, CloudComputeK8sLifecycleRepository,
     CloudComputeK8sLifecycleRepositoryError, CloudComputeK8sRepositoryFuture,
 };
 use shared_postgres_command_kernel::SET_LOCAL_TENANT_SQL;
-use sqlx::Row;
 
 use crate::{
     PgK8sLifecycleRepository, SCHEMA_VERSION,
-    error::{integrity, unavailable},
+    error::unavailable,
+    integrity::{decode_stored_cluster, validate_cluster_projection},
     operation::{
         INSERT_CLUSTER_SQL, SELECT_CLUSTER_FOR_UPDATE_SQL, UPDATE_CLUSTER_SQL, complete_operation,
-        decode, encode, is_unique_violation, replay_create, replay_delete, reserve_operation,
+        encode, is_unique_violation, replay_create, replay_delete, reserve_operation,
         select_operation_for_update, validate_create_command, validate_delete_command,
     },
 };
@@ -27,6 +26,7 @@ impl CloudComputeK8sLifecycleRepository for PgK8sLifecycleRepository {
     > {
         Box::pin(async move {
             validate_create_command(&command)?;
+            validate_cluster_projection(&command.desired_spec, &command.cluster)?;
             let desired_spec_json = encode(&command.desired_spec)?;
             let cluster_json = encode(&command.cluster)?;
             let mut tx = self.pool.begin().await.map_err(unavailable)?;
@@ -103,7 +103,19 @@ impl CloudComputeK8sLifecycleRepository for PgK8sLifecycleRepository {
             .await?;
             if !inserted {
                 let row = select_operation_for_update(&mut tx, &command.operation_key).await?;
-                let receipt = replay_delete(&row, &command)?;
+                let cluster_row = sqlx::query(SELECT_CLUSTER_FOR_UPDATE_SQL)
+                    .bind(&command.operation_key.tenant_id)
+                    .bind(&command.resource_id.value)
+                    .fetch_optional(&mut *tx)
+                    .await
+                    .map_err(unavailable)?
+                    .ok_or(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation)?;
+                let stored_cluster = decode_stored_cluster(
+                    &cluster_row,
+                    &command.operation_key.tenant_id,
+                    &command.resource_id.value,
+                )?;
+                let receipt = replay_delete(&row, &command, &stored_cluster.desired_spec)?;
                 tx.commit().await.map_err(unavailable)?;
                 return Ok(receipt);
             }
@@ -115,24 +127,12 @@ impl CloudComputeK8sLifecycleRepository for PgK8sLifecycleRepository {
                 .await
                 .map_err(unavailable)?
                 .ok_or(CloudComputeK8sLifecycleRepositoryError::ClusterNotFound)?;
-            let desired_spec_json: serde_json::Value =
-                row.try_get("desired_spec_json").map_err(integrity)?;
-            let cluster_json: serde_json::Value = row.try_get("cluster_json").map_err(integrity)?;
-            let observed_state: String = row.try_get("observed_state").map_err(integrity)?;
-            let desired_state: String = row.try_get("desired_state").map_err(integrity)?;
-            let schema_version: i32 = row.try_get("schema_version").map_err(integrity)?;
-            let desired_spec: CloudComputeK8sClusterCreateRequest = decode(desired_spec_json)?;
-            let mut cluster: CloudComputeK8sClusterRecord = decode(cluster_json)?;
-            if schema_version != SCHEMA_VERSION
-                || desired_spec.resource_id != command.resource_id.value
-                || desired_spec.tenant_id != command.operation_key.tenant_id
-                || cluster.resource_id != command.resource_id.value
-                || cluster.tenant_id != command.operation_key.tenant_id
-                || cluster.state != observed_state
-                || cluster.desired_state != desired_state
-            {
-                return Err(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation);
-            }
+            let mut cluster = decode_stored_cluster(
+                &row,
+                &command.operation_key.tenant_id,
+                &command.resource_id.value,
+            )?
+            .cluster;
 
             cluster.desired_state = "deleted".to_string();
             let updated_cluster_json = encode(&cluster)?;

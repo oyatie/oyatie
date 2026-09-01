@@ -107,24 +107,49 @@ async fn k8s_delete_repository_port_replays_from_restored_snapshot() {
 
 #[tokio::test]
 async fn k8s_delete_api_rejects_unbound_repository_receipts_without_disclosure() {
-    for case in ["resource", "tenant", "desired_state"] {
+    for case in [
+        "resource",
+        "tenant",
+        "region",
+        "flavor",
+        "control_plane_version",
+        "node_pool_count",
+        "residency",
+        "state",
+        "desired_state",
+        "data_class",
+        "schema_version",
+        "request_id",
+    ] {
         let repository = delete_repository_with_cluster().await;
         let before = repository.snapshot();
         let mut cluster = repository
             .cluster_record(CLUSTER_ID)
             .expect("setup cluster exists");
+        let mut receipt_request_id = format!("repo-receipt-{case}");
         match case {
             "resource" => {
                 cluster.resource_id =
                     "oyatie:cloud:region-home:ten_beta:k8s:foreign".to_string();
             }
             "tenant" => cluster.tenant_id = "ten_beta".to_string(),
+            "region" => cluster.region = "region-away".to_string(),
+            "flavor" => cluster.flavor = "corrupt".to_string(),
+            "control_plane_version" => {
+                cluster.control_plane_version = "corrupt".to_string();
+            }
+            "node_pool_count" => cluster.node_pool_count = 0,
+            "residency" => cluster.residency = "corrupt".to_string(),
+            "state" => cluster.state = "corrupt".to_string(),
             "desired_state" => cluster.desired_state = "present".to_string(),
+            "data_class" => cluster.data_class = "PII_IDENTIFYING".to_string(),
+            "schema_version" => cluster.schema_version += 1,
+            "request_id" => receipt_request_id.clear(),
             _ => unreachable!("test case is exhaustive"),
         }
         repository.return_next_delete_receipt(CloudComputeK8sDeleteReceipt {
             cluster,
-            request_id: format!("repo-receipt-{case}"),
+            request_id: receipt_request_id,
         });
 
         let error = delete_cloud_compute_k8s_cluster_from_api(
