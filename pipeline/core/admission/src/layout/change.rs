@@ -22,6 +22,7 @@ pub fn changed_layout_violations(
             .cloned()
             .collect::<Vec<_>>(),
     );
+    violations.extend(frozen_non_root_markdown_violations(changes));
     if owner_is_new_and_touched("base", changes, existing_owner_dirs) {
         require_core_crate("base", "BUILD root", changes, &mut violations);
     }
@@ -42,6 +43,19 @@ pub fn changed_layout_violations(
         }
     }
     violations
+}
+
+fn frozen_non_root_markdown_violations(changes: &GitChangePaths) -> Vec<String> {
+    changes
+        .occupied
+        .iter()
+        .filter(|path| non_root_markdown(path))
+        .map(|path| {
+            format!(
+                "{path}: non-root Markdown is frozen migration inventory; ordinary changes cannot add, edit, move, copy, change its type, or delete it"
+            )
+        })
+        .collect()
 }
 
 /// A conditional owner that had a complete core at the merge base may be
@@ -79,6 +93,13 @@ fn owner_touched(owner: &str, changes: &GitChangePaths) -> bool {
         .any(|path| path == owner || path.starts_with(&format!("{owner}/")))
 }
 
+fn non_root_markdown(path: &str) -> bool {
+    path.contains('/')
+        && path.rsplit_once('.').is_some_and(|(_, extension)| {
+            extension.eq_ignore_ascii_case("md") || extension.eq_ignore_ascii_case("markdown")
+        })
+}
+
 fn require_core_crate(
     owner: &str,
     kind: &str,
@@ -109,6 +130,48 @@ fn require_core_crate(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ordinary_changes_cannot_mutate_non_root_markdown() {
+        let changes = crate::git_change_paths_from_name_status_z(
+            b"A\0docs/new.md\0M\0network/README.md\0D\0network/PRD.md\0T\0.github/SECURITY.md\0R100\0docs/old.markdown\0docs/moved.MD\0",
+        )
+        .unwrap();
+
+        let violations = changed_layout_violations(&changes, &BTreeSet::new());
+
+        for path in [
+            ".github/SECURITY.md",
+            "docs/moved.MD",
+            "docs/new.md",
+            "docs/old.markdown",
+            "network/PRD.md",
+            "network/README.md",
+        ] {
+            assert!(
+                violations
+                    .iter()
+                    .any(|violation| violation.starts_with(path)),
+                "missing refusal for {path}: {violations:?}"
+            );
+        }
+        assert!(
+            violations
+                .iter()
+                .all(|violation| !violation.contains("ADR-") && !violation.contains("D-"))
+        );
+    }
+
+    #[test]
+    fn root_authority_markdown_remains_changeable() {
+        let changes = crate::git_change_paths_from_name_status_z(
+            b"M\0README.md\0M\0AGENTS.md\0M\0CLAUDE.md\0",
+        )
+        .unwrap();
+
+        assert!(changed_layout_violations(&changes, &BTreeSet::new()).is_empty());
+        assert!(!non_root_markdown("pipeline/core/readme_md.rs"));
+    }
 
     #[test]
     fn retained_owner_cannot_lose_its_last_core_crate() {
