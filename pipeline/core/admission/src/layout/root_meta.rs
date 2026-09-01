@@ -1,6 +1,6 @@
 //! Closed grammars for repository-level metadata and data roots.
 
-use super::inner::validate_owner_path;
+use super::{CARGO_CONFIG_PATHS, inner::validate_owner_path};
 
 const PACK_NAMESPACES: &[&str] = &["us", "eu", "jp", "kr"];
 const ROOT_METADATA: &[&str] = &["OWNERS", "README.md", "BUCK"];
@@ -28,7 +28,13 @@ pub(super) fn validate_base_path(file: &str, parts: &[&str], violations: &mut Ve
 }
 
 pub(super) fn validate_cargo_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
-    if parts.len() != 2 || !matches!(parts[1], "BUCK" | "config" | "config.toml") {
+    let config_name = parts.get(1).is_some_and(|name| {
+        CARGO_CONFIG_PATHS
+            .iter()
+            .filter_map(|path| path.strip_prefix(".cargo/"))
+            .any(|admitted| admitted == *name)
+    });
+    if parts.len() != 2 || !(parts[1] == "BUCK" || config_name) {
         violations.push(format!(
             "{file}: `.cargo/` admits only BUCK and the canonical Cargo configuration"
         ));
@@ -235,6 +241,20 @@ mod tests {
                 validate_github_path
             };
             assert!(rejected(path, check), "{path}");
+        }
+    }
+
+    #[test]
+    fn cargo_root_derives_only_exact_config_names_from_owner_authority() {
+        for path in CARGO_CONFIG_PATHS {
+            assert!(!rejected(path, validate_cargo_path), "{path}");
+        }
+        for path in [
+            ".cargo/config/child.toml",
+            ".cargo/config.toml/child",
+            ".cargo/config.local",
+        ] {
+            assert!(rejected(path, validate_cargo_path), "{path}");
         }
     }
 }

@@ -2,7 +2,7 @@ use std::collections::{BTreeSet, VecDeque};
 use std::path::{Path, PathBuf};
 
 use pipeline_admission::{
-    REINDEER_QUALIFICATION_EXACT_PATHS, REINDEER_QUALIFICATION_PATH_PREFIXES,
+    REINDEER_QUALIFICATION_PATH_PREFIXES, reindeer_qualification_exact_paths,
 };
 use toml::Value;
 
@@ -27,8 +27,9 @@ fn reindeer_package_prefixes_are_the_exact_local_dependency_closure() {
 #[test]
 fn reindeer_exact_inputs_are_complete_and_precise() {
     assert_eq!(
-        REINDEER_QUALIFICATION_EXACT_PATHS,
-        [
+        reindeer_qualification_exact_paths().collect::<Vec<_>>(),
+        vec![
+            ".cargo/config",
             ".cargo/config.toml",
             ".config/nextest.toml",
             ".github/workflows/presubmit.yml",

@@ -1,5 +1,6 @@
-//! Which event pays live Postgres, and which paths trip the gate.
-//! GHA bash in presubmit.yml must match `live_postgres_required`.
+//! Typed protected-event gates over one batch of changed repository paths.
+
+use super::layout::CARGO_CONFIG_PATHS;
 
 pub const LIVE_POSTGRES_PATH_PREFIXES: &[&str] = &[
     "tenancy/adapters/tenant-lifecycle-store-postgres/",
@@ -19,8 +20,7 @@ pub const LIVE_POSTGRES_CRATES: &[&str] = &[
     "tenancy-tenant-lifecycle-app",
 ];
 
-pub const REINDEER_QUALIFICATION_EXACT_PATHS: &[&str] = &[
-    ".cargo/config.toml",
+const REINDEER_QUALIFICATION_OTHER_EXACT_PATHS: &[&str] = &[
     ".config/nextest.toml",
     ".github/workflows/presubmit.yml",
     "Cargo.lock",
@@ -100,10 +100,18 @@ pub fn hits_live_postgres_path(path: &str) -> bool {
 }
 
 pub fn hits_reindeer_qualification_path(path: &str) -> bool {
-    REINDEER_QUALIFICATION_EXACT_PATHS.contains(&path)
+    CARGO_CONFIG_PATHS.contains(&path)
+        || REINDEER_QUALIFICATION_OTHER_EXACT_PATHS.contains(&path)
         || REINDEER_QUALIFICATION_PATH_PREFIXES
             .iter()
             .any(|prefix| path.starts_with(prefix))
+}
+
+pub fn reindeer_qualification_exact_paths() -> impl Iterator<Item = &'static str> {
+    CARGO_CONFIG_PATHS
+        .iter()
+        .chain(REINDEER_QUALIFICATION_OTHER_EXACT_PATHS)
+        .copied()
 }
 
 pub fn presubmit_change_gates<'a>(
@@ -190,15 +198,13 @@ mod tests {
 
     #[test]
     fn qualification_inputs_pay_on_both_protected_events() {
-        for path in REINDEER_QUALIFICATION_EXACT_PATHS {
-            assert!(reindeer_source_qualification_required(
-                CadenceEvent::PullRequest,
-                &[*path]
-            ));
-            assert!(reindeer_source_qualification_required(
-                CadenceEvent::MergeGroup,
-                &[*path]
-            ));
+        for path in reindeer_qualification_exact_paths() {
+            for event in [CadenceEvent::PullRequest, CadenceEvent::MergeGroup] {
+                assert!(
+                    presubmit_change_gates(event, [path]).reindeer_source_qualification(),
+                    "{event:?} omitted {path}"
+                );
+            }
         }
         assert!(!reindeer_source_qualification_required(
             CadenceEvent::PostsubmitPush,
@@ -218,18 +224,14 @@ mod tests {
     }
 
     #[test]
-    fn presubmit_change_gate_lists_every_postgres_prefix() {
-        let y = std::fs::read_to_string(
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../../../.github/workflows/presubmit.yml"),
-        )
-        .expect("presubmit.yml");
+    fn every_postgres_prefix_pays_on_both_protected_events() {
         for prefix in LIVE_POSTGRES_PATH_PREFIXES {
-            let as_grep = prefix.replace('.', r"\.");
-            assert!(
-                y.contains(prefix) || y.contains(&as_grep),
-                "presubmit change gate missing {prefix}"
-            );
+            for event in [CadenceEvent::PullRequest, CadenceEvent::MergeGroup] {
+                assert!(
+                    presubmit_change_gates(event, [*prefix]).live_postgres(),
+                    "{event:?} omitted {prefix}"
+                );
+            }
         }
     }
 

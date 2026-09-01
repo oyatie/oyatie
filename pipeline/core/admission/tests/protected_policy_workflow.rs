@@ -23,9 +23,17 @@ struct JobSpec {
     admit_name: &'static str,
     target_dir: &'static str,
     package: &'static str,
+    admission: Admission,
 }
 
-const JOBS: [JobSpec; 2] = [
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Admission {
+    Layout,
+    Occupancy,
+    ChangeGates,
+}
+
+const JOBS: [JobSpec; 3] = [
     JobSpec {
         id: "layout",
         next_id: "occupancy",
@@ -33,6 +41,7 @@ const JOBS: [JobSpec; 2] = [
         admit_name: "Admit candidate tree",
         target_dir: "oyatie-layout-admission",
         package: "pipeline-path-layout-app",
+        admission: Admission::Layout,
     },
     JobSpec {
         id: "occupancy",
@@ -41,6 +50,16 @@ const JOBS: [JobSpec; 2] = [
         admit_name: "Admit complete Git path-set",
         target_dir: "oyatie-occupancy-admission",
         package: "pipeline-path-occupancy-app",
+        admission: Admission::Occupancy,
+    },
+    JobSpec {
+        id: "change-gates",
+        next_id: "live-postgres",
+        build_name: "Build protected change-gates application",
+        admit_name: "Classify typed qualification paths",
+        target_dir: "oyatie-change-gates-admission",
+        package: "pipeline-change-gates-app",
+        admission: Admission::ChangeGates,
     },
 ];
 
@@ -72,7 +91,7 @@ fn direct_entries(block: &str, indent: usize) -> Vec<(&str, &str)> {
                 return None;
             }
             let direct = &line[indent..];
-            if direct.is_empty() || direct.starts_with('#') {
+            if direct.is_empty() || direct.starts_with('#') || direct.starts_with("- ") {
                 return None;
             }
             direct
@@ -141,7 +160,7 @@ fn validate_build(step: &str, spec: JobSpec) -> Result<(), String> {
 }
 
 fn validate_admit(step: &str, spec: JobSpec) -> Result<(), String> {
-    if spec.id == "layout" {
+    if spec.admission == Admission::Layout {
         ensure(
             direct_entries(step, 8) == [("working-directory", "candidate"), ("run", "|")],
             "layout admission fields must be closed",
@@ -157,34 +176,75 @@ fn validate_admit(step: &str, spec: JobSpec) -> Result<(), String> {
             "layout admission must execute the protected binary over candidate HEAD^1 and HEAD",
         );
     }
+    if spec.admission == Admission::Occupancy {
+        ensure(
+            direct_entries(step, 8)
+                == [
+                    ("working-directory", "candidate"),
+                    ("env", ""),
+                    (
+                        "run",
+                        "\"$RUNNER_TEMP/oyatie-occupancy-admission/x86_64-unknown-linux-gnu/debug/pipeline-path-occupancy-app\"",
+                    ),
+                ],
+            "occupancy admission fields must be closed",
+        )?;
+        return ensure(
+            direct_entries(step, 10)
+                == [
+                    ("GH_TOKEN", "${{ github.token }}"),
+                    (
+                        "OYATIE_PULL_REQUEST",
+                        "${{ github.event.pull_request.number }}",
+                    ),
+                    ("OYATIE_REPOSITORY", "${{ github.repository }}"),
+                ],
+            "occupancy admission environment must be exact",
+        );
+    }
     ensure(
         direct_entries(step, 8)
             == [
+                ("name", "Classify typed qualification paths"),
                 ("working-directory", "candidate"),
                 ("env", ""),
-                (
-                    "run",
-                    "\"$RUNNER_TEMP/oyatie-occupancy-admission/x86_64-unknown-linux-gnu/debug/pipeline-path-occupancy-app\"",
-                ),
+                ("run", "|"),
             ],
-        "occupancy admission fields must be closed",
+        "change-gates admission fields must be closed",
     )?;
     ensure(
-        direct_entries(step, 10)
+        content_lines(step, 10)
             == [
-                ("GH_TOKEN", "${{ github.token }}"),
-                (
-                    "OYATIE_PULL_REQUEST",
-                    "${{ github.event.pull_request.number }}",
-                ),
-                ("OYATIE_REPOSITORY", "${{ github.repository }}"),
+                "EVENT: ${{ github.event_name }}",
+                "set -euo pipefail",
+                "base_sha=\"$(git rev-parse --verify 'HEAD^1^{commit}')\"",
+                "head_sha=\"$(git rev-parse --verify 'HEAD^{commit}')\"",
+                "\"$RUNNER_TEMP/oyatie-change-gates-admission/x86_64-unknown-linux-gnu/debug/pipeline-change-gates-app\" \"$EVENT\" \"$base_sha\" \"$head_sha\" >> \"$GITHUB_OUTPUT\"",
             ],
-        "occupancy admission environment must be exact",
+        "change-gates must append exact protected output for candidate HEAD^1 and HEAD",
     )
 }
 
 fn validate_job(yaml: &str, spec: JobSpec) -> Result<(), String> {
     let body = job_body(yaml, spec)?;
+    if spec.admission == Admission::ChangeGates {
+        ensure(
+            direct_entries(body, 4)
+                == [
+                    ("name", "change gates"),
+                    ("runs-on", "ubuntu-24.04"),
+                    ("timeout-minutes", "10"),
+                    ("outputs", ""),
+                    ("steps", ""),
+                ]
+                && direct_entries(body, 6)
+                    == [
+                        ("live", "${{ steps.g.outputs.live }}"),
+                        ("reindeer", "${{ steps.g.outputs.reindeer }}"),
+                    ],
+            "change-gates job fields and outputs must be closed",
+        )?;
+    }
     let steps: Vec<_> = body.split("\n      - ").skip(1).collect();
     ensure(
         steps.len() == 5,
@@ -194,12 +254,17 @@ fn validate_job(yaml: &str, spec: JobSpec) -> Result<(), String> {
         .iter()
         .map(|step| step.lines().next().unwrap_or_default().to_owned())
         .collect();
+    let admit_header = if spec.admission == Admission::ChangeGates {
+        "id: g".to_owned()
+    } else {
+        format!("name: {}", spec.admit_name)
+    };
     let expected_headers = [
         "name: Check out candidate tree".to_owned(),
         "name: Check out protected admission source".to_owned(),
         format!("uses: {TOOLCHAIN}"),
         format!("name: {}", spec.build_name),
-        format!("name: {}", spec.admit_name),
+        admit_header,
     ];
     ensure(
         actual_headers == expected_headers,
@@ -230,55 +295,5 @@ fn protected_admission_jobs_have_closed_step_graphs() {
     validate_workflow(&workflow()).unwrap_or_else(|error| panic!("{error}"));
 }
 
-#[test]
-fn protected_admission_graph_rejects_selector_and_overwrite_mutations() {
-    let yaml = workflow();
-    let protected_ref = "          ref: ${{ github.workflow_sha }}";
-    let decoy = yaml.replacen(
-        protected_ref,
-        "          # ref: ${{ github.workflow_sha }}\n          ref: ${{ github.event.pull_request.merge_commit_sha }}",
-        1,
-    );
-    assert!(validate_workflow(&decoy).is_err());
-
-    let duplicate = yaml.replacen(
-        protected_ref,
-        "          ref: ${{ github.workflow_sha }}\n          ref: ${{ github.sha }}",
-        1,
-    );
-    assert!(validate_workflow(&duplicate).is_err());
-
-    for wrong in [
-        "${{ github.event.pull_request.base.sha }}",
-        "${{ github.event.merge_group.base_sha }}",
-        "refs/heads/dev",
-        "${{ github.sha }}",
-        "${{ inputs.policy_sha }}",
-    ] {
-        let selector = yaml.replacen(protected_ref, &format!("          ref: {wrong}"), 1);
-        assert!(validate_workflow(&selector).is_err(), "{wrong}");
-    }
-
-    let build = "      - name: Build protected path-layout application";
-    let overwrite = yaml.replacen(
-        build,
-        "      - name: Overwrite protected source\n        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1\n        with:\n          ref: ${{ github.sha }}\n          path: trusted\n          persist-credentials: false\n          fetch-depth: 1\n      - name: Build protected path-layout application",
-        1,
-    );
-    assert!(validate_workflow(&overwrite).is_err());
-
-    let run = yaml.replacen(
-        build,
-        "      - name: Mutate protected source\n        run: cp -R candidate/. trusted/\n      - name: Build protected path-layout application",
-        1,
-    );
-    assert!(validate_workflow(&run).is_err());
-
-    let protected_binary = "          \"$RUNNER_TEMP/oyatie-layout-admission/x86_64-unknown-linux-gnu/debug/pipeline-path-layout-app\" \"$base_sha\" \"$head_sha\"";
-    let candidate_command = yaml.replacen(
-        protected_binary,
-        "          cargo run --manifest-path candidate/Cargo.toml -p pipeline-path-layout-app -- \"$base_sha\" \"$head_sha\"",
-        1,
-    );
-    assert!(validate_workflow(&candidate_command).is_err());
-}
+#[path = "protected_policy_workflow/refutations.rs"]
+mod refutations;

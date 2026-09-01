@@ -91,6 +91,8 @@ fn usage() -> String {
 mod tests {
     use std::cell::Cell;
 
+    use pipeline_admission::CARGO_CONFIG_PATHS;
+
     use super::*;
 
     const BASE: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -145,6 +147,25 @@ mod tests {
             output("pull_request", b"R100\0Cargo.lock\0docs/old.lock\0"),
             "live=false\nreindeer=true\n"
         );
+    }
+
+    #[test]
+    fn cargo_configuration_changes_are_closed_for_both_protected_events() {
+        for event in ["pull_request", "merge_group"] {
+            for path in CARGO_CONFIG_PATHS {
+                for changes in [
+                    format!("D\0{path}\0"),
+                    format!("R100\0{path}\0docs/retired-config\0"),
+                    format!("R100\0docs/new-config\0{path}\0"),
+                ] {
+                    assert_eq!(
+                        output(event, changes.as_bytes()),
+                        "live=false\nreindeer=true\n",
+                        "{event} omitted {changes:?}"
+                    );
+                }
+            }
+        }
     }
 
     #[test]
