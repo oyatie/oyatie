@@ -203,6 +203,10 @@ async fn create_cluster(
     create_cluster_with_authorization_verifier(repository, request, &verifier).await
 }
 
+#[path = "cloud_compute_k8s_api/lifecycle_test_repository.rs"]
+mod lifecycle_test_repository;
+use lifecycle_test_repository::LifecycleTestRepository;
+
 include!("cloud_compute_k8s_api/create_replay.rs");
 include!("cloud_compute_k8s_api/create_authorization.rs");
 include!("cloud_compute_k8s_api/create_validation.rs");

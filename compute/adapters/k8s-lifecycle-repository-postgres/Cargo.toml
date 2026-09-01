@@ -20,7 +20,6 @@ compute-resource = { path = "../../core/resource" }
 tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
 
 [lib]
-name = "compute_k8s_lifecycle_repository_postgres"
 path = "src/lib.rs"
 doctest = false
 

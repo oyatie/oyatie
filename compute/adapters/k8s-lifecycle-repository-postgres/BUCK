@@ -1,6 +1,6 @@
 rust_library(
     name = "compute-k8s-lifecycle-repository-postgres",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql"]),
+    srcs = glob(["src/**/*.rs"]),
     crate = "compute_k8s_lifecycle_repository_postgres",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -16,7 +16,7 @@ rust_library(
 
 rust_test(
     name = "compute-k8s-lifecycle-repository-postgres-unittest",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql"]),
+    srcs = glob(["src/**/*.rs"]),
     crate = "compute_k8s_lifecycle_repository_postgres",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -32,7 +32,7 @@ rust_test(
 
 rust_test(
     name = "compute-k8s-lifecycle-repository-postgres-live",
-    srcs = ["tests/live_postgres.rs", "migrations/0000_runtime_role.sql", "migrations/0001_k8s_lifecycle_repository.sql"],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "compute_k8s_lifecycle_repository_postgres_live",
     crate_root = "tests/live_postgres.rs",
     visibility = ["PUBLIC"],

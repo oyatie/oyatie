@@ -1,4 +1,17 @@
+/// Creates the non-login, non-bypass runtime role and grants schema usage.
+pub const K8S_LIFECYCLE_RUNTIME_ROLE_MIGRATION: &str = r#"DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'compute_k8s_lifecycle_runtime') THEN
+        CREATE ROLE compute_k8s_lifecycle_runtime NOLOGIN NOBYPASSRLS;
+    END IF;
+END
+$$;
 CREATE SCHEMA IF NOT EXISTS compute_k8s_lifecycle;
+GRANT USAGE ON SCHEMA compute_k8s_lifecycle TO compute_k8s_lifecycle_runtime;
+"#;
+
+/// Creates the lifecycle tables, indexes, forced RLS policies, and runtime grants.
+pub const K8S_LIFECYCLE_REPOSITORY_MIGRATION: &str = r#"CREATE SCHEMA IF NOT EXISTS compute_k8s_lifecycle;
 
 CREATE TABLE IF NOT EXISTS compute_k8s_lifecycle.clusters (
     tenant_id text NOT NULL CHECK (tenant_id <> ''),
@@ -50,3 +63,4 @@ CREATE POLICY operations_require_tenant_guc ON compute_k8s_lifecycle.operations 
 
 GRANT SELECT, INSERT, UPDATE ON compute_k8s_lifecycle.clusters TO compute_k8s_lifecycle_runtime;
 GRANT SELECT, INSERT, UPDATE ON compute_k8s_lifecycle.operations TO compute_k8s_lifecycle_runtime;
+"#;
