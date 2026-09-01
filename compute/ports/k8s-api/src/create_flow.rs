@@ -29,51 +29,16 @@ pub fn validate_cloud_compute_k8s_cluster_create_request_with_authorization_veri
     Ok(resource_id)
 }
 
-pub fn create_cloud_compute_k8s_cluster_from_api(
-    catalog: &mut CloudComputeCatalog,
-    idempotency_ledger: &mut CloudComputeK8sCreateIdempotencyLedger,
+pub async fn create_cloud_compute_k8s_cluster_from_api(
+    repository: &impl CloudComputeK8sLifecycleRepository,
     request: CloudComputeK8sClusterCreateApiRequest,
 ) -> Result<CloudComputeK8sClusterCreateSuccessResponse, CloudComputeK8sApiError> {
     validate_cloud_compute_k8s_cluster_create_request(&request)?;
-    let input = cluster_create_input(&request.body)?;
-    let key = idempotency_key_for(
-        &request.boundary,
-        &request.principal,
-        CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE,
-    );
-    let fingerprint = cluster_create_fingerprint_for(&request.path_cluster_id, &input);
-    if let Some(entry) = idempotency_ledger.entries.get(&key) {
-        if entry.fingerprint == fingerprint {
-            return entry.result.clone();
-        }
-        return Err(CloudComputeK8sApiError::IdempotencyKeyReused {
-            idempotency_key: request.boundary.idempotency_key,
-        });
-    }
-
-    let request_id = request.boundary.request_id.clone();
-    let result = catalog
-        .create_kubernetes_cluster(input)
-        .map_err(CloudComputeK8sApiError::Compute)
-        .map(|cluster| {
-            CloudComputeK8sClusterCreateSuccessResponse::created(
-                cluster_record(cluster),
-                request_id,
-            )
-        });
-    idempotency_ledger.remember(
-        key,
-        CloudComputeK8sCreateLedgerEntry {
-            fingerprint,
-            result: result.clone(),
-        },
-    );
-    result
+    create_validated_cloud_compute_k8s_cluster(repository, request).await
 }
 
-pub fn create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
-    catalog: &mut CloudComputeCatalog,
-    idempotency_ledger: &mut CloudComputeK8sCreateIdempotencyLedger,
+pub async fn create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
+    repository: &impl CloudComputeK8sLifecycleRepository,
     request: CloudComputeK8sClusterCreateApiRequest,
     authorization_verifier: &impl CloudComputeK8sAuthorizationVerifier,
 ) -> Result<CloudComputeK8sClusterCreateSuccessResponse, CloudComputeK8sApiError> {
@@ -81,66 +46,83 @@ pub fn create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
         &request,
         authorization_verifier,
     )?;
+    create_validated_cloud_compute_k8s_cluster(repository, request).await
+}
+
+async fn create_validated_cloud_compute_k8s_cluster(
+    repository: &impl CloudComputeK8sLifecycleRepository,
+    request: CloudComputeK8sClusterCreateApiRequest,
+) -> Result<CloudComputeK8sClusterCreateSuccessResponse, CloudComputeK8sApiError> {
     let input = cluster_create_input(&request.body)?;
-    let key = idempotency_key_for(
+    let fingerprint = cluster_create_fingerprint_for(&request.path_cluster_id, &input).canonical;
+    let cluster = KubernetesCluster::new(input).map_err(CloudComputeK8sApiError::Compute)?;
+    let expected_cluster = cluster_record(cluster);
+    let operation_key = idempotency_key_for(
         &request.boundary,
         &request.principal,
         CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE,
     );
-    let fingerprint = cluster_create_fingerprint_for(&request.path_cluster_id, &input);
-    if let Some(entry) = idempotency_ledger.entries.get(&key) {
-        if entry.fingerprint == fingerprint {
-            return entry.result.clone();
-        }
-        return Err(CloudComputeK8sApiError::IdempotencyKeyReused {
-            idempotency_key: request.boundary.idempotency_key,
-        });
-    }
-
-    let request_id = request.boundary.request_id.clone();
-    let result = catalog
-        .create_kubernetes_cluster(input)
-        .map_err(CloudComputeK8sApiError::Compute)
-        .map(|cluster| {
-            CloudComputeK8sClusterCreateSuccessResponse::created(
-                cluster_record(cluster),
-                request_id,
-            )
-        });
-    idempotency_ledger.remember(
-        key,
-        CloudComputeK8sCreateLedgerEntry {
+    let receipt = repository
+        .commit_create(CloudComputeK8sCreateCommand {
+            operation_key,
             fingerprint,
-            result: result.clone(),
-        },
-    );
-    result
+            desired_spec: request.body,
+            cluster: expected_cluster.clone(),
+            request_id: request.boundary.request_id,
+        })
+        .await
+        .map_err(create_repository_error)?;
+    if receipt.cluster != expected_cluster {
+        return Err(CloudComputeK8sApiError::LifecycleRepositoryInvariantViolation);
+    }
+    Ok(CloudComputeK8sClusterCreateSuccessResponse::created(
+        receipt.cluster,
+        receipt.request_id,
+    ))
+}
+
+fn create_repository_error(
+    error: CloudComputeK8sLifecycleRepositoryError,
+) -> CloudComputeK8sApiError {
+    match error {
+        CloudComputeK8sLifecycleRepositoryError::ClusterAlreadyExists => {
+            CloudComputeK8sApiError::Compute(CloudComputeError::DuplicateKubernetesCluster)
+        }
+        CloudComputeK8sLifecycleRepositoryError::IdempotencyKeyReused { idempotency_key } => {
+            CloudComputeK8sApiError::IdempotencyKeyReused { idempotency_key }
+        }
+        CloudComputeK8sLifecycleRepositoryError::Unavailable => {
+            CloudComputeK8sApiError::LifecycleRepositoryUnavailable
+        }
+        CloudComputeK8sLifecycleRepositoryError::ClusterNotFound
+        | CloudComputeK8sLifecycleRepositoryError::IntegrityViolation => {
+            CloudComputeK8sApiError::LifecycleRepositoryInvariantViolation
+        }
+    }
 }
 
 /// Stable planned entrypoint for `cloud.compute.k8s.cluster.create`.
 ///
 /// The implementation delegates to the explicit API-boundary function so the
 /// plan symbol remains stable without adding a second validation path.
-pub fn create_cluster(
-    catalog: &mut CloudComputeCatalog,
-    idempotency_ledger: &mut CloudComputeK8sCreateIdempotencyLedger,
+pub async fn create_cluster(
+    repository: &impl CloudComputeK8sLifecycleRepository,
     request: CloudComputeK8sClusterCreateApiRequest,
 ) -> Result<CloudComputeK8sClusterCreateSuccessResponse, CloudComputeK8sApiError> {
-    create_cloud_compute_k8s_cluster_from_api(catalog, idempotency_ledger, request)
+    create_cloud_compute_k8s_cluster_from_api(repository, request).await
 }
 
-pub fn create_cluster_with_authorization_verifier(
-    catalog: &mut CloudComputeCatalog,
-    idempotency_ledger: &mut CloudComputeK8sCreateIdempotencyLedger,
+pub async fn create_cluster_with_authorization_verifier(
+    repository: &impl CloudComputeK8sLifecycleRepository,
     request: CloudComputeK8sClusterCreateApiRequest,
     authorization_verifier: &impl CloudComputeK8sAuthorizationVerifier,
 ) -> Result<CloudComputeK8sClusterCreateSuccessResponse, CloudComputeK8sApiError> {
     create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
-        catalog,
-        idempotency_ledger,
+        repository,
         request,
         authorization_verifier,
     )
+    .await
 }
 
 fn validate_boundary(

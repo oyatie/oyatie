@@ -10,17 +10,24 @@
 //! - [`CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE`] — `cloud.compute.k8s.cluster.create`
 //! - [`CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE`] — `cloud.compute.k8s.cluster.delete`
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, future::Future, pin::Pin};
 
 use compute_domain::{
-    CloudComputeCatalog, CloudComputeError, ComputeFlavorSpec, ComputeQuotaEnvelope, ComputeRepo,
+    CloudComputeError, ComputeFlavorSpec, ComputeQuotaEnvelope, ControlPlaneVersion,
     KubernetesCluster, KubernetesClusterCreate, KubernetesClusterDesiredState,
-    KubernetesClusterState, KubernetesNodePoolCreate, kubernetes_cluster_desired_state_label,
-    kubernetes_cluster_state_label,
+    KubernetesClusterObservation, KubernetesClusterReconcileInput, KubernetesClusterState,
+    KubernetesNodePoolCreate, kubernetes_cluster_desired_state_label,
+    kubernetes_cluster_state_label, reconcile_kubernetes_cluster,
 };
 use compute_resource::{InstanceFlavor, K8sFlavor, ResourceId};
 use data_boundary_kernel::{DataClass, parse_data_class_label};
-use network_residency::{ResidencyClass, parse_residency_class_label};
+use network_residency::{
+    ResidencyClass, parse_residency_class_label, residency_class_allows_home_region_label,
+};
+use serde::{Deserialize, Serialize};
+
+pub const CLOUD_COMPUTE_K8S_CLUSTER_RECORD_SCHEMA_VERSION: u32 =
+    compute_domain::KUBERNETES_CLUSTER_SCHEMA_VERSION;
 
 include!("create_contract.rs");
 include!("create_request.rs");

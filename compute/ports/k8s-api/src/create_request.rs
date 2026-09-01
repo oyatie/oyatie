@@ -1,4 +1,4 @@
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CloudComputeK8sClusterCreateRequest {
     pub resource_id: String,           // data_class: INTERNAL_ONLY
     pub tenant_id: String,             // data_class: INTERNAL_ONLY
@@ -13,7 +13,7 @@ pub struct CloudComputeK8sClusterCreateRequest {
     pub created_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CloudComputeK8sNodePoolCreateRequest {
     pub id: String,                                            // data_class: INTERNAL_ONLY
     pub az: String,                                            // data_class: PUBLIC
@@ -26,7 +26,7 @@ pub struct CloudComputeK8sNodePoolCreateRequest {
     pub autoscaling_enabled: bool,                             // data_class: PUBLIC
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CloudComputeK8sSecurityGroupRef {
     pub value: String,     // data_class: INTERNAL_ONLY
     pub tenant_id: String, // data_class: INTERNAL_ONLY
@@ -34,7 +34,7 @@ pub struct CloudComputeK8sSecurityGroupRef {
     pub subnet_id: String, // data_class: INTERNAL_ONLY
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CloudComputeK8sNodePoolFlavorSpec {
     pub class: String,     // data_class: PUBLIC
     pub vcpu: u32,         // data_class: PUBLIC
@@ -43,7 +43,7 @@ pub struct CloudComputeK8sNodePoolFlavorSpec {
     pub local_ssd_gb: u32, // data_class: PUBLIC
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CloudComputeK8sQuotaEnvelope {
     pub vcpu_limit: u32,           // data_class: INTERNAL_ONLY
     pub memory_gb_limit: u32,      // data_class: INTERNAL_ONLY
@@ -65,68 +65,9 @@ pub struct CloudComputeK8sClusterCreateApiRequest {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct CloudComputeK8sCreateIdempotencyLedger {
-    entries: BTreeMap<CloudComputeK8sIdempotencyLedgerKey, CloudComputeK8sCreateLedgerEntry>, // data_class: INTERNAL_ONLY
-    max_entries: usize, // data_class: INTERNAL_ONLY
-}
-
-impl Default for CloudComputeK8sCreateIdempotencyLedger {
-    fn default() -> Self {
-        Self::with_max_entries(DEFAULT_K8S_CREATE_IDEMPOTENCY_LEDGER_MAX_ENTRIES)
-    }
-}
-
-impl CloudComputeK8sCreateIdempotencyLedger {
-    pub fn with_max_entries(max_entries: usize) -> Self {
-        Self {
-            entries: BTreeMap::new(),
-            max_entries: max_entries.max(1),
-        }
-    }
-
-    pub fn len(&self) -> usize {
-        self.entries.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.entries.is_empty()
-    }
-
-    fn remember(
-        &mut self,
-        key: CloudComputeK8sIdempotencyLedgerKey,
-        entry: CloudComputeK8sCreateLedgerEntry,
-    ) {
-        if self.entries.len() >= self.max_entries
-            && let Some(evicted) = self.entries.keys().next().cloned()
-        {
-            self.entries.remove(&evicted);
-        }
-        self.entries.insert(key, entry);
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
-struct CloudComputeK8sIdempotencyLedgerKey {
-    tenant_id: String,       // data_class: INTERNAL_ONLY
-    principal_id: String,    // data_class: INTERNAL_ONLY
-    surface: String,         // data_class: INTERNAL_ONLY
-    idempotency_key: String, // data_class: INTERNAL_ONLY
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-struct CloudComputeK8sCreateLedgerEntry {
-    fingerprint: CloudComputeK8sRequestFingerprint, // data_class: INTERNAL_ONLY
-    result: CloudComputeK8sCreateApiResult,         // data_class: INTERNAL_ONLY
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
 struct CloudComputeK8sRequestFingerprint {
     canonical: String, // data_class: INTERNAL_ONLY
 }
-
-type CloudComputeK8sCreateApiResult =
-    Result<CloudComputeK8sClusterCreateSuccessResponse, CloudComputeK8sApiError>;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudComputeK8sClusterCreateSuccessResponse {
@@ -150,7 +91,7 @@ pub struct CloudComputeK8sMetadata {
     pub request_id: String, // data_class: INTERNAL_ONLY
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CloudComputeK8sClusterRecord {
     pub resource_id: String,           // data_class: INTERNAL_ONLY
     pub tenant_id: String,             // data_class: INTERNAL_ONLY
@@ -252,6 +193,6 @@ pub enum CloudComputeK8sApiError {
     ClusterNotFound {
         cluster_id: String, // data_class: INTERNAL_ONLY
     },
-    DeletionRepositoryUnavailable,
-    DeletionRepositoryInvariantViolation,
+    LifecycleRepositoryUnavailable,
+    LifecycleRepositoryInvariantViolation,
 }

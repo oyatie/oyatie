@@ -1,5 +1,4 @@
 pub const CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE: &str = "cloud.compute.k8s.cluster.create";
-const DEFAULT_K8S_CREATE_IDEMPOTENCY_LEDGER_MAX_ENTRIES: usize = 1024;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CloudComputeK8sClusterCreateApiStatus {
@@ -53,7 +52,7 @@ pub enum CloudComputeK8sApiErrorCode {
     ComputeForbidden,
     ComputeNotFound,
     ComputeConflict,
-    DeletionRepositoryUnavailable,
+    LifecycleRepositoryUnavailable,
 }
 
 impl CloudComputeK8sApiErrorCode {
@@ -88,8 +87,8 @@ impl CloudComputeK8sApiErrorCode {
             Self::ComputeForbidden => "CLOUD_COMPUTE_K8S_FORBIDDEN",
             Self::ComputeNotFound => "CLOUD_COMPUTE_K8S_NOT_FOUND",
             Self::ComputeConflict => "CLOUD_COMPUTE_K8S_CONFLICT",
-            Self::DeletionRepositoryUnavailable => {
-                "CLOUD_COMPUTE_K8S_DELETION_REPOSITORY_UNAVAILABLE"
+            Self::LifecycleRepositoryUnavailable => {
+                "CLOUD_COMPUTE_K8S_LIFECYCLE_REPOSITORY_UNAVAILABLE"
             }
         }
     }
@@ -198,6 +197,61 @@ impl CloudComputeK8sAuthorizationVerifier for CloudComputeK8sTrustedAuthorizatio
     fn evaluation_epoch_seconds(&self) -> u64 {
         self.evaluation_epoch_seconds
     }
+}
+
+pub type CloudComputeK8sRepositoryFuture<'a, T> =
+    Pin<Box<dyn Future<Output = T> + Send + 'a>>;
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct CloudComputeK8sOperationKey {
+    pub tenant_id: String,       // data_class: INTERNAL_ONLY
+    pub principal_id: String,    // data_class: INTERNAL_ONLY
+    pub surface: String,         // data_class: INTERNAL_ONLY
+    pub idempotency_key: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudComputeK8sCreateCommand {
+    pub operation_key: CloudComputeK8sOperationKey, // data_class: INTERNAL_ONLY
+    pub fingerprint: String,                        // data_class: INTERNAL_ONLY
+    pub desired_spec: CloudComputeK8sClusterCreateRequest, // data_class: INTERNAL_ONLY
+    pub cluster: CloudComputeK8sClusterRecord,      // data_class: INTERNAL_ONLY
+    pub request_id: String,                         // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct CloudComputeK8sCreateReceipt {
+    pub cluster: CloudComputeK8sClusterRecord, // data_class: INTERNAL_ONLY
+    pub request_id: String,                   // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum CloudComputeK8sLifecycleRepositoryError {
+    ClusterAlreadyExists,
+    ClusterNotFound,
+    IdempotencyKeyReused {
+        idempotency_key: String, // data_class: INTERNAL_ONLY
+    },
+    Unavailable,
+    IntegrityViolation,
+}
+
+pub trait CloudComputeK8sLifecycleRepository: Send + Sync {
+    fn commit_create<'a>(
+        &'a self,
+        command: CloudComputeK8sCreateCommand,
+    ) -> CloudComputeK8sRepositoryFuture<
+        'a,
+        Result<CloudComputeK8sCreateReceipt, CloudComputeK8sLifecycleRepositoryError>,
+    >;
+
+    fn commit_deletion<'a>(
+        &'a self,
+        command: CloudComputeK8sDeleteCommand,
+    ) -> CloudComputeK8sRepositoryFuture<
+        'a,
+        Result<CloudComputeK8sDeleteReceipt, CloudComputeK8sLifecycleRepositoryError>,
+    >;
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]

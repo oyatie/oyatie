@@ -22,21 +22,21 @@ fn api_surface_status_contracts_are_covered() {
     );
 }
 
-#[test]
-fn k8s_create_api_creates_cluster_once_and_replays_same_idempotent_result() {
-    let mut catalog = CloudComputeCatalog::default();
-    let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
+#[tokio::test]
+async fn k8s_create_api_creates_cluster_once_and_replays_same_idempotent_result() {
+    let repository = LifecycleTestRepository::default();
     let request = request("req-compute-k8s-create", "idem-compute-k8s-create");
 
-    let first =
-        create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, request.clone())
-            .expect("authorized cluster create succeeds");
-    let second = create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, request)
+    let first = create_cloud_compute_k8s_cluster_from_api(&repository, request.clone())
+        .await
+        .expect("authorized cluster create succeeds");
+    let second = create_cloud_compute_k8s_cluster_from_api(&repository, request)
+        .await
         .expect("same idempotency fingerprint replays");
 
     assert_eq!(first, second);
-    assert_eq!(ledger.len(), 1);
-    assert_eq!(catalog.kubernetes_clusters().count(), 1);
+    assert_eq!(repository.create_operation_count(), 1);
+    assert_eq!(repository.cluster_count(), 1);
     assert_eq!(first.metadata.request_id, "req-compute-k8s-create");
     assert_eq!(first.data.resource_id, CLUSTER_ID);
     assert_eq!(first.data.tenant_id, "ten_alpha");
@@ -52,34 +52,34 @@ fn k8s_create_api_creates_cluster_once_and_replays_same_idempotent_result() {
     assert_eq!(first.data.schema_version, 2);
 }
 
-#[test]
-fn planned_create_cluster_entrypoint_delegates_to_api_create() {
-    let mut catalog = CloudComputeCatalog::default();
-    let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
+#[tokio::test]
+async fn planned_create_cluster_entrypoint_delegates_to_api_create() {
+    let repository = LifecycleTestRepository::default();
     let request = request(
         "req-compute-k8s-create-alias",
         "idem-compute-k8s-create-alias",
     );
 
-    let response = create_cluster(&mut catalog, &mut ledger, request)
+    let response = create_cluster(&repository, request)
+        .await
         .expect("stable planned create_cluster entrypoint succeeds");
 
     assert_eq!(response.metadata.request_id, "req-compute-k8s-create-alias");
     assert_eq!(response.data.resource_id, CLUSTER_ID);
     assert_eq!(response.data.state, "creating");
     assert_eq!(response.data.desired_state, "present");
-    assert_eq!(ledger.len(), 1);
-    assert_eq!(catalog.kubernetes_clusters().count(), 1);
+    assert_eq!(repository.create_operation_count(), 1);
+    assert_eq!(repository.cluster_count(), 1);
 }
 
-#[test]
-fn k8s_create_api_rejects_path_body_drift_before_catalog_mutation() {
-    let mut catalog = CloudComputeCatalog::default();
-    let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
+#[tokio::test]
+async fn k8s_create_api_rejects_path_body_drift_before_repository_mutation() {
+    let repository = LifecycleTestRepository::default();
     let mut request = request("req-compute-k8s-drift", "idem-compute-k8s-drift");
     request.body.resource_id = "oyatie:cloud:region-home:ten_alpha:k8s:other".to_string();
 
-    let error = create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, request)
+    let error = create_cloud_compute_k8s_cluster_from_api(&repository, request)
+        .await
         .expect_err("path/body cluster drift is rejected");
 
     assert_eq!(
@@ -90,24 +90,23 @@ fn k8s_create_api_rejects_path_body_drift_before_catalog_mutation() {
         }
     );
     assert_eq!(error.cluster_create_status_code(), 400);
-    assert!(ledger.is_empty());
-    assert_eq!(catalog.kubernetes_clusters().count(), 0);
+    assert_eq!(repository.create_operation_count(), 0);
+    assert_eq!(repository.cluster_count(), 0);
 }
 
-#[test]
-fn k8s_create_api_legacy_entrypoint_fails_closed_without_authorization_verifier() {
-    let mut catalog = CloudComputeCatalog::default();
-    let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
+#[tokio::test]
+async fn k8s_create_api_legacy_entrypoint_fails_closed_without_authorization_verifier() {
+    let repository = LifecycleTestRepository::default();
     let missing_verifier_request = request(
         "req-compute-k8s-missing-verifier",
         "idem-compute-k8s-missing-verifier",
     );
 
     let error = create_cloud_compute_k8s_cluster_from_api_without_authorization_verifier(
-        &mut catalog,
-        &mut ledger,
+        &repository,
         missing_verifier_request,
     )
+    .await
     .expect_err("legacy create entrypoint has no trusted authorization verifier");
 
     assert_eq!(
@@ -118,15 +117,15 @@ fn k8s_create_api_legacy_entrypoint_fails_closed_without_authorization_verifier(
     );
     assert_eq!(error.cluster_create_status_code(), 403);
     let planned_error = create_cluster_without_authorization_verifier(
-        &mut catalog,
-        &mut ledger,
+        &repository,
         request(
             "req-compute-k8s-planned-missing-verifier",
             "idem-compute-k8s-planned-missing-verifier",
         ),
     )
+    .await
     .expect_err("legacy planned create entrypoint has no trusted authorization verifier");
     assert_eq!(planned_error, error);
-    assert!(ledger.is_empty());
-    assert_eq!(catalog.kubernetes_clusters().count(), 0);
+    assert_eq!(repository.create_operation_count(), 0);
+    assert_eq!(repository.cluster_count(), 0);
 }

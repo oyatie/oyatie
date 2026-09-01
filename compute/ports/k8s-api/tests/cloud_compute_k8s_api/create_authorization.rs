@@ -1,5 +1,5 @@
-#[test]
-fn k8s_create_api_rejects_trusted_verifier_mismatches_before_ledger() {
+#[tokio::test]
+async fn k8s_create_api_rejects_trusted_verifier_mismatches_before_repository() {
     for case in [
         "forged",
         "tenant",
@@ -9,8 +9,7 @@ fn k8s_create_api_rejects_trusted_verifier_mismatches_before_ledger() {
         "expired",
         "stale",
     ] {
-        let mut catalog = CloudComputeCatalog::default();
-        let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
+        let repository = LifecycleTestRepository::default();
         let request = request(
             &format!("req-compute-k8s-authz-{case}"),
             &format!("idem-compute-k8s-authz-{case}"),
@@ -60,11 +59,11 @@ fn k8s_create_api_rejects_trusted_verifier_mismatches_before_ledger() {
         }
 
         let error = create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
-            &mut catalog,
-            &mut ledger,
+            &repository,
             request,
             &verifier,
         )
+        .await
         .expect_err("trusted verifier mismatch is rejected before mutation");
 
         assert_eq!(
@@ -74,15 +73,14 @@ fn k8s_create_api_rejects_trusted_verifier_mismatches_before_ledger() {
             }
         );
         assert_eq!(error.cluster_create_status_code(), 403);
-        assert!(ledger.is_empty());
-        assert_eq!(catalog.kubernetes_clusters().count(), 0);
+        assert_eq!(repository.create_operation_count(), 0);
+        assert_eq!(repository.cluster_count(), 0);
     }
 }
 
-#[test]
-fn k8s_create_api_ignores_caller_supplied_authorization_proof() {
-    let mut catalog = CloudComputeCatalog::default();
-    let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
+#[tokio::test]
+async fn k8s_create_api_ignores_caller_supplied_authorization_proof() {
+    let repository = LifecycleTestRepository::default();
     let mut request = request(
         "req-compute-k8s-ignore-proof",
         "idem-compute-k8s-ignore-proof",
@@ -102,45 +100,44 @@ fn k8s_create_api_ignores_caller_supplied_authorization_proof() {
     let verifier = trusted_create_verifier_for(&request);
 
     let response = create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
-        &mut catalog,
-        &mut ledger,
+        &repository,
         request,
         &verifier,
     )
+    .await
     .expect("trusted verifier state, not caller proof fields, authorizes create");
 
     assert_eq!(response.data.resource_id, CLUSTER_ID);
-    assert_eq!(ledger.len(), 1);
-    assert_eq!(catalog.kubernetes_clusters().count(), 1);
+    assert_eq!(repository.create_operation_count(), 1);
+    assert_eq!(repository.cluster_count(), 1);
 }
 
-#[test]
-fn k8s_create_api_separates_missing_authentication_from_denied_authorization() {
-    let mut catalog = CloudComputeCatalog::default();
-    let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
+#[tokio::test]
+async fn k8s_create_api_separates_missing_authentication_from_denied_authorization() {
+    let repository = LifecycleTestRepository::default();
     let mut request = request("req-compute-k8s-authn", "idem-compute-k8s-authn");
     request.principal.principal_id.clear();
 
-    let error = create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, request)
+    let error = create_cloud_compute_k8s_cluster_from_api(&repository, request)
+        .await
         .expect_err("missing authenticated principal is an authentication failure");
 
     assert_eq!(error, CloudComputeK8sApiError::EmptyPrincipalId);
     assert_eq!(error.cluster_create_status_code(), 401);
-    assert!(ledger.is_empty());
-    assert_eq!(catalog.kubernetes_clusters().count(), 0);
+    assert_eq!(repository.create_operation_count(), 0);
+    assert_eq!(repository.cluster_count(), 0);
 }
 
-#[test]
-fn k8s_create_api_replays_with_refreshed_authz_and_reordered_pools() {
-    let mut catalog = CloudComputeCatalog::default();
-    let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
+#[tokio::test]
+async fn k8s_create_api_replays_with_refreshed_authz_and_reordered_pools() {
+    let repository = LifecycleTestRepository::default();
     let request = request(
         "req-compute-k8s-authz-refresh-1",
         "idem-compute-k8s-authz-refresh",
     );
-    let first =
-        create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, request.clone())
-            .expect("initial cluster create succeeds");
+    let first = create_cloud_compute_k8s_cluster_from_api(&repository, request.clone())
+        .await
+        .expect("initial cluster create succeeds");
 
     let mut retry = request;
     retry.boundary.request_id = "req-compute-k8s-authz-refresh-2".to_string();
@@ -158,10 +155,11 @@ fn k8s_create_api_replays_with_refreshed_authz_and_reordered_pools() {
     for pool in &mut retry.body.node_pools {
         pool.security_groups.reverse();
     }
-    let second = create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, retry)
+    let second = create_cloud_compute_k8s_cluster_from_api(&repository, retry)
+        .await
         .expect("refreshed authorization evidence does not change operation fingerprint");
 
     assert_eq!(first, second);
-    assert_eq!(ledger.len(), 1);
-    assert_eq!(catalog.kubernetes_clusters().count(), 1);
+    assert_eq!(repository.create_operation_count(), 1);
+    assert_eq!(repository.cluster_count(), 1);
 }

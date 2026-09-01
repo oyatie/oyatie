@@ -22,6 +22,50 @@ fn cluster_record(cluster: KubernetesCluster) -> CloudComputeK8sClusterRecord {
     }
 }
 
+pub fn validate_cloud_compute_k8s_cluster_record_projection(
+    desired_spec: &CloudComputeK8sClusterCreateRequest,
+    cluster: &CloudComputeK8sClusterRecord,
+) -> Result<(), CloudComputeK8sApiError> {
+    let expected = cluster_record(
+        KubernetesCluster::new(cluster_create_input(desired_spec)?)
+            .map_err(CloudComputeK8sApiError::Compute)?,
+    );
+    let observed_state = match cluster.state.as_str() {
+        "creating" => KubernetesClusterState::Creating,
+        "ready" => KubernetesClusterState::Ready,
+        "reconciling" => KubernetesClusterState::Reconciling,
+        "draining" => KubernetesClusterState::Draining,
+        "deleted" => KubernetesClusterState::Deleted,
+        _ => return Err(CloudComputeK8sApiError::LifecycleRepositoryInvariantViolation),
+    };
+    let desired_state = match cluster.desired_state.as_str() {
+        "present" => KubernetesClusterDesiredState::Present,
+        "deleted" => KubernetesClusterDesiredState::Deleted,
+        _ => return Err(CloudComputeK8sApiError::LifecycleRepositoryInvariantViolation),
+    };
+    reconcile_kubernetes_cluster(KubernetesClusterReconcileInput {
+        desired_state,
+        observation: KubernetesClusterObservation::Known(observed_state),
+    })
+    .map_err(|_| CloudComputeK8sApiError::LifecycleRepositoryInvariantViolation)?;
+
+    if cluster.resource_id != expected.resource_id
+        || cluster.tenant_id != expected.tenant_id
+        || cluster.region != expected.region
+        || cluster.flavor != expected.flavor
+        || cluster.control_plane_version != expected.control_plane_version
+        || cluster.control_plane_private != expected.control_plane_private
+        || cluster.node_pool_count != expected.node_pool_count
+        || cluster.residency != expected.residency
+        || cluster.data_class != expected.data_class
+        || cluster.created_at_epoch_seconds != expected.created_at_epoch_seconds
+        || cluster.schema_version != expected.schema_version
+    {
+        return Err(CloudComputeK8sApiError::LifecycleRepositoryInvariantViolation);
+    }
+    Ok(())
+}
+
 fn cloud_compute_status_kind(error: &CloudComputeError) -> CloudComputeK8sApiStatusKind {
     match error {
         CloudComputeError::DuplicateInstance
