@@ -6,13 +6,17 @@ use std::path::PathBuf;
 
 use foundry_projection_draft::ProjectionStore;
 use foundry_projection_draft::conformance::{
-    ProjectionFixture, check_a_refused_apply_leaves_state_untouched,
-    check_apply_requires_the_next_dense_ordinal, check_cross_kind_comparisons_fail_closed,
-    check_divergent_reapply_is_refused, check_durability_across_reopen,
-    check_equals_predicate_matches_exactly, check_get_returns_the_projected_object,
-    check_identical_reapply_is_a_deduplicated_noop,
+    ProjectionFixture, check_a_composite_key_value_is_refused,
+    check_a_duplicate_primary_key_is_refused, check_a_missing_key_property_is_refused,
+    check_a_refused_apply_leaves_state_untouched, check_an_object_may_keep_its_own_key,
+    check_an_undeclared_key_constrains_nothing, check_apply_requires_the_next_dense_ordinal,
+    check_cross_kind_comparisons_fail_closed, check_divergent_reapply_is_refused,
+    check_durability_across_reopen, check_equals_predicate_matches_exactly,
+    check_get_returns_the_projected_object, check_identical_reapply_is_a_deduplicated_noop,
+    check_keys_are_scoped_to_their_entity_type_and_tenant,
     check_poisoned_entries_advance_the_head_without_objects, check_range_kind_mismatch_is_refused,
     check_range_predicate_is_kind_scoped, check_reads_are_tenant_isolated,
+    check_two_objects_in_one_entry_cannot_share_a_key,
     check_type_scan_pages_partition_deterministically,
 };
 use foundry_projection_sqlite_draft::SqliteProjectionStore;
@@ -99,4 +103,15 @@ fn sqlite_store_is_durable_across_reopen() {
 fn the_sqlite_store_is_a_projection_store() {
     fn assert_impl<S: ProjectionStore>() {}
     assert_impl::<SqliteProjectionStore>();
+}
+
+#[test]
+fn sqlite_store_passes_the_primary_key_laws() {
+    run(check_a_duplicate_primary_key_is_refused);
+    run(check_two_objects_in_one_entry_cannot_share_a_key);
+    run(check_an_object_may_keep_its_own_key);
+    run(check_keys_are_scoped_to_their_entity_type_and_tenant);
+    run(check_an_undeclared_key_constrains_nothing);
+    run(check_a_missing_key_property_is_refused);
+    run(check_a_composite_key_value_is_refused);
 }

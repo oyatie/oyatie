@@ -1,9 +1,17 @@
 //! The executable contract: check functions any [`ProjectionStore`]
 //! implementation must pass, mirroring the records-port suite idiom.
 
+mod keys;
 mod predicates;
 mod reads;
 
+pub use keys::{
+    check_a_composite_key_value_is_refused, check_a_duplicate_primary_key_is_refused,
+    check_a_missing_key_property_is_refused, check_an_object_may_keep_its_own_key,
+    check_an_undeclared_key_constrains_nothing,
+    check_keys_are_scoped_to_their_entity_type_and_tenant,
+    check_two_objects_in_one_entry_cannot_share_a_key,
+};
 pub use predicates::{
     check_cross_kind_comparisons_fail_closed, check_equals_predicate_matches_exactly,
     check_range_kind_mismatch_is_refused, check_range_predicate_is_kind_scoped,
@@ -16,6 +24,7 @@ pub use reads::{
 use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{ObjectEntity, ObjectProperty, PropertyValue};
 
+use crate::keys::KeyDesignations;
 use crate::store::{
     AppliedEntry, EntryOutcome, ProjectedObject, ProjectionStore, ProjectionStoreError,
 };
@@ -85,9 +94,12 @@ pub fn check_apply_requires_the_next_dense_ordinal<F: ProjectionFixture>(
     let store = fixture.store();
     let first = object("ten_a", "ent_a1", "ety_reading", vec![]);
     store
-        .apply(applied("ten_a", 1, vec![first]))
+        .apply(
+            applied("ten_a", 1, vec![first]),
+            &KeyDesignations::default(),
+        )
         .map_err(|error| fail("first dense apply is accepted", format!("{error:?}")))?;
-    match store.apply(applied("ten_a", 3, vec![])) {
+    match store.apply(applied("ten_a", 3, vec![]), &KeyDesignations::default()) {
         Err(ProjectionStoreError::NonDenseOrdinal {
             expected: 2,
             found: 3,
@@ -113,10 +125,10 @@ pub fn check_identical_reapply_is_a_deduplicated_noop<F: ProjectionFixture>(
         vec![object("ten_a", "ent_a1", "ety_reading", vec![])],
     );
     store
-        .apply(entry.clone())
+        .apply(entry.clone(), &KeyDesignations::default())
         .map_err(|error| fail("first apply", format!("{error:?}")))?;
     let receipt = store
-        .apply(entry)
+        .apply(entry, &KeyDesignations::default())
         .map_err(|error| fail("byte-identical re-apply is a no-op", format!("{error:?}")))?;
     if !receipt.deduplicated {
         return Err(fail(
@@ -132,15 +144,21 @@ pub fn check_divergent_reapply_is_refused<F: ProjectionFixture>(
 ) -> Result<(), String> {
     let store = fixture.store();
     store
-        .apply(applied(
-            "ten_a",
-            1,
-            vec![object("ten_a", "ent_a1", "ety_reading", vec![])],
-        ))
+        .apply(
+            applied(
+                "ten_a",
+                1,
+                vec![object("ten_a", "ent_a1", "ety_reading", vec![])],
+            ),
+            &KeyDesignations::default(),
+        )
         .map_err(|error| fail("first apply", format!("{error:?}")))?;
     let mut divergent = object("ten_a", "ent_a1", "ety_reading", vec![]);
     divergent.last_actor = "prn_forger".to_owned();
-    match store.apply(applied("ten_a", 1, vec![divergent])) {
+    match store.apply(
+        applied("ten_a", 1, vec![divergent]),
+        &KeyDesignations::default(),
+    ) {
         Err(ProjectionStoreError::DivergentReplay { ordinal: 1 }) => Ok(()),
         other => Err(fail(
             "divergent content at an applied ordinal is loud",
@@ -154,17 +172,23 @@ pub fn check_a_refused_apply_leaves_state_untouched<F: ProjectionFixture>(
 ) -> Result<(), String> {
     let store = fixture.store();
     store
-        .apply(applied(
-            "ten_a",
-            1,
-            vec![object("ten_a", "ent_a1", "ety_reading", vec![])],
-        ))
+        .apply(
+            applied(
+                "ten_a",
+                1,
+                vec![object("ten_a", "ent_a1", "ety_reading", vec![])],
+            ),
+            &KeyDesignations::default(),
+        )
         .map_err(|error| fail("seed apply", format!("{error:?}")))?;
-    let refused = store.apply(applied(
-        "ten_a",
-        3,
-        vec![object("ten_a", "ent_a3", "ety_reading", vec![])],
-    ));
+    let refused = store.apply(
+        applied(
+            "ten_a",
+            3,
+            vec![object("ten_a", "ent_a3", "ety_reading", vec![])],
+        ),
+        &KeyDesignations::default(),
+    );
     if refused.is_ok() {
         return Err(fail("the skip was refused", format!("{refused:?}")));
     }
@@ -185,13 +209,16 @@ pub fn check_poisoned_entries_advance_the_head_without_objects<F: ProjectionFixt
 ) -> Result<(), String> {
     let store = fixture.store();
     store
-        .apply(AppliedEntry {
-            tenant_id: "ten_a".to_owned(),
-            ordinal: 1,
-            outcome: EntryOutcome::Poisoned {
-                reason: "receipt_mismatch".to_owned(),
+        .apply(
+            AppliedEntry {
+                tenant_id: "ten_a".to_owned(),
+                ordinal: 1,
+                outcome: EntryOutcome::Poisoned {
+                    reason: "receipt_mismatch".to_owned(),
+                },
             },
-        })
+            &KeyDesignations::default(),
+        )
         .map_err(|error| fail("a poison mirror applies", format!("{error:?}")))?;
     let head = store
         .applied_head("ten_a")
@@ -216,7 +243,7 @@ pub fn check_durability_across_reopen<F: ProjectionFixture>(fixture: &mut F) -> 
     );
     fixture
         .store()
-        .apply(entry)
+        .apply(entry, &KeyDesignations::default())
         .map_err(|error| fail("seed apply", format!("{error:?}")))?;
     if !fixture.reopen() {
         return Ok(());

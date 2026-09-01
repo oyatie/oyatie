@@ -4,6 +4,7 @@
 use data_ontology_kernel::PropertyValue;
 
 use crate::conformance::{ProjectionFixture, applied, fail, object};
+use crate::keys::KeyDesignations;
 use crate::predicate::{PredicateError, PropertyPredicate};
 use crate::store::{PageRequest, ProjectionStore, ProjectionStoreError};
 
@@ -12,25 +13,28 @@ pub fn check_equals_predicate_matches_exactly<F: ProjectionFixture>(
 ) -> Result<(), String> {
     let store = fixture.store();
     store
-        .apply(applied(
-            "ten_a",
-            1,
-            vec![
-                object(
-                    "ten_a",
-                    "ent_a1",
-                    "ety_reading",
-                    vec![("celsius", PropertyValue::Integer(21))],
-                ),
-                object(
-                    "ten_a",
-                    "ent_a2",
-                    "ety_reading",
-                    vec![("celsius", PropertyValue::Integer(35))],
-                ),
-                object("ten_a", "ent_a3", "ety_reading", vec![]),
-            ],
-        ))
+        .apply(
+            applied(
+                "ten_a",
+                1,
+                vec![
+                    object(
+                        "ten_a",
+                        "ent_a1",
+                        "ety_reading",
+                        vec![("celsius", PropertyValue::Integer(21))],
+                    ),
+                    object(
+                        "ten_a",
+                        "ent_a2",
+                        "ety_reading",
+                        vec![("celsius", PropertyValue::Integer(35))],
+                    ),
+                    object("ten_a", "ent_a3", "ety_reading", vec![]),
+                ],
+            ),
+            &KeyDesignations::default(),
+        )
         .map_err(|error| fail("seed apply", format!("{error:?}")))?;
     let predicate = PropertyPredicate::equals("celsius", PropertyValue::Integer(21))
         .map_err(|error| fail("equals constructs", format!("{error:?}")))?;
@@ -60,16 +64,19 @@ pub fn check_range_predicate_is_kind_scoped<F: ProjectionFixture>(
         .enumerate()
     {
         store
-            .apply(applied(
-                "ten_a",
-                ordinal as u64 + 1,
-                vec![object(
+            .apply(
+                applied(
                     "ten_a",
-                    object_ref,
-                    "ety_reading",
-                    vec![("celsius", PropertyValue::Integer(celsius))],
-                )],
-            ))
+                    ordinal as u64 + 1,
+                    vec![object(
+                        "ten_a",
+                        object_ref,
+                        "ety_reading",
+                        vec![("celsius", PropertyValue::Integer(celsius))],
+                    )],
+                ),
+                &KeyDesignations::default(),
+            )
             .map_err(|error| fail("seed apply", format!("{error:?}")))?;
     }
     let predicate = PropertyPredicate::range(
@@ -120,16 +127,19 @@ pub fn check_range_kind_mismatch_is_refused<F: ProjectionFixture>(
 ) -> Result<(), String> {
     let store = fixture.store();
     store
-        .apply(applied(
-            "ten_a",
-            1,
-            vec![object(
+        .apply(
+            applied(
                 "ten_a",
-                "ent_a1",
-                "ety_reading",
-                vec![("celsius", PropertyValue::String("warm".to_owned()))],
-            )],
-        ))
+                1,
+                vec![object(
+                    "ten_a",
+                    "ent_a1",
+                    "ety_reading",
+                    vec![("celsius", PropertyValue::String("warm".to_owned()))],
+                )],
+            ),
+            &KeyDesignations::default(),
+        )
         .map_err(|error| fail("seed apply", format!("{error:?}")))?;
     let predicate = PropertyPredicate::range(
         "celsius",
@@ -148,16 +158,19 @@ pub fn check_range_kind_mismatch_is_refused<F: ProjectionFixture>(
     }
     for (ordinal, (object_ref, celsius)) in [("ent_a2", 3), ("ent_a3", 5)].into_iter().enumerate() {
         store
-            .apply(applied(
-                "ten_a",
-                ordinal as u64 + 2,
-                vec![object(
+            .apply(
+                applied(
                     "ten_a",
-                    object_ref,
-                    "ety_reading",
-                    vec![("celsius", PropertyValue::Integer(celsius))],
-                )],
-            ))
+                    ordinal as u64 + 2,
+                    vec![object(
+                        "ten_a",
+                        object_ref,
+                        "ety_reading",
+                        vec![("celsius", PropertyValue::Integer(celsius))],
+                    )],
+                ),
+                &KeyDesignations::default(),
+            )
             .map_err(|error| fail("seed apply", format!("{error:?}")))?;
     }
     let after_bad = PageRequest::after(
@@ -180,16 +193,19 @@ pub fn check_cross_kind_comparisons_fail_closed<F: ProjectionFixture>(
 ) -> Result<(), String> {
     let store = fixture.store();
     store
-        .apply(applied(
-            "ten_a",
-            1,
-            vec![object(
+        .apply(
+            applied(
                 "ten_a",
-                "ent_a1",
-                "ety_reading",
-                vec![("celsius", PropertyValue::Boolean(true))],
-            )],
-        ))
+                1,
+                vec![object(
+                    "ten_a",
+                    "ent_a1",
+                    "ety_reading",
+                    vec![("celsius", PropertyValue::Boolean(true))],
+                )],
+            ),
+            &KeyDesignations::default(),
+        )
         .map_err(|error| fail("seed apply", format!("{error:?}")))?;
     match PropertyPredicate::range(
         "celsius",
