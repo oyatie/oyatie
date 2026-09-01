@@ -10,6 +10,7 @@
 
 mod codec;
 mod key_law;
+mod reset;
 mod scan;
 mod write;
 
@@ -123,6 +124,10 @@ impl SqliteProjectionStore {
 }
 
 impl ProjectionStore for SqliteProjectionStore {
+    fn reset_tenant(&mut self, tenant_id: &str) -> Result<u64, ProjectionStoreError> {
+        reset::reset_tenant(&mut self.connection, tenant_id)
+    }
+
     fn apply(
         &mut self,
         entry: AppliedEntry,

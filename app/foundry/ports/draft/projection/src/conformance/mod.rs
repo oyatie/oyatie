@@ -5,6 +5,7 @@ mod keys;
 mod links;
 mod predicates;
 mod reads;
+mod reset;
 
 pub use keys::{
     check_a_composite_key_value_is_refused, check_a_duplicate_primary_key_is_refused,
@@ -25,6 +26,11 @@ pub use predicates::{
 pub use reads::{
     check_get_returns_the_projected_object, check_reads_are_tenant_isolated,
     check_type_scan_pages_partition_deterministically,
+};
+pub use reset::{
+    check_applies_restart_at_ordinal_one_after_reset,
+    check_reset_discards_everything_for_the_tenant, check_reset_leaves_other_tenants_untouched,
+    check_reset_survives_reopen, check_resetting_an_unknown_tenant_discards_nothing,
 };
 
 use data_boundary_kernel::{DataClass, PrivacyDataClass};

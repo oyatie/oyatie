@@ -249,6 +249,19 @@ impl ProjectionStore for MemoryProjectionStore {
         ))
     }
 
+    fn reset_tenant(&mut self, tenant_id: &str) -> Result<u64, ProjectionStoreError> {
+        // Every map is keyed with the tenant FIRST, so the discard is a
+        // retain on that component alone — a neighbour cannot be caught
+        // by it however its own keys are shaped.
+        let discarded = self.heads.remove(tenant_id).unwrap_or(0);
+        self.entries.retain(|(tenant, _), _| tenant != tenant_id);
+        self.objects.retain(|(tenant, _), _| tenant != tenant_id);
+        self.links
+            .retain(|(tenant, _, _, _), _| tenant != tenant_id);
+        self.poisons.retain(|(tenant, _), _| tenant != tenant_id);
+        Ok(discarded)
+    }
+
     fn poisoned(&self, tenant_id: &str) -> Result<Vec<(u64, String)>, ProjectionStoreError> {
         require_trimmed(tenant_id, "blank tenant")?;
         Ok(self
