@@ -71,6 +71,15 @@ rust_library(
 )
 
 rust_test(
+    name = "dependency-declarations-generation-reindeer-provider-toolchain-test",
+    srcs = ["tests/provider_toolchain.rs"],
+    crate = "dependency_declarations_generation_reindeer_provider_toolchain_test",
+    crate_root = "tests/provider_toolchain.rs",
+    visibility = [],
+    within_view = _PACKAGE_VIEW,
+)
+
+rust_test(
     name = "dependency-declarations-generation-reindeer-module-membership-test",
     srcs = ["build.rs", "tests/module_membership.rs"],
     crate = "dependency_declarations_generation_reindeer_module_membership_test",
