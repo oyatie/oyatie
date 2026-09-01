@@ -42,6 +42,51 @@ fn assert_semantic(surface: &str, value: &str) {
     );
 }
 
+fn delivery_sequence(relative: &str) -> Vec<String> {
+    let document = std::fs::read_to_string(repo_root().join(relative)).expect("delivery law");
+    delivery_sequence_items(&document)
+}
+
+fn delivery_sequence_items(document: &str) -> Vec<String> {
+    let start = "<!-- agent-instructions:start -->";
+    let end = "<!-- agent-instructions:end -->";
+    assert_eq!(
+        document.matches(start).count(),
+        1,
+        "expected exactly one agent-instructions block start"
+    );
+    assert_eq!(
+        document.matches(end).count(),
+        1,
+        "expected exactly one agent-instructions block end"
+    );
+    let (_, tail) = document
+        .split_once(start)
+        .expect("agent-instructions block start");
+    let (block, _) = tail.split_once(end).expect("agent-instructions block end");
+    assert_eq!(
+        block.matches("required_sequence:").count(),
+        1,
+        "expected exactly one required delivery sequence"
+    );
+    let (_, sequence) = block
+        .split_once("required_sequence:")
+        .expect("required delivery sequence");
+    let mut items = Vec::new();
+    for line in sequence.lines() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        let Some(item) = line.strip_prefix("- ") else {
+            break;
+        };
+        items.push(item.split_whitespace().collect::<Vec<_>>().join(" "));
+    }
+    assert!(!items.is_empty(), "required delivery sequence is empty");
+    items
+}
+
 fn semantic_naming_rule(relative: &str) -> String {
     let document = std::fs::read_to_string(repo_root().join(relative)).expect("semantic-name law");
     let (_, section) = document
@@ -151,4 +196,43 @@ fn semantic_naming_rule_is_identical_without_freezing_adr_amendments() {
     assert!(agents.contains("legitimate ADR content amendments remain allowed"));
     assert!(agents.contains("recorded challenge demonstrably shows"));
     assert!(!agents.contains("records remain unchanged"));
+}
+
+#[test]
+fn delivery_sequence_is_identical_across_instruction_sources() {
+    let agents = delivery_sequence("AGENTS.md");
+    let claude = delivery_sequence("CLAUDE.md");
+    let expected = [
+        "isolated worktree branch per lane",
+        "SSH-signed commit and push on that lane",
+        "draft pull request against dev",
+        "required context presubmit green",
+        "independent reviewer APPROVE; threads resolved; conflict-free protected squash merge",
+    ]
+    .map(str::to_owned)
+    .to_vec();
+
+    assert_eq!(agents, claude);
+    assert_eq!(agents, expected);
+    assert_semantic("delivery sequence", &agents.join(" "));
+}
+
+#[test]
+fn delivery_sequence_ignores_unrelated_harness_metadata() {
+    let git = r#"<!-- agent-instructions:start -->
+sanctioned_primitives:
+  - git
+required_sequence:
+  - first step
+  - second step
+<!-- agent-instructions:end -->"#;
+    let forge = r#"<!-- agent-instructions:start -->
+sanctioned_primitives:
+  - forge
+required_sequence:
+    - first   step
+    - second step
+<!-- agent-instructions:end -->"#;
+
+    assert_eq!(delivery_sequence_items(git), delivery_sequence_items(forge));
 }
