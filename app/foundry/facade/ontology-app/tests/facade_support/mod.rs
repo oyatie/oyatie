@@ -133,3 +133,37 @@ pub async fn post(fixture: &Fixture, token: Option<&str>, body: &str) -> (Status
         .to_bytes();
     (status, String::from_utf8_lossy(&bytes).into_owned())
 }
+
+/// GET a path, optionally bearing a credential.
+pub async fn get(fixture: &Fixture, token: Option<&str>, path: &str) -> (StatusCode, String) {
+    let mut request = Request::builder().method("GET").uri(path);
+    if let Some(token) = token {
+        request = request.header("authorization", format!("Bearer {token}"));
+    }
+    let response = router(fixture.state())
+        .oneshot(request.body(Body::empty()).expect("a well-formed request"))
+        .await
+        .expect("the router answers");
+    let status = response.status();
+    let bytes = response
+        .into_body()
+        .collect()
+        .await
+        .expect("a readable body")
+        .to_bytes();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+/// Land one record through the REAL write path, so a read test reads what a
+/// write actually produced rather than a hand-built projection.
+pub async fn write_a_record(fixture: &Fixture, object_ref: &str, key: &str) {
+    let body = format!(
+        r#"{{"object_ref":"{object_ref}","action_type":"aty_record_write","idempotency_key":"{key}","occurred_at_epoch_seconds":1700000000,"properties":{{"name":"Ada"}}}}"#
+    );
+    let (status, reply) = post(fixture, Some(fixture.operator_token()), &body).await;
+    assert_eq!(
+        status,
+        StatusCode::OK,
+        "the fixture write must land: {reply}"
+    );
+}

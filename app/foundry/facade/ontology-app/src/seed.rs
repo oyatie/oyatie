@@ -84,3 +84,17 @@ fn build(tenant_id: &str) -> Result<OntologyEngine, SeedError> {
     )?)?;
     Ok(engine)
 }
+
+/// Every entity type this tenant's registry declares, for the read
+/// surface's type view. The Ontology Manager vertical replaces the seed
+/// with a durable registry; this accessor is the seam it will serve.
+pub fn declared_entity_types<'a>(
+    engine: &'a OntologyEngine,
+    tenant_id: &str,
+) -> Vec<&'a EntityTypeDefinition> {
+    [EntityTypeId::new("ety_record")]
+        .into_iter()
+        .flatten()
+        .filter_map(|id| engine.entity_type(tenant_id, &id))
+        .collect()
+}
