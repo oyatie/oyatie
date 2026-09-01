@@ -1,86 +1,56 @@
-//! The bounded walk over a userset rewrite.
-//!
-//! This is what makes a `UsersetRewrite` mean something. `check` answers
-//! whether a subject holds a relation on an object by evaluating that
-//! object type's rewrite against tuples read at one pinned snapshot, so every
-//! read in a single decision sees the same state.
+//! Internal userset-rewrite evaluation at one already-resolved snapshot.
 
 use policy_cedar_domain::rebac::{
-    RebacObjectRef, RebacReadSnapshot, RebacRelation, RebacSubjectRef, RebacTenantScope,
-    RebacTuple, RebacTupleQuery, RebacTupleStore, UsersetRewrite,
+    RebacObjectRef, RebacRelation, RebacSubjectRef, RebacTuple, RebacTupleQuery, RebacTupleStore,
+    RebacTupleStoreError, ResolvedRebacSnapshot, UsersetRewrite,
 };
 
-use crate::bounds::{Budget, ExpansionBounds};
+use crate::bounds::ExpansionBounds;
 use crate::error::ExpansionError;
 use crate::namespace::ValidatedNamespace;
 use crate::walk::Walk;
 
-/// Evaluates relationship questions for one tenant at one snapshot.
-pub struct Expander<'a, S: RebacTupleStore> {
+pub(crate) struct ResolvedExpansion<'a, S: RebacTupleStore> {
     store: &'a S,
     namespace: &'a ValidatedNamespace,
-    tenant: RebacTenantScope,
-    snapshot: RebacReadSnapshot,
+    snapshot: ResolvedRebacSnapshot,
     bounds: ExpansionBounds,
 }
 
-impl<'a, S: RebacTupleStore> Expander<'a, S> {
+impl<'a, S: RebacTupleStore> ResolvedExpansion<'a, S> {
     #[must_use]
-    pub fn new(
+    pub(crate) fn new(
         store: &'a S,
         namespace: &'a ValidatedNamespace,
-        tenant: RebacTenantScope,
-        snapshot: RebacReadSnapshot,
+        snapshot: ResolvedRebacSnapshot,
+        bounds: ExpansionBounds,
     ) -> Self {
         Self {
             store,
             namespace,
-            tenant,
             snapshot,
-            bounds: ExpansionBounds::DEFAULT,
+            bounds,
         }
     }
 
     #[must_use]
-    pub fn with_bounds(mut self, bounds: ExpansionBounds) -> Self {
-        self.bounds = bounds;
-        self
+    pub(crate) fn resolved_snapshot(&self) -> &ResolvedRebacSnapshot {
+        &self.snapshot
     }
 
-    /// Does `subject` hold `relation` on `object` at this snapshot?
-    ///
-    /// # Errors
-    /// Every [`ExpansionError`] is a denial. A caller must not read `Ok(false)`
-    /// and an error as the same outcome: the first says the graph was walked
-    /// and no grant exists, the second says the graph was not fully walked.
-    pub fn check(
-        &self,
-        subject: &RebacSubjectRef,
-        relation: &RebacRelation,
-        object: &RebacObjectRef,
-    ) -> Result<bool, ExpansionError> {
-        let mut walk = Walk::new(subject, self.bounds.max_depth, self.bounds.max_tuples_read);
-        self.resolve(&mut walk, relation, object)
+    pub(crate) fn bounds(&self) -> ExpansionBounds {
+        self.bounds
     }
 
     /// Resolve `object#relation` for the walk's subject.
-    fn resolve(
+    pub(crate) fn resolve(
         &self,
-        walk: &mut Walk<'_>,
+        walk: &mut Walk<'_, '_>,
         relation: &RebacRelation,
         object: &RebacObjectRef,
     ) -> Result<bool, ExpansionError> {
-        // Resolve the rewrite BEFORE claiming the path entry, so that every
-        // `enter` returning true is matched by exactly one `leave`. With this
-        // lookup inside the guarded region its `?` skipped the `leave`, and
-        // the frame stayed in `order` after `path` had dropped it. Nothing in
-        // this crate recovers an `ExpansionError`, so the stale entry was
-        // unreachable - but `crosses_negation` reads `order` BY POSITION, and
-        // a stale position below a mark is a wrong DENY waiting for the first
-        // caller that treats an undefined relation as deny-by-omission.
-        // Reordering cannot surface a new error: a node already on the path
-        // resolved this same (object type, relation) when it was first
-        // entered.
+        // Resolve before `enter`: an error must not leave a stale ordered path
+        // frame, because negation-cycle detection reads that order by position.
         let rewrite = self.namespace.rewrite(object.object_type(), relation)?;
         // A relation already on this path contributes no new grant. Answering
         // false rather than refusing keeps a legitimately cyclic graph (groups
@@ -104,7 +74,7 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
     /// Descend into `object#relation`, honouring the depth bound.
     fn descend_into(
         &self,
-        walk: &mut Walk<'_>,
+        walk: &mut Walk<'_, '_>,
         relation: &RebacRelation,
         object: &RebacObjectRef,
     ) -> Result<bool, ExpansionError> {
@@ -116,7 +86,7 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
 
     fn eval(
         &self,
-        walk: &mut Walk<'_>,
+        walk: &mut Walk<'_, '_>,
         rewrite: &UsersetRewrite,
         relation: &RebacRelation,
         object: &RebacObjectRef,
@@ -158,7 +128,7 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
 
     fn any_child(
         &self,
-        walk: &mut Walk<'_>,
+        walk: &mut Walk<'_, '_>,
         children: &[UsersetRewrite],
         relation: &RebacRelation,
         object: &RebacObjectRef,
@@ -173,7 +143,7 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
 
     fn every_child(
         &self,
-        walk: &mut Walk<'_>,
+        walk: &mut Walk<'_, '_>,
         children: &[UsersetRewrite],
         relation: &RebacRelation,
         object: &RebacObjectRef,
@@ -188,7 +158,7 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
 
     fn difference(
         &self,
-        walk: &mut Walk<'_>,
+        walk: &mut Walk<'_, '_>,
         base: &UsersetRewrite,
         subtract: &UsersetRewrite,
         relation: &RebacRelation,
@@ -207,7 +177,7 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
     /// whose subject is a userset expands in turn.
     fn direct(
         &self,
-        walk: &mut Walk<'_>,
+        walk: &mut Walk<'_, '_>,
         relation: &RebacRelation,
         object: &RebacObjectRef,
     ) -> Result<bool, ExpansionError> {
@@ -233,7 +203,7 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
     /// `document#parent` into `folder#viewer`.
     fn tuple_to_userset(
         &self,
-        walk: &mut Walk<'_>,
+        walk: &mut Walk<'_, '_>,
         tupleset_relation: &RebacRelation,
         computed: &RebacRelation,
         object: &RebacObjectRef,
@@ -260,24 +230,35 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
         &self,
         object: &RebacObjectRef,
         relation: &RebacRelation,
-        walk: &mut Walk<'_>,
+        walk: &mut Walk<'_, '_>,
     ) -> Result<Vec<RebacTuple>, ExpansionError> {
         let mut collected = Vec::new();
         let mut page_token = None;
         for _ in 0..self.bounds.max_pages_per_tupleset {
             let query = RebacTupleQuery::object_relation(
-                self.tenant.clone(),
+                self.snapshot.tenant().clone(),
                 object.clone(),
                 relation.clone(),
             )
             .at_page(page_token);
-            let page = self
-                .store
-                .read_tuples(&query, walk.read_at(&self.snapshot))?;
-            // Pin to what the first read was actually served, so the rest of
-            // this decision cannot observe a later write.
-            walk.pin(page.snapshot.clone());
-            walk.budget.charge(page.tuples.len())?;
+            let page = self.store.read_tuples(&query, &self.snapshot)?;
+            if page.snapshot != self.snapshot {
+                return Err(RebacTupleStoreError::InconsistentSnapshot {
+                    requested: self.snapshot.clone(),
+                    served: page.snapshot,
+                }
+                .into());
+            }
+            walk.budget.charge_tuples(page.tuples.len())?;
+            for tuple in &page.tuples {
+                if !query.matches(tuple) {
+                    return Err(RebacTupleStoreError::TupleOutsideQuery {
+                        query: Box::new(query),
+                        tuple: Box::new(tuple.clone()),
+                    }
+                    .into());
+                }
+            }
             collected.extend(page.tuples);
             match page.next_page_token {
                 Some(token) => page_token = Some(token),

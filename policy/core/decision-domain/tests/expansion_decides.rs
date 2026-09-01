@@ -11,7 +11,7 @@ mod join_fixtures;
 use std::collections::BTreeMap;
 
 use join_fixtures::*;
-use policy_cedar_domain::rebac::{RebacReadSnapshot, RebacSubjectRef};
+use policy_cedar_domain::rebac::RebacReadSnapshot;
 use policy_decision_domain::{decide, materialize_parents};
 use policy_tuple_store_inmemory::InMemoryTupleStore;
 use shared_platform_contracts_kernel::pdp::Decision;
@@ -26,19 +26,13 @@ fn a_check_materialises_into_parents_and_cedar_decides_allow() {
     write(&mut store, "group:core#member@user:alice");
 
     let namespace = model();
-    let subject = RebacSubjectRef::object(object("user:alice"));
     let candidates = [eng_candidate()];
-    let inputs = graph(
-        &store,
-        &namespace,
-        RebacReadSnapshot::latest(),
-        &subject,
-        &candidates,
-    );
+    let inputs = graph(&store, &namespace, RebacReadSnapshot::latest(), &candidates);
 
-    let parents = materialize_parents(&inputs).expect("the graph walk completes");
+    let parents =
+        materialize_parents(&inputs, &request("alice")).expect("the graph walk completes");
     assert_eq!(
-        parents,
+        parents.parents(),
         vec![entity("Group", "eng")],
         "the nested membership must materialise as exactly the eng parent edge"
     );
@@ -52,7 +46,7 @@ fn a_check_materialises_into_parents_and_cedar_decides_allow() {
     )
     .expect("the joined decision completes");
     assert_eq!(
-        outcome.response.decision,
+        outcome.outcome.response.decision,
         Decision::Allow,
         "the graph-materialised parent edge is the only possible source of this allow"
     );
@@ -67,19 +61,13 @@ fn a_candidate_the_graph_refutes_materialises_nothing_and_cedar_denies() {
     write(&mut store, "group:core#member@user:alice");
 
     let namespace = model();
-    let subject = RebacSubjectRef::object(object("user:bob"));
     let candidates = [eng_candidate()];
-    let inputs = graph(
-        &store,
-        &namespace,
-        RebacReadSnapshot::latest(),
-        &subject,
-        &candidates,
-    );
+    let inputs = graph(&store, &namespace, RebacReadSnapshot::latest(), &candidates);
 
     assert!(
-        materialize_parents(&inputs)
+        materialize_parents(&inputs, &request("bob"))
             .expect("the graph walk completes")
+            .parents()
             .is_empty(),
         "no membership holds for bob, so nothing may materialise"
     );
@@ -91,7 +79,7 @@ fn a_candidate_the_graph_refutes_materialises_nothing_and_cedar_denies() {
         context_entities(),
     )
     .expect("the joined decision completes");
-    assert_eq!(outcome.response.decision, Decision::Deny);
+    assert_eq!(outcome.outcome.response.decision, Decision::Deny);
 }
 
 #[test]
@@ -103,14 +91,12 @@ fn a_snapshot_before_the_grant_decides_deny_while_latest_decides_allow() {
     write(&mut store, "group:core#member@user:alice");
 
     let namespace = model();
-    let subject = RebacSubjectRef::object(object("user:alice"));
     let candidates = [eng_candidate()];
 
     let stale = graph(
         &store,
         &namespace,
         RebacReadSnapshot::at_zookie(before),
-        &subject,
         &candidates,
     );
     let outcome = decide(
@@ -122,18 +108,12 @@ fn a_snapshot_before_the_grant_decides_deny_while_latest_decides_allow() {
     )
     .expect("the joined decision completes");
     assert_eq!(
-        outcome.response.decision,
+        outcome.outcome.response.decision,
         Decision::Deny,
         "at the pre-grant snapshot alice's membership does not exist yet"
     );
 
-    let fresh = graph(
-        &store,
-        &namespace,
-        RebacReadSnapshot::latest(),
-        &subject,
-        &candidates,
-    );
+    let fresh = graph(&store, &namespace, RebacReadSnapshot::latest(), &candidates);
     let outcome = decide(
         &pdp(),
         &fresh,
@@ -142,7 +122,7 @@ fn a_snapshot_before_the_grant_decides_deny_while_latest_decides_allow() {
         context_entities(),
     )
     .expect("the joined decision completes");
-    assert_eq!(outcome.response.decision, Decision::Allow);
+    assert_eq!(outcome.outcome.response.decision, Decision::Allow);
 }
 
 #[test]
@@ -153,15 +133,8 @@ fn an_engine_refusal_surfaces_as_pdp_not_as_a_decision() {
     let mut store = InMemoryTupleStore::new();
     write(&mut store, "group:eng#member@user:alice");
     let namespace = model();
-    let subject = RebacSubjectRef::object(object("user:alice"));
     let candidates = [eng_candidate()];
-    let inputs = graph(
-        &store,
-        &namespace,
-        RebacReadSnapshot::latest(),
-        &subject,
-        &candidates,
-    );
+    let inputs = graph(&store, &namespace, RebacReadSnapshot::latest(), &candidates);
 
     let mut unmapped = request("alice");
     unmapped.action = "delete".to_owned();

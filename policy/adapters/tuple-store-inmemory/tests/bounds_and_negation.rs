@@ -6,7 +6,7 @@ mod common;
 
 use common::*;
 use policy_cedar_domain::rebac::{RebacReadSnapshot, UsersetRewrite};
-use policy_rebac_domain::{Expander, ExpansionBounds, ExpansionError, NamespaceConfig};
+use policy_rebac_domain::{ExpansionBounds, ExpansionError, NamespaceConfig};
 use policy_tuple_store_inmemory::InMemoryTupleStore;
 
 #[test]
@@ -70,7 +70,7 @@ fn difference_denies_a_subject_in_neither_set() {
     let mut store = InMemoryTupleStore::new();
     write(&mut store, "doc:spec#writer@user:alice");
 
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     assert!(
         !expander
             .check(
@@ -97,8 +97,7 @@ fn the_tuple_budget_refuses_rather_than_answering() {
         max_tuples_read: 4,
         ..ExpansionBounds::DEFAULT
     };
-    let expander =
-        Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest()).with_bounds(bounds);
+    let expander = bounded_expander(&store, &model, RebacReadSnapshot::latest(), bounds);
     assert_eq!(
         expander.check(
             &user("user:alice"),
@@ -107,6 +106,30 @@ fn the_tuple_budget_refuses_rather_than_answering() {
         ),
         Err(ExpansionError::TupleBudgetExceeded { limit: 4 })
     );
+}
+
+#[test]
+fn standalone_checks_each_receive_a_fresh_candidate_budget() {
+    let mut store = InMemoryTupleStore::new();
+    write(&mut store, "folder:budget#viewer@user:alice");
+    let model = document_model();
+    let bounds = ExpansionBounds {
+        max_candidates: 1,
+        ..ExpansionBounds::DEFAULT
+    };
+    let expander = bounded_expander(&store, &model, RebacReadSnapshot::latest(), bounds);
+
+    for _ in 0..2 {
+        assert!(
+            expander
+                .check(
+                    &user("user:alice"),
+                    &relation("viewer"),
+                    &object("folder:budget"),
+                )
+                .expect("each standalone check owns an independent budget")
+        );
+    }
 }
 
 #[test]
@@ -133,8 +156,7 @@ fn a_deeply_nested_rewrite_refuses_instead_of_exhausting_the_stack() {
         max_depth: 8,
         ..ExpansionBounds::DEFAULT
     };
-    let expander =
-        Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest()).with_bounds(bounds);
+    let expander = bounded_expander(&store, &model, RebacReadSnapshot::latest(), bounds);
     assert_eq!(
         expander.check(
             &user("user:alice"),
@@ -157,7 +179,7 @@ fn a_userset_on_the_tupleset_side_grants_nothing() {
         "document:q3#parent@folder:budget#some_other_relation",
     );
 
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     assert!(
         !expander
             .check(

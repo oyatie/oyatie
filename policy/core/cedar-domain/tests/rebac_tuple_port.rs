@@ -1,7 +1,7 @@
 use policy_cedar_domain::rebac::{
     RebacObjectRef, RebacReadSnapshot, RebacRelation, RebacSubjectRef, RebacTenantScope,
     RebacTuple, RebacTuplePage, RebacTupleQuery, RebacTupleStore, RebacTupleStoreError,
-    SnapshotToken, UsersetRewrite, Zookie,
+    ResolvedRebacSnapshot, SnapshotToken, UsersetRewrite, Zookie,
 };
 
 #[test]
@@ -66,6 +66,15 @@ fn zookie_and_snapshot_tokens_are_opaque_closed_serde_values() {
 
     assert!(Zookie::new("contains whitespace").is_err());
     assert!(SnapshotToken::new("").is_err());
+    let opaque_latest = ResolvedRebacSnapshot::new(
+        RebacTenantScope::new("tenant-alpha").expect("tenant is valid"),
+        SnapshotToken::new("latest").expect("opaque token syntax is valid"),
+    );
+    assert_eq!(opaque_latest.as_str(), "latest");
+    assert!(matches!(
+        RebacReadSnapshot::latest(),
+        RebacReadSnapshot::Latest
+    ));
 }
 
 #[test]
@@ -116,10 +125,25 @@ fn tuple_store_port_exposes_write_zookie_and_read_snapshot_contract() {
                 .map_err(RebacTupleStoreError::InvalidZookie)
         }
 
+        fn resolve_snapshot(
+            &self,
+            tenant: &RebacTenantScope,
+            requested: RebacReadSnapshot,
+        ) -> Result<ResolvedRebacSnapshot, RebacTupleStoreError> {
+            let token = match requested {
+                RebacReadSnapshot::Latest => {
+                    SnapshotToken::new(format!("zk-{}", self.tuples.len()))
+                }
+                RebacReadSnapshot::At { snapshot } => Ok(snapshot),
+            }
+            .map_err(RebacTupleStoreError::InvalidZookie)?;
+            Ok(ResolvedRebacSnapshot::new(tenant.clone(), token))
+        }
+
         fn read_tuples(
             &self,
             query: &RebacTupleQuery,
-            snapshot: RebacReadSnapshot,
+            snapshot: &ResolvedRebacSnapshot,
         ) -> Result<RebacTuplePage, RebacTupleStoreError> {
             let tuples = self
                 .tuples
@@ -129,7 +153,7 @@ fn tuple_store_port_exposes_write_zookie_and_read_snapshot_contract() {
                 .collect();
             Ok(RebacTuplePage {
                 tuples,
-                snapshot: snapshot.into_snapshot_token(),
+                snapshot: snapshot.clone(),
                 next_page_token: None,
             })
         }
@@ -142,10 +166,14 @@ fn tuple_store_port_exposes_write_zookie_and_read_snapshot_contract() {
     let zookie = store
         .write_tuple(tuple.clone())
         .expect("write returns zookie");
+    let requested = RebacReadSnapshot::at_zookie(zookie.clone());
+    let resolved = store
+        .resolve_snapshot(&tenant, requested)
+        .expect("snapshot resolves");
     let page = store
         .read_tuples(
             &RebacTupleQuery::object_relation(tenant, tuple.object.clone(), tuple.relation.clone()),
-            RebacReadSnapshot::at_zookie(zookie.clone()),
+            &resolved,
         )
         .expect("read returns page");
 
@@ -167,10 +195,25 @@ fn tuple_store_queries_are_exactly_tenant_scoped() {
                 .map_err(RebacTupleStoreError::InvalidZookie)
         }
 
+        fn resolve_snapshot(
+            &self,
+            tenant: &RebacTenantScope,
+            requested: RebacReadSnapshot,
+        ) -> Result<ResolvedRebacSnapshot, RebacTupleStoreError> {
+            let token = match requested {
+                RebacReadSnapshot::Latest => {
+                    SnapshotToken::new(format!("zk-{}", self.tuples.len()))
+                }
+                RebacReadSnapshot::At { snapshot } => Ok(snapshot),
+            }
+            .map_err(RebacTupleStoreError::InvalidZookie)?;
+            Ok(ResolvedRebacSnapshot::new(tenant.clone(), token))
+        }
+
         fn read_tuples(
             &self,
             query: &RebacTupleQuery,
-            snapshot: RebacReadSnapshot,
+            snapshot: &ResolvedRebacSnapshot,
         ) -> Result<RebacTuplePage, RebacTupleStoreError> {
             let tuples = self
                 .tuples
@@ -180,7 +223,7 @@ fn tuple_store_queries_are_exactly_tenant_scoped() {
                 .collect();
             Ok(RebacTuplePage {
                 tuples,
-                snapshot: snapshot.into_snapshot_token(),
+                snapshot: snapshot.clone(),
                 next_page_token: None,
             })
         }
@@ -209,16 +252,22 @@ fn tuple_store_queries_are_exactly_tenant_scoped() {
 
     let object = RebacObjectRef::new("document", "shared-roadmap").expect("object ref is valid");
     let relation = RebacRelation::new("viewer").expect("relation is valid");
+    let alpha_snapshot = store
+        .resolve_snapshot(&tenant_alpha, RebacReadSnapshot::latest())
+        .expect("alpha snapshot resolves");
+    let beta_snapshot = store
+        .resolve_snapshot(&tenant_beta, RebacReadSnapshot::latest())
+        .expect("beta snapshot resolves");
     let alpha_page = store
         .read_tuples(
             &RebacTupleQuery::object_relation(tenant_alpha, object.clone(), relation.clone()),
-            RebacReadSnapshot::latest(),
+            &alpha_snapshot,
         )
         .expect("alpha read succeeds");
     let beta_page = store
         .read_tuples(
             &RebacTupleQuery::object_relation(tenant_beta, object, relation),
-            RebacReadSnapshot::latest(),
+            &beta_snapshot,
         )
         .expect("beta read succeeds");
 

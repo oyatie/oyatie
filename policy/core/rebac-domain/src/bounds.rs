@@ -5,9 +5,12 @@
 //! a bound is a typed refusal rather than a truncated answer — a truncated
 //! authorization result is a wrong one, not a partial one.
 
-/// Bounds applied to a single check or expand.
+/// Bounds applied to one expansion session. A standalone check creates a
+/// fresh one-candidate session.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ExpansionBounds {
+    /// Maximum candidate memberships checked in one decision scope.
+    pub max_candidates: usize,
     /// Maximum rewrite nesting depth before refusing.
     pub max_depth: u32,
     /// Maximum tuples read across the whole walk before refusing.
@@ -20,6 +23,7 @@ impl ExpansionBounds {
     /// Bounds that comfortably admit ordinary object hierarchies while still
     /// refusing a pathological config or tuple set.
     pub const DEFAULT: Self = Self {
+        max_candidates: 256,
         max_depth: 32,
         max_tuples_read: 10_000,
         max_pages_per_tupleset: 64,
@@ -32,26 +36,41 @@ impl Default for ExpansionBounds {
     }
 }
 
-/// Tracks spend against [`ExpansionBounds`] for one walk.
+/// Tracks spend against [`ExpansionBounds`] for one expansion session.
 #[derive(Debug)]
 pub(crate) struct Budget {
+    candidates_checked: usize,
     tuples_read: usize,
-    limit: usize,
+    bounds: ExpansionBounds,
 }
 
 impl Budget {
-    pub(crate) fn new(limit: usize) -> Self {
+    pub(crate) fn new(bounds: ExpansionBounds) -> Self {
         Self {
+            candidates_checked: 0,
             tuples_read: 0,
-            limit,
+            bounds,
         }
     }
 
+    /// Charge one candidate before starting its subwalk.
+    pub(crate) fn charge_candidate(&mut self) -> Result<(), crate::ExpansionError> {
+        self.candidates_checked = self.candidates_checked.saturating_add(1);
+        if self.candidates_checked > self.bounds.max_candidates {
+            return Err(crate::ExpansionError::CandidateBudgetExceeded {
+                limit: self.bounds.max_candidates,
+            });
+        }
+        Ok(())
+    }
+
     /// Charge `count` tuples, refusing once the bound is passed.
-    pub(crate) fn charge(&mut self, count: usize) -> Result<(), crate::ExpansionError> {
+    pub(crate) fn charge_tuples(&mut self, count: usize) -> Result<(), crate::ExpansionError> {
         self.tuples_read = self.tuples_read.saturating_add(count);
-        if self.tuples_read > self.limit {
-            return Err(crate::ExpansionError::TupleBudgetExceeded { limit: self.limit });
+        if self.tuples_read > self.bounds.max_tuples_read {
+            return Err(crate::ExpansionError::TupleBudgetExceeded {
+                limit: self.bounds.max_tuples_read,
+            });
         }
         Ok(())
     }

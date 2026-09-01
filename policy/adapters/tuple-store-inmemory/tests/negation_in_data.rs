@@ -13,7 +13,7 @@ mod common;
 
 use common::*;
 use policy_cedar_domain::rebac::{RebacReadSnapshot, UsersetRewrite};
-use policy_rebac_domain::{Expander, ExpansionError, NamespaceConfig, ValidatedNamespace};
+use policy_rebac_domain::{ExpansionError, NamespaceConfig, ValidatedNamespace};
 use policy_tuple_store_inmemory::InMemoryTupleStore;
 
 fn editor_excludes_banned() -> ValidatedNamespace {
@@ -55,7 +55,7 @@ fn a_tuple_that_closes_a_negated_cycle_refuses() {
     write(&mut store, "doc:spec#editor@user:alice");
     write(&mut store, "doc:spec#banned@doc:spec#editor");
 
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     assert_eq!(
         expander.check(
             &user("user:alice"),
@@ -81,7 +81,7 @@ fn a_monotone_cycle_inside_the_subtracted_set_still_answers() {
     write(&mut store, "group:b#member@group:a#member");
     write(&mut store, "doc:spec#banned@group:a#member");
 
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     assert_eq!(
         expander.check(
             &user("user:alice"),
@@ -107,7 +107,7 @@ fn a_walk_does_not_inherit_a_previous_walks_negation_state() {
     write(&mut store, "group:a#member@group:b#member");
     write(&mut store, "group:b#member@group:a#member");
 
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     // First check walks the subtraction and returns; the second must behave
     // identically rather than carrying the first's state.
     let first = expander.check(
