@@ -25,6 +25,7 @@
 
 pub mod conformance;
 mod keys;
+mod link_index;
 mod memory;
 mod predicate;
 mod store;
@@ -33,6 +34,6 @@ pub use keys::KeyDesignations;
 pub use memory::MemoryProjectionStore;
 pub use predicate::{PredicateError, PropertyPredicate};
 pub use store::{
-    AppliedEntry, ApplyReceipt, EntryOutcome, Page, PageRequest, ProjectedObject, ProjectionCursor,
-    ProjectionStore, ProjectionStoreError,
+    AppliedEntry, ApplyReceipt, EntryOutcome, Page, PageRequest, ProjectedLink, ProjectedObject,
+    ProjectionCursor, ProjectionStore, ProjectionStoreError,
 };
