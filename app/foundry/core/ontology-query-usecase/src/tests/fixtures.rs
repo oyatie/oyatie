@@ -5,7 +5,7 @@
 
 pub(super) use crate::*;
 pub(super) use data_ontology_kernel::ObjectGraph;
-pub(super) use data_ontology_query_engine_domain::{
+pub(super) use foundry_ontology_query_domain::{
     EdgeConsent, KnowledgeGraphQueryEngine, KnowledgeGraphQueryError, KnowledgeGraphQueryRequest,
     TraversalDirection,
 };
@@ -55,7 +55,7 @@ pub(super) fn registry() -> OntologyEngine {
         .unwrap();
     engine
 }
-pub(super) use data_ontology_query_engine_domain::KnowledgeGraphLinkInstance;
+pub(super) use foundry_ontology_query_domain::KnowledgeGraphLinkInstance;
 
 pub(super) fn property(name: &str) -> ObjectProperty {
     ObjectProperty::new(

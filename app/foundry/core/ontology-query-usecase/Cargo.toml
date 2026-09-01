@@ -1,0 +1,20 @@
+[package]
+name = "foundry-ontology-query-usecase"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
+
+data-ontology-kernel = { path = "../../../../data/core/ontology-kernel" }
+foundry-ontology-query-domain = { path = "../ontology-query-domain" }
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

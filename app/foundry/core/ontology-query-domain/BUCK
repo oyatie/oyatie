@@ -1,25 +1,23 @@
 rust_library(
-    name = "data-ontology-query-engine-usecase",
+    name = "foundry-ontology-query-domain",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "data_ontology_query_engine_usecase",
+    crate = "foundry_ontology_query_domain",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//data/core/ontology-kernel:data-ontology-kernel",
-        "//data/core/ontology-query-engine-domain:data-ontology-query-engine-domain",
     ],
 )
 
 rust_test(
-    name = "data-ontology-query-engine-usecase-unittest",
+    name = "foundry-ontology-query-domain-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "data_ontology_query_engine_usecase",
+    crate = "foundry_ontology_query_domain",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//data/core/ontology-kernel:data-ontology-kernel",
-        "//data/core/ontology-query-engine-domain:data-ontology-query-engine-domain",
     ],
 )

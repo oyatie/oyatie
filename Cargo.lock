@@ -1728,23 +1728,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "data-ontology-query-engine-domain"
-version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
- "data-ontology-kernel",
-]
-
-[[package]]
-name = "data-ontology-query-engine-usecase"
-version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
- "data-ontology-kernel",
- "data-ontology-query-engine-domain",
-]
-
-[[package]]
 name = "data-ontology-scorecards-resolver"
 version = "0.1.0"
 dependencies = [
@@ -2225,6 +2208,23 @@ dependencies = [
 [[package]]
 name = "foundry-edits"
 version = "0.1.0"
+
+[[package]]
+name = "foundry-ontology-query-domain"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+ "data-ontology-kernel",
+]
+
+[[package]]
+name = "foundry-ontology-query-usecase"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+ "data-ontology-kernel",
+ "foundry-ontology-query-domain",
+]
 
 [[package]]
 name = "foundry-projection-draft"
