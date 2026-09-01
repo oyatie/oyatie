@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use data_ontology_kernel::ObjectGraph;
-use data_ontology_query_engine_domain::{
+use foundry_ontology_query_domain::{
     KnowledgeGraphQueryEngine, KnowledgeGraphQueryError, KnowledgeGraphQueryRequest,
 };
 

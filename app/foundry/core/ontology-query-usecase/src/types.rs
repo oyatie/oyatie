@@ -1,6 +1,6 @@
 //! Execution inputs, receipts, statuses, and audit event shapes.
 
-use data_ontology_query_engine_domain::{
+use foundry_ontology_query_domain::{
     KnowledgeGraphQueryError, KnowledgeGraphQueryRequest, KnowledgeGraphQueryResponse,
     TraversalDirection,
 };
