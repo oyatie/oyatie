@@ -26,6 +26,13 @@ pub fn router(state: AppState) -> Router {
         .route("/statusz", get(statusz))
         .route("/metrics", get(metrics))
         .route("/v1/actions", post(crate::submit::submit_action))
+        .route("/v1/objects/{object_ref}", get(crate::reads::object))
+        .route(
+            "/v1/objects/{object_ref}/history",
+            get(crate::reads::history),
+        )
+        .route("/v1/audit", get(crate::reads::audit))
+        .route("/v1/types", get(crate::reads::types))
         .with_state(Arc::new(state))
 }
 
