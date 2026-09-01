@@ -17,6 +17,8 @@ use foundry_records_sqlite_draft::SqliteRecordsLog;
 use foundry_spine::{ProjectionState, SyncStatus, fold_from_scratch};
 use tokio::sync::Mutex;
 
+use crate::auth::OperatorCredential;
+use crate::authz::PolicyEnforcementPoint;
 use crate::config::Config;
 use crate::seed::registry_for;
 
@@ -37,6 +39,9 @@ pub enum BootError {
     SeedRefused { tenant_id: String, detail: String },
     /// A tenant's log could not be replayed.
     ReplayFailed { tenant_id: String, detail: String },
+    /// The policy seed did not compile or strict-validate. The process
+    /// never serves a policy set it could not validate.
+    PolicyRejected { detail: String },
 }
 
 impl std::fmt::Display for BootError {
@@ -70,6 +75,9 @@ impl std::fmt::Display for BootError {
                     "tenant {tenant_id} could not be replayed: {detail}"
                 )
             }
+            Self::PolicyRejected { detail } => {
+                write!(formatter, "the policy seed was rejected: {detail}")
+            }
         }
     }
 }
@@ -78,10 +86,44 @@ impl std::fmt::Display for BootError {
 /// optimization: the history and audit views read the log entries alongside
 /// the projection, so a process that held only the projection could not
 /// answer them.
-#[derive(Debug)]
 pub struct TenantState {
     pub projection: ProjectionState,
     pub entries: Vec<SealedEnvelope>,
+    /// The durable stores this tenant writes through. They live here, not
+    /// in a shared pool, because a submission needs the action log, the
+    /// denial trail and the projection together under one lock.
+    pub action_log: SqliteRecordsLog,
+    pub denial_log: SqliteRecordsLog,
+}
+
+impl std::fmt::Debug for TenantState {
+    /// The durable handles carry no derivable Debug and nothing worth
+    /// rendering; what an operator wants from this type is where its fold
+    /// stands, which `sync_status` already answers.
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("TenantState")
+            .field("sync_status", &self.sync_status())
+            .finish_non_exhaustive()
+    }
+}
+
+impl TenantState {
+    /// The three handles `submit` requires, borrowed together so the
+    /// borrow checker enforces what the write path already assumes.
+    pub fn write_handles(
+        &mut self,
+    ) -> (
+        &mut dyn RecordsLog,
+        &mut dyn RecordsLog,
+        &mut ProjectionState,
+    ) {
+        (
+            &mut self.action_log,
+            &mut self.denial_log,
+            &mut self.projection,
+        )
+    }
 }
 
 impl TenantState {
@@ -101,6 +143,12 @@ impl TenantState {
 #[derive(Debug)]
 pub struct AppState {
     pub tenants: BTreeMap<String, Mutex<TenantState>>,
+    /// The enforcement point every authorized surface consults.
+    pub pep: PolicyEnforcementPoint,
+    /// Who this process recognizes. Empty means deny-all serving: a
+    /// process with no roster still answers its probes honestly rather
+    /// than refusing to boot or, worse, serving openly.
+    pub operators: Vec<OperatorCredential>,
 }
 
 impl AppState {
@@ -156,6 +204,12 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
         }
     })?;
 
+    let pep = PolicyEnforcementPoint::load(POLICY_VERSION).map_err(|error| {
+        BootError::PolicyRejected {
+            detail: error.to_string(),
+        }
+    })?;
+
     let mut tenants = BTreeMap::new();
     for tenant_id in &config.tenants {
         let registry = registry_for(tenant_id).map_err(|error| BootError::SeedRefused {
@@ -169,16 +223,35 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
                 detail: format!("{error:?}"),
             })?;
         let projection = fold_from_scratch(tenant_id, &registry, entries.iter());
+        let action_log = SqliteRecordsLog::open(&config.action_log).map_err(|error| {
+            BootError::ActionLogUnopenable {
+                detail: format!("{error:?}"),
+            }
+        })?;
+        let denial_log = SqliteRecordsLog::open(&config.denial_log).map_err(|error| {
+            BootError::DenialLogUnopenable {
+                detail: format!("{error:?}"),
+            }
+        })?;
         tenants.insert(
             tenant_id.clone(),
             Mutex::new(TenantState {
                 projection,
                 entries,
+                action_log,
+                denial_log,
             }),
         );
     }
-    Ok(AppState { tenants })
+    Ok(AppState {
+        tenants,
+        pep,
+        operators: config.operators.clone(),
+    })
 }
+
+/// The bundle version this build serves. It moves when the seed does.
+const POLICY_VERSION: &str = "psv-000001";
 
 /// Two configured paths name one store. Canonicalization is best-effort —
 /// the paths need not exist yet — so a literal match is the fallback.
