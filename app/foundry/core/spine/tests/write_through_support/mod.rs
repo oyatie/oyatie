@@ -12,6 +12,9 @@ pub(crate) struct FailsAt {
     /// The head itself is unreadable — the disk is there, the answer is
     /// not. A caller must refuse rather than read that as "empty".
     pub(crate) fail_head: bool,
+    /// The poison ledger is unreadable. Same law, different read: an
+    /// unreadable ledger must never be treated as poison-free.
+    pub(crate) fail_poisoned: bool,
 }
 
 impl ProjectionStore for FailsAt {
@@ -81,6 +84,11 @@ impl ProjectionStore for FailsAt {
     }
 
     fn poisoned(&self, tenant_id: &str) -> Result<Vec<(u64, String)>, ProjectionStoreError> {
+        if self.fail_poisoned {
+            return Err(ProjectionStoreError::Storage {
+                detail: "poison ledger unreadable".to_owned(),
+            });
+        }
         self.inner.poisoned(tenant_id)
     }
 }

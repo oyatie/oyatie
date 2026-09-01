@@ -12,7 +12,7 @@ use foundry_edits::{
     ActionRecord, EditSet, OntologyEdit, WireDataClass, WireProperty, WireTier, WireValue,
     encode_action_record,
 };
-use foundry_projection_draft::ProjectionStore;
+use foundry_projection_draft::{PageRequest, ProjectionStore};
 use foundry_records_draft::{ActionEnvelope, Receipt, SealedEnvelope};
 use foundry_spine::{ProjectionState, poison_label};
 
@@ -187,6 +187,14 @@ pub(crate) fn sealed_link(ordinal: u64, from_ref: &str, to_ref: &str) -> SealedE
     }
 }
 
+/// A well-formed entry belonging to a DIFFERENT tenant. The fold would
+/// poison it `TenantMismatch`, spending an ordinal in the wrong ledger.
+pub(crate) fn sealed_for_another_tenant(ordinal: u64) -> SealedEnvelope {
+    let mut foreign = sealed(ordinal, "theirs");
+    foreign.envelope.tenant_id = "ten_other".to_owned();
+    foreign
+}
+
 /// A three-entry log, dense from ordinal 1.
 pub(crate) fn log() -> Vec<SealedEnvelope> {
     vec![sealed(1, "one"), sealed(2, "two"), sealed(3, "three")]
@@ -207,11 +215,34 @@ pub(crate) fn mixed_log() -> Vec<SealedEnvelope> {
 /// The oracle both planes are held to: `fold(log)` is the definition of
 /// correct, not a second hand-written expectation that could drift.
 ///
-/// The poison ledger is compared BY ORDINAL AND REASON. An earlier
-/// version compared counts, and that is precisely what let a two-log
-/// mixture pass as a clean catch-up — an assertion that cannot tell
-/// right from wrong is not coverage.
+/// Two things it must do that an earlier version did not, both the same
+/// kind of failure — an assertion that cannot tell right from wrong is
+/// not coverage:
+///
+/// * the poison ledger is compared BY ORDINAL AND REASON, not by count;
+/// * the object set is compared for EQUALITY. Iterating only the fold's
+///   own bindings proves the store holds everything it should and never
+///   that it holds nothing MORE, so a row retained from another log —
+///   the exact defect this suite exists to catch — was invisible.
+///
+/// Edges are not compared here: the fold keeps link instances in the
+/// kernel engine rather than in a set this module can cheaply
+/// enumerate. Tests that exercise edges assert them directly, and the
+/// durability test compares them after dropping the connection — the
+/// gap is covered by name, not left to be noticed.
 pub(crate) fn assert_agrees_with_fold(store: &dyn ProjectionStore, state: &ProjectionState) {
+    let held: Vec<String> = store
+        .objects_of_type(TENANT, "ety_reading", &PageRequest::first(1000))
+        .unwrap()
+        .objects
+        .iter()
+        .map(|object| object.entity.id.clone())
+        .collect();
+    let folded: Vec<String> = state.bindings.keys().cloned().collect();
+    assert_eq!(
+        held, folded,
+        "the store must hold exactly the fold's objects — no more"
+    );
     assert_eq!(
         store.applied_head(TENANT).unwrap(),
         state.applied_ordinal,

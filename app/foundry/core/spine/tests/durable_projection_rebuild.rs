@@ -98,9 +98,15 @@ fn the_rebuilt_projection_survives_dropping_the_connection() {
     }
 
     // Back through the front door: nothing of the rebuild lived in the
-    // process that performed it.
+    // process that performed it. Edges are asserted explicitly — the
+    // shared oracle does not compare them, so durability measured only
+    // through it would pass against an adapter that lost every edge.
     let reopened = database.open();
     assert_agrees_with_fold(&reopened, &fold_from_scratch(TENANT, &registry, log.iter()));
+    let outbound = reopened.links_from(TENANT, "ent_1").unwrap();
+    assert_eq!(outbound.len(), 1, "the edge survived: {outbound:?}");
+    assert_eq!(outbound[0].to_object_ref, "ent_2");
+    assert_eq!(reopened.links_to(TENANT, "ent_2").unwrap(), outbound);
 }
 
 #[test]
@@ -132,30 +138,31 @@ fn catching_up_a_durable_store_a_second_time_revalidates_and_advances_nothing() 
 fn a_log_that_does_not_begin_at_ordinal_one_is_refused() {
     let registry = registry();
     let full = mixed_log();
-    let database = Database::new("tail-slice");
-    let mut store = database.open();
-    catch_up(TENANT, &registry, &mut store, &full[..3]).expect("reach head 3");
 
-    // `RecordsLog::replay(tenant, from)` hands back a SLICE, so the
-    // obvious caller passes the entries after the store's head. Resume
-    // state is rebuilt by folding everything BELOW that head, which a
-    // log starting later cannot produce — the information is gone. Left
-    // unchecked this mirrors entries against a fresh fold and writes
-    // poisons that derive from where the caller cut, not from the log.
-    let error = catch_up(TENANT, &registry, &mut store, &full[3..]).expect_err("must refuse");
+    // `RecordsLog::replay(tenant, from)` hands back a SLICE, so both of
+    // these are what a caller naturally writes: the entries after the
+    // head, and the entries from the head. Resume state is rebuilt by
+    // folding everything BELOW that head, which neither can produce.
+    // Unchecked, the first mirrored against a fresh fold and wrote a
+    // poison derived from where the caller cut; the second refused a
+    // healthy store while naming a different log.
+    for (from, first_ordinal) in [(3usize, 4u64), (2usize, 3u64)] {
+        let database = Database::new("partial-slice");
+        let mut store = database.open();
+        catch_up(TENANT, &registry, &mut store, &full[..3]).expect("reach head 3");
 
-    assert!(
-        matches!(
-            error,
-            CatchUpError::LogDoesNotStartAtOne { first_ordinal: 4 }
-        ),
-        "{error:?}"
-    );
-    assert_eq!(store.applied_head(TENANT).unwrap(), 3, "and wrote nothing");
-    assert!(
-        store.poisoned(TENANT).unwrap().is_empty(),
-        "no poison was fabricated"
-    );
+        let error = catch_up(TENANT, &registry, &mut store, &full[from..]).expect_err("refuse");
+
+        assert!(
+            matches!(error, CatchUpError::LogDoesNotStartAtOne { first_ordinal: f } if f == first_ordinal),
+            "{error:?}"
+        );
+        assert_eq!(store.applied_head(TENANT).unwrap(), 3, "and wrote nothing");
+        assert!(
+            store.poisoned(TENANT).unwrap().is_empty(),
+            "no poison was fabricated"
+        );
+    }
 }
 
 #[test]
@@ -183,6 +190,11 @@ fn a_log_missing_the_resume_point_is_refused() {
             CatchUpError::ResumePointMissingFromLog { ordinal: 3 }
         ),
         "{error:?}"
+    );
+    assert_eq!(
+        store.applied_head(TENANT).unwrap(),
+        3,
+        "and advanced nothing"
     );
     assert_eq!(
         store.get(TENANT, "ent_3").unwrap().unwrap().last_actor,

@@ -106,6 +106,14 @@ pub enum CatchUpError {
     /// this log. Distinct from a divergent resume point: that one
     /// disagrees, this one is absent.
     ResumePointMissingFromLog { ordinal: u64 },
+    /// An entry in the log belongs to another tenant. The fold would
+    /// poison it [`crate::PoisonReason::TenantMismatch`] — correctly,
+    /// but that spends THIS tenant's ordinals and writes the poisons
+    /// into its ledger, leaving a husk that reports a caught-up head
+    /// while holding nothing, and refusing the tenant's own log
+    /// afterwards forever. `store == fold(log)` would technically hold;
+    /// the harm is that the log was never this tenant's to fold.
+    ForeignTenantEntry { ordinal: u64 },
     /// The entry the store stopped at is not this log's entry at that
     /// ordinal: the store belongs to a different log.
     DivergentResumePoint { ordinal: u64 },
@@ -151,6 +159,18 @@ pub fn catch_up(
     {
         return Err(CatchUpError::LogDoesNotStartAtOne {
             first_ordinal: first.receipt.ordinal,
+        });
+    }
+    // ...and it must be THIS tenant's. The fold would poison a foreign
+    // entry rather than apply it, which is correct and still wrong here:
+    // the poison spends an ordinal in this tenant's ledger and wedges it
+    // against its own log forever.
+    if let Some(foreign) = log
+        .iter()
+        .find(|sealed| sealed.envelope.tenant_id != tenant_id)
+    {
+        return Err(CatchUpError::ForeignTenantEntry {
+            ordinal: foreign.receipt.ordinal,
         });
     }
     let log_head = log.last().map_or(0, |sealed| sealed.receipt.ordinal);
