@@ -216,9 +216,11 @@ fn refuse(gate: RefusalGate, cause: &'static str) -> WriteError {
     WriteError::Refused(Refused { gate, cause })
 }
 
-/// The sole call site of [`RecordsLog::append`] in this crate: no
-/// [`ActionInvocationReceipt`] BY VALUE, no append — receipt-gating is
-/// structural, not disciplinary.
+/// The sole append to the ACTION LOG: no [`ActionInvocationReceipt`] BY
+/// VALUE, no append — receipt-gating is structural, not disciplinary.
+/// The denial trail is the crate's one other append (`audit::record_denial`),
+/// and it is deliberately outside this gate: a refusal never earns a
+/// receipt, so requiring one to record it would lose the denial.
 fn append_with_receipt(
     receipt: ActionInvocationReceipt,
     log: &mut dyn RecordsLog,

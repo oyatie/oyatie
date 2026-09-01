@@ -15,11 +15,26 @@ permit(
   principal.tenant == resource.tenant
 };
 
-// Structural tenant isolation: whatever else ever permits, an
-// invocation never crosses tenants.
+// Operators of a tenant may read that tenant's ontology from the
+// operations console. Reads carry no autonomy tier: looking is not
+// acting, and a read-only operator must still be able to open the
+// capability the shell renders for them.
+permit(
+  principal is Principal in Role::"foundry-operator",
+  action == Action::"foundry.ontology.use",
+  resource is OntologyObject
+) when {
+  context.surface == "ops-console" &&
+  principal.tenant == resource.tenant
+};
+
+// Structural tenant isolation: whatever else ever permits, no action
+// crosses tenants. Deliberately UNSCOPED by action — an action added to
+// the vocabulary tomorrow sits inside this belt on the day it is born,
+// instead of depending on someone remembering to widen a list.
 forbid(
   principal is Principal,
-  action == Action::"InvokeAction",
+  action,
   resource is OntologyObject
 ) when {
   principal.tenant != resource.tenant

@@ -60,3 +60,56 @@ fn the_seed_keeps_the_cross_tenant_forbid() {
         "the structural cross-tenant forbid must stay in the seed",
     );
 }
+
+/// The read surface has its own action. The shell's module card is gated
+/// on it, and gating a card on the WRITE action would hide the capability
+/// from a read-only operator — so the vocabulary carries both.
+#[test]
+fn the_seed_declares_the_read_action() {
+    let referencing_the_read_action = PolicySet::from_str(
+        r#"permit(
+            principal is Principal,
+            action == Action::"foundry.ontology.use",
+            resource is OntologyObject
+        );"#,
+    )
+    .expect("the probe policy parses");
+    let result =
+        Validator::new(schema()).validate(&referencing_the_read_action, ValidationMode::Strict);
+    assert!(
+        result.validation_passed(),
+        "the schema must declare the read action: {:?}",
+        result.validation_errors().collect::<Vec<_>>(),
+    );
+}
+
+/// A declared action with no permit is a vocabulary entry nothing can
+/// ever satisfy. The read surface must be reachable by the operator the
+/// seed grants, or the shell renders a card no one can open.
+#[test]
+fn the_read_action_carries_a_permit() {
+    assert!(
+        policy_set().policies().any(|policy| {
+            let rendered = format!("{policy}");
+            rendered.contains("foundry.ontology.use")
+                && format!("{:?}", policy.effect()).contains("Permit")
+        }),
+        "the read action must carry a permit of its own",
+    );
+}
+
+/// Tenant isolation is structural, not per-action: the belt must cover
+/// every action the vocabulary declares, so a future action cannot be
+/// born outside it. Deleting the belt is caught by the presence pin
+/// above; leaving it scoped to one action is what this pins.
+#[test]
+fn the_cross_tenant_forbid_covers_the_read_action() {
+    assert!(
+        policy_set().policies().any(|policy| {
+            let rendered = format!("{policy}");
+            format!("{:?}", policy.effect()).contains("Forbid")
+                && (rendered.contains("foundry.ontology.use") || !rendered.contains("action =="))
+        }),
+        "the cross-tenant forbid must reach the read action, not only invocation",
+    );
+}
