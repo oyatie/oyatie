@@ -10,9 +10,9 @@ pub mod owners;
 
 pub use cadence::{
     CadenceEvent, LIVE_POSTGRES_CRATES, LIVE_POSTGRES_PATH_PREFIXES, POSTSUBMIT_JOBS,
-    PRESUBMIT_JOBS, REINDEER_QUALIFICATION_PATH_PREFIXES, WORKFLOW_FILES,
-    hits_reindeer_qualification_path, live_postgres_required,
-    reindeer_source_qualification_required,
+    PRESUBMIT_JOBS, PresubmitChangeGates, REINDEER_QUALIFICATION_EXACT_PATHS,
+    REINDEER_QUALIFICATION_PATH_PREFIXES, WORKFLOW_FILES, hits_reindeer_qualification_path,
+    live_postgres_required, presubmit_change_gates, reindeer_source_qualification_required,
 };
 pub use fanin::{
     FanIn, fan_in_ok, occupancy_ok, postgres_ok, postsubmit_ok, reindeer_qualification_ok,

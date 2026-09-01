@@ -1,22 +1,18 @@
 # Required presubmit context; provenance ADR-0719 D-9/D-10.
 name: presubmit
-
 on:
   pull_request:
     branches: [dev]
     types: [opened, reopened, synchronize]
   merge_group:
     types: [checks_requested]
-
 permissions:
   contents: read
   pull-requests: read
-
 env:
   CARGO_PROFILE_DEV_DEBUG: "0"
   CARGO_PROFILE_TEST_DEBUG: "0"
   CARGO_INCREMENTAL: "0"
-
 jobs:
   layout:
     name: repository layout
@@ -55,7 +51,6 @@ jobs:
           base_sha="$(git rev-parse --verify 'HEAD^1^{commit}')"
           head_sha="$(git rev-parse --verify 'HEAD^{commit}')"
           "$RUNNER_TEMP/oyatie-layout-admission/x86_64-unknown-linux-gnu/debug/pipeline-path-layout-app" "$base_sha" "$head_sha"
-
   occupancy:
     name: occupancy (path-set)
     if: github.event_name == 'pull_request'
@@ -94,7 +89,6 @@ jobs:
           OYATIE_PULL_REQUEST: ${{ github.event.pull_request.number }}
           OYATIE_REPOSITORY: ${{ github.repository }}
         run: "$RUNNER_TEMP/oyatie-occupancy-admission/x86_64-unknown-linux-gnu/debug/pipeline-path-occupancy-app"
-
   lint:
     name: lint (format)
     runs-on: ubuntu-24.04
@@ -115,7 +109,6 @@ jobs:
           cargo fmt
           --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
           --all --check
-
   clippy:
     name: clippy (workspace)
     needs: [layout]
@@ -139,7 +132,6 @@ jobs:
         run: >-
           cargo clippy --locked --workspace --all-targets
           -- -D warnings
-
   deny:
     name: deny (licenses bans sources)
     needs: [layout]
@@ -156,7 +148,6 @@ jobs:
           command: check
           command-arguments: licenses bans sources
           rust-version: "1.98.0"
-
   test:
     name: test (workspace)
     needs: [layout, occupancy]
@@ -184,7 +175,6 @@ jobs:
           cargo-nextest nextest run
           --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
           --locked --workspace --profile ci
-
   reindeer-source-qualification:
     name: Reindeer source qualification
     needs: [layout, change-gates]
@@ -238,7 +228,6 @@ jobs:
           REINDEER_PINNED_SOURCE_ROOT: ${{ github.workspace }}/reindeer-source
           REINDEER_QUALIFICATION_TARGET_DIR: ${{ runner.temp }}/reindeer-qualification/compilation/upstream
         run: timeout --signal=TERM --kill-after=30s 40m cargo-nextest nextest run --manifest-path "$GITHUB_WORKSPACE/Cargo.toml" --locked -p dependency-declarations-generation-reindeer --profile ci --run-ignored only --no-tests=fail --test-threads 1 --max-fail 1:immediate
-
   change-gates:
     name: change gates
     runs-on: ubuntu-24.04
@@ -247,33 +236,45 @@ jobs:
       live: ${{ steps.g.outputs.live }}
       reindeer: ${{ steps.g.outputs.reindeer }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Check out candidate tree
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ github.sha }}
+          path: candidate
           persist-credentials: false
           fetch-depth: 0
+      - name: Check out protected admission source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: trusted
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: "1.98.0"
+      - name: Build protected change-gates application
+        working-directory: ${{ runner.temp }}
+        run: >-
+          cargo build --locked
+          --manifest-path "$GITHUB_WORKSPACE/trusted/Cargo.toml"
+          --target x86_64-unknown-linux-gnu
+          --target-dir "$RUNNER_TEMP/oyatie-change-gates-admission"
+          -p pipeline-change-gates-app
       - id: g
-        name: Classify bounded qualification paths
+        name: Classify typed qualification paths
+        working-directory: candidate
+        env:
+          EVENT: ${{ github.event_name }}
         run: |
           set -euo pipefail
           base_sha="$(git rev-parse --verify 'HEAD^1^{commit}')"
-          git diff --name-only "$base_sha" HEAD -- > "$RUNNER_TEMP/changed-paths"
-          if grep -Eq '^(tenancy/adapters/tenant-lifecycle-store-postgres/|iam/adapters/identity-scim-store-postgres/|iam/facade/identity-service/|tenancy/facade/tenant-lifecycle-app/|\.github/workflows/presubmit\.yml|\.github/workflows/live-postgres\.yml|\.github/workflows/postsubmit\.yml|\.config/nextest\.toml)' "$RUNNER_TEMP/changed-paths"; then
-            echo "live=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "live=false" >> "$GITHUB_OUTPUT"
-          fi
-          if grep -Eq '^build/dependency-declarations/adapters/generation-reindeer/' "$RUNNER_TEMP/changed-paths"; then
-            echo "reindeer=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "reindeer=false" >> "$GITHUB_OUTPUT"
-          fi
-
+          head_sha="$(git rev-parse --verify 'HEAD^{commit}')"
+          "$RUNNER_TEMP/oyatie-change-gates-admission/x86_64-unknown-linux-gnu/debug/pipeline-change-gates-app" "$EVENT" "$base_sha" "$head_sha" >> "$GITHUB_OUTPUT"
   live-postgres:
     needs: [layout, change-gates]
     if: needs.layout.result == 'success' && needs.change-gates.outputs.live == 'true'
     uses: oyatie/oyatie/.github/workflows/live-postgres.yml@dev
-
   presubmit:
     name: presubmit
     runs-on: ubuntu-24.04
