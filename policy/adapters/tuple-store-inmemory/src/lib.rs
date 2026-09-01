@@ -7,8 +7,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use policy_cedar_domain::rebac::{
-    RebacReadSnapshot, RebacTuple, RebacTuplePage, RebacTupleQuery, RebacTupleStore,
-    RebacTupleStoreError, SnapshotToken, Zookie,
+    RebacReadSnapshot, RebacTenantScope, RebacTuple, RebacTuplePage, RebacTupleQuery,
+    RebacTupleStore, RebacTupleStoreError, ResolvedRebacSnapshot, SnapshotToken, Zookie,
 };
 
 /// Default tuples per page. Small on purpose: a reader that stops at the first
@@ -54,11 +54,7 @@ impl InMemoryTupleStore {
         Zookie::new(self.version.to_string()).map_err(RebacTupleStoreError::InvalidZookie)
     }
 
-    fn visible_at(&self, snapshot: &RebacReadSnapshot) -> Result<u64, RebacTupleStoreError> {
-        let token = snapshot.clone().into_snapshot_token();
-        if token.as_str() == "latest" {
-            return Ok(self.version);
-        }
+    fn visible_at(&self, token: &SnapshotToken) -> Result<u64, RebacTupleStoreError> {
         let requested = token.as_str().parse::<u64>().map_err(|_| {
             RebacTupleStoreError::Backend(format!(
                 "snapshot token {:?} was not minted by this store",
@@ -67,7 +63,7 @@ impl InMemoryTupleStore {
         })?;
         if requested > self.version {
             return Err(RebacTupleStoreError::StaleSnapshot {
-                requested: token,
+                requested: token.clone(),
                 current: SnapshotToken::new(self.version.to_string())
                     .map_err(RebacTupleStoreError::InvalidZookie)?,
             });
@@ -83,12 +79,32 @@ impl RebacTupleStore for InMemoryTupleStore {
         self.head()
     }
 
+    fn resolve_snapshot(
+        &self,
+        tenant: &RebacTenantScope,
+        requested: RebacReadSnapshot,
+    ) -> Result<ResolvedRebacSnapshot, RebacTupleStoreError> {
+        let version = match requested {
+            RebacReadSnapshot::Latest => self.version,
+            RebacReadSnapshot::At { snapshot } => self.visible_at(&snapshot)?,
+        };
+        let token =
+            SnapshotToken::new(version.to_string()).map_err(RebacTupleStoreError::InvalidZookie)?;
+        Ok(ResolvedRebacSnapshot::new(tenant.clone(), token))
+    }
+
     fn read_tuples(
         &self,
         query: &RebacTupleQuery,
-        snapshot: RebacReadSnapshot,
+        snapshot: &ResolvedRebacSnapshot,
     ) -> Result<RebacTuplePage, RebacTupleStoreError> {
-        let ceiling = self.visible_at(&snapshot)?;
+        if &query.tenant != snapshot.tenant() {
+            return Err(RebacTupleStoreError::SnapshotScopeMismatch {
+                query_tenant: query.tenant.clone(),
+                snapshot_tenant: snapshot.tenant().clone(),
+            });
+        }
+        let ceiling = self.visible_at(snapshot.token())?;
         let matched: Vec<RebacTuple> = self
             .written
             .iter()
@@ -108,8 +124,7 @@ impl RebacTupleStore for InMemoryTupleStore {
 
         Ok(RebacTuplePage {
             tuples,
-            snapshot: SnapshotToken::new(ceiling.to_string())
-                .map_err(RebacTupleStoreError::InvalidZookie)?,
+            snapshot: snapshot.clone(),
             next_page_token,
         })
     }

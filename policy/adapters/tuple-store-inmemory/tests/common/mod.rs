@@ -4,7 +4,7 @@ use policy_cedar_domain::rebac::{
     RebacObjectRef, RebacReadSnapshot, RebacRelation, RebacSubjectRef, RebacTenantScope,
     RebacTuple, RebacTupleStore, UsersetRewrite, Zookie,
 };
-use policy_rebac_domain::{NamespaceConfig, ValidatedNamespace};
+use policy_rebac_domain::{Expander, ExpansionBounds, NamespaceConfig, ValidatedNamespace};
 use policy_tuple_store_inmemory::InMemoryTupleStore;
 
 pub fn tenant() -> RebacTenantScope {
@@ -30,6 +30,23 @@ pub fn write(store: &mut InMemoryTupleStore, tuple: &str) -> Zookie {
 
 pub fn at(zookie: Zookie) -> RebacReadSnapshot {
     RebacReadSnapshot::at_zookie(zookie)
+}
+
+pub fn new_expander<'a, S: RebacTupleStore>(
+    store: &'a S,
+    namespace: &'a ValidatedNamespace,
+    requested: RebacReadSnapshot,
+) -> Expander<'a, S> {
+    bounded_expander(store, namespace, requested, ExpansionBounds::DEFAULT)
+}
+
+pub fn bounded_expander<'a, S: RebacTupleStore>(
+    store: &'a S,
+    namespace: &'a ValidatedNamespace,
+    requested: RebacReadSnapshot,
+    bounds: ExpansionBounds,
+) -> Expander<'a, S> {
+    Expander::new(store, namespace, tenant(), requested).with_bounds(bounds)
 }
 
 /// `folder#viewer` is direct. `document#viewer` is direct, or inherited from

@@ -10,7 +10,7 @@ use std::collections::BTreeMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use join_fixtures::*;
-use policy_cedar_domain::rebac::{RebacReadSnapshot, RebacSubjectRef};
+use policy_cedar_domain::rebac::RebacReadSnapshot;
 use policy_decision_domain::{DecisionError, MembershipCandidate, PolicyDecisionPoint, decide};
 use policy_pdp_kernel::{EntitySlice, PdpError, PdpOutcome};
 use policy_tuple_store_inmemory::InMemoryTupleStore;
@@ -44,19 +44,12 @@ fn an_expansion_failure_is_a_refusal_and_the_engine_is_never_consulted() {
     // partial answer.
     let store = InMemoryTupleStore::new();
     let namespace = model();
-    let subject = RebacSubjectRef::object(object("user:alice"));
     let candidates = [MembershipCandidate {
         object: object("group:eng"),
         relation: relation("undefined_relation"),
         parent: entity("Group", "eng"),
     }];
-    let inputs = graph(
-        &store,
-        &namespace,
-        RebacReadSnapshot::latest(),
-        &subject,
-        &candidates,
-    );
+    let inputs = graph(&store, &namespace, RebacReadSnapshot::latest(), &candidates);
 
     let engine = MustNotDecide(AtomicBool::new(false));
     let refusal = decide(
@@ -85,15 +78,8 @@ fn an_invalid_slice_is_a_refusal_and_the_engine_is_never_consulted() {
     let mut store = InMemoryTupleStore::new();
     write(&mut store, "group:eng#member@user:alice");
     let namespace = model();
-    let subject = RebacSubjectRef::object(object("user:alice"));
     let candidates = [eng_candidate()];
-    let inputs = graph(
-        &store,
-        &namespace,
-        RebacReadSnapshot::latest(),
-        &subject,
-        &candidates,
-    );
+    let inputs = graph(&store, &namespace, RebacReadSnapshot::latest(), &candidates);
 
     let mut entities = context_entities();
     entities.push(policy_pdp_kernel::EntityRecord {
@@ -129,7 +115,6 @@ fn a_failure_on_the_second_candidate_aborts_the_whole_materialisation() {
     let mut store = InMemoryTupleStore::new();
     write(&mut store, "group:eng#member@user:alice");
     let namespace = model();
-    let subject = RebacSubjectRef::object(object("user:alice"));
     let candidates = [
         eng_candidate(),
         MembershipCandidate {
@@ -138,13 +123,7 @@ fn a_failure_on_the_second_candidate_aborts_the_whole_materialisation() {
             parent: entity("Group", "ops"),
         },
     ];
-    let inputs = graph(
-        &store,
-        &namespace,
-        RebacReadSnapshot::latest(),
-        &subject,
-        &candidates,
-    );
+    let inputs = graph(&store, &namespace, RebacReadSnapshot::latest(), &candidates);
 
     let engine = MustNotDecide(AtomicBool::new(false));
     let refusal = decide(
