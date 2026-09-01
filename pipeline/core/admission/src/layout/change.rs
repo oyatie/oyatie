@@ -2,10 +2,14 @@
 
 use std::collections::BTreeSet;
 
-use crate::GitChangePaths;
+use crate::{
+    GitChangePaths,
+    owner_prose::{OWNER_PROSE_NAMES, QualifiedOwnerProseView},
+};
 
 use super::{
-    ALLOWED_ROOT_DIRS, APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, is_capability_root, layout_violations,
+    ALLOWED_ROOT_DIRS, APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, frozen_markdown_message,
+    is_capability_root, is_frozen_non_root_markdown, layout_violations,
 };
 
 /// Apply repository-layout rules only to changed paths that remain after the Git diff. A new owner
@@ -15,6 +19,17 @@ pub fn changed_layout_violations(
     changes: &GitChangePaths,
     existing_owner_dirs: &BTreeSet<String>,
 ) -> Vec<String> {
+    changed_layout_violations_with_qualified_owner_prose(changes, existing_owner_dirs, None)
+}
+
+/// Apply layout admission with one already-qualified, complete owner-prose
+/// deletion. The private fields and absent `Deserialize` implementation on the
+/// view prevent callers from assembling this authorization directly.
+pub fn changed_layout_violations_with_qualified_owner_prose(
+    changes: &GitChangePaths,
+    existing_owner_dirs: &BTreeSet<String>,
+    qualified_view: Option<&QualifiedOwnerProseView>,
+) -> Vec<String> {
     let mut violations = layout_violations(
         &changes
             .layout_candidates
@@ -22,6 +37,10 @@ pub fn changed_layout_violations(
             .cloned()
             .collect::<Vec<_>>(),
     );
+    let authorized_deletions = qualified_view
+        .map(QualifiedOwnerProseView::authorized_deletions)
+        .unwrap_or_default();
+    violations.extend(frozen_markdown_violations(changes, &authorized_deletions));
     if owner_is_new_and_touched("base", changes, existing_owner_dirs) {
         require_core_crate("base", "BUILD root", changes, &mut violations);
     }
@@ -41,7 +60,66 @@ pub fn changed_layout_violations(
             require_core_crate(&owner, "BUILD product", changes, &mut violations);
         }
     }
+    violations.sort();
+    violations.dedup();
     violations
+}
+
+/// Freeze every changed Markdown path outside the three root instruction
+/// destinations. An authorization is valid only for all four law files under
+/// one owner, and every authorized path must be a real Git deletion.
+fn frozen_markdown_violations(
+    changes: &GitChangePaths,
+    authorized_deletions: &BTreeSet<String>,
+) -> Vec<String> {
+    let authorization_owner = qualified_authorization_owner(authorized_deletions);
+    let mut violations = Vec::new();
+    if !authorized_deletions.is_empty() && authorization_owner.is_none() {
+        violations.push(
+            "owner-prose deletion authorization must name exactly ADR.md, PLAN.md, PRD.md, and SPEC.md under one non-root owner"
+                .to_owned(),
+        );
+    }
+
+    for path in &changes.occupied {
+        if !is_frozen_non_root_markdown(path) {
+            continue;
+        }
+        let authorized = authorization_owner.is_some()
+            && authorized_deletions.contains(path)
+            && changes.deleted.contains(path);
+        if !authorized {
+            violations.push(frozen_markdown_message(path));
+        }
+    }
+    if authorization_owner.is_some() {
+        for path in authorized_deletions {
+            if !changes.deleted.contains(path) {
+                violations.push(format!(
+                    "{path}: qualified owner-prose deletion is incomplete; every authorized file must be deleted"
+                ));
+            }
+        }
+    }
+    violations.sort();
+    violations.dedup();
+    violations
+}
+
+fn qualified_authorization_owner(paths: &BTreeSet<String>) -> Option<&str> {
+    if paths.is_empty() {
+        return None;
+    }
+    let first = paths.first()?;
+    let (owner, _) = first.rsplit_once('/')?;
+    if owner.is_empty() {
+        return None;
+    }
+    let expected: BTreeSet<String> = OWNER_PROSE_NAMES
+        .iter()
+        .map(|name| format!("{owner}/{name}"))
+        .collect();
+    (expected == *paths).then_some(owner)
 }
 
 /// A conditional owner that had a complete core at the merge base may be

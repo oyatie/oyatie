@@ -8,7 +8,20 @@ rust_binary(
         "//pipeline/core/admission:pipeline-admission",
         "//pipeline/ports/draft/repository:pipeline-repository-draft",
         "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
+        "third-party//:serde_json",
     ],
+)
+
+export_file(
+    name = "pipeline-path-layout-main-source",
+    src = "src/main.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "pipeline-owner-prose-view-source",
+    src = "src/owner_prose_view.rs",
+    visibility = ["PUBLIC"],
 )
 
 rust_test(
@@ -78,5 +91,26 @@ rust_test(
         "//pipeline/core/admission:pipeline-admission",
         "//pipeline/ports/draft/repository:pipeline-repository-draft",
         "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
+    ],
+)
+
+rust_test(
+    name = "pipeline-path-layout-app-owner-prose-cutover",
+    srcs = [
+        "tests/owner_prose_cutover.rs",
+        "tests/support/mod.rs",
+    ],
+    crate = "pipeline_path_layout_app_owner_prose_cutover",
+    crate_root = "tests/owner_prose_cutover.rs",
+    env = {
+        "CARGO_BIN_EXE_pipeline-path-layout-app": "$(location :pipeline-path-layout-app)",
+    },
+    resources = [":pipeline-path-layout-app"],
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pipeline/core/admission:pipeline-admission",
+        "//pipeline/ports/draft/repository:pipeline-repository-draft",
+        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
+        "third-party//:serde_json",
     ],
 )

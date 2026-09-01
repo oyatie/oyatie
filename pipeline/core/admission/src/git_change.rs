@@ -12,6 +12,12 @@ use std::str;
 pub struct GitChangePaths {
     pub occupied: BTreeSet<String>,
     pub layout_candidates: BTreeSet<String>,
+    /// Paths removed by an actual `D` record.
+    ///
+    /// Rename and copy sources are deliberately excluded: moving frozen input
+    /// is a change, but it is not the complete deletion an owner-prose
+    /// qualification authorizes.
+    pub deleted: BTreeSet<String>,
     /// Destination -> source for renames Git scored exactly (`R100`).
     ///
     /// The SOURCE is what makes this usable. A destination alone cannot say
@@ -66,8 +72,9 @@ fn path(field: &[u8]) -> Result<String, PathSetParseError> {
 /// Parse one complete NUL-delimited Git name-status stream.
 ///
 /// Rename and copy records occupy both endpoints but expose only their
-/// destination to layout admission. Deletes remain occupied but have no layout
-/// candidate. Unknown, truncated, or lossy records refuse closed.
+/// destination to layout admission. Deletes remain occupied, are recorded
+/// separately, and have no layout candidate. Unknown, truncated, or lossy
+/// records refuse closed.
 pub fn git_change_paths_from_name_status_z(
     input: &[u8],
 ) -> Result<GitChangePaths, PathSetParseError> {
@@ -118,7 +125,9 @@ pub fn git_change_paths_from_name_status_z(
             }
             changes.layout_candidates.insert(second);
             index += 1;
-        } else if code != b'D' {
+        } else if code == b'D' {
+            changes.deleted.insert(first);
+        } else {
             changes.layout_candidates.insert(first);
         }
     }
@@ -165,6 +174,7 @@ mod tests {
             [("new/name.rs".to_owned(), "old/name.rs".to_owned())].into(),
             "an exact rename must expose its source, not just its destination"
         );
+        assert!(changes.deleted.is_empty());
     }
 
     #[test]
@@ -172,6 +182,17 @@ mod tests {
         let changes = git_change_paths_from_name_status_z(b"D\0legacy/path.rs\0").unwrap();
         assert!(changes.occupied.contains("legacy/path.rs"));
         assert!(changes.layout_candidates.is_empty());
+        assert_eq!(changes.deleted, ["legacy/path.rs".to_owned()].into());
+    }
+
+    #[test]
+    fn rename_source_is_not_reported_as_a_deletion() {
+        let changes = git_change_paths_from_name_status_z(
+            b"R100\0policy/ADR.md\0policy/core/domain/src/authority.rs\0",
+        )
+        .unwrap();
+        assert!(changes.occupied.contains("policy/ADR.md"));
+        assert!(changes.deleted.is_empty());
     }
 
     #[test]

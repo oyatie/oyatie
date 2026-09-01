@@ -109,7 +109,7 @@ fn trusted_sha_arguments_cannot_be_overridden_by_cargo_environment() {
     let rejected = admit(&root, &base, &head);
     assert!(!rejected.status.success());
     assert!(
-        String::from_utf8_lossy(&rejected.stderr).contains("forbidden root `plan`"),
+        String::from_utf8_lossy(&rejected.stderr).contains("frozen non-root Markdown"),
         "{}",
         String::from_utf8_lossy(&rejected.stderr)
     );
