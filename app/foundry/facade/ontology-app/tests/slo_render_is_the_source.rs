@@ -17,7 +17,8 @@
 #[path = "facade_support/mod.rs"]
 mod support;
 
-use foundry_ontology_app::slo::{SLOS, render_openslo};
+use foundry_ontology_app::slo::{SLOS, SloSpec, render_openslo};
+use std::collections::BTreeSet;
 use support::Fixture;
 
 /// Every declared SLI must name a metric this process actually exports.
@@ -33,7 +34,17 @@ async fn every_indicator_names_an_exported_metric() {
     let state = fixture.state();
     let exported = foundry_ontology_app::metrics::exported_metric_names(&state);
     for spec in SLOS {
-        for metric in spec.referenced_metrics() {
+        let referenced = spec.referenced_metrics();
+        // A scanner that finds nothing satisfies the loop below vacuously,
+        // so an objective querying series this process never exports would
+        // pass by naming none of them recognisably.
+        assert!(
+            !referenced.is_empty(),
+            "{}: no metric was recovered from this objective's queries, so the \
+             check below proves nothing about it",
+            spec.name
+        );
+        for metric in referenced {
             assert!(
                 exported.contains(metric.as_str()),
                 "{}: an indicator names `{metric}`, which this process does not export; \
@@ -83,4 +94,53 @@ fn every_payload_on_disk_belongs_to_a_declared_objective() {
             "{file} has no declared objective; delete it or declare it"
         );
     }
+}
+
+/// The scanner must recover the metric an objective queries, and ONLY that.
+///
+/// Both directions are load-bearing and neither is exercised by the shipped
+/// objectives. A substring hit inside the recording-rule idiom
+/// `job:foundry_read_served_total:rate5m` recovers a name whose series the
+/// process does emit, so the exported-name check passes while the objective
+/// reads a rule that may not exist. A hit that is never found makes that
+/// check vacuous.
+#[test]
+fn the_scanner_reads_whole_metric_names_only() {
+    let spec = |good: &'static str, total: &'static str| SloSpec {
+        name: "probe",
+        display_name: "probe",
+        sli_class: "probe",
+        description: "probe",
+        good_query: good,
+        total_query: total,
+        target: "0.99",
+        objective_display: "99%",
+        counter: false,
+    };
+
+    // A bare name is recovered.
+    assert_eq!(
+        spec("sum(foundry_read_served_total)", "vector(1)").referenced_metrics(),
+        BTreeSet::from(["foundry_read_served_total".to_owned()]),
+    );
+    // A recording rule that merely CONTAINS one is not that metric.
+    assert!(
+        spec("job:foundry_read_served_total:rate5m", "vector(1)")
+            .referenced_metrics()
+            .is_empty(),
+        "a recording-rule name must not be reported as the metric it derives from"
+    );
+    // Nor is a longer name that starts with one.
+    assert!(
+        spec("foundry_read_served_total_bucket", "vector(1)")
+            .referenced_metrics()
+            .contains("foundry_read_served_total_bucket"),
+    );
+    // A query naming no exported series recovers nothing, which is what
+    // makes the emptiness assertion in the check above necessary.
+    assert!(
+        spec("vector(0)", "vector(1)")
+            .referenced_metrics()
+            .is_empty(),
+    );
 }

@@ -45,6 +45,24 @@ impl Fixture {
         fixture
     }
 
+    /// A process serving a DIFFERENT tenant from the one its operator
+    /// credential names. The policy decision point permits the caller — the
+    /// object it addresses belongs to the caller's own tenant — and the
+    /// roster then does not hold it, which is the only way to reach the
+    /// unserved-tenant refusal. Reachable in production through a config
+    /// whose operator list and tenant roster disagree.
+    pub fn config_with_unserved_operator_tenant(&self) -> Config {
+        let mut config = self.config();
+        config.tenants = vec!["ten_elsewhere".into()];
+        config
+    }
+
+    pub fn unserved_session(&self) -> Session {
+        Session {
+            router: router(compose(&self.config_with_unserved_operator_tenant()).expect("boots")),
+        }
+    }
+
     pub fn config(&self) -> Config {
         Config {
             listen_addr: "127.0.0.1:0".into(),
@@ -228,4 +246,27 @@ impl Session {
             .to_bytes();
         (status, String::from_utf8_lossy(&bytes).into_owned())
     }
+}
+
+/// The canonical write body: one record, one spent idempotency key.
+pub const WRITE_BODY: &str = r#"{"object_ref":"ent_alpha","action_type":"aty_record_write","idempotency_key":"idem_1","occurred_at_epoch_seconds":1700000000,"properties":{"name":"Ada"}}"#;
+
+/// Scrape the exposition. UNAUTHENTICATED on purpose: were `/metrics` behind
+/// the refusal counter, every scrape would inflate the very number the
+/// delta assertions read.
+pub async fn scrape(session: &Session) -> String {
+    let (status, body) = session.get(None, "/metrics").await;
+    assert_eq!(status, StatusCode::OK);
+    body
+}
+
+/// One counter's value, or a panic naming the whole exposition. A metric
+/// that stopped being exported must fail loudly here, never read as zero.
+pub fn value_of(body: &str, metric: &str) -> u64 {
+    body.lines()
+        .find_map(|line| line.strip_prefix(&format!("{metric} ")))
+        .unwrap_or_else(|| panic!("{metric} has no value line in:\n{body}"))
+        .trim()
+        .parse()
+        .expect("a metric value is a number")
 }

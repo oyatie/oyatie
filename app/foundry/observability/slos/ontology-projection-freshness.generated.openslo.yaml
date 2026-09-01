@@ -22,7 +22,11 @@ spec:
     per-tenant objective is not computable from what is exported and is
     not claimed. Poison is deliberately excluded: a poisoned entry
     advances the fold and is a permanent property of the log, so
-    counting it would make the objective unrecoverable.
+    counting it would make the objective unrecoverable. The numerator
+    carries `or vector(0)` because when EVERY scraped instance is
+    lagging the filter matches nothing and count() returns no series —
+    an evaluator would score that as no-data and burn no budget during
+    exactly the outage this objective exists to catch.
   indicator:
     metadata:
       name: ontology-projection-freshness-indicator
@@ -34,7 +38,7 @@ spec:
             type: Prometheus
             spec:
               query: |
-                count(foundry_projection_lag == 0)
+                count(foundry_projection_lag == 0) or vector(0)
         total:
           metricSource:
             type: Prometheus

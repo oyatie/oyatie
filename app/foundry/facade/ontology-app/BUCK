@@ -191,3 +191,23 @@ rust_test(
         "third-party//:tower",
     ],
 )
+
+rust_test(
+    name = "foundry-ontology-app-metrics-submissions",
+    srcs = [
+        "tests/facade_support/mod.rs",
+        "tests/metrics_count_submissions.rs",
+    ],
+    crate = "metrics_count_submissions",
+    crate_root = "tests/metrics_count_submissions.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-ontology-app",
+        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "third-party//:axum",
+        "third-party//:http-body-util",
+        "third-party//:tokio",
+        "third-party//:tower",
+    ],
+)

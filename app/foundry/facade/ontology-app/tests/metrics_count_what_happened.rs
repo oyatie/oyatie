@@ -16,59 +16,7 @@
 mod support;
 
 use axum::http::StatusCode;
-use support::{Fixture, Session};
-
-const WRITE: &str = r#"{"object_ref":"ent_alpha","action_type":"aty_record_write","idempotency_key":"idem_1","occurred_at_epoch_seconds":1700000000,"properties":{"name":"Ada"}}"#;
-
-async fn scrape(session: &Session) -> String {
-    let (status, body) = session.get(None, "/metrics").await;
-    assert_eq!(status, StatusCode::OK);
-    body
-}
-
-fn value_of(body: &str, metric: &str) -> u64 {
-    body.lines()
-        .find_map(|line| line.strip_prefix(&format!("{metric} ")))
-        .unwrap_or_else(|| panic!("{metric} has no value line in:\n{body}"))
-        .trim()
-        .parse()
-        .expect("a metric value is a number")
-}
-
-#[tokio::test]
-async fn an_accepted_submission_increments_served_and_not_refused() {
-    let fixture = Fixture::new("metrics-submit-served");
-    let session = fixture.session();
-    let (status, _) = session.post(Some(fixture.operator_token()), WRITE).await;
-    assert_eq!(status, StatusCode::OK);
-    let body = scrape(&session).await;
-    assert_eq!(value_of(&body, "foundry_action_submit_served_total"), 1);
-    assert_eq!(value_of(&body, "foundry_action_submit_refused_total"), 0);
-}
-
-#[tokio::test]
-async fn a_refusal_before_the_writer_still_counts_against_availability() {
-    // The denominator must include authorization failures. A submission
-    // refused for want of a credential never reaches the writer, and an
-    // availability number that omitted it would be flatter than the service.
-    let fixture = Fixture::new("metrics-submit-anon");
-    let session = fixture.session();
-    let (status, _) = session.post(None, WRITE).await;
-    assert_eq!(status, StatusCode::UNAUTHORIZED);
-    let body = scrape(&session).await;
-    assert_eq!(value_of(&body, "foundry_action_submit_refused_total"), 1);
-    assert_eq!(value_of(&body, "foundry_action_submit_served_total"), 0);
-}
-
-#[tokio::test]
-async fn a_policy_denial_counts_as_a_refused_submission() {
-    let fixture = Fixture::new("metrics-submit-roleless");
-    let session = fixture.session();
-    let (status, _) = session.post(Some(fixture.roleless_token()), WRITE).await;
-    assert_eq!(status, StatusCode::FORBIDDEN);
-    let body = scrape(&session).await;
-    assert_eq!(value_of(&body, "foundry_action_submit_refused_total"), 1);
-}
+use support::{Fixture, Session, WRITE_BODY as WRITE, scrape, value_of};
 
 #[tokio::test]
 async fn an_answered_read_increments_served() {
@@ -88,52 +36,154 @@ async fn an_answered_read_increments_served() {
     assert_eq!(value_of(&body, "foundry_read_refused_total"), 0);
 }
 
+/// Each refusing site, pinned INDIVIDUALLY by a delta.
+///
+/// An aggregate total conflates sites: it passes as long as the sum is
+/// right, so one site counting twice hides another counting never. A
+/// per-case delta localizes, which means deleting any single counting call
+/// fails exactly the case that names it.
+async fn assert_read_refusal_delta(
+    session: &Session,
+    label: &str,
+    request: impl AsRef<str>,
+    token: Option<&str>,
+    expect: StatusCode,
+) {
+    let before = value_of(&scrape(session).await, "foundry_read_refused_total");
+    let (status, _) = session.get(token, request.as_ref()).await;
+    assert_eq!(status, expect, "{label}");
+    let after = value_of(&scrape(session).await, "foundry_read_refused_total");
+    assert_eq!(after, before + 1, "{label}: must count exactly one refusal");
+}
+
 #[tokio::test]
-async fn every_read_refusal_shape_counts() {
-    // One case per refusing site, so deleting any single counting call
-    // fails here rather than silently shrinking the denominator.
+async fn each_read_refusal_site_counts_exactly_once() {
     let fixture = Fixture::new("metrics-read-refused");
     let session = fixture.session();
-    // no credential
-    let (anon, _) = session.get(None, "/v1/objects/ent_alpha?revision=1").await;
-    assert_eq!(anon, StatusCode::UNAUTHORIZED);
-    // unrecognised credential
-    let (bad, _) = session
-        .get(Some("nope"), "/v1/objects/ent_alpha?revision=1")
-        .await;
-    assert_eq!(bad, StatusCode::UNAUTHORIZED);
-    // recognised, but policy refuses
-    let (roleless, _) = session
-        .get(
-            Some(fixture.roleless_token()),
-            "/v1/objects/ent_alpha?revision=1",
-        )
-        .await;
-    assert_eq!(roleless, StatusCode::FORBIDDEN);
-    // a credential naming a tenant this process does not serve
-    let (foreign, _) = session
-        .get(
-            Some(fixture.foreign_token()),
-            "/v1/objects/ent_alpha?revision=1",
-        )
-        .await;
-    assert_eq!(foreign, StatusCode::FORBIDDEN);
-    // an unusable revision pin
-    let (unusable, _) = session
-        .get(
-            Some(fixture.operator_token()),
-            "/v1/objects/ent_alpha?revision=abc",
-        )
-        .await;
-    assert_eq!(unusable, StatusCode::BAD_REQUEST);
+    // The unretained-revision refusal needs a BINDING to reach: without one,
+    // that request takes the unknown-object site instead and the two cases
+    // silently pin the same call.
+    let (write, _) = session.post(Some(fixture.operator_token()), WRITE).await;
+    assert_eq!(write, StatusCode::OK);
+    let path = "/v1/objects/ent_alpha?revision=1";
+    assert_read_refusal_delta(
+        &session,
+        "no credential",
+        path,
+        None,
+        StatusCode::UNAUTHORIZED,
+    )
+    .await;
+    assert_read_refusal_delta(
+        &session,
+        "unrecognised credential",
+        path,
+        Some("nope"),
+        StatusCode::UNAUTHORIZED,
+    )
+    .await;
+    assert_read_refusal_delta(
+        &session,
+        "policy denial",
+        path,
+        Some(fixture.roleless_token()),
+        StatusCode::FORBIDDEN,
+    )
+    .await;
+    assert_read_refusal_delta(
+        &session,
+        "cross-tenant",
+        path,
+        Some(fixture.foreign_token()),
+        StatusCode::FORBIDDEN,
+    )
+    .await;
+    assert_read_refusal_delta(
+        &session,
+        "unusable revision pin",
+        "/v1/objects/ent_alpha?revision=abc",
+        Some(fixture.operator_token()),
+        StatusCode::BAD_REQUEST,
+    )
+    .await;
+    assert_read_refusal_delta(
+        &session,
+        "unknown object",
+        "/v1/objects/ent_ghost?revision=1",
+        Some(fixture.operator_token()),
+        StatusCode::NOT_FOUND,
+    )
+    .await;
+    assert_read_refusal_delta(
+        &session,
+        "unretained revision",
+        "/v1/objects/ent_alpha?revision=9",
+        Some(fixture.operator_token()),
+        StatusCode::CONFLICT,
+    )
+    .await;
+}
 
-    let body = scrape(&session).await;
-    assert_eq!(
-        value_of(&body, "foundry_read_refused_total"),
-        5,
-        "every refusing site must count exactly once:\n{body}"
+/// The unserved-tenant refusal on BOTH surfaces, which no other case reaches.
+///
+/// The policy point permits this caller — it addresses an object in its own
+/// tenant — and the roster then does not hold that tenant. An earlier
+/// revision believed a foreign-tenant credential exercised this site; it
+/// does not, because the Cedar cross-tenant forbid refuses first, so that
+/// case was a second exercise of the policy-denial site and this one was
+/// never executed at all.
+#[tokio::test]
+async fn the_unserved_tenant_refusal_counts() {
+    let fixture = Fixture::new("metrics-unserved-tenant");
+    let session = fixture.unserved_session();
+    assert_read_refusal_delta(
+        &session,
+        "operator's tenant is not in the served roster",
+        "/v1/objects/ent_alpha?revision=1",
+        Some(fixture.operator_token()),
+        StatusCode::FORBIDDEN,
+    )
+    .await;
+
+    // The same branch exists on the write path. Fixing the read side alone
+    // would have left an identical uncounted refusal one module over.
+    let before = value_of(
+        &scrape(&session).await,
+        "foundry_action_submit_refused_total",
     );
-    assert_eq!(value_of(&body, "foundry_read_served_total"), 0);
+    let (status, _) = session.post(Some(fixture.operator_token()), WRITE).await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    let after = value_of(
+        &scrape(&session).await,
+        "foundry_action_submit_refused_total",
+    );
+    assert_eq!(
+        after,
+        before + 1,
+        "an unserved tenant must count on submit too"
+    );
+}
+
+/// Every route that answers must contribute to the numerator, or an
+/// availability ratio silently under-counts the work the process did.
+#[tokio::test]
+async fn each_read_serving_route_counts_exactly_once() {
+    let fixture = Fixture::new("metrics-read-routes");
+    let session = fixture.session();
+    let (write, _) = session.post(Some(fixture.operator_token()), WRITE).await;
+    assert_eq!(write, StatusCode::OK);
+    for (label, path) in [
+        ("object", "/v1/objects/ent_alpha?revision=1"),
+        ("history", "/v1/objects/ent_alpha/history"),
+        ("audit", "/v1/audit"),
+        ("types", "/v1/types"),
+    ] {
+        let before = value_of(&scrape(&session).await, "foundry_read_served_total");
+        let (status, _) = session.get(Some(fixture.operator_token()), path).await;
+        assert_eq!(status, StatusCode::OK, "{label}");
+        let after = value_of(&scrape(&session).await, "foundry_read_served_total");
+        assert_eq!(after, before + 1, "{label}: a served read must count once");
+    }
 }
 
 #[tokio::test]

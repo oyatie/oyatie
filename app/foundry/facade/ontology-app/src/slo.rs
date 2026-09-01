@@ -42,14 +42,34 @@ impl SloSpec {
         const PREFIX: &str = "foundry_";
         let mut found = BTreeSet::new();
         for query in [self.good_query, self.total_query] {
-            let mut rest = query;
-            while let Some(at) = rest.find(PREFIX) {
-                let tail = &rest[at..];
+            let mut consumed = 0;
+            while let Some(at) = query[consumed..].find(PREFIX) {
+                let start = consumed + at;
+                // A hit must begin a token. Without this, the recording-rule
+                // idiom `job:foundry_read_served_total:rate5m` yields the
+                // exported substring and the objective passes while naming a
+                // series the process never emits. Rejecting it leaves that
+                // rule UNVALIDATED rather than validated: this scanner can
+                // only check names the process itself exports, and a rule
+                // lives in the evaluator's config, not here. An objective
+                // built entirely from rules therefore recovers nothing and
+                // fails the emptiness check, which is the honest answer.
+                let preceded_by_token_char = query[..start]
+                    .chars()
+                    .next_back()
+                    .is_some_and(|c| c.is_ascii_alphanumeric() || c == '_' || c == ':');
+                let tail = &query[start..];
                 let end = tail
                     .find(|c: char| !c.is_ascii_alphanumeric() && c != '_')
                     .unwrap_or(tail.len());
-                found.insert(tail[..end].to_owned());
-                rest = &tail[end..];
+                if !preceded_by_token_char {
+                    // Nor may it be a prefix of a longer recording-rule name.
+                    let followed_by_colon = tail[end..].starts_with(':');
+                    if !followed_by_colon {
+                        found.insert(tail[..end].to_owned());
+                    }
+                }
+                consumed = start + end;
             }
         }
         found
@@ -104,8 +124,13 @@ pub static SLOS: &[SloSpec] = &[
                       so a per-tenant objective is not computable from what is exported \
                       and is not claimed. Poison is deliberately excluded: a poisoned \
                       entry advances the fold and is a permanent property of the log, \
-                      so counting it would make the objective unrecoverable.",
-        good_query: "count(foundry_projection_lag == 0)",
+                      so counting it would make the objective unrecoverable. The \
+                      numerator carries `or vector(0)` because when EVERY scraped \
+                      instance is lagging the filter matches nothing and count() \
+                      returns no series — an evaluator would score that as no-data \
+                      and burn no budget during exactly the outage this objective \
+                      exists to catch.",
+        good_query: "count(foundry_projection_lag == 0) or vector(0)",
         total_query: "count(foundry_projection_lag)",
         target: "0.999",
         objective_display: "99.9% of scrapes with no aggregate lag over 30d",
