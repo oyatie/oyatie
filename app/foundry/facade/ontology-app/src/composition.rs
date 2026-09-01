@@ -92,8 +92,15 @@ pub struct TenantState {
     /// The durable stores this tenant writes through. They live here, not
     /// in a shared pool, because a submission needs the action log, the
     /// denial trail and the projection together under one lock.
-    pub action_log: SqliteRecordsLog,
-    pub denial_log: SqliteRecordsLog,
+    /// Held behind the PORT so a test can install a log that fails on demand.
+    /// A real SQLite handle CAN be driven to failure — a second connection
+    /// dropping the table makes the open handle's next read `Err` — but doing
+    /// that from here would put a `rusqlite` dev-dependency in the facade and
+    /// raw SQL against the adapter's schema in its tests. The tests already
+    /// open `SqliteRecordsLog` by path; it is the SQL, not the coupling, that
+    /// would be new.
+    pub action_log: Box<dyn RecordsLog + Send>,
+    pub denial_log: Box<dyn RecordsLog + Send>,
 }
 
 impl std::fmt::Debug for TenantState {
@@ -119,8 +126,8 @@ impl TenantState {
         &mut ProjectionState,
     ) {
         (
-            &mut self.action_log,
-            &mut self.denial_log,
+            &mut *self.action_log,
+            &mut *self.denial_log,
             &mut self.projection,
         )
     }
@@ -240,8 +247,8 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
             Mutex::new(TenantState {
                 projection,
                 entries,
-                action_log,
-                denial_log,
+                action_log: Box::new(action_log),
+                denial_log: Box::new(denial_log),
             }),
         );
     }
