@@ -50,7 +50,6 @@ impl SqliteFixture {
                 .unwrap()
                 .as_nanos()
         ));
-        let _ = std::fs::remove_file(&path);
         let store = SqliteProjectionStore::open(&path).expect("open a fresh database");
         Self { path, store }
     }

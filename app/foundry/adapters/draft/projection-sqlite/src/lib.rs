@@ -17,12 +17,12 @@ mod write;
 use std::path::Path;
 
 use foundry_projection_draft::{
-    AppliedEntry, ApplyReceipt, EntryOutcome, KeyDesignations, Page, PageRequest, ProjectedLink,
-    ProjectedObject, ProjectionStore, ProjectionStoreError, PropertyPredicate,
+    AppliedEntry, ApplyReceipt, KeyDesignations, Page, PageRequest, ProjectedLink, ProjectedObject,
+    ProjectionStore, ProjectionStoreError, PropertyPredicate,
 };
 use rusqlite::{Connection, OptionalExtension, params};
 
-use crate::codec::{decode_object, encode_entry, encode_object};
+use crate::codec::decode_object;
 
 /// The name of the property index; pinned by the adapter's tests via
 /// `EXPLAIN QUERY PLAN`.

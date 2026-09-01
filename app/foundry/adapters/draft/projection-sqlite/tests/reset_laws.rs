@@ -8,10 +8,10 @@
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{ObjectEntity, ObjectProperty, PropertyTier, PropertyValue};
 use foundry_projection_draft::{
-    AppliedEntry, EntryOutcome, KeyDesignations, ProjectedObject, ProjectionStore,
+    AppliedEntry, EntryOutcome, KeyDesignations, ProjectedLink, ProjectedObject, ProjectionStore,
     ProjectionStoreError,
 };
 use foundry_projection_sqlite_draft::SqliteProjectionStore;
@@ -100,7 +100,6 @@ fn entry(ordinal: u64, objects: Vec<ProjectedObject>) -> AppliedEntry {
 #[test]
 fn a_corrupt_head_refuses_the_discard_and_keeps_the_rows() {
     let fixture = Fixture::new("corrupt-head");
-    sweep(&fixture.path);
     let stored = projected("ent_a1");
     {
         let mut store = fixture.open();
@@ -152,11 +151,31 @@ fn a_reset_empties_every_tenant_scoped_table_the_schema_declares() {
             &KeyDesignations::default(),
         )
         .unwrap();
+    // An edge, or the `projection_links` limb of the assertion below is
+    // already true before the reset and proves nothing.
     store
         .apply(
             AppliedEntry {
                 tenant_id: "ten_a".to_owned(),
                 ordinal: 2,
+                outcome: EntryOutcome::Applied {
+                    objects: vec![projected("ent_a2")],
+                    links: vec![ProjectedLink {
+                        link_type: "lty_measures".to_owned(),
+                        from_object_ref: "ent_a1".to_owned(),
+                        to_object_ref: "ent_a2".to_owned(),
+                        observed_at_epoch_ms: 1_700_000_000_000,
+                    }],
+                },
+            },
+            &KeyDesignations::default(),
+        )
+        .unwrap();
+    store
+        .apply(
+            AppliedEntry {
+                tenant_id: "ten_a".to_owned(),
+                ordinal: 3,
                 outcome: EntryOutcome::Poisoned {
                     reason: "payload_decode".to_owned(),
                 },
