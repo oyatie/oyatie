@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, Command, ExitStatus, Stdio};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::mpsc::{self, Receiver, Sender, TryRecvError};
 use std::thread;
 use std::time::Duration;
 
@@ -94,17 +95,33 @@ impl GitCommandRunner {
             SnapshotFailure::MalformedOutput("missing Git stderr pipe".to_owned())
         })?;
 
+        let (worker_failure_sender, worker_failure_receiver) = mpsc::channel();
+        let output_failure_sender = worker_failure_sender.clone();
         let input = thread::spawn(move || write_input(child_stdin, &stdin));
-        let output =
-            thread::spawn(move || read_bounded(child_stdout, stdout_limit, "stdout bytes"));
-        let errors =
-            thread::spawn(move || read_bounded(child_stderr, stderr_limit, "stderr bytes"));
+        let output = thread::spawn(move || {
+            read_bounded(
+                child_stdout,
+                stdout_limit,
+                "stdout bytes",
+                Some(&output_failure_sender),
+            )
+        });
+        let errors = thread::spawn(move || {
+            read_bounded(
+                child_stderr,
+                stderr_limit,
+                "stderr bytes",
+                Some(&worker_failure_sender),
+            )
+        });
 
-        let status = wait_for_child(&mut child, control);
+        let status = wait_for_child(&mut child, control, &worker_failure_receiver);
         let input = join_worker(input, "Git stdin writer")?;
         let stdout = join_worker(output, "Git stdout reader")?;
         let stderr = join_worker(errors, "Git stderr reader")?;
         status?;
+        let stdout = stdout?;
+        let stderr = stderr?;
         input?;
         let status = child
             .try_wait()
@@ -117,8 +134,8 @@ impl GitCommandRunner {
         self.verify_executable(control)?;
         Ok(CommandOutput {
             status,
-            stdout: stdout?,
-            stderr: stderr?,
+            stdout,
+            stderr,
         })
     }
 
@@ -150,19 +167,25 @@ fn read_bounded(
     mut reader: impl Read,
     maximum: u64,
     limit: &'static str,
+    failure_sender: Option<&Sender<()>>,
 ) -> Result<Vec<u8>, SnapshotFailure> {
     let capacity = usize::try_from(maximum.min(64 * 1024)).unwrap_or(64 * 1024);
     let mut output = Vec::with_capacity(capacity);
     let mut buffer = [0_u8; 16 * 1024];
     loop {
-        let read = reader
-            .read(&mut buffer)
-            .map_err(|error| SnapshotFailure::io("read Git output", error))?;
+        let read = match reader.read(&mut buffer) {
+            Ok(read) => read,
+            Err(error) => {
+                signal_failure(failure_sender);
+                return Err(SnapshotFailure::io("read Git output", error));
+            }
+        };
         if read == 0 {
             return Ok(output);
         }
         let observed = output.len() as u64 + read as u64;
         if observed > maximum {
+            signal_failure(failure_sender);
             return Err(SnapshotFailure::LimitExceeded {
                 limit,
                 maximum,
@@ -173,7 +196,17 @@ fn read_bounded(
     }
 }
 
-fn wait_for_child(child: &mut Child, control: &dyn WorkControl) -> Result<(), SnapshotFailure> {
+fn signal_failure(failure_sender: Option<&Sender<()>>) {
+    if let Some(failure_sender) = failure_sender {
+        let _ = failure_sender.send(());
+    }
+}
+
+fn wait_for_child(
+    child: &mut Child,
+    control: &dyn WorkControl,
+    worker_failures: &Receiver<()>,
+) -> Result<(), SnapshotFailure> {
     loop {
         if let Err(reason) = control.checkpoint() {
             terminate(child)?;
@@ -187,6 +220,13 @@ fn wait_for_child(child: &mut Child, control: &dyn WorkControl) -> Result<(), Sn
                 terminate(child)?;
                 return Err(failure);
             }
+        }
+        match worker_failures.try_recv() {
+            Ok(()) => {
+                terminate(child)?;
+                return Ok(());
+            }
+            Err(TryRecvError::Empty | TryRecvError::Disconnected) => {}
         }
         thread::sleep(Duration::from_millis(2));
     }
@@ -263,7 +303,7 @@ mod tests {
 
     #[test]
     fn bounded_reader_refuses_before_retaining_excess_output() {
-        let result = read_bounded(Cursor::new(b"abc"), 2, "stdout bytes");
+        let result = read_bounded(Cursor::new(b"abc"), 2, "stdout bytes", None);
 
         assert!(matches!(
             result,
@@ -273,5 +313,36 @@ mod tests {
                 observed: 3,
             })
         ));
+    }
+
+    #[test]
+    fn stdout_limit_terminates_a_child_that_ignores_the_closed_pipe() {
+        let root = std::env::current_dir().unwrap();
+        let runner = GitCommandRunner::new(PathBuf::from("/bin/sh"), root);
+        let control = NoCancellation::until(Instant::now() + Duration::from_secs(2));
+        let started = Instant::now();
+        let result = runner.run(
+            "stdout limit fixture",
+            &[
+                OsString::from("-c"),
+                OsString::from(
+                    "trap '' PIPE; while :; do printf '0123456789abcdef' || :; done 2>/dev/null",
+                ),
+            ],
+            Vec::new(),
+            1024,
+            1024,
+            &control,
+        );
+
+        assert!(matches!(
+            result,
+            Err(SnapshotFailure::LimitExceeded {
+                limit: "stdout bytes",
+                maximum: 1024,
+                ..
+            })
+        ));
+        assert!(started.elapsed() < Duration::from_secs(1));
     }
 }
