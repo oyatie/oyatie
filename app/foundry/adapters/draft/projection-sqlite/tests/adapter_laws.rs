@@ -6,6 +6,13 @@
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+/// A monotonic per-process counter. The wall-clock recipe alone
+/// duplicated across parallel tests under load — two tests then shared
+/// one database and produced divergent-replay and malformed-image
+/// failures that read as real defects.
+static NEXT_FIXTURE: AtomicU64 = AtomicU64::new(0);
 
 use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
@@ -13,14 +20,15 @@ use data_ontology_kernel::{
 };
 use foundry_projection_draft::{
     AppliedEntry, EntryOutcome, KeyDesignations, PageRequest, ProjectedObject, ProjectionStore,
-    PropertyPredicate,
+    ProjectionStoreError, PropertyPredicate,
 };
 use foundry_projection_sqlite_draft::{PROPERTY_INDEX_NAME, SqliteProjectionStore};
 
 fn scratch(case: &str) -> PathBuf {
     std::env::temp_dir().join(format!(
-        "foundry-projection-laws-{case}-{}-{}.sqlite",
+        "foundry-projection-laws-{case}-{}-{}-{}.sqlite",
         std::process::id(),
+        NEXT_FIXTURE.fetch_add(1, Ordering::Relaxed),
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -231,5 +239,57 @@ fn predicate_queries_run_through_the_property_index() {
         plan.contains(PROPERTY_INDEX_NAME),
         "the shaped query uses the property index, not a table scan: {plan}",
     );
+    let _ = std::fs::remove_file(&path);
+}
+
+/// A head that will not convert to an ordinal is a CORRUPT store, not an
+/// empty one, and the discard must refuse rather than destroy.
+///
+/// The first version of this path read the head with
+/// `try_into().unwrap_or(0)`. Against a negative `applied_ordinal` that
+/// returned `Ok(0)` — reporting nothing discarded while deleting every
+/// row — which is precisely the "loss" the operation returns a head to
+/// distinguish itself from. `applied_head` already refused such a
+/// store; only the discard swallowed it.
+#[test]
+fn a_corrupt_head_refuses_the_discard_and_keeps_the_rows() {
+    let path = scratch("corrupt-head");
+    let _ = std::fs::remove_file(&path);
+    let stored = projected(
+        "ent_a1",
+        vec![typed("name", PropertyValue::String("Ada".to_owned()))],
+    );
+    {
+        let mut store = SqliteProjectionStore::open(&path).unwrap();
+        store
+            .apply(entry(1, vec![stored.clone()]), &KeyDesignations::default())
+            .unwrap();
+    }
+    rusqlite::Connection::open(&path)
+        .unwrap()
+        .execute(
+            "UPDATE projection_heads SET applied_ordinal = -5 WHERE tenant_id = 'ten_a'",
+            [],
+        )
+        .unwrap();
+
+    let mut store = SqliteProjectionStore::open(&path).unwrap();
+    let refused = store.reset_tenant("ten_a");
+
+    assert!(
+        matches!(refused, Err(ProjectionStoreError::Storage { .. })),
+        "a corrupt head refuses: {refused:?}"
+    );
+    // The refusal rolls the transaction back, so the rows an operator
+    // would have lost are all still there.
+    let survivors = rusqlite::Connection::open(&path)
+        .unwrap()
+        .query_row(
+            "SELECT COUNT(*) FROM projection_objects WHERE tenant_id = 'ten_a'",
+            [],
+            |row| row.get::<_, i64>(0),
+        )
+        .unwrap();
+    assert_eq!(survivors, 1, "nothing was destroyed by the refusal");
     let _ = std::fs::remove_file(&path);
 }

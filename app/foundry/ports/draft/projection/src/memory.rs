@@ -250,6 +250,10 @@ impl ProjectionStore for MemoryProjectionStore {
     }
 
     fn reset_tenant(&mut self, tenant_id: &str) -> Result<u64, ProjectionStoreError> {
+        // The durable plane refuses an untrimmed id; a reference plane
+        // that returned Ok(0) instead would let code developed against
+        // it conclude "nothing to discard" where production refuses.
+        require_trimmed(tenant_id, "blank tenant")?;
         // Every map is keyed with the tenant FIRST, so the discard is a
         // retain on that component alone — a neighbour cannot be caught
         // by it however its own keys are shaped.

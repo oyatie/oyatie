@@ -30,7 +30,8 @@ pub use reads::{
 pub use reset::{
     check_applies_restart_at_ordinal_one_after_reset,
     check_reset_discards_everything_for_the_tenant, check_reset_leaves_other_tenants_untouched,
-    check_reset_survives_reopen, check_resetting_an_unknown_tenant_discards_nothing,
+    check_reset_refuses_a_blank_tenant, check_reset_survives_reopen,
+    check_resetting_an_unknown_tenant_discards_nothing,
 };
 
 use data_boundary_kernel::{DataClass, PrivacyDataClass};

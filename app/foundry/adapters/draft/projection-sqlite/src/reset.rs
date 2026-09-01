@@ -15,15 +15,16 @@ pub(crate) fn reset_tenant(
     tenant_id: &str,
 ) -> Result<u64, ProjectionStoreError> {
     require_trimmed(tenant_id, "blank tenant")?;
-    // One immediate transaction, like an apply: a discard that got
-    // half-way would leave precisely the mixture it was called to
-    // escape, and the head is cleared LAST so a crash mid-discard
-    // leaves the head still claiming rows rather than claiming zero
-    // over rows that are still there.
+    // One immediate transaction, like an apply. THE TRANSACTION is what
+    // makes a crash safe — an uncommitted discard rolls back whole — so
+    // statement order carries no crash-recovery meaning and no claim is
+    // made for it. A half-applied discard would leave precisely the
+    // mixture this was called to escape, which is why it cannot be a
+    // sequence of independent deletes.
     let transaction = connection
         .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
         .map_err(storage)?;
-    let discarded: u64 = transaction
+    let discarded: i64 = transaction
         .query_row(
             "SELECT applied_ordinal FROM projection_heads WHERE tenant_id = ?1",
             [tenant_id],
@@ -31,9 +32,15 @@ pub(crate) fn reset_tenant(
         )
         .optional()
         .map_err(storage)?
-        .unwrap_or(0)
-        .try_into()
         .unwrap_or(0);
+    // A head that will not convert is a corrupt store, not a zero one.
+    // Swallowing it would discard every row and report that nothing was
+    // discarded — the exact "loss" this operation returns a head to
+    // avoid. The refusal rolls the transaction back, so nothing is lost
+    // at all.
+    let discarded = u64::try_from(discarded).map_err(|_| ProjectionStoreError::Storage {
+        detail: format!("applied head is not a valid ordinal: {discarded}"),
+    })?;
     for table in [
         "projection_entries",
         "projection_objects",

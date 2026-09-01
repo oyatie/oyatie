@@ -1,20 +1,17 @@
-//! Reset laws: discarding one tenant's projection so a rebuild can
-//! start from empty.
-//!
-//! The operation exists because every other refusal in this plane names
-//! "rebuild from empty" as its remedy, and until now that remedy was not
-//! reachable through the port — which is what made those refusals read
-//! as permanent rather than as recoverable.
-//!
-//! Two properties carry the weight. It must discard EVERYTHING for the
-//! tenant, because a reset that leaves rows behind produces exactly the
-//! mixture it was called to escape; and it must touch NOBODY ELSE,
-//! because the operation is destructive and a blast radius wider than
-//! the caller asked for cannot be undone.
+//! Reset laws: discard one tenant's projection so a rebuild can start
+//! from empty — the remedy every other refusal here names and the port
+//! could not perform. It must discard EVERYTHING for that tenant, or it
+//! produces the mixture it was called to escape, and touch NOBODY else,
+//! because too wide a blast radius cannot be undone.
 
 use crate::conformance::{ProjectionFixture, applied, applied_with_links, fail, object};
 use crate::keys::KeyDesignations;
-use crate::store::{EntryOutcome, PageRequest, ProjectedLink, ProjectionStore};
+use data_ontology_kernel::PropertyValue;
+
+use crate::predicate::PropertyPredicate;
+use crate::store::{
+    EntryOutcome, PageRequest, ProjectedLink, ProjectionStore, ProjectionStoreError,
+};
 
 fn edge(from: &str, to: &str) -> ProjectedLink {
     ProjectedLink {
@@ -99,6 +96,21 @@ pub fn check_reset_discards_everything_for_the_tenant<F: ProjectionFixture>(
             format!("{outbound:?} {inbound:?}"),
         ));
     }
+    // The property index is queried ALONE by the kind-drift probe, so a
+    // surviving row there is observable while every other assertion in
+    // this check reads a different table. A range in a kind the
+    // discarded value never had is empty on a clean store and a loud
+    // `KindMismatch` if the old row is still indexed.
+    let drifted = store.filter(
+        "ten_a",
+        "ety_reading",
+        &PropertyPredicate::range("name", PropertyValue::Integer(0), PropertyValue::Integer(9))
+            .expect("a well-formed range"),
+        &PageRequest::first(50),
+    );
+    if !matches!(&drifted, Ok(page) if page.objects.is_empty()) {
+        return Err(fail("the property index is gone", format!("{drifted:?}")));
+    }
     let poisons = store
         .poisoned("ten_a")
         .map_err(|error| fail("poisons read", format!("{error:?}")))?;
@@ -108,13 +120,15 @@ pub fn check_reset_discards_everything_for_the_tenant<F: ProjectionFixture>(
     Ok(())
 }
 
-/// The blast radius is exactly one tenant. This is the property that
-/// makes the operation safe to expose at all.
+/// The blast radius is exactly one tenant. The neighbour's id has
+/// `ten_a` as a PREFIX: a discard written with `starts_with` rather
+/// than equality passes every test whose tenants share none, while
+/// destroying `ten_ab` and `ten_alpha`.
 pub fn check_reset_leaves_other_tenants_untouched<F: ProjectionFixture>(
     fixture: &mut F,
 ) -> Result<(), String> {
     let store = fixture.store();
-    for tenant in ["ten_a", "ten_b"] {
+    for tenant in ["ten_a", "ten_ab"] {
         store
             .apply(
                 applied_with_links(
@@ -136,19 +150,19 @@ pub fn check_reset_leaves_other_tenants_untouched<F: ProjectionFixture>(
         .map_err(|error| fail("reset runs", format!("{error:?}")))?;
 
     let head = store
-        .applied_head("ten_b")
+        .applied_head("ten_ab")
         .map_err(|error| fail("neighbour head reads", format!("{error:?}")))?;
     if head != 1 {
         return Err(fail("the neighbour keeps its head", format!("{head}")));
     }
     let kept = store
-        .get("ten_b", "ent_1")
+        .get("ten_ab", "ent_1")
         .map_err(|error| fail("neighbour get reads", format!("{error:?}")))?;
     if kept.is_none() {
         return Err(fail("the neighbour keeps its objects", "absent".to_owned()));
     }
     let edges = store
-        .links_from("ten_b", "ent_1")
+        .links_from("ten_ab", "ent_1")
         .map_err(|error| fail("neighbour links read", format!("{error:?}")))?;
     if edges.len() != 1 {
         return Err(fail("the neighbour keeps its edges", format!("{edges:?}")));
@@ -172,9 +186,8 @@ pub fn check_resetting_an_unknown_tenant_discards_nothing<F: ProjectionFixture>(
     Ok(())
 }
 
-/// After a reset the dense-ordinal law starts again at 1 — the tenant is
-/// indistinguishable from one never written. A store that kept its old
-/// head would refuse the very rebuild the reset was performed to allow.
+/// After a reset the dense-ordinal law starts again at 1. A store that
+/// kept its old head would refuse the very rebuild it was reset for.
 pub fn check_applies_restart_at_ordinal_one_after_reset<F: ProjectionFixture>(
     fixture: &mut F,
 ) -> Result<(), String> {
@@ -226,10 +239,8 @@ pub fn check_applies_restart_at_ordinal_one_after_reset<F: ProjectionFixture>(
     Ok(())
 }
 
-/// The discard is durable. A reset that lived only in memory would come
-/// back on restart holding exactly the rows an operator believed they
-/// had destroyed. Returns early — a vacuous pass — for a volatile
-/// fixture, as the durability clause does elsewhere.
+/// The discard is durable, or an operator's destruction returns on
+/// restart. Vacuous pass for a volatile fixture, as elsewhere.
 pub fn check_reset_survives_reopen<F: ProjectionFixture>(fixture: &mut F) -> Result<(), String> {
     let store = fixture.store();
     store
@@ -260,6 +271,23 @@ pub fn check_reset_survives_reopen<F: ProjectionFixture>(fixture: &mut F) -> Res
         .map_err(|error| fail("get reads after reopen", format!("{error:?}")))?;
     if read.is_some() {
         return Err(fail("the rows are durably gone", format!("{read:?}")));
+    }
+    Ok(())
+}
+
+/// Both planes refuse a blank or untrimmed tenant id, the SAME way. A
+/// destructive operation one plane performs and the other declines is
+/// worse than either alone: code developed against the reference reads
+/// "nothing to discard" where production refuses.
+pub fn check_reset_refuses_a_blank_tenant<F: ProjectionFixture>(
+    fixture: &mut F,
+) -> Result<(), String> {
+    let store = fixture.store();
+    for blank in ["", "   ", " ten_a", "ten_a "] {
+        let refused = store.reset_tenant(blank);
+        if !matches!(refused, Err(ProjectionStoreError::Entry { .. })) {
+            return Err(fail("an untrimmed tenant is refused", format!("{blank:?}")));
+        }
     }
     Ok(())
 }

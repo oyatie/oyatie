@@ -16,12 +16,15 @@ use foundry_projection_draft::conformance::{
     check_poisoned_entries_advance_the_head_without_objects, check_range_kind_mismatch_is_refused,
     check_range_predicate_is_kind_scoped, check_re_applying_an_entry_does_not_duplicate_links,
     check_reads_are_tenant_isolated, check_reset_discards_everything_for_the_tenant,
-    check_reset_leaves_other_tenants_untouched, check_reset_survives_reopen,
-    check_resetting_an_unknown_tenant_discards_nothing,
+    check_reset_leaves_other_tenants_untouched, check_reset_refuses_a_blank_tenant,
+    check_reset_survives_reopen, check_resetting_an_unknown_tenant_discards_nothing,
     check_two_objects_in_one_entry_cannot_share_a_key,
     check_type_scan_pages_partition_deterministically,
 };
-use foundry_projection_draft::{MemoryProjectionStore, ProjectionStore};
+use foundry_projection_draft::{
+    AppliedEntry, ApplyReceipt, KeyDesignations, MemoryProjectionStore, Page, PageRequest,
+    ProjectedLink, ProjectedObject, ProjectionStore, ProjectionStoreError, PropertyPredicate,
+};
 
 #[derive(Default)]
 struct MemoryFixture {
@@ -125,4 +128,93 @@ fn applies_restart_at_ordinal_one_after_reset() {
 #[test]
 fn reset_survives_reopen() {
     run(check_reset_survives_reopen);
+}
+
+#[test]
+fn reset_refuses_a_blank_tenant() {
+    run(check_reset_refuses_a_blank_tenant);
+}
+
+/// A store that implements everything EXCEPT `reset_tenant`, so the
+/// trait's default is what answers. The conformance suite cannot pin
+/// this: it runs only against stores that override the default, and a
+/// claim no test can reach is the shape of defect this suite exists to
+/// prevent.
+#[derive(Default)]
+struct WithoutReset(MemoryProjectionStore);
+
+impl ProjectionStore for WithoutReset {
+    fn apply(
+        &mut self,
+        entry: AppliedEntry,
+        keys: &KeyDesignations,
+    ) -> Result<ApplyReceipt, ProjectionStoreError> {
+        self.0.apply(entry, keys)
+    }
+
+    fn applied_head(&self, tenant_id: &str) -> Result<u64, ProjectionStoreError> {
+        self.0.applied_head(tenant_id)
+    }
+
+    fn get(
+        &self,
+        tenant_id: &str,
+        object_ref: &str,
+    ) -> Result<Option<ProjectedObject>, ProjectionStoreError> {
+        self.0.get(tenant_id, object_ref)
+    }
+
+    fn objects_of_type(
+        &self,
+        tenant_id: &str,
+        entity_type: &str,
+        page: &PageRequest,
+    ) -> Result<Page, ProjectionStoreError> {
+        self.0.objects_of_type(tenant_id, entity_type, page)
+    }
+
+    fn filter(
+        &self,
+        tenant_id: &str,
+        entity_type: &str,
+        predicate: &PropertyPredicate,
+        page: &PageRequest,
+    ) -> Result<Page, ProjectionStoreError> {
+        self.0.filter(tenant_id, entity_type, predicate, page)
+    }
+
+    fn links_from(
+        &self,
+        tenant_id: &str,
+        object_ref: &str,
+    ) -> Result<Vec<ProjectedLink>, ProjectionStoreError> {
+        self.0.links_from(tenant_id, object_ref)
+    }
+
+    fn links_to(
+        &self,
+        tenant_id: &str,
+        object_ref: &str,
+    ) -> Result<Vec<ProjectedLink>, ProjectionStoreError> {
+        self.0.links_to(tenant_id, object_ref)
+    }
+
+    fn poisoned(&self, tenant_id: &str) -> Result<Vec<(u64, String)>, ProjectionStoreError> {
+        self.0.poisoned(tenant_id)
+    }
+}
+
+#[test]
+fn a_store_that_cannot_reset_refuses_rather_than_reporting_success() {
+    let mut store = WithoutReset::default();
+
+    // Ok(0) here would leave a caller believing it had rebuilt from
+    // empty over rows that are all still present — the destructive
+    // reading of a capability that simply is not there.
+    let refused = store.reset_tenant("ten_a");
+
+    assert!(
+        matches!(refused, Err(ProjectionStoreError::Storage { .. })),
+        "{refused:?}"
+    );
 }

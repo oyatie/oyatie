@@ -3,6 +3,13 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+/// A monotonic per-process counter. The wall-clock recipe alone
+/// duplicated across parallel tests under load — two tests then shared
+/// one database and produced divergent-replay and malformed-image
+/// failures that read as real defects.
+static NEXT_FIXTURE: AtomicU64 = AtomicU64::new(0);
 
 use foundry_projection_draft::ProjectionStore;
 use foundry_projection_draft::conformance::{
@@ -20,8 +27,8 @@ use foundry_projection_draft::conformance::{
     check_poisoned_entries_advance_the_head_without_objects, check_range_kind_mismatch_is_refused,
     check_range_predicate_is_kind_scoped, check_re_applying_an_entry_does_not_duplicate_links,
     check_reads_are_tenant_isolated, check_reset_discards_everything_for_the_tenant,
-    check_reset_leaves_other_tenants_untouched, check_reset_survives_reopen,
-    check_resetting_an_unknown_tenant_discards_nothing,
+    check_reset_leaves_other_tenants_untouched, check_reset_refuses_a_blank_tenant,
+    check_reset_survives_reopen, check_resetting_an_unknown_tenant_discards_nothing,
     check_two_objects_in_one_entry_cannot_share_a_key,
     check_type_scan_pages_partition_deterministically,
 };
@@ -35,8 +42,9 @@ struct SqliteFixture {
 impl SqliteFixture {
     fn new() -> Self {
         let path = std::env::temp_dir().join(format!(
-            "foundry-projection-{}-{}.sqlite",
+            "foundry-projection-{}-{}-{}.sqlite",
             std::process::id(),
+            NEXT_FIXTURE.fetch_add(1, Ordering::Relaxed),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
@@ -154,4 +162,9 @@ fn applies_restart_at_ordinal_one_after_reset() {
 #[test]
 fn reset_survives_reopen() {
     run(check_reset_survives_reopen);
+}
+
+#[test]
+fn reset_refuses_a_blank_tenant() {
+    run(check_reset_refuses_a_blank_tenant);
 }
