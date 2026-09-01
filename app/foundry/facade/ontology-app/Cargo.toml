@@ -10,6 +10,7 @@ description = "Runnable Foundry ontology service: composes the governed M3 write
 [dependencies]
 data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
 data-ontology-kernel = { path = "../../../../data/core/ontology-kernel" }
+foundry-edits = { path = "../../core/edits" }
 foundry-records-draft = { path = "../../ports/draft/records" }
 foundry-records-sqlite-draft = { path = "../../adapters/draft/records-sqlite" }
 foundry-spine = { path = "../../core/spine" }
