@@ -10,6 +10,10 @@ rust_library(
         "//app/foundry/ports/draft/records:foundry-records-draft",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//data/core/ontology-kernel:data-ontology-kernel",
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+        "//policy/adapters/pdp-cedar:policy-pdp-cedar",
+        "//policy/core/pdp-kernel:policy-pdp-kernel",
+        "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
         "third-party//:axum",
         "third-party//:serde",
         "third-party//:serde_json",
@@ -56,4 +60,13 @@ rust_test(
         "third-party//:tokio",
         "third-party//:tower",
     ],
+)
+
+rust_test(
+    name = "foundry-ontology-app-pep",
+    srcs = ["tests/pep_denies_by_default.rs"],
+    crate = "pep_denies_by_default",
+    crate_root = "tests/pep_denies_by_default.rs",
+    visibility = ["PUBLIC"],
+    deps = [":foundry-ontology-app"],
 )
