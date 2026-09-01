@@ -1,7 +1,8 @@
-//! Structural home for the pure dependency-declaration reconciliation kernel.
+//! Pure dependency-declaration reconciliation over immutable typed values.
 //!
-//! Wave S establishes module discovery only. Reconciliation behavior lands in
-//! the separately reviewed kernel wave.
+//! Generation, independent syntax projection, configured-consumer qualification,
+//! validation, and publication are composed through ports; filesystem, process,
+//! network, SCM, and campaigns stay outside.
 
 #![forbid(unsafe_code)]
 

@@ -1,0 +1,246 @@
+use std::path::PathBuf;
+
+use dependency_declarations_generation_reindeer::{
+    ReindeerProviderAdaptationErrorV1, ReindeerProviderAdaptationProfileV1,
+    ReindeerProviderSourceFileV1, ReindeerProviderSourceModeV1, ReindeerProviderSourceSnapshotV1,
+    adapt_reindeer_provider_source_v1,
+};
+
+use crate::support::{PINNED_REVISION, SOURCE_PATHS};
+
+#[test]
+fn recipe_identity_matches_the_workspace_lock() {
+    let manifest_dir = std::env::var_os("CARGO_MANIFEST_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| {
+            PathBuf::from("build/dependency-declarations/adapters/generation-reindeer")
+        });
+    let lock = std::fs::read_to_string(manifest_dir.join("../../../../Cargo.lock")).unwrap();
+    for package in [
+        concat!(
+            "name = \"syn\"\n",
+            "version = \"2.0.119\"\n",
+            "source = \"registry+https://github.com/rust-lang/crates.io-index\"\n",
+            "checksum = \"872831b642d1a07999a962a351ed35b955ea2cfc8f3862091e2a240a84f17297\"",
+        ),
+        concat!(
+            "name = \"prettyplease\"\n",
+            "version = \"0.2.37\"\n",
+            "source = \"registry+https://github.com/rust-lang/crates.io-index\"\n",
+            "checksum = \"479ca8adacdd7ce8f1fb39ce9ecccbfe93a3f1344b3d0d97f20bc0196208f62b\"",
+        ),
+        concat!(
+            "name = \"proc-macro2\"\n",
+            "version = \"1.0.107\"\n",
+            "source = \"registry+https://github.com/rust-lang/crates.io-index\"\n",
+            "checksum = \"985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9\"",
+        ),
+        concat!(
+            "name = \"quote\"\n",
+            "version = \"1.0.47\"\n",
+            "source = \"registry+https://github.com/rust-lang/crates.io-index\"\n",
+            "checksum = \"1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001\"",
+        ),
+        concat!(
+            "name = \"sha2\"\n",
+            "version = \"0.10.9\"\n",
+            "source = \"registry+https://github.com/rust-lang/crates.io-index\"\n",
+            "checksum = \"a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283\"",
+        ),
+    ] {
+        assert!(
+            lock.contains(package),
+            "missing exact recipe package:\n{package}"
+        );
+    }
+}
+
+pub(super) fn exact_source_batch_produces_one_deterministic_adaptation(
+    snapshot: &ReindeerProviderSourceSnapshotV1,
+) {
+    assert_eq!(
+        snapshot.source_tree_sha256(),
+        ReindeerProviderAdaptationProfileV1.source_tree_sha256()
+    );
+
+    let first = adapt_reindeer_provider_source_v1(snapshot).unwrap();
+    let second = adapt_reindeer_provider_source_v1(snapshot).unwrap();
+
+    assert_eq!(first, second);
+    assert_eq!(first.source_tree_sha256(), snapshot.source_tree_sha256());
+    assert_ne!(
+        first.source_tree_sha256(),
+        first.schema().schema_source_sha256()
+    );
+    assert_eq!(first.parsed_source_files(), 7);
+    assert_eq!(first.files().len(), SOURCE_PATHS.len());
+    assert_eq!(
+        first
+            .files()
+            .iter()
+            .map(|file| file.path())
+            .collect::<Vec<_>>(),
+        SOURCE_PATHS
+    );
+    let artifact = first
+        .files()
+        .iter()
+        .find(|file| file.path() == "src/artifact.rs")
+        .unwrap();
+    let artifact = std::str::from_utf8(artifact.postimage()).unwrap();
+    assert!(artifact.contains("ReindeerGeneratedArtifactV1"));
+    assert!(artifact.contains("ReindeerRuleGraphV1"));
+
+    let buck = first
+        .files()
+        .iter()
+        .find(|file| file.path() == "src/buck.rs")
+        .unwrap();
+    assert_eq!(
+        buck.preimage().unwrap(),
+        snapshot
+            .files()
+            .iter()
+            .find(|file| file.path() == "src/buck.rs")
+            .unwrap()
+            .bytes()
+    );
+    assert!(buck.preimage_sha256().is_some());
+    assert_ne!(buck.preimage_sha256(), Some(buck.postimage_sha256()));
+    assert_eq!(first.schema().rule_variants().len(), 13);
+    assert_eq!(
+        first.profile().source_repository(),
+        "https://github.com/facebookincubator/reindeer"
+    );
+    assert_eq!(first.profile().source_tag(), "v2026.08.10.00");
+    assert_eq!(first.profile().source_revision(), PINNED_REVISION);
+    assert!(first.profile().recipe_identity().contains("syn=2.0.119@"));
+}
+
+pub(super) fn source_discovery_order_does_not_change_the_adaptation(
+    snapshot: &ReindeerProviderSourceSnapshotV1,
+) {
+    let forward = snapshot.files().to_vec();
+    let mut reverse = forward.clone();
+    reverse.reverse();
+    let adapt = |files| {
+        let snapshot = ReindeerProviderSourceSnapshotV1::try_new(PINNED_REVISION, files).unwrap();
+        adapt_reindeer_provider_source_v1(&snapshot).unwrap()
+    };
+
+    assert_eq!(adapt(forward), adapt(reverse));
+}
+
+pub(super) fn exact_revision_with_changed_source_bytes_refuses(
+    snapshot: &ReindeerProviderSourceSnapshotV1,
+) {
+    let mut files = snapshot.files().to_vec();
+    replace_source_bytes(&mut files, "src/buck.rs", b"changed source".to_vec());
+    let snapshot = ReindeerProviderSourceSnapshotV1::try_new(PINNED_REVISION, files).unwrap();
+
+    assert_eq!(
+        adapt_reindeer_provider_source_v1(&snapshot),
+        Err(ReindeerProviderAdaptationErrorV1::SourceFileDigestMismatch)
+    );
+}
+
+pub(super) fn exact_revision_with_changed_unadapted_source_refuses(
+    snapshot: &ReindeerProviderSourceSnapshotV1,
+) {
+    let mut files = snapshot.files().to_vec();
+    let manifest = files
+        .iter()
+        .find(|file| file.path() == "Cargo.toml")
+        .unwrap();
+    let mut bytes = manifest.bytes().to_vec();
+    bytes.extend_from_slice(b"\n# changed outside the adaptation paths\n");
+    replace_source_bytes(&mut files, "Cargo.toml", bytes);
+    let snapshot = ReindeerProviderSourceSnapshotV1::try_new(PINNED_REVISION, files).unwrap();
+
+    assert_eq!(
+        adapt_reindeer_provider_source_v1(&snapshot),
+        Err(ReindeerProviderAdaptationErrorV1::SourceTreeMismatch)
+    );
+}
+
+#[cfg(unix)]
+pub(super) fn exact_revision_with_unadapted_mode_change_refuses(
+    snapshot: &ReindeerProviderSourceSnapshotV1,
+) {
+    let mut files = snapshot.files().to_vec();
+    replace_source_mode(
+        &mut files,
+        "examples/01-intro/setup.sh",
+        ReindeerProviderSourceModeV1::Regular,
+    );
+    let snapshot = ReindeerProviderSourceSnapshotV1::try_new(PINNED_REVISION, files).unwrap();
+
+    assert_eq!(
+        adapt_reindeer_provider_source_v1(&snapshot),
+        Err(ReindeerProviderAdaptationErrorV1::SourceTreeMismatch)
+    );
+}
+
+pub(super) fn unsupported_revision_batch_and_presence_refuse(
+    snapshot: &ReindeerProviderSourceSnapshotV1,
+) {
+    let files = snapshot.files().to_vec();
+    let refusal = |revision, files| {
+        ReindeerProviderSourceSnapshotV1::try_new(revision, files)
+            .and_then(|snapshot| adapt_reindeer_provider_source_v1(&snapshot))
+    };
+    assert_eq!(
+        refusal("different", files.clone()),
+        Err(ReindeerProviderAdaptationErrorV1::UnsupportedSourceRevision)
+    );
+
+    let mut missing = files.clone();
+    missing.retain(|file| file.path() != "src/main.rs");
+    assert_eq!(
+        refusal(PINNED_REVISION, missing),
+        Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch)
+    );
+    let mut duplicate = files.clone();
+    duplicate.push(files[0].clone());
+    assert_eq!(
+        refusal(PINNED_REVISION, duplicate),
+        Err(ReindeerProviderAdaptationErrorV1::SourceBatchMismatch)
+    );
+    let mut present_generated = files;
+    present_generated.push(ReindeerProviderSourceFileV1::new(
+        "src/artifact.rs",
+        ReindeerProviderSourceModeV1::Regular,
+        b"mod unexpected;\n".to_vec(),
+    ));
+    assert_eq!(
+        refusal(PINNED_REVISION, present_generated),
+        Err(ReindeerProviderAdaptationErrorV1::SourcePresenceMismatch)
+    );
+}
+
+pub(super) fn oversized_source_refuses_before_digest_comparison(
+    snapshot: &ReindeerProviderSourceSnapshotV1,
+) {
+    let mut files = snapshot.files().to_vec();
+    replace_source_bytes(&mut files, "src/buck.rs", vec![b' '; 2 * 1024 * 1024 + 1]);
+    let snapshot = ReindeerProviderSourceSnapshotV1::try_new(PINNED_REVISION, files).unwrap();
+
+    assert_eq!(
+        adapt_reindeer_provider_source_v1(&snapshot),
+        Err(ReindeerProviderAdaptationErrorV1::SourceTooLarge)
+    );
+}
+
+fn replace_source_bytes(files: &mut [ReindeerProviderSourceFileV1], path: &str, bytes: Vec<u8>) {
+    let file = files.iter_mut().find(|file| file.path() == path).unwrap();
+    *file = ReindeerProviderSourceFileV1::new(path, file.mode(), bytes);
+}
+
+fn replace_source_mode(
+    files: &mut [ReindeerProviderSourceFileV1],
+    path: &str,
+    mode: ReindeerProviderSourceModeV1,
+) {
+    let file = files.iter_mut().find(|file| file.path() == path).unwrap();
+    *file = ReindeerProviderSourceFileV1::new(path, mode, file.bytes().to_vec());
+}

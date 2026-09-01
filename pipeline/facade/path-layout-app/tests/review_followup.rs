@@ -188,7 +188,7 @@ fn touched_handwritten_files_obey_the_three_hundred_line_budget() {
 fn a_new_ordinary_capability_requires_complete_owner_shape() {
     let root = fixture();
     let base = commit(&root, "base");
-    write(&root, "network/README.md", "paperwork only\n");
+    write(&root, "network/OWNERS", "network\n");
     let paperwork = commit(&root, "incomplete network owner");
     assert_rejected(
         &root,
@@ -208,9 +208,7 @@ fn a_new_ordinary_capability_requires_complete_owner_shape() {
         "network/core/route/src/lib.rs",
         "pub fn route() {}\n",
     );
-    for law in ["ADR.md", "PRD.md", "SPEC.md", "PLAN.md"] {
-        write(&root, &format!("network/{law}"), "law\n");
-    }
+    write(&root, "network/OWNERS", "network\n");
     let complete = commit(&root, "complete network owner");
     let admitted = admit(&root, &base, &complete);
     assert!(

@@ -124,6 +124,7 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("OYATIE_PULL_REQUEST: ${{ github.event.pull_request.number }}"));
     assert!(y.contains("OYATIE_REPOSITORY"));
     assert!(y.contains("--run-ignored only"));
+    assert!(y.contains("test(=exact_pinned_upstream_source_is_qualified_once)"));
     assert!(y.contains("--no-tests=fail"));
     assert!(y.contains("--max-fail 1:immediate"));
     assert!(y.contains("CARGO_NET_OFFLINE: \"true\""));

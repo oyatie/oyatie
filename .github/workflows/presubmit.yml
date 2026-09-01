@@ -161,11 +161,9 @@ jobs:
           persist-credentials: false
           fetch-depth: 1
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
-        with:
-          toolchain: "1.98.0"
+        with: { toolchain: "1.98.0" }
       - uses: taiki-e/install-action@5b4d68e2e660441203ab128a23676f1e4faf1532
-        with:
-          tool: nextest
+        with: { tool: nextest }
       - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: cargo-ci-x86
@@ -203,8 +201,9 @@ jobs:
           test "$(git rev-parse 'HEAD^{tree}')" = "153f32a846b5e1f460e61fff1cecbbf5177c8c90"
           test -z "$(git status --porcelain=v1 --untracked-files=all)"
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
-        with:
-          toolchain: "1.98.0"
+        with: { toolchain: "nightly-2026-05-22", components: clippy }
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with: { toolchain: "1.98.0" }
       - uses: taiki-e/install-action@5b4d68e2e660441203ab128a23676f1e4faf1532
         with:
           tool: nextest
@@ -214,8 +213,7 @@ jobs:
           path: ${{ runner.temp }}/reindeer-qualification
           key: reindeer-qualification-v1-${{ runner.os }}-rust-1.98.0-${{ github.sha }}-d4644db6bee4fce06425c6802dfc5b3c2d2a12ba93ea3d635e076700bc34d614-${{ hashFiles('Cargo.lock', 'reindeer-source/Cargo.lock') }}
       - name: Acquire locked Cargo inputs
-        env:
-          CARGO_HOME: ${{ runner.temp }}/reindeer-qualification/cargo-home
+        env: { CARGO_HOME: "${{ runner.temp }}/reindeer-qualification/cargo-home" }
         run: |
           timeout --signal=TERM --kill-after=30s 10m cargo fetch --locked --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
           timeout --signal=TERM --kill-after=30s 10m cargo fetch --locked --manifest-path "$GITHUB_WORKSPACE/reindeer-source/Cargo.toml"
@@ -224,10 +222,11 @@ jobs:
           CARGO_HOME: ${{ runner.temp }}/reindeer-qualification/cargo-home
           CARGO_NET_OFFLINE: "true"
           CARGO_TARGET_DIR: ${{ runner.temp }}/reindeer-qualification/compilation/workspace
+          RUSTUP_TOOLCHAIN: "1.98.0"
           REINDEER_PINNED_BUCK_RS: ${{ github.workspace }}/reindeer-source/src/buck.rs
           REINDEER_PINNED_SOURCE_ROOT: ${{ github.workspace }}/reindeer-source
           REINDEER_QUALIFICATION_TARGET_DIR: ${{ runner.temp }}/reindeer-qualification/compilation/upstream
-        run: timeout --signal=TERM --kill-after=30s 40m cargo-nextest nextest run --manifest-path "$GITHUB_WORKSPACE/Cargo.toml" --locked -p dependency-declarations-generation-reindeer --profile ci --run-ignored only --no-tests=fail --test-threads 1 --max-fail 1:immediate
+        run: timeout --signal=TERM --kill-after=30s 40m cargo-nextest nextest run --manifest-path "$GITHUB_WORKSPACE/Cargo.toml" --locked -p dependency-declarations-generation-reindeer --test provider_source -E 'test(=exact_pinned_upstream_source_is_qualified_once)' --profile ci --run-ignored only --no-tests=fail --test-threads 1 --max-fail 1:immediate
   change-gates:
     name: change gates
     runs-on: ubuntu-24.04

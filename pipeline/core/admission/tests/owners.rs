@@ -2,8 +2,8 @@
 //! through the public occupant map.
 
 use pipeline_admission::{
-    ALLOWED_ROOT_DIRS, BUILD_ROOT_DIRS, DATA_ROOTS, META_ROOTS, ROOT_OCCUPANT, is_capability_root,
-    owners_occupant,
+    ALLOWED_ROOT_DIRS, BUILD_OUTPUT_DIRS, BUILD_ROOT_DIRS, DATA_ROOTS, META_ROOTS, ROOT_OCCUPANT,
+    is_capability_root, owners_occupant,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -28,7 +28,7 @@ fn walk_owners(dir: &Path, out: &mut Vec<PathBuf>) {
         let path = entry.path();
         let name = entry.file_name();
         let name = name.to_string_lossy();
-        if name == "target"
+        if BUILD_OUTPUT_DIRS.contains(&name.as_ref())
             || name == ".git"
             || name.starts_with('.') && path.is_dir() && name != ".github"
         {

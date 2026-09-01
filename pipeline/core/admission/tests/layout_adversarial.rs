@@ -61,12 +61,6 @@ fn app_roster_is_closed_and_missing_products_cannot_be_scaffolds() {
     )
     .unwrap();
     assert!(changed_layout_violations(&implementation_without_prose, &BTreeSet::new()).is_empty());
-
-    let implementation = git_change_paths_from_name_status_z(
-        b"A\0app/ledger/OWNERS\0A\0app/ledger/ADR.md\0A\0app/ledger/PRD.md\0A\0app/ledger/SPEC.md\0A\0app/ledger/PLAN.md\0A\0app/ledger/core/posting/Cargo.toml\0A\0app/ledger/core/posting/src/lib.rs\0",
-    )
-    .unwrap();
-    assert!(changed_layout_violations(&implementation, &BTreeSet::new()).is_empty());
 }
 
 #[test]

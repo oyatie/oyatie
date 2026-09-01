@@ -1,7 +1,9 @@
 //! Tree shape against the public layout engine. Lives in `tests/` because it
 //! reads the repo, not because it needs a private API.
 
-use pipeline_admission::{ALLOWED_ROOT_DIRS, BUILD_ROOT_DIRS, cap_root_file_ok, layout_violations};
+use pipeline_admission::{
+    ALLOWED_ROOT_DIRS, BUILD_OUTPUT_DIRS, BUILD_ROOT_DIRS, cap_root_file_ok, layout_violations,
+};
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
@@ -27,7 +29,7 @@ fn unknown_root_dir_is_red() {
         }
         let name = entry.file_name();
         let name = name.to_string_lossy();
-        if name.starts_with('.') || name == "target" {
+        if name.starts_with('.') || BUILD_OUTPUT_DIRS.contains(&name.as_ref()) {
             continue;
         }
         if !allowed.contains(name.as_ref()) {
@@ -38,6 +40,12 @@ fn unknown_root_dir_is_red() {
         unknown.is_empty(),
         "unknown root names (not admitted by repository layout): {unknown:?}"
     );
+}
+
+#[test]
+fn build_outputs_are_not_admitted_as_tracked_source() {
+    let violations = layout_violations(&["buck-out/kept.txt".into(), "target/kept.txt".into()]);
+    assert_eq!(violations.len(), 2, "{violations:#?}");
 }
 
 #[test]

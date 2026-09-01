@@ -144,6 +144,9 @@ fn real_reindeer_qualification_is_pinned_offline_and_fail_closed() {
         "153f32a846b5e1f460e61fff1cecbbf5177c8c90",
         "d4644db6bee4fce06425c6802dfc5b3c2d2a12ba93ea3d635e076700bc34d614",
         "CARGO_NET_OFFLINE: \"true\"",
+        "RUSTUP_TOOLCHAIN: \"1.98.0\"",
+        "toolchain: \"nightly-2026-05-22\", components: clippy",
+        "--test provider_source -E 'test(=exact_pinned_upstream_source_is_qualified_once)'",
         "--run-ignored only",
         "--no-tests=fail",
         "--test-threads 1",
@@ -157,6 +160,19 @@ fn real_reindeer_qualification_is_pinned_offline_and_fail_closed() {
         1
     );
     assert_eq!(job.matches("cargo fetch --locked").count(), 2);
+    assert_eq!(job.matches("RUSTUP_TOOLCHAIN: \"1.98.0\"").count(), 1);
+    assert_eq!(
+        job.matches("toolchain: \"nightly-2026-05-22\", components: clippy")
+            .count(),
+        1
+    );
+    assert_eq!(
+        job.matches(
+            "--test provider_source -E 'test(=exact_pinned_upstream_source_is_qualified_once)'"
+        )
+        .count(),
+        1
+    );
     assert!(job.contains("timeout --signal=TERM --kill-after=30s 40m"));
     assert!(!job.contains("restore-keys:") && !job.contains("latest"));
 }

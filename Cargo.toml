@@ -79,6 +79,8 @@ quote = "1.0"
 # `prettyplease` rather than shelling out to rustfmt because the emit path must stay hermetic and
 # in-process — a receipt axis that depends on whichever rustfmt is on PATH is not reproducible.
 prettyplease = "0.2"
+# Maintained Meta Starlark AST behind Build's bounded BUCK projection port.
+starlark_syntax = "=0.14.2"
 # `quote!` produces a `proc_macro2::TokenStream`, so the IR's lowering functions have to name the
 # type. Already resolved transitively via syn/quote; promoted to a direct dep so the buck label
 # exists too.
