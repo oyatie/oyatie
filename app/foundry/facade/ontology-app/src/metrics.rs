@@ -53,6 +53,16 @@ pub struct Sample {
     pub kind: &'static str, // data_class: INTERNAL_ONLY
     pub help: &'static str, // data_class: INTERNAL_ONLY
     pub value: u64,         // data_class: INTERNAL_ONLY
+    /// Whether an objective may be written over this series. EXPORTED IS NOT
+    /// ELIGIBLE: a metric can be worth showing an operator and still be
+    /// useless as an indicator, and "is exported" is too weak a predicate to
+    /// keep declared coverage honest — it admits an objective over a series
+    /// that cannot move. A sample that is not eligible carries the reason on
+    /// its `ineligible_because` line.
+    pub objective_eligible: bool, // data_class: INTERNAL_ONLY
+    /// Why this series may not back an objective, or empty when it may.
+    /// Read into the failure message, so the refusal explains itself.
+    pub ineligible_because: &'static str, // data_class: INTERNAL_ONLY
 }
 
 /// Everything this process exports, evaluated against current state. The
@@ -74,42 +84,59 @@ pub fn samples(state: &AppState) -> Vec<Sample> {
                         .map_or(0, |tenant| tenant.sync_status().lag)
                 })
                 .sum(),
+            objective_eligible: false,
+            ineligible_because: "the lag is read from the boot-time entries mirror, which is \
+                                  never appended to after compose, so this series is zero for \
+                                  the life of the process and an objective over it could not \
+                                  breach",
         },
         Sample {
             name: "foundry_poisoned_entries",
             kind: "gauge",
             help: "Log entries the fold consumed and deterministically refused.",
             value: state.poisoned_count(),
+            objective_eligible: true,
+            ineligible_because: "",
         },
         Sample {
             name: "foundry_served_tenants",
             kind: "gauge",
             help: "Tenants this process serves; the configured roster is the served set.",
             value: state.tenant_count() as u64,
+            objective_eligible: true,
+            ineligible_because: "",
         },
         Sample {
             name: "foundry_action_submit_served_total",
             kind: "counter",
             help: "Action submissions the writer accepted into the log.",
             value: metrics.submit_served.load(Ordering::Relaxed),
+            objective_eligible: true,
+            ineligible_because: "",
         },
         Sample {
             name: "foundry_action_submit_refused_total",
             kind: "counter",
             help: "Action submissions refused before or by the writer.",
             value: metrics.submit_refused.load(Ordering::Relaxed),
+            objective_eligible: true,
+            ineligible_because: "",
         },
         Sample {
             name: "foundry_read_served_total",
             kind: "counter",
             help: "Read requests answered from the projection.",
             value: metrics.read_served.load(Ordering::Relaxed),
+            objective_eligible: true,
+            ineligible_because: "",
         },
         Sample {
             name: "foundry_read_refused_total",
             kind: "counter",
             help: "Read requests refused by credential, policy, or surface.",
             value: metrics.read_refused.load(Ordering::Relaxed),
+            objective_eligible: true,
+            ineligible_because: "",
         },
     ]
 }
@@ -120,7 +147,20 @@ pub fn samples(state: &AppState) -> Vec<Sample> {
 pub fn exported_metric_names(state: &AppState) -> BTreeSet<&'static str> {
     samples(state)
         .into_iter()
+        .filter(|sample| sample.objective_eligible)
         .map(|sample| sample.name)
+        .collect()
+}
+
+/// Series this process exports that an objective may NOT be written over,
+/// each with its reason. The refusal is only useful if it says why, and the
+/// reason has to travel with the table rather than living in a comment
+/// beside the objectives — a rule nothing reconciles is not a rule.
+pub fn objective_ineligible_metrics(state: &AppState) -> Vec<(&'static str, &'static str)> {
+    samples(state)
+        .into_iter()
+        .filter(|sample| !sample.objective_eligible)
+        .map(|sample| (sample.name, sample.ineligible_because))
         .collect()
 }
 

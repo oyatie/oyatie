@@ -4,8 +4,11 @@
 //! independent refusal ladders and the combined file outgrew the changed-file
 //! budget. The split is along that seam, not an arbitrary line.
 //!
-//! Every case scrapes before and after and asserts a `+1` delta, so deleting
-//! any single counting call fails a case that names its site. An aggregate
+//! Every case pins one site by a `+1`: the multi-request cases scrape before
+//! and after, and the three single-request cases assert the absolute value
+//! against a fresh session's zero, which is the same delta from a known base.
+//! Either way, deleting any single counting call fails a case that names its
+//! site. An aggregate
 //! total would pass with one site counting twice and another never — which
 //! was the prior state of these assertions. As on the read surface, the
 //! cross-tenant case is a second exercise of the policy-denial site rather

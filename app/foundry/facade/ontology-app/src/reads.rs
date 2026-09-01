@@ -12,7 +12,10 @@
 //! this surface an existence oracle for a tenant the caller was never
 //! entitled to ask about.
 //!
-//! Reads serve the in-memory fold plus the per-tenant entries mirror. The
+//! Reads serve the in-memory fold plus the per-tenant entries mirror, which
+//! is fixed at `compose` and never appended to afterwards — so the two views
+//! backed by it do not show entries written after boot. See #2376; the object
+//! read is unaffected because it serves the projection. The
 //! durable indexed store is a separate lane's evidence; nothing here
 //! claims `store == fold(log)`.
 

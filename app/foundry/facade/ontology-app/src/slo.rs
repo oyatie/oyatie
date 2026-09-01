@@ -88,7 +88,10 @@ const SERVICE: &str = "foundry-ontology";
 /// afterwards — `write_handles` lends out the log, the denial trail and the
 /// projection, never the mirror. So `head` is frozen at the boot ordinal
 /// while `applied_ordinal` only grows, and the saturating subtraction is
-/// identically zero. An objective over it would be declared coverage
+/// identically zero. Zero rather than merely constant because `apply_sealed`
+/// advances `applied_ordinal` even when an entry poisons (`fold.rs:66-69`),
+/// so the boot fold always leaves it equal to head — were that not so, this
+/// would be a non-zero constant instead. An objective over it would be declared coverage
 /// providing none, which is the failure this module exists to prevent; it
 /// would simply never breach instead of permanently breaching.
 ///

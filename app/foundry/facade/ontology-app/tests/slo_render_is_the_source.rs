@@ -33,6 +33,14 @@ async fn every_indicator_names_an_exported_metric() {
     let fixture = Fixture::new("slo-exported");
     let state = fixture.state();
     let exported = foundry_ontology_app::metrics::exported_metric_names(&state);
+    let ineligible = foundry_ontology_app::metrics::objective_ineligible_metrics(&state);
+    // A table with no objectives satisfies every check below vacuously.
+    // Deleting an objective is now an exercised move, so the floor has to be
+    // executable rather than assumed.
+    assert!(
+        !SLOS.is_empty(),
+        "no objectives are declared, so every check in this file passes over nothing"
+    );
     for spec in SLOS {
         let referenced = spec.referenced_metrics();
         // A scanner that finds nothing satisfies the loop below vacuously,
@@ -45,10 +53,17 @@ async fn every_indicator_names_an_exported_metric() {
             spec.name
         );
         for metric in referenced {
+            if let Some((_, reason)) = ineligible.iter().find(|(name, _)| *name == metric) {
+                panic!(
+                    "{}: an indicator names `{metric}`, which this process exports but \
+                     which may not back an objective: {reason}",
+                    spec.name
+                );
+            }
             assert!(
                 exported.contains(metric.as_str()),
                 "{}: an indicator names `{metric}`, which this process does not export; \
-                 exported are {exported:?}",
+                 eligible are {exported:?}",
                 spec.name
             );
         }
