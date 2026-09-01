@@ -15,6 +15,7 @@ mod engine;
 mod link;
 mod link_law;
 mod request;
+mod traversal;
 
 pub use contract::{
     KnowledgeGraphEdge, KnowledgeGraphLinkUpsertOutcome, KnowledgeGraphNode,
