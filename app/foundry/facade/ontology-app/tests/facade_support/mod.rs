@@ -167,3 +167,65 @@ pub async fn write_a_record(fixture: &Fixture, object_ref: &str, key: &str) {
         "the fixture write must land: {reply}"
     );
 }
+
+/// One booted process, driven across several requests.
+///
+/// The per-request helpers above compose a FRESH `AppState` each call, which
+/// is right for isolation but makes process-lifetime counters unobservable —
+/// every request would start from zero. A session builds the router once and
+/// clones it per request, so what one request counted the next one can see.
+pub struct Session {
+    router: axum::Router,
+}
+
+impl Fixture {
+    pub fn session(&self) -> Session {
+        Session {
+            router: router(self.state()),
+        }
+    }
+}
+
+impl Session {
+    pub async fn post(&self, token: Option<&str>, body: &str) -> (StatusCode, String) {
+        let mut request = Request::builder()
+            .method("POST")
+            .uri("/v1/actions")
+            .header("content-type", "application/json");
+        if let Some(token) = token {
+            request = request.header("authorization", format!("Bearer {token}"));
+        }
+        self.send(
+            request
+                .body(Body::from(body.to_owned()))
+                .expect("a request"),
+        )
+        .await
+    }
+
+    pub async fn get(&self, token: Option<&str>, path: &str) -> (StatusCode, String) {
+        let mut request = Request::builder().method("GET").uri(path);
+        if let Some(token) = token {
+            request = request.header("authorization", format!("Bearer {token}"));
+        }
+        self.send(request.body(Body::empty()).expect("a request"))
+            .await
+    }
+
+    async fn send(&self, request: Request<Body>) -> (StatusCode, String) {
+        let response = self
+            .router
+            .clone()
+            .oneshot(request)
+            .await
+            .expect("the router answers");
+        let status = response.status();
+        let bytes = response
+            .into_body()
+            .collect()
+            .await
+            .expect("a readable body")
+            .to_bytes();
+        (status, String::from_utf8_lossy(&bytes).into_owned())
+    }
+}

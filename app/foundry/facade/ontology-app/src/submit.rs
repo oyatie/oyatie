@@ -38,6 +38,7 @@ pub async fn submit_action(
             .get("authorization")
             .and_then(|value| value.to_str().ok()),
     ) else {
+        state.metrics.submit_refused();
         return refuse(
             StatusCode::UNAUTHORIZED,
             "credential",
@@ -45,6 +46,7 @@ pub async fn submit_action(
         );
     };
     let Some(caller) = authenticate(&state.operators, token) else {
+        state.metrics.submit_refused();
         return refuse(
             StatusCode::UNAUTHORIZED,
             "credential",
@@ -52,6 +54,7 @@ pub async fn submit_action(
         );
     };
     let Ok(request) = serde_json::from_str::<SubmitRequest>(&body) else {
+        state.metrics.submit_refused();
         return refuse(
             StatusCode::BAD_REQUEST,
             "surface",
@@ -59,6 +62,7 @@ pub async fn submit_action(
         );
     };
     let Ok(action_id) = ActionTypeId::new(request.action_type.clone()) else {
+        state.metrics.submit_refused();
         return refuse(
             StatusCode::BAD_REQUEST,
             "surface",
@@ -72,6 +76,7 @@ pub async fn submit_action(
         .pep
         .decide(&caller, Surface::Invoke, &request.object_ref)
     else {
+        state.metrics.submit_refused();
         return refuse(
             StatusCode::FORBIDDEN,
             "authorization",
@@ -81,6 +86,7 @@ pub async fn submit_action(
 
     // The tenant is the CREDENTIAL's. Nothing in the body can move it.
     let Some(tenant) = state.tenants.get(&caller.tenant_id) else {
+        state.metrics.submit_refused();
         return refuse(
             StatusCode::FORBIDDEN,
             "authorization",
@@ -90,6 +96,7 @@ pub async fn submit_action(
     let mut tenant = tenant.lock().await;
 
     let Ok(edits) = edits_for(&request) else {
+        state.metrics.submit_refused();
         return refuse(
             StatusCode::BAD_REQUEST,
             "surface",
@@ -111,7 +118,18 @@ pub async fn submit_action(
     };
 
     let (log, denial_log, projection) = tenant.write_handles();
-    match submit(submission, log, denial_log, projection) {
+    let outcome = submit(submission, log, denial_log, projection);
+    // Every submission lands in exactly one of served or refused, including
+    // the ones refused before the writer was reached — an availability
+    // denominator that omitted authorization failures would report a number
+    // flatter than the service. A POISONED outcome counts as served: the log
+    // accepted it and the projection refused it by law, which is the system
+    // working, not an outage.
+    match &outcome {
+        Ok(_) => state.metrics.submit_served(),
+        Err(_) => state.metrics.submit_refused(),
+    }
+    match outcome {
         Ok(ApplyOutcome::Applied { receipt }) => Json(SubmitResponse {
             outcome: "applied",
             ordinal: receipt.ordinal,

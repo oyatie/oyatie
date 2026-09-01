@@ -27,6 +27,7 @@ pub mod read_dto;
 pub mod reads;
 pub mod routes;
 pub mod seed;
+pub mod slo;
 pub mod submit;
 
 pub use auth::OperatorCredential;

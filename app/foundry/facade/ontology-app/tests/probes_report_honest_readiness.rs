@@ -155,10 +155,16 @@ async fn metrics_exports_the_counters_the_slos_will_name() {
     let fixture = Fixture::new("metrics");
     let (status, body) = get(&fixture, "/metrics").await;
     assert_eq!(status, StatusCode::OK);
+    // Named individually rather than by prefix: an SLO indicator that names
+    // a metric this process stopped exporting must break here, not in a
+    // dashboard six weeks later.
     for counter in [
         "foundry_projection_lag",
         "foundry_poisoned_entries",
-        "foundry_read_total",
+        "foundry_read_served_total",
+        "foundry_read_refused_total",
+        "foundry_action_submit_served_total",
+        "foundry_action_submit_refused_total",
     ] {
         assert!(
             body.contains(counter),
