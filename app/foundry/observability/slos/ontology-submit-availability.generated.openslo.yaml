@@ -1,0 +1,45 @@
+# Generated from `app/foundry/facade/ontology-app/src/slo.rs`. Do not hand-edit:
+# the suite compares this file byte-for-byte against the renderer.
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: ontology-submit-availability
+  displayName: "foundry-ontology — Action submission availability"
+  labels:
+    microservice: foundry-ontology
+    sli_class: availability
+    plane: app
+    owner_team: foundry
+spec:
+  service: foundry-ontology
+  description: |
+    A submission is good when the writer accepted it into the log. A
+    policy refusal counts against this objective deliberately: from the
+    caller's side an Action it was entitled to submit and could not is
+    an outage, and hiding refusals here would make the number flatter
+    than the service.
+  indicator:
+    metadata:
+      name: ontology-submit-availability-indicator
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(foundry_action_submit_served_total[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(foundry_action_submit_served_total[5m])) + sum(rate(foundry_action_submit_refused_total[5m]))
+  objectives:
+    - target: 0.99
+      displayName: "99% of submissions accepted over 30d"
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences

@@ -145,6 +145,8 @@ pub struct AppState {
     pub tenants: BTreeMap<String, Mutex<TenantState>>,
     /// The enforcement point every authorized surface consults.
     pub pep: PolicyEnforcementPoint,
+    /// Request accounting the SLO indicators name.
+    pub metrics: crate::metrics::Metrics,
     /// Who this process recognizes. Empty means deny-all serving: a
     /// process with no roster still answers its probes honestly rather
     /// than refusing to boot or, worse, serving openly.
@@ -246,6 +248,7 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
     Ok(AppState {
         tenants,
         pep,
+        metrics: crate::metrics::Metrics::default(),
         operators: config.operators.clone(),
     })
 }

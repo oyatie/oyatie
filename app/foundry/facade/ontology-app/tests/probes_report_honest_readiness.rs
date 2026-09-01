@@ -137,6 +137,16 @@ async fn a_poisoned_entry_never_un_readies_the_process() {
     );
     let (status, _) = get(&fixture, "/readyz").await;
     assert_eq!(status, StatusCode::OK);
+    // The gauge is marked eligible to back an objective, and eligibility is
+    // earned by a value a constant could not hold by accident, not asserted
+    // by a field. This is the only test that drives it off zero.
+    let (_, body) = get(&fixture, "/metrics").await;
+    assert!(
+        // Newline-bounded: a bare `contains` of the value is satisfied by 10,
+        // 11 and 100, so it would pin "starts with 1" rather than equals 1.
+        body.contains("foundry_poisoned_entries 1\n"),
+        "the poisoned gauge must report the poison this fixture created:\n{body}"
+    );
 }
 
 #[tokio::test]
@@ -151,18 +161,24 @@ async fn statusz_denies_by_default_until_the_authorizer_lands() {
 }
 
 #[tokio::test]
-async fn metrics_exports_the_counters_the_slos_will_name() {
+async fn metrics_keeps_exporting_every_series_it_has_published() {
     let fixture = Fixture::new("metrics");
     let (status, body) = get(&fixture, "/metrics").await;
     assert_eq!(status, StatusCode::OK);
-    for counter in [
+    // Named individually rather than by prefix: an SLO indicator that names
+    // a metric this process stopped exporting must break here, not in a
+    // dashboard six weeks later.
+    for series in [
         "foundry_projection_lag",
         "foundry_poisoned_entries",
-        "foundry_read_total",
+        "foundry_read_served_total",
+        "foundry_read_refused_total",
+        "foundry_action_submit_served_total",
+        "foundry_action_submit_refused_total",
     ] {
         assert!(
-            body.contains(counter),
-            "an SLI may only name a counter this process exports; {counter} is absent from:\n{body}"
+            body.contains(series),
+            "this process must keep exporting {series}, which is absent from:\n{body}"
         );
     }
 }
