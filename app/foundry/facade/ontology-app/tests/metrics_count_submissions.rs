@@ -5,9 +5,11 @@
 //! budget. The split is along that seam, not an arbitrary line.
 //!
 //! Every case scrapes before and after and asserts a `+1` delta, so deleting
-//! any single counting call fails exactly the case that names it. An
-//! aggregate total would pass with one site counting twice and another never
-//! — which was the prior state of these assertions.
+//! any single counting call fails a case that names its site. An aggregate
+//! total would pass with one site counting twice and another never — which
+//! was the prior state of these assertions. As on the read surface, the
+//! cross-tenant case is a second exercise of the policy-denial site rather
+//! than a pin of its own: the forbid fires before the roster is read.
 
 mod facade_support;
 use facade_support as support;
@@ -133,7 +135,7 @@ async fn each_submit_refusal_site_counts_exactly_once() {
             StatusCode::FORBIDDEN,
         ),
         (
-            "cross-tenant",
+            "cross-tenant (a second exercise of the policy-denial site)",
             Some(fixture.foreign_token()),
             WRITE,
             StatusCode::FORBIDDEN,

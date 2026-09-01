@@ -64,7 +64,7 @@ pub fn samples(state: &AppState) -> Vec<Sample> {
         Sample {
             name: "foundry_projection_lag",
             kind: "gauge",
-            help: "Entries appended to a tenant's log that its projection has not yet consumed.",
+            help: "Entries in a tenant's BOOT-TIME log mirror that its projection has not yet consumed. Not a freshness signal: the mirror is fixed at compose and never appended to, so this cannot observe an append made after boot and is zero for the life of the process.",
             value: state
                 .tenants
                 .values()

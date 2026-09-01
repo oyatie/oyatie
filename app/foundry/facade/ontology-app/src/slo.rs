@@ -80,6 +80,22 @@ const SERVICE: &str = "foundry-ontology";
 
 /// The objectives this vertical declares. Each names only metrics
 /// `metrics::exported_metric_names` reports.
+/// NO FRESHNESS OBJECTIVE, deliberately.
+///
+/// `foundry_projection_lag` cannot currently take a non-zero value: it is
+/// `head - applied_ordinal` where `head` reads the per-tenant `entries`
+/// mirror, and that mirror is built once in `compose` and never appended to
+/// afterwards — `write_handles` lends out the log, the denial trail and the
+/// projection, never the mirror. So `head` is frozen at the boot ordinal
+/// while `applied_ordinal` only grows, and the saturating subtraction is
+/// identically zero. An objective over it would be declared coverage
+/// providing none, which is the failure this module exists to prevent; it
+/// would simply never breach instead of permanently breaching.
+///
+/// A real freshness objective needs the lag measured against the DURABLE
+/// log head rather than the boot mirror. That is a change to what lag
+/// means process-wide, which belongs with the lane that owns readiness and
+/// the boot decision table, not to a lane about what the exposition counts.
 pub static SLOS: &[SloSpec] = &[
     SloSpec {
         name: "ontology-submit-availability",
@@ -110,31 +126,6 @@ pub static SLOS: &[SloSpec] = &[
         target: "0.995",
         objective_display: "99.5% of reads answered over 30d",
         counter: true,
-    },
-    SloSpec {
-        name: "ontology-projection-freshness",
-        display_name: "foundry-ontology — projection caught up to its log",
-        sli_class: "freshness",
-        description: "A scrape is good when the process reports no aggregate lag: \
-                      every served tenant has consumed its whole log. Reads from a \
-                      lagging projection are answers to a question about the past. \
-                      This is a SCRAPE-level boolean, not a per-tenant ratio — the lag \
-                      gauge is a process-wide sum with no tenant label, because this \
-                      surface is unauthenticated and must not become a tenancy oracle, \
-                      so a per-tenant objective is not computable from what is exported \
-                      and is not claimed. Poison is deliberately excluded: a poisoned \
-                      entry advances the fold and is a permanent property of the log, \
-                      so counting it would make the objective unrecoverable. The \
-                      numerator carries `or vector(0)` because when EVERY scraped \
-                      instance is lagging the filter matches nothing and count() \
-                      returns no series — an evaluator would score that as no-data \
-                      and burn no budget during exactly the outage this objective \
-                      exists to catch.",
-        good_query: "count(foundry_projection_lag == 0) or vector(0)",
-        total_query: "count(foundry_projection_lag)",
-        target: "0.999",
-        objective_display: "99.9% of scrapes with no aggregate lag over 30d",
-        counter: false,
     },
 ];
 

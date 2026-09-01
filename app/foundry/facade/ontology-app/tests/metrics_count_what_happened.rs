@@ -41,7 +41,15 @@ async fn an_answered_read_increments_served() {
 /// An aggregate total conflates sites: it passes as long as the sum is
 /// right, so one site counting twice hides another counting never. A
 /// per-case delta localizes, which means deleting any single counting call
-/// fails exactly the case that names it.
+/// fails a case that names its site.
+///
+/// Not every case has a site to itself, and the cross-tenant cases are the
+/// deliberate exception: Cedar's forbid refuses a foreign tenant before the
+/// roster is ever consulted, so they are a SECOND exercise of the
+/// policy-denial site rather than a pin on the roster site. That is the
+/// property worth keeping — it is why the roster refusal needs the separate
+/// fixture below — but it means deleting the policy-denial call fails the
+/// earlier of the two cases, not both.
 async fn assert_read_refusal_delta(
     session: &Session,
     label: &str,
@@ -92,7 +100,7 @@ async fn each_read_refusal_site_counts_exactly_once() {
     .await;
     assert_read_refusal_delta(
         &session,
-        "cross-tenant",
+        "cross-tenant (a second exercise of the policy-denial site)",
         path,
         Some(fixture.foreign_token()),
         StatusCode::FORBIDDEN,
