@@ -5,6 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//data/core/ontology-kernel:data-ontology-kernel",
     ],
@@ -17,6 +18,25 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)
+
+rust_test(
+    name = "foundry-ontology-query-domain-source-equivalence",
+    srcs = [
+        "tests/source_equivalence.rs",
+        "tests/source_equivalence_support/mod.rs",
+    ],
+    crate = "source_equivalence",
+    crate_root = "tests/source_equivalence.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-ontology-query-domain",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//data/core/ontology-kernel:data-ontology-kernel",
     ],
