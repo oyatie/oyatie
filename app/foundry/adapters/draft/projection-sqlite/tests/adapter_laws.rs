@@ -12,7 +12,8 @@ use data_ontology_kernel::{
     CalendarDate, FiniteDouble, ObjectEntity, ObjectProperty, PropertyTier, PropertyValue,
 };
 use foundry_projection_draft::{
-    AppliedEntry, EntryOutcome, PageRequest, ProjectedObject, ProjectionStore, PropertyPredicate,
+    AppliedEntry, EntryOutcome, KeyDesignations, PageRequest, ProjectedObject, ProjectionStore,
+    PropertyPredicate,
 };
 use foundry_projection_sqlite_draft::{PROPERTY_INDEX_NAME, SqliteProjectionStore};
 
@@ -97,7 +98,9 @@ fn a_rich_object_round_trips_byte_faithfully_across_reopen() {
     );
     {
         let mut store = SqliteProjectionStore::open(&path).unwrap();
-        store.apply(entry(1, vec![stored.clone()])).unwrap();
+        store
+            .apply(entry(1, vec![stored.clone()]), &KeyDesignations::default())
+            .unwrap();
     }
     let store = SqliteProjectionStore::open(&path).unwrap();
     let read = store.get("ten_a", "ent_rich").unwrap();
@@ -120,10 +123,13 @@ fn the_date_index_key_agrees_with_kernel_order() {
     {
         let date = PropertyValue::Date(CalendarDate::new(y, m, d).unwrap());
         store
-            .apply(entry(
-                ordinal as u64 + 1,
-                vec![projected(object_ref, vec![typed("closed_on", date)])],
-            ))
+            .apply(
+                entry(
+                    ordinal as u64 + 1,
+                    vec![projected(object_ref, vec![typed("closed_on", date)])],
+                ),
+                &KeyDesignations::default(),
+            )
             .unwrap();
     }
     let predicate = PropertyPredicate::range(
@@ -154,16 +160,19 @@ fn typed_index_columns_never_alias_across_kinds() {
     let _ = std::fs::remove_file(&path);
     let mut store = SqliteProjectionStore::open(&path).unwrap();
     store
-        .apply(entry(
-            1,
-            vec![
-                projected(
-                    "ent_bool",
-                    vec![typed("flag", PropertyValue::Boolean(true))],
-                ),
-                projected("ent_int", vec![typed("flag", PropertyValue::Integer(1))]),
-            ],
-        ))
+        .apply(
+            entry(
+                1,
+                vec![
+                    projected(
+                        "ent_bool",
+                        vec![typed("flag", PropertyValue::Boolean(true))],
+                    ),
+                    projected("ent_int", vec![typed("flag", PropertyValue::Integer(1))]),
+                ],
+            ),
+            &KeyDesignations::default(),
+        )
         .unwrap();
     let predicate = PropertyPredicate::equals("flag", PropertyValue::Integer(1)).unwrap();
     let page = store
@@ -188,13 +197,16 @@ fn predicate_queries_run_through_the_property_index() {
     let _ = std::fs::remove_file(&path);
     let mut store = SqliteProjectionStore::open(&path).unwrap();
     store
-        .apply(entry(
-            1,
-            vec![projected(
-                "ent_a1",
-                vec![typed("celsius", PropertyValue::Integer(21))],
-            )],
-        ))
+        .apply(
+            entry(
+                1,
+                vec![projected(
+                    "ent_a1",
+                    vec![typed("celsius", PropertyValue::Integer(21))],
+                )],
+            ),
+            &KeyDesignations::default(),
+        )
         .unwrap();
     drop(store);
     let connection = rusqlite::Connection::open(&path).unwrap();

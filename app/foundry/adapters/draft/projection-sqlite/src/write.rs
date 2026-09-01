@@ -3,16 +3,18 @@
 //! rows and the property index together.
 
 use foundry_projection_draft::{
-    AppliedEntry, ApplyReceipt, EntryOutcome, ProjectedObject, ProjectionStoreError,
+    AppliedEntry, ApplyReceipt, EntryOutcome, KeyDesignations, ProjectedObject,
+    ProjectionStoreError,
 };
 use rusqlite::{Connection, OptionalExtension, params};
 
 use crate::codec::{encode_entry, encode_object};
-use crate::{codec_error, require_trimmed, scan, storage};
+use crate::{codec_error, key_law, require_trimmed, scan, storage};
 
 pub(crate) fn apply(
     connection: &mut Connection,
     entry: AppliedEntry,
+    keys: &KeyDesignations,
 ) -> Result<ApplyReceipt, ProjectionStoreError> {
     validate(&entry)?;
     let entry_bytes = encode_entry(&entry).map_err(codec_error)?;
@@ -56,6 +58,19 @@ pub(crate) fn apply(
     }
     match &entry.outcome {
         EntryOutcome::Applied { objects } => {
+            // KEY PASS — inside the transaction, before ANY write, so a
+            // refused duplicate rolls back to exactly nothing.
+            if !keys.is_empty() {
+                for (index, object) in objects.iter().enumerate() {
+                    key_law::check(
+                        &transaction,
+                        &entry.tenant_id,
+                        object,
+                        keys,
+                        &objects[..index],
+                    )?;
+                }
+            }
             for object in objects {
                 write_object(&transaction, &entry.tenant_id, object)?;
             }

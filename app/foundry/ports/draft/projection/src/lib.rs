@@ -24,10 +24,12 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 pub mod conformance;
+mod keys;
 mod memory;
 mod predicate;
 mod store;
 
+pub use keys::KeyDesignations;
 pub use memory::MemoryProjectionStore;
 pub use predicate::{PredicateError, PropertyPredicate};
 pub use store::{

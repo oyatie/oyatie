@@ -4,6 +4,7 @@
 
 use data_ontology_kernel::ObjectEntity;
 
+use crate::keys::KeyDesignations;
 use crate::predicate::PropertyPredicate;
 
 /// One object as the projection holds it: the kernel entity plus the
@@ -56,6 +57,19 @@ pub enum ProjectionStoreError {
     /// A range predicate met a stored value of a different kind —
     /// schema drift surfaces loudly, never as a silent false.
     KindMismatch { property: String },
+    /// Another object of this entity type already holds this key. The
+    /// refusal names the property and the HOLDER — never the key value,
+    /// which carries the property's own privacy class.
+    DuplicatePrimaryKey { property: String, held_by: String },
+    /// An object of a keyed entity type does not carry its key
+    /// property; an unidentifiable object never enters the store.
+    MissingPrimaryKey { property: String },
+    /// A key value is an array or struct. Identity must be a scalar:
+    /// composite values have no index affinity, so an adapter could
+    /// only compare them by decoding every row — and one that tried to
+    /// use its typed columns would collide every composite with every
+    /// other. Refused in BOTH planes so they cannot diverge.
+    NonScalarPrimaryKey { property: String },
     /// The backing store failed; the detail is diagnostic.
     Storage { detail: String },
 }
@@ -101,7 +115,14 @@ pub struct Page {
 /// tenant-isolated reads out. Reads are deterministic — `object_ref`
 /// ascending — so pages partition the full result.
 pub trait ProjectionStore {
-    fn apply(&mut self, entry: AppliedEntry) -> Result<ApplyReceipt, ProjectionStoreError>;
+    /// Mirror one consumed entry. `keys` carries the registry's key
+    /// designations for the types this entry touches; it is an INPUT,
+    /// never stored, so entry bytes and dedup identity are unaffected.
+    fn apply(
+        &mut self,
+        entry: AppliedEntry,
+        keys: &KeyDesignations,
+    ) -> Result<ApplyReceipt, ProjectionStoreError>;
 
     /// The highest ordinal applied for the tenant (0 = nothing yet).
     fn applied_head(&self, tenant_id: &str) -> Result<u64, ProjectionStoreError>;
