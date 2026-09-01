@@ -1,10 +1,11 @@
 //! The Prometheus exposition surface, hand-rendered against the platform's
 //! own precedent so the process carries no metrics dependency.
 //!
-//! **One table, two consumers.** `samples` is the single place a metric
-//! exists: `prometheus_text` renders from it and `exported_metric_names`
-//! reads from it, so deleting a metric removes it from BOTH and any
-//! objective naming it fails. An earlier revision kept those as separate
+//! **One table, three consumers.** `samples` is the single place a metric
+//! exists: `prometheus_text` renders EVERY sample from it, while
+//! `objective_eligible_metrics` and `objective_ineligible_metrics` partition
+//! it, so deleting a metric removes it from all three and any objective
+//! naming it fails. An earlier revision kept those as separate
 //! hand-maintained lists, and they had already diverged inside one diff —
 //! the list omitted the very gauge an objective's denominator needed.
 //!
@@ -74,7 +75,10 @@ pub fn samples(state: &AppState) -> Vec<Sample> {
         Sample {
             name: "foundry_projection_lag",
             kind: "gauge",
-            help: "Entries in a tenant's BOOT-TIME log mirror that its projection has not yet consumed. Not a freshness signal: the mirror is fixed at compose and never appended to, so this cannot observe an append made after boot and is zero for the life of the process.",
+            help: "Entries in a tenant's BOOT-TIME log mirror that its projection has \
+                   not yet consumed. Not a freshness signal: the mirror is fixed at \
+                   compose and never appended to, so this cannot observe an append made \
+                   after boot and is zero for the life of the process.",
             value: state
                 .tenants
                 .values()
@@ -141,10 +145,13 @@ pub fn samples(state: &AppState) -> Vec<Sample> {
     ]
 }
 
-/// The metric names this process exports, read from the same table the
-/// exposition renders. The SLO suite asserts every declared indicator names
-/// one of these, so an objective cannot outlive its signal.
-pub fn exported_metric_names(state: &AppState) -> BTreeSet<&'static str> {
+/// The metric names an objective MAY be written over. This is a strict
+/// subset of what the exposition renders: a series can be worth showing an
+/// operator and still be unusable as an indicator, and the earlier name for
+/// this function promised the full export set while returning the filtered
+/// one. The SLO suite asserts every declared indicator names one of these,
+/// so an objective cannot outlive its signal.
+pub fn objective_eligible_metrics(state: &AppState) -> BTreeSet<&'static str> {
     samples(state)
         .into_iter()
         .filter(|sample| sample.objective_eligible)

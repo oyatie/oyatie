@@ -79,7 +79,8 @@ impl SloSpec {
 const SERVICE: &str = "foundry-ontology";
 
 /// The objectives this vertical declares. Each names only metrics
-/// `metrics::exported_metric_names` reports.
+/// `metrics::objective_eligible_metrics` reports — which is narrower than
+/// what the process exports, deliberately.
 /// NO FRESHNESS OBJECTIVE, deliberately.
 ///
 /// `foundry_projection_lag` cannot currently take a non-zero value: it is

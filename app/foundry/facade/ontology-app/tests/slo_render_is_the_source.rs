@@ -32,7 +32,7 @@ async fn every_indicator_names_an_exported_metric() {
     // an exported metric or editing a query breaks this.
     let fixture = Fixture::new("slo-exported");
     let state = fixture.state();
-    let exported = foundry_ontology_app::metrics::exported_metric_names(&state);
+    let exported = foundry_ontology_app::metrics::objective_eligible_metrics(&state);
     let ineligible = foundry_ontology_app::metrics::objective_ineligible_metrics(&state);
     // A table with no objectives satisfies every check below vacuously.
     // Deleting an objective is now an exercised move, so the floor has to be
@@ -157,5 +157,34 @@ fn the_scanner_reads_whole_metric_names_only() {
         spec("vector(0)", "vector(1)")
             .referenced_metrics()
             .is_empty(),
+    );
+}
+
+/// The ineligible set is FROZEN, because the verdict is one word.
+///
+/// `objective_eligible` partitions the table, and nothing else reconciles it:
+/// flipping the lag gauge's verdict to `true` re-admits the objective this
+/// lane removed, while `ineligible_because` one line below still carries the
+/// true reason. The guard has to assert the partition, not merely consume it.
+///
+/// This is not a freeze on the exposition — a new metric may be added freely.
+/// It is a freeze on the claim that a series may back an objective, which is
+/// the claim that went wrong.
+#[tokio::test]
+async fn only_the_boot_mirror_gauge_may_not_back_an_objective() {
+    let fixture = Fixture::new("slo-eligibility");
+    let state = fixture.state();
+    let ineligible = foundry_ontology_app::metrics::objective_ineligible_metrics(&state);
+    let names: Vec<&str> = ineligible.iter().map(|(name, _)| *name).collect();
+    assert_eq!(
+        names,
+        vec!["foundry_projection_lag"],
+        "the set of series that may not back an objective changed; if that is \
+         deliberate, say why here"
+    );
+    let (_, reason) = ineligible[0];
+    assert!(
+        reason.contains("mirror") && reason.contains("zero for the life of the process"),
+        "the refusal must carry the reason an operator needs, got: {reason}"
     );
 }
