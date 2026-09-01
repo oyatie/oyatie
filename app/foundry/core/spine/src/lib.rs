@@ -26,7 +26,7 @@ mod writer;
 mod writethrough;
 
 pub use boundary::BoundaryError;
-pub use checkpoint::{Checkpoint, SyncStatus};
+pub use checkpoint::{Checkpoint, SyncStatus, store_sync_status};
 pub use emission::{
     DENIED_AUDIT_EVENT_TYPE, DerivedEvents, POISONED_AUDIT_EVENT_TYPE, Underivable,
     UnderivableReason, derive_action_events, derive_denial_events, poison_label,

@@ -254,3 +254,12 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/projection:foundry-projection-draft"],
 )
+
+rust_test(
+    name = "foundry-spine-store-sync-status",
+    srcs = ["tests/store_sync_status.rs"],
+    crate = "store_sync_status",
+    crate_root = "tests/store_sync_status.rs",
+    visibility = ["PUBLIC"],
+    deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/projection:foundry-projection-draft"],
+)
