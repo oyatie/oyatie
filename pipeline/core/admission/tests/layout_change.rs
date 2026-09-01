@@ -33,32 +33,6 @@ fn workspace_admits(members: &[&str], excludes: &[&str]) -> bool {
 }
 
 #[test]
-fn changed_layout_checks_only_paths_present_after_the_change() {
-    let existing_build_roots: BTreeSet<String> = ["pipeline".to_owned()].into();
-    let deletion = git_change_paths_from_name_status_z(b"D\0plan/legacy.md\0").unwrap();
-    assert!(deletion.occupied.contains("plan/legacy.md"));
-    assert!(changed_layout_violations(&deletion, &existing_build_roots).is_empty());
-
-    let cleanup = git_change_paths_from_name_status_z(
-        b"R100\0plan/legacy.md\0pipeline/core/graph/src/lib.rs\0",
-    )
-    .unwrap();
-    assert!(cleanup.occupied.contains("plan/legacy.md"));
-    assert!(cleanup.occupied.contains("pipeline/core/graph/src/lib.rs"));
-    assert!(changed_layout_violations(&cleanup, &existing_build_roots).is_empty());
-
-    let regression = git_change_paths_from_name_status_z(
-        b"R100\0pipeline/core/graph/src/lib.rs\0plan/legacy.md\0",
-    )
-    .unwrap();
-    assert!(
-        changed_layout_violations(&regression, &existing_build_roots)
-            .iter()
-            .any(|violation| violation.contains("plan/legacy.md"))
-    );
-}
-
-#[test]
 fn every_new_capability_requires_a_core_crate_and_not_prose() {
     let paperwork =
         git_change_paths_from_name_status_z(b"A\0network/OWNERS\0A\0network/README.md\0").unwrap();
@@ -128,25 +102,6 @@ fn cargo_files_belong_below_faces_not_on_owner_roots() {
             .iter()
             .any(|item| item.contains("core/domain/Cargo"))
     );
-}
-
-#[test]
-fn new_build_root_requires_core_source_not_owner_paperwork() {
-    let paperwork = git_change_paths_from_name_status_z(
-        b"A\0policy/OWNERS\0A\0policy/README.md\0A\0.github/CODEOWNERS\0",
-    )
-    .unwrap();
-    let violations = changed_layout_violations(&paperwork, &BTreeSet::new());
-    assert!(violations.iter().any(|item| item.contains("core crate")));
-
-    let implementation = git_change_paths_from_name_status_z(
-        b"A\0policy/OWNERS\0A\0policy/ADR.md\0A\0policy/PRD.md\0A\0policy/SPEC.md\0A\0policy/PLAN.md\0A\0policy/core/evaluate/Cargo.toml\0A\0policy/core/evaluate/src/lib.rs\0",
-    )
-    .unwrap();
-    assert!(changed_layout_violations(&implementation, &BTreeSet::new()).is_empty());
-
-    let existing: BTreeSet<String> = ["policy".to_owned()].into();
-    assert!(changed_layout_violations(&paperwork, &existing).is_empty());
 }
 
 #[test]

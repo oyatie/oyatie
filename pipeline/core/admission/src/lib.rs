@@ -6,6 +6,7 @@ pub mod git_change;
 pub mod layout;
 pub mod line_budget;
 pub mod occupancy;
+pub mod owner_prose;
 pub mod owners;
 
 pub use cadence::{
@@ -29,12 +30,22 @@ pub use layout::{
     META_ROOTS, WORKSPACE_EXCLUDES, WORKSPACE_MEMBER_GLOBS, base_admission_violations,
     cap_root_file_ok, cargo_config_violations, cargo_entrypoint, cargo_entrypoints,
     cargo_manifest_for_crate_path, cargo_manifest_for_entrypoint, cargo_manifest_violations,
-    changed_layout_violations, draft_dependency_violations, face_dir_ok, is_capability_root,
-    layout_violations, owner_core_regression_violations, proto_package_violations,
+    changed_layout_violations, changed_layout_violations_with_qualified_owner_prose,
+    draft_dependency_violations, face_dir_ok, is_capability_root, layout_violations,
+    owner_core_regression_violations, proto_package_violations,
     workspace_draft_dependency_violations, workspace_membership_violations,
 };
 pub use line_budget::file_budget_violations;
 pub use occupancy::{
     OccupancyRefused, OccupiedSet, admit, admit_authored, authored_paths, declared_mergeable,
+};
+pub use owner_prose::{
+    OWNER_PROSE_CLASSIFICATION_SCHEMA, OWNER_PROSE_CLASSIFIER_IDENTITY,
+    OWNER_PROSE_PRODUCER_SCHEMA, OWNER_PROSE_QUALIFIED_VIEW_SCHEMA, OWNER_PROSE_QUALIFIER_IDENTITY,
+    OWNER_PROSE_QUALIFIER_SCHEMA, OwnerProseClaim, OwnerProseClassification, OwnerProseManifest,
+    OwnerProseNativeConsumer, OwnerProsePathDigest, OwnerProseProducer, OwnerProseProjection,
+    OwnerProseQualification, OwnerProseRefusal, OwnerProseRefusalKind, OwnerProseRepositoryBinding,
+    OwnerProseRevision, OwnerProseRevisionBinding, OwnerProseSource, OwnerProseWorkReference,
+    QualifiedOwnerProseClaim, QualifiedOwnerProseView, owner_prose_sha256, qualify_owner_prose,
 };
 pub use owners::{ROOT_OCCUPANT, owners_occupant};

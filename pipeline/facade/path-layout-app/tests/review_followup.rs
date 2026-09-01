@@ -140,7 +140,11 @@ fn docs_base_and_pack_shadow_payloads_are_rejected() {
             "[package]\n",
             "base admits only",
         ),
-        ("packs/eu/plan/todo.md", "later\n", "packs require"),
+        (
+            "packs/eu/plan/todo.md",
+            "later\n",
+            "frozen non-root Markdown",
+        ),
     ] {
         let root = fixture();
         let base = commit(&root, "base");
@@ -164,9 +168,7 @@ fn a_complete_owner_cannot_decay_to_paperwork() {
         "network/core/dataplane/src/lib.rs",
         "pub fn check() {}\n",
     );
-    for law in ["ADR.md", "PRD.md", "SPEC.md", "PLAN.md"] {
-        write(&root, &format!("network/{law}"), "law\n");
-    }
+    write(&root, "network/OWNERS", "network-owner\n");
     let base = commit(&root, "complete network owner");
     git(&root, &["rm", "-r", "network/core/dataplane"]);
     let head = commit(&root, "remove last core crate");
@@ -208,9 +210,7 @@ fn a_new_ordinary_capability_requires_complete_owner_shape() {
         "network/core/route/src/lib.rs",
         "pub fn route() {}\n",
     );
-    for law in ["ADR.md", "PRD.md", "SPEC.md", "PLAN.md"] {
-        write(&root, &format!("network/{law}"), "law\n");
-    }
+    write(&root, "network/OWNERS", "network-owner\n");
     let complete = commit(&root, "complete network owner");
     let admitted = admit(&root, &base, &complete);
     assert!(

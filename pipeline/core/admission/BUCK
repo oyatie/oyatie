@@ -5,6 +5,9 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
         "third-party//:toml",
         "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
     ],
@@ -17,6 +20,9 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
         "third-party//:toml",
         "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
     ],
@@ -104,6 +110,21 @@ rust_test(
 )
 
 rust_test(
+    name = "pipeline-admission-frozen-markdown",
+    srcs = [
+        "tests/frozen_markdown.rs",
+        "tests/support/owner_prose.rs",
+    ],
+    crate = "pipeline_admission_frozen_markdown",
+    crate_root = "tests/frozen_markdown.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-admission",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
     name = "pipeline-admission-owners",
     srcs = ["tests/owners.rs"],
     crate = "pipeline_admission_owners",
@@ -113,6 +134,57 @@ rust_test(
         ":pipeline-admission",
         "third-party//:toml",
         "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
+    ],
+)
+
+rust_test(
+    name = "pipeline-admission-owner-prose-qualification",
+    srcs = [
+        "tests/owner_prose_qualification.rs",
+        "tests/support/owner_prose.rs",
+    ],
+    crate = "pipeline_admission_owner_prose_qualification",
+    crate_root = "tests/owner_prose_qualification.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-admission",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "pipeline-admission-owner-prose-protected-default",
+    srcs = ["tests/owner_prose_protected_default.rs"],
+    crate = "pipeline_admission_owner_prose_protected_default",
+    crate_root = "tests/owner_prose_protected_default.rs",
+    env = {
+        "OYATIE_PIPELINE_PRESUBMIT_WORKFLOW": "$(location //.github/workflows:pipeline-presubmit-workflow)",
+        "OYATIE_PIPELINE_PATH_LAYOUT_MAIN": "$(location //pipeline/facade/path-layout-app:pipeline-path-layout-main-source)",
+        "OYATIE_PIPELINE_OWNER_PROSE_VIEW_SOURCE": "$(location //pipeline/facade/path-layout-app:pipeline-owner-prose-view-source)",
+        "OYATIE_PIPELINE_REPOSITORY_PORT_SOURCE": "$(location //pipeline/ports/draft/repository:pipeline-repository-port-source)",
+    },
+    resources = [
+        "//.github/workflows:pipeline-presubmit-workflow",
+        "//pipeline/facade/path-layout-app:pipeline-path-layout-main-source",
+        "//pipeline/facade/path-layout-app:pipeline-owner-prose-view-source",
+        "//pipeline/ports/draft/repository:pipeline-repository-port-source",
+    ],
+    visibility = ["PUBLIC"],
+    deps = [":pipeline-admission"],
+)
+
+rust_test(
+    name = "pipeline-admission-owner-prose-failure-injection",
+    srcs = [
+        "tests/owner_prose_failure_injection.rs",
+        "tests/support/owner_prose.rs",
+    ],
+    crate = "pipeline_admission_owner_prose_failure_injection",
+    crate_root = "tests/owner_prose_failure_injection.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-admission",
+        "third-party//:serde_json",
     ],
 )
 

@@ -41,7 +41,7 @@ fn unknown_root_dir_is_red() {
 }
 
 #[test]
-fn layout_engine_rejects_dump_and_accepts_faces() {
+fn layout_engine_rejects_dump_and_frozen_markdown_but_accepts_native_faces() {
     let violations = layout_violations(&[
         "plan/foo.md".into(),
         "libs/x.rs".into(),
@@ -56,16 +56,17 @@ fn layout_engine_rejects_dump_and_accepts_faces() {
     assert!(!violations.iter().any(|item| item.contains("storage/core")));
     assert!(!violations.iter().any(|item| item.contains("foundry/ports")));
     assert!(
-        !violations
+        violations
             .iter()
-            .any(|item| item.contains("ADR-0720-example"))
+            .any(|item| item.contains("ADR-0720-example")
+                && item.contains("frozen non-root Markdown"))
     );
 }
 
 #[test]
-fn owner_law_files_are_the_four() {
+fn owner_law_files_are_frozen_non_authority() {
     for name in ["ADR.md", "PRD.md", "SPEC.md", "PLAN.md"] {
-        assert!(cap_root_file_ok(name), "{name}");
+        assert!(!cap_root_file_ok(name), "{name}");
     }
     assert!(!cap_root_file_ok("ADR-2.md"));
     let violations = layout_violations(&[
@@ -74,12 +75,12 @@ fn owner_law_files_are_the_four() {
         "network/ADR-2.md".into(),
     ]);
     assert!(
-        !violations
+        violations
             .iter()
             .any(|item| item.contains("network/ADR.md"))
     );
     assert!(
-        !violations
+        violations
             .iter()
             .any(|item| item.contains("foundry/PLAN.md"))
     );

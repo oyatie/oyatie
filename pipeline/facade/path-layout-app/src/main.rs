@@ -2,18 +2,20 @@
 //! Provenance: ADR-0719 repository-layout decision (D-8).
 
 use std::collections::BTreeSet;
+use std::path::PathBuf;
 use std::process::ExitCode;
 
 use pipeline_admission::{
     base_admission_violations, cargo_entrypoints, cargo_manifest_for_crate_path,
-    cargo_manifest_violations, changed_layout_violations, draft_dependency_violations,
-    git_change_paths_from_name_status_z, owner_core_regression_violations,
-    proto_package_violations, workspace_draft_dependency_violations,
-    workspace_membership_violations,
+    cargo_manifest_violations, changed_layout_violations_with_qualified_owner_prose,
+    draft_dependency_violations, git_change_paths_from_name_status_z,
+    owner_core_regression_violations, proto_package_violations,
+    workspace_draft_dependency_violations, workspace_membership_violations,
 };
 use pipeline_repository_draft::RepositoryRead;
 use pipeline_repository_git_draft::GitRepository;
 
+mod owner_prose_view;
 mod repository_checks;
 
 use repository_checks::{
@@ -32,16 +34,49 @@ fn main() -> ExitCode {
 }
 
 fn run() -> Result<(), String> {
-    let (base, head) = required_shas()?;
     let repository = GitRepository;
-    let merge_base = repository.merge_base(&base, &head)?;
+    match invocation()? {
+        Invocation::Admit { base, head, view } => admit(repository, &base, &head, view),
+        Invocation::Qualify { base, head, view } => {
+            let (merge_base, head) = exact_candidate(&repository, &base, &head)?;
+            let qualified = owner_prose_view::qualify_view(&repository, &merge_base, &head, &view)?;
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&qualified)
+                    .map_err(|error| format!("serialize qualified owner-prose view: {error}"))?
+            );
+            Ok(())
+        }
+    }
+}
+
+fn admit(
+    repository: GitRepository,
+    base: &str,
+    head: &str,
+    view: Option<PathBuf>,
+) -> Result<(), String> {
+    let (merge_base, head) = exact_candidate(&repository, base, head)?;
     let name_status = repository.changed_name_status(&merge_base, &head)?;
     let changes =
         git_change_paths_from_name_status_z(&name_status).map_err(|error| error.message())?;
     let owners_before = owner_tree_state(&repository, &merge_base)?;
     let owners_after = owner_tree_state(&repository, &head)?;
     let workspace_contents = repository.blob_text(&head, "Cargo.toml")?;
-    let mut violations = changed_layout_violations(&changes, &owners_before.live);
+    let qualified_view = match view {
+        Some(path) => Some(owner_prose_view::qualify_view(
+            &repository,
+            &merge_base,
+            &head,
+            &path,
+        )?),
+        None => None,
+    };
+    let mut violations = changed_layout_violations_with_qualified_owner_prose(
+        &changes,
+        &owners_before.live,
+        qualified_view.as_ref(),
+    );
     violations.extend(owner_core_regression_violations(
         &changes,
         &owners_before.complete,
@@ -183,26 +218,67 @@ fn run() -> Result<(), String> {
     }
 }
 
-fn required_shas() -> Result<(String, String), String> {
+fn exact_candidate(
+    repository: &impl RepositoryRead,
+    base: &str,
+    head: &str,
+) -> Result<(String, String), String> {
+    let base = repository.resolve_commit(base)?;
+    let head = repository.resolve_commit(head)?;
+    let merge_base = repository.merge_base(&base, &head)?;
+    Ok((repository.resolve_commit(&merge_base)?, head))
+}
+
+enum Invocation {
+    Admit {
+        base: String,
+        head: String,
+        view: Option<PathBuf>,
+    },
+    Qualify {
+        base: String,
+        head: String,
+        view: PathBuf,
+    },
+}
+
+const USAGE: &str = "usage: pipeline-path-layout-app <base-sha> <head-sha> [--owner-prose-view <absolute-json-path>]\n       pipeline-path-layout-app qualify-owner-prose <base-sha> <head-sha> <absolute-json-path>";
+
+fn invocation() -> Result<Invocation, String> {
     let mut arguments = std::env::args().skip(1);
-    let base = arguments
-        .next()
-        .ok_or_else(|| "usage: pipeline-path-layout-app <base-sha> <head-sha>".to_owned())?;
-    let head = arguments
-        .next()
-        .ok_or_else(|| "usage: pipeline-path-layout-app <base-sha> <head-sha>".to_owned())?;
-    if arguments.next().is_some() {
-        return Err("usage: pipeline-path-layout-app <base-sha> <head-sha>".to_owned());
+    let first = arguments.next().ok_or_else(|| USAGE.to_owned())?;
+    let qualify = first == "qualify-owner-prose";
+    let base = if qualify {
+        arguments.next().ok_or_else(|| USAGE.to_owned())?
+    } else {
+        first
+    };
+    let head = arguments.next().ok_or_else(|| USAGE.to_owned())?;
+    let base = validated_sha("base-sha", base)?;
+    let head = validated_sha("head-sha", head)?;
+    if qualify {
+        let view = PathBuf::from(arguments.next().ok_or_else(|| USAGE.to_owned())?);
+        if arguments.next().is_some() {
+            return Err(USAGE.to_owned());
+        }
+        return Ok(Invocation::Qualify { base, head, view });
     }
-    Ok((
-        validated_sha("base-sha", base)?,
-        validated_sha("head-sha", head)?,
-    ))
+    let view = match arguments.next() {
+        None => None,
+        Some(flag) if flag == "--owner-prose-view" => Some(PathBuf::from(
+            arguments.next().ok_or_else(|| USAGE.to_owned())?,
+        )),
+        Some(_) => return Err(USAGE.to_owned()),
+    };
+    if arguments.next().is_some() {
+        return Err(USAGE.to_owned());
+    }
+    Ok(Invocation::Admit { base, head, view })
 }
 
 fn validated_sha(name: &str, value: String) -> Result<String, String> {
-    if value.len() != 40 || !value.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-        return Err(format!("{name} must be a 40-digit Git object id"));
+    if !matches!(value.len(), 40 | 64) || !value.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        return Err(format!("{name} must be a full hexadecimal Git object id"));
     }
     Ok(value)
 }

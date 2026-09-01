@@ -1,5 +1,7 @@
 //! Unagreed pipeline-local repository read port.
 
+use std::path::PathBuf;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RepositoryEntryKind {
     Tree,
@@ -10,6 +12,14 @@ pub enum RepositoryEntryKind {
 }
 
 pub trait RepositoryRead {
+    fn working_tree_root(&self) -> Result<PathBuf, String>;
+
+    fn repository_identity(&self) -> Result<String, String>;
+
+    fn resolve_commit(&self, revision: &str) -> Result<String, String>;
+
+    fn tree_id(&self, commit: &str) -> Result<String, String>;
+
     fn merge_base(&self, left: &str, right: &str) -> Result<String, String>;
 
     fn changed_name_status(&self, base: &str, head: &str) -> Result<Vec<u8>, String>;

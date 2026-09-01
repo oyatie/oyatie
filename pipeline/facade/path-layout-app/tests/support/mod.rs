@@ -19,6 +19,15 @@ pub fn fixture() -> PathBuf {
     let _ = std::fs::remove_dir_all(&root);
     std::fs::create_dir_all(&root).expect("create fixture");
     git(&root, &["init", "--quiet"]);
+    git(
+        &root,
+        &[
+            "remote",
+            "add",
+            "origin",
+            "https://github.com/oyatie/oyatie.git",
+        ],
+    );
     write(&root, "Cargo.toml", &workspace_manifest(&[]));
     root
 }
@@ -100,4 +109,13 @@ pub fn admit(root: &Path, base: &str, head: &str) -> Output {
         .env("OYATIE_LAYOUT_HEAD", base)
         .output()
         .expect("run path layout admission")
+}
+
+pub fn admit_with_view(root: &Path, base: &str, head: &str, view: &Path) -> Output {
+    Command::new(env!("CARGO_BIN_EXE_pipeline-path-layout-app"))
+        .current_dir(root)
+        .args([base, head, "--owner-prose-view"])
+        .arg(view)
+        .output()
+        .expect("run path layout admission with owner-prose view")
 }

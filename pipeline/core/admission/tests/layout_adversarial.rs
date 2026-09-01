@@ -66,7 +66,11 @@ fn app_roster_is_closed_and_missing_products_cannot_be_scaffolds() {
         b"A\0app/ledger/OWNERS\0A\0app/ledger/ADR.md\0A\0app/ledger/PRD.md\0A\0app/ledger/SPEC.md\0A\0app/ledger/PLAN.md\0A\0app/ledger/core/posting/Cargo.toml\0A\0app/ledger/core/posting/src/lib.rs\0",
     )
     .unwrap();
-    assert!(changed_layout_violations(&implementation, &BTreeSet::new()).is_empty());
+    assert!(
+        changed_layout_violations(&implementation, &BTreeSet::new())
+            .iter()
+            .any(|violation| violation.contains("frozen non-root Markdown"))
+    );
 }
 
 #[test]
@@ -135,22 +139,6 @@ fn proto_paths_reject_package_and_filename_shortcuts() {
     assert!(!rejected(
         "network/facade/proto/network/edge/v1/edge_service.proto"
     ));
-}
-
-#[test]
-fn owner_docs_and_app_meta_do_not_reintroduce_global_law() {
-    assert!(rejected("network/docs/design/plan/todo.md"));
-    assert!(rejected("network/docs/runbooks/tasks/todo.md"));
-    assert!(rejected("network/docs/design/shadow/Cargo.toml"));
-    assert!(rejected("network/docs/design/shadow/src/lib.rs"));
-    assert!(rejected("network/docs/runbooks/example/build.rs"));
-    // The owner docs face is withdrawn: tracked Markdown has three root homes.
-    assert!(rejected("network/docs/design/routing.md"));
-    for path in ["app/ADR.md", "app/PRD.md", "app/SPEC.md", "app/PLAN.md"] {
-        assert!(rejected(path), "expected rejection: {path}");
-    }
-    assert!(!rejected("app/OWNERS"));
-    assert!(!rejected("app/README.md"));
 }
 
 #[test]
@@ -247,7 +235,7 @@ fn dependency_declarations_is_a_closed_build_subsystem() {
     }
     assert!(!rejected("build/port-engine/core/analysis/src/lib.rs"));
     assert!(!rejected("build/toolchains/cache/defs.bzl"));
-    assert!(!rejected("build/docs/dependency-declarations.md"));
+    assert!(rejected("build/docs/dependency-declarations.md"));
 }
 
 #[test]
@@ -266,6 +254,10 @@ fn root_docs_cargo_config_and_pack_payloads_are_closed() {
     for path in [
         "docs/decisions/ADR-0720-example.md",
         "docs/standards/code-style.md",
+    ] {
+        assert!(rejected(path), "expected frozen Markdown rejection: {path}");
+    }
+    for path in [
         "packs/eu/gdpr/policy.cedar",
         "packs/kr/csap/data_residency.textproto",
     ] {

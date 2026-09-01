@@ -59,13 +59,13 @@ pub(super) fn validate_githook_path(file: &str, parts: &[&str], violations: &mut
 
 pub(super) fn validate_github_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
     let valid = matches!(parts, [".github", name] if GITHUB_ROOT_FILES.contains(name))
-        || matches!(parts, [".github", "workflows", "OWNERS"])
+        || matches!(parts, [".github", "workflows", "OWNERS" | "BUCK"])
         || matches!(parts, [".github", "workflows", name] if yaml_file(name))
         || matches!(parts, [".github", "ISSUE_TEMPLATE", name] if yaml_file(name))
         || matches!(parts, [".github", "scripts", rest @ ..] if valid_glue_path(rest));
     if !valid {
         violations.push(format!(
-            "{file}: `.github/` admits root metadata, issue templates, workflow YAML, and self-contained `scripts/` glue only"
+            "{file}: `.github/` admits root metadata, issue templates, workflow metadata/YAML, and self-contained `scripts/` glue only"
         ));
     }
 }
@@ -213,6 +213,7 @@ mod tests {
             ".config/nextest.toml",
             ".githooks/pre-commit",
             ".githooks/pre-push",
+            ".github/workflows/BUCK",
             ".github/workflows/presubmit.yml",
             ".github/scripts/check.py",
             ".github/ISSUE_TEMPLATE/bug-report.yml",

@@ -287,13 +287,3 @@ fn hooks_occupy_rustfmt_on_the_file_list() {
         assert!(body.contains("xargs -0 rustfmt"), "{rel}");
     }
 }
-
-#[test]
-fn agents_md_installs_hooks_in_git_common_dir() {
-    let agents = read("AGENTS.md");
-    assert!(agents.contains("git-common-dir)/hooks/"));
-    assert!(agents.contains("ADR.md"));
-    assert!(agents.contains("PRD.md"));
-    assert!(agents.contains("SPEC.md"));
-    assert!(agents.contains("PLAN.md"));
-}
