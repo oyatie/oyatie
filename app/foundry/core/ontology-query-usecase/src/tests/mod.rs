@@ -6,10 +6,10 @@ use fixtures::*;
 
 #[test]
 fn executes_authorized_query_with_audit_metadata_and_receipt() {
-    let (graph, engine) = graph_and_engine();
+    let store = store();
     let mut usecase = OntologyQueryExecutionUsecase::default();
 
-    let receipt = usecase.execute(&graph, &engine, input("idem-query-001"));
+    let receipt = usecase.execute(&store, input("idem-query-001"));
 
     assert_eq!(receipt.status, OntologyQueryExecutionStatus::Completed);
     assert_eq!(receipt.tenant_id, "ten_alpha");
@@ -37,11 +37,11 @@ fn executes_authorized_query_with_audit_metadata_and_receipt() {
 
 #[test]
 fn duplicate_idempotency_returns_cached_receipt_without_new_audit_event() {
-    let (graph, engine) = graph_and_engine();
+    let store = store();
     let mut usecase = OntologyQueryExecutionUsecase::default();
 
-    let first = usecase.execute(&graph, &engine, input("idem-query-dup"));
-    let duplicate = usecase.execute(&graph, &engine, input("idem-query-dup"));
+    let first = usecase.execute(&store, input("idem-query-dup"));
+    let duplicate = usecase.execute(&store, input("idem-query-dup"));
 
     assert_eq!(duplicate, first);
     assert_eq!(usecase.audit_events().len(), 2);
@@ -50,9 +50,9 @@ fn duplicate_idempotency_returns_cached_receipt_without_new_audit_event() {
 
 #[test]
 fn same_idempotency_key_with_different_intent_is_denied_without_replacing_original() {
-    let (graph, engine) = graph_and_engine();
+    let store = store();
     let mut usecase = OntologyQueryExecutionUsecase::default();
-    let first = usecase.execute(&graph, &engine, input("idem-query-conflict"));
+    let first = usecase.execute(&store, input("idem-query-conflict"));
     let mut conflicting = input("idem-query-conflict");
     conflicting.request = KnowledgeGraphQueryRequest::new(
         "ten_alpha",
@@ -67,8 +67,8 @@ fn same_idempotency_key_with_different_intent_is_denied_without_replacing_origin
     )
     .unwrap();
 
-    let conflict = usecase.execute(&graph, &engine, conflicting);
-    let duplicate_original = usecase.execute(&graph, &engine, input("idem-query-conflict"));
+    let conflict = usecase.execute(&store, conflicting);
+    let duplicate_original = usecase.execute(&store, input("idem-query-conflict"));
 
     assert_eq!(first.status, OntologyQueryExecutionStatus::Completed);
     assert_eq!(
@@ -85,12 +85,12 @@ fn same_idempotency_key_with_different_intent_is_denied_without_replacing_origin
 
 #[test]
 fn policy_denials_block_query_before_domain_execution() {
-    let (graph, engine) = graph_and_engine();
+    let store = store();
     let mut usecase = OntologyQueryExecutionUsecase::default();
     let mut denied = input("idem-query-denied");
     denied.policy_decision.allowed_query_surfaces = vec!["ontology.query.other".to_string()];
 
-    let receipt = usecase.execute(&graph, &engine, denied);
+    let receipt = usecase.execute(&store, denied);
 
     assert_eq!(receipt.status, OntologyQueryExecutionStatus::Denied);
     assert_eq!(
@@ -113,12 +113,12 @@ fn policy_denials_block_query_before_domain_execution() {
 
 #[test]
 fn depth_ceiling_denial_blocks_overbroad_query() {
-    let (graph, engine) = graph_and_engine();
+    let store = store();
     let mut usecase = OntologyQueryExecutionUsecase::default();
     let mut denied = input("idem-query-depth-denied");
     denied.policy_decision.max_depth_ceiling = 0;
 
-    let receipt = usecase.execute(&graph, &engine, denied);
+    let receipt = usecase.execute(&store, denied);
 
     assert_eq!(
         receipt.denial_kind,
@@ -129,7 +129,7 @@ fn depth_ceiling_denial_blocks_overbroad_query() {
 
 #[test]
 fn query_domain_failure_returns_failed_receipt_and_audit_event() {
-    let (graph, engine) = graph_and_engine();
+    let store = store();
     let mut usecase = OntologyQueryExecutionUsecase::default();
     let mut missing_root = input("idem-query-missing-root");
     missing_root.request = KnowledgeGraphQueryRequest::new(
@@ -145,7 +145,7 @@ fn query_domain_failure_returns_failed_receipt_and_audit_event() {
     )
     .unwrap();
 
-    let receipt = usecase.execute(&graph, &engine, missing_root);
+    let receipt = usecase.execute(&store, missing_root);
 
     assert_eq!(receipt.status, OntologyQueryExecutionStatus::Failed);
     assert_eq!(
@@ -160,12 +160,12 @@ fn query_domain_failure_returns_failed_receipt_and_audit_event() {
 
 #[test]
 fn invalid_input_rejects_before_audit_or_cache_mutation() {
-    let (graph, engine) = graph_and_engine();
+    let store = store();
     let mut usecase = OntologyQueryExecutionUsecase::default();
     let mut invalid = input("");
     invalid.request_evidence_ref.clear();
 
-    let receipt = usecase.execute(&graph, &engine, invalid);
+    let receipt = usecase.execute(&store, invalid);
 
     assert_eq!(receipt.status, OntologyQueryExecutionStatus::Denied);
     assert_eq!(
@@ -178,13 +178,13 @@ fn invalid_input_rejects_before_audit_or_cache_mutation() {
 
 #[test]
 fn missing_policy_decision_or_trace_refs_are_invalid_before_audit() {
-    let (graph, engine) = graph_and_engine();
+    let store = store();
     let mut usecase = OntologyQueryExecutionUsecase::default();
     let mut invalid = input("idem-query-missing-trace");
     invalid.trace_context_ref.clear();
     invalid.policy_decision.decision_id.clear();
 
-    let receipt = usecase.execute(&graph, &engine, invalid);
+    let receipt = usecase.execute(&store, invalid);
 
     assert_eq!(receipt.status, OntologyQueryExecutionStatus::Denied);
     assert_eq!(
@@ -200,11 +200,11 @@ fn missing_policy_decision_or_trace_refs_are_invalid_before_audit() {
 // alone — the fail-closed traversal survives composition.
 #[test]
 fn a_grant_nothing_consent_completes_with_the_root_alone() {
-    let (graph, engine) = graph_and_engine();
+    let store = store();
     let mut usecase = OntologyQueryExecutionUsecase::default();
     let mut input = input("idem_consent_nothing");
     input.request.edge_consent = EdgeConsent::Granted(Vec::new());
-    let receipt = usecase.execute(&graph, &engine, input);
+    let receipt = usecase.execute(&store, input);
     assert_eq!(receipt.status, OntologyQueryExecutionStatus::Completed);
     let response = receipt
         .response
