@@ -13,7 +13,7 @@ use axum::Router;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use axum::routing::get;
+use axum::routing::{get, post};
 
 use crate::composition::AppState;
 use crate::metrics::prometheus_text;
@@ -25,6 +25,7 @@ pub fn router(state: AppState) -> Router {
         .route("/readyz", get(readyz))
         .route("/statusz", get(statusz))
         .route("/metrics", get(metrics))
+        .route("/v1/actions", post(crate::submit::submit_action))
         .with_state(Arc::new(state))
 }
 

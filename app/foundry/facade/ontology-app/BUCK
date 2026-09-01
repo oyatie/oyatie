@@ -6,6 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
+        "//app/foundry/core/edits:foundry-edits",
         "//app/foundry/core/spine:foundry-spine",
         "//app/foundry/ports/draft/records:foundry-records-draft",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
@@ -69,4 +70,44 @@ rust_test(
     crate_root = "tests/pep_denies_by_default.rs",
     visibility = ["PUBLIC"],
     deps = [":foundry-ontology-app"],
+)
+
+rust_test(
+    name = "foundry-ontology-app-submit",
+    srcs = [
+        "tests/facade_support/mod.rs",
+        "tests/submit_contract.rs",
+    ],
+    crate = "submit_contract",
+    crate_root = "tests/submit_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-ontology-app",
+        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "third-party//:axum",
+        "third-party//:http-body-util",
+        "third-party//:tokio",
+        "third-party//:tower",
+    ],
+)
+
+rust_test(
+    name = "foundry-ontology-app-authorizer-outage",
+    srcs = [
+        "tests/authorizer_outage_is_deny.rs",
+        "tests/facade_support/mod.rs",
+    ],
+    crate = "authorizer_outage_is_deny",
+    crate_root = "tests/authorizer_outage_is_deny.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-ontology-app",
+        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "third-party//:axum",
+        "third-party//:http-body-util",
+        "third-party//:tokio",
+        "third-party//:tower",
+    ],
 )

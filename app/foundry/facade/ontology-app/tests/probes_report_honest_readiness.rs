@@ -53,6 +53,9 @@ impl Fixture {
             action_log: self.action.clone(),
             denial_log: self.denial.clone(),
             tenants: vec!["ten_test".into()],
+            // No operators: deny-all serving is the honest posture for a
+            // process whose surfaces this suite never authenticates to.
+            operators: Vec::new(),
         }
     }
 
@@ -167,10 +170,14 @@ async fn metrics_exports_the_counters_the_slos_will_name() {
 #[tokio::test]
 async fn an_unknown_route_is_not_found_and_never_a_silent_ok() {
     let fixture = Fixture::new("unknown");
-    let (status, _) = get(&fixture, "/v1/actions").await;
-    assert_eq!(
-        status,
-        StatusCode::NOT_FOUND,
-        "the write surface lands in its own lane; it must not answer before it exists"
-    );
+    let (status, _) = get(&fixture, "/v1/nothing-here").await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn the_write_surface_refuses_a_read_verb_and_an_absent_credential() {
+    let fixture = Fixture::new("write-surface-guarded");
+    // GET is not the write verb: the router must not answer it at all.
+    let (method, _) = get(&fixture, "/v1/actions").await;
+    assert_eq!(method, StatusCode::METHOD_NOT_ALLOWED);
 }

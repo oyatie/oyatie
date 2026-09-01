@@ -5,6 +5,8 @@
 
 use std::path::PathBuf;
 
+use crate::auth::OperatorCredential;
+
 /// Everything the process needs to serve, resolved before anything opens.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Config {
@@ -19,6 +21,9 @@ pub struct Config {
     /// The tenants this process serves. `RecordsLog` cannot enumerate
     /// tenants, so the roster IS the served set.
     pub tenants: Vec<String>, // data_class: INTERNAL_ONLY
+    /// The operators this process recognizes. Absent means deny-all
+    /// serving — never an open surface, and never a boot failure.
+    pub operators: Vec<OperatorCredential>, // data_class: SECRET
 }
 
 /// Why the environment was rejected.
@@ -42,6 +47,7 @@ const LISTEN_ADDR: &str = "OYATIE_FOUNDRY_ONTOLOGY_LISTEN_ADDR";
 const ACTION_LOG: &str = "OYATIE_FOUNDRY_ONTOLOGY_ACTION_LOG";
 const DENIAL_LOG: &str = "OYATIE_FOUNDRY_ONTOLOGY_DENIAL_LOG";
 const TENANTS: &str = "OYATIE_FOUNDRY_ONTOLOGY_TENANTS";
+const OPERATORS: &str = "OYATIE_FOUNDRY_ONTOLOGY_OPERATORS";
 
 impl Config {
     /// Read the environment. Absent required values refuse; they are never
@@ -62,6 +68,7 @@ impl Config {
                 .filter(|tenant| !tenant.is_empty())
                 .map(ToOwned::to_owned)
                 .collect(),
+            operators: operators_from_env(),
         })
     }
 }
@@ -71,4 +78,37 @@ fn non_empty(variable: &str) -> Option<String> {
         .ok()
         .map(|value| value.trim().to_owned())
         .filter(|value| !value.is_empty())
+}
+
+/// `OYATIE_FOUNDRY_ONTOLOGY_OPERATORS` as
+/// `token:tenant:principal:role|role,...`. An unparsable entry is dropped
+/// rather than guessed at: a half-understood credential must not become a
+/// recognized one.
+fn operators_from_env() -> Vec<OperatorCredential> {
+    non_empty(OPERATORS)
+        .unwrap_or_default()
+        .split(',')
+        .filter_map(|entry| {
+            let mut fields = entry.trim().split(':');
+            let token = fields.next()?.trim();
+            let tenant_id = fields.next()?.trim();
+            let principal_id = fields.next()?.trim();
+            if token.is_empty() || tenant_id.is_empty() || principal_id.is_empty() {
+                return None;
+            }
+            Some(OperatorCredential {
+                token: token.to_owned(),
+                tenant_id: tenant_id.to_owned(),
+                principal_id: principal_id.to_owned(),
+                roles: fields
+                    .next()
+                    .unwrap_or_default()
+                    .split('|')
+                    .map(str::trim)
+                    .filter(|role| !role.is_empty())
+                    .map(ToOwned::to_owned)
+                    .collect(),
+            })
+        })
+        .collect()
 }

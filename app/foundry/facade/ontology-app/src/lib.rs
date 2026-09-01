@@ -15,15 +15,19 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod auth;
 pub mod authz;
 pub mod composition;
 pub mod config;
+pub mod dto;
 pub mod metrics;
 pub mod observability;
 pub mod pdp;
 pub mod routes;
 pub mod seed;
+pub mod submit;
 
+pub use auth::OperatorCredential;
 pub use authz::{Caller, PolicyEnforcementPoint};
 pub use composition::{AppState, BootError, TenantState, compose};
 pub use config::{Config, ConfigError};
