@@ -28,6 +28,10 @@ mod dependency_graph_scale;
 mod dependency_qualification;
 #[path = "support/dependency_qualification_refusals.rs"]
 mod dependency_qualification_refusals;
+#[path = "support/lifecycle_producer_artifact.rs"]
+mod lifecycle_producer_artifact;
+#[path = "support/lifecycle_producer_artifact_fixture.rs"]
+mod lifecycle_producer_artifact_fixture;
 #[path = "support/lifecycle_refusals.rs"]
 mod lifecycle_refusals;
 #[path = "support/lifecycle_release_control.rs"]

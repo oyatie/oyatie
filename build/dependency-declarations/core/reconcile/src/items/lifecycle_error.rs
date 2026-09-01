@@ -49,6 +49,7 @@ pub enum LifecycleFailureClassV1 {
     AdvisoryNormalizationCancelled = 44,
     AdvisoryNormalizationDeadlineExceeded = 45,
     InvalidToolchainRecovery = 46,
+    LifecycleArtifactMismatch = 47,
 }
 
 /// A matchable lifecycle refusal without ambient diagnostic text.

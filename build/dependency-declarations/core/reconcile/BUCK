@@ -189,6 +189,8 @@ rust_test(
         "tests/support/dependency_qualification.rs",
         "tests/support/dependency_qualification_refusals.rs",
         "tests/support/lifecycle.rs",
+        "tests/support/lifecycle_producer_artifact.rs",
+        "tests/support/lifecycle_producer_artifact_fixture.rs",
         "tests/support/lifecycle_refusals.rs",
         "tests/support/lifecycle_release_control.rs",
         "tests/support/lifecycle_toolchain_delta.rs",
