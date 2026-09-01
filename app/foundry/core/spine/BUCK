@@ -245,3 +245,12 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/projection:foundry-projection-draft"],
 )
+
+rust_test(
+    name = "foundry-spine-write-through-links",
+    srcs = ["tests/write_through_links.rs"],
+    crate = "write_through_links",
+    crate_root = "tests/write_through_links.rs",
+    visibility = ["PUBLIC"],
+    deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/projection:foundry-projection-draft"],
+)

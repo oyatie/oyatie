@@ -2,7 +2,7 @@
 
 use foundry_projection_draft::{
     AppliedEntry, ApplyReceipt, KeyDesignations, MemoryProjectionStore, Page, PageRequest,
-    ProjectedObject, ProjectionStore, ProjectionStoreError, PropertyPredicate,
+    ProjectedLink, ProjectedObject, ProjectionStore, ProjectionStoreError, PropertyPredicate,
 };
 
 /// A store that refuses the Nth apply — an outage, not a poison.
@@ -54,6 +54,22 @@ impl ProjectionStore for FailsAt {
         page: &PageRequest,
     ) -> Result<Page, ProjectionStoreError> {
         self.inner.filter(tenant_id, entity_type, predicate, page)
+    }
+
+    fn links_from(
+        &self,
+        tenant_id: &str,
+        object_ref: &str,
+    ) -> Result<Vec<ProjectedLink>, ProjectionStoreError> {
+        self.inner.links_from(tenant_id, object_ref)
+    }
+
+    fn links_to(
+        &self,
+        tenant_id: &str,
+        object_ref: &str,
+    ) -> Result<Vec<ProjectedLink>, ProjectionStoreError> {
+        self.inner.links_to(tenant_id, object_ref)
     }
 
     fn poisoned(&self, tenant_id: &str) -> Result<Vec<(u64, String)>, ProjectionStoreError> {

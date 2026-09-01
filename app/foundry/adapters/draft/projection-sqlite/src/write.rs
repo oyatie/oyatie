@@ -57,7 +57,7 @@ pub(crate) fn apply(
         });
     }
     match &entry.outcome {
-        EntryOutcome::Applied { objects } => {
+        EntryOutcome::Applied { objects, links } => {
             // KEY PASS — inside the transaction, before ANY write, so a
             // refused duplicate rolls back to exactly nothing.
             if !keys.is_empty() {
@@ -73,6 +73,22 @@ pub(crate) fn apply(
             }
             for object in objects {
                 write_object(&transaction, &entry.tenant_id, object)?;
+            }
+            for edge in links {
+                transaction
+                    .execute(
+                        "INSERT OR REPLACE INTO projection_links
+                         (tenant_id, from_ref, link_type, to_ref, observed_at_epoch_ms)
+                         VALUES (?1, ?2, ?3, ?4, ?5)",
+                        params![
+                            entry.tenant_id,
+                            edge.from_object_ref,
+                            edge.link_type,
+                            edge.to_object_ref,
+                            edge.observed_at_epoch_ms
+                        ],
+                    )
+                    .map_err(storage)?;
             }
         }
         EntryOutcome::Poisoned { reason } => {
@@ -109,7 +125,7 @@ pub(crate) fn apply(
 fn validate(entry: &AppliedEntry) -> Result<(), ProjectionStoreError> {
     require_trimmed(&entry.tenant_id, "blank entry tenant")?;
     match &entry.outcome {
-        EntryOutcome::Applied { objects } => {
+        EntryOutcome::Applied { objects, .. } => {
             for object in objects {
                 if object.entity.tenant_id != entry.tenant_id {
                     return Err(ProjectionStoreError::Entry {

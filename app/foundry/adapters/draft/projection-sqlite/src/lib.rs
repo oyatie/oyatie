@@ -16,8 +16,8 @@ mod write;
 use std::path::Path;
 
 use foundry_projection_draft::{
-    AppliedEntry, ApplyReceipt, EntryOutcome, KeyDesignations, Page, PageRequest, ProjectedObject,
-    ProjectionStore, ProjectionStoreError, PropertyPredicate,
+    AppliedEntry, ApplyReceipt, EntryOutcome, KeyDesignations, Page, PageRequest, ProjectedLink,
+    ProjectedObject, ProjectionStore, ProjectionStoreError, PropertyPredicate,
 };
 use rusqlite::{Connection, OptionalExtension, params};
 
@@ -73,6 +73,16 @@ impl SqliteProjectionStore {
                  CREATE INDEX IF NOT EXISTS projection_property_kind
                      ON projection_property_index
                      (tenant_id, entity_type, property, value_kind, object_ref);
+                 CREATE TABLE IF NOT EXISTS projection_links (
+                     tenant_id  TEXT NOT NULL,
+                     from_ref   TEXT NOT NULL,
+                     link_type  TEXT NOT NULL,
+                     to_ref     TEXT NOT NULL,
+                     observed_at_epoch_ms INTEGER NOT NULL,
+                     PRIMARY KEY (tenant_id, from_ref, link_type, to_ref)
+                 ) WITHOUT ROWID;
+                 CREATE INDEX IF NOT EXISTS projection_links_inbound
+                     ON projection_links (tenant_id, to_ref, link_type, from_ref);
                  CREATE TABLE IF NOT EXISTS projection_poisons (
                      tenant_id TEXT    NOT NULL,
                      ordinal   INTEGER NOT NULL,
@@ -82,6 +92,33 @@ impl SqliteProjectionStore {
             )
             .map_err(storage)?;
         Ok(Self { connection })
+    }
+}
+
+impl SqliteProjectionStore {
+    fn read_links(
+        &self,
+        sql: &str,
+        tenant_id: &str,
+        object_ref: &str,
+    ) -> Result<Vec<ProjectedLink>, ProjectionStoreError> {
+        require_trimmed(tenant_id, "blank tenant")?;
+        let mut statement = self.connection.prepare(sql).map_err(storage)?;
+        let rows = statement
+            .query_map(params![tenant_id, object_ref], |row| {
+                Ok(ProjectedLink {
+                    link_type: row.get(0)?,
+                    from_object_ref: row.get(1)?,
+                    to_object_ref: row.get(2)?,
+                    observed_at_epoch_ms: row.get(3)?,
+                })
+            })
+            .map_err(storage)?;
+        let mut edges = Vec::new();
+        for row in rows {
+            edges.push(row.map_err(storage)?);
+        }
+        Ok(edges)
     }
 }
 
@@ -150,6 +187,32 @@ impl ProjectionStore for SqliteProjectionStore {
             entity_type,
             Some(predicate),
             page,
+        )
+    }
+
+    fn links_from(
+        &self,
+        tenant_id: &str,
+        object_ref: &str,
+    ) -> Result<Vec<ProjectedLink>, ProjectionStoreError> {
+        self.read_links(
+            "SELECT link_type, from_ref, to_ref, observed_at_epoch_ms FROM projection_links
+             WHERE tenant_id = ?1 AND from_ref = ?2 ORDER BY from_ref, link_type, to_ref",
+            tenant_id,
+            object_ref,
+        )
+    }
+
+    fn links_to(
+        &self,
+        tenant_id: &str,
+        object_ref: &str,
+    ) -> Result<Vec<ProjectedLink>, ProjectionStoreError> {
+        self.read_links(
+            "SELECT link_type, from_ref, to_ref, observed_at_epoch_ms FROM projection_links
+             WHERE tenant_id = ?1 AND to_ref = ?2 ORDER BY from_ref, link_type, to_ref",
+            tenant_id,
+            object_ref,
         )
     }
 

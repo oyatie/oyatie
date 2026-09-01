@@ -40,7 +40,10 @@ fn entry(ordinal: u64, objects: Vec<ProjectedObject>) -> AppliedEntry {
     AppliedEntry {
         tenant_id: "ten_a".to_owned(),
         ordinal,
-        outcome: EntryOutcome::Applied { objects },
+        outcome: EntryOutcome::Applied {
+            objects,
+            links: Vec::new(),
+        },
     }
 }
 

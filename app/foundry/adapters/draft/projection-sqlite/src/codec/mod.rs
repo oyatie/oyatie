@@ -28,13 +28,24 @@ pub(crate) fn encode_entry(entry: &AppliedEntry) -> Result<Vec<u8>, CodecError> 
     string(&mut out, &entry.tenant_id);
     out.extend(entry.ordinal.to_le_bytes());
     match &entry.outcome {
-        EntryOutcome::Applied { objects } => {
+        EntryOutcome::Applied { objects, links } => {
             out.push(1);
             out.extend((objects.len() as u32).to_le_bytes());
             for object in objects {
                 let bytes = encode_object(object)?;
                 out.extend((bytes.len() as u32).to_le_bytes());
                 out.extend(bytes);
+            }
+            // Entry bytes are an OPAQUE DEDUP TOKEN — compared for
+            // byte-equality on re-apply and never decoded — so extending
+            // them with the entry's edges needs no version bump. The
+            // OBJECT encoding, which IS read back, is untouched.
+            out.extend((links.len() as u32).to_le_bytes());
+            for edge in links {
+                string(&mut out, &edge.link_type);
+                string(&mut out, &edge.from_object_ref);
+                string(&mut out, &edge.to_object_ref);
+                out.extend(edge.observed_at_epoch_ms.to_le_bytes());
             }
         }
         EntryOutcome::Poisoned { reason } => {

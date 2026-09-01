@@ -2,6 +2,7 @@
 //! implementation must pass, mirroring the records-port suite idiom.
 
 mod keys;
+mod links;
 mod predicates;
 mod reads;
 
@@ -11,6 +12,11 @@ pub use keys::{
     check_an_undeclared_key_constrains_nothing,
     check_keys_are_scoped_to_their_entity_type_and_tenant,
     check_two_objects_in_one_entry_cannot_share_a_key,
+};
+pub use links::{
+    check_a_later_observation_updates_the_edge, check_a_refused_apply_writes_no_links,
+    check_links_are_tenant_isolated, check_links_round_trip_in_both_directions,
+    check_re_applying_an_entry_does_not_duplicate_links,
 };
 pub use predicates::{
     check_cross_kind_comparisons_fail_closed, check_equals_predicate_matches_exactly,
@@ -77,10 +83,19 @@ pub(crate) fn object(
 }
 
 pub(crate) fn applied(tenant: &str, ordinal: u64, objects: Vec<ProjectedObject>) -> AppliedEntry {
+    applied_with_links(tenant, ordinal, objects, Vec::new())
+}
+
+pub(crate) fn applied_with_links(
+    tenant: &str,
+    ordinal: u64,
+    objects: Vec<ProjectedObject>,
+    links: Vec<crate::store::ProjectedLink>,
+) -> AppliedEntry {
     AppliedEntry {
         tenant_id: tenant.to_owned(),
         ordinal,
-        outcome: EntryOutcome::Applied { objects },
+        outcome: EntryOutcome::Applied { objects, links },
     }
 }
 
