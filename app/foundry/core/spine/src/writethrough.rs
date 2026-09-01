@@ -20,8 +20,9 @@
 //! fabricated poison.
 
 use data_ontology_kernel::EntityTypeId;
+use foundry_edits::{OntologyEdit, decode_action_record};
 use foundry_projection_draft::{
-    AppliedEntry, EntryOutcome, KeyDesignations, ProjectedObject, ProjectionStore,
+    AppliedEntry, EntryOutcome, KeyDesignations, ProjectedLink, ProjectedObject, ProjectionStore,
     ProjectionStoreError,
 };
 use foundry_records_draft::SealedEnvelope;
@@ -57,11 +58,12 @@ pub fn project_through(
         let outcome = match apply_sealed(state, sealed) {
             FoldOutcome::Applied => EntryOutcome::Applied {
                 // One envelope is one object_ref (spine law), so the
-                // touched set is at most that single object. A
-                // link-only edit binds no object and mirrors an empty
-                // applied entry, which is honest: the ordinal was
-                // consumed and nothing object-shaped changed.
+                // touched set is at most that single object.
                 objects: projected(state, &object_ref).into_iter().collect(),
+                // Edges are durable projection state too: without them a
+                // store rebuilt from the log comes back with objects and
+                // no traversal at all.
+                links: registered_links(sealed, &object_ref),
             },
             FoldOutcome::Poisoned(reason) => EntryOutcome::Poisoned {
                 reason: poison_label(&reason).to_owned(),
@@ -78,6 +80,38 @@ pub fn project_through(
         mirrored += 1;
     }
     Ok(mirrored)
+}
+
+/// The edges this entry registered. `CreateLink` is owned by the FROM
+/// endpoint — the envelope's own object — so the source is the
+/// envelope's `object_ref` and never a payload field that could
+/// disagree with it. An entry the fold APPLIED necessarily decoded, so
+/// a decode failure here is unreachable and yields no edges rather
+/// than a panic.
+fn registered_links(sealed: &SealedEnvelope, object_ref: &str) -> Vec<ProjectedLink> {
+    let Ok(record) = decode_action_record(&sealed.envelope.payload) else {
+        return Vec::new();
+    };
+    record
+        .edits
+        .edits()
+        .iter()
+        .filter_map(|edit| match edit {
+            OntologyEdit::CreateLink {
+                link_type,
+                to_entity_id,
+            } => Some(ProjectedLink {
+                link_type: link_type.clone(),
+                from_object_ref: object_ref.to_owned(),
+                to_object_ref: to_entity_id.clone(),
+                // The record's own timestamp, so an edge's freshness is
+                // a fact of the log rather than of when a projector
+                // happened to run.
+                observed_at_epoch_ms: record.occurred_at_epoch_ms,
+            }),
+            _ => None,
+        })
+        .collect()
 }
 
 /// The projected view of one object: the kernel entity plus the fold's

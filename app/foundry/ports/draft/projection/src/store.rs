@@ -17,11 +17,31 @@ pub struct ProjectedObject {
     pub last_actor: String,   // data_class: INTERNAL_ONLY
 }
 
+/// One projected edge. Links are DURABLE projection state: a store
+/// that holds objects but not edges hands back a graph with no
+/// traversal in it, which is why they ride the same atomic apply.
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct ProjectedLink {
+    pub link_type: String,       // data_class: INTERNAL_ONLY
+    pub from_object_ref: String, // data_class: INTERNAL_ONLY
+    pub to_object_ref: String,   // data_class: INTERNAL_ONLY
+    /// When the edge was observed. Traversal filters on a freshness
+    /// floor, so an edge store that forgot this would silently serve
+    /// stale edges a caller explicitly asked to exclude. Identity is
+    /// (tenant, from, link_type, to) — this is a VALUE on that key, so
+    /// a later observation updates the edge rather than duplicating it.
+    pub observed_at_epoch_ms: u64, // data_class: INTERNAL_ONLY
+}
+
 /// What one consumed log entry did to the projection.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EntryOutcome {
-    /// The entry applied; these are the touched objects, post-entry.
-    Applied { objects: Vec<ProjectedObject> },
+    /// The entry applied: the touched objects post-entry, and the edges
+    /// it registered. Both land together or neither does.
+    Applied {
+        objects: Vec<ProjectedObject>,
+        links: Vec<ProjectedLink>,
+    },
     /// The entry poisoned; the reason is a static label, never a
     /// classified value. The ordinal was spent and must advance.
     Poisoned { reason: String },
@@ -147,6 +167,21 @@ pub trait ProjectionStore {
         predicate: &PropertyPredicate,
         page: &PageRequest,
     ) -> Result<Page, ProjectionStoreError>;
+
+    /// Edges leaving `object_ref`, in deterministic order.
+    fn links_from(
+        &self,
+        tenant_id: &str,
+        object_ref: &str,
+    ) -> Result<Vec<ProjectedLink>, ProjectionStoreError>;
+
+    /// Edges arriving at `object_ref` — traversal reads both directions,
+    /// so the store must serve both.
+    fn links_to(
+        &self,
+        tenant_id: &str,
+        object_ref: &str,
+    ) -> Result<Vec<ProjectedLink>, ProjectionStoreError>;
 
     /// Every poisoned ordinal and its static reason — nothing hidden.
     fn poisoned(&self, tenant_id: &str) -> Result<Vec<(u64, String)>, ProjectionStoreError>;

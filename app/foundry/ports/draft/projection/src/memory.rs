@@ -7,8 +7,8 @@ use std::collections::BTreeMap;
 use crate::keys::KeyDesignations;
 use crate::predicate::PropertyPredicate;
 use crate::store::{
-    AppliedEntry, ApplyReceipt, EntryOutcome, Page, PageRequest, ProjectedObject, ProjectionCursor,
-    ProjectionStore, ProjectionStoreError,
+    AppliedEntry, ApplyReceipt, EntryOutcome, Page, PageRequest, ProjectedLink, ProjectedObject,
+    ProjectionCursor, ProjectionStore, ProjectionStoreError,
 };
 
 #[derive(Debug, Default)]
@@ -16,6 +16,11 @@ pub struct MemoryProjectionStore {
     heads: BTreeMap<String, u64>,
     entries: BTreeMap<(String, u64), AppliedEntry>,
     objects: BTreeMap<(String, String), ProjectedObject>,
+    /// Edges keyed by (tenant, from, link_type, to) so identity is the
+    /// key: dedup and deterministic read order fall out of it, and the
+    /// observation time is the VALUE, so a later sighting updates the
+    /// edge instead of duplicating it.
+    links: BTreeMap<(String, String, String, String), u64>,
     poisons: BTreeMap<(String, u64), String>,
 }
 
@@ -23,7 +28,7 @@ impl MemoryProjectionStore {
     fn validate(entry: &AppliedEntry) -> Result<(), ProjectionStoreError> {
         require_trimmed(&entry.tenant_id, "blank entry tenant")?;
         match &entry.outcome {
-            EntryOutcome::Applied { objects } => {
+            EntryOutcome::Applied { objects, .. } => {
                 for object in objects {
                     if object.entity.tenant_id != entry.tenant_id {
                         return Err(ProjectionStoreError::Entry {
@@ -36,62 +41,6 @@ impl MemoryProjectionStore {
             EntryOutcome::Poisoned { reason } => {
                 require_trimmed(reason, "blank poison reason")?;
             }
-        }
-        Ok(())
-    }
-
-    /// Refuse an object that cannot be identified, or whose key is
-    /// already held — by a stored object OR by an earlier object in the
-    /// same entry, which a store-only scan would miss.
-    fn check_key(
-        &self,
-        object: &ProjectedObject,
-        keys: &KeyDesignations,
-        earlier_in_entry: &[ProjectedObject],
-    ) -> Result<(), ProjectionStoreError> {
-        let entity_type = object.entity.entity_type.value.as_str();
-        let Some(property) = keys.property_for(entity_type) else {
-            return Ok(());
-        };
-        let Some(held) = object.entity.properties.get(property) else {
-            return Err(ProjectionStoreError::MissingPrimaryKey {
-                property: property.to_owned(),
-            });
-        };
-        let value = &held.value.value;
-        if matches!(
-            value,
-            data_ontology_kernel::PropertyValue::Array(_)
-                | data_ontology_kernel::PropertyValue::Struct(_)
-        ) {
-            return Err(ProjectionStoreError::NonScalarPrimaryKey {
-                property: property.to_owned(),
-            });
-        }
-
-        let clash = earlier_in_entry
-            .iter()
-            .map(|candidate| (candidate.entity.id.as_str(), candidate))
-            .chain(
-                self.objects
-                    .range((object.entity.tenant_id.clone(), String::new())..)
-                    .take_while(|((tenant, _), _)| tenant == &object.entity.tenant_id)
-                    .map(|((_, object_ref), candidate)| (object_ref.as_str(), candidate)),
-            )
-            .find(|(object_ref, candidate)| {
-                *object_ref != object.entity.id
-                    && candidate.entity.entity_type.value == entity_type
-                    && candidate
-                        .entity
-                        .properties
-                        .get(property)
-                        .is_some_and(|stored| &stored.value.value == value)
-            });
-        if let Some((held_by, _)) = clash {
-            return Err(ProjectionStoreError::DuplicatePrimaryKey {
-                property: property.to_owned(),
-                held_by: held_by.to_owned(),
-            });
         }
         Ok(())
     }
@@ -197,18 +146,29 @@ impl ProjectionStore for MemoryProjectionStore {
             });
         }
         match &entry.outcome {
-            EntryOutcome::Applied { objects } => {
+            EntryOutcome::Applied { objects, links } => {
                 // KEY PASS — every object is cleared before ANY is
                 // written, so a refused duplicate leaves nothing behind.
                 if !keys.is_empty() {
                     for (index, object) in objects.iter().enumerate() {
-                        self.check_key(object, keys, &objects[..index])?;
+                        crate::keys::check_unique(&self.objects, object, keys, &objects[..index])?;
                     }
                 }
                 for object in objects {
                     self.objects.insert(
                         (entry.tenant_id.clone(), object.entity.id.clone()),
                         object.clone(),
+                    );
+                }
+                for edge in links {
+                    self.links.insert(
+                        (
+                            entry.tenant_id.clone(),
+                            edge.from_object_ref.clone(),
+                            edge.link_type.clone(),
+                            edge.to_object_ref.clone(),
+                        ),
+                        edge.observed_at_epoch_ms,
                     );
                 }
             }
@@ -261,6 +221,32 @@ impl ProjectionStore for MemoryProjectionStore {
         page: &PageRequest,
     ) -> Result<Page, ProjectionStoreError> {
         self.scan(tenant_id, entity_type, Some(predicate), page)
+    }
+
+    fn links_from(
+        &self,
+        tenant_id: &str,
+        object_ref: &str,
+    ) -> Result<Vec<ProjectedLink>, ProjectionStoreError> {
+        require_trimmed(tenant_id, "blank tenant")?;
+        Ok(crate::link_index::outbound(
+            &self.links,
+            tenant_id,
+            object_ref,
+        ))
+    }
+
+    fn links_to(
+        &self,
+        tenant_id: &str,
+        object_ref: &str,
+    ) -> Result<Vec<ProjectedLink>, ProjectionStoreError> {
+        require_trimmed(tenant_id, "blank tenant")?;
+        Ok(crate::link_index::inbound(
+            &self.links,
+            tenant_id,
+            object_ref,
+        ))
     }
 
     fn poisoned(&self, tenant_id: &str) -> Result<Vec<(u64, String)>, ProjectionStoreError> {

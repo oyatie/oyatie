@@ -11,7 +11,8 @@
 use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
     ActionTypeDefinition, ActionTypeId, AutonomyTier, EntityTypeDefinition, EntityTypeId,
-    EntityTypePropertyDefinition, OntologyEngine, PropertyTier,
+    EntityTypePropertyDefinition, LinkCardinality, LinkTypeDefinition, LinkTypeId, OntologyEngine,
+    PropertyTier,
 };
 use foundry_edits::{
     ActionRecord, EditSet, OntologyEdit, WireDataClass, WireProperty, WireTier, WireValue,
@@ -46,6 +47,19 @@ fn registry() -> OntologyEngine {
     .unwrap()
     .with_primary_key_property("name");
     engine.register_entity_type(definition).unwrap();
+    engine
+        .register_link_type(
+            LinkTypeDefinition::new(
+                "ten_test",
+                LinkTypeId::new("lty_measures").unwrap(),
+                EntityTypeId::new("ety_reading").unwrap(),
+                EntityTypeId::new("ety_reading").unwrap(),
+                LinkCardinality::ManyToMany,
+                false,
+            )
+            .unwrap(),
+        )
+        .unwrap();
     engine
         .register_action_type(
             ActionTypeDefinition::new(
