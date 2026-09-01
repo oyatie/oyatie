@@ -11,6 +11,7 @@
 //! with it.
 
 use data_ontology_kernel::OntologyEngine;
+use foundry_projection_draft::{ProjectionStore, ProjectionStoreError};
 use foundry_records_draft::SealedEnvelope;
 
 use crate::fold::apply_sealed;
@@ -76,6 +77,34 @@ pub struct SyncStatus {
     pub poisoned_count: u64, // data_class: INTERNAL_ONLY
     /// The earliest poisoned ordinal, if any — where an operator starts.
     pub first_poisoned_ordinal: Option<u64>, // data_class: INTERNAL_ONLY
+}
+
+/// The projection's position as the DURABLE store reports it.
+///
+/// [`ProjectionState::sync_status`] answers for an in-memory fold —
+/// what THIS process has consumed. An operator asking "has the index
+/// caught up?" needs the other answer: what survives a restart. The two
+/// differ exactly when a projector has folded entries it has not yet
+/// mirrored, which is the window a lag surface exists to reveal.
+///
+/// A store that cannot be read is an error, never lag zero: reporting
+/// an unreachable index as "caught up" is the most dangerous possible
+/// answer to this question.
+pub fn store_sync_status(
+    store: &dyn ProjectionStore,
+    tenant_id: &str,
+    head: u64,
+) -> Result<SyncStatus, ProjectionStoreError> {
+    let applied_ordinal = store.applied_head(tenant_id)?;
+    let poisons = store.poisoned(tenant_id)?;
+    Ok(SyncStatus {
+        applied_ordinal,
+        head,
+        lag: head.saturating_sub(applied_ordinal),
+        poisoned_count: poisons.len() as u64,
+        // The EARLIEST poison is where an operator starts reading.
+        first_poisoned_ordinal: poisons.first().map(|(ordinal, _)| *ordinal),
+    })
 }
 
 impl ProjectionState {
