@@ -1,11 +1,11 @@
-//! Idempotent execution over the query engine.
+//! Idempotent, policy-checked execution over the durable projection.
 
 use std::collections::BTreeMap;
 
-use data_ontology_kernel::ObjectGraph;
 use foundry_ontology_query_domain::{
-    KnowledgeGraphQueryEngine, KnowledgeGraphQueryError, KnowledgeGraphQueryRequest,
+    KnowledgeGraphQueryError, KnowledgeGraphQueryRequest, query_graph_slice_from_store,
 };
+use foundry_projection_draft::ProjectionStore;
 
 use crate::types::*;
 
@@ -29,10 +29,16 @@ struct OntologyQueryIntentFingerprint {
 }
 
 impl OntologyQueryExecutionUsecase {
+    /// Execute one policy-checked query against the DURABLE projection.
+    ///
+    /// The usecase no longer takes a caller-supplied `ObjectGraph` and a
+    /// hand-built link index: it reads the store the projector fills, so
+    /// a query answers from replayed truth rather than from whatever the
+    /// caller happened to assemble. Every policy, idempotency and audit
+    /// behaviour around it is unchanged.
     pub fn execute(
         &mut self,
-        graph: &ObjectGraph,
-        engine: &KnowledgeGraphQueryEngine,
+        store: &dyn ProjectionStore,
         input: OntologyQueryExecutionInput,
     ) -> OntologyQueryExecutionReceipt {
         if input.idempotency_key.trim().is_empty() {
@@ -73,7 +79,7 @@ impl OntologyQueryExecutionUsecase {
             return receipt;
         }
 
-        match engine.query_graph_slice(graph, input.request.clone()) {
+        match query_graph_slice_from_store(store, input.request.clone()) {
             Ok(response) => {
                 let receipt = OntologyQueryExecutionReceipt {
                     idempotency_key: input.idempotency_key.clone(),
