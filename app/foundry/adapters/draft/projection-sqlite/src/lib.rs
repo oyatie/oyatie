@@ -9,14 +9,15 @@
 #![forbid(unsafe_code)]
 
 mod codec;
+mod key_law;
 mod scan;
 mod write;
 
 use std::path::Path;
 
 use foundry_projection_draft::{
-    AppliedEntry, ApplyReceipt, EntryOutcome, Page, PageRequest, ProjectedObject, ProjectionStore,
-    ProjectionStoreError, PropertyPredicate,
+    AppliedEntry, ApplyReceipt, EntryOutcome, KeyDesignations, Page, PageRequest, ProjectedObject,
+    ProjectionStore, ProjectionStoreError, PropertyPredicate,
 };
 use rusqlite::{Connection, OptionalExtension, params};
 
@@ -85,8 +86,12 @@ impl SqliteProjectionStore {
 }
 
 impl ProjectionStore for SqliteProjectionStore {
-    fn apply(&mut self, entry: AppliedEntry) -> Result<ApplyReceipt, ProjectionStoreError> {
-        write::apply(&mut self.connection, entry)
+    fn apply(
+        &mut self,
+        entry: AppliedEntry,
+        keys: &KeyDesignations,
+    ) -> Result<ApplyReceipt, ProjectionStoreError> {
+        write::apply(&mut self.connection, entry, keys)
     }
 
     fn applied_head(&self, tenant_id: &str) -> Result<u64, ProjectionStoreError> {

@@ -4,6 +4,7 @@
 use data_ontology_kernel::PropertyValue;
 
 use crate::conformance::{ProjectionFixture, applied, fail, object};
+use crate::keys::KeyDesignations;
 use crate::store::{PageRequest, ProjectionStore};
 
 pub fn check_get_returns_the_projected_object<F: ProjectionFixture>(
@@ -17,7 +18,10 @@ pub fn check_get_returns_the_projected_object<F: ProjectionFixture>(
         vec![("name", PropertyValue::String("Ada".to_owned()))],
     );
     store
-        .apply(applied("ten_a", 1, vec![stored.clone()]))
+        .apply(
+            applied("ten_a", 1, vec![stored.clone()]),
+            &KeyDesignations::default(),
+        )
         .map_err(|error| fail("seed apply", format!("{error:?}")))?;
     let read = store
         .get("ten_a", "ent_a1")
@@ -33,18 +37,24 @@ pub fn check_reads_are_tenant_isolated<F: ProjectionFixture>(
 ) -> Result<(), String> {
     let store = fixture.store();
     store
-        .apply(applied(
-            "ten_a",
-            1,
-            vec![object("ten_a", "ent_a1", "ety_reading", vec![])],
-        ))
+        .apply(
+            applied(
+                "ten_a",
+                1,
+                vec![object("ten_a", "ent_a1", "ety_reading", vec![])],
+            ),
+            &KeyDesignations::default(),
+        )
         .map_err(|error| fail("tenant a seed", format!("{error:?}")))?;
     store
-        .apply(applied(
-            "ten_b",
-            1,
-            vec![object("ten_b", "ent_b1", "ety_reading", vec![])],
-        ))
+        .apply(
+            applied(
+                "ten_b",
+                1,
+                vec![object("ten_b", "ent_b1", "ety_reading", vec![])],
+            ),
+            &KeyDesignations::default(),
+        )
         .map_err(|error| fail("tenant b seed", format!("{error:?}")))?;
     let crossed = store
         .get("ten_a", "ent_b1")
@@ -75,11 +85,14 @@ pub fn check_type_scan_pages_partition_deterministically<F: ProjectionFixture>(
             "ety_reading"
         };
         store
-            .apply(applied(
-                "ten_a",
-                ordinal as u64 + 1,
-                vec![object("ten_a", object_ref, entity_type, vec![])],
-            ))
+            .apply(
+                applied(
+                    "ten_a",
+                    ordinal as u64 + 1,
+                    vec![object("ten_a", object_ref, entity_type, vec![])],
+                ),
+                &KeyDesignations::default(),
+            )
             .map_err(|error| fail("seed apply", format!("{error:?}")))?;
     }
     let mut seen = Vec::new();
