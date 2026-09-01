@@ -1,0 +1,36 @@
+[package]
+name = "foundry-ontology-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Runnable Foundry ontology service: composes the governed M3 write spine (records + denial logs, the ActionWriter, the projector fold) behind an HTTP surface with liveness, readiness and metrics. Fail-closed boot — an unopenable durable store is a boot refusal, never an in-memory fallback — and deny-by-default on every operator surface until the policy decision point is composed."
+
+[dependencies]
+data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
+data-ontology-kernel = { path = "../../../../data/core/ontology-kernel" }
+foundry-records-draft = { path = "../../ports/draft/records" }
+foundry-records-sqlite-draft = { path = "../../adapters/draft/records-sqlite" }
+foundry-spine = { path = "../../core/spine" }
+
+axum = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+# The workspace default feature set is rt-multi-thread/net/macros; this
+# process additionally needs `signal` for SIGTERM draining and `sync` for the
+# per-tenant write mutex.
+tokio = { workspace = true, features = ["sync", "signal"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[dev-dependencies]
+# Drive the router without binding a socket.
+http-body-util = { workspace = true }
+tower = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true

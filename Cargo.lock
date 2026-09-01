@@ -2227,6 +2227,25 @@ name = "foundry-edits"
 version = "0.1.0"
 
 [[package]]
+name = "foundry-ontology-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "data-boundary-kernel",
+ "data-ontology-kernel",
+ "foundry-records-draft",
+ "foundry-records-sqlite-draft",
+ "foundry-spine",
+ "http-body-util",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower 0.5.3",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "foundry-projection-draft"
 version = "0.1.0"
 dependencies = [
