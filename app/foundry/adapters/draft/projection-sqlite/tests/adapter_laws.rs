@@ -20,7 +20,7 @@ use data_ontology_kernel::{
 };
 use foundry_projection_draft::{
     AppliedEntry, EntryOutcome, KeyDesignations, PageRequest, ProjectedObject, ProjectionStore,
-    ProjectionStoreError, PropertyPredicate,
+    PropertyPredicate,
 };
 use foundry_projection_sqlite_draft::{PROPERTY_INDEX_NAME, SqliteProjectionStore};
 

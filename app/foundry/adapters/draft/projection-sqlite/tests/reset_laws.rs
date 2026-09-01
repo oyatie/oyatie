@@ -5,11 +5,15 @@
 //! SQL — one writes a corrupt head the port cannot express, the other
 //! reads the schema itself.
 
+// ADR-0083 Tier 3: integration tests are separate crates and carry their
+// own header; the workspace lints are TEMPORARY allows pending restore.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use data_boundary_kernel::{DataClass, PrivacyDataClass};
-use data_ontology_kernel::{ObjectEntity, ObjectProperty, PropertyTier, PropertyValue};
+use data_ontology_kernel::{ObjectEntity, ObjectProperty, PropertyValue};
 use foundry_projection_draft::{
     AppliedEntry, EntryOutcome, KeyDesignations, ProjectedLink, ProjectedObject, ProjectionStore,
     ProjectionStoreError,
