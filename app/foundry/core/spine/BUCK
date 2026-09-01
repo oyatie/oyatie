@@ -263,3 +263,34 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/projection:foundry-projection-draft"],
 )
+
+rust_test(
+    name = "foundry-spine-projection-catchup",
+    srcs = [
+        "tests/catchup_support/mod.rs",
+        "tests/projection_catchup.rs",
+        "tests/write_through_support/mod.rs",
+    ],
+    crate = "projection_catchup",
+    crate_root = "tests/projection_catchup.rs",
+    visibility = ["PUBLIC"],
+    deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/projection:foundry-projection-draft"],
+)
+
+# The only target holding `store == fold(log)` against the DURABLE
+# adapter rather than a second in-memory store, so it carries the
+# spine's one test edge to a projection adapter.
+rust_test(
+    name = "foundry-spine-durable-projection-rebuild",
+    srcs = [
+        "tests/catchup_support/mod.rs",
+        "tests/durable_projection_rebuild.rs",
+    ],
+    crate = "durable_projection_rebuild",
+    crate_root = "tests/durable_projection_rebuild.rs",
+    visibility = ["PUBLIC"],
+    deps = SPINE_TEST_DEPS + [
+        "//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+    ],
+)
