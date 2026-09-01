@@ -16,39 +16,9 @@ mod catchup_support;
 mod write_through_support;
 
 use catchup_support::{
-    TENANT, UnreadableHead, corrupt, log, registry, sealed, sealed_by_another_actor,
+    TENANT, assert_agrees_with_fold, corrupt, log, registry, sealed, sealed_by_another_actor,
 };
 use write_through_support::FailsAt;
-
-/// The oracle: `fold(log)` is the definition of correct here, not a
-/// second hand-written expectation that could drift from it.
-fn assert_agrees_with_fold(store: &dyn ProjectionStore, state: &ProjectionState) {
-    assert_eq!(
-        store.applied_head(TENANT).unwrap(),
-        state.applied_ordinal,
-        "the store's head must be the fold's ordinal"
-    );
-    for (object_ref, binding) in &state.bindings {
-        let projected = store
-            .get(TENANT, object_ref)
-            .unwrap()
-            .unwrap_or_else(|| panic!("the store is missing {object_ref}"));
-        assert_eq!(
-            &projected.entity,
-            state.objects.get(TENANT, object_ref).unwrap(),
-            "{object_ref} differs from the fold"
-        );
-        assert_eq!(projected.last_ordinal, binding.last_ordinal);
-        assert_eq!(projected.last_actor, binding.last_actor);
-        assert_eq!(projected.schema_revision, binding.schema_revision);
-    }
-    let poisoned = store.poisoned(TENANT).unwrap();
-    assert_eq!(
-        poisoned.len(),
-        state.poison.len(),
-        "the store's poison ledger must match the fold's"
-    );
-}
 
 #[test]
 fn an_empty_store_catches_up_to_the_whole_log() {
@@ -178,6 +148,7 @@ fn a_store_outage_halts_catch_up_and_a_later_call_resumes_from_there() {
     let mut store = FailsAt {
         inner: MemoryProjectionStore::default(),
         fail_on_ordinal: 2,
+        fail_head: false,
     };
 
     let error = catch_up(TENANT, &registry, &mut store, &log).expect_err("the store is out");
@@ -247,6 +218,7 @@ fn catch_up_re_mirrors_nothing_the_store_already_holds() {
     let mut store = FailsAt {
         inner: built,
         fail_on_ordinal: 5,
+        fail_head: false,
     };
 
     let caught =
@@ -281,8 +253,10 @@ fn a_cold_start_is_never_reported_as_divergence() {
 fn an_unreadable_store_refuses_catch_up_instead_of_rebuilding_from_zero() {
     let registry = registry();
     let log = log();
-    let mut store = UnreadableHead {
+    let mut store = FailsAt {
         inner: MemoryProjectionStore::default(),
+        fail_on_ordinal: 0,
+        fail_head: true,
     };
 
     let error = catch_up(TENANT, &registry, &mut store, &log).expect_err("must refuse");

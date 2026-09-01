@@ -12,83 +12,11 @@ use foundry_edits::{
     ActionRecord, EditSet, OntologyEdit, WireDataClass, WireProperty, WireTier, WireValue,
     encode_action_record,
 };
-use foundry_projection_draft::{
-    AppliedEntry, ApplyReceipt, KeyDesignations, MemoryProjectionStore, Page, PageRequest,
-    ProjectedLink, ProjectedObject, ProjectionStore, ProjectionStoreError, PropertyPredicate,
-};
+use foundry_projection_draft::ProjectionStore;
 use foundry_records_draft::{ActionEnvelope, Receipt, SealedEnvelope};
+use foundry_spine::{ProjectionState, poison_label};
 
 pub(crate) const TENANT: &str = "ten_test";
-
-/// A store whose head cannot be read — the disk is there, the answer is
-/// not. Catch-up must refuse rather than read the failure as "empty",
-/// which would rebuild the whole log over unknown contents.
-pub(crate) struct UnreadableHead {
-    pub(crate) inner: MemoryProjectionStore,
-}
-
-impl ProjectionStore for UnreadableHead {
-    fn apply(
-        &mut self,
-        entry: AppliedEntry,
-        keys: &KeyDesignations,
-    ) -> Result<ApplyReceipt, ProjectionStoreError> {
-        self.inner.apply(entry, keys)
-    }
-
-    fn applied_head(&self, _tenant_id: &str) -> Result<u64, ProjectionStoreError> {
-        Err(ProjectionStoreError::Storage {
-            detail: "head unreadable".to_owned(),
-        })
-    }
-
-    fn get(
-        &self,
-        tenant_id: &str,
-        object_ref: &str,
-    ) -> Result<Option<ProjectedObject>, ProjectionStoreError> {
-        self.inner.get(tenant_id, object_ref)
-    }
-
-    fn objects_of_type(
-        &self,
-        tenant_id: &str,
-        entity_type: &str,
-        page: &PageRequest,
-    ) -> Result<Page, ProjectionStoreError> {
-        self.inner.objects_of_type(tenant_id, entity_type, page)
-    }
-
-    fn filter(
-        &self,
-        tenant_id: &str,
-        entity_type: &str,
-        predicate: &PropertyPredicate,
-        page: &PageRequest,
-    ) -> Result<Page, ProjectionStoreError> {
-        self.inner.filter(tenant_id, entity_type, predicate, page)
-    }
-
-    fn links_from(
-        &self,
-        tenant_id: &str,
-        object_ref: &str,
-    ) -> Result<Vec<ProjectedLink>, ProjectionStoreError> {
-        self.inner.links_from(tenant_id, object_ref)
-    }
-
-    fn links_to(
-        &self,
-        tenant_id: &str,
-        object_ref: &str,
-    ) -> Result<Vec<ProjectedLink>, ProjectionStoreError> {
-        self.inner.links_to(tenant_id, object_ref)
-    }
-
-    fn poisoned(&self, tenant_id: &str) -> Result<Vec<(u64, String)>, ProjectionStoreError> {
-        self.inner.poisoned(tenant_id)
-    }
-}
 
 fn internal() -> PrivacyDataClass {
     PrivacyDataClass::try_from(DataClass::InternalOnly).unwrap()
@@ -274,4 +202,43 @@ pub(crate) fn mixed_log() -> Vec<SealedEnvelope> {
         corrupt(4),
         sealed(5, "five"),
     ]
+}
+
+/// The oracle both planes are held to: `fold(log)` is the definition of
+/// correct, not a second hand-written expectation that could drift.
+///
+/// The poison ledger is compared BY ORDINAL AND REASON. An earlier
+/// version compared counts, and that is precisely what let a two-log
+/// mixture pass as a clean catch-up — an assertion that cannot tell
+/// right from wrong is not coverage.
+pub(crate) fn assert_agrees_with_fold(store: &dyn ProjectionStore, state: &ProjectionState) {
+    assert_eq!(
+        store.applied_head(TENANT).unwrap(),
+        state.applied_ordinal,
+        "the store's head must be the fold's ordinal"
+    );
+    let expected: Vec<(u64, String)> = state
+        .poison
+        .iter()
+        .map(|(ordinal, reason)| (*ordinal, poison_label(reason).to_owned()))
+        .collect();
+    assert_eq!(
+        store.poisoned(TENANT).unwrap(),
+        expected,
+        "the poison ledger must match the fold's by ordinal AND reason"
+    );
+    for (object_ref, binding) in &state.bindings {
+        let projected = store
+            .get(TENANT, object_ref)
+            .unwrap()
+            .unwrap_or_else(|| panic!("the store is missing {object_ref}"));
+        assert_eq!(
+            &projected.entity,
+            state.objects.get(TENANT, object_ref).unwrap(),
+            "{object_ref} differs from the fold"
+        );
+        assert_eq!(projected.last_ordinal, binding.last_ordinal);
+        assert_eq!(projected.last_actor, binding.last_actor);
+        assert_eq!(projected.schema_revision, binding.schema_revision);
+    }
 }

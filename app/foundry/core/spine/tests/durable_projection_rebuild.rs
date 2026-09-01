@@ -23,11 +23,14 @@ use std::path::PathBuf;
 
 use foundry_projection_draft::ProjectionStore;
 use foundry_projection_sqlite_draft::SqliteProjectionStore;
-use foundry_spine::{CatchUpError, ProjectionState, catch_up, fold_from_scratch};
+use foundry_spine::{CatchUpError, catch_up, fold_from_scratch};
 
 #[allow(dead_code)]
 mod catchup_support;
-use catchup_support::{TENANT, corrupt, log, mixed_log, registry, sealed};
+use catchup_support::{
+    TENANT, assert_agrees_with_fold, corrupt, log, mixed_log, registry, sealed,
+    sealed_by_another_actor,
+};
 
 /// A database on disk that cleans itself up, and can be reopened
 /// through the front door.
@@ -57,31 +60,6 @@ impl Database {
 impl Drop for Database {
     fn drop(&mut self) {
         let _ = std::fs::remove_file(&self.path);
-    }
-}
-
-/// The fold is the definition of correct. Compare every object, every
-/// edge in both directions, the head, and the poison ledger.
-fn assert_agrees_with_fold(store: &dyn ProjectionStore, state: &ProjectionState) {
-    assert_eq!(store.applied_head(TENANT).unwrap(), state.applied_ordinal);
-    assert_eq!(
-        store.poisoned(TENANT).unwrap().len(),
-        state.poison.len(),
-        "the durable poison ledger must match the fold's"
-    );
-    for (object_ref, binding) in &state.bindings {
-        let projected = store
-            .get(TENANT, object_ref)
-            .unwrap()
-            .unwrap_or_else(|| panic!("the database is missing {object_ref}"));
-        assert_eq!(
-            &projected.entity,
-            state.objects.get(TENANT, object_ref).unwrap(),
-            "{object_ref} came back from SQLite differing from the fold"
-        );
-        assert_eq!(projected.last_ordinal, binding.last_ordinal);
-        assert_eq!(projected.last_actor, binding.last_actor);
-        assert_eq!(projected.schema_revision, binding.schema_revision);
     }
 }
 
@@ -148,6 +126,69 @@ fn catching_up_a_durable_store_a_second_time_revalidates_and_advances_nothing() 
         "the durable resume point was re-applied and agreed"
     );
     assert_agrees_with_fold(&reopened, &fold_from_scratch(TENANT, &registry, log.iter()));
+}
+
+#[test]
+fn a_log_that_does_not_begin_at_ordinal_one_is_refused() {
+    let registry = registry();
+    let full = mixed_log();
+    let database = Database::new("tail-slice");
+    let mut store = database.open();
+    catch_up(TENANT, &registry, &mut store, &full[..3]).expect("reach head 3");
+
+    // `RecordsLog::replay(tenant, from)` hands back a SLICE, so the
+    // obvious caller passes the entries after the store's head. Resume
+    // state is rebuilt by folding everything BELOW that head, which a
+    // log starting later cannot produce — the information is gone. Left
+    // unchecked this mirrors entries against a fresh fold and writes
+    // poisons that derive from where the caller cut, not from the log.
+    let error = catch_up(TENANT, &registry, &mut store, &full[3..]).expect_err("must refuse");
+
+    assert!(
+        matches!(
+            error,
+            CatchUpError::LogDoesNotStartAtOne { first_ordinal: 4 }
+        ),
+        "{error:?}"
+    );
+    assert_eq!(store.applied_head(TENANT).unwrap(), 3, "and wrote nothing");
+    assert!(
+        store.poisoned(TENANT).unwrap().is_empty(),
+        "no poison was fabricated"
+    );
+}
+
+#[test]
+fn a_log_missing_the_resume_point_is_refused() {
+    let registry = registry();
+    let held = vec![
+        sealed(1, "one"),
+        sealed(2, "two"),
+        sealed_by_another_actor(3, "three"),
+    ];
+    let database = Database::new("absent-resume-point");
+    let mut store = database.open();
+    catch_up(TENANT, &registry, &mut store, &held).expect("reach head 3");
+
+    // Begins at ordinal 1 but has no entry at 3, so the entry the store
+    // stopped at cannot be re-applied and the resume is unvalidated. The
+    // store's own ordinal 3 came from a different writer, and skipping
+    // the check would retain that row while reporting a clean catch-up.
+    let gapped = vec![sealed(1, "one"), sealed(2, "two"), sealed(4, "four")];
+    let error = catch_up(TENANT, &registry, &mut store, &gapped).expect_err("must refuse");
+
+    assert!(
+        matches!(
+            error,
+            CatchUpError::ResumePointMissingFromLog { ordinal: 3 }
+        ),
+        "{error:?}"
+    );
+    assert_eq!(
+        store.get(TENANT, "ent_3").unwrap().unwrap().last_actor,
+        "prn_bob",
+        "the foreign row is still there, and still refused"
+    );
 }
 
 #[test]

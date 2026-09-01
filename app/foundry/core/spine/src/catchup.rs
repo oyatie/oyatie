@@ -70,6 +70,11 @@ pub struct CaughtUp {
     pub head: u64,
     /// Whether the resume point was re-applied and agreed with the log.
     /// False only for a rebuild from empty, which has no resume point.
+    /// This is a fact rather than arithmetic: a non-empty store whose
+    /// resume point is absent from the log is refused
+    /// ([`CatchUpError::ResumePointMissingFromLog`]) before any mirror
+    /// runs, so reaching a `CaughtUp` with `resumed_from > 0` means that
+    /// entry WAS re-applied and the store accepted it as a duplicate.
     pub revalidated: bool,
 }
 
@@ -87,6 +92,20 @@ pub enum CatchUpError {
     /// would answer from rows the log can no longer justify, so it is a
     /// refusal rather than a no-op.
     StoreAheadOfLog { store_head: u64, log_head: u64 },
+    /// The log does not begin at ordinal 1. Resume state is rebuilt by
+    /// folding everything BELOW the store's head, so a log that starts
+    /// later cannot produce it — the information is gone. `replay(from)`
+    /// hands back a slice, which makes this the easy caller mistake, and
+    /// left unchecked it mirrors entries against a fresh fold and writes
+    /// poisons that derive from where the caller cut rather than from
+    /// the log. It is also why log compaction needs a snapshot at the
+    /// retention boundary rather than a guard on some other arm.
+    LogDoesNotStartAtOne { first_ordinal: u64 },
+    /// The log has no entry at the store's head, so the resume point
+    /// cannot be re-applied and nothing validates the store against
+    /// this log. Distinct from a divergent resume point: that one
+    /// disagrees, this one is absent.
+    ResumePointMissingFromLog { ordinal: u64 },
     /// The entry the store stopped at is not this log's entry at that
     /// ordinal: the store belongs to a different log.
     DivergentResumePoint { ordinal: u64 },
@@ -108,9 +127,14 @@ pub enum CatchUpError {
 
 /// Fold `log` into `store` from wherever the store already stands.
 ///
-/// `log` is one tenant's entries in ordinal order. A rebuild from
-/// scratch is not a separate code path — it is this function against an
-/// empty store.
+/// `log` must be the tenant's **complete** log, in ordinal order, from
+/// ordinal 1 — not the slice after the store's head. Resume state is
+/// rebuilt by folding everything below that head, and state at ordinal
+/// K cannot be rebuilt from a log beginning at K. `RecordsLog::replay`
+/// takes a `from` argument, so passing `applied_head` (or `+ 1`) is the
+/// natural mistake; both are refused rather than silently mirrored
+/// against a fresh fold. A rebuild from scratch is not a separate code
+/// path — it is this function against an empty store.
 pub fn catch_up(
     tenant_id: &str,
     registry: &OntologyEngine,
@@ -118,6 +142,17 @@ pub fn catch_up(
     log: &[SealedEnvelope],
 ) -> Result<CaughtUp, CatchUpError> {
     let resumed_from = store.applied_head(tenant_id).map_err(CatchUpError::Read)?;
+    // The log must be the WHOLE log. Resume state is rebuilt by folding
+    // everything below the store's head, so a slice that begins later
+    // cannot produce it — and mirroring against a fresh fold would write
+    // poisons derived from where the caller cut rather than from the log.
+    if let Some(first) = log.first()
+        && first.receipt.ordinal != 1
+    {
+        return Err(CatchUpError::LogDoesNotStartAtOne {
+            first_ordinal: first.receipt.ordinal,
+        });
+    }
     let log_head = log.last().map_or(0, |sealed| sealed.receipt.ordinal);
     if resumed_from > log_head {
         return Err(CatchUpError::StoreAheadOfLog {
@@ -133,6 +168,15 @@ pub fn catch_up(
         .iter()
         .position(|sealed| sealed.receipt.ordinal >= resume_at)
         .unwrap_or(log.len());
+    // The resume point must actually BE in the log, or nothing
+    // revalidates the store against it and `revalidated` would be a
+    // claim about arithmetic rather than about a re-apply that happened.
+    if resumed_from > 0 && log.get(split).map(|sealed| sealed.receipt.ordinal) != Some(resumed_from)
+    {
+        return Err(CatchUpError::ResumePointMissingFromLog {
+            ordinal: resumed_from,
+        });
+    }
     // Rebuild the in-memory fold to exactly what the store durably
     // holds, so every entry mirrored from here carries the same bytes it
     // carried the first time — which is what lets the store recognise a
