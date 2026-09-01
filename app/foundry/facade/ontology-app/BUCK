@@ -111,3 +111,43 @@ rust_test(
         "third-party//:tower",
     ],
 )
+
+rust_test(
+    name = "foundry-ontology-app-reads",
+    srcs = [
+        "tests/facade_support/mod.rs",
+        "tests/read_contract.rs",
+    ],
+    crate = "read_contract",
+    crate_root = "tests/read_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-ontology-app",
+        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "third-party//:axum",
+        "third-party//:http-body-util",
+        "third-party//:tokio",
+        "third-party//:tower",
+    ],
+)
+
+rust_test(
+    name = "foundry-ontology-app-cross-tenant",
+    srcs = [
+        "tests/cross_tenant_isolation.rs",
+        "tests/facade_support/mod.rs",
+    ],
+    crate = "cross_tenant_isolation",
+    crate_root = "tests/cross_tenant_isolation.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-ontology-app",
+        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "third-party//:axum",
+        "third-party//:http-body-util",
+        "third-party//:tokio",
+        "third-party//:tower",
+    ],
+)

@@ -23,6 +23,8 @@ pub mod dto;
 pub mod metrics;
 pub mod observability;
 pub mod pdp;
+pub mod read_dto;
+pub mod reads;
 pub mod routes;
 pub mod seed;
 pub mod submit;
