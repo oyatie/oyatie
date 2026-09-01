@@ -77,6 +77,14 @@ pub enum KnowledgeGraphLinkUpsertOutcome {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum KnowledgeGraphQueryError {
+    /// The graph source itself failed — a durable store could not be
+    /// read. Distinct from every other variant, which are refusals the
+    /// request earned; this one is infrastructure, and a traversal that
+    /// swallowed it would silently return a SMALLER graph as if it were
+    /// the whole truth.
+    Source {
+        detail: String,
+    },
     InvalidTenantId,
     InvalidQueryId,
     InvalidEntityId,

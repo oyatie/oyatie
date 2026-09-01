@@ -52,156 +52,20 @@ impl KnowledgeGraphQueryEngine {
         Ok(outcome)
     }
 
+    /// Traverse the in-memory index. The walk itself lives in
+    /// `traversal`, so this path and the store-backed one cannot drift.
     pub fn query_graph_slice(
         &self,
         graph: &ObjectGraph,
         request: KnowledgeGraphQueryRequest,
     ) -> Result<KnowledgeGraphQueryResponse, KnowledgeGraphQueryError> {
-        request.validate()?;
-        if graph
-            .get(&request.tenant_id, &request.root_entity_id)
-            .is_none()
-        {
-            return Err(KnowledgeGraphQueryError::MissingRootEntity);
-        }
-
-        let edge_filter = request.edge_filter();
-        for root in &request.additional_root_entity_ids {
-            if graph.get(&request.tenant_id, root).is_none() {
-                return Err(KnowledgeGraphQueryError::MissingRootEntity);
-            }
-        }
-        let cursor = request.resume_cursor.unwrap_or_default();
-        let node_budget =
-            MAX_QUERY_RESULT_NODES + usize::try_from(cursor.nodes_emitted).unwrap_or(usize::MAX);
-        let edge_budget =
-            MAX_QUERY_RESULT_EDGES + usize::try_from(cursor.edges_emitted).unwrap_or(usize::MAX);
-        let mut queue = VecDeque::from([(request.root_entity_id.clone(), 0_u32)]);
-        let mut seen_nodes = BTreeSet::from([request.root_entity_id.clone()]);
-        for root in &request.additional_root_entity_ids {
-            if seen_nodes.insert(root.clone()) {
-                queue.push_back((root.clone(), 0));
-            }
-        }
-        let mut nodes = BTreeMap::new();
-        let mut node_order: Vec<String> = Vec::new();
-        let mut edges = BTreeSet::new();
-        let mut edge_order: Vec<crate::contract::KnowledgeGraphEdge> = Vec::new();
-        let mut result_truncated = false;
-        insert_node(
-            graph,
-            &request.tenant_id,
-            &request.root_entity_id,
-            &mut nodes,
-        )?;
-        node_order.push(request.root_entity_id.clone());
-        for root in &request.additional_root_entity_ids {
-            if !nodes.contains_key(root.as_str()) {
-                insert_node(graph, &request.tenant_id, root, &mut nodes)?;
-                node_order.push(root.clone());
-            }
-        }
-
-        'bfs: while let Some((entity_id, depth)) = queue.pop_front() {
-            if depth >= request.max_depth {
-                continue;
-            }
-
-            // Collect candidate links for this entity based on traversal direction.
-            // Both outbound and inbound iterators borrow &self so we materialise
-            // the inbound candidates into a Vec to avoid simultaneous borrows.
-            let outbound_links: Vec<&KnowledgeGraphLinkInstance> = if matches!(
-                request.direction,
-                TraversalDirection::Outbound | TraversalDirection::Both
-            ) {
-                self.outbound_links(&request.tenant_id, &entity_id)
-                    .collect()
-            } else {
-                vec![]
-            };
-            let inbound_links: Vec<&KnowledgeGraphLinkInstance> = if matches!(
-                request.direction,
-                TraversalDirection::Inbound | TraversalDirection::Both
-            ) {
-                self.inbound_links(&request.tenant_id, &entity_id).collect()
-            } else {
-                vec![]
-            };
-
-            for link in outbound_links.into_iter().chain(inbound_links) {
-                if !edge_filter.is_empty() && !edge_filter.contains(link.edge_type_id.as_str()) {
-                    continue;
-                }
-                if link.observed_at_epoch_seconds < request.freshness_floor_epoch_seconds {
-                    continue;
-                }
-                if !request.edge_consent.permits(link.edge_type_id.as_str()) {
-                    continue;
-                }
-                validate_link_endpoints(graph, link)?;
-
-                // Determine the neighbor node (the side we haven't visited yet).
-                let neighbor_id = if link.from_entity_id == entity_id {
-                    &link.to_entity_id
-                } else {
-                    &link.from_entity_id
-                };
-
-                // Node cap: stop before emitting an edge to a node that cannot
-                // be included in the response. Returning an edge without both
-                // endpoints would create a dangling/orphaned graph slice.
-                if !nodes.contains_key(neighbor_id.as_str()) && nodes.len() >= node_budget {
-                    result_truncated = true;
-                    break 'bfs;
-                }
-
-                // Edge cap: stop before inserting when at limit.
-                if edges.len() >= edge_budget {
-                    result_truncated = true;
-                    break 'bfs;
-                }
-                // Emit edge in canonical from→to orientation regardless of traversal direction.
-                if edges.insert(link.as_contract_edge()) {
-                    edge_order.push(link.as_contract_edge());
-                }
-
-                if !nodes.contains_key(neighbor_id.as_str()) {
-                    insert_node(graph, &request.tenant_id, neighbor_id, &mut nodes)?;
-                    node_order.push(neighbor_id.clone());
-                }
-
-                if seen_nodes.insert(neighbor_id.clone()) {
-                    queue.push_back((neighbor_id.clone(), depth + 1));
-                }
-            }
-        }
-
-        // Page = the emission-order slice past the cursor, canonically
-        // sorted within the page. Pages partition the full result.
-        let skip_nodes = usize::try_from(cursor.nodes_emitted).unwrap_or(usize::MAX);
-        let skip_edges = usize::try_from(cursor.edges_emitted).unwrap_or(usize::MAX);
-        let mut page_nodes: Vec<crate::contract::KnowledgeGraphNode> = node_order
-            .iter()
-            .skip(skip_nodes)
-            .filter_map(|id| nodes.get(id.as_str()).cloned())
-            .collect();
-        page_nodes.sort();
-        let mut page_edges: Vec<crate::contract::KnowledgeGraphEdge> =
-            edge_order.iter().skip(skip_edges).cloned().collect();
-        page_edges.sort();
-        let next_cursor = result_truncated.then_some(QueryCursor {
-            nodes_emitted: node_order.len() as u64,
-            edges_emitted: edge_order.len() as u64,
-        });
-        Ok(KnowledgeGraphQueryResponse {
-            query_id: request.query_id,
-            tenant_id: request.tenant_id,
-            nodes: page_nodes,
-            edges: page_edges,
-            observed_at_epoch_seconds: request.observed_at_epoch_seconds,
-            result_truncated,
-            next_cursor,
-        })
+        crate::traversal::walk(
+            &InMemorySource {
+                engine: self,
+                graph,
+            },
+            request,
+        )
     }
 
     pub fn link_count(&self) -> usize {
@@ -272,23 +136,50 @@ impl KnowledgeGraphLinkInstance {
     }
 }
 
-pub(crate) fn insert_node(
-    graph: &ObjectGraph,
-    tenant_id: &str,
-    entity_id: &str,
-    nodes: &mut BTreeMap<String, KnowledgeGraphNode>,
-) -> Result<(), KnowledgeGraphQueryError> {
-    let entity = graph.get(tenant_id, entity_id).ok_or_else(|| {
-        KnowledgeGraphQueryError::DanglingLinkEndpoint {
-            entity_id: entity_id.to_string(),
-        }
-    })?;
-    nodes.insert(
-        entity_id.to_string(),
-        KnowledgeGraphNode {
-            entity_id: entity_id.to_string(),
-            entity_type_id: entity.entity_type.value.clone(),
-        },
-    );
-    Ok(())
+/// The in-memory index as a graph source: objects from the caller's
+/// `ObjectGraph`, edges from this engine's own two indexes.
+struct InMemorySource<'a> {
+    engine: &'a KnowledgeGraphQueryEngine,
+    graph: &'a ObjectGraph,
+}
+
+impl crate::traversal::GraphSource for InMemorySource<'_> {
+    fn node(
+        &self,
+        tenant_id: &str,
+        entity_id: &str,
+    ) -> Result<Option<KnowledgeGraphNode>, KnowledgeGraphQueryError> {
+        // An in-memory map cannot fail; absence is Ok(None).
+        Ok(self
+            .graph
+            .get(tenant_id, entity_id)
+            .map(|entity| KnowledgeGraphNode {
+                entity_id: entity_id.to_string(),
+                entity_type_id: entity.entity_type.value.clone(),
+            }))
+    }
+
+    fn outbound(
+        &self,
+        tenant_id: &str,
+        entity_id: &str,
+    ) -> Result<Vec<KnowledgeGraphLinkInstance>, KnowledgeGraphQueryError> {
+        Ok(self
+            .engine
+            .outbound_links(tenant_id, entity_id)
+            .cloned()
+            .collect())
+    }
+
+    fn inbound(
+        &self,
+        tenant_id: &str,
+        entity_id: &str,
+    ) -> Result<Vec<KnowledgeGraphLinkInstance>, KnowledgeGraphQueryError> {
+        Ok(self
+            .engine
+            .inbound_links(tenant_id, entity_id)
+            .cloned()
+            .collect())
+    }
 }
