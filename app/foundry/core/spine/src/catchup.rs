@@ -109,10 +109,12 @@ pub enum CatchUpError {
     /// An entry in the log belongs to another tenant. The fold would
     /// poison it [`crate::PoisonReason::TenantMismatch`] — correctly,
     /// but that spends THIS tenant's ordinals and writes the poisons
-    /// into its ledger, leaving a husk that reports a caught-up head
-    /// while holding nothing, and refusing the tenant's own log
-    /// afterwards forever. `store == fold(log)` would technically hold;
-    /// the harm is that the log was never this tenant's to fold.
+    /// into its ledger — a head that reports caught-up over entries this
+    /// tenant never wrote, and its own log refused forever afterwards.
+    /// A wholly foreign log leaves the store holding nothing at all; a
+    /// log with foreign entries mixed in leaves it holding the rest.
+    /// `store == fold(log)` would technically hold either way; the harm
+    /// is that the log was never this tenant's to fold.
     ForeignTenantEntry { ordinal: u64 },
     /// The entry the store stopped at is not this log's entry at that
     /// ordinal: the store belongs to a different log.

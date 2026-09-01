@@ -151,6 +151,16 @@ pub(crate) fn corrupt(ordinal: u64) -> SealedEnvelope {
     }
 }
 
+/// Stamped with a schema revision the registry never accepted, so the
+/// fold poisons it `unknown_revision`. Same shape as [`corrupt`] and a
+/// DIFFERENT reason, which is the axis a count — or an ordinal-only
+/// comparison — cannot see.
+pub(crate) fn sealed_at_unknown_revision(ordinal: u64) -> SealedEnvelope {
+    let mut entry = sealed(ordinal, "unreadable revision");
+    entry.envelope.schema_revision = 99;
+    entry
+}
+
 /// An entry that registers an outbound edge. FROM is the envelope's own
 /// object, per spine law.
 pub(crate) fn sealed_link(ordinal: u64, from_ref: &str, to_ref: &str) -> SealedEnvelope {

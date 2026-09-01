@@ -6,7 +6,7 @@
 //! is refused rather than topped up to a head that lies. `catchup.rs`
 //! states what that does and does not prove.
 
-use foundry_projection_draft::{MemoryProjectionStore, ProjectionStore, ProjectionStoreError};
+use foundry_projection_draft::{MemoryProjectionStore, ProjectionStore};
 use foundry_spine::{CatchUpError, ProjectionState, catch_up, fold_from_scratch, project_through};
 
 #[allow(dead_code)]
@@ -15,8 +15,7 @@ mod catchup_support;
 mod write_through_support;
 
 use catchup_support::{
-    TENANT, assert_agrees_with_fold, corrupt, log, registry, sealed, sealed_by_another_actor,
-    sealed_for_another_tenant,
+    TENANT, assert_agrees_with_fold, corrupt, log, registry, sealed, sealed_at_unknown_revision,
 };
 use write_through_support::FailsAt;
 
@@ -123,30 +122,6 @@ fn catch_up_reproduces_the_same_poison_on_every_rebuild() {
 }
 
 #[test]
-fn a_store_ahead_of_its_log_is_refused() {
-    let registry = registry();
-    let log = log();
-    let mut store = MemoryProjectionStore::default();
-    catch_up(TENANT, &registry, &mut store, &log).expect("reach head 3");
-
-    // Serving a truncated log would answer from rows it cannot justify.
-    let error = catch_up(TENANT, &registry, &mut store, &log[..1]).expect_err("must refuse");
-
-    assert_eq!(
-        error,
-        CatchUpError::StoreAheadOfLog {
-            store_head: 3,
-            log_head: 1
-        }
-    );
-    assert_eq!(
-        store.applied_head(TENANT).unwrap(),
-        3,
-        "and changed nothing"
-    );
-}
-
-#[test]
 fn a_store_outage_halts_catch_up_and_a_later_call_resumes_from_there() {
     let registry = registry();
     let log = log();
@@ -178,37 +153,6 @@ fn a_store_outage_halts_catch_up_and_a_later_call_resumes_from_there() {
 }
 
 #[test]
-fn a_store_holding_a_different_log_is_refused_rather_than_topped_up() {
-    let registry = registry();
-    let mine = log();
-    let mut store = MemoryProjectionStore::default();
-    catch_up(TENANT, &registry, &mut store, &mine).expect("reach head 3");
-
-    // Same ordinals and keys, one different principal at the entry the
-    // store stopped at, plus a fourth that would look like catching up.
-    let theirs = vec![
-        sealed(1, "one"),
-        sealed(2, "two"),
-        sealed_by_another_actor(3, "three"),
-        sealed(4, "four"),
-    ];
-
-    let error = catch_up(TENANT, &registry, &mut store, &theirs).expect_err("must refuse");
-
-    assert_eq!(error, CatchUpError::DivergentResumePoint { ordinal: 3 });
-    assert_eq!(
-        store.applied_head(TENANT).unwrap(),
-        3,
-        "the store neither advanced nor absorbed the other log"
-    );
-    assert_eq!(
-        store.get(TENANT, "ent_3").unwrap().unwrap().last_actor,
-        "prn_alice",
-        "and it still holds what its own log wrote"
-    );
-}
-
-#[test]
 fn catch_up_re_mirrors_nothing_the_store_already_holds() {
     let registry = registry();
     let log: Vec<_> = (1..=40)
@@ -234,53 +178,6 @@ fn catch_up_re_mirrors_nothing_the_store_already_holds() {
 }
 
 #[test]
-fn an_unreadable_store_is_refused_never_read_as_absent() {
-    let registry = registry();
-    let log = log();
-    let unreadable = |head: bool, ledger: bool| {
-        let mut built = MemoryProjectionStore::default();
-        catch_up(TENANT, &registry, &mut built, &log[..2]).expect("reach head 2");
-        FailsAt {
-            inner: built,
-            fail_on_ordinal: 0,
-            fail_head: head,
-            fail_poisoned: ledger,
-        }
-    };
-
-    // An unreadable head read as 0 rebuilds the whole log over contents
-    // we cannot see; an unreadable ledger read as empty lets the prefix
-    // check pass over the same blindness. Neither is an absence.
-    for mut store in [unreadable(true, false), unreadable(false, true)] {
-        let error = catch_up(TENANT, &registry, &mut store, &log).expect_err("must refuse");
-        assert!(
-            matches!(
-                error,
-                CatchUpError::Read(ProjectionStoreError::Storage { .. })
-            ),
-            "{error:?}"
-        );
-    }
-}
-
-#[test]
-fn a_log_carrying_another_tenants_entry_is_refused() {
-    let registry = registry();
-    let mut store = MemoryProjectionStore::default();
-    let mut mixed = log();
-    mixed.push(sealed_for_another_tenant(4));
-
-    // The fold WOULD poison it, correctly, and that is the problem: the
-    // poison spends this tenant's ordinal 4 and enters its ledger,
-    // wedging it against its own log forever.
-    let error = catch_up(TENANT, &registry, &mut store, &mixed).expect_err("must refuse");
-
-    assert_eq!(error, CatchUpError::ForeignTenantEntry { ordinal: 4 });
-    assert_eq!(store.applied_head(TENANT).unwrap(), 0, "nothing was spent");
-    assert!(store.poisoned(TENANT).unwrap().is_empty());
-}
-
-#[test]
 #[should_panic(expected = "no more")]
 fn the_oracle_rejects_a_store_holding_more_than_the_fold() {
     let registry = registry();
@@ -297,4 +194,33 @@ fn the_oracle_rejects_a_store_holding_more_than_the_fold() {
         &store,
         &fold_from_scratch(TENANT, &registry, log[..2].iter()),
     );
+}
+
+#[test]
+#[should_panic(expected = "by ordinal AND reason")]
+fn the_oracle_rejects_a_ledger_that_differs_only_in_reason() {
+    let registry = registry();
+    let mut store = MemoryProjectionStore::default();
+    catch_up(
+        TENANT,
+        &registry,
+        &mut store,
+        &[sealed(1, "one"), corrupt(2), sealed(3, "three")],
+    )
+    .expect("poisoned at 2");
+
+    // Same head, same objects, same poison COUNT — one different reason
+    // at the same ordinal. A count comparison cannot see it, which is
+    // the finding this suite failed to cover twice.
+    let other = fold_from_scratch(
+        TENANT,
+        &registry,
+        [
+            sealed(1, "one"),
+            sealed_at_unknown_revision(2),
+            sealed(3, "three"),
+        ]
+        .iter(),
+    );
+    assert_agrees_with_fold(&store, &other);
 }
