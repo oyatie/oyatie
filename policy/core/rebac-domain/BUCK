@@ -20,3 +20,31 @@ rust_test(
         "//policy/core/cedar-domain:policy-cedar-domain",
     ],
 )
+
+rust_test(
+    name = "policy-rebac-domain-reference-oracle",
+    srcs = [
+        "tests/reference_oracle.rs",
+        "tests/reference_oracle_support/cases.rs",
+        "tests/reference_oracle_support/compiler.rs",
+        "tests/reference_oracle_support/evaluator.rs",
+        "tests/reference_oracle_support/expression.rs",
+        "tests/reference_oracle_support/harness.rs",
+        "tests/reference_oracle_support/mod.rs",
+        "tests/reference_oracle_support/model.rs",
+        "tests/reference_oracle_support/store.rs",
+        "tests/reference_oracle_tests/bounds.rs",
+        "tests/reference_oracle_tests/cycles.rs",
+        "tests/reference_oracle_tests/exhaustive.rs",
+        "tests/reference_oracle_tests/model_contract.rs",
+        "tests/reference_oracle_tests/ordering.rs",
+        "tests/reference_oracle_tests/scope.rs",
+    ],
+    crate = "reference_oracle",
+    crate_root = "tests/reference_oracle.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":policy-rebac-domain",
+        "//policy/core/cedar-domain:policy-cedar-domain",
+    ],
+)
