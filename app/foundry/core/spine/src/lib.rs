@@ -23,6 +23,7 @@ mod migrate;
 mod revision;
 mod state;
 mod writer;
+mod writethrough;
 
 pub use boundary::BoundaryError;
 pub use checkpoint::{Checkpoint, SyncStatus};
@@ -41,3 +42,4 @@ pub use migrate::{
 pub use revision::{PinnedObject, UpcastState, ViewError, object_at_revision};
 pub use state::{ObjectBinding, ProjectionState};
 pub use writer::{ActionSubmission, ApplyOutcome, WriteError, submit};
+pub use writethrough::{WriteThroughError, project_through};

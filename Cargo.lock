@@ -2265,6 +2265,7 @@ dependencies = [
  "data-ontology-kernel",
  "foundry-audit-draft",
  "foundry-edits",
+ "foundry-projection-draft",
  "foundry-records-draft",
  "foundry-records-sqlite-draft",
 ]

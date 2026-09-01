@@ -17,7 +17,10 @@ rust_library(
     crate = "foundry_spine",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = SPINE_CRATE_DEPS + ["//app/foundry/ports/draft/audit:foundry-audit-draft"],
+    deps = SPINE_CRATE_DEPS + [
+        "//app/foundry/ports/draft/audit:foundry-audit-draft",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+    ],
 )
 
 rust_test(
@@ -26,7 +29,10 @@ rust_test(
     crate = "foundry_spine",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = SPINE_CRATE_DEPS + ["//app/foundry/ports/draft/audit:foundry-audit-draft"],
+    deps = SPINE_CRATE_DEPS + [
+        "//app/foundry/ports/draft/audit:foundry-audit-draft",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+    ],
 )
 
 rust_test(
@@ -226,4 +232,16 @@ rust_test(
     crate_root = "tests/migration_audit.rs",
     visibility = ["PUBLIC"],
     deps = SPINE_TEST_DEPS,
+)
+
+rust_test(
+    name = "foundry-spine-write-through",
+    srcs = [
+        "tests/write_through.rs",
+        "tests/write_through_support/mod.rs",
+    ],
+    crate = "write_through",
+    crate_root = "tests/write_through.rs",
+    visibility = ["PUBLIC"],
+    deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/projection:foundry-projection-draft"],
 )
