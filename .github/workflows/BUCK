@@ -1,5 +1,0 @@
-export_file(
-    name = "pipeline-presubmit-workflow",
-    src = "presubmit.yml",
-    visibility = ["PUBLIC"],
-)

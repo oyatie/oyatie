@@ -6,12 +6,6 @@ rust_library(
     visibility = ["PUBLIC"],
 )
 
-export_file(
-    name = "pipeline-repository-port-source",
-    src = "src/lib.rs",
-    visibility = ["PUBLIC"],
-)
-
 rust_test(
     name = "pipeline-repository-draft-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),

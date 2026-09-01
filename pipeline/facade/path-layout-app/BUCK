@@ -12,18 +12,6 @@ rust_binary(
     ],
 )
 
-export_file(
-    name = "pipeline-path-layout-main-source",
-    src = "src/main.rs",
-    visibility = ["PUBLIC"],
-)
-
-export_file(
-    name = "pipeline-owner-prose-view-source",
-    src = "src/owner_prose_view.rs",
-    visibility = ["PUBLIC"],
-)
-
 rust_test(
     name = "pipeline-path-layout-app-completeness",
     srcs = ["tests/completeness.rs"],
