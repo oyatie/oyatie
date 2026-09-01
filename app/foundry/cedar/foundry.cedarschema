@@ -19,3 +19,15 @@ action InvokeAction appliesTo {
     autonomy_tier: Long,
   },
 };
+// Reading the ontology is its own authority, separate from invoking an
+// Action against it. The shell's module card is gated on this action:
+// gating a card on the write action would hide the capability from a
+// read-only operator. Reads carry no autonomy tier — that is a property
+// of acting, not of looking.
+action "foundry.ontology.use" appliesTo {
+  principal: [Principal],
+  resource: [OntologyObject],
+  context: {
+    surface: String,
+  },
+};
