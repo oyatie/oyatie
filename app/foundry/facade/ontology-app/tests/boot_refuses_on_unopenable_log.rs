@@ -42,6 +42,9 @@ impl Paths {
             action_log: self.action.clone(),
             denial_log: self.denial.clone(),
             tenants: vec!["ten_test".into()],
+            // No operators: deny-all serving is the honest posture for a
+            // process whose surfaces this suite never authenticates to.
+            operators: Vec::new(),
         }
     }
 }
