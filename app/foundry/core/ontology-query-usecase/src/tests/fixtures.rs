@@ -55,7 +55,10 @@ pub(super) fn registry() -> OntologyEngine {
         .unwrap();
     engine
 }
-pub(super) use foundry_ontology_query_domain::KnowledgeGraphLinkInstance;
+pub(super) use foundry_projection_draft::{
+    AppliedEntry, EntryOutcome, KeyDesignations, MemoryProjectionStore, ProjectedLink,
+    ProjectedObject, ProjectionStore,
+};
 
 pub(super) fn property(name: &str) -> ObjectProperty {
     ObjectProperty::new(
@@ -66,31 +69,43 @@ pub(super) fn property(name: &str) -> ObjectProperty {
     )
 }
 
-pub(super) fn graph_and_engine() -> (ObjectGraph, KnowledgeGraphQueryEngine) {
-    let mut graph = ObjectGraph::default();
-    for (entity_id, entity_type) in [("ent_root", "ety_account"), ("ent_child", "ety_contact")] {
-        graph
-            .upsert_entity(
-                ObjectEntity::new(
-                    "ten_alpha".to_string(),
-                    entity_id.to_string(),
-                    entity_type.to_string(),
-                    vec![property("name")],
-                )
-                .unwrap(),
+/// The same two-object, one-edge graph the in-memory fixture built —
+/// now as the durable projection the usecase actually reads.
+pub(super) fn store() -> MemoryProjectionStore {
+    let objects = [("ent_root", "ety_account"), ("ent_child", "ety_contact")]
+        .into_iter()
+        .map(|(entity_id, entity_type)| ProjectedObject {
+            entity: ObjectEntity::new(
+                "ten_alpha".to_string(),
+                entity_id.to_string(),
+                entity_type.to_string(),
+                vec![property("name")],
             )
-            .unwrap();
-    }
-    let mut engine = KnowledgeGraphQueryEngine::default();
-    engine
-        .upsert_link(
-            &registry(),
-            &graph,
-            KnowledgeGraphLinkInstance::new("ten_alpha", "ent_root", "ent_child", "lty_owns", 10)
-                .unwrap(),
+            .unwrap(),
+            schema_revision: 1,
+            last_ordinal: 1,
+            last_actor: "prn_projector".to_string(),
+        })
+        .collect();
+    let links = vec![ProjectedLink {
+        link_type: "lty_owns".to_string(),
+        from_object_ref: "ent_root".to_string(),
+        to_object_ref: "ent_child".to_string(),
+        // Seconds in the request's floor, milliseconds in the store.
+        observed_at_epoch_ms: 10_000,
+    }];
+    let mut store = MemoryProjectionStore::default();
+    store
+        .apply(
+            AppliedEntry {
+                tenant_id: "ten_alpha".to_string(),
+                ordinal: 1,
+                outcome: EntryOutcome::Applied { objects, links },
+            },
+            &KeyDesignations::default(),
         )
         .unwrap();
-    (graph, engine)
+    store
 }
 
 pub(super) fn input(idempotency_key: &str) -> OntologyQueryExecutionInput {
