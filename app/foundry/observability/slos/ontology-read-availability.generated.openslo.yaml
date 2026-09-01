@@ -1,0 +1,43 @@
+# Generated from `app/foundry/facade/ontology-app/src/slo.rs`. Do not hand-edit:
+# the suite compares this file byte-for-byte against the renderer.
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: ontology-read-availability
+  displayName: "foundry-ontology — read surface availability"
+  labels:
+    microservice: foundry-ontology
+    sli_class: availability
+    plane: app
+    owner_team: foundry
+spec:
+  service: foundry-ontology
+  description: |
+    A read is good when the projection answered it. Refusals — absent
+    credential, policy denial, unusable revision pin — are counted, so
+    a surface that refuses everything cannot report itself available.
+  indicator:
+    metadata:
+      name: ontology-read-availability-indicator
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(foundry_read_served_total[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(foundry_read_served_total[5m])) + sum(rate(foundry_read_refused_total[5m]))
+  objectives:
+    - target: 0.995
+      displayName: "99.5% of reads answered over 30d"
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences

@@ -12,7 +12,10 @@
 //! this surface an existence oracle for a tenant the caller was never
 //! entitled to ask about.
 //!
-//! Reads serve the in-memory fold plus the per-tenant entries mirror. The
+//! Reads serve the in-memory fold plus the per-tenant entries mirror, which
+//! is fixed at `compose` and never appended to afterwards — so the two views
+//! backed by it do not show entries written after boot. See #2376; the object
+//! read is unaffected because it serves the projection. The
 //! durable indexed store is a separate lane's evidence; nothing here
 //! claims `store == fold(log)`.
 
@@ -42,6 +45,7 @@ fn authorized(
 ) -> Result<Caller, Box<Response>> {
     let Some(token) = bearer_token(headers.get("authorization").and_then(|v| v.to_str().ok()))
     else {
+        state.metrics.read_refused();
         return Err(Box::new(refuse(
             StatusCode::UNAUTHORIZED,
             "credential",
@@ -49,6 +53,7 @@ fn authorized(
         )));
     };
     let Some(caller) = authenticate(&state.operators, token) else {
+        state.metrics.read_refused();
         return Err(Box::new(refuse(
             StatusCode::UNAUTHORIZED,
             "credential",
@@ -56,6 +61,7 @@ fn authorized(
         )));
     };
     if state.pep.decide(&caller, Surface::Use, object_ref).is_err() {
+        state.metrics.read_refused();
         return Err(Box::new(refuse(
             StatusCode::FORBIDDEN,
             "authorization",
@@ -71,6 +77,7 @@ fn tenant_of<'a>(
     caller: &Caller,
 ) -> Result<&'a tokio::sync::Mutex<crate::composition::TenantState>, Box<Response>> {
     state.tenants.get(&caller.tenant_id).ok_or_else(|| {
+        state.metrics.read_refused();
         Box::new(refuse(
             StatusCode::FORBIDDEN,
             "authorization",
@@ -95,6 +102,7 @@ pub async fn object(
         Err(response) => return *response,
     };
     let RevisionPin::Pinned(revision) = RevisionPin::parse(raw_query.as_deref()) else {
+        state.metrics.read_refused();
         return refuse(
             StatusCode::BAD_REQUEST,
             "surface",
@@ -103,39 +111,48 @@ pub async fn object(
     };
     let tenant = tenant.lock().await;
     match object_at_revision(&tenant.projection, &object_ref, revision, None) {
-        Ok(pinned) => Json(PinnedObjectBody {
-            object_ref,
-            written_revision: pinned.written_revision,
-            upcast_state: match pinned.upcast_state {
-                foundry_spine::UpcastState::Current => "current",
-                foundry_spine::UpcastState::UpcastPending => "upcast_pending",
-            },
-            properties: pinned
-                .properties
-                .iter()
-                .map(|(name, property)| {
-                    (
-                        name.clone(),
-                        PropertyBody {
-                            value_type: property.value.value.type_label(),
-                            data_class: property.value.data_class.label(),
-                            value: json_value(&property.value.value),
-                        },
-                    )
-                })
-                .collect(),
-        })
-        .into_response(),
-        Err(ViewError::UnknownObject) => refuse(
-            StatusCode::NOT_FOUND,
-            "surface",
-            "no applied entry ever bound this object",
-        ),
-        Err(ViewError::UnretainedRevision) => refuse(
-            StatusCode::CONFLICT,
-            "surface",
-            "that revision was never accepted for this entity type",
-        ),
+        Ok(pinned) => {
+            state.metrics.read_served();
+            Json(PinnedObjectBody {
+                object_ref,
+                written_revision: pinned.written_revision,
+                upcast_state: match pinned.upcast_state {
+                    foundry_spine::UpcastState::Current => "current",
+                    foundry_spine::UpcastState::UpcastPending => "upcast_pending",
+                },
+                properties: pinned
+                    .properties
+                    .iter()
+                    .map(|(name, property)| {
+                        (
+                            name.clone(),
+                            PropertyBody {
+                                value_type: property.value.value.type_label(),
+                                data_class: property.value.data_class.label(),
+                                value: json_value(&property.value.value),
+                            },
+                        )
+                    })
+                    .collect(),
+            })
+            .into_response()
+        }
+        Err(ViewError::UnknownObject) => {
+            state.metrics.read_refused();
+            refuse(
+                StatusCode::NOT_FOUND,
+                "surface",
+                "no applied entry ever bound this object",
+            )
+        }
+        Err(ViewError::UnretainedRevision) => {
+            state.metrics.read_refused();
+            refuse(
+                StatusCode::CONFLICT,
+                "surface",
+                "that revision was never accepted for this entity type",
+            )
+        }
     }
 }
 
@@ -166,6 +183,7 @@ pub async fn history(
             schema_revision: entry.schema_revision,
         })
         .collect();
+    state.metrics.read_served();
     Json(rows).into_response()
 }
 
@@ -202,6 +220,7 @@ pub async fn audit(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Re
             }
         })
         .collect();
+    state.metrics.read_served();
     Json(rows).into_response()
 }
 
@@ -230,6 +249,7 @@ pub async fn types(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Re
                     .collect(),
             })
             .collect();
+    state.metrics.read_served();
     Json(rows).into_response()
 }
 
