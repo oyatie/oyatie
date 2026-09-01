@@ -7,6 +7,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+mod canonical_json;
 mod error;
 mod integrity;
 mod migrations;

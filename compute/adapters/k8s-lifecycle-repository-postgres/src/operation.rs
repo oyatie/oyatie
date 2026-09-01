@@ -5,9 +5,9 @@ use compute_k8s_api::{
     CloudComputeK8sOperationKey,
 };
 use serde::{Serialize, de::DeserializeOwned};
-use sha2::{Digest, Sha256};
 use sqlx::{Row, postgres::PgRow};
 
+use crate::canonical_json::json_digest;
 use crate::integrity::validate_cluster_projection;
 use crate::{SCHEMA_VERSION, error::integrity, error::unavailable};
 
@@ -231,13 +231,6 @@ pub(crate) async fn complete_operation(
         return Err(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation);
     }
     Ok(())
-}
-
-fn json_digest(
-    value: &serde_json::Value,
-) -> Result<String, CloudComputeK8sLifecycleRepositoryError> {
-    let bytes = serde_json::to_vec(value).map_err(integrity)?;
-    Ok(format!("{:x}", Sha256::digest(bytes)))
 }
 
 pub(crate) fn is_unique_violation(error: &sqlx::Error) -> bool {
