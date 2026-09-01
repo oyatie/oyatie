@@ -7,7 +7,15 @@ pub fn required_success(result: &str) -> bool {
 
 /// Postgres job: must run when `live`; may skip only when the gate said not live.
 pub fn postgres_ok(result: &str, live: bool) -> bool {
-    if live {
+    conditional_job_ok(result, live)
+}
+
+pub fn reindeer_qualification_ok(result: &str, required: bool) -> bool {
+    conditional_job_ok(result, required)
+}
+
+fn conditional_job_ok(result: &str, required: bool) -> bool {
+    if required {
         result == "success"
     } else {
         result == "skipped" || result == "success"
@@ -31,9 +39,11 @@ pub struct FanIn<'a> {
     pub clippy: &'a str,
     pub test: &'a str,
     pub deny: &'a str,
-    pub pg_gate: &'a str,
+    pub change_gate: &'a str,
     pub pg_live: &'a str,
+    pub reindeer_qualification: &'a str,
     pub live: bool,
+    pub reindeer_required: bool,
     pub pull_request: bool,
 }
 
@@ -44,8 +54,9 @@ pub fn fan_in_ok(g: FanIn<'_>) -> bool {
         && required_success(g.clippy)
         && required_success(g.test)
         && required_success(g.deny)
-        && required_success(g.pg_gate)
+        && required_success(g.change_gate)
         && postgres_ok(g.pg_live, g.live)
+        && reindeer_qualification_ok(g.reindeer_qualification, g.reindeer_required)
 }
 
 /// Trunk honesty. Both jobs must run; skip is red.
@@ -65,9 +76,11 @@ mod tests {
             clippy: "success",
             test: "success",
             deny: "success",
-            pg_gate: "success",
+            change_gate: "success",
             pg_live: "success",
+            reindeer_qualification: "success",
             live: true,
+            reindeer_required: true,
             pull_request: true,
         }
     }
@@ -108,9 +121,9 @@ mod tests {
     }
 
     #[test]
-    fn pg_gate_failure_with_postgres_skipped_is_red() {
+    fn change_gate_failure_with_postgres_skipped_is_red() {
         let mut g = green();
-        g.pg_gate = "failure";
+        g.change_gate = "failure";
         g.pg_live = "skipped";
         assert!(!fan_in_ok(g));
     }
@@ -141,6 +154,30 @@ mod tests {
     fn live_true_postgres_skipped_is_red() {
         let mut g = green();
         g.pg_live = "skipped";
+        assert!(!fan_in_ok(g));
+    }
+
+    #[test]
+    fn required_reindeer_qualification_cannot_skip() {
+        let mut g = green();
+        g.reindeer_qualification = "skipped";
+        assert!(!fan_in_ok(g));
+    }
+
+    #[test]
+    fn ungated_reindeer_qualification_may_skip() {
+        let mut g = green();
+        g.reindeer_required = false;
+        g.reindeer_qualification = "skipped";
+        assert!(fan_in_ok(g));
+    }
+
+    #[test]
+    fn change_gate_failure_is_red_when_qualification_skips() {
+        let mut g = green();
+        g.change_gate = "failure";
+        g.reindeer_required = false;
+        g.reindeer_qualification = "skipped";
         assert!(!fan_in_ok(g));
     }
 

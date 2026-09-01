@@ -24,7 +24,10 @@ rust_test(
 
 rust_test(
     name = "pipeline-admission-cadence-graph",
-    srcs = ["tests/cadence_graph.rs"],
+    srcs = [
+        "tests/cadence_graph.rs",
+        "tests/cadence_graph/qualification_closure.rs",
+    ],
     crate = "pipeline_admission_cadence_graph",
     crate_root = "tests/cadence_graph.rs",
     visibility = ["PUBLIC"],
@@ -128,7 +131,10 @@ rust_test(
 
 rust_test(
     name = "pipeline-admission-protected-policy-workflow",
-    srcs = ["tests/protected_policy_workflow.rs"],
+    srcs = [
+        "tests/protected_policy_workflow.rs",
+        "tests/protected_policy_workflow/refutations.rs",
+    ],
     crate = "pipeline_admission_protected_policy_workflow",
     crate_root = "tests/protected_policy_workflow.rs",
     visibility = ["PUBLIC"],
