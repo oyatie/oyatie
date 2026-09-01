@@ -67,6 +67,9 @@ pub const ALLOWED_ROOT_DIRS: &[&str] = &[
 /// empty OWNERS scaffold.
 pub const BUILD_ROOT_DIRS: &[&str] = &["base", "notify", "policy", "workflow"];
 
+/// Local build outputs that are not repository source roots.
+pub const BUILD_OUTPUT_DIRS: &[&str] = &["buck-out", "target"];
+
 /// ADR-0719 D-22's closed v1 product roster. Missing products are BUILD, not
 /// membership ghosts, and must arrive with implementation content.
 pub const APP_PRODUCT_DIRS: &[&str] = &[
