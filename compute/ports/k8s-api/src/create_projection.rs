@@ -136,8 +136,8 @@ fn idempotency_key_for(
     boundary: &CloudComputeK8sApiBoundaryContext,
     principal: &CloudComputeK8sApiPrincipal,
     surface: &str,
-) -> CloudComputeK8sIdempotencyLedgerKey {
-    CloudComputeK8sIdempotencyLedgerKey {
+) -> CloudComputeK8sOperationKey {
+    CloudComputeK8sOperationKey {
         tenant_id: boundary.tenant_id.clone(),
         principal_id: principal.principal_id.clone(),
         surface: surface.to_string(),

@@ -59,40 +59,17 @@ impl CloudComputeK8sClusterDeleteSuccessResponse {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub struct CloudComputeK8sDeleteOperationKey {
-    pub tenant_id: String,       // data_class: INTERNAL_ONLY
-    pub principal_id: String,    // data_class: INTERNAL_ONLY
-    pub idempotency_key: String, // data_class: INTERNAL_ONLY
-}
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudComputeK8sDeleteCommand {
-    pub operation_key: CloudComputeK8sDeleteOperationKey, // data_class: INTERNAL_ONLY
-    pub resource_id: ResourceId,                          // data_class: INTERNAL_ONLY
-    pub request_id: String,                               // data_class: INTERNAL_ONLY
+    pub operation_key: CloudComputeK8sOperationKey, // data_class: INTERNAL_ONLY
+    pub resource_id: ResourceId,                    // data_class: INTERNAL_ONLY
+    pub request_id: String,                         // data_class: INTERNAL_ONLY
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CloudComputeK8sDeleteReceipt {
-    pub cluster: KubernetesCluster, // data_class: INTERNAL_ONLY
-    pub request_id: String,         // data_class: INTERNAL_ONLY
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum CloudComputeK8sDeleteRepositoryError {
-    ClusterNotFound,
-    IdempotencyKeyReused {
-        idempotency_key: String, // data_class: INTERNAL_ONLY
-    },
-    Unavailable,
-}
-
-pub trait CloudComputeK8sDeleteRepository {
-    fn commit_deletion(
-        &mut self,
-        command: CloudComputeK8sDeleteCommand,
-    ) -> Result<CloudComputeK8sDeleteReceipt, CloudComputeK8sDeleteRepositoryError>;
+    pub cluster: CloudComputeK8sClusterRecord, // data_class: INTERNAL_ONLY
+    pub request_id: String,                   // data_class: INTERNAL_ONLY
 }
 
 impl CloudComputeK8sApiError {

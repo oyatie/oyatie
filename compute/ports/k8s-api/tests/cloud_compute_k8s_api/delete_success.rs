@@ -25,14 +25,15 @@ fn k8s_delete_api_surface_constants_and_status_codes() {
     );
 }
 
-#[test]
-fn k8s_delete_api_accepts_intent_without_forging_observed_state() {
-    let mut repository = delete_repository_with_cluster();
+#[tokio::test]
+async fn k8s_delete_api_accepts_intent_without_forging_observed_state() {
+    let repository = delete_repository_with_cluster().await;
 
     let response = delete_cloud_compute_k8s_cluster_from_api(
-        &mut repository,
+        &repository,
         delete_request("req-del-happy", "idem-del-happy"),
     )
+    .await
     .expect("authorized cluster delete succeeds");
 
     assert_eq!(response.metadata.request_id, "req-del-happy");
@@ -43,22 +44,20 @@ fn k8s_delete_api_accepts_intent_without_forging_observed_state() {
     assert_eq!(response.data.schema_version, 2);
     assert_eq!(
         stored_cluster_lifecycle(&repository),
-        (
-            KubernetesClusterState::Creating,
-            KubernetesClusterDesiredState::Deleted,
-        )
+        ("creating".to_string(), "deleted".to_string())
     );
-    assert_eq!(repository.entry_count(), 1);
+    assert_eq!(repository.delete_operation_count(), 1);
 }
 
-#[test]
-fn k8s_delete_api_replay_returns_same_response_without_double_teardown() {
-    let mut repository = delete_repository_with_cluster();
+#[tokio::test]
+async fn k8s_delete_api_replay_returns_same_response_without_double_teardown() {
+    let repository = delete_repository_with_cluster().await;
 
     let first = delete_cloud_compute_k8s_cluster_from_api(
-        &mut repository,
+        &repository,
         delete_request("req-del-idem-1", "idem-del-replay"),
     )
+    .await
     .expect("first delete accepted");
 
     let mut retry = delete_request("req-del-idem-2", "idem-del-replay");
@@ -68,94 +67,101 @@ fn k8s_delete_api_replay_returns_same_response_without_double_teardown() {
         CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
         &retry.authorization.decision_id,
     ));
-    let second = delete_cloud_compute_k8s_cluster_from_api(&mut repository, retry)
+    let second = delete_cloud_compute_k8s_cluster_from_api(&repository, retry)
+        .await
         .expect("same idempotency key replays");
 
     assert_eq!(first, second);
-    assert_eq!(repository.entry_count(), 1);
+    assert_eq!(repository.delete_operation_count(), 1);
 }
 
-#[test]
-fn k8s_delete_api_stable_entrypoint_delegates() {
-    let mut repository = delete_repository_with_cluster();
+#[tokio::test]
+async fn k8s_delete_api_stable_entrypoint_delegates() {
+    let repository = delete_repository_with_cluster().await;
 
     let response = delete_cluster(
-        &mut repository,
+        &repository,
         delete_request("req-del-alias", "idem-del-alias"),
     )
+    .await
     .expect("stable delete_cluster entrypoint succeeds");
 
     assert_eq!(response.metadata.request_id, "req-del-alias");
     assert_eq!(response.data.state, "creating");
     assert_eq!(response.data.desired_state, "deleted");
-    assert_eq!(repository.entry_count(), 1);
+    assert_eq!(repository.delete_operation_count(), 1);
 }
 
-#[test]
-fn k8s_delete_api_rejects_empty_request_id() {
-    let mut repository = delete_repository_with_cluster();
+#[tokio::test]
+async fn k8s_delete_api_rejects_empty_request_id() {
+    let repository = delete_repository_with_cluster().await;
     let mut req = delete_request("req-del-empty-rid", "idem-del-empty-rid");
     req.boundary.request_id.clear();
 
-    let error = delete_cloud_compute_k8s_cluster_from_api(&mut repository, req)
+    let error = delete_cloud_compute_k8s_cluster_from_api(&repository, req)
+        .await
         .expect_err("empty request_id rejected");
 
     assert_eq!(error, CloudComputeK8sApiError::EmptyRequestId);
     assert_eq!(error.cluster_delete_status_code(), 400);
-    assert!(repository.is_empty());
+    assert_eq!(repository.delete_operation_count(), 0);
 }
 
-#[test]
-fn k8s_delete_api_rejects_empty_tenant() {
-    let mut repository = delete_repository_with_cluster();
+#[tokio::test]
+async fn k8s_delete_api_rejects_empty_tenant() {
+    let repository = delete_repository_with_cluster().await;
     let mut req = delete_request("req-del-empty-ten", "idem-del-empty-ten");
     req.boundary.tenant_id.clear();
 
-    let error = delete_cloud_compute_k8s_cluster_from_api(&mut repository, req)
+    let error = delete_cloud_compute_k8s_cluster_from_api(&repository, req)
+        .await
         .expect_err("empty tenant rejected");
 
     assert_eq!(error, CloudComputeK8sApiError::EmptyTenantHeader);
     assert_eq!(error.cluster_delete_status_code(), 400);
-    assert!(repository.is_empty());
+    assert_eq!(repository.delete_operation_count(), 0);
 }
 
-#[test]
-fn k8s_delete_api_rejects_empty_idempotency_key() {
-    let mut repository = delete_repository_with_cluster();
+#[tokio::test]
+async fn k8s_delete_api_rejects_empty_idempotency_key() {
+    let repository = delete_repository_with_cluster().await;
     let mut req = delete_request("req-del-empty-idem", "idem-del-empty-idem");
     req.boundary.idempotency_key.clear();
 
-    let error = delete_cloud_compute_k8s_cluster_from_api(&mut repository, req)
+    let error = delete_cloud_compute_k8s_cluster_from_api(&repository, req)
+        .await
         .expect_err("empty idempotency_key rejected");
 
     assert_eq!(error, CloudComputeK8sApiError::EmptyIdempotencyKey);
     assert_eq!(error.cluster_delete_status_code(), 400);
-    assert!(repository.is_empty());
+    assert_eq!(repository.delete_operation_count(), 0);
 }
 
-#[test]
-fn k8s_delete_api_rejects_empty_principal_as_unauthorized() {
-    let mut repository = delete_repository_with_cluster();
+#[tokio::test]
+async fn k8s_delete_api_rejects_empty_principal_as_unauthorized() {
+    let repository = delete_repository_with_cluster().await;
     let mut req = delete_request("req-del-empty-prin", "idem-del-empty-prin");
     req.principal.principal_id.clear();
 
-    let error = delete_cloud_compute_k8s_cluster_from_api(&mut repository, req)
+    let error = delete_cloud_compute_k8s_cluster_from_api(&repository, req)
+        .await
         .expect_err("empty principal_id is 401");
 
     assert_eq!(error, CloudComputeK8sApiError::EmptyPrincipalId);
     assert_eq!(error.cluster_delete_status_code(), 401);
-    assert!(repository.is_empty());
+    assert_eq!(repository.delete_operation_count(), 0);
 }
 
-#[test]
-fn k8s_delete_api_legacy_entrypoint_fails_closed_without_authorization_verifier() {
-    let mut repository = delete_repository_with_cluster();
+#[tokio::test]
+async fn k8s_delete_api_legacy_entrypoint_fails_closed_without_authorization_verifier() {
+    let repository = delete_repository_with_cluster().await;
     let req = delete_request("req-del-missing-verifier", "idem-del-missing-verifier");
 
     let error = delete_cloud_compute_k8s_cluster_from_api_without_authorization_verifier(
-        &mut repository,
+        &repository,
         req,
     )
+    .await
     .expect_err("legacy delete entrypoint has no trusted authorization verifier");
 
     assert_eq!(
@@ -166,13 +172,14 @@ fn k8s_delete_api_legacy_entrypoint_fails_closed_without_authorization_verifier(
     );
     assert_eq!(error.cluster_delete_status_code(), 403);
     let planned_error = delete_cluster_without_authorization_verifier(
-        &mut repository,
+        &repository,
         delete_request(
             "req-del-planned-missing-verifier",
             "idem-del-planned-missing-verifier",
         ),
     )
+    .await
     .expect_err("legacy planned delete entrypoint has no trusted authorization verifier");
     assert_eq!(planned_error, error);
-    assert!(repository.is_empty());
+    assert_eq!(repository.delete_operation_count(), 0);
 }

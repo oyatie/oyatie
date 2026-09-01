@@ -1372,6 +1372,23 @@ dependencies = [
  "compute-resource",
  "data-boundary-kernel",
  "network-residency",
+ "serde",
+ "tokio",
+]
+
+[[package]]
+name = "compute-k8s-lifecycle-repository-postgres"
+version = "0.1.0"
+dependencies = [
+ "compute-k8s-api",
+ "compute-resource",
+ "serde",
+ "serde_json",
+ "sha2",
+ "shared-postgres-command-adapter-sqlx",
+ "shared-postgres-command-kernel",
+ "sqlx",
+ "tokio",
 ]
 
 [[package]]

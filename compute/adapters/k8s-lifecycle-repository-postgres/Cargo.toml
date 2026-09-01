@@ -1,0 +1,28 @@
+[package]
+name = "compute-k8s-lifecycle-repository-postgres"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Durable PostgreSQL repository for tenant-isolated Compute Kubernetes lifecycle intent and idempotency receipts."
+
+[dependencies]
+compute-k8s-api = { path = "../../ports/k8s-api" }
+shared-postgres-command-adapter-sqlx = { path = "../../../data/adapters/postgres-command-sqlx" }
+shared-postgres-command-kernel = { path = "../../../data/core/postgres-command-kernel" }
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+sqlx.workspace = true
+
+[dev-dependencies]
+compute-resource = { path = "../../core/resource" }
+tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
