@@ -142,7 +142,9 @@ async fn a_poisoned_entry_never_un_readies_the_process() {
     // by a field. This is the only test that drives it off zero.
     let (_, body) = get(&fixture, "/metrics").await;
     assert!(
-        body.contains("foundry_poisoned_entries 1"),
+        // Newline-bounded: a bare `contains` of the value is satisfied by 10,
+        // 11 and 100, so it would pin "starts with 1" rather than equals 1.
+        body.contains("foundry_poisoned_entries 1\n"),
         "the poisoned gauge must report the poison this fixture created:\n{body}"
     );
 }

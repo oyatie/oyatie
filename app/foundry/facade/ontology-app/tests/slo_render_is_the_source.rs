@@ -167,18 +167,22 @@ fn the_scanner_reads_whole_metric_names_only() {
 /// lane removed, while `ineligible_because` one line below still carries the
 /// true reason. The guard has to assert the partition, not merely consume it.
 ///
-/// This is not a freeze on the exposition — a new metric may be added freely.
-/// It is a freeze on the claim that a series may back an objective, which is
-/// the claim that went wrong.
+/// This is not a freeze on the exposition. It is a freeze on the claim that a
+/// series may NOT back an objective — the set this reads is the ineligible
+/// one. A new ELIGIBLE metric may be added freely; a second ineligible one
+/// fails here deliberately, because a series that cannot back an objective is
+/// a thing a human should confirm rather than one that lands quietly.
 #[tokio::test]
 async fn only_the_boot_mirror_gauge_may_not_back_an_objective() {
     let fixture = Fixture::new("slo-eligibility");
     let state = fixture.state();
     let ineligible = foundry_ontology_app::metrics::objective_ineligible_metrics(&state);
-    let names: Vec<&str> = ineligible.iter().map(|(name, _)| *name).collect();
+    // Compared as a set: the table's order is not part of this claim, and a
+    // reorder must not fail a test about which series are ineligible.
+    let names: BTreeSet<&str> = ineligible.iter().map(|(name, _)| *name).collect();
     assert_eq!(
         names,
-        vec!["foundry_projection_lag"],
+        BTreeSet::from(["foundry_projection_lag"]),
         "the set of series that may not back an objective changed; if that is \
          deliberate, say why here"
     );
