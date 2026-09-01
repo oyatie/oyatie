@@ -5,10 +5,7 @@
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 
-use compute_domain::{
-    CloudComputeCatalog, CloudComputeError, ComputeRepo, KubernetesClusterDesiredState,
-    KubernetesClusterMutationError, KubernetesClusterState,
-};
+use compute_domain::CloudComputeError;
 use compute_k8s_api::{
     CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE, CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
     CloudComputeK8sApiAuthorization, CloudComputeK8sApiAuthorizationProof,
@@ -16,11 +13,12 @@ use compute_k8s_api::{
     CloudComputeK8sClusterCreateApiRequest, CloudComputeK8sClusterCreateApiStatus,
     CloudComputeK8sClusterCreateRequest, CloudComputeK8sClusterCreateSuccessResponse,
     CloudComputeK8sClusterDeleteApiRequest, CloudComputeK8sClusterDeleteApiStatus,
-    CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sCreateIdempotencyLedger,
-    CloudComputeK8sDeleteCommand, CloudComputeK8sDeleteOperationKey, CloudComputeK8sDeleteReceipt,
-    CloudComputeK8sDeleteRepository, CloudComputeK8sDeleteRepositoryError,
-    CloudComputeK8sNodePoolCreateRequest, CloudComputeK8sNodePoolFlavorSpec,
-    CloudComputeK8sQuotaEnvelope, CloudComputeK8sSecurityGroupRef,
+    CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sClusterRecord,
+    CloudComputeK8sCreateCommand, CloudComputeK8sCreateReceipt, CloudComputeK8sDeleteCommand,
+    CloudComputeK8sDeleteReceipt, CloudComputeK8sLifecycleRepository,
+    CloudComputeK8sLifecycleRepositoryError, CloudComputeK8sNodePoolCreateRequest,
+    CloudComputeK8sNodePoolFlavorSpec, CloudComputeK8sOperationKey, CloudComputeK8sQuotaEnvelope,
+    CloudComputeK8sRepositoryFuture, CloudComputeK8sSecurityGroupRef,
     CloudComputeK8sTrustedAuthorizationVerifier,
     create_cloud_compute_k8s_cluster_from_api as create_cloud_compute_k8s_cluster_from_api_without_authorization_verifier,
     create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier,
@@ -186,27 +184,23 @@ fn trusted_create_verifier_for(
         ))
 }
 
-fn create_cloud_compute_k8s_cluster_from_api(
-    catalog: &mut CloudComputeCatalog,
-    idempotency_ledger: &mut CloudComputeK8sCreateIdempotencyLedger,
+async fn create_cloud_compute_k8s_cluster_from_api(
+    repository: &LifecycleTestRepository,
     request: CloudComputeK8sClusterCreateApiRequest,
 ) -> Result<CloudComputeK8sClusterCreateSuccessResponse, CloudComputeK8sApiError> {
     let verifier = trusted_create_verifier_for(&request);
     create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
-        catalog,
-        idempotency_ledger,
-        request,
-        &verifier,
+        repository, request, &verifier,
     )
+    .await
 }
 
-fn create_cluster(
-    catalog: &mut CloudComputeCatalog,
-    idempotency_ledger: &mut CloudComputeK8sCreateIdempotencyLedger,
+async fn create_cluster(
+    repository: &LifecycleTestRepository,
     request: CloudComputeK8sClusterCreateApiRequest,
 ) -> Result<CloudComputeK8sClusterCreateSuccessResponse, CloudComputeK8sApiError> {
     let verifier = trusted_create_verifier_for(&request);
-    create_cluster_with_authorization_verifier(catalog, idempotency_ledger, request, &verifier)
+    create_cluster_with_authorization_verifier(repository, request, &verifier).await
 }
 
 include!("cloud_compute_k8s_api/create_replay.rs");

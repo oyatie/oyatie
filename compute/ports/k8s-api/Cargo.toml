@@ -12,6 +12,10 @@ compute-domain = { path = "../../core/domain" }
 compute-resource = { path = "../../core/resource" }
 
 network-residency = { path = "../../../network/core/residency" }
+serde.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
 
 [lib]
 doctest = false

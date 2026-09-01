@@ -18,7 +18,10 @@ fn delete_authorization_for(
         tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
         decision_id: decision_id.clone(),
-        allowed_surfaces: surfaces.iter().map(|s| (*s).to_string()).collect(),
+        allowed_surfaces: surfaces
+            .iter()
+            .map(|surface| (*surface).to_string())
+            .collect(),
         proof: Some(authorization_proof_for(
             principal_id,
             CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
@@ -53,8 +56,8 @@ fn trusted_delete_verifier_for(
         ))
 }
 
-fn delete_cloud_compute_k8s_cluster_from_api(
-    repository: &mut DeleteTestRepository,
+async fn delete_cloud_compute_k8s_cluster_from_api(
+    repository: &LifecycleTestRepository,
     request: CloudComputeK8sClusterDeleteApiRequest,
 ) -> Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError> {
     let verifier = trusted_delete_verifier_for(&request);
@@ -63,160 +66,300 @@ fn delete_cloud_compute_k8s_cluster_from_api(
         request,
         &verifier,
     )
+    .await
 }
 
-fn delete_cluster(
-    repository: &mut DeleteTestRepository,
+async fn delete_cluster(
+    repository: &LifecycleTestRepository,
     request: CloudComputeK8sClusterDeleteApiRequest,
 ) -> Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError> {
     let verifier = trusted_delete_verifier_for(&request);
-    delete_cluster_with_authorization_verifier(repository, request, &verifier)
+    delete_cluster_with_authorization_verifier(repository, request, &verifier).await
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-struct DeleteTestRepositoryEntry {
-    resource_id: compute_resource::ResourceId,
-    receipt: CloudComputeK8sDeleteReceipt,
+struct LifecycleTestClusterEntry {
+    desired_spec: CloudComputeK8sClusterCreateRequest,
+    record: CloudComputeK8sClusterRecord,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-struct DeleteTestRepositoryState {
-    catalog: CloudComputeCatalog,
-    entries: BTreeMap<CloudComputeK8sDeleteOperationKey, DeleteTestRepositoryEntry>,
+enum LifecycleTestOperationEntry {
+    Create {
+        fingerprint: String,
+        receipt: CloudComputeK8sCreateReceipt,
+    },
+    Delete {
+        resource_id: compute_resource::ResourceId,
+        receipt: CloudComputeK8sDeleteReceipt,
+    },
 }
 
-#[derive(Clone, Debug)]
-struct DeleteTestRepository {
-    state: Arc<Mutex<DeleteTestRepositoryState>>,
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+struct LifecycleTestRepositoryState {
+    clusters: BTreeMap<String, LifecycleTestClusterEntry>,
+    operations: BTreeMap<CloudComputeK8sOperationKey, LifecycleTestOperationEntry>,
+}
+
+#[derive(Clone, Debug, Default)]
+struct LifecycleTestRepositoryControl {
     fail_next_commit: bool,
-    next_receipt_override: Option<CloudComputeK8sDeleteReceipt>,
+    next_create_receipt_override: Option<CloudComputeK8sCreateReceipt>,
+    next_delete_receipt_override: Option<CloudComputeK8sDeleteReceipt>,
 }
 
-impl DeleteTestRepository {
-    fn new(catalog: CloudComputeCatalog) -> Self {
-        Self {
-            state: Arc::new(Mutex::new(DeleteTestRepositoryState {
-                catalog,
-                entries: BTreeMap::new(),
-            })),
-            fail_next_commit: false,
-            next_receipt_override: None,
-        }
-    }
+#[derive(Clone, Debug, Default)]
+struct LifecycleTestRepository {
+    state: Arc<Mutex<LifecycleTestRepositoryState>>,
+    control: Arc<Mutex<LifecycleTestRepositoryControl>>,
+}
 
-    fn entry_count(&self) -> usize {
-        self.state.lock().expect("repository lock is healthy").entries.len()
-    }
-
-    fn is_empty(&self) -> bool {
-        self.entry_count() == 0
-    }
-
-    fn catalog_snapshot(&self) -> CloudComputeCatalog {
-        self.state
-            .lock()
-            .expect("repository lock is healthy")
-            .catalog
-            .clone()
-    }
-
-    fn snapshot(&self) -> DeleteTestRepositoryState {
+impl LifecycleTestRepository {
+    fn snapshot(&self) -> LifecycleTestRepositoryState {
         self.state.lock().expect("repository lock is healthy").clone()
     }
 
-    fn from_restored_snapshot(snapshot: DeleteTestRepositoryState) -> Self {
+    fn from_restored_snapshot(snapshot: LifecycleTestRepositoryState) -> Self {
         Self {
             state: Arc::new(Mutex::new(snapshot)),
-            fail_next_commit: false,
-            next_receipt_override: None,
+            control: Arc::new(Mutex::new(LifecycleTestRepositoryControl::default())),
         }
     }
 
-    fn fail_next_commit(&mut self) {
-        self.fail_next_commit = true;
-    }
-
-    fn return_next_receipt(&mut self, receipt: CloudComputeK8sDeleteReceipt) {
-        self.next_receipt_override = Some(receipt);
-    }
-}
-
-impl CloudComputeK8sDeleteRepository for DeleteTestRepository {
-    fn commit_deletion(
-        &mut self,
-        command: CloudComputeK8sDeleteCommand,
-    ) -> Result<CloudComputeK8sDeleteReceipt, CloudComputeK8sDeleteRepositoryError> {
-        if let Some(receipt) = self.next_receipt_override.take() {
-            return Ok(receipt);
-        }
-        let mut current = self
-            .state
+    fn fail_next_commit(&self) {
+        self.control
             .lock()
-            .map_err(|_| CloudComputeK8sDeleteRepositoryError::Unavailable)?;
-        if let Some(entry) = current.entries.get(&command.operation_key) {
-            if entry.resource_id == command.resource_id {
-                return Ok(entry.receipt.clone());
-            }
-            return Err(CloudComputeK8sDeleteRepositoryError::IdempotencyKeyReused {
-                idempotency_key: command.operation_key.idempotency_key,
-            });
-        }
+            .expect("repository control lock is healthy")
+            .fail_next_commit = true;
+    }
 
-        let mut next = current.clone();
-        let cluster = next
-            .catalog
-            .request_kubernetes_cluster_deletion(&command.resource_id)
-            .map_err(|error| match error {
-                KubernetesClusterMutationError::UnknownCluster => {
-                    CloudComputeK8sDeleteRepositoryError::ClusterNotFound
-                }
-            })?;
-        let receipt = CloudComputeK8sDeleteReceipt {
-            cluster,
-            request_id: command.request_id,
-        };
-        next.entries.insert(
-            command.operation_key,
-            DeleteTestRepositoryEntry {
-                resource_id: command.resource_id,
-                receipt: receipt.clone(),
-            },
-        );
+    fn return_next_create_receipt(&self, receipt: CloudComputeK8sCreateReceipt) {
+        self.control
+            .lock()
+            .expect("repository control lock is healthy")
+            .next_create_receipt_override = Some(receipt);
+    }
 
-        if self.fail_next_commit {
-            self.fail_next_commit = false;
-            return Err(CloudComputeK8sDeleteRepositoryError::Unavailable);
-        }
-        *current = next;
-        Ok(receipt)
+    fn return_next_delete_receipt(&self, receipt: CloudComputeK8sDeleteReceipt) {
+        self.control
+            .lock()
+            .expect("repository control lock is healthy")
+            .next_delete_receipt_override = Some(receipt);
+    }
+
+    fn take_create_receipt_override(&self) -> Option<CloudComputeK8sCreateReceipt> {
+        self.control
+            .lock()
+            .expect("repository control lock is healthy")
+            .next_create_receipt_override
+            .take()
+    }
+
+    fn take_delete_receipt_override(&self) -> Option<CloudComputeK8sDeleteReceipt> {
+        self.control
+            .lock()
+            .expect("repository control lock is healthy")
+            .next_delete_receipt_override
+            .take()
+    }
+
+    fn should_fail_commit(&self) -> bool {
+        let mut control = self
+            .control
+            .lock()
+            .expect("repository control lock is healthy");
+        let should_fail = control.fail_next_commit;
+        control.fail_next_commit = false;
+        should_fail
+    }
+
+    fn cluster_count(&self) -> usize {
+        self.state
+            .lock()
+            .expect("repository lock is healthy")
+            .clusters
+            .len()
+    }
+
+    fn create_operation_count(&self) -> usize {
+        self.operation_count(|entry| matches!(entry, LifecycleTestOperationEntry::Create { .. }))
+    }
+
+    fn delete_operation_count(&self) -> usize {
+        self.operation_count(|entry| matches!(entry, LifecycleTestOperationEntry::Delete { .. }))
+    }
+
+    fn operation_count(&self, matches_entry: impl Fn(&LifecycleTestOperationEntry) -> bool) -> usize {
+        self.state
+            .lock()
+            .expect("repository lock is healthy")
+            .operations
+            .values()
+            .filter(|entry| matches_entry(entry))
+            .count()
+    }
+
+    fn cluster_record(&self, resource_id: &str) -> Option<CloudComputeK8sClusterRecord> {
+        self.state
+            .lock()
+            .expect("repository lock is healthy")
+            .clusters
+            .get(resource_id)
+            .map(|entry| entry.record.clone())
     }
 }
 
-/// Populate the catalog with one cluster so delete tests have something to find.
-fn catalog_with_cluster() -> (CloudComputeCatalog, CloudComputeK8sCreateIdempotencyLedger) {
-    let mut catalog = CloudComputeCatalog::default();
-    let mut create_ledger = CloudComputeK8sCreateIdempotencyLedger::default();
+impl CloudComputeK8sLifecycleRepository for LifecycleTestRepository {
+    fn commit_create<'a>(
+        &'a self,
+        command: CloudComputeK8sCreateCommand,
+    ) -> CloudComputeK8sRepositoryFuture<
+        'a,
+        Result<CloudComputeK8sCreateReceipt, CloudComputeK8sLifecycleRepositoryError>,
+    > {
+        Box::pin(async move {
+            if let Some(receipt) = self.take_create_receipt_override() {
+                return Ok(receipt);
+            }
+
+            let mut current = self
+                .state
+                .lock()
+                .map_err(|_| CloudComputeK8sLifecycleRepositoryError::Unavailable)?;
+            if let Some(entry) = current.operations.get(&command.operation_key) {
+                return match entry {
+                    LifecycleTestOperationEntry::Create {
+                        fingerprint,
+                        receipt,
+                    } if fingerprint == &command.fingerprint => Ok(receipt.clone()),
+                    LifecycleTestOperationEntry::Create { .. } => {
+                        Err(CloudComputeK8sLifecycleRepositoryError::IdempotencyKeyReused {
+                            idempotency_key: command.operation_key.idempotency_key,
+                        })
+                    }
+                    LifecycleTestOperationEntry::Delete { .. } => {
+                        Err(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation)
+                    }
+                };
+            }
+            if command.cluster.resource_id != command.desired_spec.resource_id
+                || command.cluster.tenant_id != command.desired_spec.tenant_id
+                || command.cluster.tenant_id != command.operation_key.tenant_id
+                || command.cluster.desired_state != "present"
+                || command.operation_key.surface != CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE
+            {
+                return Err(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation);
+            }
+
+            let mut next = current.clone();
+            if next.clusters.contains_key(&command.cluster.resource_id) {
+                return Err(CloudComputeK8sLifecycleRepositoryError::ClusterAlreadyExists);
+            }
+            let receipt = CloudComputeK8sCreateReceipt {
+                cluster: command.cluster.clone(),
+                request_id: command.request_id,
+            };
+            next.clusters.insert(
+                command.cluster.resource_id.clone(),
+                LifecycleTestClusterEntry {
+                    desired_spec: command.desired_spec,
+                    record: command.cluster,
+                },
+            );
+            next.operations.insert(
+                command.operation_key,
+                LifecycleTestOperationEntry::Create {
+                    fingerprint: command.fingerprint,
+                    receipt: receipt.clone(),
+                },
+            );
+            if self.should_fail_commit() {
+                return Err(CloudComputeK8sLifecycleRepositoryError::Unavailable);
+            }
+            *current = next;
+            Ok(receipt)
+        })
+    }
+
+    fn commit_deletion<'a>(
+        &'a self,
+        command: CloudComputeK8sDeleteCommand,
+    ) -> CloudComputeK8sRepositoryFuture<
+        'a,
+        Result<CloudComputeK8sDeleteReceipt, CloudComputeK8sLifecycleRepositoryError>,
+    > {
+        Box::pin(async move {
+            if let Some(receipt) = self.take_delete_receipt_override() {
+                return Ok(receipt);
+            }
+
+            let mut current = self
+                .state
+                .lock()
+                .map_err(|_| CloudComputeK8sLifecycleRepositoryError::Unavailable)?;
+            if let Some(entry) = current.operations.get(&command.operation_key) {
+                return match entry {
+                    LifecycleTestOperationEntry::Delete {
+                        resource_id,
+                        receipt,
+                    } if resource_id == &command.resource_id => Ok(receipt.clone()),
+                    LifecycleTestOperationEntry::Delete { .. } => {
+                        Err(CloudComputeK8sLifecycleRepositoryError::IdempotencyKeyReused {
+                            idempotency_key: command.operation_key.idempotency_key,
+                        })
+                    }
+                    LifecycleTestOperationEntry::Create { .. } => {
+                        Err(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation)
+                    }
+                };
+            }
+            if command.operation_key.surface != CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE {
+                return Err(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation);
+            }
+
+            let mut next = current.clone();
+            let cluster = next
+                .clusters
+                .get_mut(&command.resource_id.value)
+                .ok_or(CloudComputeK8sLifecycleRepositoryError::ClusterNotFound)?;
+            if cluster.record.tenant_id != command.operation_key.tenant_id {
+                return Err(CloudComputeK8sLifecycleRepositoryError::ClusterNotFound);
+            }
+            cluster.record.desired_state = "deleted".to_string();
+            let receipt = CloudComputeK8sDeleteReceipt {
+                cluster: cluster.record.clone(),
+                request_id: command.request_id,
+            };
+            next.operations.insert(
+                command.operation_key,
+                LifecycleTestOperationEntry::Delete {
+                    resource_id: command.resource_id,
+                    receipt: receipt.clone(),
+                },
+            );
+            if self.should_fail_commit() {
+                return Err(CloudComputeK8sLifecycleRepositoryError::Unavailable);
+            }
+            *current = next;
+            Ok(receipt)
+        })
+    }
+}
+
+async fn delete_repository_with_cluster() -> LifecycleTestRepository {
+    let repository = LifecycleTestRepository::default();
     create_cloud_compute_k8s_cluster_from_api(
-        &mut catalog,
-        &mut create_ledger,
+        &repository,
         request("req-setup-delete", "idem-setup-delete"),
     )
+    .await
     .expect("setup cluster create succeeds");
-    (catalog, create_ledger)
+    repository
 }
 
-fn delete_repository_with_cluster() -> DeleteTestRepository {
-    let (catalog, _) = catalog_with_cluster();
-    DeleteTestRepository::new(catalog)
-}
-
-fn stored_cluster_lifecycle(
-    repository: &DeleteTestRepository,
-) -> (KubernetesClusterState, KubernetesClusterDesiredState) {
-    let catalog = repository.catalog_snapshot();
-    let cluster = catalog
-        .kubernetes_clusters()
-        .find(|cluster| cluster.resource_id.value.value == CLUSTER_ID)
-        .expect("setup cluster remains in the catalog");
-    (cluster.state.value, cluster.desired_state.value)
+fn stored_cluster_lifecycle(repository: &LifecycleTestRepository) -> (String, String) {
+    let cluster = repository
+        .cluster_record(CLUSTER_ID)
+        .expect("setup cluster remains in the repository");
+    (cluster.state, cluster.desired_state)
 }
