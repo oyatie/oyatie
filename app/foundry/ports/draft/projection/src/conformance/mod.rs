@@ -6,6 +6,7 @@ mod links;
 mod predicates;
 mod reads;
 mod reset;
+mod reset_isolation;
 
 pub use keys::{
     check_a_composite_key_value_is_refused, check_a_duplicate_primary_key_is_refused,
@@ -29,9 +30,11 @@ pub use reads::{
 };
 pub use reset::{
     check_applies_restart_at_ordinal_one_after_reset,
-    check_reset_discards_everything_for_the_tenant, check_reset_leaves_other_tenants_untouched,
-    check_reset_refuses_a_blank_tenant, check_reset_survives_reopen,
+    check_reset_discards_everything_for_the_tenant, check_reset_survives_reopen,
     check_resetting_an_unknown_tenant_discards_nothing,
+};
+pub use reset_isolation::{
+    check_reset_leaves_other_tenants_untouched, check_reset_refuses_a_blank_tenant,
 };
 
 use data_boundary_kernel::{DataClass, PrivacyDataClass};
@@ -86,6 +89,15 @@ pub(crate) fn object(
         schema_revision: 1,
         last_ordinal: 1,
         last_actor: "prn_projector".to_owned(),
+    }
+}
+
+pub(crate) fn edge(from: &str, to: &str) -> crate::store::ProjectedLink {
+    crate::store::ProjectedLink {
+        link_type: "lty_measures".to_owned(),
+        from_object_ref: from.to_owned(),
+        to_object_ref: to.to_owned(),
+        observed_at_epoch_ms: 1_700_000_000_000,
     }
 }
 

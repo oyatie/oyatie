@@ -73,7 +73,7 @@ fn projected(object_ref: &str, properties: Vec<ObjectProperty>) -> ProjectedObje
 #[test]
 fn a_rich_object_round_trips_byte_faithfully_across_reopen() {
     let path = scratch("roundtrip");
-    let _ = std::fs::remove_file(&path);
+    sweep(&path);
     let mut nested = BTreeMap::new();
     nested.insert("lat".to_owned(), PropertyValue::Integer(37));
     nested.insert(
@@ -116,13 +116,13 @@ fn a_rich_object_round_trips_byte_faithfully_across_reopen() {
     let store = SqliteProjectionStore::open(&path).unwrap();
     let read = store.get("ten_a", "ent_rich").unwrap();
     assert_eq!(read.as_ref(), Some(&stored), "Eq-identical after reopen");
-    let _ = std::fs::remove_file(&path);
+    sweep(&path);
 }
 
 #[test]
 fn the_date_index_key_agrees_with_kernel_order() {
     let path = scratch("dates");
-    let _ = std::fs::remove_file(&path);
+    sweep(&path);
     let mut store = SqliteProjectionStore::open(&path).unwrap();
     for (ordinal, (object_ref, y, m, d)) in [
         ("ent_d1", 2023, 12, 31),
@@ -162,13 +162,13 @@ fn the_date_index_key_agrees_with_kernel_order() {
         vec!["ent_d2", "ent_d3"],
         "the year-boundary date stays out; chronology, not string order",
     );
-    let _ = std::fs::remove_file(&path);
+    sweep(&path);
 }
 
 #[test]
 fn typed_index_columns_never_alias_across_kinds() {
     let path = scratch("alias");
-    let _ = std::fs::remove_file(&path);
+    sweep(&path);
     let mut store = SqliteProjectionStore::open(&path).unwrap();
     store
         .apply(
@@ -199,13 +199,13 @@ fn typed_index_columns_never_alias_across_kinds() {
         vec!["ent_int"],
         "int_value=1 rows of Boolean kind never alias Integer(1)",
     );
-    let _ = std::fs::remove_file(&path);
+    sweep(&path);
 }
 
 #[test]
 fn predicate_queries_run_through_the_property_index() {
     let path = scratch("plan");
-    let _ = std::fs::remove_file(&path);
+    sweep(&path);
     let mut store = SqliteProjectionStore::open(&path).unwrap();
     store
         .apply(
@@ -239,22 +239,17 @@ fn predicate_queries_run_through_the_property_index() {
         plan.contains(PROPERTY_INDEX_NAME),
         "the shaped query uses the property index, not a table scan: {plan}",
     );
-    let _ = std::fs::remove_file(&path);
+    sweep(&path);
 }
 
-/// A head that will not convert to an ordinal is a CORRUPT store, not an
-/// empty one, and the discard must refuse rather than destroy.
-///
-/// The first version of this path read the head with
-/// `try_into().unwrap_or(0)`. Against a negative `applied_ordinal` that
-/// returned `Ok(0)` — reporting nothing discarded while deleting every
-/// row — which is precisely the "loss" the operation returns a head to
-/// distinguish itself from. `applied_head` already refused such a
-/// store; only the discard swallowed it.
+/// A head that will not convert is a CORRUPT store, not an empty one,
+/// so the discard refuses. `try_into().unwrap_or(0)` returned `Ok(0)` —
+/// nothing discarded — while deleting every row: the exact "loss" a
+/// returned head exists to distinguish itself from.
 #[test]
 fn a_corrupt_head_refuses_the_discard_and_keeps_the_rows() {
     let path = scratch("corrupt-head");
-    let _ = std::fs::remove_file(&path);
+    sweep(&path);
     let stored = projected(
         "ent_a1",
         vec![typed("name", PropertyValue::String("Ada".to_owned()))],
@@ -280,8 +275,7 @@ fn a_corrupt_head_refuses_the_discard_and_keeps_the_rows() {
         matches!(refused, Err(ProjectionStoreError::Storage { .. })),
         "a corrupt head refuses: {refused:?}"
     );
-    // The refusal rolls the transaction back, so the rows an operator
-    // would have lost are all still there.
+    // The refusal rolls the transaction back: nothing was lost.
     let survivors = rusqlite::Connection::open(&path)
         .unwrap()
         .query_row(
@@ -291,5 +285,16 @@ fn a_corrupt_head_refuses_the_discard_and_keeps_the_rows() {
         )
         .unwrap();
     assert_eq!(survivors, 1, "nothing was destroyed by the refusal");
-    let _ = std::fs::remove_file(&path);
+    sweep(&path);
+}
+
+/// WAL writes two sidecars beside the database; removing only the file
+/// leaked 72 strays per suite run, unbounded once names became unique.
+fn sweep(path: &std::path::Path) {
+    let _ = std::fs::remove_file(path);
+    for suffix in ["-wal", "-shm"] {
+        let mut sidecar = path.as_os_str().to_owned();
+        sidecar.push(suffix);
+        let _ = std::fs::remove_file(std::path::PathBuf::from(sidecar));
+    }
 }

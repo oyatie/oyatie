@@ -4,7 +4,7 @@
 //! produces the mixture it was called to escape, and touch NOBODY else,
 //! because too wide a blast radius cannot be undone.
 
-use crate::conformance::{ProjectionFixture, applied, applied_with_links, fail, object};
+use crate::conformance::{ProjectionFixture, applied, applied_with_links, edge, fail, object};
 use crate::keys::KeyDesignations;
 use data_ontology_kernel::PropertyValue;
 
@@ -12,15 +12,6 @@ use crate::predicate::PropertyPredicate;
 use crate::store::{
     EntryOutcome, PageRequest, ProjectedLink, ProjectionStore, ProjectionStoreError,
 };
-
-fn edge(from: &str, to: &str) -> ProjectedLink {
-    ProjectedLink {
-        link_type: "lty_measures".to_owned(),
-        from_object_ref: from.to_owned(),
-        to_object_ref: to.to_owned(),
-        observed_at_epoch_ms: 1_700_000_000_000,
-    }
-}
 
 /// Objects, edges, the poison ledger and the head all go. A reset that
 /// left any of them would rebuild a projection that still disagrees with
@@ -116,56 +107,6 @@ pub fn check_reset_discards_everything_for_the_tenant<F: ProjectionFixture>(
         .map_err(|error| fail("poisons read", format!("{error:?}")))?;
     if !poisons.is_empty() {
         return Err(fail("the poison ledger is gone", format!("{poisons:?}")));
-    }
-    Ok(())
-}
-
-/// The blast radius is exactly one tenant. The neighbour's id has
-/// `ten_a` as a PREFIX: a discard written with `starts_with` rather
-/// than equality passes every test whose tenants share none, while
-/// destroying `ten_ab` and `ten_alpha`.
-pub fn check_reset_leaves_other_tenants_untouched<F: ProjectionFixture>(
-    fixture: &mut F,
-) -> Result<(), String> {
-    let store = fixture.store();
-    for tenant in ["ten_a", "ten_ab"] {
-        store
-            .apply(
-                applied_with_links(
-                    tenant,
-                    1,
-                    vec![
-                        object(tenant, "ent_1", "ety_reading", vec![]),
-                        object(tenant, "ent_2", "ety_reading", vec![]),
-                    ],
-                    vec![edge("ent_1", "ent_2")],
-                ),
-                &KeyDesignations::default(),
-            )
-            .map_err(|error| fail("seed apply", format!("{error:?}")))?;
-    }
-
-    store
-        .reset_tenant("ten_a")
-        .map_err(|error| fail("reset runs", format!("{error:?}")))?;
-
-    let head = store
-        .applied_head("ten_ab")
-        .map_err(|error| fail("neighbour head reads", format!("{error:?}")))?;
-    if head != 1 {
-        return Err(fail("the neighbour keeps its head", format!("{head}")));
-    }
-    let kept = store
-        .get("ten_ab", "ent_1")
-        .map_err(|error| fail("neighbour get reads", format!("{error:?}")))?;
-    if kept.is_none() {
-        return Err(fail("the neighbour keeps its objects", "absent".to_owned()));
-    }
-    let edges = store
-        .links_from("ten_ab", "ent_1")
-        .map_err(|error| fail("neighbour links read", format!("{error:?}")))?;
-    if edges.len() != 1 {
-        return Err(fail("the neighbour keeps its edges", format!("{edges:?}")));
     }
     Ok(())
 }
@@ -271,23 +212,6 @@ pub fn check_reset_survives_reopen<F: ProjectionFixture>(fixture: &mut F) -> Res
         .map_err(|error| fail("get reads after reopen", format!("{error:?}")))?;
     if read.is_some() {
         return Err(fail("the rows are durably gone", format!("{read:?}")));
-    }
-    Ok(())
-}
-
-/// Both planes refuse a blank or untrimmed tenant id, the SAME way. A
-/// destructive operation one plane performs and the other declines is
-/// worse than either alone: code developed against the reference reads
-/// "nothing to discard" where production refuses.
-pub fn check_reset_refuses_a_blank_tenant<F: ProjectionFixture>(
-    fixture: &mut F,
-) -> Result<(), String> {
-    let store = fixture.store();
-    for blank in ["", "   ", " ten_a", "ten_a "] {
-        let refused = store.reset_tenant(blank);
-        if !matches!(refused, Err(ProjectionStoreError::Entry { .. })) {
-            return Err(fail("an untrimmed tenant is refused", format!("{blank:?}")));
-        }
     }
     Ok(())
 }

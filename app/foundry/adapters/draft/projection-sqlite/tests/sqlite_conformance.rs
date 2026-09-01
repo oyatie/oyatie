@@ -58,7 +58,18 @@ impl SqliteFixture {
 
 impl Drop for SqliteFixture {
     fn drop(&mut self) {
-        let _ = std::fs::remove_file(&self.path);
+        sweep(&self.path);
+    }
+}
+/// WAL mode writes two sidecars beside the database, so removing only
+/// the file leaves them behind — bounded while fixture names repeated,
+/// unbounded once they are unique. Measured at 72 strays per suite run.
+fn sweep(path: &std::path::Path) {
+    let _ = std::fs::remove_file(path);
+    for suffix in ["-wal", "-shm"] {
+        let mut sidecar = path.as_os_str().to_owned();
+        sidecar.push(suffix);
+        let _ = std::fs::remove_file(std::path::PathBuf::from(sidecar));
     }
 }
 
