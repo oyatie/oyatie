@@ -1,0 +1,25 @@
+rust_binary(
+    name = "pipeline-change-gates-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "pipeline_change_gates_app",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
+        "//pipeline/core/admission:pipeline-admission",
+        "//pipeline/ports/draft/repository:pipeline-repository-draft",
+    ],
+)
+
+rust_test(
+    name = "pipeline-change-gates-app-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "pipeline_change_gates_app",
+    crate_root = "src/main.rs",
+    visibility = [],
+    deps = [
+        "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
+        "//pipeline/core/admission:pipeline-admission",
+        "//pipeline/ports/draft/repository:pipeline-repository-draft",
+    ],
+)

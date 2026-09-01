@@ -1,8 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use pipeline_admission::{
-    ALLOWED_ROOT_DIRS, APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, cargo_config_violations,
-    file_budget_violations, is_capability_root,
+    ALLOWED_ROOT_DIRS, APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, CARGO_CONFIG_PATHS,
+    cargo_config_violations, file_budget_violations, is_capability_root,
 };
 use pipeline_repository_draft::{RepositoryEntryKind, RepositoryRead};
 
@@ -72,7 +72,7 @@ pub(super) fn repository_cargo_config_violations(
     head: &str,
 ) -> Result<Vec<String>, String> {
     let mut violations = Vec::new();
-    for path in [".cargo/config.toml", ".cargo/config"] {
+    for path in CARGO_CONFIG_PATHS {
         match repository.entry_kind(head, path)? {
             None => {}
             Some(kind) if regular_blob(Some(kind)) => {

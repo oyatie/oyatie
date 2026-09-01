@@ -1,5 +1,7 @@
 //! Cargo configuration surfaces that can bypass admission or redirect dependencies.
 
+pub const CARGO_CONFIG_PATHS: &[&str] = &[".cargo/config", ".cargo/config.toml"];
+
 const FIXTURE_BINDINGS: &[(&str, &str)] = &[
     (
         "OYATIE_INTELLIGENCE_HELM_DEPLOYMENT",

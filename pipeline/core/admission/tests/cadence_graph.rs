@@ -4,6 +4,9 @@
 use pipeline_admission::{LIVE_POSTGRES_CRATES, POSTSUBMIT_JOBS, PRESUBMIT_JOBS, WORKFLOW_FILES};
 use std::path::{Path, PathBuf};
 
+#[path = "cadence_graph/qualification_closure.rs"]
+mod qualification_closure;
+
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../..")
@@ -56,14 +59,16 @@ fn presubmit_jobs_are_the_occupant_set() {
         "ruleset-required workflows must not cancel or supersede an admission run"
     );
     assert!(
-        y.contains("needs: [layout, occupancy, lint, clippy, test, deny, pg-gate, live-postgres]")
+        y.contains(
+            "needs: [layout, occupancy, lint, clippy, test, deny, change-gates, reindeer-source-qualification, live-postgres]"
+        )
     );
     assert!(y.contains("needs: [layout, occupancy]"));
     let protected_source = "ref: ${{ github.workflow_sha }}";
     assert_eq!(
         y.matches(protected_source).count(),
-        2,
-        "layout and occupancy must compile from the immutable revision of the ruleset-selected workflow"
+        3,
+        "layout, occupancy, and change gates must compile from the ruleset-selected workflow revision"
     );
     assert!(y.contains("ref: ${{ github.sha }}"));
     assert!(y.contains("git rev-parse --verify 'HEAD^1^{commit}'"));
@@ -71,13 +76,14 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(!y.contains("github.event.merge_group.head_sha"));
     assert!(y.contains("pipeline-path-occupancy-app"));
     assert!(y.contains("pipeline-path-layout-app"));
+    assert!(y.contains("pipeline-change-gates-app"));
     assert!(y.contains("path: candidate"));
     assert!(y.contains("path: trusted"));
     assert!(y.contains("name: Check out protected admission source"));
     assert!(y.contains("cargo build --locked"));
     assert_eq!(
         y.matches("working-directory: ${{ runner.temp }}").count(),
-        3,
+        4,
         "trusted admission builds and rustfmt must ignore candidate Cargo configuration"
     );
     assert!(y.contains("--manifest-path \"$GITHUB_WORKSPACE/trusted/Cargo.toml\""));
@@ -85,6 +91,7 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("--target x86_64-unknown-linux-gnu"));
     assert!(y.contains("--target-dir \"$RUNNER_TEMP/oyatie-layout-admission\""));
     assert!(y.contains("--target-dir \"$RUNNER_TEMP/oyatie-occupancy-admission\""));
+    assert!(y.contains("--target-dir \"$RUNNER_TEMP/oyatie-change-gates-admission\""));
     let protected_builds = y
         .split("name: Build protected path-layout application")
         .nth(1)
@@ -96,8 +103,10 @@ fn presubmit_jobs_are_the_occupant_set() {
     );
     assert!(y.contains("debug/pipeline-path-layout-app\""));
     assert!(y.contains("debug/pipeline-path-occupancy-app\""));
+    assert!(y.contains("debug/pipeline-change-gates-app\""));
     assert!(!y.contains("cargo run -p pipeline-path-layout-app"));
     assert!(!y.contains("cargo run -p pipeline-path-occupancy-app"));
+    assert!(!y.contains("cargo run -p pipeline-change-gates-app"));
     assert!(y.contains("cargo clippy --locked --workspace --all-targets"));
     assert!(y.contains("-- -D warnings"));
     assert!(y.contains("req \"${{ needs.layout.result }}\""));
@@ -114,6 +123,13 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("occ \"${{ needs.occupancy.result }}\""));
     assert!(y.contains("OYATIE_PULL_REQUEST: ${{ github.event.pull_request.number }}"));
     assert!(y.contains("OYATIE_REPOSITORY"));
+    assert!(y.contains("--run-ignored only"));
+    assert!(y.contains("--no-tests=fail"));
+    assert!(y.contains("--max-fail 1:immediate"));
+    assert!(y.contains("CARGO_NET_OFFLINE: \"true\""));
+    assert!(y.contains("REINDEER_PINNED_SOURCE_ROOT"));
+    assert!(y.contains("req \"${{ needs.change-gates.result }}\""));
+    assert!(y.contains("reindeer \"${{ needs.reindeer-source-qualification.result }}\""));
     assert!(
         !y.contains("gh pr diff"),
         "gh pr diff 406s when the unified diff exceeds 20k lines"
@@ -208,6 +224,13 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(git_adapter.contains("\"-M\""));
     assert!(git_adapter.contains("cat-file"));
     assert!(git_adapter.contains("ls-tree"));
+
+    let change_gates = read("pipeline/facade/change-gates-app/src/main.rs");
+    assert!(change_gates.contains("GitRepository"));
+    assert!(change_gates.contains("changed_name_status"));
+    assert!(change_gates.contains("git_change_paths_from_name_status_z"));
+    assert!(change_gates.contains("presubmit_change_gates"));
+    assert!(!y.contains("git diff --name-only") && !y.contains("grep -E"));
 }
 
 #[test]

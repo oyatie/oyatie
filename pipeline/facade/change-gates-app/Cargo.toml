@@ -1,0 +1,15 @@
+[package]
+name = "pipeline-change-gates-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+pipeline-admission = { path = "../../core/admission" }
+pipeline-repository-draft = { path = "../../ports/draft/repository" }
+pipeline-repository-git-draft = { path = "../../adapters/draft/repository-git" }
+
+[lints]
+workspace = true
