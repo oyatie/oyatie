@@ -1,6 +1,4 @@
-# TAP presubmit (ADR-0719 D-9/D-10). Occupant of the required context: job `presubmit`.
-# Graph: trusted repository layout + occupancy (pull_request only) + lint + clippy
-# + deny + test (nextest workspace) + path-gated live Postgres.
+# Required presubmit context; provenance ADR-0719 D-9/D-10.
 name: presubmit
 
 on:
@@ -187,11 +185,67 @@ jobs:
           --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
           --locked --workspace --profile ci
 
-  pg-gate:
-    name: pg-gate
+  reindeer-source-qualification:
+    name: Reindeer source qualification
+    needs: [layout, change-gates]
+    if: needs.layout.result == 'success' && needs.change-gates.outputs.reindeer == 'true'
     runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - name: Check out candidate tree
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Acquire immutable Reindeer source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: facebookincubator/reindeer
+          ref: bb681570d2bc47d1446080c12b8681a50a95f628
+          path: reindeer-source
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Validate immutable Reindeer source
+        working-directory: reindeer-source
+        run: |
+          test "$(git rev-parse --verify 'HEAD^{commit}')" = "bb681570d2bc47d1446080c12b8681a50a95f628"
+          test "$(git rev-parse 'HEAD^{tree}')" = "153f32a846b5e1f460e61fff1cecbbf5177c8c90"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: "1.98.0"
+      - uses: taiki-e/install-action@5b4d68e2e660441203ab128a23676f1e4faf1532
+        with:
+          tool: nextest
+      - name: Restore exact qualification inputs and compilation
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: ${{ runner.temp }}/reindeer-qualification
+          key: reindeer-qualification-v1-${{ runner.os }}-rust-1.98.0-${{ github.sha }}-d4644db6bee4fce06425c6802dfc5b3c2d2a12ba93ea3d635e076700bc34d614-${{ hashFiles('Cargo.lock', 'reindeer-source/Cargo.lock') }}
+      - name: Acquire locked Cargo inputs
+        env:
+          CARGO_HOME: ${{ runner.temp }}/reindeer-qualification/cargo-home
+        run: |
+          timeout --signal=TERM --kill-after=30s 10m cargo fetch --locked --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
+          timeout --signal=TERM --kill-after=30s 10m cargo fetch --locked --manifest-path "$GITHUB_WORKSPACE/reindeer-source/Cargo.toml"
+      - name: Qualify the real pinned Reindeer source
+        env:
+          CARGO_HOME: ${{ runner.temp }}/reindeer-qualification/cargo-home
+          CARGO_NET_OFFLINE: "true"
+          CARGO_TARGET_DIR: ${{ runner.temp }}/reindeer-qualification/compilation/workspace
+          REINDEER_PINNED_BUCK_RS: ${{ github.workspace }}/reindeer-source/src/buck.rs
+          REINDEER_PINNED_SOURCE_ROOT: ${{ github.workspace }}/reindeer-source
+          REINDEER_QUALIFICATION_TARGET_DIR: ${{ runner.temp }}/reindeer-qualification/compilation/upstream
+        run: timeout --signal=TERM --kill-after=30s 40m cargo-nextest nextest run --manifest-path "$GITHUB_WORKSPACE/Cargo.toml" --locked -p dependency-declarations-generation-reindeer --profile ci --run-ignored only --no-tests=fail --test-threads 1 --max-fail 1:immediate
+
+  change-gates:
+    name: change gates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     outputs:
       live: ${{ steps.g.outputs.live }}
+      reindeer: ${{ steps.g.outputs.reindeer }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -199,38 +253,47 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - id: g
-        name: Path-gate live Postgres
+        name: Classify bounded qualification paths
         run: |
           set -euo pipefail
           base_sha="$(git rev-parse --verify 'HEAD^1^{commit}')"
-          if git diff --name-only "$base_sha" HEAD -- | grep -Eq '^(tenancy/adapters/tenant-lifecycle-store-postgres/|iam/adapters/identity-scim-store-postgres/|iam/facade/identity-service/|tenancy/facade/tenant-lifecycle-app/|\.github/workflows/presubmit\.yml|\.github/workflows/live-postgres\.yml|\.github/workflows/postsubmit\.yml|\.config/nextest\.toml)'; then
+          git diff --name-only "$base_sha" HEAD -- > "$RUNNER_TEMP/changed-paths"
+          if grep -Eq '^(tenancy/adapters/tenant-lifecycle-store-postgres/|iam/adapters/identity-scim-store-postgres/|iam/facade/identity-service/|tenancy/facade/tenant-lifecycle-app/|\.github/workflows/presubmit\.yml|\.github/workflows/live-postgres\.yml|\.github/workflows/postsubmit\.yml|\.config/nextest\.toml)' "$RUNNER_TEMP/changed-paths"; then
             echo "live=true" >> "$GITHUB_OUTPUT"
           else
             echo "live=false" >> "$GITHUB_OUTPUT"
           fi
+          if grep -Eq '^build/dependency-declarations/adapters/generation-reindeer/' "$RUNNER_TEMP/changed-paths"; then
+            echo "reindeer=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "reindeer=false" >> "$GITHUB_OUTPUT"
+          fi
 
   live-postgres:
-    needs: [layout, pg-gate]
-    if: needs.layout.result == 'success' && needs.pg-gate.outputs.live == 'true'
+    needs: [layout, change-gates]
+    if: needs.layout.result == 'success' && needs.change-gates.outputs.live == 'true'
     uses: oyatie/oyatie/.github/workflows/live-postgres.yml@dev
 
-  # Mirrors pipeline_admission::fan_in_ok (tested).
   presubmit:
     name: presubmit
     runs-on: ubuntu-24.04
     if: always()
-    needs: [layout, occupancy, lint, clippy, test, deny, pg-gate, live-postgres]
+    needs: [layout, occupancy, lint, clippy, test, deny, change-gates, reindeer-source-qualification, live-postgres]
     steps:
       - name: Fan-in verdict
         env:
-          LIVE: ${{ needs.pg-gate.outputs.live }}
+          LIVE: ${{ needs.change-gates.outputs.live }}
+          REINDEER: ${{ needs.change-gates.outputs.reindeer }}
           EVENT: ${{ github.event_name }}
         run: |
           req() { [ "$1" = "success" ]; }
           pg() {
             if [ "${LIVE}" = "true" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
           }
+          reindeer() {
+            if [ "${REINDEER}" = "true" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
+          }
           occ() {
             if [ "${EVENT}" = "pull_request" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
           }
-          req "${{ needs.layout.result }}" && occ "${{ needs.occupancy.result }}" && req "${{ needs.lint.result }}" && req "${{ needs.clippy.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.pg-gate.result }}" && pg "${{ needs.live-postgres.result }}" && exit 0 || exit 1
+          req "${{ needs.layout.result }}" && occ "${{ needs.occupancy.result }}" && req "${{ needs.lint.result }}" && req "${{ needs.clippy.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.change-gates.result }}" && reindeer "${{ needs.reindeer-source-qualification.result }}" && pg "${{ needs.live-postgres.result }}" && exit 0 || exit 1

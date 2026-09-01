@@ -19,16 +19,20 @@ pub const LIVE_POSTGRES_CRATES: &[&str] = &[
     "tenancy-tenant-lifecycle-app",
 ];
 
+pub const REINDEER_QUALIFICATION_PATH_PREFIXES: &[&str] =
+    &["build/dependency-declarations/adapters/generation-reindeer/"];
+
 /// Occupants of the presubmit workflow (sorted).
 pub const PRESUBMIT_JOBS: &[&str] = &[
+    "change-gates",
     "clippy",
     "deny",
     "layout",
     "lint",
     "live-postgres",
     "occupancy",
-    "pg-gate",
     "presubmit",
+    "reindeer-source-qualification",
     "test",
 ];
 
@@ -60,6 +64,12 @@ pub fn hits_live_postgres_path(path: &str) -> bool {
         .any(|prefix| path == *prefix || path.starts_with(prefix))
 }
 
+pub fn hits_reindeer_qualification_path(path: &str) -> bool {
+    REINDEER_QUALIFICATION_PATH_PREFIXES
+        .iter()
+        .any(|prefix| path == *prefix || path.starts_with(prefix))
+}
+
 /// Fail-closed: unknown events are not represented. Dispatch and postsubmit
 /// always run live Postgres (that is the unique proof of those cadences).
 /// PR and merge_group run it only when a live path changed.
@@ -70,6 +80,14 @@ pub fn live_postgres_required(event: CadenceEvent, changed_paths: &[&str]) -> bo
             changed_paths.iter().copied().any(hits_live_postgres_path)
         }
     }
+}
+
+pub fn reindeer_source_qualification_required(event: CadenceEvent, changed_paths: &[&str]) -> bool {
+    matches!(event, CadenceEvent::PullRequest | CadenceEvent::MergeGroup)
+        && changed_paths
+            .iter()
+            .copied()
+            .any(hits_reindeer_qualification_path)
 }
 
 #[cfg(test)]
@@ -104,6 +122,41 @@ mod tests {
     }
 
     #[test]
+    fn provider_changes_pay_real_reindeer_qualification() {
+        let path = "build/dependency-declarations/adapters/generation-reindeer/src/items/provider_source.rs";
+        assert!(reindeer_source_qualification_required(
+            CadenceEvent::PullRequest,
+            &[path]
+        ));
+        assert!(reindeer_source_qualification_required(
+            CadenceEvent::MergeGroup,
+            &[path]
+        ));
+    }
+
+    #[test]
+    fn bootstrap_gate_excludes_inputs_without_a_live_provider_consumer() {
+        for path in [
+            ".config/nextest.toml",
+            ".github/workflows/presubmit.yml",
+            "Cargo.lock",
+            "Cargo.toml",
+            "README.md",
+            "reindeer.toml",
+            "rust-toolchain.toml",
+        ] {
+            assert!(!reindeer_source_qualification_required(
+                CadenceEvent::PullRequest,
+                &[path]
+            ));
+        }
+        assert!(!reindeer_source_qualification_required(
+            CadenceEvent::PostsubmitPush,
+            &["build/dependency-declarations/adapters/generation-reindeer/src/lib.rs"]
+        ));
+    }
+
+    #[test]
     fn postsubmit_and_dispatch_always_pay() {
         assert!(live_postgres_required(CadenceEvent::PostsubmitPush, &[]));
         assert!(live_postgres_required(CadenceEvent::WorkflowDispatch, &[]));
@@ -115,7 +168,7 @@ mod tests {
     }
 
     #[test]
-    fn presubmit_pg_gate_lists_every_prefix() {
+    fn presubmit_change_gate_lists_every_postgres_prefix() {
         let y = std::fs::read_to_string(
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("../../../.github/workflows/presubmit.yml"),
@@ -125,7 +178,7 @@ mod tests {
             let as_grep = prefix.replace('.', r"\.");
             assert!(
                 y.contains(prefix) || y.contains(&as_grep),
-                "presubmit pg-gate missing {prefix}"
+                "presubmit change gate missing {prefix}"
             );
         }
     }
@@ -145,5 +198,24 @@ mod tests {
         }
         assert!(y.contains("--no-tests=error"));
         assert!(y.contains("--run-ignored only"));
+    }
+
+    #[test]
+    fn presubmit_change_gate_has_only_the_bootstrap_reindeer_prefix() {
+        let y = std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../../.github/workflows/presubmit.yml"),
+        )
+        .expect("presubmit.yml");
+        let predicate = y
+            .lines()
+            .find(|line| line.contains("if grep -Eq") && line.contains("generation-reindeer"))
+            .map(str::trim)
+            .expect("presubmit Reindeer predicate");
+
+        assert_eq!(
+            predicate,
+            "if grep -Eq '^build/dependency-declarations/adapters/generation-reindeer/' \"$RUNNER_TEMP/changed-paths\"; then"
+        );
     }
 }
