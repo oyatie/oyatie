@@ -8,3 +8,15 @@ rust_library(
         "//policy/core/cedar-domain:policy-cedar-domain",
     ],
 )
+
+rust_test(
+    name = "policy-rebac-domain-session-consistency",
+    srcs = ["tests/session_consistency.rs"],
+    crate = "session_consistency",
+    crate_root = "tests/session_consistency.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":policy-rebac-domain",
+        "//policy/core/cedar-domain:policy-cedar-domain",
+    ],
+)
