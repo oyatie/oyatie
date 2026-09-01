@@ -11,6 +11,7 @@ data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
 data-ontology-kernel = { path = "../../../../data/core/ontology-kernel" }
 foundry-audit-draft = { path = "../../ports/draft/audit" }
 foundry-edits = { path = "../edits" }
+foundry-projection-draft = { path = "../../ports/draft/projection" }
 foundry-records-draft = { path = "../../ports/draft/records" }
 
 [dev-dependencies]
