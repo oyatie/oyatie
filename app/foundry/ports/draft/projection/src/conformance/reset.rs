@@ -9,9 +9,7 @@ use crate::keys::KeyDesignations;
 use data_ontology_kernel::PropertyValue;
 
 use crate::predicate::PropertyPredicate;
-use crate::store::{
-    EntryOutcome, PageRequest, ProjectedLink, ProjectionStore, ProjectionStoreError,
-};
+use crate::store::{EntryOutcome, PageRequest, ProjectionStore};
 
 /// Objects, edges, the poison ledger and the head all go. A reset that
 /// left any of them would rebuild a projection that still disagrees with

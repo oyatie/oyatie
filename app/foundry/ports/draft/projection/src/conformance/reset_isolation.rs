@@ -8,7 +8,7 @@
 //! and every map the store keeps is read back, not just the two a read
 //! path happens to expose.
 
-use crate::conformance::{ProjectionFixture, applied, applied_with_links, edge, fail, object};
+use crate::conformance::{ProjectionFixture, applied_with_links, edge, fail, object};
 use crate::keys::KeyDesignations;
 use crate::store::{ProjectionStore, ProjectionStoreError};
 
