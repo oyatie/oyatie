@@ -15,6 +15,7 @@ mod engine;
 mod link;
 mod link_law;
 mod request;
+mod store_source;
 mod traversal;
 
 pub use contract::{
@@ -25,6 +26,7 @@ pub use contract::{
 pub use engine::KnowledgeGraphQueryEngine;
 pub use link::KnowledgeGraphLinkInstance;
 pub use request::{EdgeConsent, KnowledgeGraphQueryRequest};
+pub use store_source::{StoreGraphSource, query_graph_slice_from_store};
 
 #[cfg(test)]
 mod tests;
