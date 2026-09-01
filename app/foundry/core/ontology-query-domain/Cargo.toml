@@ -9,6 +9,7 @@ license = "Apache-2.0"
 [dependencies]
 data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
 data-ontology-kernel = { path = "../../../../data/core/ontology-kernel" }
+foundry-projection-draft = { path = "../../ports/draft/projection" }
 
 
 [lib]
