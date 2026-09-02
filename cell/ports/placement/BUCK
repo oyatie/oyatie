@@ -1,0 +1,11 @@
+rust_library(
+    name = "cell-placement",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "cell_placement",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cell/ports/location:cell-location",
+        "//tenancy/core/kernel:tenancy-kernel",
+    ],
+)

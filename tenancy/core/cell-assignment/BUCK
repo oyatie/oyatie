@@ -4,4 +4,8 @@ rust_library(
     crate = "tenancy_cell_assignment",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = [
+        "//cell/ports/placement:cell-placement",
+        "//tenancy/core/kernel:tenancy-kernel",
+    ],
 )

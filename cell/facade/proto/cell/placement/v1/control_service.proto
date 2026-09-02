@@ -1,0 +1,168 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/compatibility.proto";
+import "cell/placement/v1/control_operation.proto";
+import "cell/placement/v1/control_repair.proto";
+import "cell/placement/v1/drain.proto";
+import "cell/placement/v1/lifecycle.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/resource.proto";
+import "cell/placement/v1/rebalance.proto";
+import "cell/placement/v1/topology.proto";
+
+service CellControlService {
+  rpc CreateCell(CreateCellRequestV1) returns (CellControlOperationV1);
+  rpc GetCell(GetCellRequestV1) returns (CellViewV1);
+  rpc UpdateCell(UpdateCellRequestV1) returns (CellControlOperationV1);
+  rpc ListCells(ListCellsRequestV1) returns (ListCellsResponseV1);
+  rpc MutateCellReadiness(MutateCellReadinessRequestV1) returns (CellControlOperationV1);
+  rpc BeginCellDrain(BeginCellDrainRequestV1) returns (CellControlOperationV1);
+  rpc AppendCellDrainProof(AppendCellDrainProofRequestV1) returns (DrainProofLedgerV1);
+  rpc CompleteCellDrain(CompleteCellDrainRequestV1) returns (CellControlOperationV1);
+  rpc DecommissionCell(DecommissionCellRequestV1) returns (CellControlOperationV1);
+  rpc CreateRebalanceJob(CreateRebalanceJobRequestV1) returns (CellControlOperationV1);
+  rpc GetRebalanceJob(GetRebalanceJobRequestV1) returns (RebalanceJobV1);
+  rpc CancelRebalanceJob(CancelRebalanceJobRequestV1) returns (CellControlOperationV1);
+  rpc GetCellControlOperation(GetCellControlOperationRequestV1) returns (CellControlOperationV1);
+  rpc CancelCellControlOperation(CancelCellControlOperationRequestV1) returns (CellControlOperationV1);
+  rpc RepairCellControlOperation(RepairCellControlOperationRequestV1) returns (CellControlOperationV1);
+}
+
+message CreateCellRequestV1 {
+  reserved 1;
+  reserved "cell";
+  string idempotency_key = 2;
+  Digest32 canonical_request_digest = 3;
+  CellSpecV1 spec = 4;
+  CellIdentityV1 identity = 5;
+}
+
+message GetCellRequestV1 {
+  CellId cell_id = 1;
+}
+
+message UpdateCellRequestV1 {
+  CellId cell_id = 1;
+  uint64 expected_spec_revision = 2;
+  Digest32 expected_resource_digest = 3;
+  CellSpecV1 spec = 4;
+  string idempotency_key = 5;
+  Digest32 canonical_request_digest = 6;
+  uint64 expected_capacity_revision = 7;
+  Digest32 expected_capacity_record_digest = 8;
+}
+
+message ListCellsRequestV1 {
+  reserved 1;
+  reserved "partition_key";
+  uint32 page_size = 2;
+  bytes page_token = 3;
+  PlacementPartitionV1 partition = 4;
+}
+
+message ListCellsResponseV1 {
+  repeated CellViewV1 cells = 1;
+  bytes next_page_token = 2;
+}
+
+message DemotionEvidenceV1 {
+  Digest32 reason_digest = 1;
+}
+
+message CellReadinessMutationEvidenceV1 {
+  oneof evidence {
+    SignedCellPromotionEvidenceV1 promotion = 1;
+    DemotionEvidenceV1 demotion = 2;
+  }
+}
+
+message MutateCellReadinessRequestV1 {
+  reserved 1, 2, 3;
+  reserved "cell_id", "expected_revision", "expected_admission_epoch";
+  CellReadinessRingV1 target_readiness = 4;
+  CellReadinessMutationEvidenceV1 evidence = 5;
+  string idempotency_key = 6;
+  Digest32 canonical_request_digest = 7;
+  CellRevisionIdentityV1 expected_cell = 8;
+}
+
+message BeginCellDrainRequestV1 {
+  CellId cell_id = 1;
+  uint64 expected_revision = 2;
+  uint64 expected_admission_epoch = 3;
+  uint64 next_drain_term = 4;
+  SignedDrainContributorManifestV1 contributor_manifest = 5;
+  string idempotency_key = 6;
+  Digest32 canonical_request_digest = 7;
+}
+
+message AppendCellDrainProofRequestV1 {
+  CellId cell_id = 1;
+  uint64 drain_term = 2;
+  uint64 expected_ledger_revision = 3;
+  SignedDrainContributorProofV1 proof = 4;
+  string idempotency_key = 5;
+  Digest32 canonical_request_digest = 6;
+}
+
+message CompleteCellDrainRequestV1 {
+  CellId cell_id = 1;
+  uint64 drain_term = 2;
+  uint64 expected_revision = 3;
+  uint64 expected_ledger_revision = 4;
+  SignedCellDrainCompletionV1 completion = 5;
+  string idempotency_key = 6;
+  Digest32 canonical_request_digest = 7;
+}
+
+message DecommissionCellRequestV1 {
+  CellId cell_id = 1;
+  uint64 drain_term = 2;
+  uint64 expected_revision = 3;
+  SignedCellDrainCompletionV1 completion = 4;
+  string idempotency_key = 5;
+  Digest32 canonical_request_digest = 6;
+}
+
+message CreateRebalanceJobRequestV1 {
+  PlacementPartitionV1 partition = 1;
+  RebalanceTriggerV1 trigger = 2;
+  RebalancePolicyV1 policy = 3;
+  string idempotency_key = 4;
+  Digest32 canonical_request_digest = 5;
+}
+
+message GetRebalanceJobRequestV1 {
+  PlacementPartitionV1 partition = 1;
+  string job_id = 2;
+}
+
+message CancelRebalanceJobRequestV1 {
+  PlacementPartitionV1 partition = 1;
+  string job_id = 2;
+  uint64 expected_revision = 3;
+  string idempotency_key = 4;
+  Digest32 canonical_request_digest = 5;
+}
+
+message GetCellControlOperationRequestV1 {
+  CellControlOperationKeyV1 operation = 1;
+}
+
+message CancelCellControlOperationRequestV1 {
+  CellControlOperationKeyV1 operation = 1;
+  uint64 expected_revision = 2;
+  string idempotency_key = 3;
+  Digest32 canonical_request_digest = 4;
+}
+
+message RepairCellControlOperationRequestV1 {
+  CellControlOperationKeyV1 repair_operation = 1;
+  CellControlOperationKeyV1 target_operation = 2;
+  CellControlRepairTargetPreconditionV1 target_precondition = 3;
+  SignedCellControlRepairAuthorityV1 authority = 4;
+  string idempotency_key = 5;
+  Digest32 canonical_request_digest = 6;
+}

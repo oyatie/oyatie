@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "tenancy/binding/v1/binding.proto";
+import "tenancy/binding/v1/proof.proto";
+
+message BindingProjectionSnapshotV1 {
+  string audience = 1;
+  string partition = 2;
+  string snapshot_id = 3;
+  uint64 revision = 4;
+  Digest32 ordered_binding_root_digest = 5;
+  uint64 binding_count = 6;
+  uint64 created_at_unix_seconds = 7;
+  Digest32 record_digest = 8;
+  Digest32 partition_digest = 9;
+}
+
+enum ProjectionFreshnessV1 {
+  PROJECTION_FRESHNESS_V1_UNSPECIFIED = 0;
+  PROJECTION_FRESHNESS_V1_CURRENT = 1;
+  PROJECTION_FRESHNESS_V1_REFRESH_OVERDUE = 2;
+}
+
+enum ProjectionLookupShapeV1 {
+  PROJECTION_LOOKUP_SHAPE_V1_UNSPECIFIED = 0;
+  PROJECTION_LOOKUP_SHAPE_V1_ONE_LOCAL_INDEXED_SNAPSHOT_LOOKUP = 1;
+}
+
+message LocalBindingRouteV1 {
+  SignedBindingProjectionV1 projection = 1;
+  string snapshot_id = 2;
+  uint64 snapshot_revision = 3;
+  ProjectionFreshnessV1 freshness = 4;
+  ProjectionLookupShapeV1 lookup_shape = 5;
+}

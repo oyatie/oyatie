@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/control_operation.proto";
+import "cell/placement/v1/proof.proto";
+
+message LifecycleRepairPreconditionV1 {
+  CellId cell_id = 1;
+  uint64 lifecycle_revision = 2;
+  Digest32 resource_digest = 3;
+}
+
+message DrainLedgerRepairPreconditionV1 {
+  CellId cell_id = 1;
+  uint64 ledger_revision = 2;
+  Digest32 ledger_digest = 3;
+}
+
+message RebalanceJobRepairPreconditionV1 {
+  CellId cell_id = 1;
+  uint64 revision = 2;
+  Digest32 record_digest = 3;
+}
+
+message ControlOperationRepairPreconditionV1 {
+  CellControlOperationKeyV1 operation = 1;
+  uint64 revision = 2;
+  Digest32 record_digest = 3;
+}
+
+message CellControlRepairTargetPreconditionV1 {
+  oneof target {
+    LifecycleRepairPreconditionV1 lifecycle = 1;
+    DrainLedgerRepairPreconditionV1 drain_ledger = 2;
+    RebalanceJobRepairPreconditionV1 rebalance_job = 3;
+    ControlOperationRepairPreconditionV1 control_operation = 4;
+  }
+}
+
+message CellControlRepairAuthorityPayloadV1 {
+  uint32 schema_version = 1;
+  CellControlOperationKeyV1 repair_operation = 2;
+  CellControlOperationKeyV1 target_operation = 3;
+  CellControlRepairTargetPreconditionV1 target_precondition = 4;
+  Digest32 requested_checkpoint_digest = 5;
+  Digest32 reason_digest = 6;
+  uint64 expires_at_unix_seconds = 7;
+}
+
+message SignedCellControlRepairAuthorityV1 {
+  CellControlRepairAuthorityPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

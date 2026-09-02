@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/proof.proto";
+import "tenancy/identity/v1/identity.proto";
+
+message MovementBudgetSettlementClaimPayloadV1 {
+  uint32 schema_version = 1;
+  tenancy.identity.v1.TenantId tenant_id = 2;
+  PlacementOperationKeyV1 operation = 3;
+  string grant_id = 4;
+  Digest32 movement_permit_digest = 5;
+  Digest32 transfer_execution_ledger_digest = 6;
+  uint64 ordinary_debited_bytes = 7;
+  uint64 ordinary_debited_effects = 8;
+  uint64 ordinary_debited_cost_microunits = 9;
+  uint64 forward_debited_bytes = 10;
+  uint64 forward_debited_effects = 11;
+  uint64 forward_debited_cost_microunits = 12;
+  bool forward_completion_proven = 13;
+  Digest32 claim_digest = 14;
+  Digest32 budget_lineage_digest = 15;
+  Digest32 leaf_scope_allocation_digest = 16;
+  string authority_partition = 17;
+}
+
+message SignedMovementBudgetSettlementClaimV1 {
+  MovementBudgetSettlementClaimPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message MovementBudgetSettlementV1 {
+  string grant_id = 1;
+  PlacementOperationKeyV1 operation = 2;
+  Digest32 movement_permit_digest = 3;
+  Digest32 transfer_execution_ledger_digest = 4;
+  Digest32 ordinary_debit_digest = 5;
+  Digest32 released_forward_reserve_digest = 6;
+  uint64 revision = 7;
+  Digest32 record_digest = 8;
+  Digest32 budget_lineage_digest = 9;
+  Digest32 next_leaf_authority_state_digest = 10;
+  string authority_partition = 11;
+}

@@ -1,0 +1,149 @@
+export_file(
+    name = "assurance.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "authority.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "capacity.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "compatibility.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "control_service.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "control_operation.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "control_reconciliation.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "control_repair.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "control_audit.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "economics.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "drain.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "drain_seal.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "evidence.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "movement.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "movement_issuance.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "movement_settlement.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "lifecycle.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "operation.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "placement.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "proof.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "repair.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "reconciliation.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "reconciliation_authority.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "rebalance.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "rebalance_budget.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "rebalance_candidates.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "reservation.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "resource.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "service.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "topology.proto",
+    visibility = ["PUBLIC"],
+)

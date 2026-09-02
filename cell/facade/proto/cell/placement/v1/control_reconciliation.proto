@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/control_operation.proto";
+import "cell/placement/v1/drain.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/rebalance.proto";
+
+enum CellControlReconciliationWorkClassV1 {
+  CELL_CONTROL_RECONCILIATION_WORK_CLASS_V1_UNSPECIFIED = 0;
+  CELL_CONTROL_RECONCILIATION_WORK_CLASS_V1_NONTERMINAL_CONTROL_OPERATION = 1;
+  CELL_CONTROL_RECONCILIATION_WORK_CLASS_V1_INCOMPLETE_DRAIN_PROOF = 2;
+  CELL_CONTROL_RECONCILIATION_WORK_CLASS_V1_NONTERMINAL_REBALANCE_JOB = 3;
+  CELL_CONTROL_RECONCILIATION_WORK_CLASS_V1_REBALANCE_CANDIDATE_SELECTION = 4;
+}
+
+message CellControlReconciliationQueryV1 {
+  string partition = 1;
+  CellControlReconciliationWorkClassV1 work_class = 2;
+  uint64 changed_before_unix_seconds = 3;
+  uint32 page_size = 4;
+  bytes page_token = 5;
+}
+
+message CellControlReconciliationSubjectV1 {
+  oneof subject {
+    CellControlOperationV1 operation = 1;
+    DrainProofLedgerV1 drain_ledger = 2;
+    RebalanceJobV1 rebalance_job = 3;
+  }
+}
+
+message CellControlReconciliationCandidateV1 {
+  CellId cell_id = 1;
+  CellControlReconciliationWorkClassV1 work_class = 2;
+  CellControlReconciliationSubjectV1 subject = 3;
+  Digest32 durable_checkpoint_digest = 4;
+  Digest32 candidate_digest = 5;
+}
+
+message CellControlReconciliationPageV1 {
+  repeated CellControlReconciliationCandidateV1 candidates = 1;
+  bytes next_page_token = 2;
+}
+
+message CellControlReconciliationLeaseV1 {
+  Digest32 candidate_digest = 1;
+  string worker_id = 2;
+  uint64 lease_epoch = 3;
+  uint64 not_before_unix_seconds = 4;
+  uint64 expires_at_unix_seconds = 5;
+  Digest32 lease_digest = 6;
+}
+
+message CompleteCellControlReconciliationV1 {
+  Digest32 candidate_digest = 1;
+  Digest32 lease_digest = 2;
+  Digest32 applied_checkpoint_digest = 3;
+  Digest32 result_digest = 4;
+}

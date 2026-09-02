@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/evidence.proto";
+import "cell/placement/v1/proof.proto";
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/identity/v1/identity.proto";
+
+message CellBindingIndexSnapshotRequestV1 {
+  string partition = 1;
+  cell.placement.v1.CellId cell_id = 2;
+}
+
+message CellBindingIndexSnapshotV1 {
+  string partition = 1;
+  cell.placement.v1.CellId cell_id = 2;
+  cell.placement.v1.ImmutableEvidenceRefV1 snapshot = 3;
+  Digest32 ordered_binding_root_digest = 4;
+  uint64 binding_count = 5;
+  Digest32 snapshot_digest = 6;
+}
+
+message CellBindingIndexPageRequestV1 {
+  CellBindingIndexSnapshotV1 snapshot = 1;
+  uint64 start_ordinal = 2;
+  uint32 page_size = 3;
+  bytes page_token = 4;
+}
+
+message CellBindingIndexEntryV1 {
+  uint64 ordinal = 1;
+  tenancy.identity.v1.TenantId tenant_id = 2;
+  uint64 generation = 3;
+  uint64 revision = 4;
+  Digest32 binding_record_digest = 5;
+  Digest32 entry_digest = 6;
+  repeated Digest32 inclusion_path = 7;
+}
+
+enum CellBindingIndexMutationKindV1 {
+  CELL_BINDING_INDEX_MUTATION_KIND_V1_UNSPECIFIED = 0;
+  CELL_BINDING_INDEX_MUTATION_KIND_V1_ADD_HOME = 1;
+  CELL_BINDING_INDEX_MUTATION_KIND_V1_ADD_WARM_RECOVERY = 2;
+  CELL_BINDING_INDEX_MUTATION_KIND_V1_REMOVE_HOME = 3;
+  CELL_BINDING_INDEX_MUTATION_KIND_V1_REMOVE_WARM_RECOVERY = 4;
+}
+
+message CellBindingIndexEntryMatchV1 {
+  uint64 generation = 1;
+  uint64 revision = 2;
+  Digest32 binding_record_digest = 3;
+  Digest32 index_record_digest = 4;
+}
+
+message CellBindingIndexEntryPreconditionV1 {
+  oneof precondition {
+    bool absent = 1;
+    CellBindingIndexEntryMatchV1 matches = 2;
+  }
+}
+
+message CellBindingIndexEntryMutationV1 {
+  string partition = 1;
+  cell.placement.v1.CellId cell_id = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  uint64 generation = 4;
+  uint64 revision = 5;
+  Digest32 binding_record_digest = 6;
+  CellBindingIndexMutationKindV1 mutation_kind = 7;
+  Digest32 mutation_digest = 8;
+  CellBindingIndexEntryPreconditionV1 precondition = 9;
+}
+
+message CellBindingIndexMutationSetV1 {
+  repeated CellBindingIndexEntryMutationV1 mutations = 1;
+  Digest32 ordered_mutation_root_digest = 2;
+  uint64 mutation_count = 3;
+  Digest32 set_digest = 4;
+}
+
+message CellBindingIndexPageV1 {
+  CellBindingIndexSnapshotV1 snapshot = 1;
+  repeated CellBindingIndexEntryV1 entries = 2;
+  uint64 next_ordinal = 3;
+  bytes next_page_token = 4;
+  Digest32 page_digest = 5;
+}
