@@ -216,10 +216,32 @@ rust_test(
     name = "foundry-ontology-app-storage-fault",
     srcs = [
         "tests/facade_support/mod.rs",
+        "tests/failing_log/mod.rs",
         "tests/storage_fault_is_not_a_conflict.rs",
     ],
     crate = "storage_fault_is_not_a_conflict",
     crate_root = "tests/storage_fault_is_not_a_conflict.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-ontology-app",
+        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "third-party//:axum",
+        "third-party//:http-body-util",
+        "third-party//:tokio",
+        "third-party//:tower",
+    ],
+)
+
+rust_test(
+    name = "foundry-ontology-app-live-views",
+    srcs = [
+        "tests/facade_support/mod.rs",
+        "tests/failing_log/mod.rs",
+        "tests/views_read_the_log_not_a_boot_mirror.rs",
+    ],
+    crate = "views_read_the_log_not_a_boot_mirror",
+    crate_root = "tests/views_read_the_log_not_a_boot_mirror.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":foundry-ontology-app",

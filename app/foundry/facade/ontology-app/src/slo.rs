@@ -122,8 +122,9 @@ pub static SLOS: &[SloSpec] = &[
         display_name: "foundry-ontology — read surface availability",
         sli_class: "availability",
         description: "A read is good when the projection answered it. Refusals — absent \
-                      credential, policy denial, unusable revision pin — are counted, so \
-                      a surface that refuses everything cannot report itself available.",
+                      credential, policy denial, unusable revision pin, a log the process \
+                      could not read — are counted, so a surface that refuses everything \
+                      cannot report itself available.",
         good_query: "sum(rate(foundry_read_served_total[5m]))",
         total_query: "sum(rate(foundry_read_served_total[5m])) + \
                       sum(rate(foundry_read_refused_total[5m]))",

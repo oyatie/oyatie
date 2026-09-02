@@ -12,7 +12,7 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use foundry_records_draft::{RecordsLog, SealedEnvelope};
+use foundry_records_draft::{RecordsLog, RecordsLogError, SealedEnvelope};
 use foundry_records_sqlite_draft::SqliteRecordsLog;
 use foundry_spine::{ProjectionState, SyncStatus, fold_from_scratch};
 use tokio::sync::Mutex;
@@ -82,10 +82,11 @@ impl std::fmt::Display for BootError {
     }
 }
 
-/// One tenant's served state. The entries mirror is required, not an
-/// optimization: the history and audit views read the log entries alongside
-/// the projection, so a process that held only the projection could not
-/// answer them.
+/// One tenant's served state. `entries` is the BOOT SNAPSHOT and nothing
+/// more: history and audit used to read it and now replay the durable log
+/// per request (`entries_now`), so its only consumer is `sync_status` —
+/// which is why `foundry_projection_lag` is structurally zero and carries no
+/// objective. Retiring the field means giving lag a durable head first.
 pub struct TenantState {
     pub projection: ProjectionState,
     pub entries: Vec<SealedEnvelope>,
@@ -134,6 +135,29 @@ impl TenantState {
 }
 
 impl TenantState {
+    /// This tenant's log entries AS OF NOW, from the durable log.
+    ///
+    /// `entries` above is assigned once in `compose` and never appended to —
+    /// `write_handles` lends the log, the denial trail and the projection,
+    /// never the mirror — so any view served from it is a snapshot of boot
+    /// and cannot show an entry this process has since accepted. Views that
+    /// must be current read through here instead.
+    ///
+    /// Costs a full replay per request — O(tenant log), unbounded and growing
+    /// — and NEITHER caller is paged today, so this is the whole log to
+    /// render one object's history. Callers hold the tenant mutex across it,
+    /// so `is_ready`, `poisoned_count` and the lag gauge, which all
+    /// `try_lock`, degrade while it runs. `replay` already takes a
+    /// `from_ordinal`, so bounding it later needs no port change.
+    ///
+    /// The `Applied` disposition `audit_view` reports is sound only while
+    /// this process is the sole writer: an entry appended below our
+    /// `applied_ordinal` by another writer would pass its filter and be
+    /// labelled applied by a process that never folded it.
+    pub fn entries_now(&self, tenant_id: &str) -> Result<Vec<SealedEnvelope>, RecordsLogError> {
+        self.action_log.replay(tenant_id, 1)
+    }
+
     /// Where this tenant's fold stands against its log.
     pub fn sync_status(&self) -> SyncStatus {
         let head = self
