@@ -211,3 +211,23 @@ rust_test(
         "third-party//:tower",
     ],
 )
+
+rust_test(
+    name = "foundry-ontology-app-storage-fault",
+    srcs = [
+        "tests/facade_support/mod.rs",
+        "tests/storage_fault_is_not_a_conflict.rs",
+    ],
+    crate = "storage_fault_is_not_a_conflict",
+    crate_root = "tests/storage_fault_is_not_a_conflict.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-ontology-app",
+        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "third-party//:axum",
+        "third-party//:http-body-util",
+        "third-party//:tokio",
+        "third-party//:tower",
+    ],
+)

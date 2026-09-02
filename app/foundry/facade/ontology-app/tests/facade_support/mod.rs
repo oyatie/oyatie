@@ -205,6 +205,14 @@ impl Fixture {
 }
 
 impl Session {
+    /// Drive a process the caller composed, so a test can install a double
+    /// before the router is built.
+    pub fn from_state(state: AppState) -> Self {
+        Session {
+            router: router(state),
+        }
+    }
+
     pub async fn post(&self, token: Option<&str>, body: &str) -> (StatusCode, String) {
         let mut request = Request::builder()
             .method("POST")
