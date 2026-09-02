@@ -116,12 +116,14 @@ pub fn check_reset_leaves_other_tenants_untouched<F: ProjectionFixture>(
         ));
     }
     // The accessors this law never reached for a neighbour. One only ever
-    // called against the SUBJECT cannot witness a blast-radius escape,
-    // and counting call sites finds that before any mutant does.
+    // called against the SUBJECT cannot witness a blast-radius escape.
+    // Compared to literals, not to each other: both stores serve the two
+    // directions from one place, so a relative comparison would only say
+    // they agree — and a law is written for the store that does not.
     let inbound = store
         .links_to("ten_ab", "ent_2")
         .map_err(|error| fail("neighbour inbound read", format!("{error:?}")))?;
-    if inbound != edges {
+    if inbound != vec![edge("ent_1", "ent_2")] {
         return Err(fail(
             "the neighbour's edge is intact inbound",
             format!("{inbound:?}"),
@@ -130,9 +132,14 @@ pub fn check_reset_leaves_other_tenants_untouched<F: ProjectionFixture>(
     let scan = store
         .objects_of_type("ten_ab", "ety_reading", &PageRequest::first(50))
         .map_err(|error| fail("neighbour scan reads", format!("{error:?}")))?;
-    if scan.objects.len() != 2 {
+    if scan.objects
+        != vec![
+            object("ten_ab", "ent_1", "ety_reading", vec![]),
+            object("ten_ab", "ent_2", "ety_reading", vec![]),
+        ]
+    {
         return Err(fail(
-            "the neighbour keeps both objects",
+            "the neighbour keeps both objects, contents included",
             format!("{scan:?}"),
         ));
     }
