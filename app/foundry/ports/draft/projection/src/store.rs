@@ -185,4 +185,30 @@ pub trait ProjectionStore {
 
     /// Every poisoned ordinal and its static reason — nothing hidden.
     fn poisoned(&self, tenant_id: &str) -> Result<Vec<(u64, String)>, ProjectionStoreError>;
+
+    /// Discard everything this store holds for ONE tenant, returning the
+    /// head it discarded so a caller can record what it destroyed rather
+    /// than losing that number along with the rows.
+    ///
+    /// This exists because "rebuild from empty" is the documented remedy
+    /// for a projection that disagrees with its log, and without it that
+    /// remedy was not reachable through this port at all — an operator
+    /// had to delete the database out of band. A refusal whose only fix
+    /// lives outside the interface reads as permanent, and was described
+    /// that way by three separate reviews of the catch-up lane.
+    ///
+    /// Destructive and deliberate: never the response to a transient
+    /// failure, because a store outage is retried rather than reset.
+    /// Afterwards the tenant is indistinguishable from one never
+    /// written, so the dense-ordinal law starts again at 1.
+    ///
+    /// The default REFUSES rather than reporting success, so a store
+    /// that cannot reset says so instead of leaving a caller believing
+    /// it rebuilt over rows that are still there.
+    fn reset_tenant(&mut self, tenant_id: &str) -> Result<u64, ProjectionStoreError> {
+        let _ = tenant_id;
+        Err(ProjectionStoreError::Storage {
+            detail: "this store does not support reset".to_owned(),
+        })
+    }
 }
