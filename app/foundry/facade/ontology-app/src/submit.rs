@@ -20,6 +20,7 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use data_ontology_kernel::{ActionInvocationRequest, ActionTypeId};
 use foundry_edits::{EditSet, OntologyEdit, WireDataClass, WireProperty, WireTier, WireValue};
+use foundry_records_draft::RecordsLogError;
 use foundry_spine::{ActionSubmission, ApplyOutcome, WriteError, submit};
 
 use crate::auth::{authenticate, bearer_token};
@@ -151,10 +152,37 @@ pub async fn submit_action(
         ),
         // A divergent reuse of a spent key is the caller's conflict to
         // resolve, not something to retry into.
-        Err(WriteError::Log(_)) => refuse(
+        Err(WriteError::Log(RecordsLogError::IdempotencyConflict { .. })) => refuse(
             StatusCode::CONFLICT,
             "log",
             "this idempotency key is already spent on different content",
+        ),
+        // The OTHER variant means the opposite thing. A storage fault is the
+        // service failing, not the caller colliding with themselves, and it
+        // is the one LOG failure here that a retry of the same bytes may get
+        // past. (Not the only retryable refusal on this surface: a PDP
+        // timeout or open circuit collapses to 403 at `authz.rs:79-82`, which
+        // `authorizer_outage_is_deny`'s header settles as deliberate — no
+        // test exercises a timeout or an open circuit.)
+        //
+        // The arm is COARSER than the error it answers: `Storage` funnels
+        // every `rusqlite` failure, so a transient lock and a corrupt page
+        // arrive identically and cannot be told apart here. 503 is chosen for
+        // the common transient case; the message promises nothing about a
+        // retry, because for the corrupt case no retry will help.
+        //
+        // The detail is not echoed. The 403 above echoes `refused.cause` and
+        // the 200 echoes `poison_reason`, both INTERNAL_ONLY, so operator
+        // reachability is not the axis. `refused.cause` is an authored
+        // `&'static str`; `poison_reason` renders kernel errors whose STRING
+        // payloads are the caller's own submitted names, going back to that
+        // caller — the rest are ordinals, wire tags and revisions. Neither
+        // carries anything from this process's environment.
+        // `rusqlite::Error` does: it is unbounded and path-bearing.
+        Err(WriteError::Log(RecordsLogError::Storage { .. })) => refuse(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "log",
+            "the action log could not be written; the submission was not accepted",
         ),
     }
 }

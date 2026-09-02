@@ -1,0 +1,140 @@
+//! A storage fault is the SERVICE's failure, not the caller's.
+//!
+//! `WriteError::Log` carries two variants that mean opposite things.
+//! `IdempotencyConflict` is the caller reusing a spent key on different
+//! content: their mistake, 409, and retrying the same bytes will not help.
+//! `Storage` is an adapter-level I/O or corruption fault: the service's
+//! failure, and retrying may well succeed.
+//!
+//! Answering the second with the first tells a caller their write collided
+//! with itself when the disk was the problem — a cause that did not occur,
+//! blame in the wrong place, and advice against the retry that would work.
+
+mod facade_support;
+use facade_support as support;
+
+use axum::http::StatusCode;
+use foundry_ontology_app::{compose, router};
+use foundry_records_draft::{ActionEnvelope, Receipt, RecordsLog, RecordsLogError, SealedEnvelope};
+use support::{Fixture, Session, WRITE_BODY as WRITE, scrape, value_of};
+
+/// A log that is reachable and answers every call with a STORAGE fault — the
+/// adapter-level I/O and corruption variant, not the caller's idempotency
+/// conflict. Installable only because the tenant holds its log behind the
+/// port; producing this from a real SQLite handle would mean vandalising the
+/// database from a second connection and a `rusqlite` dependency here.
+struct AlwaysFailingLog {
+    detail: &'static str,
+}
+
+impl AlwaysFailingLog {
+    fn fault(&self) -> RecordsLogError {
+        RecordsLogError::Storage {
+            detail: self.detail.to_owned(),
+        }
+    }
+}
+
+impl RecordsLog for AlwaysFailingLog {
+    fn append(&mut self, _envelope: ActionEnvelope) -> Result<Receipt, RecordsLogError> {
+        Err(self.fault())
+    }
+
+    fn replay(
+        &self,
+        _tenant_id: &str,
+        _from_ordinal: u64,
+    ) -> Result<Vec<SealedEnvelope>, RecordsLogError> {
+        Err(self.fault())
+    }
+
+    fn head(&self, _tenant_id: &str) -> Result<u64, RecordsLogError> {
+        Err(self.fault())
+    }
+}
+
+fn session_with_a_failing_log(fixture: &Fixture, detail: &'static str) -> Session {
+    let mut state = compose(&fixture.config()).expect("boots");
+    for tenant in state.tenants.values_mut() {
+        tenant.get_mut().action_log = Box::new(AlwaysFailingLog { detail });
+    }
+    Session::from_state(state)
+}
+
+#[tokio::test]
+async fn a_storage_fault_is_not_reported_as_an_idempotency_conflict() {
+    let fixture = Fixture::new("storage-fault");
+    let session = session_with_a_failing_log(&fixture, "the disk went away");
+
+    let (status, body) = session.post(Some(fixture.operator_token()), WRITE).await;
+
+    assert_ne!(
+        status,
+        StatusCode::CONFLICT,
+        "a storage fault must not be answered as the caller's key conflict: {body}"
+    );
+    // The EXACT status, not merely 5xx. Which code a storage fault gets is
+    // the whole decision this test exists to defend, and `is_server_error`
+    // admits 500 and 502 without complaint.
+    assert_eq!(
+        status,
+        StatusCode::SERVICE_UNAVAILABLE,
+        "a storage fault is the service's failure and is reported as such, got {status}: {body}"
+    );
+    assert!(
+        !body.contains("idempotency key"),
+        "the refusal must not name a cause that did not occur: {body}"
+    );
+    // The EXACT body, not the absence of one rendering of the detail. A
+    // substring guard is evaded by any transform — a truncation, a case
+    // change, a well-meaning sanitiser that strips boilerplate and keeps the
+    // path-bearing tail — and the property being defended is that NO adapter
+    // detail escapes in any rendering.
+    assert_eq!(
+        body,
+        r#"{"gate":"log","cause":"the action log could not be written; the submission was not accepted"}"#,
+        "the refusal body must be exactly the authored one"
+    );
+}
+
+/// The other variant keeps its meaning. A divergent reuse of a spent key is
+/// still the caller's conflict, and splitting the arm must not move it.
+#[tokio::test]
+async fn a_divergent_key_reuse_is_still_the_callers_conflict() {
+    let fixture = Fixture::new("storage-fault-conflict");
+    let session = fixture.session();
+
+    let (first, _) = session.post(Some(fixture.operator_token()), WRITE).await;
+    assert_eq!(first, StatusCode::OK);
+    let divergent = WRITE.replace(r#""name":"Ada""#, r#""name":"Grace""#);
+    let (second, body) = session
+        .post(Some(fixture.operator_token()), &divergent)
+        .await;
+
+    assert_eq!(second, StatusCode::CONFLICT, "{body}");
+    assert!(
+        body.contains("idempotency key"),
+        "the conflict must still name the spent key: {body}"
+    );
+}
+
+/// Both halves count against availability. A submission the service failed
+/// is exactly the kind an availability objective must see.
+#[tokio::test]
+async fn a_storage_fault_counts_as_a_refused_submission() {
+    let fixture = Fixture::new("storage-fault-counted");
+    let session = session_with_a_failing_log(&fixture, "the disk went away");
+
+    let before = value_of(
+        &scrape(&session).await,
+        "foundry_action_submit_refused_total",
+    );
+    let (status, _) = session.post(Some(fixture.operator_token()), WRITE).await;
+    assert!(status.is_server_error());
+    let after = value_of(
+        &scrape(&session).await,
+        "foundry_action_submit_refused_total",
+    );
+
+    assert_eq!(after, before + 1, "a storage fault must count exactly once");
+}
