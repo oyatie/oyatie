@@ -84,3 +84,13 @@ rust_test(
     within_view = _PACKAGE_VIEW + [_FIXUP],
     deps = [":dependency-declarations-generation-reindeer"],
 )
+
+rust_test(
+    name = "dependency-declarations-generation-reindeer-source-qualification-test",
+    srcs = ["tests/source_qualification.rs"],
+    crate = "dependency_declarations_generation_reindeer_source_qualification_test",
+    crate_root = "tests/source_qualification.rs",
+    visibility = [],
+    within_view = _PACKAGE_VIEW,
+    deps = [":dependency-declarations-generation-reindeer"],
+)
