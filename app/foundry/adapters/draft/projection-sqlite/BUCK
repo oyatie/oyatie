@@ -52,3 +52,18 @@ rust_test(
         "//data/core/ontology-kernel:data-ontology-kernel",
     ],
 )
+
+rust_test(
+    name = "foundry-projection-sqlite-draft-reset-laws",
+    srcs = ["tests/reset_laws.rs"],
+    crate = "reset_laws",
+    crate_root = "tests/reset_laws.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-projection-sqlite-draft",
+        "third-party//:rusqlite",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)

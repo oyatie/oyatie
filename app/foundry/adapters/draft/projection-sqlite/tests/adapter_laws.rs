@@ -6,6 +6,13 @@
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+/// A monotonic per-process counter. The wall-clock recipe alone
+/// duplicated across parallel tests under load — two tests then shared
+/// one database and produced divergent-replay and malformed-image
+/// failures that read as real defects.
+static NEXT_FIXTURE: AtomicU64 = AtomicU64::new(0);
 
 use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
@@ -17,10 +24,31 @@ use foundry_projection_draft::{
 };
 use foundry_projection_sqlite_draft::{PROPERTY_INDEX_NAME, SqliteProjectionStore};
 
-fn scratch(case: &str) -> PathBuf {
+/// Owns the file so it is swept on UNWIND, not only on the happy path.
+/// A cleanup that is the last statement of a test is the cleanup a
+/// FAILING test skips — and a failing test is when the directory is
+/// most likely to be looked at.
+struct Scratch {
+    path: PathBuf,
+}
+
+impl Drop for Scratch {
+    fn drop(&mut self) {
+        sweep(&self.path);
+    }
+}
+
+fn scratch(case: &str) -> Scratch {
+    Scratch {
+        path: raw_scratch(case),
+    }
+}
+
+fn raw_scratch(case: &str) -> PathBuf {
     std::env::temp_dir().join(format!(
-        "foundry-projection-laws-{case}-{}-{}.sqlite",
+        "foundry-projection-laws-{case}-{}-{}-{}.sqlite",
         std::process::id(),
+        NEXT_FIXTURE.fetch_add(1, Ordering::Relaxed),
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -64,8 +92,7 @@ fn projected(object_ref: &str, properties: Vec<ObjectProperty>) -> ProjectedObje
 
 #[test]
 fn a_rich_object_round_trips_byte_faithfully_across_reopen() {
-    let path = scratch("roundtrip");
-    let _ = std::fs::remove_file(&path);
+    let scratch = scratch("roundtrip");
     let mut nested = BTreeMap::new();
     nested.insert("lat".to_owned(), PropertyValue::Integer(37));
     nested.insert(
@@ -100,22 +127,20 @@ fn a_rich_object_round_trips_byte_faithfully_across_reopen() {
         ],
     );
     {
-        let mut store = SqliteProjectionStore::open(&path).unwrap();
+        let mut store = SqliteProjectionStore::open(&scratch.path).unwrap();
         store
             .apply(entry(1, vec![stored.clone()]), &KeyDesignations::default())
             .unwrap();
     }
-    let store = SqliteProjectionStore::open(&path).unwrap();
+    let store = SqliteProjectionStore::open(&scratch.path).unwrap();
     let read = store.get("ten_a", "ent_rich").unwrap();
     assert_eq!(read.as_ref(), Some(&stored), "Eq-identical after reopen");
-    let _ = std::fs::remove_file(&path);
 }
 
 #[test]
 fn the_date_index_key_agrees_with_kernel_order() {
-    let path = scratch("dates");
-    let _ = std::fs::remove_file(&path);
-    let mut store = SqliteProjectionStore::open(&path).unwrap();
+    let scratch = scratch("dates");
+    let mut store = SqliteProjectionStore::open(&scratch.path).unwrap();
     for (ordinal, (object_ref, y, m, d)) in [
         ("ent_d1", 2023, 12, 31),
         ("ent_d2", 2024, 1, 1),
@@ -154,14 +179,12 @@ fn the_date_index_key_agrees_with_kernel_order() {
         vec!["ent_d2", "ent_d3"],
         "the year-boundary date stays out; chronology, not string order",
     );
-    let _ = std::fs::remove_file(&path);
 }
 
 #[test]
 fn typed_index_columns_never_alias_across_kinds() {
-    let path = scratch("alias");
-    let _ = std::fs::remove_file(&path);
-    let mut store = SqliteProjectionStore::open(&path).unwrap();
+    let scratch = scratch("alias");
+    let mut store = SqliteProjectionStore::open(&scratch.path).unwrap();
     store
         .apply(
             entry(
@@ -191,14 +214,12 @@ fn typed_index_columns_never_alias_across_kinds() {
         vec!["ent_int"],
         "int_value=1 rows of Boolean kind never alias Integer(1)",
     );
-    let _ = std::fs::remove_file(&path);
 }
 
 #[test]
 fn predicate_queries_run_through_the_property_index() {
-    let path = scratch("plan");
-    let _ = std::fs::remove_file(&path);
-    let mut store = SqliteProjectionStore::open(&path).unwrap();
+    let scratch = scratch("plan");
+    let mut store = SqliteProjectionStore::open(&scratch.path).unwrap();
     store
         .apply(
             entry(
@@ -212,7 +233,7 @@ fn predicate_queries_run_through_the_property_index() {
         )
         .unwrap();
     drop(store);
-    let connection = rusqlite::Connection::open(&path).unwrap();
+    let connection = rusqlite::Connection::open(&scratch.path).unwrap();
     let plan: String = connection
         .query_row(
             "EXPLAIN QUERY PLAN
@@ -231,5 +252,15 @@ fn predicate_queries_run_through_the_property_index() {
         plan.contains(PROPERTY_INDEX_NAME),
         "the shaped query uses the property index, not a table scan: {plan}",
     );
-    let _ = std::fs::remove_file(&path);
+}
+
+/// WAL writes two sidecars beside the database; removing only the file
+/// leaked 72 strays per suite run, unbounded once names became unique.
+fn sweep(path: &std::path::Path) {
+    let _ = std::fs::remove_file(path);
+    for suffix in ["-wal", "-shm"] {
+        let mut sidecar = path.as_os_str().to_owned();
+        sidecar.push(suffix);
+        let _ = std::fs::remove_file(std::path::PathBuf::from(sidecar));
+    }
 }

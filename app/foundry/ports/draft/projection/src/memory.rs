@@ -249,6 +249,19 @@ impl ProjectionStore for MemoryProjectionStore {
         ))
     }
 
+    fn reset_tenant(&mut self, tenant_id: &str) -> Result<u64, ProjectionStoreError> {
+        // Refused here too, or code developed against the reference
+        // reads "nothing to discard" where production refuses.
+        require_trimmed(tenant_id, "blank tenant")?;
+        let discarded = self.heads.remove(tenant_id).unwrap_or(0);
+        self.entries.retain(|(tenant, _), _| tenant != tenant_id);
+        self.objects.retain(|(tenant, _), _| tenant != tenant_id);
+        self.links
+            .retain(|(tenant, _, _, _), _| tenant != tenant_id);
+        self.poisons.retain(|(tenant, _), _| tenant != tenant_id);
+        Ok(discarded)
+    }
+
     fn poisoned(&self, tenant_id: &str) -> Result<Vec<(u64, String)>, ProjectionStoreError> {
         require_trimmed(tenant_id, "blank tenant")?;
         Ok(self
@@ -265,4 +278,23 @@ fn require_trimmed(value: &str, detail: &'static str) -> Result<(), ProjectionSt
         return Err(ProjectionStoreError::Entry { detail });
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::conformance::{applied, object};
+
+    /// Unobservable through the port (`apply` reads the entry map only
+    /// at `ordinal <= head`), so the law lives beside the field.
+    #[test]
+    fn a_reset_discards_the_tenants_applied_entries() {
+        let mut store = MemoryProjectionStore::default();
+        let seed = object("ten_a", "ent_a1", "ety_reading", vec![]);
+        store
+            .apply(applied("ten_a", 1, vec![seed]), &KeyDesignations::default())
+            .expect("seed");
+        store.reset_tenant("ten_a").expect("reset");
+        assert!(store.entries.is_empty(), "{:?}", store.entries.keys());
+    }
 }

@@ -10,18 +10,19 @@
 
 mod codec;
 mod key_law;
+mod reset;
 mod scan;
 mod write;
 
 use std::path::Path;
 
 use foundry_projection_draft::{
-    AppliedEntry, ApplyReceipt, EntryOutcome, KeyDesignations, Page, PageRequest, ProjectedLink,
-    ProjectedObject, ProjectionStore, ProjectionStoreError, PropertyPredicate,
+    AppliedEntry, ApplyReceipt, KeyDesignations, Page, PageRequest, ProjectedLink, ProjectedObject,
+    ProjectionStore, ProjectionStoreError, PropertyPredicate,
 };
 use rusqlite::{Connection, OptionalExtension, params};
 
-use crate::codec::{decode_object, encode_entry, encode_object};
+use crate::codec::decode_object;
 
 /// The name of the property index; pinned by the adapter's tests via
 /// `EXPLAIN QUERY PLAN`.
@@ -123,6 +124,10 @@ impl SqliteProjectionStore {
 }
 
 impl ProjectionStore for SqliteProjectionStore {
+    fn reset_tenant(&mut self, tenant_id: &str) -> Result<u64, ProjectionStoreError> {
+        reset::reset_tenant(&mut self.connection, tenant_id)
+    }
+
     fn apply(
         &mut self,
         entry: AppliedEntry,
