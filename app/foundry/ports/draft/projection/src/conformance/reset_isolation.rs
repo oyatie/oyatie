@@ -10,7 +10,7 @@
 
 use crate::conformance::{ProjectionFixture, applied_with_links, edge, fail, object};
 use crate::keys::KeyDesignations;
-use crate::store::{ProjectionStore, ProjectionStoreError};
+use crate::store::{PageRequest, ProjectionStore, ProjectionStoreError};
 
 /// The blast radius is exactly one tenant. The neighbour's id has
 /// `ten_a` as a PREFIX: a discard written with `starts_with` rather
@@ -92,20 +92,49 @@ pub fn check_reset_leaves_other_tenants_untouched<F: ProjectionFixture>(
             format!("{receipt:?}"),
         ));
     }
+    // Compared by IDENTITY, not by count. A discard cannot substitute —
+    // but this law binds implementations that do not exist yet, and one
+    // that rebuilds a table by deleting and re-inserting survivors CAN.
+    // A count passes over a neighbour whose ledger was replaced rather
+    // than kept: "still one of something" is not "still theirs".
     let poisons = store
         .poisoned("ten_ab")
         .map_err(|error| fail("neighbour poisons read", format!("{error:?}")))?;
-    if poisons.len() != 1 {
+    if poisons != vec![(2, "payload_decode".to_owned())] {
         return Err(fail(
-            "the neighbour keeps its poison ledger",
+            "the neighbour keeps ITS poison, by ordinal and reason",
             format!("{poisons:?}"),
         ));
     }
     let edges = store
         .links_from("ten_ab", "ent_1")
         .map_err(|error| fail("neighbour links read", format!("{error:?}")))?;
-    if edges.len() != 1 {
-        return Err(fail("the neighbour keeps its edges", format!("{edges:?}")));
+    if edges != vec![edge("ent_1", "ent_2")] {
+        return Err(fail(
+            "the neighbour keeps ITS edge, endpoints and observation time",
+            format!("{edges:?}"),
+        ));
+    }
+    // The accessors this law never reached for a neighbour. One only ever
+    // called against the SUBJECT cannot witness a blast-radius escape,
+    // and counting call sites finds that before any mutant does.
+    let inbound = store
+        .links_to("ten_ab", "ent_2")
+        .map_err(|error| fail("neighbour inbound read", format!("{error:?}")))?;
+    if inbound != edges {
+        return Err(fail(
+            "the neighbour's edge is intact inbound",
+            format!("{inbound:?}"),
+        ));
+    }
+    let scan = store
+        .objects_of_type("ten_ab", "ety_reading", &PageRequest::first(50))
+        .map_err(|error| fail("neighbour scan reads", format!("{error:?}")))?;
+    if scan.objects.len() != 2 {
+        return Err(fail(
+            "the neighbour keeps both objects",
+            format!("{scan:?}"),
+        ));
     }
     Ok(())
 }
