@@ -1,3 +1,20 @@
+# The dependency set every driven-surface test in this package shares: the
+# library under test, the durable records adapter behind its port, and the
+# axum/tower machinery for driving a router in-process.
+#
+# Named rather than repeated. Twelve verbatim copies is how this file reached
+# the 300-line budget, and a budget spent on duplication buys nothing — the
+# next test target had nowhere to go.
+FACADE_TEST_DEPS = [
+    ":foundry-ontology-app",
+    "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
+    "//app/foundry/ports/draft/records:foundry-records-draft",
+    "third-party//:axum",
+    "third-party//:http-body-util",
+    "third-party//:tokio",
+    "third-party//:tower",
+]
+
 rust_library(
     name = "foundry-ontology-app",
     srcs = glob(["src/**/*.rs"]),
@@ -52,15 +69,7 @@ rust_test(
     crate = "probes_report_honest_readiness",
     crate_root = "tests/probes_report_honest_readiness.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-ontology-app",
-        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "third-party//:axum",
-        "third-party//:http-body-util",
-        "third-party//:tokio",
-        "third-party//:tower",
-    ],
+    deps = FACADE_TEST_DEPS,
 )
 
 rust_test(
@@ -81,15 +90,7 @@ rust_test(
     crate = "submit_contract",
     crate_root = "tests/submit_contract.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-ontology-app",
-        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "third-party//:axum",
-        "third-party//:http-body-util",
-        "third-party//:tokio",
-        "third-party//:tower",
-    ],
+    deps = FACADE_TEST_DEPS,
 )
 
 rust_test(
@@ -101,15 +102,7 @@ rust_test(
     crate = "authorizer_outage_is_deny",
     crate_root = "tests/authorizer_outage_is_deny.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-ontology-app",
-        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "third-party//:axum",
-        "third-party//:http-body-util",
-        "third-party//:tokio",
-        "third-party//:tower",
-    ],
+    deps = FACADE_TEST_DEPS,
 )
 
 rust_test(
@@ -121,15 +114,7 @@ rust_test(
     crate = "read_contract",
     crate_root = "tests/read_contract.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-ontology-app",
-        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "third-party//:axum",
-        "third-party//:http-body-util",
-        "third-party//:tokio",
-        "third-party//:tower",
-    ],
+    deps = FACADE_TEST_DEPS,
 )
 
 rust_test(
@@ -141,15 +126,7 @@ rust_test(
     crate = "cross_tenant_isolation",
     crate_root = "tests/cross_tenant_isolation.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-ontology-app",
-        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "third-party//:axum",
-        "third-party//:http-body-util",
-        "third-party//:tokio",
-        "third-party//:tower",
-    ],
+    deps = FACADE_TEST_DEPS,
 )
 
 rust_test(
@@ -161,15 +138,7 @@ rust_test(
     crate = "slo_render_is_the_source",
     crate_root = "tests/slo_render_is_the_source.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-ontology-app",
-        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "third-party//:axum",
-        "third-party//:http-body-util",
-        "third-party//:tokio",
-        "third-party//:tower",
-    ],
+    deps = FACADE_TEST_DEPS,
 )
 
 rust_test(
@@ -181,15 +150,7 @@ rust_test(
     crate = "metrics_count_what_happened",
     crate_root = "tests/metrics_count_what_happened.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-ontology-app",
-        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "third-party//:axum",
-        "third-party//:http-body-util",
-        "third-party//:tokio",
-        "third-party//:tower",
-    ],
+    deps = FACADE_TEST_DEPS,
 )
 
 rust_test(
@@ -201,15 +162,7 @@ rust_test(
     crate = "metrics_count_submissions",
     crate_root = "tests/metrics_count_submissions.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-ontology-app",
-        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "third-party//:axum",
-        "third-party//:http-body-util",
-        "third-party//:tokio",
-        "third-party//:tower",
-    ],
+    deps = FACADE_TEST_DEPS,
 )
 
 rust_test(
@@ -222,15 +175,7 @@ rust_test(
     crate = "storage_fault_is_not_a_conflict",
     crate_root = "tests/storage_fault_is_not_a_conflict.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-ontology-app",
-        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "third-party//:axum",
-        "third-party//:http-body-util",
-        "third-party//:tokio",
-        "third-party//:tower",
-    ],
+    deps = FACADE_TEST_DEPS,
 )
 
 rust_test(
@@ -243,15 +188,7 @@ rust_test(
     crate = "views_read_the_log_not_a_boot_mirror",
     crate_root = "tests/views_read_the_log_not_a_boot_mirror.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-ontology-app",
-        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "third-party//:axum",
-        "third-party//:http-body-util",
-        "third-party//:tokio",
-        "third-party//:tower",
-    ],
+    deps = FACADE_TEST_DEPS,
 )
 
 rust_test(
@@ -265,15 +202,7 @@ rust_test(
     crate = "lag_is_measured_against_the_durable_head",
     crate_root = "tests/lag_is_measured_against_the_durable_head.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-ontology-app",
-        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "third-party//:axum",
-        "third-party//:http-body-util",
-        "third-party//:tokio",
-        "third-party//:tower",
-    ],
+    deps = FACADE_TEST_DEPS,
 )
 
 rust_test(
@@ -287,13 +216,5 @@ rust_test(
     crate = "readyz_distinguishes_its_refusals",
     crate_root = "tests/readyz_distinguishes_its_refusals.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-ontology-app",
-        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "third-party//:axum",
-        "third-party//:http-body-util",
-        "third-party//:tokio",
-        "third-party//:tower",
-    ],
+    deps = FACADE_TEST_DEPS,
 )
