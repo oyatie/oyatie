@@ -21,6 +21,7 @@ enum PageSnapshotSubstitution {
 
 struct PageSnapshotSubstitutionStore {
     substitution: PageSnapshotSubstitution,
+    corrupt_on_read: usize,
     reads: AtomicUsize,
 }
 
@@ -28,6 +29,15 @@ impl PageSnapshotSubstitutionStore {
     fn new(substitution: PageSnapshotSubstitution) -> Self {
         Self {
             substitution,
+            corrupt_on_read: 1,
+            reads: AtomicUsize::new(0),
+        }
+    }
+
+    fn late(substitution: PageSnapshotSubstitution) -> Self {
+        Self {
+            substitution,
+            corrupt_on_read: 2,
             reads: AtomicUsize::new(0),
         }
     }
@@ -56,7 +66,17 @@ impl RebacTupleStore for PageSnapshotSubstitutionStore {
         query: &RebacTupleQuery,
         snapshot: &ResolvedRebacSnapshot,
     ) -> Result<RebacTuplePage, RebacTupleStoreError> {
-        self.reads.fetch_add(1, Ordering::SeqCst);
+        let read = self.reads.fetch_add(1, Ordering::SeqCst) + 1;
+        if read < self.corrupt_on_read {
+            return Ok(RebacTuplePage {
+                tuples: vec![
+                    RebacTuple::parse(query.tenant.clone(), "group:eng#member@user:bob")
+                        .expect("non-granting tuple is valid"),
+                ],
+                snapshot: snapshot.clone(),
+                next_page_token: Some("second-page".to_owned()),
+            });
+        }
         let page_snapshot = match self.substitution {
             PageSnapshotSubstitution::Tenant => ResolvedRebacSnapshot::new(
                 RebacTenantScope::new("ten_other").expect("other tenant is valid"),
@@ -111,6 +131,33 @@ fn tuple_page_cannot_substitute_the_resolved_snapshot_tenant() {
         "ReBAC tuple store served tenant ten_other snapshot coherent-head for requested tenant ten_join snapshot coherent-head"
     );
     assert_eq!(store.reads.load(Ordering::SeqCst), 1);
+    assert!(!engine.was_consulted());
+}
+
+#[test]
+fn later_tuple_page_cannot_substitute_the_resolved_snapshot() {
+    let store = PageSnapshotSubstitutionStore::late(PageSnapshotSubstitution::Token);
+    let namespace = model();
+    let candidates = [eng_candidate()];
+    let inputs = graph(&store, &namespace, RebacReadSnapshot::latest(), &candidates);
+    let engine = MustNotDecide::new();
+
+    let result = decide(
+        &engine,
+        &inputs,
+        &request("alice"),
+        BTreeMap::new(),
+        context_entities(),
+    );
+
+    assert!(matches!(
+        result,
+        Err(DecisionError::Expansion(ExpansionError::Store(
+            RebacTupleStoreError::InconsistentSnapshot { requested, served }
+        ))) if requested.as_str() == "coherent-head"
+            && served.as_str() == "substituted-page"
+    ));
+    assert_eq!(store.reads.load(Ordering::SeqCst), 2);
     assert!(!engine.was_consulted());
 }
 
