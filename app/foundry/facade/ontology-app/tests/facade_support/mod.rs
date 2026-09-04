@@ -9,7 +9,7 @@ use std::path::PathBuf;
 
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
-use foundry_ontology_app::{AppState, Config, OperatorCredential, compose, router};
+use foundry_ontology_app::{AppState, Config, OperatorCredential, compose, router, router_from};
 use foundry_records_draft::RecordsLog;
 use foundry_records_sqlite_draft::SqliteRecordsLog;
 use http_body_util::BodyExt;
@@ -212,6 +212,14 @@ impl Fixture {
 }
 
 impl Session {
+    /// Drive a process the caller RETAINS a handle to, so a test can act on
+    /// the same state the router serves — holding a tenant lock, say.
+    pub fn from_shared(state: std::sync::Arc<AppState>) -> Self {
+        Session {
+            router: router_from(state),
+        }
+    }
+
     /// Drive a process the caller composed, so a test can install a double
     /// before the router is built.
     pub fn from_state(state: AppState) -> Self {

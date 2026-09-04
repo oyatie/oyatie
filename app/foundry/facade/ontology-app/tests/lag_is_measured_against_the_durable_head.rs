@@ -127,7 +127,7 @@ async fn the_totals_are_sums_over_every_served_tenant() {
     let seen = foundry_ontology_app::observation::observe(&state);
 
     assert_eq!(
-        seen.unknown, 2,
+        seen.unreadable, 2,
         "each unreadable tenant counts, so two tenants are two unknowns: {seen:?}"
     );
     assert!(
@@ -163,7 +163,11 @@ async fn the_lag_total_accumulates_across_tenants() {
         seen.lag, 3,
         "two entries behind on one tenant and one on the other sums to three: {seen:?}"
     );
-    assert_eq!(seen.unknown, 0, "both tenants were readable: {seen:?}");
+    assert_eq!(
+        (seen.unreadable, seen.contended),
+        (0, 0),
+        "both tenants were readable and neither was busy: {seen:?}"
+    );
 }
 
 /// The poison total accumulates across tenants too.

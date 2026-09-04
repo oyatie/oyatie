@@ -1,0 +1,62 @@
+# Generated from `app/foundry/facade/ontology-app/src/slo.rs`. Do not hand-edit:
+# the suite compares this file byte-for-byte against the renderer.
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: ontology-projection-freshness
+  displayName: "foundry-ontology — projection caught up to its log"
+  labels:
+    microservice: foundry-ontology
+    sli_class: freshness
+    plane: app
+    owner_team: foundry
+spec:
+  service: foundry-ontology
+  description: |
+    A scrape is good when every tenant the process could read had
+    consumed its whole log. Reads from a lagging projection are answers
+    about the past. This is a SCRAPE-level boolean, not a per-tenant
+    ratio: the signal is process-wide and unlabelled because this
+    surface is unauthenticated and must not become a tenancy oracle. A
+    tenant whose log head could not be READ scores zero — an
+    unreadable store is not a fresh one. A tenant that was merely BUSY
+    does not, because a lock held by a request in flight is a service
+    being used, and an objective that reds because the service is being
+    used teaches operators to ignore it; lag persists, so a tenant
+    genuinely behind is seen on the scrapes that are not contended. A
+    scrape that observed NO tenant scores zero rather than vacuously
+    good. What this cannot see is a partial wedge: if some tenants stay
+    contended forever while the rest are fresh, the claim narrows to the
+    tenants it could read and stays true. Alert on sustained non-zero
+    foundry_projection_contended for that; it is not a question a
+    per-scrape boolean can answer. /readyz answers the stricter question
+    and orders its refusals so a measured fault outranks a busy tenant.
+    Poison is excluded: a poisoned entry advances the fold, so counting
+    it would make the objective unrecoverable. During a total outage no
+    series is scraped at all, so budget consumption is the evaluator's
+    no-data policy, not this objective's claim.
+  indicator:
+    metadata:
+      name: ontology-projection-freshness-indicator
+    spec:
+      ratioMetric:
+        counter: false
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(foundry_projection_fresh)
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                count(foundry_projection_fresh)
+  objectives:
+    - target: 0.999
+      displayName: "99.9%"
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences

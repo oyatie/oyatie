@@ -199,3 +199,44 @@ async fn no_series_is_currently_barred_from_backing_an_objective() {
         );
     }
 }
+
+/// The declared objective SET is asserted, not just each objective's shape.
+///
+/// Nothing else pins which objectives exist. An earlier lane deleted the
+/// freshness objective because its signal could not move; the signal moves
+/// now, and a later lane deleting it again — or quietly reducing the set to
+/// the two availability ratios — would pass every other test in this file,
+/// because they all iterate whatever `SLOS` happens to contain.
+#[tokio::test]
+async fn the_declared_objectives_are_the_ones_this_vertical_promises() {
+    // NAMES, not classes. Freezing classes catches the deletion of the last
+    // objective of a class and admits the silent deletion of either
+    // availability objective, which is the same event one member over.
+    let declared: BTreeSet<&str> = SLOS.iter().map(|spec| spec.name).collect();
+    assert_eq!(
+        declared,
+        BTreeSet::from([
+            "ontology-projection-freshness",
+            "ontology-read-availability",
+            "ontology-submit-availability",
+        ]),
+        "the objectives this vertical declares changed; if that is deliberate, \
+         say why here rather than letting a deletion pass silently"
+    );
+}
+
+/// A ratio whose numerator is its denominator is identically one.
+///
+/// That is the defect that got the freshness objective deleted — declared
+/// coverage over something that cannot breach — and it is expressible in the
+/// QUERY as easily as in the gauge, where no gauge-level test would see it.
+#[test]
+fn no_objective_measures_itself() {
+    for spec in SLOS {
+        assert_ne!(
+            spec.good_query, spec.total_query,
+            "{}: a numerator identical to its denominator can never breach",
+            spec.name
+        );
+    }
+}

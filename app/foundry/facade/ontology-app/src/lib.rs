@@ -36,5 +36,5 @@ pub use authz::{Caller, PolicyEnforcementPoint};
 pub use composition::{AppState, BootError, TenantState, compose};
 pub use config::{Config, ConfigError};
 pub use pdp::{PepError, Surface};
-pub use routes::router;
+pub use routes::{router, router_from};
 pub use seed::SeedError;

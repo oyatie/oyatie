@@ -218,3 +218,17 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = FACADE_TEST_DEPS,
 )
+
+rust_test(
+    name = "foundry-ontology-app-freshness",
+    srcs = [
+        "tests/facade_support/mod.rs",
+        "tests/failing_log/mod.rs",
+        "tests/freshness_is_a_signal_that_can_breach.rs",
+        "tests/out_of_band/mod.rs",
+    ],
+    crate = "freshness_is_a_signal_that_can_breach",
+    crate_root = "tests/freshness_is_a_signal_that_can_breach.rs",
+    visibility = ["PUBLIC"],
+    deps = FACADE_TEST_DEPS,
+)

@@ -81,21 +81,53 @@ const SERVICE: &str = "foundry-ontology";
 /// The objectives this vertical declares. Each names only metrics
 /// `metrics::objective_eligible_metrics` reports — which is narrower than
 /// what the process exports, deliberately.
-/// NO FRESHNESS OBJECTIVE YET, and the reason has changed.
+/// The freshness objective is declared over `foundry_projection_caught_up`
+/// rather than over the lag gauge directly.
 ///
-/// It was removed because `foundry_projection_lag` could not take a non-zero
-/// value: the head came from a boot-time mirror that was never appended to,
-/// so the subtraction was identically zero and an objective over it would
-/// have been declared coverage providing none. That is no longer true —
-/// `sync_status` reads the durable log head, the gauge can breach, and it is
-/// no longer barred from backing an objective.
+/// The lag alone is not the question. A scrape where no tenant could be read
+/// reports `lag 0`, and scoring that as fresh is the failure this module
+/// exists to prevent — so the indicator is the process's own predicate,
+/// which is zero for a lagging process and zero for an unobserved one.
 ///
-/// What remains is a judgement rather than an impossibility. A freshness
-/// objective needs its own query, its own payload, and a decision about how
-/// `foundry_projection_lag_unknown` enters the denominator: a scrape where no
-/// tenant could be read is not evidence of freshness and must not score as
-/// good. That belongs in its own change, not smuggled in beside the signal.
+/// Exporting the predicate rather than joining two gauges in the query is
+/// deliberate: the join needs `ignoring(__name__)` label matching that
+/// nothing here can execute against, and it would let the objective drift
+/// from the readiness probe that answers the same question.
 pub static SLOS: &[SloSpec] = &[
+    SloSpec {
+        name: "ontology-projection-freshness",
+        display_name: "foundry-ontology — projection caught up to its log",
+        sli_class: "freshness",
+        description: "A scrape is good when every tenant the process could read had \
+                      consumed its whole log. Reads from a lagging projection are \
+                      answers about the past. This is a SCRAPE-level boolean, not a \
+                      per-tenant ratio: the signal is process-wide and unlabelled \
+                      because this surface is unauthenticated and must not become a \
+                      tenancy oracle. A tenant whose log head could not be READ \
+                      scores zero — an unreadable store is not a fresh one. A tenant \
+                      that was merely BUSY does not, because a lock held by a request \
+                      in flight is a service being used, and an objective that reds \
+                      because the service is being used teaches operators to ignore \
+                      it; lag persists, so a tenant genuinely behind is seen on the \
+                      scrapes that are not contended. A scrape that observed NO \
+                      tenant scores zero rather than vacuously good. What this \
+                      cannot see is a partial wedge: if some tenants stay contended \
+                      forever while the rest are fresh, the claim narrows to the \
+                      tenants it could read and stays true. Alert on sustained \
+                      non-zero foundry_projection_contended for that; it is not a \
+                      question a per-scrape boolean can answer. /readyz answers the \
+                      stricter question and orders its refusals so a measured fault \
+                      outranks a busy tenant. Poison is excluded: a poisoned entry advances the \
+                      fold, so counting it would make the objective unrecoverable. \
+                      During a total outage no series is scraped at all, so budget \
+                      consumption is the evaluator's no-data policy, not this \
+                      objective's claim.",
+        good_query: "sum(foundry_projection_fresh)",
+        total_query: "count(foundry_projection_fresh)",
+        target: "0.999",
+        objective_display: "99.9%",
+        counter: false,
+    },
     SloSpec {
         name: "ontology-submit-availability",
         display_name: "foundry-ontology — Action submission availability",

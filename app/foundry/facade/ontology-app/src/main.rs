@@ -66,7 +66,7 @@ async fn main() {
         // Reported beside the count so a zero is never read as "none" when
         // it is really "not sampled": at boot nothing is contended, so a
         // non-zero here is itself a finding.
-        unsampled_tenants = seen.unknown,
+        unsampled_tenants = seen.contended + seen.unreadable,
         "composed"
     );
 
