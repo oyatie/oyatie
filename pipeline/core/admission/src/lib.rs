@@ -5,18 +5,20 @@ pub mod fanin;
 pub mod git_change;
 pub mod layout;
 pub mod line_budget;
+mod live_postgres;
 pub mod occupancy;
 pub mod owners;
 
 pub use cadence::{
-    CadenceEvent, LIVE_POSTGRES_CRATES, LIVE_POSTGRES_PATH_PREFIXES, POSTSUBMIT_JOBS,
-    PRESUBMIT_JOBS, PresubmitChangeGates, REINDEER_QUALIFICATION_PATH_PREFIXES, WORKFLOW_FILES,
+    CadenceEvent, LIVE_POSTGRES_CRATES, LIVE_POSTGRES_JOBS, POSTSUBMIT_JOBS, PRESUBMIT_JOBS,
+    PresubmitChangeGates, REINDEER_QUALIFICATION_PATH_PREFIXES, WORKFLOW_FILES,
+    backbone_postgres_required, compute_lifecycle_postgres_required,
     hits_reindeer_qualification_path, live_postgres_required, presubmit_change_gates,
     reindeer_qualification_exact_paths, reindeer_source_qualification_required,
 };
 pub use fanin::{
-    FanIn, fan_in_ok, occupancy_ok, postgres_ok, postsubmit_ok, reindeer_qualification_ok,
-    required_success,
+    FanIn, fan_in_ok, gate_value, live_postgres_cells_ok, occupancy_ok, postgres_ok, postsubmit_ok,
+    reindeer_qualification_ok, required_success,
 };
 pub use git_change::{
     GitChangePaths, PathSetParseError, git_change_paths_from_name_status_z,
@@ -34,6 +36,11 @@ pub use layout::{
     workspace_draft_dependency_violations, workspace_membership_violations,
 };
 pub use line_budget::file_budget_violations;
+pub use live_postgres::{
+    BACKBONE_LIVE_POSTGRES_PATH_PREFIXES, COMPUTE_LIFECYCLE_LIVE_POSTGRES_PATH_PREFIXES,
+    LIVE_POSTGRES_SELECTOR_PATH_PREFIXES, hits_backbone_postgres_path,
+    hits_compute_lifecycle_postgres_path, live_postgres_exact_paths,
+};
 pub use occupancy::{
     OccupancyRefused, OccupiedSet, admit, admit_authored, authored_paths, declared_mergeable,
 };

@@ -71,7 +71,18 @@ fn change_gates_rejects_input_execution_and_output_mutations() {
         .find(|spec| spec.admission == Admission::ChangeGates)
         .expect("change-gates job");
     for (from, to) in [
-        ("live: ${{ steps.g.outputs.live }}", "live: false"),
+        (
+            "backbone_postgres: ${{ steps.g.outputs.backbone_postgres }}",
+            "backbone_postgres: false",
+        ),
+        (
+            "compute_lifecycle_postgres: ${{ steps.g.outputs.compute_lifecycle_postgres }}",
+            "compute_lifecycle_postgres: false",
+        ),
+        (
+            "reindeer: ${{ steps.g.outputs.reindeer }}",
+            "reindeer: false",
+        ),
         ("EVENT: ${{ github.event_name }}", "EVENT: pull_request"),
         (
             "base_sha=\"$(git rev-parse --verify 'HEAD^1^{commit}')\"",
