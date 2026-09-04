@@ -22,6 +22,7 @@ pub mod config;
 pub mod dto;
 pub mod metrics;
 pub mod observability;
+pub mod observation;
 pub mod pdp;
 pub mod read_dto;
 pub mod reads;

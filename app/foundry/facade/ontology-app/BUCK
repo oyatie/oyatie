@@ -253,3 +253,47 @@ rust_test(
         "third-party//:tower",
     ],
 )
+
+rust_test(
+    name = "foundry-ontology-app-durable-lag",
+    srcs = [
+        "tests/facade_support/mod.rs",
+        "tests/failing_log/mod.rs",
+        "tests/lag_is_measured_against_the_durable_head.rs",
+        "tests/out_of_band/mod.rs",
+    ],
+    crate = "lag_is_measured_against_the_durable_head",
+    crate_root = "tests/lag_is_measured_against_the_durable_head.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-ontology-app",
+        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "third-party//:axum",
+        "third-party//:http-body-util",
+        "third-party//:tokio",
+        "third-party//:tower",
+    ],
+)
+
+rust_test(
+    name = "foundry-ontology-app-readyz-refusals",
+    srcs = [
+        "tests/facade_support/mod.rs",
+        "tests/failing_log/mod.rs",
+        "tests/out_of_band/mod.rs",
+        "tests/readyz_distinguishes_its_refusals.rs",
+    ],
+    crate = "readyz_distinguishes_its_refusals",
+    crate_root = "tests/readyz_distinguishes_its_refusals.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-ontology-app",
+        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
+        "//app/foundry/ports/draft/records:foundry-records-draft",
+        "third-party//:axum",
+        "third-party//:http-body-util",
+        "third-party//:tokio",
+        "third-party//:tower",
+    ],
+)

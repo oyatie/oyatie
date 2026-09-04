@@ -42,11 +42,19 @@ async fn healthz() -> impl IntoResponse {
     (StatusCode::OK, "ok\n")
 }
 
-/// Readiness: every tenant's fold has consumed its whole log. Poison never
-/// enters this answer.
+/// Readiness: every tenant's fold has consumed its whole log, AND every
+/// tenant could be read. Poison never enters this answer.
+///
+/// The two refusals are distinct and say so. A tenant that is behind and a
+/// tenant nobody could read are both "not ready", but reporting the second as
+/// "lagging" would name a state the process never observed — the failure this
+/// surface's own signal was rebuilt to stop.
 async fn readyz(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    if state.is_ready() {
+    let seen = crate::observation::observe(&state);
+    if seen.is_caught_up() {
         (StatusCode::OK, "ready\n")
+    } else if seen.unknown > 0 {
+        (StatusCode::SERVICE_UNAVAILABLE, "unobserved\n")
     } else {
         (StatusCode::SERVICE_UNAVAILABLE, "lagging\n")
     }

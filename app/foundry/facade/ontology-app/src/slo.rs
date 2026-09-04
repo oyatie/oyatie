@@ -81,25 +81,20 @@ const SERVICE: &str = "foundry-ontology";
 /// The objectives this vertical declares. Each names only metrics
 /// `metrics::objective_eligible_metrics` reports — which is narrower than
 /// what the process exports, deliberately.
-/// NO FRESHNESS OBJECTIVE, deliberately.
+/// NO FRESHNESS OBJECTIVE YET, and the reason has changed.
 ///
-/// `foundry_projection_lag` cannot currently take a non-zero value: it is
-/// `head - applied_ordinal` where `head` reads the per-tenant `entries`
-/// mirror, and that mirror is built once in `compose` and never appended to
-/// afterwards — `write_handles` lends out the log, the denial trail and the
-/// projection, never the mirror. So `head` is frozen at the boot ordinal
-/// while `applied_ordinal` only grows, and the saturating subtraction is
-/// identically zero. Zero rather than merely constant because `apply_sealed`
-/// advances `applied_ordinal` even when an entry poisons (`fold.rs:66-69`),
-/// so the boot fold always leaves it equal to head — were that not so, this
-/// would be a non-zero constant instead. An objective over it would be declared coverage
-/// providing none, which is the failure this module exists to prevent; it
-/// would simply never breach instead of permanently breaching.
+/// It was removed because `foundry_projection_lag` could not take a non-zero
+/// value: the head came from a boot-time mirror that was never appended to,
+/// so the subtraction was identically zero and an objective over it would
+/// have been declared coverage providing none. That is no longer true —
+/// `sync_status` reads the durable log head, the gauge can breach, and it is
+/// no longer barred from backing an objective.
 ///
-/// A real freshness objective needs the lag measured against the DURABLE
-/// log head rather than the boot mirror. That is a change to what lag
-/// means process-wide, which belongs with the lane that owns readiness and
-/// the boot decision table, not to a lane about what the exposition counts.
+/// What remains is a judgement rather than an impossibility. A freshness
+/// objective needs its own query, its own payload, and a decision about how
+/// `foundry_projection_lag_unknown` enters the denominator: a scrape where no
+/// tenant could be read is not evidence of freshness and must not score as
+/// good. That belongs in its own change, not smuggled in beside the signal.
 pub static SLOS: &[SloSpec] = &[
     SloSpec {
         name: "ontology-submit-availability",

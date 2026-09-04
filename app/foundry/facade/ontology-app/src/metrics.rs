@@ -18,6 +18,7 @@ use std::collections::BTreeSet;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::composition::AppState;
+use crate::observation::observe;
 
 /// Request accounting. Served and refused are separate counters rather than
 /// one labelled counter, so an objective reads two independent numbers and a
@@ -71,34 +72,37 @@ pub struct Sample {
 /// objective-validation see it; delete one and both stop seeing it.
 pub fn samples(state: &AppState) -> Vec<Sample> {
     let metrics = &state.metrics;
+    // ONE observation for every gauge below, so the three cannot disagree.
+    let seen = observe(state);
     vec![
         Sample {
             name: "foundry_projection_lag",
             kind: "gauge",
-            help: "Entries in a tenant's BOOT-TIME log mirror that its projection has \
-                   not yet consumed. Not a freshness signal: the mirror is fixed at \
-                   compose and never appended to, so this cannot observe an append made \
-                   after boot and is zero for the life of the process.",
-            value: state
-                .tenants
-                .values()
-                .map(|tenant| {
-                    tenant
-                        .try_lock()
-                        .map_or(0, |tenant| tenant.sync_status().lag)
-                })
-                .sum(),
-            objective_eligible: false,
-            ineligible_because: "the lag is read from the boot-time entries mirror, which is \
-                                  never appended to after compose, so this series is zero for \
-                                  the life of the process and an objective over it could not \
-                                  breach",
+            help: "Entries durably appended to a tenant's log that its projection has \
+                   not yet consumed, summed over served tenants.",
+            value: seen.lag,
+            objective_eligible: true,
+            ineligible_because: "",
+        },
+        Sample {
+            name: "foundry_projection_lag_unknown",
+            kind: "gauge",
+            help: "Served tenants whose lag could not be sampled, because the tenant \
+                   was locked or its log head was unreadable. A tenant counted here \
+                   contributes nothing to foundry_projection_lag, so a zero lag is \
+                   only evidence of freshness while this is also zero.",
+            value: seen.unknown,
+            objective_eligible: true,
+            ineligible_because: "",
         },
         Sample {
             name: "foundry_poisoned_entries",
             kind: "gauge",
-            help: "Log entries the fold consumed and deterministically refused.",
-            value: state.poisoned_count(),
+            help: "Log entries the fold consumed and deterministically refused, summed \
+                   over served tenants. Taken in the same pass as the lag, so \
+                   foundry_projection_lag_unknown qualifies this total too: an \
+                   unsampled tenant contributes nothing to either.",
+            value: seen.poisoned,
             objective_eligible: true,
             ineligible_because: "",
         },

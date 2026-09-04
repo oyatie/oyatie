@@ -160,35 +160,42 @@ fn the_scanner_reads_whole_metric_names_only() {
     );
 }
 
-/// The ineligible set is FROZEN, because the verdict is one word.
+/// The ineligible set is FROZEN, and it is currently EMPTY.
 ///
-/// `objective_eligible` partitions the table, and nothing else reconciles it:
-/// flipping the lag gauge's verdict to `true` re-admits the objective this
-/// lane removed, while `ineligible_because` one line below still carries the
-/// true reason. The guard has to assert the partition, not merely consume it.
+/// `objective_eligible` partitions the metric table and nothing else
+/// reconciles it, so the verdict has to be asserted rather than merely
+/// consumed. `foundry_projection_lag` was the sole member until its head
+/// became durable: a gauge that could not move became one that can, so an
+/// objective over it can breach and it is no longer barred.
 ///
-/// This is not a freeze on the exposition. It is a freeze on the claim that a
-/// series may NOT back an objective — the set this reads is the ineligible
-/// one. A new ELIGIBLE metric may be added freely; a second ineligible one
-/// fails here deliberately, because a series that cannot back an objective is
-/// a thing a human should confirm rather than one that lands quietly.
+/// Emptiness is the claim, not the absence of one. Marking any series
+/// ineligible fails here, which is the point — barring a series from backing
+/// an objective is a judgement a human should confirm, and the reason it
+/// carries is the thing an operator reads when their objective is refused.
 #[tokio::test]
-async fn only_the_boot_mirror_gauge_may_not_back_an_objective() {
+async fn no_series_is_currently_barred_from_backing_an_objective() {
     let fixture = Fixture::new("slo-eligibility");
     let state = fixture.state();
     let ineligible = foundry_ontology_app::metrics::objective_ineligible_metrics(&state);
-    // Compared as a set: the table's order is not part of this claim, and a
-    // reorder must not fail a test about which series are ineligible.
     let names: BTreeSet<&str> = ineligible.iter().map(|(name, _)| *name).collect();
     assert_eq!(
         names,
-        BTreeSet::from(["foundry_projection_lag"]),
-        "the set of series that may not back an objective changed; if that is \
-         deliberate, say why here"
+        BTreeSet::new(),
+        "a series was barred from backing an objective; if that is deliberate, \
+         say why here and give the reason an operator will read"
     );
-    let (_, reason) = ineligible[0];
-    assert!(
-        reason.contains("mirror") && reason.contains("zero for the life of the process"),
-        "the refusal must carry the reason an operator needs, got: {reason}"
-    );
+    // The converse, which IS reachable today over every sample: an eligible
+    // series must carry no reason. A verdict flipped to eligible while its
+    // reason text stayed behind is the half-edit the freeze above cannot see.
+    for sample in foundry_ontology_app::metrics::samples(&state) {
+        assert_eq!(
+            sample.objective_eligible,
+            sample.ineligible_because.is_empty(),
+            "{}: an eligible series must carry no reason, and a barred one must \
+             explain itself; got eligible={} reason={:?}",
+            sample.name,
+            sample.objective_eligible,
+            sample.ineligible_because
+        );
+    }
 }

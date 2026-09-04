@@ -126,20 +126,24 @@ async fn a_poisoned_entry_never_un_readies_the_process() {
     let fixture = Fixture::new("readyz-poison");
     fixture.seed_a_poisoning_entry();
     let state = compose(&fixture.config()).expect("boot over a poisoned log");
+    let seen = foundry_ontology_app::observation::observe(&state);
     assert_eq!(
-        state.poisoned_count(),
-        1,
+        seen.poisoned, 1,
         "the fixture must actually poison, or this test proves nothing"
     );
+    assert_eq!(
+        seen.unknown, 0,
+        "a total is only meaningful when every tenant was sampled"
+    );
     assert!(
-        state.is_ready(),
+        foundry_ontology_app::observation::observe(&state).is_caught_up(),
         "poison advances the fold; it is not a readiness fault"
     );
     let (status, _) = get(&fixture, "/readyz").await;
     assert_eq!(status, StatusCode::OK);
-    // The gauge is marked eligible to back an objective, and eligibility is
-    // earned by a value a constant could not hold by accident, not asserted
-    // by a field. This is the only test that drives it off zero.
+    // Eligibility is earned by a value a constant could not hold by accident,
+    // not asserted by a field. This is the only test that drives this gauge
+    // off zero.
     let (_, body) = get(&fixture, "/metrics").await;
     assert!(
         // Newline-bounded: a bare `contains` of the value is satisfied by 10,
