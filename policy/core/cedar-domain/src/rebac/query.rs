@@ -184,8 +184,10 @@ impl fmt::Display for RebacTupleStoreError {
             ),
             Self::InconsistentSnapshot { requested, served } => write!(
                 f,
-                "ReBAC tuple store served snapshot {} for requested snapshot {}",
+                "ReBAC tuple store served tenant {} snapshot {} for requested tenant {} snapshot {}",
+                served.tenant().as_str(),
                 served.as_str(),
+                requested.tenant().as_str(),
                 requested.as_str()
             ),
             Self::TupleOutsideQuery { query, tuple } => write!(

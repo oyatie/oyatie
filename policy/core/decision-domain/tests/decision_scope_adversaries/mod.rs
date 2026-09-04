@@ -14,6 +14,9 @@ use policy_rebac_domain::ExpansionError;
 use super::decision_scope_support::MustNotDecide;
 use super::join_fixtures::{context_entities, eng_candidate, graph, model, request};
 
+mod page_snapshot_refusals;
+mod tuple_query_refusals;
+
 struct TenantSubstitutionStore {
     resolutions: AtomicUsize,
     reads: AtomicUsize,
@@ -56,43 +59,6 @@ impl RebacTupleStore for TenantSubstitutionStore {
         Ok(RebacTuplePage {
             tuples: vec![
                 RebacTuple::parse(query.tenant.clone(), "group:eng#member@user:alice")
-                    .expect("adversarial tuple is valid"),
-            ],
-            snapshot: snapshot.clone(),
-            next_page_token: None,
-        })
-    }
-}
-
-struct OutOfQueryStore;
-
-impl RebacTupleStore for OutOfQueryStore {
-    fn write_tuple(&mut self, _tuple: RebacTuple) -> Result<Zookie, RebacTupleStoreError> {
-        Err(RebacTupleStoreError::Backend(
-            "read-only adversarial store".to_owned(),
-        ))
-    }
-
-    fn resolve_snapshot(
-        &self,
-        tenant: &RebacTenantScope,
-        _requested: RebacReadSnapshot,
-    ) -> Result<ResolvedRebacSnapshot, RebacTupleStoreError> {
-        Ok(ResolvedRebacSnapshot::new(
-            tenant.clone(),
-            SnapshotToken::new("coherent-head").expect("token is valid"),
-        ))
-    }
-
-    fn read_tuples(
-        &self,
-        _query: &RebacTupleQuery,
-        snapshot: &ResolvedRebacSnapshot,
-    ) -> Result<RebacTuplePage, RebacTupleStoreError> {
-        let other_tenant = RebacTenantScope::new("ten_other").expect("other tenant is valid");
-        Ok(RebacTuplePage {
-            tuples: vec![
-                RebacTuple::parse(other_tenant, "group:other#owner@user:alice")
                     .expect("adversarial tuple is valid"),
             ],
             snapshot: snapshot.clone(),
@@ -204,31 +170,6 @@ fn resolver_cannot_substitute_an_explicit_snapshot_token() {
         ))) if requested.as_str() == "before" && served.as_str() == "after"
     ));
     assert_eq!(store.reads.load(Ordering::SeqCst), 0);
-    assert!(!engine.was_consulted());
-}
-
-#[test]
-fn tuple_store_cannot_return_a_tuple_outside_the_query() {
-    let store = OutOfQueryStore;
-    let namespace = model();
-    let candidates = [eng_candidate()];
-    let inputs = graph(&store, &namespace, RebacReadSnapshot::latest(), &candidates);
-    let engine = MustNotDecide::new();
-
-    let result = decide(
-        &engine,
-        &inputs,
-        &request("alice"),
-        BTreeMap::new(),
-        context_entities(),
-    );
-
-    assert!(matches!(
-        result,
-        Err(DecisionError::Expansion(ExpansionError::Store(
-            RebacTupleStoreError::TupleOutsideQuery { query, tuple }
-        ))) if query.tenant.as_str() == "ten_join" && tuple.tenant().as_str() == "ten_other"
-    ));
     assert!(!engine.was_consulted());
 }
 
