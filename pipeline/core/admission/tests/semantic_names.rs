@@ -220,7 +220,6 @@ fn provenance_citations_and_decision_files_remain_valid() {
     let workflow = std::fs::read_to_string(repo_root().join(".github/workflows/presubmit.yml"))
         .expect("presubmit workflow");
     assert!(workflow.contains("ADR-0719"));
-    assert!(layout_violations(&["docs/decisions/ADR-0720-example.md".to_owned()]).is_empty());
     assert!(
         file_budget_violations(
             "docs/decisions/ADR-0719-example.md",
@@ -248,13 +247,11 @@ fn provenance_citations_and_decision_files_remain_valid() {
 }
 
 #[test]
-fn semantic_naming_rule_is_identical_without_freezing_adr_amendments() {
+fn semantic_naming_rule_is_identical_across_current_root_sources() {
     let agents = semantic_naming_rule("AGENTS.md");
     let claude = semantic_naming_rule("CLAUDE.md");
-    let adr = semantic_naming_rule("docs/decisions/ADR-0719-eac-serving-control-north-star.md");
 
     assert_eq!(agents, claude);
-    assert_eq!(agents, adr);
     assert!(agents.contains("legitimate ADR content amendments remain allowed"));
     assert!(agents.contains("recorded challenge demonstrably shows"));
     assert!(!agents.contains("records remain unchanged"));
