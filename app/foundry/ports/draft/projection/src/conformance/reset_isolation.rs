@@ -8,9 +8,12 @@
 //! and every map the store keeps is read back, not just the two a read
 //! path happens to expose.
 
+use data_ontology_kernel::PropertyValue;
+
 use crate::conformance::{ProjectionFixture, applied_with_links, edge, fail, object};
 use crate::keys::KeyDesignations;
-use crate::store::{PageRequest, ProjectionStore, ProjectionStoreError};
+use crate::predicate::PropertyPredicate;
+use crate::store::{Page, PageRequest, ProjectionStore, ProjectionStoreError};
 
 /// The blast radius is exactly one tenant. The neighbour's id has
 /// `ten_a` as a PREFIX: a discard written with `starts_with` rather
@@ -20,18 +23,26 @@ pub fn check_reset_leaves_other_tenants_untouched<F: ProjectionFixture>(
     fixture: &mut F,
 ) -> Result<(), String> {
     let store = fixture.store();
+    let readings = |tenant: &str| {
+        vec![
+            object(
+                tenant,
+                "ent_1",
+                "ety_reading",
+                vec![("celsius", PropertyValue::Integer(21))],
+            ),
+            object(
+                tenant,
+                "ent_2",
+                "ety_reading",
+                vec![("celsius", PropertyValue::Integer(35))],
+            ),
+        ]
+    };
     for tenant in ["ten_a", "ten_ab"] {
         store
             .apply(
-                applied_with_links(
-                    tenant,
-                    1,
-                    vec![
-                        object(tenant, "ent_1", "ety_reading", vec![]),
-                        object(tenant, "ent_2", "ety_reading", vec![]),
-                    ],
-                    vec![edge("ent_1", "ent_2")],
-                ),
+                applied_with_links(tenant, 1, readings(tenant), vec![edge("ent_1", "ent_2")]),
                 &KeyDesignations::default(),
             )
             .map_err(|error| fail("seed apply", format!("{error:?}")))?;
@@ -53,6 +64,7 @@ pub fn check_reset_leaves_other_tenants_untouched<F: ProjectionFixture>(
         .reset_tenant("ten_a")
         .map_err(|error| fail("reset runs", format!("{error:?}")))?;
 
+    let neighbour_objects = readings("ten_ab");
     let head = store
         .applied_head("ten_ab")
         .map_err(|error| fail("neighbour head reads", format!("{error:?}")))?;
@@ -62,34 +74,10 @@ pub fn check_reset_leaves_other_tenants_untouched<F: ProjectionFixture>(
     let kept = store
         .get("ten_ab", "ent_1")
         .map_err(|error| fail("neighbour get reads", format!("{error:?}")))?;
-    if kept.is_none() {
-        return Err(fail("the neighbour keeps its objects", "absent".to_owned()));
-    }
-    // Two of the store's maps are reachable through NO read path here:
-    // the applied-entry map and the neighbour's poison ledger. A discard
-    // that over-reached into either leaves every assertion above green.
-    // The entry map is read by re-applying the neighbour's own ordinal:
-    // a store that still holds it dedups, a store that lost it reports
-    // divergence — which is what a projector redelivering after a
-    // restart would be told about a tenant nothing touched.
-    let receipt = store
-        .apply(
-            applied_with_links(
-                "ten_ab",
-                1,
-                vec![
-                    object("ten_ab", "ent_1", "ety_reading", vec![]),
-                    object("ten_ab", "ent_2", "ety_reading", vec![]),
-                ],
-                vec![edge("ent_1", "ent_2")],
-            ),
-            &KeyDesignations::default(),
-        )
-        .map_err(|error| fail("the neighbour keeps its entries", format!("{error:?}")))?;
-    if !receipt.deduplicated {
+    if kept.as_ref() != Some(&neighbour_objects[0]) {
         return Err(fail(
-            "the neighbour's entry is still there to dedup against",
-            format!("{receipt:?}"),
+            "the neighbour keeps its point-read object exactly",
+            format!("{kept:?}"),
         ));
     }
     // Compared by IDENTITY, not by count. A discard cannot substitute —
@@ -132,15 +120,56 @@ pub fn check_reset_leaves_other_tenants_untouched<F: ProjectionFixture>(
     let scan = store
         .objects_of_type("ten_ab", "ety_reading", &PageRequest::first(50))
         .map_err(|error| fail("neighbour scan reads", format!("{error:?}")))?;
-    if scan.objects
-        != vec![
-            object("ten_ab", "ent_1", "ety_reading", vec![]),
-            object("ten_ab", "ent_2", "ety_reading", vec![]),
-        ]
+    if scan
+        != (Page {
+            objects: neighbour_objects.clone(),
+            next: None,
+        })
     {
         return Err(fail(
-            "the neighbour keeps both objects, contents included",
+            "the neighbour keeps both objects and a complete page",
             format!("{scan:?}"),
+        ));
+    }
+    let predicate = PropertyPredicate::equals("celsius", PropertyValue::Integer(21))
+        .map_err(|error| fail("neighbour predicate constructs", format!("{error:?}")))?;
+    let filtered = store
+        .filter("ten_ab", "ety_reading", &predicate, &PageRequest::first(50))
+        .map_err(|error| fail("neighbour filter reads", format!("{error:?}")))?;
+    if filtered
+        != (Page {
+            objects: vec![neighbour_objects[0].clone()],
+            next: None,
+        })
+    {
+        return Err(fail(
+            "the neighbour keeps its indexed property and a complete filtered page",
+            format!("{filtered:?}"),
+        ));
+    }
+    // The applied-entry map is reachable through NO read path. Probe it
+    // only after every read-only neighbour observation: a re-apply is
+    // mutating, so an implementation could otherwise repair state the
+    // reset damaged and hide the blast-radius escape. Re-applying the
+    // neighbour's own ordinal reads that map: a store that still holds
+    // it dedups, while one that lost it reports divergence — which is
+    // what a projector redelivering after a restart would be told about
+    // a tenant nothing touched.
+    let receipt = store
+        .apply(
+            applied_with_links(
+                "ten_ab",
+                1,
+                readings("ten_ab"),
+                vec![edge("ent_1", "ent_2")],
+            ),
+            &KeyDesignations::default(),
+        )
+        .map_err(|error| fail("the neighbour keeps its entries", format!("{error:?}")))?;
+    if !receipt.deduplicated {
+        return Err(fail(
+            "the neighbour's entry is still there to dedup against",
+            format!("{receipt:?}"),
         ));
     }
     Ok(())
