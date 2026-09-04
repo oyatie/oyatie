@@ -1,11 +1,11 @@
-//! The HTTP surface this lane serves: two probes, metrics, and an operator
-//! status endpoint that refuses.
+//! The HTTP surface this process serves: two probes, the exposition, an
+//! operator status endpoint, and the ontology read and write routes.
 //!
-//! `/statusz` returning 403 is not a placeholder — it is the deny-by-default
-//! posture stated in code. The endpoint is authorized by a policy decision
-//! point that no lane has composed yet, and a surface with no authorizer
-//! must refuse rather than serve. It opens when the decision point lands,
-//! not before.
+//! `/statusz` refused unconditionally while no policy decision point was
+//! composed. One is, and has been for several lanes — so it now authorizes
+//! like the other tenant-wide views (`authorized` then `tenant_of`) and
+//! answers. Its deny-by-default posture is unchanged; what changed is that
+//! there is finally something to deny BY.
 
 use std::sync::Arc;
 
@@ -29,7 +29,7 @@ pub fn router_from(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/healthz", get(healthz))
         .route("/readyz", get(readyz))
-        .route("/statusz", get(statusz))
+        .route("/statusz", get(crate::status::statusz))
         .route("/metrics", get(metrics))
         .route("/v1/actions", post(crate::submit::submit_action))
         .route("/v1/objects/{object_ref}", get(crate::reads::object))
@@ -85,14 +85,6 @@ async fn readyz(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         // tenant, which is the one word here that means nothing is wrong.
         (StatusCode::SERVICE_UNAVAILABLE, "not ready\n")
     }
-}
-
-/// The operator status surface: deny-by-default until an authorizer exists.
-async fn statusz() -> impl IntoResponse {
-    (
-        StatusCode::FORBIDDEN,
-        "no policy decision point is composed; this surface refuses\n",
-    )
 }
 
 /// Metrics carry no tenant labels: the exposition surface is unauthenticated

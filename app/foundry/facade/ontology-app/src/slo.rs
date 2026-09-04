@@ -151,7 +151,10 @@ pub static SLOS: &[SloSpec] = &[
         description: "A read is good when the projection answered it. Refusals — absent \
                       credential, policy denial, unusable revision pin, a log the process \
                       could not read — are counted, so a surface that refuses everything \
-                      cannot report itself available.",
+                      cannot report itself available. /statusz counts here too: it is an \
+                      authorized read-plane surface, so an operator polling it moves this \
+                      ratio, and the number reflects polling frequency alongside service \
+                      health.",
         good_query: "sum(rate(foundry_read_served_total[5m]))",
         total_query: "sum(rate(foundry_read_served_total[5m])) + \
                       sum(rate(foundry_read_refused_total[5m]))",
