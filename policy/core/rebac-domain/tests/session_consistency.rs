@@ -9,7 +9,8 @@ use policy_cedar_domain::rebac::{
     ResolvedRebacSnapshot, SnapshotToken, UsersetRewrite, Zookie,
 };
 use policy_rebac_domain::{
-    ExpansionBounds, ExpansionError, ExpansionSession, NamespaceConfig, ValidatedNamespace,
+    Expander, ExpansionBounds, ExpansionError, ExpansionSession, NamespaceConfig,
+    ValidatedNamespace,
 };
 
 struct RecordingStore {
@@ -151,4 +152,26 @@ fn tuple_budget_accumulates_across_session_checks() {
         session.check(&subject(), &relation, &document()),
         Err(ExpansionError::TupleBudgetExceeded { limit: 1 })
     );
+}
+
+#[test]
+fn standalone_expander_rejects_explicit_snapshot_substitution() {
+    let tenant = tenant();
+    let store = store();
+    let relation = relation();
+    let namespace = namespace(&relation);
+    let requested = RebacReadSnapshot::at(
+        SnapshotToken::new("requested-snapshot").expect("requested token is valid"),
+    );
+    let expander = Expander::new(&store, &namespace, tenant, requested);
+
+    assert!(matches!(
+        expander.check(&subject(), &relation, &document()),
+        Err(ExpansionError::Store(
+            RebacTupleStoreError::InconsistentSnapshot { requested, served }
+        )) if requested.as_str() == "requested-snapshot"
+            && served.as_str() == "unexpected-resolution"
+    ));
+    assert_eq!(store.resolutions.get(), 1);
+    assert!(store.reads.borrow().is_empty());
 }

@@ -15,7 +15,9 @@ mod token;
 mod tuple;
 mod validate;
 
-pub use query::{RebacTuplePage, RebacTupleQuery, RebacTupleStore, RebacTupleStoreError};
+pub use query::{
+    RebacTuplePage, RebacTupleQuery, RebacTupleStore, RebacTupleStoreError, resolve_snapshot,
+};
 pub use rewrite::UsersetRewrite;
 pub use token::{RebacReadSnapshot, ResolvedRebacSnapshot, SnapshotToken, Zookie};
 pub use tuple::{RebacObjectRef, RebacRelation, RebacSubjectRef, RebacTenantScope, RebacTuple};

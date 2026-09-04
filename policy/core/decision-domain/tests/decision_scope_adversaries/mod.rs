@@ -101,6 +101,53 @@ impl RebacTupleStore for OutOfQueryStore {
     }
 }
 
+struct SnapshotSubstitutionStore {
+    reads: AtomicUsize,
+}
+
+impl SnapshotSubstitutionStore {
+    fn new() -> Self {
+        Self {
+            reads: AtomicUsize::new(0),
+        }
+    }
+}
+
+impl RebacTupleStore for SnapshotSubstitutionStore {
+    fn write_tuple(&mut self, _tuple: RebacTuple) -> Result<Zookie, RebacTupleStoreError> {
+        Err(RebacTupleStoreError::Backend(
+            "read-only adversarial store".to_owned(),
+        ))
+    }
+
+    fn resolve_snapshot(
+        &self,
+        tenant: &RebacTenantScope,
+        _requested: RebacReadSnapshot,
+    ) -> Result<ResolvedRebacSnapshot, RebacTupleStoreError> {
+        Ok(ResolvedRebacSnapshot::new(
+            tenant.clone(),
+            SnapshotToken::new("after").expect("substituted token is valid"),
+        ))
+    }
+
+    fn read_tuples(
+        &self,
+        query: &RebacTupleQuery,
+        snapshot: &ResolvedRebacSnapshot,
+    ) -> Result<RebacTuplePage, RebacTupleStoreError> {
+        self.reads.fetch_add(1, Ordering::SeqCst);
+        Ok(RebacTuplePage {
+            tuples: vec![
+                RebacTuple::parse(query.tenant.clone(), "group:eng#member@user:alice")
+                    .expect("later grant is valid"),
+            ],
+            snapshot: snapshot.clone(),
+            next_page_token: None,
+        })
+    }
+}
+
 #[test]
 fn resolver_cannot_substitute_the_request_tenant() {
     let store = TenantSubstitutionStore::new();
@@ -128,6 +175,34 @@ fn resolver_cannot_substitute_the_request_tenant() {
             && snapshot_tenant.as_str() == "ten_other"
     ));
     assert_eq!(store.resolutions.load(Ordering::SeqCst), 1);
+    assert_eq!(store.reads.load(Ordering::SeqCst), 0);
+    assert!(!engine.was_consulted());
+}
+
+#[test]
+fn resolver_cannot_substitute_an_explicit_snapshot_token() {
+    let store = SnapshotSubstitutionStore::new();
+    let namespace = model();
+    let candidates = [eng_candidate()];
+    let requested =
+        RebacReadSnapshot::at(SnapshotToken::new("before").expect("requested token is valid"));
+    let inputs = graph(&store, &namespace, requested, &candidates);
+    let engine = MustNotDecide::new();
+
+    let result = decide(
+        &engine,
+        &inputs,
+        &request("alice"),
+        BTreeMap::new(),
+        context_entities(),
+    );
+
+    assert!(matches!(
+        result,
+        Err(DecisionError::Expansion(ExpansionError::Store(
+            RebacTupleStoreError::InconsistentSnapshot { requested, served }
+        ))) if requested.as_str() == "before" && served.as_str() == "after"
+    ));
     assert_eq!(store.reads.load(Ordering::SeqCst), 0);
     assert!(!engine.was_consulted());
 }
