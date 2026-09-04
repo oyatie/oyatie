@@ -108,6 +108,13 @@ impl Fixture {
         ROLELESS_TOKEN
     }
 
+    /// The path of the tenant's action log, so a test can reach the durable
+    /// store directly — to append behind the process's back, as a second
+    /// writer would.
+    pub fn action_log_path(&self) -> std::path::PathBuf {
+        self.action.clone()
+    }
+
     /// The action log's head, read from the durable store itself rather
     /// than from anything the process reports about itself.
     pub fn log_head(&self) -> u64 {

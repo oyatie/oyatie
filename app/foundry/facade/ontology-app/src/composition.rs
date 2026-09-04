@@ -82,14 +82,9 @@ impl std::fmt::Display for BootError {
     }
 }
 
-/// One tenant's served state. `entries` is the BOOT SNAPSHOT and nothing
-/// more: history and audit used to read it and now replay the durable log
-/// per request (`entries_now`), so its only consumer is `sync_status` —
-/// which is why `foundry_projection_lag` is structurally zero and carries no
-/// objective. Retiring the field means giving lag a durable head first.
+/// One tenant's served state.
 pub struct TenantState {
     pub projection: ProjectionState,
-    pub entries: Vec<SealedEnvelope>,
     /// The durable stores this tenant writes through. They live here, not
     /// in a shared pool, because a submission needs the action log, the
     /// denial trail and the projection together under one lock.
@@ -106,12 +101,12 @@ pub struct TenantState {
 
 impl std::fmt::Debug for TenantState {
     /// The durable handles carry no derivable Debug and nothing worth
-    /// rendering; what an operator wants from this type is where its fold
-    /// stands, which `sync_status` already answers.
+    /// rendering; what an operator wants is where the fold stands, and
+    /// `sync_status` needs a tenant id this type does not carry.
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
             .debug_struct("TenantState")
-            .field("sync_status", &self.sync_status())
+            .field("applied_ordinal", &self.projection.applied_ordinal)
             .finish_non_exhaustive()
     }
 }
@@ -135,20 +130,19 @@ impl TenantState {
 }
 
 impl TenantState {
-    /// This tenant's log entries AS OF NOW, from the durable log.
+    /// This tenant's log entries AS OF NOW, read from the durable log.
     ///
-    /// `entries` above is assigned once in `compose` and never appended to —
-    /// `write_handles` lends the log, the denial trail and the projection,
-    /// never the mirror — so any view served from it is a snapshot of boot
-    /// and cannot show an entry this process has since accepted. Views that
-    /// must be current read through here instead.
+    /// History and audit read through here rather than holding a vector,
+    /// because a retained copy is a second source that can disagree with the
+    /// log — which it did: the boot snapshot this replaced could not show an
+    /// entry the process had since accepted.
     ///
     /// Costs a full replay per request — O(tenant log), unbounded and growing
-    /// — and NEITHER caller is paged today, so this is the whole log to
+    /// — and neither caller is paged today, so this is the whole log to
     /// render one object's history. Callers hold the tenant mutex across it,
-    /// so `is_ready`, `poisoned_count` and the lag gauge, which all
-    /// `try_lock`, degrade while it runs. `replay` already takes a
-    /// `from_ordinal`, so bounding it later needs no port change.
+    /// so the observation in `metrics` degrades while it runs. `replay`
+    /// already takes a `from_ordinal`, so bounding it later needs no port
+    /// change.
     ///
     /// The `Applied` disposition `audit_view` reports is sound only while
     /// this process is the sole writer: an entry appended below our
@@ -159,12 +153,10 @@ impl TenantState {
     }
 
     /// Where this tenant's fold stands against its log.
-    pub fn sync_status(&self) -> SyncStatus {
-        let head = self
-            .entries
-            .last()
-            .map_or(0, |sealed| sealed.receipt.ordinal);
-        self.projection.sync_status(head)
+    pub fn sync_status(&self, tenant_id: &str) -> Result<SyncStatus, RecordsLogError> {
+        Ok(self
+            .projection
+            .sync_status(self.action_log.head(tenant_id)?))
     }
 }
 
@@ -188,30 +180,6 @@ impl AppState {
     /// How many tenants this process serves.
     pub fn tenant_count(&self) -> usize {
         self.tenants.len()
-    }
-
-    /// Ready means every tenant's fold has consumed its whole log. Poison
-    /// does NOT enter this predicate: a poisoned entry advances the fold and
-    /// touches nothing else, so counting it as un-ready would red the
-    /// instrument exactly when the system is making progress.
-    pub fn is_ready(&self) -> bool {
-        self.tenants.values().all(|tenant| {
-            tenant
-                .try_lock()
-                .is_ok_and(|state| state.sync_status().lag == 0)
-        })
-    }
-
-    /// Poisoned entries across every tenant — surfaced, never hidden.
-    pub fn poisoned_count(&self) -> u64 {
-        self.tenants
-            .values()
-            .map(|tenant| {
-                tenant
-                    .try_lock()
-                    .map_or(0, |state| state.sync_status().poisoned_count)
-            })
-            .sum()
     }
 }
 
@@ -256,6 +224,7 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
                 detail: format!("{error:?}"),
             })?;
         let projection = fold_from_scratch(tenant_id, &registry, entries.iter());
+        drop(entries);
         let action_log = SqliteRecordsLog::open(&config.action_log).map_err(|error| {
             BootError::ActionLogUnopenable {
                 detail: format!("{error:?}"),
@@ -270,7 +239,6 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
             tenant_id.clone(),
             Mutex::new(TenantState {
                 projection,
-                entries,
                 action_log: Box::new(action_log),
                 denial_log: Box::new(denial_log),
             }),

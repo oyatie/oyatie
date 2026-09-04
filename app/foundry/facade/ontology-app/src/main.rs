@@ -59,9 +59,14 @@ async fn main() {
             std::process::exit(1);
         }
     };
+    let seen = foundry_ontology_app::observation::observe(&state);
     info!(
         tenants = state.tenant_count(),
-        poisoned = state.poisoned_count(),
+        poisoned = seen.poisoned,
+        // Reported beside the count so a zero is never read as "none" when
+        // it is really "not sampled": at boot nothing is contended, so a
+        // non-zero here is itself a finding.
+        unsampled_tenants = seen.unknown,
         "composed"
     );
 

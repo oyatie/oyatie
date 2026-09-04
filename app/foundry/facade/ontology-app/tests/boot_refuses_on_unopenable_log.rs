@@ -61,7 +61,10 @@ fn a_clean_configuration_boots() {
     let paths = Paths::new("clean");
     let state = compose(&paths.config()).expect("a fresh store boots");
     assert_eq!(state.tenant_count(), 1);
-    assert!(state.is_ready(), "an empty log has zero lag");
+    assert!(
+        foundry_ontology_app::observation::observe(&state).is_caught_up(),
+        "an empty log has zero lag"
+    );
 }
 
 #[test]
