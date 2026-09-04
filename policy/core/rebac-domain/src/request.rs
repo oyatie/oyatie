@@ -2,7 +2,7 @@
 
 use policy_cedar_domain::rebac::{
     RebacObjectRef, RebacReadSnapshot, RebacRelation, RebacSubjectRef, RebacTenantScope,
-    RebacTupleStore, RebacTupleStoreError,
+    RebacTupleStore, resolve_snapshot,
 };
 
 use crate::bounds::ExpansionBounds;
@@ -58,16 +58,7 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
         relation: &RebacRelation,
         object: &RebacObjectRef,
     ) -> Result<bool, ExpansionError> {
-        let snapshot = self
-            .store
-            .resolve_snapshot(&self.tenant, self.snapshot.clone())?;
-        if snapshot.tenant() != &self.tenant {
-            return Err(RebacTupleStoreError::SnapshotScopeMismatch {
-                query_tenant: self.tenant.clone(),
-                snapshot_tenant: snapshot.tenant().clone(),
-            }
-            .into());
-        }
+        let snapshot = resolve_snapshot(self.store, &self.tenant, self.snapshot.clone())?;
         ExpansionSession::new(self.store, self.namespace, snapshot, self.bounds)
             .check(subject, relation, object)
     }

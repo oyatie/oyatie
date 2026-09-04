@@ -8,8 +8,8 @@
 use std::collections::BTreeMap;
 
 use policy_cedar_domain::rebac::{
-    RebacObjectRef, RebacReadSnapshot, RebacRelation, RebacTupleStore, RebacTupleStoreError,
-    ResolvedRebacSnapshot,
+    RebacObjectRef, RebacReadSnapshot, RebacRelation, RebacTupleStore, ResolvedRebacSnapshot,
+    resolve_snapshot,
 };
 use policy_pdp_kernel::{EntityRecord, EntitySlice, PdpError, PdpOutcome};
 use policy_rebac_domain::{ExpansionBounds, ExpansionError, ExpansionSession, ValidatedNamespace};
@@ -127,20 +127,13 @@ pub fn materialize_parents<S: RebacTupleStore>(
         .identity_mapping
         .derive(request)
         .map_err(MaterializationError::Identity)?;
-    let snapshot = inputs
-        .store
-        .resolve_snapshot(&identity.tenant, inputs.requested_snapshot.clone())
-        .map_err(ExpansionError::from)
-        .map_err(MaterializationError::Expansion)?;
-    if snapshot.tenant() != &identity.tenant {
-        return Err(MaterializationError::Expansion(
-            RebacTupleStoreError::SnapshotScopeMismatch {
-                query_tenant: identity.tenant,
-                snapshot_tenant: snapshot.tenant().clone(),
-            }
-            .into(),
-        ));
-    }
+    let snapshot = resolve_snapshot(
+        inputs.store,
+        &identity.tenant,
+        inputs.requested_snapshot.clone(),
+    )
+    .map_err(ExpansionError::from)
+    .map_err(MaterializationError::Expansion)?;
     let mut session =
         ExpansionSession::new(inputs.store, inputs.namespace, snapshot, inputs.bounds);
     let mut parents = Vec::new();

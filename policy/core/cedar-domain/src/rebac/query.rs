@@ -104,6 +104,40 @@ pub trait RebacTupleStore {
     ) -> Result<RebacTuplePage, RebacTupleStoreError>;
 }
 
+/// Resolve one snapshot request and reject adapter substitution.
+///
+/// `Latest` deliberately accepts the store-issued token for the current
+/// tenant. An explicit `At` request is already store-issued and must resolve
+/// to that exact tenant and token; silently advancing it would authorize
+/// against a different graph than the caller requested.
+pub fn resolve_snapshot<S: RebacTupleStore + ?Sized>(
+    store: &S,
+    tenant: &RebacTenantScope,
+    requested: RebacReadSnapshot,
+) -> Result<ResolvedRebacSnapshot, RebacTupleStoreError> {
+    let requested_token = match &requested {
+        RebacReadSnapshot::Latest => None,
+        RebacReadSnapshot::At { snapshot } => Some(snapshot.clone()),
+    };
+    let resolved = store.resolve_snapshot(tenant, requested)?;
+    if resolved.tenant() != tenant {
+        return Err(RebacTupleStoreError::SnapshotScopeMismatch {
+            query_tenant: tenant.clone(),
+            snapshot_tenant: resolved.tenant().clone(),
+        });
+    }
+    if let Some(snapshot) = requested_token {
+        let expected = ResolvedRebacSnapshot::new(tenant.clone(), snapshot);
+        if resolved != expected {
+            return Err(RebacTupleStoreError::InconsistentSnapshot {
+                requested: expected,
+                served: resolved,
+            });
+        }
+    }
+    Ok(resolved)
+}
+
 /// Fail-closed tuple-store port errors.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RebacTupleStoreError {
