@@ -1,3 +1,7 @@
+_PIPELINE_ADMISSION_TEST_ENV = {
+    "CARGO_MANIFEST_DIR": "pipeline/core/admission",
+}
+
 rust_library(
     name = "pipeline-admission",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
@@ -15,6 +19,7 @@ rust_test(
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "pipeline_admission",
     crate_root = "src/lib.rs",
+    env = _PIPELINE_ADMISSION_TEST_ENV,
     visibility = ["PUBLIC"],
     deps = [
         "third-party//:toml",
@@ -30,6 +35,7 @@ rust_test(
     ],
     crate = "pipeline_admission_cadence_graph",
     crate_root = "tests/cadence_graph.rs",
+    env = _PIPELINE_ADMISSION_TEST_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-admission",
@@ -43,6 +49,7 @@ rust_test(
     srcs = ["tests/dependency_declarations_package.rs"],
     crate = "pipeline_admission_dependency_declarations_package",
     crate_root = "tests/dependency_declarations_package.rs",
+    env = _PIPELINE_ADMISSION_TEST_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-admission",
@@ -56,6 +63,7 @@ rust_test(
     srcs = ["tests/layout.rs"],
     crate = "pipeline_admission_layout",
     crate_root = "tests/layout.rs",
+    env = _PIPELINE_ADMISSION_TEST_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-admission",
@@ -69,6 +77,7 @@ rust_test(
     srcs = ["tests/layout_adversarial.rs"],
     crate = "pipeline_admission_layout_adversarial",
     crate_root = "tests/layout_adversarial.rs",
+    env = _PIPELINE_ADMISSION_TEST_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-admission",
@@ -82,6 +91,7 @@ rust_test(
     srcs = ["tests/layout_change.rs"],
     crate = "pipeline_admission_layout_change",
     crate_root = "tests/layout_change.rs",
+    env = _PIPELINE_ADMISSION_TEST_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-admission",
@@ -91,10 +101,21 @@ rust_test(
 )
 
 rust_test(
+    name = "pipeline-admission-frozen-markdown",
+    srcs = ["tests/frozen_markdown.rs"],
+    crate = "pipeline_admission_frozen_markdown",
+    crate_root = "tests/frozen_markdown.rs",
+    env = _PIPELINE_ADMISSION_TEST_ENV,
+    visibility = ["PUBLIC"],
+    deps = [":pipeline-admission"],
+)
+
+rust_test(
     name = "pipeline-admission-live-postgres-contract",
     srcs = ["tests/live_postgres_contract.rs"],
     crate = "pipeline_admission_live_postgres_contract",
     crate_root = "tests/live_postgres_contract.rs",
+    env = _PIPELINE_ADMISSION_TEST_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-admission",
@@ -108,6 +129,7 @@ rust_test(
     srcs = ["tests/owners.rs"],
     crate = "pipeline_admission_owners",
     crate_root = "tests/owners.rs",
+    env = _PIPELINE_ADMISSION_TEST_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-admission",
@@ -121,6 +143,7 @@ rust_test(
     srcs = ["tests/protected_policy_execution_context.rs"],
     crate = "pipeline_admission_protected_policy_execution_context",
     crate_root = "tests/protected_policy_execution_context.rs",
+    env = _PIPELINE_ADMISSION_TEST_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-admission",
@@ -137,6 +160,7 @@ rust_test(
     ],
     crate = "pipeline_admission_protected_policy_workflow",
     crate_root = "tests/protected_policy_workflow.rs",
+    env = _PIPELINE_ADMISSION_TEST_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-admission",
@@ -150,6 +174,7 @@ rust_test(
     srcs = ["tests/semantic_names.rs"],
     crate = "pipeline_admission_semantic_names",
     crate_root = "tests/semantic_names.rs",
+    env = _PIPELINE_ADMISSION_TEST_ENV,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-admission",

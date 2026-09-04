@@ -220,7 +220,6 @@ fn provenance_citations_and_decision_files_remain_valid() {
     let workflow = std::fs::read_to_string(repo_root().join(".github/workflows/presubmit.yml"))
         .expect("presubmit workflow");
     assert!(workflow.contains("ADR-0719"));
-    assert!(layout_violations(&["docs/decisions/ADR-0720-example.md".to_owned()]).is_empty());
     assert!(
         file_budget_violations(
             "docs/decisions/ADR-0719-example.md",

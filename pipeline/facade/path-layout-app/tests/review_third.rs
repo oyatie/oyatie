@@ -163,13 +163,13 @@ fn existing_scaffold_is_admitted_by_its_first_core() {
 }
 
 #[test]
-fn retained_owner_may_delete_its_frozen_law_files() {
+fn retained_owner_cannot_delete_frozen_law_without_a_migration_lane() {
     let root = fixture();
     write_owner(&root, "network", true);
     let base = commit(&root, "implemented owner");
     git(&root, &["rm", "--quiet", "network/PRD.md"]);
     let head = commit(&root, "delete law");
-    assert_admitted(&root, &base, &head);
+    assert_rejected(&root, &base, &head, "frozen non-root Markdown");
     let _ = std::fs::remove_dir_all(root);
 }
 

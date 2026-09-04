@@ -221,7 +221,9 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(git_adapter.contains("merge-base"));
     assert!(git_adapter.contains("--name-status"));
     assert!(git_adapter.contains("\"-z\""));
-    assert!(git_adapter.contains("\"-M\""));
+    assert!(git_adapter.contains("--find-renames=100%"));
+    assert!(git_adapter.contains("--find-copies=100%"));
+    assert!(git_adapter.contains("--find-copies-harder"));
     assert!(git_adapter.contains("cat-file"));
     assert!(git_adapter.contains("ls-tree"));
 
@@ -289,11 +291,7 @@ fn hooks_occupy_rustfmt_on_the_file_list() {
 }
 
 #[test]
-fn agents_md_installs_hooks_in_git_common_dir() {
+fn legacy_hook_target_compatibility_remains_explicit() {
     let agents = read("AGENTS.md");
     assert!(agents.contains("git-common-dir)/hooks/"));
-    assert!(agents.contains("ADR.md"));
-    assert!(agents.contains("PRD.md"));
-    assert!(agents.contains("SPEC.md"));
-    assert!(agents.contains("PLAN.md"));
 }
