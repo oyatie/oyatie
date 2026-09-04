@@ -14,8 +14,9 @@ spec:
   service: foundry-ontology
   description: |
     A read is good when the projection answered it. Refusals — absent
-    credential, policy denial, unusable revision pin — are counted, so
-    a surface that refuses everything cannot report itself available.
+    credential, policy denial, unusable revision pin, a log the process
+    could not read — are counted, so a surface that refuses everything
+    cannot report itself available.
   indicator:
     metadata:
       name: ontology-read-availability-indicator

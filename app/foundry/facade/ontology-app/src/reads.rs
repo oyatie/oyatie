@@ -12,10 +12,12 @@
 //! this surface an existence oracle for a tenant the caller was never
 //! entitled to ask about.
 //!
-//! Reads serve the in-memory fold plus the per-tenant entries mirror, which
-//! is fixed at `compose` and never appended to afterwards — so the two views
-//! backed by it do not show entries written after boot. See #2376; the object
-//! read is unaffected because it serves the projection. The
+//! Reads serve the in-memory fold. History and audit additionally replay the
+//! durable log on every request rather than the boot snapshot they once read,
+//! so they show what this process has APPLIED — history the applied entries
+//! for one object, audit those plus the poisons, which are accepted with 200
+//! and excluded from history by law. That read can fail, and both refuse 503
+//! rather than serve a view they could not read. The
 //! durable indexed store is a separate lane's evidence; nothing here
 //! claims `store == fold(log)`.
 
@@ -25,6 +27,7 @@ use axum::Json;
 use axum::extract::{Path, RawQuery, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
+use foundry_records_draft::SealedEnvelope;
 use foundry_spine::{ViewError, audit_view, object_at_revision, object_history};
 
 use crate::auth::{authenticate, bearer_token};
@@ -156,6 +159,23 @@ pub async fn object(
     }
 }
 
+/// Current entries, or the refusal that says why not — counted here so
+/// neither caller can forget to.
+fn entries_or_refuse(
+    state: &AppState,
+    tenant: &crate::composition::TenantState,
+    tenant_id: &str,
+) -> Result<Vec<SealedEnvelope>, Box<Response>> {
+    tenant.entries_now(tenant_id).map_err(|_| {
+        state.metrics.read_refused();
+        Box::new(refuse(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "log",
+            "the action log could not be read; this view is unavailable",
+        ))
+    })
+}
+
 /// `GET /v1/objects/{object_ref}/history`
 pub async fn history(
     State(state): State<Arc<AppState>>,
@@ -171,7 +191,11 @@ pub async fn history(
         Err(response) => return *response,
     };
     let tenant = tenant.lock().await;
-    let rows: Vec<HistoryRow> = object_history(&tenant.projection, &tenant.entries, &object_ref)
+    let entries = match entries_or_refuse(&state, &tenant, &caller.tenant_id) {
+        Ok(entries) => entries,
+        Err(response) => return *response,
+    };
+    let rows: Vec<HistoryRow> = object_history(&tenant.projection, &entries, &object_ref)
         .into_iter()
         .map(|entry| HistoryRow {
             ordinal: entry.ordinal,
@@ -200,7 +224,11 @@ pub async fn audit(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Re
         Err(response) => return *response,
     };
     let tenant = tenant.lock().await;
-    let rows: Vec<AuditRow> = audit_view(&tenant.projection, &tenant.entries)
+    let entries = match entries_or_refuse(&state, &tenant, &caller.tenant_id) {
+        Ok(entries) => entries,
+        Err(response) => return *response,
+    };
+    let rows: Vec<AuditRow> = audit_view(&tenant.projection, &entries)
         .into_iter()
         .map(|entry| {
             let (disposition, poison_reason) = match &entry.disposition {

@@ -137,7 +137,8 @@ pub fn samples(state: &AppState) -> Vec<Sample> {
         Sample {
             name: "foundry_read_refused_total",
             kind: "counter",
-            help: "Read requests refused by credential, policy, or surface.",
+            help: "Read requests refused by credential, policy, surface, or an \
+                   unreadable log.",
             value: metrics.read_refused.load(Ordering::Relaxed),
             objective_eligible: true,
             ineligible_because: "",
