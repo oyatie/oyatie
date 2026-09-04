@@ -61,12 +61,6 @@ fn app_roster_is_closed_and_missing_products_cannot_be_scaffolds() {
     )
     .unwrap();
     assert!(changed_layout_violations(&implementation_without_prose, &BTreeSet::new()).is_empty());
-
-    let implementation = git_change_paths_from_name_status_z(
-        b"A\0app/ledger/OWNERS\0A\0app/ledger/ADR.md\0A\0app/ledger/PRD.md\0A\0app/ledger/SPEC.md\0A\0app/ledger/PLAN.md\0A\0app/ledger/core/posting/Cargo.toml\0A\0app/ledger/core/posting/src/lib.rs\0",
-    )
-    .unwrap();
-    assert!(changed_layout_violations(&implementation, &BTreeSet::new()).is_empty());
 }
 
 #[test]
@@ -150,7 +144,7 @@ fn owner_docs_and_app_meta_do_not_reintroduce_global_law() {
         assert!(rejected(path), "expected rejection: {path}");
     }
     assert!(!rejected("app/OWNERS"));
-    assert!(!rejected("app/README.md"));
+    assert!(rejected("app/README.md"));
 }
 
 #[test]
@@ -247,7 +241,7 @@ fn dependency_declarations_is_a_closed_build_subsystem() {
     }
     assert!(!rejected("build/port-engine/core/analysis/src/lib.rs"));
     assert!(!rejected("build/toolchains/cache/defs.bzl"));
-    assert!(!rejected("build/docs/dependency-declarations.md"));
+    assert!(rejected("build/docs/dependency-declarations.md"));
 }
 
 #[test]
@@ -260,12 +254,12 @@ fn root_docs_cargo_config_and_pack_payloads_are_closed() {
         "templates/notes/new.md",
         "packs/eu/plan/todo.md",
         "packs/eu/new-overlay.yaml",
+        "docs/decisions/ADR-0720-example.md",
+        "docs/standards/code-style.md",
     ] {
         assert!(rejected(path), "expected rejection: {path}");
     }
     for path in [
-        "docs/decisions/ADR-0720-example.md",
-        "docs/standards/code-style.md",
         "packs/eu/gdpr/policy.cedar",
         "packs/kr/csap/data_residency.textproto",
     ] {

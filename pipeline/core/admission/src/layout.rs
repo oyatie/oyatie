@@ -147,10 +147,7 @@ pub fn is_capability_root(root: &str) -> bool {
 }
 
 pub fn cap_root_file_ok(name: &str) -> bool {
-    matches!(
-        name,
-        "OWNERS" | "README.md" | "BUCK" | "ADR.md" | "PRD.md" | "SPEC.md" | "PLAN.md"
-    )
+    matches!(name, "OWNERS" | "BUCK")
 }
 
 pub fn face_dir_ok(child: &str) -> bool {
@@ -174,6 +171,10 @@ pub fn layout_violations(changed_files: &[String]) -> Vec<String> {
             violations.push(format!(
                 "{file}: invalid Git path spelling; `/` is the only separator"
             ));
+            continue;
+        }
+        if is_frozen_non_root_markdown(file) {
+            violations.push(frozen_non_root_markdown_message(file));
             continue;
         }
         let parts = path_parts(file);
@@ -236,9 +237,19 @@ fn invalid_git_path(path: &str) -> bool {
             .any(|part| part.is_empty() || matches!(part, "." | ".."))
 }
 
+pub(crate) fn is_frozen_non_root_markdown(path: &str) -> bool {
+    let lower = path.to_ascii_lowercase();
+    (lower.ends_with(".md") || lower.ends_with(".markdown"))
+        && !matches!(path, "README.md" | "AGENTS.md" | "CLAUDE.md")
+}
+
+pub(crate) fn frozen_non_root_markdown_message(path: &str) -> String {
+    format!("{path}: frozen non-root Markdown cannot be changed or used as a copy source")
+}
+
 fn validate_app_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
     if parts.len() == 2 {
-        if !matches!(parts[1], "OWNERS" | "README.md") {
+        if parts[1] != "OWNERS" {
             violations.push(format!("{file}: app-root file `{}` not allowed", parts[1]));
         }
         return;

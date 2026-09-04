@@ -109,9 +109,76 @@ fn trusted_sha_arguments_cannot_be_overridden_by_cargo_environment() {
     let rejected = admit(&root, &base, &head);
     assert!(!rejected.status.success());
     assert!(
-        String::from_utf8_lossy(&rejected.stderr).contains("forbidden root `plan`"),
+        String::from_utf8_lossy(&rejected.stderr).contains("frozen non-root Markdown"),
         "{}",
         String::from_utf8_lossy(&rejected.stderr)
+    );
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[cfg(unix)]
+#[test]
+fn modified_and_type_changed_frozen_markdown_refuse_through_the_facade() {
+    use std::os::unix::fs::symlink;
+
+    let root = fixture();
+    write(
+        &root,
+        "policy/core/evaluate/Cargo.toml",
+        "[package]\nname='policy-evaluate'\nversion='0.1.0'\nedition='2024'\n",
+    );
+    write(
+        &root,
+        "policy/core/evaluate/src/lib.rs",
+        "pub fn check() {}\n",
+    );
+    write(&root, "policy/legacy.md", "legacy\n");
+    write(&root, "policy/blob-to-link.md", "legacy.md");
+    symlink("legacy.md", root.join("policy/link-to-blob.md")).expect("create base symlink");
+    let base = commit(&root, "base with frozen Markdown modes");
+
+    write(&root, "policy/legacy.md", "modified\n");
+    std::fs::remove_file(root.join("policy/blob-to-link.md")).expect("remove base blob");
+    symlink("legacy.md", root.join("policy/blob-to-link.md")).expect("replace blob with symlink");
+    std::fs::remove_file(root.join("policy/link-to-blob.md")).expect("remove base symlink");
+    write(&root, "policy/link-to-blob.md", "legacy.md");
+    let head = commit(&root, "modify and change frozen Markdown modes");
+
+    let rejected = admit(&root, &base, &head);
+    assert!(!rejected.status.success());
+    let error = String::from_utf8_lossy(&rejected.stderr);
+    for path in [
+        "policy/legacy.md",
+        "policy/blob-to-link.md",
+        "policy/link-to-blob.md",
+    ] {
+        assert!(error.contains(path), "{path}: {error}");
+    }
+    assert!(
+        error.contains("frozen non-root Markdown cannot be changed or used as a copy source"),
+        "{error}"
+    );
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn exact_root_markdown_exceptions_admit_through_the_facade() {
+    let root = fixture();
+    for path in ["README.md", "AGENTS.md", "CLAUDE.md"] {
+        write(&root, path, "base\n");
+    }
+    let base = commit(&root, "base with root Markdown");
+
+    for path in ["README.md", "AGENTS.md", "CLAUDE.md"] {
+        write(&root, path, "modified\n");
+    }
+    let head = commit(&root, "modify root Markdown");
+
+    let admitted = admit(&root, &base, &head);
+    assert!(
+        admitted.status.success(),
+        "{}",
+        String::from_utf8_lossy(&admitted.stderr)
     );
     let _ = std::fs::remove_dir_all(root);
 }
