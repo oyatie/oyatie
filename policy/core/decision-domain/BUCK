@@ -62,6 +62,8 @@ rust_test(
     srcs = [
         "tests/decision_scope_consistency.rs",
         "tests/decision_scope_adversaries/mod.rs",
+        "tests/decision_scope_adversaries/page_snapshot_refusals.rs",
+        "tests/decision_scope_adversaries/tuple_query_refusals.rs",
         "tests/decision_scope_support/mod.rs",
         "tests/join_fixtures/mod.rs",
     ],
