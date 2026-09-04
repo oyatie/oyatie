@@ -129,3 +129,22 @@ pub fn state_with_a_transiently_failing_head(
     }
     state
 }
+
+/// Fail ONE tenant's log, leaving the rest readable.
+///
+/// A whole-roster fault cannot produce a mixed state: an unreadable tenant
+/// contributes no lag, so `unreadable > 0 && lag > 0` needs one tenant that
+/// is read and behind alongside one that cannot be read at all.
+pub fn state_with_one_failing_tenant(
+    config: &foundry_ontology_app::Config,
+    tenant_id: &str,
+    detail: &'static str,
+) -> AppState {
+    let mut state = compose(config).expect("boots");
+    let tenant = state
+        .tenants
+        .get_mut(tenant_id)
+        .expect("the tenant to fault must be served");
+    tenant.get_mut().action_log = Box::new(AlwaysFailingLog { detail });
+    state
+}
