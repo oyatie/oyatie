@@ -11,54 +11,17 @@
 //! blame in the wrong place, and advice against the retry that would work.
 
 mod facade_support;
+mod failing_log;
 use facade_support as support;
 
 use axum::http::StatusCode;
-use foundry_ontology_app::{compose, router};
-use foundry_records_draft::{ActionEnvelope, Receipt, RecordsLog, RecordsLogError, SealedEnvelope};
 use support::{Fixture, Session, WRITE_BODY as WRITE, scrape, value_of};
 
-/// A log that is reachable and answers every call with a STORAGE fault — the
-/// adapter-level I/O and corruption variant, not the caller's idempotency
-/// conflict. Installable only because the tenant holds its log behind the
-/// port; producing this from a real SQLite handle would mean vandalising the
-/// database from a second connection and a `rusqlite` dependency here.
-struct AlwaysFailingLog {
-    detail: &'static str,
-}
-
-impl AlwaysFailingLog {
-    fn fault(&self) -> RecordsLogError {
-        RecordsLogError::Storage {
-            detail: self.detail.to_owned(),
-        }
-    }
-}
-
-impl RecordsLog for AlwaysFailingLog {
-    fn append(&mut self, _envelope: ActionEnvelope) -> Result<Receipt, RecordsLogError> {
-        Err(self.fault())
-    }
-
-    fn replay(
-        &self,
-        _tenant_id: &str,
-        _from_ordinal: u64,
-    ) -> Result<Vec<SealedEnvelope>, RecordsLogError> {
-        Err(self.fault())
-    }
-
-    fn head(&self, _tenant_id: &str) -> Result<u64, RecordsLogError> {
-        Err(self.fault())
-    }
-}
-
 fn session_with_a_failing_log(fixture: &Fixture, detail: &'static str) -> Session {
-    let mut state = compose(&fixture.config()).expect("boots");
-    for tenant in state.tenants.values_mut() {
-        tenant.get_mut().action_log = Box::new(AlwaysFailingLog { detail });
-    }
-    Session::from_state(state)
+    Session::from_state(failing_log::state_with_a_failing_log(
+        &fixture.config(),
+        detail,
+    ))
 }
 
 #[tokio::test]
