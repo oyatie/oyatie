@@ -121,13 +121,9 @@ jobs:
           persist-credentials: false
           fetch-depth: 1
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
-        with:
-          toolchain: "1.98.0"
-          components: clippy
+        with: { toolchain: "1.98.0", components: clippy }
       - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
-        with:
-          shared-key: cargo-ci-x86
-          cache-workspace-crates: "true"
+        with: { shared-key: cargo-ci-x86, cache-workspace-crates: "true" }
       - name: Workspace clippy
         run: >-
           cargo clippy --locked --workspace --all-targets
@@ -161,15 +157,11 @@ jobs:
           persist-credentials: false
           fetch-depth: 1
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
-        with:
-          toolchain: "1.98.0"
+        with: { toolchain: "1.98.0" }
       - uses: taiki-e/install-action@5b4d68e2e660441203ab128a23676f1e4faf1532
-        with:
-          tool: nextest
+        with: { tool: nextest }
       - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
-        with:
-          shared-key: cargo-ci-x86
-          cache-workspace-crates: "true"
+        with: { shared-key: cargo-ci-x86, cache-workspace-crates: "true" }
       - name: Workspace tests
         run: >-
           cargo-nextest nextest run
@@ -233,7 +225,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     outputs:
-      live: ${{ steps.g.outputs.live }}
+      backbone_postgres: ${{ steps.g.outputs.backbone_postgres }}
+      compute_lifecycle_postgres: ${{ steps.g.outputs.compute_lifecycle_postgres }}
       reindeer: ${{ steps.g.outputs.reindeer }}
     steps:
       - name: Check out candidate tree
@@ -273,8 +266,11 @@ jobs:
           "$RUNNER_TEMP/oyatie-change-gates-admission/x86_64-unknown-linux-gnu/debug/pipeline-change-gates-app" "$EVENT" "$base_sha" "$head_sha" >> "$GITHUB_OUTPUT"
   live-postgres:
     needs: [layout, change-gates]
-    if: needs.layout.result == 'success' && needs.change-gates.outputs.live == 'true'
+    if: needs.layout.result == 'success' && !(needs.change-gates.outputs.backbone_postgres == 'false' && needs.change-gates.outputs.compute_lifecycle_postgres == 'false')
     uses: oyatie/oyatie/.github/workflows/live-postgres.yml@dev
+    with:
+      run_backbone: ${{ needs.change-gates.outputs.backbone_postgres == 'true' }}
+      run_compute_lifecycle: ${{ needs.change-gates.outputs.compute_lifecycle_postgres == 'true' }}
   presubmit:
     name: presubmit
     runs-on: ubuntu-24.04
@@ -283,13 +279,15 @@ jobs:
     steps:
       - name: Fan-in verdict
         env:
-          LIVE: ${{ needs.change-gates.outputs.live }}
+          BACKBONE_POSTGRES: ${{ needs.change-gates.outputs.backbone_postgres }}
+          COMPUTE_LIFECYCLE_POSTGRES: ${{ needs.change-gates.outputs.compute_lifecycle_postgres }}
           REINDEER: ${{ needs.change-gates.outputs.reindeer }}
           EVENT: ${{ github.event_name }}
         run: |
           req() { [ "$1" = "success" ]; }
+          gate() { [ "$1" = "true" ] || [ "$1" = "false" ]; }
           pg() {
-            if [ "${LIVE}" = "true" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
+            if [ "${BACKBONE_POSTGRES}" = "true" ] || [ "${COMPUTE_LIFECYCLE_POSTGRES}" = "true" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
           }
           reindeer() {
             if [ "${REINDEER}" = "true" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
@@ -297,4 +295,4 @@ jobs:
           occ() {
             if [ "${EVENT}" = "pull_request" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
           }
-          req "${{ needs.layout.result }}" && occ "${{ needs.occupancy.result }}" && req "${{ needs.lint.result }}" && req "${{ needs.clippy.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.change-gates.result }}" && reindeer "${{ needs.reindeer-source-qualification.result }}" && pg "${{ needs.live-postgres.result }}" && exit 0 || exit 1
+          gate "${BACKBONE_POSTGRES}" && gate "${COMPUTE_LIFECYCLE_POSTGRES}" && gate "${REINDEER}" && req "${{ needs.layout.result }}" && occ "${{ needs.occupancy.result }}" && req "${{ needs.lint.result }}" && req "${{ needs.clippy.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.change-gates.result }}" && reindeer "${{ needs.reindeer-source-qualification.result }}" && pg "${{ needs.live-postgres.result }}" && exit 0 || exit 1

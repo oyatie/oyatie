@@ -36,8 +36,9 @@ fn evaluate(
         .map_err(|error| format!("classify repository change: {}", error.message()))?;
     let gates = presubmit_change_gates(request.event, changes.occupied.iter().map(String::as_str));
     Ok(format!(
-        "live={}\nreindeer={}\n",
-        gates.live_postgres(),
+        "backbone_postgres={}\ncompute_lifecycle_postgres={}\nreindeer={}\n",
+        gates.backbone_postgres(),
+        gates.compute_lifecycle_postgres(),
         gates.reindeer_source_qualification()
     ))
 }
@@ -107,7 +108,7 @@ mod tests {
     }
 
     #[test]
-    fn one_repository_scan_produces_both_outputs() {
+    fn one_repository_scan_produces_all_outputs() {
         let calls = Cell::new(0);
         let result = evaluate(
             ["pull_request", BASE, HEAD].into_iter().map(str::to_owned),
@@ -122,14 +123,49 @@ mod tests {
         .unwrap();
 
         assert_eq!(calls.get(), 1);
-        assert_eq!(result, "live=true\nreindeer=true\n");
+        assert_eq!(
+            result,
+            "backbone_postgres=true\ncompute_lifecycle_postgres=true\nreindeer=true\n"
+        );
+    }
+
+    #[test]
+    fn cell_local_and_shared_changes_route_to_the_minimal_cells() {
+        assert_eq!(
+            output(
+                "pull_request",
+                b"M\0compute/adapters/k8s-lifecycle-repository-postgres/src/lib.rs\0"
+            ),
+            "backbone_postgres=false\ncompute_lifecycle_postgres=true\nreindeer=false\n"
+        );
+        assert_eq!(
+            output(
+                "pull_request",
+                b"M\0iam/adapters/identity-scim-store-postgres/src/lib.rs\0"
+            ),
+            "backbone_postgres=true\ncompute_lifecycle_postgres=false\nreindeer=false\n"
+        );
+        assert_eq!(
+            output(
+                "pull_request",
+                b"M\0data/core/data-boundary-kernel/src/lib.rs\0"
+            ),
+            "backbone_postgres=true\ncompute_lifecycle_postgres=true\nreindeer=false\n"
+        );
+        assert_eq!(
+            output(
+                "pull_request",
+                b"M\0pipeline/core/admission/src/cadence.rs\0"
+            ),
+            "backbone_postgres=true\ncompute_lifecycle_postgres=true\nreindeer=true\n"
+        );
     }
 
     #[test]
     fn deleting_a_qualification_input_requires_proof() {
         assert_eq!(
             output("pull_request", b"D\0Cargo.lock\0"),
-            "live=false\nreindeer=true\n"
+            "backbone_postgres=true\ncompute_lifecycle_postgres=true\nreindeer=true\n"
         );
     }
 
@@ -137,7 +173,7 @@ mod tests {
     fn renaming_into_the_qualification_closure_requires_proof() {
         assert_eq!(
             output("pull_request", b"R100\0docs/old.lock\0Cargo.lock\0"),
-            "live=false\nreindeer=true\n"
+            "backbone_postgres=true\ncompute_lifecycle_postgres=true\nreindeer=true\n"
         );
     }
 
@@ -145,7 +181,7 @@ mod tests {
     fn renaming_out_of_the_qualification_closure_requires_proof() {
         assert_eq!(
             output("pull_request", b"R100\0Cargo.lock\0docs/old.lock\0"),
-            "live=false\nreindeer=true\n"
+            "backbone_postgres=true\ncompute_lifecycle_postgres=true\nreindeer=true\n"
         );
     }
 
@@ -160,7 +196,7 @@ mod tests {
                 ] {
                     assert_eq!(
                         output(event, changes.as_bytes()),
-                        "live=false\nreindeer=true\n",
+                        "backbone_postgres=true\ncompute_lifecycle_postgres=true\nreindeer=true\n",
                         "{event} omitted {changes:?}"
                     );
                 }
@@ -173,11 +209,11 @@ mod tests {
         let changes = b"M\0build/dependency-declarations/adapters/generation-reindeer/src/line\nwith\ttab.rs\0";
         assert_eq!(
             output("pull_request", changes),
-            "live=false\nreindeer=true\n"
+            "backbone_postgres=false\ncompute_lifecycle_postgres=false\nreindeer=true\n"
         );
         assert_eq!(
             output("pull_request", b"M\0docs/line\nwith\ttab.rs\0"),
-            "live=false\nreindeer=false\n"
+            "backbone_postgres=false\ncompute_lifecycle_postgres=false\nreindeer=false\n"
         );
     }
 
@@ -187,7 +223,7 @@ mod tests {
         for event in ["pull_request", "merge_group"] {
             assert_eq!(
                 output(event, changes),
-                "live=false\nreindeer=true\n",
+                "backbone_postgres=true\ncompute_lifecycle_postgres=true\nreindeer=true\n",
                 "{event}"
             );
         }

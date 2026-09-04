@@ -2,7 +2,9 @@ use std::collections::{BTreeSet, VecDeque};
 use std::path::{Path, PathBuf};
 
 use pipeline_admission::{
-    REINDEER_QUALIFICATION_PATH_PREFIXES, reindeer_qualification_exact_paths,
+    BACKBONE_LIVE_POSTGRES_PATH_PREFIXES, COMPUTE_LIFECYCLE_LIVE_POSTGRES_PATH_PREFIXES,
+    LIVE_POSTGRES_SELECTOR_PATH_PREFIXES, REINDEER_QUALIFICATION_PATH_PREFIXES,
+    live_postgres_exact_paths, reindeer_qualification_exact_paths,
 };
 use toml::Value;
 
@@ -36,6 +38,71 @@ fn reindeer_exact_inputs_are_complete_and_precise() {
             "Cargo.lock",
             "Cargo.toml",
             "reindeer.toml",
+            "rust-toolchain.toml",
+        ]
+    );
+}
+
+#[test]
+fn backbone_postgres_prefixes_are_the_exact_local_dependency_closure() {
+    let root = super::repo_root();
+    let actual = local_package_closure(
+        &root,
+        [
+            "tenancy/adapters/tenant-lifecycle-store-postgres/",
+            "iam/adapters/identity-scim-store-postgres/",
+            "iam/facade/identity-service/",
+            "tenancy/facade/tenant-lifecycle-app/",
+        ],
+    );
+    let expected = BACKBONE_LIVE_POSTGRES_PATH_PREFIXES
+        .iter()
+        .map(|path| (*path).to_owned())
+        .collect();
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn compute_postgres_prefixes_are_the_exact_local_dependency_closure() {
+    let root = super::repo_root();
+    let actual = local_package_closure(
+        &root,
+        ["compute/adapters/k8s-lifecycle-repository-postgres/"],
+    );
+    let expected = COMPUTE_LIFECYCLE_LIVE_POSTGRES_PATH_PREFIXES
+        .iter()
+        .map(|path| (*path).to_owned())
+        .collect();
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn live_postgres_selector_prefixes_are_the_exact_local_dependency_closure() {
+    let root = super::repo_root();
+    let actual = local_package_closure(&root, ["pipeline/facade/change-gates-app/"]);
+    let expected = LIVE_POSTGRES_SELECTOR_PATH_PREFIXES
+        .iter()
+        .map(|path| (*path).to_owned())
+        .collect();
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn live_postgres_exact_inputs_are_complete_and_precise() {
+    assert_eq!(
+        live_postgres_exact_paths().collect::<Vec<_>>(),
+        vec![
+            ".cargo/config",
+            ".cargo/config.toml",
+            ".config/nextest.toml",
+            ".github/workflows/live-postgres.yml",
+            ".github/workflows/postsubmit.yml",
+            ".github/workflows/presubmit.yml",
+            "Cargo.lock",
+            "Cargo.toml",
             "rust-toolchain.toml",
         ]
     );

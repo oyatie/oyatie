@@ -1,9 +1,11 @@
 //! Occupants of each cadence file. Equality on the set, not a denylist of
 //! last week's extra job.
 
-use pipeline_admission::{LIVE_POSTGRES_CRATES, POSTSUBMIT_JOBS, PRESUBMIT_JOBS, WORKFLOW_FILES};
+use pipeline_admission::{POSTSUBMIT_JOBS, PRESUBMIT_JOBS, WORKFLOW_FILES};
 use std::path::{Path, PathBuf};
 
+#[path = "cadence_graph/live_postgres.rs"]
+mod live_postgres;
 #[path = "cadence_graph/qualification_closure.rs"]
 mod qualification_closure;
 
@@ -253,17 +255,6 @@ fn workflow_dir_is_the_occupant_set() {
         .collect();
     names.sort();
     assert_eq!(names, WORKFLOW_FILES);
-}
-
-#[test]
-fn live_postgres_job_is_filtered_nextest() {
-    let y = read(".github/workflows/live-postgres.yml");
-    assert!(y.contains("--run-ignored only"));
-    assert!(y.contains("--no-tests=error"));
-    assert!(y.contains("--profile live"));
-    for crate_name in LIVE_POSTGRES_CRATES {
-        assert!(y.contains(crate_name), "{crate_name}");
-    }
 }
 
 #[test]

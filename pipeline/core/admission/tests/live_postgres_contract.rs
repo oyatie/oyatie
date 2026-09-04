@@ -11,6 +11,7 @@ fn repo_root() -> PathBuf {
 }
 
 const LIVE_CRATE_DIRS: &[&str] = &[
+    "compute/adapters/k8s-lifecycle-repository-postgres",
     "tenancy/adapters/tenant-lifecycle-store-postgres",
     "iam/adapters/identity-scim-store-postgres",
     "iam/facade/identity-service",
@@ -141,6 +142,7 @@ fn live_tests_do_not_silently_skip_when_enabled() {
 fn live_crates_have_fail_closed_helpers() {
     let root = repo_root();
     let adapters = [
+        "compute/adapters/k8s-lifecycle-repository-postgres/tests/support/mod.rs",
         "tenancy/adapters/tenant-lifecycle-store-postgres/tests/live_rls.rs",
         "iam/adapters/identity-scim-store-postgres/tests/live_rls.rs",
     ];
@@ -162,6 +164,37 @@ fn live_crates_have_fail_closed_helpers() {
             "{rel} missing require_live_app_url"
         );
     }
+}
+
+#[test]
+fn compute_live_postgres_is_a_separate_database_cell() {
+    let workflow = std::fs::read_to_string(repo_root().join(".github/workflows/live-postgres.yml"))
+        .expect("live-postgres.yml");
+    let (backbone, compute_and_verdict) = workflow
+        .split_once("\n  compute-lifecycle-postgres:\n")
+        .expect("dedicated Compute live-Postgres job");
+    let (compute, verdict) = compute_and_verdict
+        .split_once("\n  live-postgres-verdict:\n")
+        .expect("live-Postgres cell verdict");
+
+    assert_eq!(workflow.matches("image: postgres:16").count(), 2);
+    assert!(backbone.contains("name: backbone live Postgres"));
+    assert!(backbone.contains("if: inputs.run_backbone"));
+    assert!(!backbone.contains("compute-k8s-lifecycle-repository-postgres"));
+    assert!(compute.contains("name: Compute lifecycle live Postgres"));
+    assert!(compute.contains("if: inputs.run_compute_lifecycle"));
+    assert!(compute.contains("PG_COMPUTE_APP_URL=postgres://compute_app:"));
+    assert!(compute.contains(
+        "CREATE ROLE compute_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION INHERIT"
+    ));
+    assert!(compute.contains("OYATIE_BACKBONE_POSTGRES_APP_URL: ${{ env.PG_COMPUTE_APP_URL }}"));
+    assert!(compute.contains("-p compute-k8s-lifecycle-repository-postgres"));
+    assert!(!compute.contains("tenancy_lifecycle_runtime"));
+    assert!(!compute.contains("identity_scim_runtime"));
+    assert!(verdict.contains("name: live Postgres cell verdict"));
+    assert!(verdict.contains("needs: [live-postgres, compute-lifecycle-postgres]"));
+    assert!(verdict.contains("requested && cell"));
+    assert!(!verdict.contains("POSTGRES_PASSWORD"));
 }
 
 /// Adapter live_* tests DROP SCHEMA CASCADE on two shared schemas. nextest

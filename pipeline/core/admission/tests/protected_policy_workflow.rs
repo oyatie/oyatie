@@ -14,6 +14,8 @@ fn workflow() -> String {
 
 const CHECKOUT: &str = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1";
 const TOOLCHAIN: &str = "dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17";
+const BACKBONE_OUTPUT: &str = "${{ steps.g.outputs.backbone_postgres }}";
+const COMPUTE_OUTPUT: &str = "${{ steps.g.outputs.compute_lifecycle_postgres }}";
 
 #[derive(Clone, Copy)]
 struct JobSpec {
@@ -239,17 +241,15 @@ fn validate_job(yaml: &str, spec: JobSpec) -> Result<(), String> {
                 ]
                 && direct_entries(body, 6)
                     == [
-                        ("live", "${{ steps.g.outputs.live }}"),
+                        ("backbone_postgres", BACKBONE_OUTPUT),
+                        ("compute_lifecycle_postgres", COMPUTE_OUTPUT),
                         ("reindeer", "${{ steps.g.outputs.reindeer }}"),
                     ],
             "change-gates job fields and outputs must be closed",
         )?;
     }
     let steps: Vec<_> = body.split("\n      - ").skip(1).collect();
-    ensure(
-        steps.len() == 5,
-        format!("{} must have exactly five steps", spec.id),
-    )?;
+    ensure(steps.len() == 5, "protected job must have five steps")?;
     let actual_headers: Vec<_> = steps
         .iter()
         .map(|step| step.lines().next().unwrap_or_default().to_owned())

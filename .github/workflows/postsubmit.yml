@@ -40,6 +40,9 @@ jobs:
 
   live-postgres:
     uses: ./.github/workflows/live-postgres.yml
+    with:
+      run_backbone: true
+      run_compute_lifecycle: true
 
   postsubmit:
     name: postsubmit

@@ -1,23 +1,21 @@
 //! Typed protected-event gates over one batch of changed repository paths.
 
 use super::layout::CARGO_CONFIG_PATHS;
-
-pub const LIVE_POSTGRES_PATH_PREFIXES: &[&str] = &[
-    "tenancy/adapters/tenant-lifecycle-store-postgres/",
-    "iam/adapters/identity-scim-store-postgres/",
-    "iam/facade/identity-service/",
-    "tenancy/facade/tenant-lifecycle-app/",
-    ".github/workflows/presubmit.yml",
-    ".github/workflows/live-postgres.yml",
-    ".github/workflows/postsubmit.yml",
-    ".config/nextest.toml",
-];
+use super::live_postgres::{hits_backbone_postgres_path, hits_compute_lifecycle_postgres_path};
 
 pub const LIVE_POSTGRES_CRATES: &[&str] = &[
+    "compute-k8s-lifecycle-repository-postgres",
     "tenancy-tenant-lifecycle-store-postgres",
     "identity-scim-store-postgres",
     "iam-identity-service",
     "tenancy-tenant-lifecycle-app",
+];
+
+/// Occupants of the reusable live-Postgres workflow (sorted).
+pub const LIVE_POSTGRES_JOBS: &[&str] = &[
+    "compute-lifecycle-postgres",
+    "live-postgres",
+    "live-postgres-verdict",
 ];
 
 const REINDEER_QUALIFICATION_OTHER_EXACT_PATHS: &[&str] = &[
@@ -79,24 +77,27 @@ pub enum CadenceEvent {
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct PresubmitChangeGates {
-    live_postgres: bool,
+    backbone_postgres: bool,
+    compute_lifecycle_postgres: bool,
     reindeer_source_qualification: bool,
 }
 
 impl PresubmitChangeGates {
+    pub const fn backbone_postgres(self) -> bool {
+        self.backbone_postgres
+    }
+
+    pub const fn compute_lifecycle_postgres(self) -> bool {
+        self.compute_lifecycle_postgres
+    }
+
     pub const fn live_postgres(self) -> bool {
-        self.live_postgres
+        self.backbone_postgres || self.compute_lifecycle_postgres
     }
 
     pub const fn reindeer_source_qualification(self) -> bool {
         self.reindeer_source_qualification
     }
-}
-
-pub fn hits_live_postgres_path(path: &str) -> bool {
-    LIVE_POSTGRES_PATH_PREFIXES
-        .iter()
-        .any(|prefix| path == *prefix || path.starts_with(prefix))
 }
 
 pub fn hits_reindeer_qualification_path(path: &str) -> bool {
@@ -123,9 +124,13 @@ pub fn presubmit_change_gates<'a>(
     }
     let mut gates = PresubmitChangeGates::default();
     for path in changed_paths {
-        gates.live_postgres |= hits_live_postgres_path(path);
+        gates.backbone_postgres |= hits_backbone_postgres_path(path);
+        gates.compute_lifecycle_postgres |= hits_compute_lifecycle_postgres_path(path);
         gates.reindeer_source_qualification |= hits_reindeer_qualification_path(path);
-        if gates.live_postgres && gates.reindeer_source_qualification {
+        if gates.backbone_postgres
+            && gates.compute_lifecycle_postgres
+            && gates.reindeer_source_qualification
+        {
             break;
         }
     }
@@ -139,7 +144,26 @@ pub fn live_postgres_required(event: CadenceEvent, changed_paths: &[&str]) -> bo
     match event {
         CadenceEvent::WorkflowDispatch | CadenceEvent::PostsubmitPush => true,
         CadenceEvent::PullRequest | CadenceEvent::MergeGroup => {
-            changed_paths.iter().copied().any(hits_live_postgres_path)
+            presubmit_change_gates(event, changed_paths.iter().copied()).live_postgres()
+        }
+    }
+}
+
+pub fn backbone_postgres_required(event: CadenceEvent, changed_paths: &[&str]) -> bool {
+    match event {
+        CadenceEvent::WorkflowDispatch | CadenceEvent::PostsubmitPush => true,
+        CadenceEvent::PullRequest | CadenceEvent::MergeGroup => {
+            presubmit_change_gates(event, changed_paths.iter().copied()).backbone_postgres()
+        }
+    }
+}
+
+pub fn compute_lifecycle_postgres_required(event: CadenceEvent, changed_paths: &[&str]) -> bool {
+    match event {
+        CadenceEvent::WorkflowDispatch | CadenceEvent::PostsubmitPush => true,
+        CadenceEvent::PullRequest | CadenceEvent::MergeGroup => {
+            presubmit_change_gates(event, changed_paths.iter().copied())
+                .compute_lifecycle_postgres()
         }
     }
 }
@@ -214,25 +238,16 @@ mod tests {
 
     #[test]
     fn postsubmit_and_dispatch_always_pay() {
-        assert!(live_postgres_required(CadenceEvent::PostsubmitPush, &[]));
-        assert!(live_postgres_required(CadenceEvent::WorkflowDispatch, &[]));
-    }
-
-    #[test]
-    fn crates_cover_the_four_live_packages() {
-        assert_eq!(LIVE_POSTGRES_CRATES.len(), 4);
-    }
-
-    #[test]
-    fn every_postgres_prefix_pays_on_both_protected_events() {
-        for prefix in LIVE_POSTGRES_PATH_PREFIXES {
-            for event in [CadenceEvent::PullRequest, CadenceEvent::MergeGroup] {
-                assert!(
-                    presubmit_change_gates(event, [*prefix]).live_postgres(),
-                    "{event:?} omitted {prefix}"
-                );
-            }
+        for event in [CadenceEvent::PostsubmitPush, CadenceEvent::WorkflowDispatch] {
+            assert!(live_postgres_required(event, &[]));
+            assert!(backbone_postgres_required(event, &[]));
+            assert!(compute_lifecycle_postgres_required(event, &[]));
         }
+    }
+
+    #[test]
+    fn crates_cover_the_five_live_packages() {
+        assert_eq!(LIVE_POSTGRES_CRATES.len(), 5);
     }
 
     #[test]
@@ -253,7 +268,7 @@ mod tests {
     }
 
     #[test]
-    fn one_path_traversal_produces_both_gate_outputs() {
+    fn one_path_traversal_produces_all_gate_outputs() {
         use std::cell::Cell;
 
         let visits = Cell::new(0);
@@ -269,7 +284,8 @@ mod tests {
             }),
         );
 
-        assert!(gates.live_postgres());
+        assert!(gates.backbone_postgres());
+        assert!(gates.compute_lifecycle_postgres());
         assert!(gates.reindeer_source_qualification());
         assert_eq!(visits.get(), 2);
     }

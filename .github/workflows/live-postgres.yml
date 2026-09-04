@@ -4,6 +4,17 @@ name: live-postgres
 
 on:
   workflow_call:
+    inputs:
+      run_backbone:
+        description: Qualify the backbone database cell
+        required: false
+        default: true
+        type: boolean
+      run_compute_lifecycle:
+        description: Qualify the Compute lifecycle database cell
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: read
@@ -16,7 +27,8 @@ env:
 
 jobs:
   live-postgres:
-    name: live-postgres
+    name: backbone live Postgres
+    if: inputs.run_backbone
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     services:
@@ -75,8 +87,83 @@ jobs:
           test "${OYATIE_BACKBONE_LIVE_POSTGRES}" = "1"
           test -n "${OYATIE_BACKBONE_POSTGRES_URL}"
           test -n "${OYATIE_BACKBONE_POSTGRES_APP_URL}"
+          cargo nextest run --locked --profile live --run-ignored only --no-tests=error -p tenancy-tenant-lifecycle-store-postgres
+          cargo nextest run --locked --profile live --run-ignored only --no-tests=error -p identity-scim-store-postgres
+          cargo nextest run --locked --profile live --run-ignored only --no-tests=error -p iam-identity-service
+          cargo nextest run --locked --profile live --run-ignored only --no-tests=error -p tenancy-tenant-lifecycle-app
+
+  compute-lifecycle-postgres:
+    name: Compute lifecycle live Postgres
+    if: inputs.run_compute_lifecycle
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_pg_admin_local_only
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: "1.98.0"
+      - uses: taiki-e/install-action@5b4d68e2e660441203ab128a23676f1e4faf1532
+        with:
+          tool: nextest
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          shared-key: cargo-ci-x86-compute-live
+          cache-workspace-crates: "true"
+      - name: Bootstrap dedicated Compute role
+        env:
+          ADMIN_PASSWORD: ci_pg_admin_local_only
+          COMPUTE_APP_PASSWORD: ci_pg_compute_app_local_only
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${ADMIN_PASSWORD}"
+          echo "::add-mask::${COMPUTE_APP_PASSWORD}"
+          printf 'PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/ci\nPG_COMPUTE_APP_URL=postgres://compute_app:%s@127.0.0.1:5432/ci\n' "${ADMIN_PASSWORD}" "${COMPUTE_APP_PASSWORD}" >> "${GITHUB_ENV}"
+          ADMIN_PSQL=(docker exec -i -e PGPASSWORD="${ADMIN_PASSWORD}" "${{ job.services.postgres.id }}" psql -v ON_ERROR_STOP=1 -U postgres -d ci)
+          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='compute_app') THEN EXECUTE format('CREATE ROLE compute_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION INHERIT', '${COMPUTE_APP_PASSWORD}'); END IF; END \$\$;"
+      - name: Compute lifecycle live Postgres tests
+        env:
+          OYATIE_BACKBONE_LIVE_POSTGRES: "1"
+          OYATIE_BACKBONE_POSTGRES_URL: ${{ env.PG_ADMIN_URL }}
+          OYATIE_BACKBONE_POSTGRES_APP_URL: ${{ env.PG_COMPUTE_APP_URL }}
+        run: |
+          set -euo pipefail
+          test "${OYATIE_BACKBONE_LIVE_POSTGRES}" = "1"
+          test -n "${OYATIE_BACKBONE_POSTGRES_URL}"
+          test -n "${OYATIE_BACKBONE_POSTGRES_APP_URL}"
           cargo nextest run --locked --profile live --run-ignored only --no-tests=error \
-            -p tenancy-tenant-lifecycle-store-postgres \
-            -p identity-scim-store-postgres \
-            -p iam-identity-service \
-            -p tenancy-tenant-lifecycle-app
+            -p compute-k8s-lifecycle-repository-postgres
+
+  live-postgres-verdict:
+    name: live Postgres cell verdict
+    if: always()
+    needs: [live-postgres, compute-lifecycle-postgres]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every selected cell
+        env:
+          RUN_BACKBONE: ${{ inputs.run_backbone }}
+          RUN_COMPUTE_LIFECYCLE: ${{ inputs.run_compute_lifecycle }}
+        run: |
+          cell() {
+            if [ "$1" = "true" ]; then [ "$2" = "success" ]; else [ "$2" = "skipped" ] || [ "$2" = "success" ]; fi
+          }
+          requested() { [ "${RUN_BACKBONE}" = "true" ] || [ "${RUN_COMPUTE_LIFECYCLE}" = "true" ]; }
+          requested && cell "${RUN_BACKBONE}" "${{ needs.live-postgres.result }}" && cell "${RUN_COMPUTE_LIFECYCLE}" "${{ needs.compute-lifecycle-postgres.result }}"
