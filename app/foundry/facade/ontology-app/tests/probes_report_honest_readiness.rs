@@ -132,7 +132,8 @@ async fn a_poisoned_entry_never_un_readies_the_process() {
         "the fixture must actually poison, or this test proves nothing"
     );
     assert_eq!(
-        seen.unknown, 0,
+        seen.unreadable + seen.contended,
+        0,
         "a total is only meaningful when every tenant was sampled"
     );
     assert!(
