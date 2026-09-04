@@ -1,4 +1,6 @@
-use pipeline_admission::{cap_root_file_ok, layout_violations};
+use pipeline_admission::{
+    ALLOWED_ROOT_DIRS, DATA_ROOTS, META_ROOTS, cap_root_file_ok, layout_violations,
+};
 
 #[test]
 fn unknown_root_dir_is_red() {
@@ -7,6 +9,18 @@ fn unknown_root_dir_is_red() {
         violations,
         vec!["unlisted-root/leaf.rs: unknown root `unlisted-root`".to_owned()]
     );
+}
+
+#[test]
+fn semantic_root_sets_are_subsets_of_allowed_roots() {
+    for (kind, roots) in [("meta", META_ROOTS), ("data", DATA_ROOTS)] {
+        for root in roots {
+            assert!(
+                ALLOWED_ROOT_DIRS.contains(root),
+                "{kind} root `{root}` is missing from ALLOWED_ROOT_DIRS"
+            );
+        }
+    }
 }
 
 #[test]
