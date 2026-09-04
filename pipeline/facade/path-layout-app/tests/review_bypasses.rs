@@ -170,7 +170,7 @@ fn repository_cargo_substitutions_are_forbidden() {
 fn pull_request_merge_tree_uses_current_dev_ownership() {
     let root = fixture();
     let initial = commit(&root, "initial");
-    write(&root, "policy/README.md", "candidate note\n");
+    write(&root, "policy/OWNERS", "candidate-owner\n");
     let candidate = commit(&root, "stale candidate");
     git(&root, &["branch", "candidate"]);
 
@@ -216,6 +216,36 @@ fn pull_request_merge_tree_uses_current_dev_ownership() {
         admitted.status.success(),
         "{}",
         String::from_utf8_lossy(&admitted.stderr)
+    );
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn exact_copy_from_frozen_markdown_cannot_bypass_the_freeze() {
+    let root = fixture();
+    write(
+        &root,
+        "policy/core/evaluate/Cargo.toml",
+        "[package]\nname='policy-evaluate'\nversion='0.1.0'\nedition='2024'\n",
+    );
+    write(
+        &root,
+        "policy/core/evaluate/src/lib.rs",
+        "pub fn check() {}\n",
+    );
+    let frozen = "// frozen compatibility input\n".repeat(16);
+    write(&root, "policy/legacy.md", &frozen);
+    let base = commit(&root, "base with frozen Markdown");
+
+    write(&root, "policy/core/evaluate/src/copied.rs", &frozen);
+    let head = commit(&root, "copy frozen Markdown into native source");
+    let rejected = admit(&root, &base, &head);
+    assert!(!rejected.status.success());
+    let error = String::from_utf8_lossy(&rejected.stderr);
+    assert!(error.contains("policy/legacy.md"), "{error}");
+    assert!(
+        error.contains("frozen non-root Markdown cannot be changed or used as a copy source"),
+        "{error}"
     );
     let _ = std::fs::remove_dir_all(root);
 }

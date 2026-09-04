@@ -13,8 +13,18 @@ impl RepositoryRead for GitRepository {
     }
 
     fn changed_name_status(&self, base: &str, head: &str) -> Result<Vec<u8>, String> {
-        git_output(&["diff", "--name-status", "-z", "-M", base, head, "--"])
-            .map(|output| output.stdout)
+        git_output(&[
+            "diff",
+            "--name-status",
+            "-z",
+            "--find-renames=100%",
+            "--find-copies=100%",
+            "--find-copies-harder",
+            base,
+            head,
+            "--",
+        ])
+        .map(|output| output.stdout)
     }
 
     fn blob_text(&self, commit: &str, path: &str) -> Result<String, String> {

@@ -1,4 +1,4 @@
-//! Fail-closed parser for `git diff --name-status -z -M` output.
+//! Fail-closed parser for NUL-delimited `git diff --name-status` output.
 //!
 //! Occupancy and layout admission need different views of the same change.
 //! Occupancy claims every endpoint, including deletes and rename/copy sources.
@@ -90,9 +90,11 @@ pub fn git_change_paths_from_name_status_z(
         };
         let scored = matches!(code, b'R' | b'C');
         let valid = if scored {
-            status.len() > 1 && status.as_bytes()[1..].iter().all(u8::is_ascii_digit)
+            status.len() == 4
+                && status.as_bytes()[1..].iter().all(u8::is_ascii_digit)
+                && status[1..].parse::<u8>().is_ok_and(|score| score <= 100)
         } else {
-            status.len() == 1 && matches!(code, b'A' | b'D' | b'M' | b'T' | b'U' | b'X' | b'B')
+            status.len() == 1 && matches!(code, b'A' | b'D' | b'M' | b'T')
         };
         if !valid {
             return Err(PathSetParseError::InvalidStatus(status.to_owned()));
@@ -213,5 +215,20 @@ mod tests {
             git_change_paths_from_name_status_z(b"M\0bad-\xff.rs\0"),
             Err(PathSetParseError::NonUtf8Path)
         );
+        for input in [
+            b"U\0unmerged.rs\0".as_slice(),
+            b"X\0unknown.rs\0".as_slice(),
+            b"B\0broken.rs\0".as_slice(),
+            b"R101\0old.rs\0new.rs\0".as_slice(),
+            b"C1\0old.rs\0new.rs\0".as_slice(),
+        ] {
+            assert!(
+                matches!(
+                    git_change_paths_from_name_status_z(input),
+                    Err(PathSetParseError::InvalidStatus(_))
+                ),
+                "{input:?}"
+            );
+        }
     }
 }

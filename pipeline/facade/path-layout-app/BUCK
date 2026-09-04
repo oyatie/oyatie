@@ -1,3 +1,9 @@
+_PATH_LAYOUT_APP_TEST_ENV = {
+    "CARGO_BIN_EXE_pipeline-path-layout-app": "$(location :pipeline-path-layout-app)",
+}
+
+_PATH_LAYOUT_APP_TEST_RESOURCES = [":pipeline-path-layout-app"]
+
 rust_binary(
     name = "pipeline-path-layout-app",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
@@ -13,9 +19,14 @@ rust_binary(
 
 rust_test(
     name = "pipeline-path-layout-app-completeness",
-    srcs = ["tests/completeness.rs"],
+    srcs = [
+        "tests/completeness.rs",
+        "tests/support/mod.rs",
+    ],
     crate = "pipeline_path_layout_app_completeness",
     crate_root = "tests/completeness.rs",
+    env = _PATH_LAYOUT_APP_TEST_ENV,
+    resources = _PATH_LAYOUT_APP_TEST_RESOURCES,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-path-layout-app",
@@ -30,6 +41,8 @@ rust_test(
     srcs = ["tests/review_bypasses.rs"],
     crate = "pipeline_path_layout_app_review_bypasses",
     crate_root = "tests/review_bypasses.rs",
+    env = _PATH_LAYOUT_APP_TEST_ENV,
+    resources = _PATH_LAYOUT_APP_TEST_RESOURCES,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-path-layout-app",
@@ -44,6 +57,8 @@ rust_test(
     srcs = ["tests/review_followup.rs"],
     crate = "pipeline_path_layout_app_review_followup",
     crate_root = "tests/review_followup.rs",
+    env = _PATH_LAYOUT_APP_TEST_ENV,
+    resources = _PATH_LAYOUT_APP_TEST_RESOURCES,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-path-layout-app",
@@ -58,6 +73,8 @@ rust_test(
     srcs = ["tests/review_third.rs"],
     crate = "pipeline_path_layout_app_review_third",
     crate_root = "tests/review_third.rs",
+    env = _PATH_LAYOUT_APP_TEST_ENV,
+    resources = _PATH_LAYOUT_APP_TEST_RESOURCES,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-path-layout-app",
@@ -72,6 +89,8 @@ rust_test(
     srcs = ["tests/semantic_names.rs"],
     crate = "pipeline_path_layout_app_semantic_names",
     crate_root = "tests/semantic_names.rs",
+    env = _PATH_LAYOUT_APP_TEST_ENV,
+    resources = _PATH_LAYOUT_APP_TEST_RESOURCES,
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-path-layout-app",

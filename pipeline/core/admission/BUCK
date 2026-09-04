@@ -101,6 +101,16 @@ rust_test(
 )
 
 rust_test(
+    name = "pipeline-admission-frozen-markdown",
+    srcs = ["tests/frozen_markdown.rs"],
+    crate = "pipeline_admission_frozen_markdown",
+    crate_root = "tests/frozen_markdown.rs",
+    env = _CARGO_ENV,
+    visibility = ["PUBLIC"],
+    deps = [":pipeline-admission"],
+)
+
+rust_test(
     name = "pipeline-admission-live-postgres-contract",
     srcs = ["tests/live_postgres_contract.rs"],
     crate = "pipeline_admission_live_postgres_contract",

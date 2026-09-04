@@ -5,7 +5,8 @@ use std::collections::BTreeSet;
 use crate::GitChangePaths;
 
 use super::{
-    ALLOWED_ROOT_DIRS, APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, is_capability_root, layout_violations,
+    ALLOWED_ROOT_DIRS, APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, frozen_non_root_markdown_message,
+    is_capability_root, is_frozen_non_root_markdown, layout_violations,
 };
 
 /// Apply repository-layout rules only to changed paths that remain after the Git diff. A new owner
@@ -21,6 +22,13 @@ pub fn changed_layout_violations(
             .iter()
             .cloned()
             .collect::<Vec<_>>(),
+    );
+    violations.extend(
+        changes
+            .occupied
+            .iter()
+            .filter(|path| is_frozen_non_root_markdown(path))
+            .map(|path| frozen_non_root_markdown_message(path)),
     );
     if owner_is_new_and_touched("base", changes, existing_owner_dirs) {
         require_core_crate("base", "BUILD root", changes, &mut violations);
@@ -41,6 +49,8 @@ pub fn changed_layout_violations(
             require_core_crate(&owner, "BUILD product", changes, &mut violations);
         }
     }
+    violations.sort();
+    violations.dedup();
     violations
 }
 
