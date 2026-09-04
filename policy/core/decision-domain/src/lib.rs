@@ -134,12 +134,17 @@ pub fn materialize_parents<S: RebacTupleStore>(
     )
     .map_err(ExpansionError::from)
     .map_err(MaterializationError::Expansion)?;
-    let mut session =
-        ExpansionSession::new(inputs.store, inputs.namespace, snapshot, inputs.bounds);
+    let mut session = ExpansionSession::new(
+        inputs.store,
+        inputs.namespace,
+        identity.subject,
+        snapshot,
+        inputs.bounds,
+    );
     let mut parents = Vec::new();
     for candidate in inputs.candidates {
         if session
-            .check(&identity.subject, &candidate.relation, &candidate.object)
+            .check(&candidate.relation, &candidate.object)
             .map_err(MaterializationError::Expansion)?
         {
             parents.push(candidate.parent.clone());

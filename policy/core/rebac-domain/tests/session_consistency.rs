@@ -110,12 +110,13 @@ fn session_reuses_one_snapshot_and_one_candidate_budget() {
         max_tuples_read: 2,
         ..ExpansionBounds::DEFAULT
     };
-    let mut session = ExpansionSession::new(&store, &namespace, snapshot.clone(), bounds);
+    let mut session =
+        ExpansionSession::new(&store, &namespace, subject(), snapshot.clone(), bounds);
 
-    assert!(session.check(&subject(), &relation, &document()).unwrap());
-    assert!(session.check(&subject(), &relation, &document()).unwrap());
+    assert!(session.check(&relation, &document()).unwrap());
+    assert!(session.check(&relation, &document()).unwrap());
     assert_eq!(
-        session.check(&subject(), &relation, &document()),
+        session.check(&relation, &document()),
         Err(ExpansionError::CandidateBudgetExceeded { limit: 2 })
     );
     assert_eq!(
@@ -143,15 +144,36 @@ fn tuple_budget_accumulates_across_session_checks() {
     let mut session = ExpansionSession::new(
         &store,
         &namespace,
+        subject(),
         resolved_snapshot(&tenant, "snapshot-11"),
         bounds,
     );
 
-    assert!(session.check(&subject(), &relation, &document()).unwrap());
+    assert!(session.check(&relation, &document()).unwrap());
     assert_eq!(
-        session.check(&subject(), &relation, &document()),
+        session.check(&relation, &document()),
         Err(ExpansionError::TupleBudgetExceeded { limit: 1 })
     );
+}
+
+#[test]
+fn session_uses_one_bound_subject_for_every_check() {
+    let tenant = tenant();
+    let store = store();
+    let relation = relation();
+    let namespace = namespace(&relation);
+    let bob =
+        RebacSubjectRef::object(RebacObjectRef::new("user", "bob").expect("subject is valid"));
+    let mut session = ExpansionSession::new(
+        &store,
+        &namespace,
+        bob,
+        resolved_snapshot(&tenant, "snapshot-subject"),
+        ExpansionBounds::DEFAULT,
+    );
+
+    assert!(!session.check(&relation, &document()).unwrap());
+    assert!(!session.check(&relation, &document()).unwrap());
 }
 
 #[test]
