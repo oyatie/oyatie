@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-nativelink
+data:
+  config.json: |
+    {
+      "stores": [
+        {
+          "name": "cas-files",
+          "filesystem": {
+            "content_path": "/cache/cas",
+            "temp_path": "/cache/tmp/cas",
+            "eviction_policy": {
+              "max_bytes": {{ .Values.cache.casBytes | int64 }},
+              "evict_bytes": 1073741824,
+              "max_count": {{ .Values.cache.casObjects | int64 }}
+            },
+            "max_concurrent_writes": 2
+          }
+        },
+        {
+          "name": "cas",
+          "verify": {
+            "backend": {"ref_store": {"name": "cas-files"}},
+            "verify_size": true,
+            "verify_hash": true
+          }
+        },
+        {
+          "name": "ac-files",
+          "filesystem": {
+            "content_path": "/cache/ac",
+            "temp_path": "/cache/tmp/ac",
+            "eviction_policy": {
+              "max_bytes": {{ .Values.cache.acBytes | int64 }},
+              "evict_bytes": 67108864,
+              "max_count": {{ .Values.cache.acObjects | int64 }}
+            },
+            "max_concurrent_writes": 2
+          }
+        },
+        {
+          "name": "ac",
+          "completeness_checking": {
+            "backend": {"ref_store": {"name": "ac-files"}},
+            "cas_store": {"ref_store": {"name": "cas"}}
+          }
+        }
+      ],
+      "servers": [
+        {
+          "name": "cache",
+          "listener": {"http": {"socket_address": "127.0.0.1:50051", "max_decoding_message_size": 4194304}},
+          "services": {
+            "cas": [{"instance_name": {{ .Values.instanceName | toJson }}, "cas_store": "cas"}],
+            "ac": [{"instance_name": {{ .Values.instanceName | toJson }}, "ac_store": "ac"}],
+            "bytestream": [{"instance_name": {{ .Values.instanceName | toJson }}, "cas_store": "cas", "persist_stream_on_disconnect_timeout_s": 10}],
+            "capabilities": [{"instance_name": {{ .Values.instanceName | toJson }}}]
+          }
+        },
+        {
+          "name": "health",
+          "listener": {"http": {"socket_address": "0.0.0.0:50052"}},
+          "services": {"health": {"path": "/status", "timeout_seconds": 5}}
+        }
+      ],
+      "global": {"max_open_files": 1024, "default_digest_hash_function": "sha256"}
+    }
