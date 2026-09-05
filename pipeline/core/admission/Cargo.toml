@@ -10,6 +10,9 @@ license = "Apache-2.0"
 toml.workspace = true
 workspace-members-kernel = { path = "../workspace-members-kernel" }
 
+[dev-dependencies]
+serde_yaml.workspace = true
+
 [lib]
 doctest = false
 
