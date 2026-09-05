@@ -16,6 +16,7 @@ mod guardrail;
 mod identity;
 mod instance;
 mod kubernetes;
+mod kubernetes_intent;
 mod provider;
 mod validation;
 
@@ -45,6 +46,7 @@ pub use kubernetes::{
     KubernetesNodePoolCreate, kubernetes_cluster_desired_state_label,
     kubernetes_cluster_state_label, reconcile_kubernetes_cluster,
 };
+pub use kubernetes_intent::{KubernetesClusterIntent, validate_kubernetes_cluster_intent};
 pub use provider::{
     ComputeProviderKind, ComputeProviderVmCreateRequest, ComputeProviderVmError,
     ComputeProviderVmPort, ComputeProviderVmReceipt,
