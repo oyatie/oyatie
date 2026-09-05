@@ -1,0 +1,33 @@
+rust_library(
+    name = "policy-bundle-content",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "policy_bundle_content",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    named_deps = {
+        "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+    },
+    deps = [
+        "//audit/adapters/digest-awslc:shared-audit-digest-adapter-awslc",
+        "//audit/core/event-kernel:shared-audit-event-kernel",
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "policy-bundle-content-content-identity",
+    srcs = ["tests/content_identity.rs"],
+    crate = "content_identity",
+    crate_root = "tests/content_identity.rs",
+    visibility = ["PUBLIC"],
+    named_deps = {
+        "policy_bundle_content": ":policy-bundle-content",
+        "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+    },
+    deps = [
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+        "third-party//:serde",
+    ],
+)

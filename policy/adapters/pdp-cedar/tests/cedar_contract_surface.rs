@@ -58,6 +58,54 @@ fn obligations_ride_out_with_annotated_permits() {
     );
 }
 
+#[test]
+fn qualification_evaluation_does_not_consume_the_serving_cache() {
+    let pdp = CedarPdp::load(
+        &locked_seed_bundle("psv-qualification-cache-read", vec![]),
+        Arc::new(SeededIdGenerator::default()),
+        64,
+    )
+    .unwrap();
+    let request = request(
+        "qualification-cache-read",
+        "acme",
+        entity_ref("OyaPlatform::Principal", "alice"),
+        "resource.read",
+        entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+    );
+
+    assert!(!pdp.authorize(&request, &entity_slice()).unwrap().cache_hit);
+    assert!(pdp.authorize(&request, &entity_slice()).unwrap().cache_hit);
+    let qualified = pdp
+        .authorize_for_qualification(&request, &entity_slice())
+        .unwrap();
+    assert!(!qualified.cache_hit);
+    assert_eq!(qualified.response.decision, Decision::Allow);
+}
+
+#[test]
+fn qualification_evaluation_does_not_populate_the_serving_cache() {
+    let pdp = CedarPdp::load(
+        &locked_seed_bundle("psv-qualification-cache-write", vec![]),
+        Arc::new(SeededIdGenerator::default()),
+        64,
+    )
+    .unwrap();
+    let request = request(
+        "qualification-cache-isolation",
+        "acme",
+        entity_ref("OyaPlatform::Principal", "alice"),
+        "resource.read",
+        entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+    );
+
+    let qualified = pdp
+        .authorize_for_qualification(&request, &entity_slice())
+        .unwrap();
+    assert!(!qualified.cache_hit);
+    assert!(!pdp.authorize(&request, &entity_slice()).unwrap().cache_hit);
+}
+
 // ------------------------------------------------ seed parity guard ----
 
 #[test]

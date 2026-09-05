@@ -1,0 +1,39 @@
+{
+  "source": {
+    "schema_src": "entity User; entity Doc; action \"read\" appliesTo { principal: [User], resource: [Doc] };",
+    "policies_src": "@id(\"read-access\") @obligation(\"record-access\") permit(principal == User::\"alice\", action == Action::\"read\", resource);",
+    "tenant_policies": {},
+    "templates": [],
+    "template_links": [],
+    "action_map": {"read": "Action::\"read\""}
+  },
+  "cases": [
+    {
+      "name": "named reader is allowed with audit obligation",
+      "request": {
+        "request_id": "reader-case", "tenant_id": "tenant",
+        "principal": {"entity_type": "User", "entity_id": "alice"},
+        "action": "read",
+        "resource": {"entity_type": "Doc", "entity_id": "spec"},
+        "context": {}, "min_policy_version": null
+      },
+      "entities": {"entities": []},
+      "expected": {
+        "decision": "allow", "determining_policy_ids": ["read-access"],
+        "obligations": [{"obligation_id": "record-access", "parameters": {}}]
+      }
+    },
+    {
+      "name": "unlisted reader is denied",
+      "request": {
+        "request_id": "nonreader-case", "tenant_id": "tenant",
+        "principal": {"entity_type": "User", "entity_id": "bob"},
+        "action": "read",
+        "resource": {"entity_type": "Doc", "entity_id": "spec"},
+        "context": {}, "min_policy_version": null
+      },
+      "entities": {"entities": []},
+      "expected": {"decision": "deny", "determining_policy_ids": [], "obligations": []}
+    }
+  ]
+}

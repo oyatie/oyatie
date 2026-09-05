@@ -1,0 +1,23 @@
+[package]
+name = "policy-cli-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Offline policy qualification command-line interface"
+
+[dependencies]
+policy-authoring-app = { path = "../authoring-app" }
+shared-ulid-id-kernel = { path = "../../../data/core/ulid-id-kernel" }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+policy-pdp-kernel = { path = "../../core/pdp-kernel" }
+policy-pdp-cedar = { path = "../../adapters/pdp-cedar" }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
