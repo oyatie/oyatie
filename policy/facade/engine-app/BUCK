@@ -1,0 +1,101 @@
+_NAMED_DEPS = {
+    "policy_decision_service_kernel": "//policy/core/decision-service-kernel:policy-decision-service-kernel",
+    "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+    "policy_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar",
+    "policy_pdp_bundle_file": "//policy/adapters/pdp-bundle-file:policy-pdp-bundle-file",
+}
+
+_DEPS = [
+    "//policy/core/cedar-domain:policy-cedar-domain",
+    "//policy/core/decision-domain:policy-decision-domain",
+    "//audit/adapters/digest-awslc:shared-audit-digest-adapter-awslc",
+    "//audit/core/event-kernel:shared-audit-event-kernel",
+    "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+    "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
+    "third-party//:serde",
+    "third-party//:serde_json",
+]
+
+rust_library(
+    name = "policy-engine-app",
+    srcs = glob(["src/**/*.rs"], exclude = ["src/main.rs"]),
+    crate = "policy_engine_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
+    deps = _DEPS,
+)
+
+rust_binary(
+    name = "policy-engine-cli",
+    srcs = ["src/main.rs"],
+    crate = "policy_engine_cli",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [":policy-engine-app"],
+)
+
+rust_test(
+    name = "policy-engine-cli-unittest",
+    srcs = ["src/main.rs"],
+    crate = "policy_engine_cli",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [":policy-engine-app"],
+)
+
+_TEST_DEPS = _DEPS + [
+    ":policy-engine-app",
+    "//policy/core/rebac-domain:policy-rebac-domain",
+    "//policy/adapters/tuple-store-inmemory:policy-tuple-store-inmemory",
+]
+
+rust_test(
+    name = "policy-engine-qualification",
+    srcs = glob(["tests/**/*.rs", "tests/fixtures/*.json"]),
+    crate = "qualification",
+    crate_root = "tests/qualification.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
+    deps = _TEST_DEPS,
+)
+
+rust_test(
+    name = "policy-engine-source-identity",
+    srcs = glob(["tests/**/*.rs", "tests/fixtures/*.json"]),
+    crate = "source_identity",
+    crate_root = "tests/source_identity.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
+    deps = _TEST_DEPS,
+)
+
+rust_test(
+    name = "policy-engine-lifecycle",
+    srcs = glob(["tests/**/*.rs", "tests/fixtures/*.json"]),
+    crate = "engine_lifecycle",
+    crate_root = "tests/engine_lifecycle.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
+    deps = _TEST_DEPS,
+)
+
+rust_test(
+    name = "policy-engine-command",
+    srcs = glob(["tests/**/*.rs", "tests/fixtures/*.json"]),
+    crate = "command",
+    crate_root = "tests/command.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
+    deps = _TEST_DEPS,
+)
+
+rust_test(
+    name = "policy-engine-content-admission",
+    srcs = glob(["tests/**/*.rs", "tests/fixtures/*.json"]),
+    crate = "content_admission",
+    crate_root = "tests/content_admission.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
+    deps = _TEST_DEPS,
+)

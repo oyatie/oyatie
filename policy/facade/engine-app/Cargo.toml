@@ -1,0 +1,32 @@
+[package]
+name = "policy-engine-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Qualified Cedar policy publication and embedded verified-bundle engine composition"
+
+[dependencies]
+policy-cedar-domain = { path = "../../core/cedar-domain" }
+policy-decision-domain = { path = "../../core/decision-domain" }
+policy-decision-service-kernel = { path = "../../core/decision-service-kernel" }
+policy-pdp-kernel = { path = "../../core/pdp-kernel" }
+policy-pdp-cedar = { path = "../../adapters/pdp-cedar" }
+policy-pdp-bundle-file = { path = "../../adapters/pdp-bundle-file" }
+shared-audit-digest-adapter-awslc = { path = "../../../audit/adapters/digest-awslc" }
+shared-audit-event-kernel = { path = "../../../audit/core/event-kernel" }
+shared-platform-contracts-kernel = { path = "../../../iam/core/platform-contracts-kernel" }
+shared-ulid-id-kernel = { path = "../../../data/core/ulid-id-kernel" }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+policy-rebac-domain = { path = "../../core/rebac-domain" }
+policy-tuple-store-inmemory = { path = "../../adapters/tuple-store-inmemory" }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true

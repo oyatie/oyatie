@@ -107,6 +107,95 @@ fn rejected_bundle_never_replaces_a_serving_one() {
     );
 }
 
+fn reload_request() -> AuthorizationRequest {
+    request(
+        "reload-decision",
+        "acme",
+        entity_ref("OyaPlatform::Principal", "alice"),
+        "resource.read",
+        entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+    )
+}
+
+#[test]
+fn identical_current_bundle_reload_preserves_the_warm_cache() {
+    let bundle = locked_seed_bundle("psv-000001", vec![]);
+    let pdp = pdp(vec![]);
+    let request = reload_request();
+    let before = pdp.authorize(&request, &entity_slice()).unwrap();
+    assert!(!before.cache_hit);
+    pdp.swap_bundle(&bundle).unwrap();
+    let after = pdp.authorize(&request, &entity_slice()).unwrap();
+    assert!(after.cache_hit);
+    assert_eq!(
+        after.response.policy_version,
+        before.response.policy_version
+    );
+    assert_eq!(after.response.decision, before.response.decision);
+}
+
+#[test]
+fn current_version_cannot_be_redefined_by_a_reload() {
+    let pdp = pdp(vec![]);
+    let mut redefined = locked_seed_bundle("psv-000001", vec![]);
+    redefined.policies_src.push('\n');
+    assert!(matches!(
+        pdp.swap_bundle(&redefined),
+        Err(PdpError::BundleRejected { .. })
+    ));
+    assert_eq!(pdp.loaded_policy_version().as_str(), "psv-000001");
+}
+
+#[test]
+fn replacement_and_rollback_each_start_with_a_cold_cache() {
+    let original = locked_seed_bundle("psv-000001", vec![]);
+    let pdp = pdp(vec![]);
+    let request = reload_request();
+    assert!(!pdp.authorize(&request, &entity_slice()).unwrap().cache_hit);
+    assert!(pdp.authorize(&request, &entity_slice()).unwrap().cache_hit);
+    for bundle in [locked_seed_bundle("psv-000002", vec![]), original] {
+        pdp.swap_bundle(&bundle).unwrap();
+        let cold = pdp.authorize(&request, &entity_slice()).unwrap();
+        assert_eq!(cold.response.policy_version, bundle.version);
+        assert!(!cold.cache_hit);
+        assert!(pdp.authorize(&request, &entity_slice()).unwrap().cache_hit);
+    }
+}
+
+#[test]
+fn invalid_action_reload_preserves_serving_state_and_cache() {
+    let pdp = pdp(vec![]);
+    let request = reload_request();
+    let before = pdp.authorize(&request, &entity_slice()).unwrap();
+    let mut broken = locked_seed_bundle("psv-000002", vec![]);
+    broken.action_map.insert(
+        "resource.read".to_owned(),
+        r#"OyaPlatform::Action::"Undeclared""#.to_owned(),
+    );
+    assert!(matches!(
+        pdp.swap_bundle(&broken),
+        Err(PdpError::BundleRejected { .. })
+    ));
+    let after = pdp.authorize(&request, &entity_slice()).unwrap();
+    assert!(after.cache_hit);
+    assert_eq!(
+        after.response.policy_version,
+        before.response.policy_version
+    );
+    assert_eq!(after.response.decision, before.response.decision);
+}
+
+#[test]
+fn disabled_cache_stays_disabled_after_replacement() {
+    let bundle = locked_seed_bundle("psv-000001", vec![]);
+    let pdp = CedarPdp::load(&bundle, Arc::new(SeededIdGenerator::default()), 0).unwrap();
+    pdp.swap_bundle(&locked_seed_bundle("psv-000002", vec![]))
+        .unwrap();
+    let request = reload_request();
+    assert!(!pdp.authorize(&request, &entity_slice()).unwrap().cache_hit);
+    assert!(!pdp.authorize(&request, &entity_slice()).unwrap().cache_hit);
+}
+
 // --------------------------------------------------- audit + errors ----
 
 #[test]

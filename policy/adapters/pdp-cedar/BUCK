@@ -26,6 +26,24 @@ rust_library(
 )
 
 rust_test(
+    name = "policy-pdp-cedar-cedar-bundle-admission",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "cedar_bundle_admission",
+    crate_root = "tests/cedar_bundle_admission.rs",
+    visibility = ["PUBLIC"],
+    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
+    deps = [
+        "//audit/adapters/file:audit-file-adapter",
+        "//audit/core/chain-domain:audit-chain-domain",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//policy/core/pdp-kernel:policy-pdp-kernel",
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+        "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
     name = "policy-pdp-cedar-cedar-rbac-abac-pbac-grants",
     srcs = glob(["tests/**/*.rs"]),
     crate = "cedar_rbac_abac_pbac_grants",

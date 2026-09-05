@@ -6533,6 +6533,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "policy-engine-app"
+version = "0.1.0"
+dependencies = [
+ "policy-cedar-domain",
+ "policy-decision-domain",
+ "policy-decision-service-kernel",
+ "policy-pdp-bundle-file",
+ "policy-pdp-cedar",
+ "policy-pdp-kernel",
+ "policy-rebac-domain",
+ "policy-tuple-store-inmemory",
+ "serde",
+ "serde_json",
+ "shared-audit-digest-adapter-awslc",
+ "shared-audit-event-kernel",
+ "shared-platform-contracts-kernel",
+ "shared-ulid-id-kernel",
+]
+
+[[package]]
 name = "policy-pdp-bundle-file"
 version = "0.1.0"
 dependencies = [
