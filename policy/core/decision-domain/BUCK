@@ -56,3 +56,20 @@ rust_test(
     named_deps = _JOIN_TEST_NAMED_DEPS,
     deps = _JOIN_TEST_DEPS,
 )
+
+rust_test(
+    name = "policy-decision-domain-decision-scope-consistency",
+    srcs = [
+        "tests/decision_scope_consistency.rs",
+        "tests/decision_scope_adversaries/mod.rs",
+        "tests/decision_scope_adversaries/page_snapshot_refusals.rs",
+        "tests/decision_scope_adversaries/tuple_query_refusals.rs",
+        "tests/decision_scope_support/mod.rs",
+        "tests/join_fixtures/mod.rs",
+    ],
+    crate = "decision_scope_consistency",
+    crate_root = "tests/decision_scope_consistency.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _JOIN_TEST_NAMED_DEPS,
+    deps = _JOIN_TEST_DEPS,
+)

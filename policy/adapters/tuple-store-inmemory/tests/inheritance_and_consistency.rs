@@ -7,7 +7,7 @@ mod common;
 
 use common::*;
 use policy_cedar_domain::rebac::RebacReadSnapshot;
-use policy_rebac_domain::{Expander, ExpansionBounds, ExpansionError};
+use policy_rebac_domain::{ExpansionBounds, ExpansionError};
 use policy_tuple_store_inmemory::InMemoryTupleStore;
 
 #[test]
@@ -17,7 +17,7 @@ fn viewer_is_inherited_through_the_parent_folder() {
     write(&mut store, "document:q3#parent@folder:budget");
 
     let model = document_model();
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
 
     // alice holds no tuple on the document at all; the grant is the folder's.
     assert!(
@@ -51,7 +51,7 @@ fn a_snapshot_taken_before_the_grant_cannot_see_it() {
 
     let model = document_model();
 
-    let earlier = Expander::new(&store, &model, tenant(), at(before));
+    let earlier = new_expander(&store, &model, at(before));
     assert!(
         !earlier
             .check(
@@ -63,7 +63,7 @@ fn a_snapshot_taken_before_the_grant_cannot_see_it() {
         "a read pinned before the grant must not observe it"
     );
 
-    let later = Expander::new(&store, &model, tenant(), at(after));
+    let later = new_expander(&store, &model, at(after));
     assert!(
         later
             .check(
@@ -91,7 +91,7 @@ fn a_grant_on_a_later_page_is_still_found() {
     write(&mut store, "document:q3#parent@folder:budget");
 
     let model = document_model();
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     assert!(
         expander
             .check(
@@ -118,8 +118,7 @@ fn an_unbounded_tupleset_refuses_rather_than_truncating() {
         max_pages_per_tupleset: 2,
         ..ExpansionBounds::DEFAULT
     };
-    let expander =
-        Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest()).with_bounds(bounds);
+    let expander = bounded_expander(&store, &model, RebacReadSnapshot::latest(), bounds);
 
     assert_eq!(
         expander.check(

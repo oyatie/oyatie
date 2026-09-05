@@ -7,7 +7,7 @@ mod common;
 
 use common::*;
 use policy_cedar_domain::rebac::{RebacReadSnapshot, UsersetRewrite};
-use policy_rebac_domain::{Expander, ExpansionError, NamespaceConfig, ValidatedNamespace};
+use policy_rebac_domain::{ExpansionError, NamespaceConfig, ValidatedNamespace};
 use policy_tuple_store_inmemory::InMemoryTupleStore;
 
 /// `editor` is anyone with `writer`, except anyone with `banned`.
@@ -35,7 +35,7 @@ fn difference_subtracts_the_excluded_userset() {
     write(&mut store, "doc:spec#banned@user:mallory");
 
     let model = difference_model();
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
 
     assert!(
         expander
@@ -81,7 +81,7 @@ fn intersection_requires_every_child() {
     write(&mut store, "doc:spec#onboarded@user:alice");
     write(&mut store, "doc:spec#writer@user:bob");
 
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     assert!(
         expander
             .check(
@@ -115,7 +115,7 @@ fn a_userset_subject_expands_to_its_members() {
     write(&mut store, "group:platform#member@user:alice");
     write(&mut store, "doc:spec#viewer@group:platform#member");
 
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     assert!(
         expander
             .check(
@@ -142,7 +142,7 @@ fn a_cycle_answers_instead_of_hanging() {
     write(&mut store, "group:a#member@group:b#member");
     write(&mut store, "group:b#member@group:a#member");
 
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     assert!(
         !expander
             .check(&user("user:alice"), &relation("member"), &object("group:a"))
@@ -160,7 +160,7 @@ fn an_undefined_relation_denies_rather_than_falling_back() {
     // back to direct tuples would make a typo in the config grant exactly the
     // access the config meant to constrain.
     let model = NamespaceConfig::new().validated().expect("stratified");
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
 
     assert_eq!(
         expander.check(

@@ -6,7 +6,7 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 use super::RebacTupleValidationError;
-use super::token::{RebacReadSnapshot, SnapshotToken, Zookie};
+use super::token::{RebacReadSnapshot, ResolvedRebacSnapshot, SnapshotToken, Zookie};
 use super::tuple::{RebacObjectRef, RebacRelation, RebacSubjectRef, RebacTenantScope, RebacTuple};
 
 /// Tenant-scoped tuple-store query. Any `None` field is a wildcard within the tenant.
@@ -82,7 +82,7 @@ impl RebacTupleQuery {
 #[serde(deny_unknown_fields)]
 pub struct RebacTuplePage {
     pub tuples: Vec<RebacTuple>,         // data_class: TENANT_SCOPED
-    pub snapshot: SnapshotToken,         // data_class: INTERNAL_ONLY
+    pub snapshot: ResolvedRebacSnapshot, // data_class: INTERNAL_ONLY
     pub next_page_token: Option<String>, // data_class: INTERNAL_ONLY
 }
 
@@ -90,11 +90,52 @@ pub struct RebacTuplePage {
 pub trait RebacTupleStore {
     fn write_tuple(&mut self, tuple: RebacTuple) -> Result<Zookie, RebacTupleStoreError>;
 
+    /// Resolve a tenant-scoped request into one immutable store snapshot.
+    fn resolve_snapshot(
+        &self,
+        tenant: &RebacTenantScope,
+        requested: RebacReadSnapshot,
+    ) -> Result<ResolvedRebacSnapshot, RebacTupleStoreError>;
+
     fn read_tuples(
         &self,
         query: &RebacTupleQuery,
-        snapshot: RebacReadSnapshot,
+        snapshot: &ResolvedRebacSnapshot,
     ) -> Result<RebacTuplePage, RebacTupleStoreError>;
+}
+
+/// Resolve one snapshot request and reject adapter substitution.
+///
+/// `Latest` deliberately accepts the store-issued token for the current
+/// tenant. An explicit `At` request is already store-issued and must resolve
+/// to that exact tenant and token; silently advancing it would authorize
+/// against a different graph than the caller requested.
+pub fn resolve_snapshot<S: RebacTupleStore + ?Sized>(
+    store: &S,
+    tenant: &RebacTenantScope,
+    requested: RebacReadSnapshot,
+) -> Result<ResolvedRebacSnapshot, RebacTupleStoreError> {
+    let requested_token = match &requested {
+        RebacReadSnapshot::Latest => None,
+        RebacReadSnapshot::At { snapshot } => Some(snapshot.clone()),
+    };
+    let resolved = store.resolve_snapshot(tenant, requested)?;
+    if resolved.tenant() != tenant {
+        return Err(RebacTupleStoreError::SnapshotScopeMismatch {
+            query_tenant: tenant.clone(),
+            snapshot_tenant: resolved.tenant().clone(),
+        });
+    }
+    if let Some(snapshot) = requested_token {
+        let expected = ResolvedRebacSnapshot::new(tenant.clone(), snapshot);
+        if resolved != expected {
+            return Err(RebacTupleStoreError::InconsistentSnapshot {
+                requested: expected,
+                served: resolved,
+            });
+        }
+    }
+    Ok(resolved)
 }
 
 /// Fail-closed tuple-store port errors.
@@ -105,6 +146,18 @@ pub enum RebacTupleStoreError {
     StaleSnapshot {
         requested: SnapshotToken,
         current: SnapshotToken,
+    },
+    SnapshotScopeMismatch {
+        query_tenant: RebacTenantScope,
+        snapshot_tenant: RebacTenantScope,
+    },
+    InconsistentSnapshot {
+        requested: ResolvedRebacSnapshot,
+        served: ResolvedRebacSnapshot,
+    },
+    TupleOutsideQuery {
+        query: Box<RebacTupleQuery>,
+        tuple: Box<RebacTuple>,
     },
     Backend(String),
 }
@@ -119,6 +172,30 @@ impl fmt::Display for RebacTupleStoreError {
                 "stale ReBAC snapshot: requested {} but current is {}",
                 requested.as_str(),
                 current.as_str()
+            ),
+            Self::SnapshotScopeMismatch {
+                query_tenant,
+                snapshot_tenant,
+            } => write!(
+                f,
+                "ReBAC snapshot tenant {} does not match query tenant {}",
+                snapshot_tenant.as_str(),
+                query_tenant.as_str()
+            ),
+            Self::InconsistentSnapshot { requested, served } => write!(
+                f,
+                "ReBAC tuple store served tenant {} snapshot {} for requested tenant {} snapshot {}",
+                served.tenant().as_str(),
+                served.as_str(),
+                requested.tenant().as_str(),
+                requested.as_str()
+            ),
+            Self::TupleOutsideQuery { query, tuple } => write!(
+                f,
+                "ReBAC tuple store served tenant {} tuple {} outside tenant {} query",
+                tuple.tenant().as_str(),
+                tuple.to_canonical_string(),
+                query.tenant.as_str()
             ),
             Self::Backend(detail) => write!(f, "ReBAC tuple-store backend error: {detail}"),
         }

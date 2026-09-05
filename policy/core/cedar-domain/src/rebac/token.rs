@@ -4,6 +4,7 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use super::RebacTupleValidationError;
+use super::tuple::RebacTenantScope;
 use super::validate::validate_opaque_token;
 
 /// Zanzibar-style consistency token returned by tuple-store writes.
@@ -65,13 +66,6 @@ impl SnapshotToken {
     }
 
     #[must_use]
-    pub fn latest() -> Self {
-        Self {
-            token: "latest".to_owned(),
-        }
-    }
-
-    #[must_use]
     pub fn as_str(&self) -> &str {
         &self.token
     }
@@ -93,6 +87,48 @@ impl<'de> Deserialize<'de> for SnapshotToken {
     {
         let value = String::deserialize(deserializer)?;
         Self::new(value).map_err(serde::de::Error::custom)
+    }
+}
+
+/// A store-issued snapshot bound to the tenant whose tuples it resolves.
+///
+/// This is deliberately distinct from [`RebacReadSnapshot`]: unresolved
+/// `Latest` can advance, while this value always names one immutable world.
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ResolvedRebacSnapshot {
+    tenant: RebacTenantScope, // data_class: TENANT_SCOPED
+    snapshot: SnapshotToken,  // data_class: INTERNAL_ONLY
+}
+
+impl ResolvedRebacSnapshot {
+    /// Bind an opaque store token to its tenant. The unresolved
+    /// [`RebacReadSnapshot::Latest`] selector cannot inhabit this constructor;
+    /// opaque token bytes remain entirely store-owned.
+    #[must_use]
+    pub fn new(tenant: RebacTenantScope, snapshot: SnapshotToken) -> Self {
+        Self { tenant, snapshot }
+    }
+
+    /// Bind a write-side token to the tenant whose write produced it.
+    #[must_use]
+    pub fn from_zookie(tenant: RebacTenantScope, zookie: Zookie) -> Self {
+        Self::new(tenant, SnapshotToken::from_zookie(zookie))
+    }
+
+    #[must_use]
+    pub fn tenant(&self) -> &RebacTenantScope {
+        &self.tenant
+    }
+
+    #[must_use]
+    pub fn token(&self) -> &SnapshotToken {
+        &self.snapshot
+    }
+
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        self.snapshot.as_str()
     }
 }
 
@@ -120,13 +156,5 @@ impl RebacReadSnapshot {
     #[must_use]
     pub fn at_zookie(zookie: Zookie) -> Self {
         Self::at(SnapshotToken::from_zookie(zookie))
-    }
-
-    #[must_use]
-    pub fn into_snapshot_token(self) -> SnapshotToken {
-        match self {
-            Self::Latest => SnapshotToken::latest(),
-            Self::At { snapshot } => snapshot,
-        }
     }
 }

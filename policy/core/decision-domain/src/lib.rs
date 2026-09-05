@@ -1,136 +1,182 @@
-//! The join: relationship expansion materialised into the entity slice the
-//! embedded PDP decides against.
+//! The joined authorization decision scope.
 //!
-//! A `Check` has two halves. The relationship graph answers "which usersets
-//! does this principal belong to, at this snapshot"; the policy engine
-//! answers "given those memberships, may it act". This crate is the seam:
-//! it runs the bounded userset-rewrite walk for each candidate membership,
-//! turns the ones that hold into [`EntityRecord::parents`] edges, and calls
-//! [`PolicyDecisionPoint::authorize`] on the result. Cedar's `in` operator
-//! closes the hierarchy from there.
-//!
-//! Expansion strictly precedes evaluation. The embedded-PDP doctrine says
-//! the PDP evaluates against exactly the slice it is given and never
-//! reaches out at decision time — so the graph is consulted here, before
-//! the slice exists, never lazily from inside the engine. The signature
-//! enforces the order: there is no path to `authorize` that does not pass
-//! through materialisation first.
-//!
-//! Every error on either half is a fail-closed denial. An
-//! [`ExpansionError`] means the graph was not fully walked; it must never
-//! be read as "not a member".
+//! Relationship expansion materializes the complete principal hierarchy at
+//! one tenant-bound store snapshot before the embedded Cedar PDP evaluates it.
+//! Request identity is the only source of graph tenant and subject, and one
+//! mutable work budget spans every candidate subwalk.
 
 use std::collections::BTreeMap;
 
 use policy_cedar_domain::rebac::{
-    RebacObjectRef, RebacReadSnapshot, RebacRelation, RebacSubjectRef, RebacTenantScope,
-    RebacTupleStore,
+    RebacObjectRef, RebacReadSnapshot, RebacRelation, RebacTupleStore, ResolvedRebacSnapshot,
+    resolve_snapshot,
 };
 use policy_pdp_kernel::{EntityRecord, EntitySlice, PdpError, PdpOutcome};
-use policy_rebac_domain::{Expander, ExpansionError, ValidatedNamespace};
+use policy_rebac_domain::{ExpansionBounds, ExpansionError, ExpansionSession, ValidatedNamespace};
 use shared_platform_contracts_kernel::ContractViolation;
 use shared_platform_contracts_kernel::pdp::{AuthorizationRequest, EntityRef};
 
+mod identity;
+
+pub use identity::{IdentityMappingError, PrincipalMapping};
 pub use policy_pdp_kernel::PolicyDecisionPoint;
 
-/// One userset whose membership the graph is asked about, and the Cedar
-/// entity that membership materialises as.
+/// One graph membership whose successful expansion becomes a Cedar parent.
 ///
-/// The mapping between relationship-graph object types and Cedar entity
-/// types is naming policy owned by the caller. The graph gates only
-/// WHETHER each candidate's parent is emitted - `parent` itself is
-/// caller-supplied and never inspected by the walk, so a caller that maps
-/// a userset to the wrong Cedar entity has granted whatever that entity
-/// grants. This crate guarantees exactly one thing: no candidate's parent
-/// is emitted unless its membership held in the graph at one pinned
-/// snapshot.
+/// Candidate-to-parent schema validation is a separate model contract; this
+/// type binds decision identity and does not claim that later correction.
 #[derive(Clone, Debug, PartialEq)]
 pub struct MembershipCandidate {
-    /// The userset object, e.g. `group:eng`.
     pub object: RebacObjectRef,
-    /// The membership relation on it, e.g. `member`.
     pub relation: RebacRelation,
-    /// The Cedar entity the principal gains as a parent when membership
-    /// holds, e.g. `Group::"eng"`.
     pub parent: EntityRef,
 }
 
-/// The graph half of a decision: where to read, which model to walk, and
-/// which memberships to ask about.
-pub struct ExpansionInputs<'a, S: RebacTupleStore> {
-    pub store: &'a S,
-    pub namespace: &'a ValidatedNamespace,
-    pub tenant: RebacTenantScope,
-    pub snapshot: RebacReadSnapshot,
-    /// The principal as the relationship graph names it.
-    pub subject: &'a RebacSubjectRef,
-    pub candidates: &'a [MembershipCandidate],
+/// Public inputs that cannot carry a second tenant or principal identity.
+pub struct DecisionInputs<'a, S: RebacTupleStore> {
+    store: &'a S,
+    namespace: &'a ValidatedNamespace,
+    identity_mapping: PrincipalMapping,
+    requested_snapshot: RebacReadSnapshot,
+    candidates: &'a [MembershipCandidate],
+    bounds: ExpansionBounds,
 }
 
-/// Why a joined decision was refused. Every variant is a denial; none may
-/// be read as "deny was decided" — the decision was never reached.
+impl<'a, S: RebacTupleStore> DecisionInputs<'a, S> {
+    #[must_use]
+    pub fn new(
+        store: &'a S,
+        namespace: &'a ValidatedNamespace,
+        identity_mapping: PrincipalMapping,
+        requested_snapshot: RebacReadSnapshot,
+        candidates: &'a [MembershipCandidate],
+        bounds: ExpansionBounds,
+    ) -> Self {
+        Self {
+            store,
+            namespace,
+            identity_mapping,
+            requested_snapshot,
+            candidates,
+            bounds,
+        }
+    }
+}
+
+/// Complete graph materialization plus the exact graph state it represents.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MaterializedParents {
+    parents: Vec<EntityRef>,
+    snapshot: ResolvedRebacSnapshot,
+}
+
+impl MaterializedParents {
+    #[must_use]
+    pub fn parents(&self) -> &[EntityRef] {
+        &self.parents
+    }
+
+    #[must_use]
+    pub fn resolved_snapshot(&self) -> &ResolvedRebacSnapshot {
+        &self.snapshot
+    }
+}
+
+/// The Cedar result and exact relationship snapshot used to produce it.
+#[derive(Debug)]
+pub struct JoinedDecision {
+    pub outcome: PdpOutcome,
+    pub relationship_snapshot: ResolvedRebacSnapshot,
+}
+
+/// Why graph materialization was refused before Cedar consultation.
+#[derive(Debug, PartialEq)]
+pub enum MaterializationError {
+    Identity(IdentityMappingError),
+    Expansion(ExpansionError),
+}
+
+/// Why a joined decision was refused. No variant is a decided deny.
 #[derive(Debug)]
 pub enum DecisionError {
-    /// The graph was not fully walked (depth, budget, cycle through a
-    /// subtraction, stale snapshot, undefined relation).
+    Identity(IdentityMappingError),
     Expansion(ExpansionError),
-    /// The materialised slice violated the entity contract.
     InvalidSlice(Vec<ContractViolation>),
-    /// The engine refused (stale policy pin, unknown action, evaluation).
     Pdp(PdpError),
 }
 
-/// Walk every candidate membership for the subject and return the parent
-/// edges for the ones that hold, all at one pinned snapshot.
+impl From<MaterializationError> for DecisionError {
+    fn from(error: MaterializationError) -> Self {
+        match error {
+            MaterializationError::Identity(error) => Self::Identity(error),
+            MaterializationError::Expansion(error) => Self::Expansion(error),
+        }
+    }
+}
+
+/// Materialize all candidate memberships from one privately bound scope.
 ///
 /// # Errors
-/// Any [`ExpansionError`] aborts the whole materialisation: a partial
-/// parent set is an answer about a graph that was never fully consulted.
+/// Identity, snapshot, store, traversal, and bound failures remain typed and
+/// abort the entire materialization.
 pub fn materialize_parents<S: RebacTupleStore>(
-    graph: &ExpansionInputs<'_, S>,
-) -> Result<Vec<EntityRef>, ExpansionError> {
-    let expander = Expander::new(
-        graph.store,
-        graph.namespace,
-        graph.tenant.clone(),
-        graph.snapshot.clone(),
-    );
+    inputs: &DecisionInputs<'_, S>,
+    request: &AuthorizationRequest,
+) -> Result<MaterializedParents, MaterializationError> {
+    let identity = inputs
+        .identity_mapping
+        .derive(request)
+        .map_err(MaterializationError::Identity)?;
+    let snapshot = resolve_snapshot(
+        inputs.store,
+        &identity.tenant,
+        inputs.requested_snapshot.clone(),
+    )
+    .map_err(ExpansionError::from)
+    .map_err(MaterializationError::Expansion)?;
+    let mut session =
+        ExpansionSession::new(inputs.store, inputs.namespace, snapshot, inputs.bounds);
     let mut parents = Vec::new();
-    for candidate in graph.candidates {
-        if expander.check(graph.subject, &candidate.relation, &candidate.object)? {
+    for candidate in inputs.candidates {
+        if session
+            .check(&identity.subject, &candidate.relation, &candidate.object)
+            .map_err(MaterializationError::Expansion)?
+        {
             parents.push(candidate.parent.clone());
         }
     }
-    Ok(parents)
+    Ok(MaterializedParents {
+        parents,
+        snapshot: session.resolved_snapshot().clone(),
+    })
 }
 
-/// Decide one request: expand, materialise, evaluate — in that order.
-///
-/// The principal's [`EntityRecord`] is built here so its `parents` can only
-/// come from the graph; `context_entities` carries the resource and any
-/// other records the policy references, exactly as a PEP would supply them.
+/// Expand, materialize, and evaluate one authorization request in that order.
 ///
 /// # Errors
-/// Every variant of [`DecisionError`] is fail-closed: the caller must treat
-/// it as deny, and must not conflate it with a decided
-/// [`Decision::Deny`](shared_platform_contracts_kernel::pdp::Decision).
+/// Every failure is a typed refusal and Cedar is never consulted with a
+/// partial or incoherent graph.
 pub fn decide<S: RebacTupleStore>(
     pdp: &dyn PolicyDecisionPoint,
-    graph: &ExpansionInputs<'_, S>,
+    inputs: &DecisionInputs<'_, S>,
     request: &AuthorizationRequest,
     principal_attributes: BTreeMap<String, serde_json::Value>,
     context_entities: Vec<EntityRecord>,
-) -> Result<PdpOutcome, DecisionError> {
-    let parents = materialize_parents(graph).map_err(DecisionError::Expansion)?;
+) -> Result<JoinedDecision, DecisionError> {
+    let materialized = materialize_parents(inputs, request).map_err(DecisionError::from)?;
     let principal = EntityRecord {
         uid: request.principal.clone(),
         attributes: principal_attributes,
-        parents,
+        parents: materialized.parents,
     };
     let mut entities = Vec::with_capacity(1 + context_entities.len());
     entities.push(principal);
     entities.extend(context_entities);
     let slice = EntitySlice { entities };
     slice.validate().map_err(DecisionError::InvalidSlice)?;
-    pdp.authorize(request, &slice).map_err(DecisionError::Pdp)
+    let outcome = pdp.authorize(request, &slice).map_err(DecisionError::Pdp)?;
+    Ok(JoinedDecision {
+        outcome,
+        relationship_snapshot: materialized.snapshot,
+    })
 }

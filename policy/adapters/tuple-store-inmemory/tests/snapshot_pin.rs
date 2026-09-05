@@ -1,11 +1,10 @@
-//! The pin, tested against a store that CAN drift.
+//! Decision-wide resolution, tested against a store that CAN drift.
 //!
 //! `InMemoryTupleStore` needs `&mut self` to write and `Expander` holds `&S`,
 //! so borrowck alone serialises them and no test built on it can observe the
-//! pin at all. Deleting the body of `Walk::pin` left the entire suite green.
-//! The port does not require that exclusion — `read_tuples` takes `&self`, so
-//! any interior-mutability or shared-backend adapter is legal, and against one
-//! of those an unpinned walk sees a write that landed after it began.
+//! consistency boundary. The port does not require that exclusion — tuple
+//! reads take `&self`, so any interior-mutability or shared-backend adapter is
+//! legal. Resolving once before the walk keeps later reads in the same world.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 mod common;
@@ -14,10 +13,9 @@ use std::cell::RefCell;
 
 use common::*;
 use policy_cedar_domain::rebac::{
-    RebacReadSnapshot, RebacTuple, RebacTuplePage, RebacTupleQuery, RebacTupleStore,
-    RebacTupleStoreError, Zookie,
+    RebacReadSnapshot, RebacTenantScope, RebacTuple, RebacTuplePage, RebacTupleQuery,
+    RebacTupleStore, RebacTupleStoreError, ResolvedRebacSnapshot, Zookie,
 };
-use policy_rebac_domain::Expander;
 use policy_tuple_store_inmemory::InMemoryTupleStore;
 
 /// A legal adapter that writes during a read. Models a shared backend, where
@@ -46,10 +44,18 @@ impl RebacTupleStore for DriftingStore {
         self.inner.borrow_mut().write_tuple(tuple)
     }
 
+    fn resolve_snapshot(
+        &self,
+        tenant: &RebacTenantScope,
+        requested: RebacReadSnapshot,
+    ) -> Result<ResolvedRebacSnapshot, RebacTupleStoreError> {
+        self.inner.borrow().resolve_snapshot(tenant, requested)
+    }
+
     fn read_tuples(
         &self,
         query: &RebacTupleQuery,
-        snapshot: RebacReadSnapshot,
+        snapshot: &ResolvedRebacSnapshot,
     ) -> Result<RebacTuplePage, RebacTupleStoreError> {
         let served = *self.reads.borrow();
         *self.reads.borrow_mut() = served + 1;
@@ -74,7 +80,7 @@ fn a_write_landing_mid_walk_is_not_observed() {
     let store = DriftingStore::new(seed, "folder:budget#viewer@user:alice");
 
     let model = document_model();
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
 
     assert!(
         !expander
@@ -86,6 +92,34 @@ fn a_write_landing_mid_walk_is_not_observed() {
             .expect("the walk completes"),
         "a decision must not observe a grant written after it began; without \
          the pin every read re-resolves `latest` and this returns true"
+    );
+}
+
+#[test]
+fn latest_is_resolved_fresh_for_each_standalone_check() {
+    let mut seed = InMemoryTupleStore::new();
+    write(&mut seed, "document:q3#parent@folder:budget");
+    let store = DriftingStore::new(seed, "folder:budget#viewer@user:alice");
+    let model = document_model();
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
+
+    assert!(
+        !expander
+            .check(
+                &user("user:alice"),
+                &relation("viewer"),
+                &object("document:q3"),
+            )
+            .expect("the first snapshot remains coherent")
+    );
+    assert!(
+        expander
+            .check(
+                &user("user:alice"),
+                &relation("viewer"),
+                &object("document:q3"),
+            )
+            .expect("the next standalone check resolves Latest again")
     );
 }
 
@@ -103,7 +137,7 @@ fn the_pin_holds_across_pages_of_one_tupleset() {
     let store = DriftingStore::new(seed, "folder:budget#viewer@user:alice");
 
     let model = document_model();
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     assert!(
         !expander
             .check(

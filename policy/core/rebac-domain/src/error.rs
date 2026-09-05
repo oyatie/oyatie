@@ -20,6 +20,8 @@ pub enum ExpansionError {
     DepthExceeded { limit: u32 },
     /// The walk read more tuples than the configured bound allowed.
     TupleBudgetExceeded { limit: usize },
+    /// The decision enumerated more membership candidates than allowed.
+    CandidateBudgetExceeded { limit: usize },
     /// One tupleset paged further than the configured bound allowed. Distinct
     /// from the tuple bound so an operator can tell a wide relation from a
     /// store that is not terminating its pagination.
@@ -56,6 +58,9 @@ impl fmt::Display for ExpansionError {
             }
             Self::TupleBudgetExceeded { limit } => {
                 write!(f, "expansion exceeded the tuple-read bound of {limit}")
+            }
+            Self::CandidateBudgetExceeded { limit } => {
+                write!(f, "expansion exceeded the candidate bound of {limit}")
             }
             Self::PageBudgetExceeded { limit } => {
                 write!(f, "one tupleset exceeded the page bound of {limit}")
