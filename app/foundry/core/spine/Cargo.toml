@@ -16,6 +16,7 @@ foundry-records-draft = { path = "../../ports/draft/records" }
 
 [dev-dependencies]
 cedar-policy = { workspace = true }
+foundry-projection-sqlite-draft = { path = "../../adapters/draft/projection-sqlite" }
 foundry-records-sqlite-draft = { path = "../../adapters/draft/records-sqlite" }
 
 [lints]

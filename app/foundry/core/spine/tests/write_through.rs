@@ -189,6 +189,8 @@ fn a_store_outage_halts_and_never_poisons() {
     let mut store = FailsAt {
         inner: MemoryProjectionStore::default(),
         fail_on_ordinal: 2,
+        fail_head: false,
+        fail_poisoned: false,
     };
 
     let failure = project_through(&mut state, &mut store, &entries)

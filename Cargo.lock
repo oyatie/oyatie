@@ -2309,6 +2309,7 @@ dependencies = [
  "foundry-audit-draft",
  "foundry-edits",
  "foundry-projection-draft",
+ "foundry-projection-sqlite-draft",
  "foundry-records-draft",
  "foundry-records-sqlite-draft",
 ]

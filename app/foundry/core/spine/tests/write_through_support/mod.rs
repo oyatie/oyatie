@@ -9,6 +9,12 @@ use foundry_projection_draft::{
 pub(crate) struct FailsAt {
     pub(crate) inner: MemoryProjectionStore,
     pub(crate) fail_on_ordinal: u64,
+    /// The head itself is unreadable — the disk is there, the answer is
+    /// not. A caller must refuse rather than read that as "empty".
+    pub(crate) fail_head: bool,
+    /// The poison ledger is unreadable. Same law, different read: an
+    /// unreadable ledger must never be treated as poison-free.
+    pub(crate) fail_poisoned: bool,
 }
 
 impl ProjectionStore for FailsAt {
@@ -26,6 +32,11 @@ impl ProjectionStore for FailsAt {
     }
 
     fn applied_head(&self, tenant_id: &str) -> Result<u64, ProjectionStoreError> {
+        if self.fail_head {
+            return Err(ProjectionStoreError::Storage {
+                detail: "head unreadable".to_owned(),
+            });
+        }
         self.inner.applied_head(tenant_id)
     }
 
@@ -73,6 +84,11 @@ impl ProjectionStore for FailsAt {
     }
 
     fn poisoned(&self, tenant_id: &str) -> Result<Vec<(u64, String)>, ProjectionStoreError> {
+        if self.fail_poisoned {
+            return Err(ProjectionStoreError::Storage {
+                detail: "poison ledger unreadable".to_owned(),
+            });
+        }
         self.inner.poisoned(tenant_id)
     }
 }

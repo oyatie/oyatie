@@ -14,6 +14,7 @@
 
 mod audit;
 mod boundary;
+mod catchup;
 mod checkpoint;
 mod emission;
 mod error;
@@ -26,6 +27,7 @@ mod writer;
 mod writethrough;
 
 pub use boundary::BoundaryError;
+pub use catchup::{CatchUpError, CaughtUp, catch_up};
 pub use checkpoint::{Checkpoint, SyncStatus, store_sync_status};
 pub use emission::{
     DENIED_AUDIT_EVENT_TYPE, DerivedEvents, POISONED_AUDIT_EVENT_TYPE, Underivable,
