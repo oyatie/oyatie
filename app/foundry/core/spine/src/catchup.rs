@@ -30,8 +30,10 @@
 //! Neither check proves the whole prefix: a divergence that changes an
 //! applied outcome without changing any poison still passes, and a
 //! store whose file was swapped below its head can be exactly that. The
-//! only full audit is a rebuild from empty. Closing it properly needs a
-//! digest written at apply time — a port change, and its own lane.
+//! only full audit is a rebuild from empty, which
+//! [`foundry_projection_draft::ProjectionStore::reset_tenant`] exists to
+//! make reachable. Closing it properly needs a digest written at apply
+//! time — a port change, and its own lane.
 //!
 //! **Precondition: `registry` should be the snapshot the store was
 //! built under.** The port deliberately holds no registry identity —
@@ -46,7 +48,8 @@
 //! than silently persisting, and a changed head outcome surfaces as
 //! [`CatchUpError::DivergentResumePoint`]. Both refusals have two
 //! readings — a different log, or a different registry — and cannot
-//! tell them apart. **After a registry evolution, rebuild from empty.**
+//! tell them apart. **After a registry evolution, rebuild from empty**
+//! via `reset_tenant` and this function over the whole log.
 //! That is not damage control: it IS the refold `UnknownRevision`
 //! promises and the migration doctrine requires.
 

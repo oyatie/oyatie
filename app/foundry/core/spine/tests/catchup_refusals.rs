@@ -118,6 +118,11 @@ fn an_unreadable_store_is_refused_never_read_as_absent() {
 fn a_log_carrying_another_tenants_entry_is_refused() {
     let registry = registry();
     let mut store = MemoryProjectionStore::default();
+    // Populated FIRST. The harm this refusal prevents is spending a live
+    // tenant's ordinal, so asserting "nothing was spent" against a store that
+    // was never written asserts absence against absence: it would hold just
+    // as well if catch-up had done nothing at all, ever.
+    catch_up(TENANT, &registry, &mut store, &log()).expect("reach head 3");
     let mut mixed = log();
     mixed.push(sealed_for_another_tenant(4));
 
@@ -127,8 +132,15 @@ fn a_log_carrying_another_tenants_entry_is_refused() {
     let error = catch_up(TENANT, &registry, &mut store, &mixed).expect_err("must refuse");
 
     assert_eq!(error, CatchUpError::ForeignTenantEntry { ordinal: 4 });
-    assert_eq!(store.applied_head(TENANT).unwrap(), 0, "nothing was spent");
-    assert!(store.poisoned(TENANT).unwrap().is_empty());
+    assert_eq!(
+        store.applied_head(TENANT).unwrap(),
+        3,
+        "the store keeps the head it had; ordinal 4 was not spent"
+    );
+    assert!(
+        store.poisoned(TENANT).unwrap().is_empty(),
+        "and the foreign entry did not enter this tenant's ledger"
+    );
 }
 
 #[test]

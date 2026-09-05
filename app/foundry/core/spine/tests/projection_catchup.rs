@@ -15,7 +15,8 @@ mod catchup_support;
 mod write_through_support;
 
 use catchup_support::{
-    TENANT, assert_agrees_with_fold, corrupt, log, registry, sealed, sealed_at_unknown_revision,
+    TENANT, assert_agrees_with_fold, corrupt, log, mixed_log, registry, sealed,
+    sealed_at_unknown_revision,
 };
 use write_through_support::FailsAt;
 
@@ -68,7 +69,11 @@ fn catch_up_resumes_where_the_store_stopped_rather_than_restarting() {
 #[test]
 fn a_rebuilt_store_equals_an_incrementally_written_one() {
     let registry = registry();
-    let log = log();
+    // The MIXED log, not the plain one. This is the only test comparing the
+    // incremental plane against the rebuilt one, and over three bare objects
+    // the claim is vacuous on both edges and poison: the link assertion below
+    // compared `[] == []`, and no poison existed to disagree about.
+    let log = mixed_log();
 
     let mut incremental = MemoryProjectionStore::default();
     let mut state = ProjectionState::new(TENANT, &registry);
@@ -80,10 +85,20 @@ fn a_rebuilt_store_equals_an_incrementally_written_one() {
     let mut rebuilt = MemoryProjectionStore::default();
     catch_up(TENANT, &registry, &mut rebuilt, &log).expect("rebuild in one call");
 
-    // Entry-at-a-time and all-at-once are the same function of the log.
-    assert_eq!(
-        incremental.applied_head(TENANT).unwrap(),
-        rebuilt.applied_head(TENANT).unwrap()
+    // Entry-at-a-time and all-at-once are the same function of the log. Held
+    // to the FOLD rather than to each other for the object set and the poison
+    // ledger: comparing the two planes only to one another cannot see a row
+    // both retain and the fold never produced, and walking the fold's own
+    // keys cannot see a row the store holds and the fold does not.
+    assert_agrees_with_fold(&incremental, &state);
+    assert_agrees_with_fold(&rebuilt, &state);
+
+    // The edge must actually be there, or the comparison below is `[] == []`
+    // and passes against a plane that emits no edges at all. Asserting the
+    // fixture's own content is what makes the equality mean something.
+    assert!(
+        !incremental.links_from(TENANT, "ent_1").unwrap().is_empty(),
+        "the fixture must exercise an edge for the equality to be a claim"
     );
     for object_ref in state.bindings.keys() {
         assert_eq!(
@@ -93,7 +108,8 @@ fn a_rebuilt_store_equals_an_incrementally_written_one() {
         );
         assert_eq!(
             incremental.links_from(TENANT, object_ref).unwrap(),
-            rebuilt.links_from(TENANT, object_ref).unwrap()
+            rebuilt.links_from(TENANT, object_ref).unwrap(),
+            "{object_ref} edges differ between the two paths"
         );
     }
 }
@@ -113,6 +129,10 @@ fn catch_up_reproduces_the_same_poison_on_every_rebuild() {
     let poisoned = first.poisoned(TENANT).unwrap();
     assert_eq!(poisoned.len(), 1, "exactly the corrupt entry poisoned");
     assert_eq!(poisoned[0].0, 2, "and it was ordinal 2");
+    assert_eq!(
+        poisoned[0].1, "payload_decode",
+        "and it was poisoned for the reason the bytes give, not merely poisoned"
+    );
     assert_eq!(
         poisoned,
         second.poisoned(TENANT).unwrap(),
