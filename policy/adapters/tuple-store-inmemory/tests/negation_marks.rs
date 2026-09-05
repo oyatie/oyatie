@@ -14,7 +14,7 @@ mod common;
 
 use common::*;
 use policy_cedar_domain::rebac::{RebacReadSnapshot, UsersetRewrite};
-use policy_rebac_domain::{Expander, ExpansionError, NamespaceConfig};
+use policy_rebac_domain::{ExpansionError, NamespaceConfig};
 use policy_tuple_store_inmemory::InMemoryTupleStore;
 
 #[test]
@@ -48,7 +48,7 @@ fn the_first_node_under_a_subtraction_is_inside_it_not_before_it() {
     // Closes the cycle back onto `doc:spec#banned`, the node at the mark.
     write(&mut store, "group:a#member@doc:spec#banned");
 
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     assert_eq!(
         expander.check(
             &user("user:alice"),
@@ -99,7 +99,7 @@ fn a_completed_subtraction_leaves_no_mark_behind_it() {
     write(&mut store, "group:a#member@group:b#member");
     write(&mut store, "group:b#member@doc:spec#editor");
 
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     assert_eq!(
         expander.check(
             &user("user:alice"),
@@ -146,7 +146,7 @@ fn a_cycle_crossing_only_the_inner_subtraction_is_still_refused() {
     // `exempt` is defined by `blocked`, and `blocked` subtracts `exempt`.
     write(&mut store, "doc:spec#exempt@doc:spec#blocked");
 
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     assert_eq!(
         expander.check(
             &user("user:alice"),
@@ -188,7 +188,7 @@ fn the_base_of_a_difference_is_not_evaluated_under_its_own_mark() {
     // The cycle runs through the BASE: writer -> group -> back to editor.
     write(&mut store, "group:a#member@doc:spec#editor");
 
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     assert_eq!(
         expander.check(
             &user("user:alice"),
@@ -242,7 +242,7 @@ fn leaving_an_inner_subtraction_keeps_the_outer_mark() {
     // Which cycles back across the OUTER subtraction.
     write(&mut store, "doc:spec#cyclic@doc:spec#editor");
 
-    let expander = Expander::new(&store, &model, tenant(), RebacReadSnapshot::latest());
+    let expander = new_expander(&store, &model, RebacReadSnapshot::latest());
     assert_eq!(
         expander.check(
             &user("user:alice"),
