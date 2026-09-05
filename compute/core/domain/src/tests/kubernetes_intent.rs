@@ -176,6 +176,17 @@ fn rejects_empty_security_group_set() {
 }
 
 #[test]
+fn rejects_empty_security_group_identity() {
+    let mut intent = requested_intent();
+    intent.node_pools[0].security_groups[0].clear();
+
+    assert_eq!(
+        validate_kubernetes_cluster_intent(intent),
+        Err(CloudComputeError::ResourceKindMismatch)
+    );
+}
+
+#[test]
 fn rejects_duplicate_security_group_identity() {
     let mut intent = requested_intent();
     intent.node_pools[0].security_groups = vec!["sg_web".to_string(), "sg_web".to_string()];
