@@ -246,3 +246,21 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = FACADE_TEST_DEPS,
 )
+
+rust_test(
+    name = "foundry-ontology-app-migration-attest",
+    srcs = [
+        "tests/facade_support/mod.rs",
+        "tests/migration_attest_is_the_callers_own.rs",
+        "tests/out_of_band/mod.rs",
+    ],
+    crate = "migration_attest_is_the_callers_own",
+    crate_root = "tests/migration_attest_is_the_callers_own.rs",
+    visibility = ["PUBLIC"],
+    # The registry evolution this suite installs is a second revision of an
+    # entity type, so it names the kernel's definition vocabulary directly.
+    deps = FACADE_TEST_DEPS + [
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)

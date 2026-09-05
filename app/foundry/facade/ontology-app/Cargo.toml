@@ -30,6 +30,9 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
 [dev-dependencies]
+# Evolve a composed registry so a migration plan has two revisions to span.
+data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
+data-ontology-kernel = { path = "../../../../data/core/ontology-kernel" }
 # Drive the router without binding a socket.
 http-body-util = { workspace = true }
 tower = { workspace = true }
