@@ -2,22 +2,41 @@
 //!
 //! Each operation runs in one transaction, sets the canonical tenant GUC before
 //! touching tenant data, and commits the cluster intent with its replay receipt.
-//! Construction verifies the serving role and FORCE RLS posture before returning
-//! a usable repository.
+//! A separate privileged migrator serializes and attests schema changes.
+//! Repository construction accepts only the exact migration ledger and catalog,
+//! a DML-only serving identity, and the expected FORCE RLS posture.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
 mod canonical_json;
+mod catalog_connection;
 mod error;
+mod expression_dependencies;
 mod integrity;
 mod migrations;
+mod migrator;
 mod operation;
 mod repository;
+mod rls_guard;
+mod role_database_claim;
+mod runtime_contract;
+mod runtime_guard;
+mod schema;
+mod schema_catalog;
+mod schema_contract;
+mod serving_role_guard;
 
-pub use error::PgK8sLifecycleConnectError;
 use error::validate_database_url;
-pub use migrations::{K8S_LIFECYCLE_REPOSITORY_MIGRATION, K8S_LIFECYCLE_RUNTIME_ROLE_MIGRATION};
-use shared_postgres_command_adapter_sqlx::assert_rls_enforceable;
+pub use error::{
+    PgK8sLifecycleConnectError, PgK8sLifecycleMigrationError, PgK8sLifecycleRoleDatabaseClaimError,
+    PgK8sLifecycleSchemaError,
+};
+pub use migrations::{
+    CURRENT_MIGRATION_VERSION, K8S_LIFECYCLE_MIGRATIONS, K8S_LIFECYCLE_REPOSITORY_MIGRATION,
+    K8S_LIFECYCLE_RUNTIME_ROLE_MIGRATION, MIGRATIONS_TABLE, PgK8sLifecycleMigration,
+};
+pub use migrator::{PgK8sLifecycleMigrationReport, PgK8sLifecycleMigrator};
+pub use runtime_contract::{PgK8sLifecycleRuntimeContract, PgK8sLifecycleRuntimeContractError};
 use sqlx::{PgPool, postgres::PgPoolOptions};
 
 pub const SCHEMA_NAME: &str = "compute_k8s_lifecycle";
@@ -33,24 +52,31 @@ pub struct PgK8sLifecycleRepository {
 }
 
 impl PgK8sLifecycleRepository {
-    pub async fn connect(database_url: &str) -> Result<Self, PgK8sLifecycleConnectError> {
+    pub async fn connect(
+        database_url: &str,
+        runtime_contract: &PgK8sLifecycleRuntimeContract,
+    ) -> Result<Self, PgK8sLifecycleConnectError> {
         validate_database_url(database_url)?;
         let pool = PgPoolOptions::new()
             .max_connections(8)
             .connect(database_url)
             .await
             .map_err(|error| PgK8sLifecycleConnectError::Sqlx(error.to_string()))?;
-        Self::from_pool(pool).await
+        Self::from_pool(pool, runtime_contract).await
     }
 
-    pub async fn from_pool(pool: PgPool) -> Result<Self, PgK8sLifecycleConnectError> {
+    pub async fn from_pool(
+        pool: PgPool,
+        runtime_contract: &PgK8sLifecycleRuntimeContract,
+    ) -> Result<Self, PgK8sLifecycleConnectError> {
+        runtime_guard::attest_runtime(&pool, runtime_contract).await?;
         let repository = Self { pool };
         repository.assert_rls_enforceable().await?;
         Ok(repository)
     }
 
     pub async fn assert_rls_enforceable(&self) -> Result<(), PgK8sLifecycleConnectError> {
-        assert_rls_enforceable(&self.pool, RUNTIME_ROLE, GOVERNED_TABLES)
+        rls_guard::attest_rls(&self.pool)
             .await
             .map_err(PgK8sLifecycleConnectError::from)
     }

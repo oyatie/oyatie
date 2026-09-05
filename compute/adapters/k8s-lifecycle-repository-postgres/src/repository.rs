@@ -30,6 +30,9 @@ impl CloudComputeK8sLifecycleRepository for PgK8sLifecycleRepository {
             let desired_spec_json = encode(&command.desired_spec)?;
             let cluster_json = encode(&command.cluster)?;
             let mut tx = self.pool.begin().await.map_err(unavailable)?;
+            crate::catalog_connection::use_catalog_path(&mut tx)
+                .await
+                .map_err(unavailable)?;
             sqlx::query(SET_LOCAL_TENANT_SQL)
                 .bind(&command.operation_key.tenant_id)
                 .execute(&mut *tx)
@@ -88,6 +91,9 @@ impl CloudComputeK8sLifecycleRepository for PgK8sLifecycleRepository {
         Box::pin(async move {
             validate_delete_command(&command)?;
             let mut tx = self.pool.begin().await.map_err(unavailable)?;
+            crate::catalog_connection::use_catalog_path(&mut tx)
+                .await
+                .map_err(unavailable)?;
             sqlx::query(SET_LOCAL_TENANT_SQL)
                 .bind(&command.operation_key.tenant_id)
                 .execute(&mut *tx)

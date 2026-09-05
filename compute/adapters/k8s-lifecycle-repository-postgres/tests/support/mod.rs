@@ -6,8 +6,8 @@ use compute_k8s_api::{
     CloudComputeK8sOperationKey, CloudComputeK8sQuotaEnvelope, CloudComputeK8sSecurityGroupRef,
 };
 use compute_k8s_lifecycle_repository_postgres::{
-    K8S_LIFECYCLE_REPOSITORY_MIGRATION, K8S_LIFECYCLE_RUNTIME_ROLE_MIGRATION, RUNTIME_ROLE,
-    SCHEMA_NAME,
+    K8S_LIFECYCLE_REPOSITORY_MIGRATION, K8S_LIFECYCLE_RUNTIME_ROLE_MIGRATION,
+    PgK8sLifecycleMigrator, RUNTIME_ROLE, SCHEMA_NAME,
 };
 use shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
 use sqlx::{PgPool, postgres::PgPoolOptions};
@@ -44,10 +44,30 @@ pub(super) async fn current_role(pool: &PgPool) -> String {
 }
 
 pub(super) async fn setup_schema(setup: &PgPool, app_role: &str) {
+    reset_runtime_role(setup).await;
+    PgK8sLifecycleMigrator::from_pool(setup.clone())
+        .migrate()
+        .await
+        .expect("privileged migration succeeds");
+    grant_runtime_role(setup, app_role).await;
+}
+
+pub(super) async fn reset_schema(setup: &PgPool) {
     sqlx::query(&format!("DROP SCHEMA IF EXISTS {SCHEMA_NAME} CASCADE"))
         .execute(setup)
         .await
         .expect("drop prior test schema");
+}
+
+pub(super) async fn reset_runtime_role(setup: &PgPool) {
+    reset_schema(setup).await;
+    sqlx::query(&format!("DROP ROLE IF EXISTS {RUNTIME_ROLE}"))
+        .execute(setup)
+        .await
+        .expect("drop prior runtime role");
+}
+
+pub(super) async fn apply_unversioned_schema(setup: &PgPool) {
     for migration in [
         K8S_LIFECYCLE_RUNTIME_ROLE_MIGRATION,
         K8S_LIFECYCLE_REPOSITORY_MIGRATION,
@@ -59,10 +79,20 @@ pub(super) async fn setup_schema(setup: &PgPool, app_role: &str) {
                 .unwrap_or_else(|error| panic!("migration failed: {statement}\n{error}"));
         }
     }
-    sqlx::query(&format!("GRANT {RUNTIME_ROLE} TO \"{app_role}\""))
-        .execute(setup)
-        .await
-        .expect("grant runtime role membership");
+}
+
+pub(super) async fn grant_runtime_role(setup: &PgPool, app_role: &str) {
+    sqlx::query(&format!(
+        "GRANT {RUNTIME_ROLE} TO {} WITH SET FALSE",
+        quote_identifier(app_role)
+    ))
+    .execute(setup)
+    .await
+    .expect("grant runtime role membership");
+}
+
+pub(super) fn quote_identifier(value: &str) -> String {
+    format!("\"{}\"", value.replace('"', "\"\""))
 }
 
 pub(super) fn cluster_id(tenant_id: &str, name: &str) -> String {

@@ -1,8 +1,65 @@
+use sha2::{Digest, Sha256};
+use std::collections::BTreeSet;
+
+pub const MIGRATIONS_TABLE: &str = "compute_k8s_lifecycle.schema_migrations";
+pub const CURRENT_MIGRATION_VERSION: i64 = 2;
+
+pub(crate) const MIGRATION_LOCK_KEY: i64 = 0x4f59_4154_4945_4b38;
+pub(crate) const MIGRATION_LEDGER_BOOTSTRAP: &str = r#"CREATE SCHEMA IF NOT EXISTS compute_k8s_lifecycle;
+CREATE TABLE IF NOT EXISTS compute_k8s_lifecycle.schema_migrations (
+    version bigint NOT NULL,
+    name text NOT NULL,
+    sha256 text NOT NULL,
+    applied_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT schema_migrations_primary_key PRIMARY KEY (version),
+    CONSTRAINT schema_migrations_name_unique UNIQUE (name),
+    CONSTRAINT schema_migrations_version_positive CHECK (version > 0),
+    CONSTRAINT schema_migrations_name_not_empty CHECK (name <> ''),
+    CONSTRAINT schema_migrations_sha256_shape CHECK (sha256 ~ '^[0-9a-f]{64}$')
+);"#;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PgK8sLifecycleMigration {
+    version: i64,
+    name: &'static str,
+    sql: &'static str,
+    governed_table_count_after: i64,
+}
+
+impl PgK8sLifecycleMigration {
+    #[must_use]
+    pub const fn version(self) -> i64 {
+        self.version
+    }
+
+    #[must_use]
+    pub const fn name(self) -> &'static str {
+        self.name
+    }
+
+    #[must_use]
+    pub const fn sql(self) -> &'static str {
+        self.sql
+    }
+
+    #[must_use]
+    pub const fn governed_table_count_after(self) -> i64 {
+        self.governed_table_count_after
+    }
+
+    #[must_use]
+    pub fn sha256(self) -> String {
+        format!("{:x}", Sha256::digest(self.sql.as_bytes()))
+    }
+}
+
 /// Creates the non-login, non-bypass runtime role and grants schema usage.
 pub const K8S_LIFECYCLE_RUNTIME_ROLE_MIGRATION: &str = r#"DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'compute_k8s_lifecycle_runtime') THEN
-        CREATE ROLE compute_k8s_lifecycle_runtime NOLOGIN NOBYPASSRLS;
+        CREATE ROLE compute_k8s_lifecycle_runtime
+            NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT NOLOGIN
+            NOREPLICATION NOBYPASSRLS CONNECTION LIMIT -1 PASSWORD NULL;
     END IF;
 END
 $$;
@@ -78,3 +135,72 @@ CREATE POLICY operations_require_tenant_guc ON compute_k8s_lifecycle.operations 
 GRANT SELECT, INSERT, UPDATE ON compute_k8s_lifecycle.clusters TO compute_k8s_lifecycle_runtime;
 GRANT SELECT, INSERT, UPDATE ON compute_k8s_lifecycle.operations TO compute_k8s_lifecycle_runtime;
 "#;
+
+pub const K8S_LIFECYCLE_MIGRATIONS: &[PgK8sLifecycleMigration] = &[
+    PgK8sLifecycleMigration {
+        version: 1,
+        name: "runtime-role-boundary",
+        sql: K8S_LIFECYCLE_RUNTIME_ROLE_MIGRATION,
+        governed_table_count_after: 0,
+    },
+    PgK8sLifecycleMigration {
+        version: 2,
+        name: "tenant-lifecycle-repository",
+        sql: K8S_LIFECYCLE_REPOSITORY_MIGRATION,
+        governed_table_count_after: 2,
+    },
+];
+
+pub(crate) fn registry_is_valid() -> bool {
+    let mut names = BTreeSet::new();
+    let mut digests = BTreeSet::new();
+    let versions_are_contiguous =
+        K8S_LIFECYCLE_MIGRATIONS
+            .iter()
+            .enumerate()
+            .all(|(index, migration)| {
+                i64::try_from(index + 1).is_ok_and(|version| migration.version() == version)
+                    && !migration.name().is_empty()
+                    && names.insert(migration.name())
+                    && digests.insert(migration.sha256())
+            });
+    versions_are_contiguous
+        && K8S_LIFECYCLE_MIGRATIONS
+            .last()
+            .is_some_and(|migration| migration.version() == CURRENT_MIGRATION_VERSION)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn migration_registry_is_contiguous_named_and_digestible() {
+        assert!(registry_is_valid());
+        assert_eq!(K8S_LIFECYCLE_MIGRATIONS.len(), 2);
+        assert_eq!(
+            K8S_LIFECYCLE_MIGRATIONS
+                .iter()
+                .map(|migration| migration.governed_table_count_after())
+                .collect::<Vec<_>>(),
+            [0, 2]
+        );
+        assert_eq!(
+            format!(
+                "{:x}",
+                Sha256::digest(MIGRATION_LEDGER_BOOTSTRAP.as_bytes())
+            ),
+            "0f84823fdbf60c78d421e3a6806dc1ea7a74f6443291dd2f108f5bc3c0ea1cf2"
+        );
+        assert_eq!(
+            K8S_LIFECYCLE_MIGRATIONS
+                .iter()
+                .map(|migration| migration.sha256())
+                .collect::<Vec<_>>(),
+            [
+                "f94126ade44b1c866c8a7d1e035bf0112f520e5855a618fe909cca79b110784b",
+                "84d5858b947f02a09c5156049ddf7f5b45819508f4c07d141275330a753a0c25",
+            ]
+        );
+    }
+}
