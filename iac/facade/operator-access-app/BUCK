@@ -1,7 +1,7 @@
 rust_library(
-    name = "iac-operator-access",
+    name = "iac-operator-access-app",
     srcs = glob(["src/**/*.rs"]),
-    crate = "iac_operator_access",
+    crate = "iac_operator_access_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -17,20 +17,20 @@ rust_library(
 )
 
 rust_binary(
-    name = "oyatie-access",
+    name = "iac-operator-access-app-bin",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        ":iac-operator-access",
+        ":iac-operator-access-app",
         "third-party//:serde_json",
     ],
 )
 
 rust_test(
-    name = "iac-operator-access-tests",
+    name = "iac-operator-access-app-tests",
     srcs = glob(["src/**/*.rs"]),
-    crate = "iac_operator_access",
+    crate = "iac_operator_access_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [

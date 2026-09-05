@@ -2990,7 +2990,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "iac-operator-access"
+name = "iac-operator-access-app"
 version = "0.1.0"
 dependencies = [
  "base64",

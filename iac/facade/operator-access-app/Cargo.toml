@@ -1,5 +1,5 @@
 [package]
-name = "iac-operator-access"
+name = "iac-operator-access-app"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -21,10 +21,6 @@ rcgen = { workspace = true }
 
 [lib]
 doctest = false
-
-[[bin]]
-name = "oyatie-access"
-path = "src/main.rs"
 
 [lints]
 workspace = true

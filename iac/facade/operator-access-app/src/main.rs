@@ -1,11 +1,11 @@
-use iac_operator_access::{AccessError, Profile, runtime};
+use iac_operator_access_app::{AccessError, Profile, runtime};
 use std::{path::PathBuf, process::ExitCode};
 
 fn execute() -> Result<(), AccessError> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args == ["--help"] {
         println!(
-            "oyatie-access status <profile-name>\nProfiles: $OYATIE_ACCESS_PROFILE_DIR/<name>.json or $HOME/.config/oyatie/operator-access/<name>.json\nRead-only Talos/Kubernetes status; no provisioning or reset. Requires oci, age, tar, ssh, talosctl, kubectl.\nCredentials stay in memory. Bastion sessions expire after 30 minutes even if cleanup is interrupted by SIGKILL or host loss."
+            "iac-operator-access-app status <profile-name>\nProfiles: $OYATIE_ACCESS_PROFILE_DIR/<name>.json or $HOME/.config/oyatie/operator-access/<name>.json\nRead-only Talos/Kubernetes status; no provisioning or reset. Requires oci, age, tar, ssh, talosctl, kubectl.\nCredentials stay in memory. Bastion sessions expire after 30 minutes even if cleanup is interrupted by SIGKILL or host loss."
         );
         return Ok(());
     }
