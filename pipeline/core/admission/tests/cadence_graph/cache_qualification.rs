@@ -38,7 +38,12 @@ fn cache_qualification_has_an_unconditional_layout_dependent_consumer() {
         .expect("required cache qualification job");
     assert!(job.contains("needs: [layout]"));
     assert!(!job.contains("    if:") && !job.contains("secrets:"));
-    assert!(job.contains("uses: ./.github/workflows/build-cache-qualification.yml"));
+    // Fully qualified, not `./`: the required workflow is pinned at
+    // `refs/heads/dev`, so a local reference resolves against the candidate
+    // and the run never starts.
+    assert!(
+        job.contains("uses: oyatie/oyatie/.github/workflows/build-cache-qualification.yml@dev")
+    );
     assert!(job.contains("permissions: {contents: read}"));
 }
 
