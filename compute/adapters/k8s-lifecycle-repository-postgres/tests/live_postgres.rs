@@ -1,6 +1,10 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 mod corruption;
+mod database_claim;
+mod migration;
+mod schema_attestation;
+mod serving_roles;
 mod support;
 
 use compute_k8s_api::{
@@ -8,6 +12,7 @@ use compute_k8s_api::{
 };
 use compute_k8s_lifecycle_repository_postgres::{
     CLUSTERS_TABLE, OPERATIONS_TABLE, PgK8sLifecycleConnectError, PgK8sLifecycleRepository,
+    PgK8sLifecycleRuntimeContract,
 };
 use shared_postgres_command_kernel::SET_LOCAL_TENANT_SQL;
 use sqlx::Row;
@@ -22,15 +27,22 @@ async fn live_repository_is_durable_isolated_concurrent_and_atomic() {
     let setup = pool(&setup_url).await;
     let app = pool(&app_url).await;
     let app_role = current_role(&app).await;
+    let runtime_contract = PgK8sLifecycleRuntimeContract::new([app_role.clone()])
+        .expect("test serving role contract is valid");
+    database_claim::assert_database_claim(&setup, &app, &app_role, &runtime_contract).await;
+    migration::assert_migration_contract(&setup, &app, &app_role, &runtime_contract).await;
+    serving_roles::assert_serving_role_contract(&setup, &app, &app_role, &runtime_contract).await;
+    schema_attestation::assert_structural_drift_refused(&setup, &app, &app_role, &runtime_contract)
+        .await;
     setup_schema(&setup, &app_role).await;
 
-    let privileged = PgK8sLifecycleRepository::from_pool(setup.clone()).await;
+    let privileged = PgK8sLifecycleRepository::from_pool(setup.clone(), &runtime_contract).await;
     assert!(matches!(
         privileged,
-        Err(PgK8sLifecycleConnectError::RlsUnenforceable { .. })
+        Err(PgK8sLifecycleConnectError::ServingPrincipalNotAllowed { .. })
     ));
 
-    let repository = PgK8sLifecycleRepository::from_pool(app.clone())
+    let repository = PgK8sLifecycleRepository::from_pool(app.clone(), &runtime_contract)
         .await
         .expect("runtime role and FORCE RLS pass boot guard");
     let create = create_command("ten_alpha", "durable", "create-durable");
@@ -39,7 +51,7 @@ async fn live_repository_is_durable_isolated_concurrent_and_atomic() {
         .await
         .expect("initial create commits");
 
-    let reopened = PgK8sLifecycleRepository::connect(&app_url)
+    let reopened = PgK8sLifecycleRepository::connect(&app_url, &runtime_contract)
         .await
         .expect("reopened repository passes boot guard");
     let replay = reopened
@@ -55,10 +67,10 @@ async fn live_repository_is_durable_isolated_concurrent_and_atomic() {
         Err(CloudComputeK8sLifecycleRepositoryError::IdempotencyKeyReused { .. })
     ));
 
-    let replica_a = PgK8sLifecycleRepository::connect(&app_url)
+    let replica_a = PgK8sLifecycleRepository::connect(&app_url, &runtime_contract)
         .await
         .expect("replica A connects");
-    let replica_b = PgK8sLifecycleRepository::connect(&app_url)
+    let replica_b = PgK8sLifecycleRepository::connect(&app_url, &runtime_contract)
         .await
         .expect("replica B connects");
     let concurrent = create_command("ten_alpha", "concurrent", "create-concurrent");
@@ -136,7 +148,7 @@ async fn live_repository_is_durable_isolated_concurrent_and_atomic() {
         .expect("delete intent commits");
     assert_eq!(deleted.cluster.state, "creating");
     assert_eq!(deleted.cluster.desired_state, "deleted");
-    let delete_replay = PgK8sLifecycleRepository::connect(&app_url)
+    let delete_replay = PgK8sLifecycleRepository::connect(&app_url, &runtime_contract)
         .await
         .expect("delete replay replica connects")
         .commit_deletion(deletion)
