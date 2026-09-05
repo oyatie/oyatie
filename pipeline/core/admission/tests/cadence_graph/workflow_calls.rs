@@ -71,7 +71,7 @@ fn aliased_call_values_retain_their_source_identity() {
         ("./.github/workflows/qualification.yml", false),
     ] {
         let workflow =
-            format!("jobs:\n  first:\n    uses: &call '{source}'\n  second:\n    uses: *call\n");
+            format!("env:\n  CALL: &call '{source}'\njobs:\n  qualification:\n    uses: *call\n");
         assert_eq!(validate(&workflow).is_ok(), accepted);
     }
 }
