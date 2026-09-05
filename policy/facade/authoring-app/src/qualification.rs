@@ -4,7 +4,7 @@ use std::sync::Arc;
 use policy_bundle_content::{ContentIdentityError, content_digest};
 use policy_pdp_bundle_file::{BundlePublishError, FilePolicyBundleStore};
 use policy_pdp_cedar::CedarPdp;
-use policy_pdp_kernel::{PdpError, PolicyBundle, PolicyDecisionPoint};
+use policy_pdp_kernel::{PdpError, PolicyBundle};
 use serde::Serialize;
 use shared_audit_event_kernel::ChainSigner;
 use shared_platform_contracts_kernel::pdp::PolicyVersion;
@@ -77,7 +77,7 @@ impl PolicyProject {
         let engine = CedarPdp::load(&bundle, id_gen, 0).map_err(QualificationError::Admission)?;
         for case in &self.cases {
             let outcome = engine
-                .authorize(&case.request, &case.entities)
+                .authorize_for_qualification(&case.request, &case.entities)
                 .map_err(|error| QualificationError::CaseRefused {
                     name: case.name.clone(),
                     error,

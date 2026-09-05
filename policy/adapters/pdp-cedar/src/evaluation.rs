@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::sync::RwLockReadGuard;
 
 use cedar_policy::{Context, Decision as CedarDecision, Entities, PolicySet, Request};
 use shared_pdp_kernel::{
@@ -16,6 +17,30 @@ use super::{CedarPdp, LoadedBundle};
 /// PEPs MUST enforce obligations or fail closed (locked PDP contract).
 const OBLIGATION_ANNOTATION: &str = "obligation";
 
+#[derive(Clone, Copy)]
+enum DiagnosticBoundary {
+    Serving,
+    Qualification,
+}
+
+fn qualification_diagnostic_result<I, E>(diagnostics: I) -> Result<(), PdpError>
+where
+    I: IntoIterator<Item = E>,
+    E: ToString,
+{
+    let mut diagnostics: Vec<String> = diagnostics
+        .into_iter()
+        .map(|diagnostic| diagnostic.to_string())
+        .collect();
+    if diagnostics.is_empty() {
+        return Ok(());
+    }
+    diagnostics.sort();
+    Err(PdpError::Evaluation {
+        detail: format!("Cedar evaluation diagnostics: {}", diagnostics.join("; ")),
+    })
+}
+
 impl CedarPdp {
     fn evaluate(
         &self,
@@ -23,6 +48,7 @@ impl CedarPdp {
         policy_set: &PolicySet,
         request: &AuthorizationRequest,
         entities: &EntitySlice,
+        diagnostic_boundary: DiagnosticBoundary,
     ) -> Result<CachedDecision, PdpError> {
         let action =
             state
@@ -64,6 +90,9 @@ impl CedarPdp {
         let response = self
             .authorizer
             .is_authorized(&cedar_request, policy_set, &cedar_entities);
+        if matches!(diagnostic_boundary, DiagnosticBoundary::Qualification) {
+            qualification_diagnostic_result(response.diagnostics().errors())?;
+        }
         let decision = match response.decision() {
             CedarDecision::Allow => Decision::Allow,
             CedarDecision::Deny => Decision::Deny,
@@ -98,6 +127,57 @@ impl CedarPdp {
             determining_policy_ids,
             obligations,
         })
+    }
+
+    fn preflight<'a>(
+        &'a self,
+        request: &AuthorizationRequest,
+        entities: &EntitySlice,
+    ) -> Result<RwLockReadGuard<'a, LoadedBundle>, PdpError> {
+        request.validate().map_err(PdpError::InvalidRequest)?;
+        entities.validate().map_err(PdpError::InvalidRequest)?;
+        let state = self.state.read().map_err(|_| PdpError::Evaluation {
+            detail: "policy state lock poisoned".to_owned(),
+        })?;
+        if let Some(required) = &request.min_policy_version {
+            // Zookie semantics: equality is the only comparison consumers
+            // may rely on (the contract makes ordering store-owned).
+            if required != &state.version {
+                return Err(PdpError::StalePolicyVersion {
+                    required: required.clone(),
+                    loaded: state.version.clone(),
+                });
+            }
+        }
+        Ok(state)
+    }
+
+    /// Evaluate one authored qualification case against the current bundle.
+    ///
+    /// Unlike ordinary serving, this refuses any per-policy Cedar evaluation
+    /// diagnostic. It bypasses the serving cache in both directions so a
+    /// permissive aggregate decision cannot mask a diagnostic and qualification
+    /// cannot perturb serving state.
+    ///
+    /// # Errors
+    /// Returns the same request, freshness, entity, decision-id, and response
+    /// failures as ordinary authorization, plus [`PdpError::Evaluation`] when
+    /// Cedar reports any per-policy evaluation diagnostic.
+    pub fn authorize_for_qualification(
+        &self,
+        request: &AuthorizationRequest,
+        entities: &EntitySlice,
+    ) -> Result<PdpOutcome, PdpError> {
+        let state = self.preflight(request, entities)?;
+        let policy_set = state.policy_set_for(&request.tenant_id);
+        let content = self.evaluate(
+            &state,
+            policy_set,
+            request,
+            entities,
+            DiagnosticBoundary::Qualification,
+        )?;
+        self.outcome(request, &state.version, &content, false)
     }
 
     fn outcome(
@@ -154,21 +234,7 @@ impl PolicyDecisionPoint for CedarPdp {
         request: &AuthorizationRequest,
         entities: &EntitySlice,
     ) -> Result<PdpOutcome, PdpError> {
-        request.validate().map_err(PdpError::InvalidRequest)?;
-        entities.validate().map_err(PdpError::InvalidRequest)?;
-        let state = self.state.read().map_err(|_| PdpError::Evaluation {
-            detail: "policy state lock poisoned".to_owned(),
-        })?;
-        if let Some(required) = &request.min_policy_version {
-            // Zookie semantics: equality is the only comparison consumers
-            // may rely on (the contract makes ordering store-owned).
-            if required != &state.version {
-                return Err(PdpError::StalePolicyVersion {
-                    required: required.clone(),
-                    loaded: state.version.clone(),
-                });
-            }
-        }
+        let state = self.preflight(request, entities)?;
         let key = DecisionCacheKey {
             request_fingerprint: request_fingerprint(request, entities),
             policy_version: state.version.as_str().to_owned(),
@@ -187,7 +253,13 @@ impl PolicyDecisionPoint for CedarPdp {
         // global set. A tenant can never be evaluated against another tenant's
         // overlay (the selection is keyed by the request's own tenant_id).
         let policy_set = state.policy_set_for(&request.tenant_id);
-        let content = self.evaluate(&state, policy_set, request, entities)?;
+        let content = self.evaluate(
+            &state,
+            policy_set,
+            request,
+            entities,
+            DiagnosticBoundary::Serving,
+        )?;
         {
             let mut cache = self.cache.lock().map_err(|_| PdpError::Evaluation {
                 detail: "decision cache lock poisoned".to_owned(),
@@ -205,5 +277,29 @@ impl PolicyDecisionPoint for CedarPdp {
             // torn write.
             Err(poisoned) => poisoned.into_inner().version.clone(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::qualification_diagnostic_result;
+    use shared_pdp_kernel::PdpError;
+
+    #[test]
+    fn qualification_accepts_an_error_free_evaluation() {
+        assert_eq!(
+            qualification_diagnostic_result(Vec::<String>::new()),
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn qualification_refuses_every_diagnostic_in_deterministic_order() {
+        assert_eq!(
+            qualification_diagnostic_result(vec!["policy-z failed", "policy-a failed"]),
+            Err(PdpError::Evaluation {
+                detail: "Cedar evaluation diagnostics: policy-a failed; policy-z failed".into(),
+            })
+        );
     }
 }
