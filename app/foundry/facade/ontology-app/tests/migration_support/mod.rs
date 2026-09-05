@@ -245,3 +245,28 @@ pub(crate) async fn write_owing(
         "the fixture write must land: {reply}"
     );
 }
+
+/// A record the plan owes NOTHING: no `note`, so the `copy_as` computes no
+/// target for it. It joins the population without joining the work.
+pub(crate) async fn write_settled(
+    session: &Session,
+    token: Option<&str>,
+    object_ref: &str,
+    key: &str,
+) {
+    let (status, reply) = session
+        .post(
+            token,
+            &format!(
+                r#"{{"object_ref":"{object_ref}","action_type":"aty_record_write",
+                    "idempotency_key":"{key}","occurred_at_epoch_seconds":1700000000,
+                    "properties":{{"name":"Grace"}}}}"#
+            ),
+        )
+        .await;
+    assert_eq!(
+        status,
+        StatusCode::OK,
+        "the fixture write must land: {reply}"
+    );
+}

@@ -6,13 +6,21 @@
 //! than one that never started, because the operator's next decision is made
 //! against a population no plan describes.
 //!
-//! THE AUTHORITY IS THE CALLER'S OWN DECISION. `MigrationAuthority` carries a
-//! `decision_id`, the surfaces the decision allows and its autonomy tier, and
-//! the runner stamps them onto every upcast it writes. It is therefore minted
-//! HERE, from the PDP's answer for this caller on this surface, and from
-//! nothing else. A fabricated or reused authority would put an authorization
-//! into the durable record that no policy engine ever granted — an audit
-//! trail asserting a decision was made when none was.
+//! THE AUTHORITY IS THE CALLER'S OWN DECISION — and precisely which part of
+//! it, because the looser claim was wrong. `MigrationAuthority` carries a
+//! `decision_id`, the surfaces allowed and an autonomy tier, and the runner
+//! stamps all three onto every upcast it writes. Only the decision and the
+//! principal come from the PDP: `authz.rs` fills `allowed_surfaces` and
+//! `autonomy_tier` with process constants on every Allow, so calling the
+//! whole struct "the PDP's answer" would tell the next reader that two of its
+//! fields carry an authority they do not.
+//!
+//! What must never happen is a `decision_id` this process invented. That puts
+//! an authorization into the durable record that no policy engine granted —
+//! an audit trail asserting a decision was made when none was — and nothing
+//! downstream notices, because the kernel only checks the id is non-empty.
+//! The suite pins it by VALUE against the seeded generator, having twice been
+//! written in shapes that a fabrication satisfied.
 //!
 //! On `Invoke` versus `Use`: no credential this process can mint holds one
 //! without the other, because `foundry-policies.cedar` scopes both permits to
@@ -47,13 +55,14 @@ use crate::reads::{TENANT_SCOPED_RESOURCE, refuse};
 /// mid-migration look like a completed one.
 #[derive(Debug, Serialize)]
 pub(crate) struct RunBody {
-    pub(crate) total: u64,      // data_class: INTERNAL_ONLY
-    pub(crate) upcast: u64,     // data_class: INTERNAL_ONLY
-    pub(crate) pending: u64,    // data_class: INTERNAL_ONLY
-    pub(crate) refused: u64,    // data_class: INTERNAL_ONLY
-    pub(crate) conflicted: u64, // data_class: INTERNAL_ONLY
-    pub(crate) poisoned: u64,   // data_class: INTERNAL_ONLY
-    pub(crate) fixpoint: bool,  // data_class: INTERNAL_ONLY
+    pub(crate) total: u64,       // data_class: INTERNAL_ONLY
+    pub(crate) upcast: u64,      // data_class: INTERNAL_ONLY
+    pub(crate) pending: u64,     // data_class: INTERNAL_ONLY
+    pub(crate) refused: u64,     // data_class: INTERNAL_ONLY
+    pub(crate) conflicted: u64,  // data_class: INTERNAL_ONLY
+    pub(crate) unavailable: u64, // data_class: INTERNAL_ONLY
+    pub(crate) poisoned: u64,    // data_class: INTERNAL_ONLY
+    pub(crate) fixpoint: bool,   // data_class: INTERNAL_ONLY
 }
 
 pub async fn run(State(state): State<Arc<AppState>>, headers: HeaderMap, body: String) -> Response {
@@ -155,6 +164,7 @@ pub async fn run(State(state): State<Arc<AppState>>, headers: HeaderMap, body: S
                 pending: status.pending,
                 refused: status.refused,
                 conflicted: status.conflicted,
+                unavailable: status.unavailable,
                 poisoned: status.poisoned,
                 fixpoint: status.fixpoint,
             })

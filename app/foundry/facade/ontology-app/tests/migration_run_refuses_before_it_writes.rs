@@ -107,12 +107,15 @@ async fn an_invalid_plan_touches_nothing() {
 }
 /// EVERY exit this surface takes is counted, and counted as a WRITE.
 ///
-/// The run surface mutates, so its outcomes belong to the submission
-/// counters, not the read ones — an operator watching write volume must see a
-/// migration in it. Exact totals rather than "greater than", because a site
-/// that stops counting cannot then hide behind one that starts, and because
-/// counting a run under the read meter would leave both totals plausible and
-/// both wrong.
+/// All nine of them: the surface mutates, so its outcomes belong to the
+/// submission counters and not the read ones — an operator watching write
+/// volume must see a migration in it. An earlier version of this test claimed
+/// "every exit" while exercising five, leaving four `submit_refused()` calls
+/// deletable with the suite still green.
+///
+/// Exact totals rather than "greater than", because a site that stops
+/// counting cannot then hide behind one that starts, and because counting a
+/// run under the read meter would leave both totals plausible and both wrong.
 #[tokio::test]
 async fn every_exit_is_counted_against_the_write_meters() {
     let fixture = Fixture::new("run-metering");
@@ -121,29 +124,54 @@ async fn every_exit_is_counted_against_the_write_meters() {
     let token = Some(fixture.operator_token());
     write_owing(&session, token, "ent_alpha", "idem_1").await;
 
-    // One served run, then one refusal at each of the four sites that can
-    // refuse before the runner is reached.
-    let (served, _) = run(&session, token, &plan_for("ten_acme")).await;
-    let (unreadable, _) = run(&session, token, "{not a plan").await;
-    let (foreign, _) = run(&session, token, &plan_for("ten_other")).await;
-    let (roleless, _) = run(
-        &session,
-        Some(fixture.roleless_token()),
-        &plan_for("ten_acme"),
-    )
-    .await;
-    let (anonymous, _) = run(&session, None, &plan_for("ten_acme")).await;
+    let unknown_conversion = plan_for("ten_acme").replace(
+        r#"{"kind":"copy_as","from":"note","to":"nickname"}"#,
+        r#"{"kind":"convert_as","from":"note","to":"nickname","conversion":"nope"}"#,
+    );
+    let outcomes = [
+        // Served.
+        run(&session, token, &plan_for("ten_acme")).await.0,
+        // No credential, then one this process does not recognise.
+        run(&session, None, &plan_for("ten_acme")).await.0,
+        run(&session, Some("not-a-token"), &plan_for("ten_acme"))
+            .await
+            .0,
+        // A body that is not a plan.
+        run(&session, token, "{not a plan").await.0,
+        // A credential the policy refuses.
+        run(
+            &session,
+            Some(fixture.roleless_token()),
+            &plan_for("ten_acme"),
+        )
+        .await
+        .0,
+        // A plan naming a tenant the credential does not carry.
+        run(&session, token, &plan_for("ten_other")).await.0,
+        // A credential whose own tenant this process does not serve.
+        run(
+            &session,
+            Some(fixture.foreign_token()),
+            &plan_for("ten_other"),
+        )
+        .await
+        .0,
+        // A transform vocabulary this process does not perform.
+        run(&session, token, &unknown_conversion).await.0,
+        // A plan the registry refuses.
+        run(
+            &session,
+            token,
+            &plan_for("ten_acme").replace("ety_record", "ety_absent"),
+        )
+        .await
+        .0,
+    ];
 
-    assert_eq!(
-        (served, unreadable, foreign, roleless, anonymous),
-        (
-            StatusCode::OK,
-            StatusCode::BAD_REQUEST,
-            StatusCode::BAD_REQUEST,
-            StatusCode::FORBIDDEN,
-            StatusCode::UNAUTHORIZED
-        ),
-        "the five outcomes below must be the five outcomes above"
+    assert_eq!(outcomes[0], StatusCode::OK, "the served run");
+    assert!(
+        outcomes[1..].iter().all(|status| status.is_client_error()),
+        "the other eight must all refuse: {outcomes:?}"
     );
     let metrics = scrape(&session).await;
     assert_eq!(
@@ -153,7 +181,39 @@ async fn every_exit_is_counted_against_the_write_meters() {
     );
     assert_eq!(
         value_of(&metrics, "foundry_action_submit_refused_total"),
-        4,
-        "four refusals, four counted: {metrics}"
+        8,
+        "eight refusals, eight counted: {metrics}"
+    );
+}
+
+/// A credential whose own tenant this process does not serve is refused, and
+/// the refusal is counted.
+///
+/// It needs its own fixture: the foreign operator is refused earlier, by the
+/// PDP, so the roster is varied instead — the credential is well-formed and
+/// policy-clean, and the process simply does not serve its tenant. Without
+/// this the site is unreachable, and an unreachable site is one whose counter
+/// can be deleted unnoticed.
+#[tokio::test]
+async fn a_credential_for_an_unserved_tenant_is_refused_and_counted() {
+    let fixture = Fixture::new("run-unserved-tenant");
+    let session = fixture.unserved_session();
+
+    let (status, body) = run(
+        &session,
+        Some(fixture.operator_token()),
+        &plan_for("ten_acme"),
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::FORBIDDEN, "{body}");
+    assert!(body.contains("does not serve"), "{body}");
+    assert_eq!(
+        value_of(
+            &scrape(&session).await,
+            "foundry_action_submit_refused_total"
+        ),
+        1,
+        "the refusal this process made is a refusal it counted"
     );
 }

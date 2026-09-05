@@ -270,6 +270,7 @@ rust_test(
     srcs = MIGRATION_SRCS + [
         "tests/failing_log/mod.rs",
         "tests/migration_run_executes_the_callers_own_plan.rs",
+        "tests/out_of_band/mod.rs",
     ],
     crate = "migration_run_executes_the_callers_own_plan",
     crate_root = "tests/migration_run_executes_the_callers_own_plan.rs",
