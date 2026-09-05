@@ -1,0 +1,47 @@
+rust_library(
+    name = "iac-operator-access",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "iac_operator_access",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:serde_yaml",
+        "third-party//:sha2",
+        "third-party//:base64",
+        "third-party//:x509-parser",
+        "third-party//:zeroize",
+        "third-party//:libc",
+    ],
+)
+
+rust_binary(
+    name = "oyatie-access",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":iac-operator-access",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "iac-operator-access-tests",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "iac_operator_access",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:serde_yaml",
+        "third-party//:sha2",
+        "third-party//:base64",
+        "third-party//:x509-parser",
+        "third-party//:zeroize",
+        "third-party//:libc",
+        "third-party//:rcgen",
+    ],
+)
