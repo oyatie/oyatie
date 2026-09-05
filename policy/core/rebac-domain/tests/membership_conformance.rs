@@ -28,22 +28,16 @@ fn literal_set_algebra_and_computed_memberships_anchor_the_oracle() {
         "computed usersets preserve Alice's membership"
     );
     assert_eq!(
-        member_ids(&membership, "document", "one", "either")
-            .into_iter()
-            .collect::<Vec<_>>(),
-        member.union(&editor).copied().collect::<Vec<_>>()
+        member_ids(&membership, "document", "one", "either"),
+        BTreeSet::from(["alice", "bob"])
     );
     assert_eq!(
-        member_ids(&membership, "document", "one", "both")
-            .into_iter()
-            .collect::<Vec<_>>(),
-        member.intersection(&editor).copied().collect::<Vec<_>>()
+        member_ids(&membership, "document", "one", "both"),
+        BTreeSet::from(["bob"])
     );
     assert_eq!(
-        member_ids(&membership, "document", "one", "unblocked")
-            .into_iter()
-            .collect::<Vec<_>>(),
-        member.difference(&editor).copied().collect::<Vec<_>>()
+        member_ids(&membership, "document", "one", "unblocked"),
+        BTreeSet::from(["alice"])
     );
 }
 
