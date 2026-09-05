@@ -67,13 +67,13 @@ fn cache_qualification_runs_pinned_real_inputs_without_privileged_context() {
         "ref: 77ec630134abbf9aa525f921eee4e5d11dc20f7e",
         "ref: 64aa30b277168edd20efee0c9ceb4ca01248931d",
         "sha256sum --check --strict",
-        "v1.6.6/nativelink-1.6.6-",
-        "v1.39.1/envoy-1.39.1-",
+        "v0.22.1/go-containerregistry_Linux_",
         "v1.9.3/grpcurl_1.9.3_",
         "helm-v3.20.0-",
         "minitest-5.25.5.gem",
         "ruby build/iac/nativelink/tests/chart_test.rb",
         "ruby build/iac/nativelink/tests/fixture_test.rb",
+        "ruby build/iac/nativelink/tests/runtime_images_test.rb",
         "ruby build/iac/nativelink/tests/store_test.rb",
         "ruby build/iac/nativelink/tests/gateway_test.rb",
     ] {
@@ -98,4 +98,24 @@ fn cache_qualification_runs_pinned_real_inputs_without_privileged_context() {
         );
     }
     assert_eq!(workflow.matches("persist-credentials: false").count(), 3);
+}
+
+#[test]
+fn qualified_executables_are_acquired_from_rendered_chart_images() {
+    let workflow = super::read(".github/workflows/build-cache-qualification.yml");
+    assert!(
+        workflow.contains("ruby build/iac/nativelink/tests/runtime_images.rb"),
+        "qualification must derive executables from the rendered chart image references"
+    );
+    for divergent_source in [
+        "TraceMachina/nativelink/releases/download",
+        "envoyproxy/envoy/releases/download",
+        "native_sha256:",
+        "envoy_sha256:",
+    ] {
+        assert!(
+            !workflow.contains(divergent_source),
+            "divergent source: {divergent_source}"
+        );
+    }
 }
