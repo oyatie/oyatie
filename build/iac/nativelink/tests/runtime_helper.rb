@@ -36,13 +36,17 @@ class CacheRuntimeTest < Minitest::Test
   end
 
   def teardown
-    stop_server
-    if @scratch && File.directory?(@scratch)
-      unless passed?
+    @cleanup_errors ||= []
+    CacheChart.attempt_cleanup(@cleanup_errors) { stop_server }
+    CacheChart.attempt_cleanup(@cleanup_errors) do
+      if @scratch && File.directory?(@scratch) && (!passed? || !@cleanup_errors.empty?)
         Dir.glob(File.join(@scratch, '*.log')).each { |path| warn "#{File.basename(path)}:\n#{File.read(path)}" }
       end
-      FileUtils.remove_entry_secure(@scratch)
     end
+    CacheChart.attempt_cleanup(@cleanup_errors) do
+      FileUtils.remove_entry_secure(@scratch) if @scratch && File.directory?(@scratch)
+    end
+    raise CacheChart::CleanupError.new(@cleanup_errors) unless @cleanup_errors.empty?
   end
 
   private
@@ -52,7 +56,15 @@ class CacheRuntimeTest < Minitest::Test
   end
 
   def unused_port
-    TCPServer.open('127.0.0.1', 0) { |socket| socket.addr[1] }
+    @allocated_ports ||= []
+    20.times do
+      port = TCPServer.open('127.0.0.1', 0) { |socket| socket.addr[1] }
+      next if @allocated_ports.include?(port)
+
+      @allocated_ports << port
+      return port
+    end
+    raise 'could not allocate a distinct local service port after 20 candidates'
   end
 
   def start_server

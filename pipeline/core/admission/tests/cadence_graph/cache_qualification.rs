@@ -73,6 +73,7 @@ fn cache_qualification_runs_pinned_real_inputs_without_privileged_context() {
         "helm-v3.20.0-",
         "minitest-5.25.5.gem",
         "ruby build/iac/nativelink/tests/chart_test.rb",
+        "ruby build/iac/nativelink/tests/fixture_test.rb",
         "ruby build/iac/nativelink/tests/store_test.rb",
         "ruby build/iac/nativelink/tests/gateway_test.rb",
     ] {

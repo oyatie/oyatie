@@ -119,6 +119,7 @@ jobs:
           timeout 10s "$GRPCURL_BIN" --version
           ruby -e 'gem "minitest", "= 5.25.5"; require "minitest"; abort "wrong minitest" unless Minitest::VERSION == "5.25.5"'
           timeout --signal=TERM --kill-after=5s 60s helm lint build/iac/nativelink --set nodeHostname=qualification-node --set existingClaim=qualification-cache --set existingTlsSecret=qualification-tls --set certificateRevision=qualification
+          timeout --signal=TERM --kill-after=5s 60s ruby build/iac/nativelink/tests/fixture_test.rb
           timeout --signal=TERM --kill-after=5s 60s ruby build/iac/nativelink/tests/chart_test.rb
           timeout --signal=TERM --kill-after=5s 120s ruby build/iac/nativelink/tests/store_test.rb
           timeout --signal=TERM --kill-after=5s 180s ruby build/iac/nativelink/tests/gateway_test.rb

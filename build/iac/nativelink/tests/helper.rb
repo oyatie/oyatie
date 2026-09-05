@@ -5,6 +5,21 @@ require 'tmpdir'
 require 'timeout'
 
 module CacheChart
+  class CleanupError < StandardError
+    attr_reader :errors
+
+    def initialize(errors)
+      @errors = errors.freeze
+      super(errors.map { |error| error.full_message(highlight: false) }.join("\n"))
+    end
+  end
+
+  def self.attempt_cleanup(errors)
+    yield
+  rescue StandardError => error
+    errors << error
+  end
+
   CHART = File.expand_path('..', __dir__)
   PLACEMENT = {
     'nodeHostname' => 'qualification-node',
