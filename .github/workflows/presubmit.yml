@@ -127,21 +127,12 @@ jobs:
           cargo clippy --locked --workspace --all-targets
           -- -D warnings
   deny:
-    name: deny (licenses bans sources)
     needs: [layout]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-          fetch-depth: 1
-      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25
-        with:
-          command: check
-          command-arguments: licenses bans sources
-          rust-version: "1.98.0"
+    uses: oyatie/oyatie/.github/workflows/dependency-denial.yml@dev
+  commit-signing:
+    needs: [layout]
+    uses: oyatie/oyatie/.github/workflows/commit-signing.yml@dev
+    permissions: {contents: read}
   test:
     name: test (workspace)
     needs: [layout, occupancy]
@@ -277,7 +268,7 @@ jobs:
     name: presubmit
     runs-on: ubuntu-24.04
     if: always()
-    needs: [layout, occupancy, lint, clippy, test, deny, change-gates, reindeer-source-qualification, live-postgres, build-cache-qualification]
+    needs: [layout, occupancy, lint, clippy, test, deny, change-gates, commit-signing, reindeer-source-qualification, live-postgres, build-cache-qualification]
     steps:
       - name: Fan-in verdict
         env:
@@ -297,4 +288,4 @@ jobs:
           occ() {
             if [ "${EVENT}" = "pull_request" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
           }
-          gate "${BACKBONE_POSTGRES}" && gate "${COMPUTE_LIFECYCLE_POSTGRES}" && gate "${REINDEER}" && req "${{ needs.layout.result }}" && occ "${{ needs.occupancy.result }}" && req "${{ needs.lint.result }}" && req "${{ needs.clippy.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.change-gates.result }}" && reindeer "${{ needs.reindeer-source-qualification.result }}" && pg "${{ needs.live-postgres.result }}" && req "${{ needs.build-cache-qualification.result }}" && exit 0 || exit 1
+          gate "${BACKBONE_POSTGRES}" && gate "${COMPUTE_LIFECYCLE_POSTGRES}" && gate "${REINDEER}" && req "${{ needs.layout.result }}" && occ "${{ needs.occupancy.result }}" && req "${{ needs.lint.result }}" && req "${{ needs.clippy.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.change-gates.result }}" && occ "${{ needs.commit-signing.result }}" && reindeer "${{ needs.reindeer-source-qualification.result }}" && pg "${{ needs.live-postgres.result }}" && req "${{ needs.build-cache-qualification.result }}" && exit 0 || exit 1

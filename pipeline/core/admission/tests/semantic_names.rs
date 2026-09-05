@@ -124,7 +124,7 @@ fn presubmit_display_names_are_semantic_and_required_fan_in_is_stable() {
     assert!(workflow.contains("\n  presubmit:\n    name: presubmit\n"));
     assert!(
         workflow.contains(
-            "needs: [layout, occupancy, lint, clippy, test, deny, change-gates, reindeer-source-qualification, live-postgres, build-cache-qualification]"
+            "needs: [layout, occupancy, lint, clippy, test, deny, change-gates, commit-signing, reindeer-source-qualification, live-postgres, build-cache-qualification]"
         )
     );
 }

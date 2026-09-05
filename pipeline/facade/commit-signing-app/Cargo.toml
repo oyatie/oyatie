@@ -1,0 +1,13 @@
+[package]
+name = "pipeline-commit-signing-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+pipeline-admission = { path = "../../core/admission" }
+
+[lints]
+workspace = true
