@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["nodeHostname", "existingClaim", "existingTlsSecret", "certificateRevision", "instanceName", "cache"],
+  "properties": {
+    "nodeHostname": {"type": "string", "minLength": 1, "maxLength": 253, "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$"},
+    "existingClaim": {"type": "string", "minLength": 1, "maxLength": 253, "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$"},
+    "existingTlsSecret": {"type": "string", "minLength": 1, "maxLength": 253, "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$"},
+    "certificateRevision": {"type": "string", "minLength": 1, "maxLength": 128},
+    "instanceName": {"type": "string", "const": "main"},
+    "cache": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["casBytes", "acBytes", "casObjects", "acObjects"],
+      "properties": {
+        "casBytes": {"type": "integer", "minimum": 2147483648, "maximum": 36507222016},
+        "acBytes": {"type": "integer", "minimum": 134217728, "maximum": 1073741824},
+        "casObjects": {"type": "integer", "minimum": 1, "maximum": 250000},
+        "acObjects": {"type": "integer", "minimum": 1, "maximum": 50000}
+      }
+    }
+  }
+}

@@ -106,8 +106,11 @@ fn semantic_naming_rule(relative: &str) -> String {
 fn presubmit_display_names_are_semantic_and_required_fan_in_is_stable() {
     let workflow = std::fs::read_to_string(repo_root().join(".github/workflows/presubmit.yml"))
         .expect("presubmit workflow");
+    let cache_path = repo_root().join(".github/workflows/build-cache-qualification.yml");
+    let qualification = std::fs::read_to_string(cache_path).expect("cache workflow");
     let display_names: Vec<&str> = workflow
         .lines()
+        .chain(qualification.lines())
         .filter_map(|line| {
             let line = line.trim();
             line.strip_prefix("name: ")
@@ -121,7 +124,7 @@ fn presubmit_display_names_are_semantic_and_required_fan_in_is_stable() {
     assert!(workflow.contains("\n  presubmit:\n    name: presubmit\n"));
     assert!(
         workflow.contains(
-            "needs: [layout, occupancy, lint, clippy, test, deny, change-gates, reindeer-source-qualification, live-postgres]"
+            "needs: [layout, occupancy, lint, clippy, test, deny, change-gates, reindeer-source-qualification, live-postgres, build-cache-qualification]"
         )
     );
 }
