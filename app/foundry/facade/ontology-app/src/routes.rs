@@ -32,6 +32,7 @@ pub fn router_from(state: Arc<AppState>) -> Router {
         .route("/statusz", get(crate::status::statusz))
         .route("/metrics", get(metrics))
         .route("/v1/actions", post(crate::submit::submit_action))
+        .route("/v1/migrations/attest", post(crate::migrate::attest))
         .route("/v1/objects/{object_ref}", get(crate::reads::object))
         .route(
             "/v1/objects/{object_ref}/history",
