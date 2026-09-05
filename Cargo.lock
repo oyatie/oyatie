@@ -6538,7 +6538,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "policy-cli"
+name = "policy-cli-app"
 version = "0.1.0"
 dependencies = [
  "policy-authoring-app",

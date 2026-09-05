@@ -1,13 +1,13 @@
-_POLICY_CLI_TEST_ENV = {
-    "CARGO_BIN_EXE_policy-cli": "$(location :policy-cli)",
+_POLICY_CLI_APP_TEST_ENV = {
+    "CARGO_BIN_EXE_policy-cli-app": "$(location :policy-cli-app)",
 }
 
-_POLICY_CLI_TEST_RESOURCES = [":policy-cli"]
+_POLICY_CLI_APP_TEST_RESOURCES = [":policy-cli-app"]
 
 rust_library(
-    name = "policy-cli-lib",
+    name = "policy-cli-app-lib",
     srcs = ["src/lib.rs", "src/command.rs"],
-    crate = "policy_cli",
+    crate = "policy_cli_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     named_deps = {
@@ -20,31 +20,31 @@ rust_library(
 )
 
 rust_binary(
-    name = "policy-cli",
+    name = "policy-cli-app",
     srcs = ["src/main.rs"],
-    crate = "policy_cli_bin",
+    crate = "policy_cli_app_bin",
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"policy_cli": ":policy-cli-lib"},
+    named_deps = {"policy_cli_app": ":policy-cli-app-lib"},
 )
 
 rust_test(
-    name = "policy-cli-unittest",
+    name = "policy-cli-app-unittest",
     srcs = ["src/main.rs"],
-    crate = "policy_cli_bin",
+    crate = "policy_cli_app_bin",
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"policy_cli": ":policy-cli-lib"},
+    named_deps = {"policy_cli_app": ":policy-cli-app-lib"},
 )
 
 rust_test(
-    name = "policy-cli-command",
+    name = "policy-cli-app-command",
     srcs = ["tests/command.rs", "tests/fixtures/read-access.json"],
     crate = "command",
     crate_root = "tests/command.rs",
     visibility = ["PUBLIC"],
     named_deps = {
-        "policy_cli": ":policy-cli-lib",
+        "policy_cli_app": ":policy-cli-app-lib",
         "policy_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar",
         "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
     },
@@ -52,12 +52,12 @@ rust_test(
 )
 
 rust_test(
-    name = "policy-cli-process",
+    name = "policy-cli-app-process",
     srcs = ["tests/process.rs", "tests/fixtures/read-access.json"],
     crate = "process",
     crate_root = "tests/process.rs",
-    env = _POLICY_CLI_TEST_ENV,
-    resources = _POLICY_CLI_TEST_RESOURCES,
+    env = _POLICY_CLI_APP_TEST_ENV,
+    resources = _POLICY_CLI_APP_TEST_RESOURCES,
     visibility = ["PUBLIC"],
     named_deps = {
         "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",

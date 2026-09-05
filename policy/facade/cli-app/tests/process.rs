@@ -23,7 +23,7 @@ impl TemporaryProject {
         loop {
             let sequence = NEXT_TEMPORARY_PROJECT.fetch_add(1, Ordering::Relaxed);
             let path = std::env::temp_dir().join(format!(
-                "policy-cli-{label}-{}-{sequence}.json",
+                "policy-cli-app-{label}-{}-{sequence}.json",
                 std::process::id()
             ));
             let mut file = match OpenOptions::new().write(true).create_new(true).open(&path) {
@@ -56,7 +56,7 @@ impl Drop for TemporaryProject {
 #[test]
 fn process_check_and_prepare_preserve_the_stable_fixture_identity() {
     let fixture = TemporaryProject::materialize("stable-fixture", FIXTURE);
-    let checked = Command::new(env!("CARGO_BIN_EXE_policy-cli"))
+    let checked = Command::new(env!("CARGO_BIN_EXE_policy-cli-app"))
         .arg("check")
         .arg(fixture.path())
         .output()
@@ -67,7 +67,7 @@ fn process_check_and_prepare_preserve_the_stable_fixture_identity() {
         BASELINE_REPORT
     );
 
-    let prepared = Command::new(env!("CARGO_BIN_EXE_policy-cli"))
+    let prepared = Command::new(env!("CARGO_BIN_EXE_policy-cli-app"))
         .arg("prepare")
         .arg(fixture.path())
         .output()
@@ -87,7 +87,7 @@ fn failed_authored_cases_exit_nonzero_without_stdout() {
     let fixture =
         TemporaryProject::materialize("failed-case", &serde_json::to_vec(&project).unwrap());
 
-    let refused = Command::new(env!("CARGO_BIN_EXE_policy-cli"))
+    let refused = Command::new(env!("CARGO_BIN_EXE_policy-cli-app"))
         .arg("prepare")
         .arg(fixture.path())
         .output()
@@ -97,8 +97,8 @@ fn failed_authored_cases_exit_nonzero_without_stdout() {
 }
 
 #[test]
-fn usage_names_the_canonical_policy_cli_executable() {
-    let refused = Command::new(env!("CARGO_BIN_EXE_policy-cli"))
+fn usage_names_the_canonical_policy_cli_app_executable() {
+    let refused = Command::new(env!("CARGO_BIN_EXE_policy-cli-app"))
         .output()
         .unwrap();
     assert!(!refused.status.success());
@@ -106,6 +106,6 @@ fn usage_names_the_canonical_policy_cli_executable() {
     assert!(
         std::str::from_utf8(&refused.stderr)
             .unwrap()
-            .contains("usage: policy-cli <check|prepare> <project.json>")
+            .contains("usage: policy-cli-app <check|prepare> <project.json>")
     );
 }

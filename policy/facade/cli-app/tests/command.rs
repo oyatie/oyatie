@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use policy_cli::{CommandOutput, qualify_json};
+use policy_cli_app::{CommandOutput, qualify_json};
 
 const FIXTURE: &[u8] = include_bytes!("fixtures/read-access.json");
 

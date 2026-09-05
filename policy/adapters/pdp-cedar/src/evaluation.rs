@@ -1,6 +1,8 @@
 use std::collections::BTreeMap;
 use std::sync::RwLockReadGuard;
 
+mod diagnostics;
+
 use cedar_policy::{Context, Decision as CedarDecision, Entities, PolicySet, Request};
 use shared_pdp_kernel::{
     CachedDecision, DecisionAuditRecord, DecisionCacheKey, EntitySlice, PdpError, PdpOutcome,
@@ -12,6 +14,7 @@ use shared_platform_contracts_kernel::pdp::{
 
 use super::entity::{cedar_entity, entity_uid, restricted_expression};
 use super::{CedarPdp, LoadedBundle};
+use diagnostics::qualification_diagnostic_result;
 
 /// Annotation key whose value names the obligation a permit carries.
 /// PEPs MUST enforce obligations or fail closed (locked PDP contract).
@@ -21,24 +24,6 @@ const OBLIGATION_ANNOTATION: &str = "obligation";
 enum DiagnosticBoundary {
     Serving,
     Qualification,
-}
-
-fn qualification_diagnostic_result<I, E>(diagnostics: I) -> Result<(), PdpError>
-where
-    I: IntoIterator<Item = E>,
-    E: ToString,
-{
-    let mut diagnostics: Vec<String> = diagnostics
-        .into_iter()
-        .map(|diagnostic| diagnostic.to_string())
-        .collect();
-    if diagnostics.is_empty() {
-        return Ok(());
-    }
-    diagnostics.sort();
-    Err(PdpError::Evaluation {
-        detail: format!("Cedar evaluation diagnostics: {}", diagnostics.join("; ")),
-    })
 }
 
 impl CedarPdp {
@@ -277,29 +262,5 @@ impl PolicyDecisionPoint for CedarPdp {
             // torn write.
             Err(poisoned) => poisoned.into_inner().version.clone(),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::qualification_diagnostic_result;
-    use shared_pdp_kernel::PdpError;
-
-    #[test]
-    fn qualification_accepts_an_error_free_evaluation() {
-        assert_eq!(
-            qualification_diagnostic_result(Vec::<String>::new()),
-            Ok(())
-        );
-    }
-
-    #[test]
-    fn qualification_refuses_every_diagnostic_in_deterministic_order() {
-        assert_eq!(
-            qualification_diagnostic_result(vec!["policy-z failed", "policy-a failed"]),
-            Err(PdpError::Evaluation {
-                detail: "Cedar evaluation diagnostics: policy-a failed; policy-z failed".into(),
-            })
-        );
     }
 }

@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::process::ExitCode;
 
-use policy_cli::{CommandOutput, qualify_json};
+use policy_cli_app::{CommandOutput, qualify_json};
 
 const MAX_PROJECT_BYTES: u64 = 16 * 1024 * 1024;
 
@@ -54,7 +54,7 @@ fn read_project(reader: impl Read) -> Result<Vec<u8>, String> {
 }
 
 fn usage() -> String {
-    "usage: policy-cli <check|prepare> <project.json>; prepare emits an unsigned candidate; signing requires PreparedPolicy::publish with configured trust and custody".into()
+    "usage: policy-cli-app <check|prepare> <project.json>; prepare emits an unsigned candidate; signing requires PreparedPolicy::publish with configured trust and custody".into()
 }
 
 #[cfg(test)]

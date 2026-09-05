@@ -1,5 +1,5 @@
 [package]
-name = "policy-cli"
+name = "policy-cli-app"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true

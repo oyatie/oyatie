@@ -25,7 +25,7 @@ rust_library(
 
 alias(
     name = "policy-engine-cli",
-    actual = "//policy/facade/cli:policy-cli",
+    actual = "//policy/facade/cli-app:policy-cli-app",
     visibility = ["PUBLIC"],
 )
 
