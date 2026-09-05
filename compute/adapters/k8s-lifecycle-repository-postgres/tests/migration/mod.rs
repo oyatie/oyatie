@@ -1,4 +1,5 @@
 mod caller_path;
+mod ledger_grants;
 mod runtime_path;
 
 use compute_k8s_lifecycle_repository_postgres::{
@@ -18,6 +19,7 @@ pub(crate) async fn assert_migration_contract(
     app_role: &str,
     runtime_contract: &PgK8sLifecycleRuntimeContract,
 ) {
+    ledger_grants::assert_ledger_grants(setup, app, app_role, runtime_contract).await;
     caller_path::assert_caller_path_preserved(setup, app, app_role, runtime_contract).await;
     runtime_path::assert_runtime_path_preserved(setup, app, app_role, runtime_contract).await;
     concurrent_migrators_serialize(setup, app, app_role, runtime_contract).await;

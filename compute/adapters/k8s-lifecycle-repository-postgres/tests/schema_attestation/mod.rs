@@ -1,5 +1,6 @@
 mod expression_dependencies;
 mod expression_identity;
+mod index_placement;
 mod relation_properties;
 
 use compute_k8s_lifecycle_repository_postgres::{
@@ -17,6 +18,7 @@ pub(crate) async fn assert_structural_drift_refused(
     app_role: &str,
     runtime_contract: &PgK8sLifecycleRuntimeContract,
 ) {
+    index_placement::assert_index_placement(setup, app, app_role, runtime_contract).await;
     relation_properties::assert_relation_properties(setup, app, app_role, runtime_contract).await;
     expression_identity::assert_expression_identity(setup, app, app_role, runtime_contract).await;
     expression_dependencies::assert_expression_dependencies(setup, app, app_role, runtime_contract)

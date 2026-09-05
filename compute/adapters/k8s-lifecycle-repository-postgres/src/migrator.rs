@@ -96,11 +96,13 @@ impl PgK8sLifecycleMigrator {
                 applied_versions.push(migration.version());
             }
         }
-        sqlx::query(&format!(
-            "GRANT SELECT ON {MIGRATIONS_TABLE} TO {RUNTIME_ROLE}"
-        ))
-        .execute(&mut *transaction)
-        .await?;
+        if !had_ledger || unversioned_adoption {
+            sqlx::query(&format!(
+                "GRANT SELECT ON {MIGRATIONS_TABLE} TO {RUNTIME_ROLE}"
+            ))
+            .execute(&mut *transaction)
+            .await?;
+        }
         attest_complete(&mut transaction).await?;
         crate::role_database_claim::attest_role_database_claim(&mut transaction, false).await?;
         transaction.commit().await?;

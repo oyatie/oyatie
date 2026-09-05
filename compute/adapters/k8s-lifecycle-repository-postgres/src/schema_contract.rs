@@ -69,12 +69,12 @@ pub(crate) const EXPECTED_CONSTRAINTS: &[&str] = &[
 ];
 
 pub(crate) const EXPECTED_INDEXES: &[&str] = &[
-    "clusters|clusters_pkey|true|true|true|true|true|CREATE UNIQUE INDEX clusters_pkey ON compute_k8s_lifecycle.clusters USING btree (tenant_id, resource_id)",
-    "clusters|clusters_reconciliation_scan|false|false|true|true|true|CREATE INDEX clusters_reconciliation_scan ON compute_k8s_lifecycle.clusters USING btree (tenant_id, desired_state, updated_at, resource_id)",
-    "operations|operations_pkey|true|true|true|true|true|CREATE UNIQUE INDEX operations_pkey ON compute_k8s_lifecycle.operations USING btree (tenant_id, principal_id, surface, idempotency_key)",
-    "operations|operations_resource_lookup|false|false|true|true|true|CREATE INDEX operations_resource_lookup ON compute_k8s_lifecycle.operations USING btree (tenant_id, resource_id, created_at)",
-    "schema_migrations|schema_migrations_name_unique|true|false|true|true|true|CREATE UNIQUE INDEX schema_migrations_name_unique ON compute_k8s_lifecycle.schema_migrations USING btree (name)",
-    "schema_migrations|schema_migrations_primary_key|true|true|true|true|true|CREATE UNIQUE INDEX schema_migrations_primary_key ON compute_k8s_lifecycle.schema_migrations USING btree (version)",
+    "clusters|clusters_pkey|true|true|true|true|true|true|CREATE UNIQUE INDEX clusters_pkey ON compute_k8s_lifecycle.clusters USING btree (tenant_id, resource_id)",
+    "clusters|clusters_reconciliation_scan|false|false|true|true|true|true|CREATE INDEX clusters_reconciliation_scan ON compute_k8s_lifecycle.clusters USING btree (tenant_id, desired_state, updated_at, resource_id)",
+    "operations|operations_pkey|true|true|true|true|true|true|CREATE UNIQUE INDEX operations_pkey ON compute_k8s_lifecycle.operations USING btree (tenant_id, principal_id, surface, idempotency_key)",
+    "operations|operations_resource_lookup|false|false|true|true|true|true|CREATE INDEX operations_resource_lookup ON compute_k8s_lifecycle.operations USING btree (tenant_id, resource_id, created_at)",
+    "schema_migrations|schema_migrations_name_unique|true|false|true|true|true|true|CREATE UNIQUE INDEX schema_migrations_name_unique ON compute_k8s_lifecycle.schema_migrations USING btree (name)",
+    "schema_migrations|schema_migrations_primary_key|true|true|true|true|true|true|CREATE UNIQUE INDEX schema_migrations_primary_key ON compute_k8s_lifecycle.schema_migrations USING btree (version)",
 ];
 
 pub(crate) const EXPECTED_POLICIES: &[&str] = &[

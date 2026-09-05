@@ -172,7 +172,7 @@ fn constraints_sql() -> &'static str {
 }
 
 fn indexes_sql() -> &'static str {
-    "SELECT concat(table_rel.relname, '|', index_rel.relname, '|', i.indisunique::text, '|', i.indisprimary::text, '|', i.indisvalid::text, '|', i.indisready::text, '|', i.indislive::text, '|', pg_get_indexdef(i.indexrelid, 0, true)) FROM pg_index i JOIN pg_class table_rel ON table_rel.oid = i.indrelid JOIN pg_class index_rel ON index_rel.oid = i.indexrelid JOIN pg_namespace n ON n.oid = table_rel.relnamespace WHERE n.nspname = $1"
+    "SELECT concat(table_rel.relname, '|', index_rel.relname, '|', i.indisunique::text, '|', i.indisprimary::text, '|', i.indisvalid::text, '|', i.indisready::text, '|', i.indislive::text, '|', (index_rel.reltablespace = 0)::text, '|', pg_get_indexdef(i.indexrelid, 0, true)) FROM pg_index i JOIN pg_class table_rel ON table_rel.oid = i.indrelid JOIN pg_class index_rel ON index_rel.oid = i.indexrelid JOIN pg_namespace n ON n.oid = table_rel.relnamespace WHERE n.nspname = $1"
 }
 
 fn policies_sql() -> &'static str {
