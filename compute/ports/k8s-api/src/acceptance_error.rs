@@ -8,11 +8,14 @@ pub enum CloudComputeK8sAcceptanceApiError {
     OutcomeUnknown,
     IntegrityViolation,
 }
+
 impl CloudComputeK8sAcceptanceApiError {
     pub fn status_code(&self) -> u16 {
         match self {
             Self::Boundary(error) => error.cluster_create_status_code(),
-            Self::IdempotencyKeyReused | Self::OperationContractMismatch | Self::ResourceMismatch => 422,
+            Self::IdempotencyKeyReused
+            | Self::OperationContractMismatch
+            | Self::ResourceMismatch => 422,
             Self::RepositoryUnavailable | Self::OutcomeUnknown | Self::IntegrityViolation => 503,
         }
     }
@@ -29,13 +32,28 @@ impl CloudComputeK8sAcceptanceApiError {
         }
     }
 }
-fn acceptance_repository_error(error: CloudComputeK8sAcceptanceRepositoryError) -> CloudComputeK8sAcceptanceApiError {
+
+fn acceptance_repository_error(
+    error: CloudComputeK8sAcceptanceRepositoryError,
+) -> CloudComputeK8sAcceptanceApiError {
     match error {
-        CloudComputeK8sAcceptanceRepositoryError::IdempotencyKeyReused => CloudComputeK8sAcceptanceApiError::IdempotencyKeyReused,
-        CloudComputeK8sAcceptanceRepositoryError::OperationContractMismatch => CloudComputeK8sAcceptanceApiError::OperationContractMismatch,
-        CloudComputeK8sAcceptanceRepositoryError::ResourceMismatch => CloudComputeK8sAcceptanceApiError::ResourceMismatch,
-        CloudComputeK8sAcceptanceRepositoryError::Unavailable => CloudComputeK8sAcceptanceApiError::RepositoryUnavailable,
-        CloudComputeK8sAcceptanceRepositoryError::OutcomeUnknown => CloudComputeK8sAcceptanceApiError::OutcomeUnknown,
-        CloudComputeK8sAcceptanceRepositoryError::IntegrityViolation => CloudComputeK8sAcceptanceApiError::IntegrityViolation,
+        CloudComputeK8sAcceptanceRepositoryError::IdempotencyKeyReused => {
+            CloudComputeK8sAcceptanceApiError::IdempotencyKeyReused
+        }
+        CloudComputeK8sAcceptanceRepositoryError::OperationContractMismatch => {
+            CloudComputeK8sAcceptanceApiError::OperationContractMismatch
+        }
+        CloudComputeK8sAcceptanceRepositoryError::ResourceMismatch => {
+            CloudComputeK8sAcceptanceApiError::ResourceMismatch
+        }
+        CloudComputeK8sAcceptanceRepositoryError::Unavailable => {
+            CloudComputeK8sAcceptanceApiError::RepositoryUnavailable
+        }
+        CloudComputeK8sAcceptanceRepositoryError::OutcomeUnknown => {
+            CloudComputeK8sAcceptanceApiError::OutcomeUnknown
+        }
+        CloudComputeK8sAcceptanceRepositoryError::IntegrityViolation => {
+            CloudComputeK8sAcceptanceApiError::IntegrityViolation
+        }
     }
 }

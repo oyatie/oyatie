@@ -176,11 +176,7 @@ impl CloudComputeK8sAcceptanceRepository for AcceptanceTestRepository {
                 return Err(error);
             }
             if let Some(snapshot) = state.operations.get(&command.operation_key) {
-                return if snapshot.receipt.intent == command.intent {
-                    Ok(snapshot.clone())
-                } else {
-                    Err(CloudComputeK8sAcceptanceRepositoryError::IdempotencyKeyReused)
-                };
+                return Ok(snapshot.clone());
             }
             let snapshot = CloudComputeK8sOperationSnapshot {
                 receipt: CloudComputeK8sAcceptedCreateIntent {

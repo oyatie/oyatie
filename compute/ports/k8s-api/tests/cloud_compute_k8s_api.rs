@@ -224,5 +224,7 @@ mod acceptance_authorization;
 mod acceptance_identity;
 #[path = "cloud_compute_k8s_api/acceptance_integrity.rs"]
 mod acceptance_integrity;
+#[path = "cloud_compute_k8s_api/acceptance_receipt.rs"]
+mod acceptance_receipt;
 #[path = "cloud_compute_k8s_api/acceptance_test_repository.rs"]
 mod acceptance_test_repository;
