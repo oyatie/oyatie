@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+mod acceptance;
 mod corruption;
 mod database_claim;
 mod migration;
@@ -257,4 +258,5 @@ async fn live_repository_is_durable_isolated_concurrent_and_atomic() {
             .expect("read app role flags");
     assert!(!app_flags.try_get::<bool, _>("rolsuper").unwrap());
     assert!(!app_flags.try_get::<bool, _>("rolbypassrls").unwrap());
+    acceptance::assert_acceptance(&setup, &app, &app_role, &app_url, &runtime_contract).await;
 }
