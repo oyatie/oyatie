@@ -1,0 +1,10 @@
+nodeHostname: ""
+existingClaim: ""
+existingTlsSecret: ""
+certificateRevision: ""
+instanceName: main
+cache:
+  casBytes: 36507222016
+  acBytes: 1073741824
+  casObjects: 250000
+  acObjects: 50000

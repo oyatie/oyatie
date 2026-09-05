@@ -41,6 +41,7 @@ pub const REINDEER_QUALIFICATION_PATH_PREFIXES: &[&str] = &[
 
 /// Occupants of the presubmit workflow (sorted).
 pub const PRESUBMIT_JOBS: &[&str] = &[
+    "build-cache-qualification",
     "change-gates",
     "clippy",
     "deny",
@@ -59,6 +60,7 @@ pub const POSTSUBMIT_JOBS: &[&str] = &["live-postgres", "postsubmit", "test"];
 /// Occupants of `.github/workflows/` (sorted).
 pub const WORKFLOW_FILES: &[&str] = &[
     "buck2-weekly-smoke.yml",
+    "build-cache-qualification.yml",
     "license-weekly-advisory.yml",
     "live-postgres.yml",
     "nightly.yml",

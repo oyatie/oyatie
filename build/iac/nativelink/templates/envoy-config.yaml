@@ -1,0 +1,142 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-gateway
+data:
+  envoy.yaml: |
+    overload_manager:
+      refresh_interval: 0.25s
+      resource_monitors:
+        - name: envoy.resource_monitors.fixed_heap
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.resource_monitors.fixed_heap.v3.FixedHeapConfig
+            max_heap_size_bytes: 402653184
+      actions:
+        - name: envoy.overload_actions.stop_accepting_requests
+          triggers:
+            - name: envoy.resource_monitors.fixed_heap
+              threshold: {value: 0.9}
+        - name: envoy.overload_actions.stop_accepting_connections
+          triggers:
+            - name: envoy.resource_monitors.fixed_heap
+              threshold: {value: 0.95}
+    static_resources:
+      listeners:
+        - name: authenticated-cache
+          address:
+            socket_address: {address: 0.0.0.0, port_value: 8443}
+          per_connection_buffer_limit_bytes: 1048576
+          filter_chains:
+            - transport_socket:
+                name: envoy.transport_sockets.tls
+                typed_config:
+                  "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+                  require_client_certificate: true
+                  common_tls_context:
+                    alpn_protocols: [h2]
+                    tls_params:
+                      tls_minimum_protocol_version: TLSv1_2
+                    tls_certificates:
+                      - certificate_chain: {filename: /tls/tls.crt}
+                        private_key: {filename: /tls/tls.key}
+                    validation_context:
+                      trusted_ca: {filename: /tls/ca.crt}
+              filters:
+                - name: envoy.filters.network.connection_limit
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.connection_limit.v3.ConnectionLimit
+                    stat_prefix: cache_connections
+                    max_connections: 32
+                - name: envoy.filters.network.http_connection_manager
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                    stat_prefix: cache
+                    codec_type: HTTP2
+                    stream_idle_timeout: 300s
+                    max_request_headers_kb: 16
+                    http2_protocol_options:
+                      max_concurrent_streams: 8
+                      initial_stream_window_size: 65535
+                      initial_connection_window_size: 1048576
+                    route_config:
+                      name: cache
+                      virtual_hosts:
+                        - name: cache
+                          domains: ["*"]
+                          routes:
+                            - match: {prefix: /}
+                              route:
+                                cluster: nativelink
+                                timeout: 0s
+                                max_stream_duration: {max_stream_duration: 3600s}
+                    http_filters:
+                      - name: envoy.filters.http.rbac
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBAC
+                          rules:
+                            action: ALLOW
+                            policies:
+                              read:
+                                principals:
+                                  {{- range $role := list "reader" "writer" }}
+                                  - custom:
+                                      name: envoy.rbac.principals.mtls_authenticated
+                                      typed_config:
+                                        "@type": type.googleapis.com/envoy.extensions.rbac.principals.mtls_authenticated.v3.Config
+                                        san_matcher:
+                                          san_type: URI
+                                          matcher: {exact: "spiffe://oyatie.dev/build-cache/{{ $role }}"}
+                                  {{- end }}
+                                permissions:
+                                  - and_rules:
+                                      rules:
+                                        - header: {name: ":method", string_match: {exact: POST}}
+                                        - or_rules:
+                                            rules:
+                                              {{- range $method := list "build.bazel.remote.execution.v2.Capabilities/GetCapabilities" "build.bazel.remote.execution.v2.ContentAddressableStorage/FindMissingBlobs" "build.bazel.remote.execution.v2.ContentAddressableStorage/BatchReadBlobs" "build.bazel.remote.execution.v2.ContentAddressableStorage/GetTree" "build.bazel.remote.execution.v2.ActionCache/GetActionResult" "google.bytestream.ByteStream/Read" }}
+                                              - url_path: {path: {exact: "/{{ $method }}"}}
+                                              {{- end }}
+                              write:
+                                principals:
+                                  - custom:
+                                      name: envoy.rbac.principals.mtls_authenticated
+                                      typed_config:
+                                        "@type": type.googleapis.com/envoy.extensions.rbac.principals.mtls_authenticated.v3.Config
+                                        san_matcher:
+                                          san_type: URI
+                                          matcher: {exact: "spiffe://oyatie.dev/build-cache/writer"}
+                                permissions:
+                                  - and_rules:
+                                      rules:
+                                        - header: {name: ":method", string_match: {exact: POST}}
+                                        - or_rules:
+                                            rules:
+                                              {{- range $method := list "build.bazel.remote.execution.v2.ContentAddressableStorage/BatchUpdateBlobs" "build.bazel.remote.execution.v2.ActionCache/UpdateActionResult" "google.bytestream.ByteStream/Write" "google.bytestream.ByteStream/QueryWriteStatus" }}
+                                              - url_path: {path: {exact: "/{{ $method }}"}}
+                                              {{- end }}
+                      - name: envoy.filters.http.router
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+      clusters:
+        - name: nativelink
+          type: STATIC
+          connect_timeout: 2s
+          per_connection_buffer_limit_bytes: 1048576
+          typed_extension_protocol_options:
+            envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+              "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+              explicit_http_config:
+                http2_protocol_options: {}
+          circuit_breakers:
+            thresholds:
+              - max_connections: 2
+                max_pending_requests: 16
+                max_requests: 16
+                max_retries: 0
+          load_assignment:
+            cluster_name: nativelink
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address: {address: 127.0.0.1, port_value: 50051}
