@@ -1373,6 +1373,8 @@ dependencies = [
  "data-boundary-kernel",
  "network-residency",
  "serde",
+ "serde_json",
+ "shared-resource-provider-contract-kernel",
  "tokio",
 ]
 
