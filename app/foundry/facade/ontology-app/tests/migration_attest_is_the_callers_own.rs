@@ -4,98 +4,20 @@
 //! `MigrationPlan` carries its own `tenant_id`, so the plan a caller submits
 //! names a tenant. The write path already settled this question — "the tenant
 //! is the CREDENTIAL's; nothing in the body can move it" — and the same rule
-//! has to hold here, because attestation reads a projection: a plan naming
-//! another tenant would otherwise report that tenant's pending objects and
-//! its poisoned ordinals to a caller who may not read them.
+//! has to hold here.
 //!
 //! It is a READ dressed as a POST — the plan does not fit in a query string
 //! — so it is gated on `Use`, not `Invoke`, and it mutates nothing.
 
 mod facade_support;
+mod migration_support;
 mod out_of_band;
-use facade_support as support;
 
-use axum::body::Body;
-use axum::http::{Request, StatusCode};
-use data_boundary_kernel::{DataClass, PrivacyDataClass};
-use data_ontology_kernel::{
-    EntityTypeDefinition, EntityTypeId, EntityTypePropertyDefinition, PropertyTier,
+use axum::http::StatusCode;
+use facade_support::{Fixture, Session, scrape, value_of};
+use migration_support::{
+    attest, plan_for, state_with_engine_only_evolved, state_with_two_revisions,
 };
-use foundry_ontology_app::{AppState, Config, compose};
-use support::{Fixture, Session, scrape, value_of};
-
-fn scalar(name: &str, class: PrivacyDataClass, required: bool) -> EntityTypePropertyDefinition {
-    EntityTypePropertyDefinition::new(name, PropertyTier::Scalar, class, required)
-        .expect("a property")
-}
-
-/// Boot, then evolve the registry to a second revision of `ety_record`.
-///
-/// No plan can validate against the shipped seed: it registers one revision,
-/// and `MigrationPlan::validate` requires `from < to` AND `head == to`, so
-/// the only candidate spans revision 1 to itself. The seed is charter-bound
-/// not to grow — "the seam it will replace must not quietly grow into it" —
-/// so the second revision is a TEST fact, registered on a composed engine
-/// the same way an evolution lane would land it.
-fn state_with_two_revisions(config: &Config) -> AppState {
-    let mut state = compose(config).expect("boots");
-    let internal = PrivacyDataClass::try_from(DataClass::InternalOnly).expect("a privacy class");
-    let engine = &mut state
-        .tenants
-        .get_mut("ten_acme")
-        .expect("the served tenant")
-        .get_mut()
-        .projection
-        .engine;
-    engine
-        .evolve_entity_type(
-            EntityTypeDefinition::new(
-                "ten_acme",
-                EntityTypeId::new("ety_record").expect("a type id"),
-                "Record",
-                vec![
-                    scalar("name", internal, true),
-                    scalar("note", internal, false),
-                    scalar("nickname", internal, false),
-                ],
-                2,
-            )
-            .expect("a definition")
-            .with_title_property("name"),
-        )
-        .expect("the evolution registers");
-    state
-}
-
-/// POST a plan. The shared harness posts only to `/v1/actions`, and widening
-/// it would have touched sixteen call sites in four unrelated files for one
-/// new route.
-async fn attest(session: &Session, token: Option<&str>, plan: &str) -> (StatusCode, String) {
-    let mut request = Request::builder()
-        .method("POST")
-        .uri("/v1/migrations/attest")
-        .header("content-type", "application/json");
-    if let Some(token) = token {
-        request = request.header("authorization", format!("Bearer {token}"));
-    }
-    session
-        .send(
-            request
-                .body(Body::from(plan.to_owned()))
-                .expect("a request"),
-        )
-        .await
-}
-
-/// A plan whose `tenant_id` names the caller's own tenant.
-fn plan_for(tenant_id: &str) -> String {
-    format!(
-        r#"{{"tenant_id":"{tenant_id}","entity_type":"ety_record","from_revision":1,
-            "to_revision":2,"action_type":"aty_record_write",
-            "audit_event_type":"aet_upcast","declared_at_epoch_seconds":1700000000,
-            "transforms":[{{"kind":"copy_as","from":"note","to":"nickname"}}]}}"#
-    )
-}
 
 #[tokio::test]
 async fn an_operator_attests_a_plan_against_their_own_projection() {
@@ -294,5 +216,35 @@ async fn a_poisoned_ordinal_is_reported_not_hidden() {
     assert!(
         body.contains(r#""poisoned":[1]"#),
         "the refused ordinal is named in the attestation: {body}"
+    );
+}
+
+/// The plan is validated against the registry the RUNNER admits from.
+///
+/// `registry_input` is the untouched fold input the runner's own gate reads
+/// and the writer stamps revisions from; `engine` is that seed plus
+/// accumulated link instances. They agree on definitions today, so a surface
+/// reading the wrong one looks correct — and a fixture evolving both cannot
+/// tell them apart at all. This installs the divergence directly: only
+/// `engine` is evolved, which is exactly the state where a surface reading
+/// `engine` would call the plan executable. The runner would refuse it, so an
+/// attestation that claimed a fixpoint here would be claiming one over a plan
+/// that cannot run.
+#[tokio::test]
+async fn a_plan_is_validated_against_the_registry_the_runner_admits_from() {
+    let fixture = Fixture::new("attest-registry-input");
+    let session = Session::from_state(state_with_engine_only_evolved(&fixture.config()));
+
+    let (status, body) = attest(
+        &session,
+        Some(fixture.operator_token()),
+        &plan_for("ten_acme"),
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::BAD_REQUEST, "{body}");
+    assert!(
+        body.contains("RegistryHeadMismatch"),
+        "the refusal must come from the runner's own admission input: {body}"
     );
 }

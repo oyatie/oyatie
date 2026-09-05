@@ -7,12 +7,19 @@
 //!
 //! THE TENANT IS THE CREDENTIAL'S. `MigrationPlan` carries its own
 //! `tenant_id`, and the write path already settled what that means: nothing
-//! in the body may move the tenant. Here the stakes are a read — a plan
-//! naming another tenant would otherwise report that tenant's pending
-//! objects and its poisoned ordinals to a caller who may not read them — so
-//! a plan whose tenant disagrees with the credential is refused rather than
-//! silently rewritten. Refused, not corrected, because a caller who names
+//! in the body may move the tenant. A plan whose tenant disagrees with the
+//! credential is refused rather than silently rewritten — a caller who names
 //! the wrong tenant has asked a question this process should not answer.
+//!
+//! This check is DEFENCE IN DEPTH and is not what stops a cross-tenant read;
+//! claiming otherwise would misdirect the next reader to the wrong control.
+//! Two layers already do that, in order: the PDP refuses a caller whose
+//! credential does not carry the tenant, and `tenant_of` resolves the
+//! projection by `caller.tenant_id` unconditionally, so the body cannot
+//! select one. `migration_attestation` then reads only that projection's own
+//! `tenant_id` and its own poison ledger. Delete the check and a foreign plan
+//! still refuses, as `UnknownEntityType` from `validate` — a worse diagnostic
+//! for the same refusal, which is the reason to keep it.
 //!
 //! The plan is VALIDATED against the tenant's registry before it is
 //! attested. `MigrationPlan::validate` is the same check the runner makes,
@@ -34,7 +41,15 @@ use serde::{Deserialize, Serialize};
 use crate::composition::AppState;
 use crate::reads::{TENANT_SCOPED_RESOURCE, authorized, refuse, tenant_of};
 
+/// UNKNOWN FIELDS ARE REFUSED, and the omission was nearly catastrophic.
+/// With `transforms` defaulting and an unknown key discarded, a one-character
+/// typo — `"transform"` — yielded an empty transform list, a `validate` whose
+/// transform loop passes vacuously, and `{"fixpoint":true,"pending":[]}`: a
+/// green light to skip a migration that is owed. The write path has held this
+/// law since it shipped, four lines above the tenancy rule this module took
+/// from the same file.
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct AttestRequest {
     pub(crate) tenant_id: String,              // data_class: INTERNAL_ONLY
     pub(crate) entity_type: String,            // data_class: INTERNAL_ONLY
@@ -56,7 +71,7 @@ pub(crate) struct AttestRequest {
 /// where a wire value becomes a domain one — including the refusals, which
 /// a derive would have had nowhere to put.
 #[derive(Debug, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub(crate) enum WireTransform {
     CopyAs {
         from: String, // data_class: INTERNAL_ONLY
@@ -74,7 +89,7 @@ pub(crate) enum WireTransform {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub(crate) enum WireDefault {
     String { value: String },        // data_class: PROPERTY_VALUE_PRIVACY_CLASS
     Integer { value: i64 },          // data_class: PROPERTY_VALUE_PRIVACY_CLASS
@@ -109,6 +124,15 @@ impl WireDefault {
 }
 
 impl WireTransform {
+    /// The VALUE a `DefaultTo` carries is not observable through this surface,
+    /// and that is a property of the attestation rather than a gap in its
+    /// tests. `computed_target` returns early when the target property is
+    /// present — a default fills an absence and never overwrites — and when it
+    /// is absent, any value at all yields a computed target. So `pending`
+    /// cannot depend on which value the arm produced, and no test here can
+    /// distinguish a correct mapping from one carrying the wrong constant.
+    /// `POST /v1/migrations/run` is where that becomes observable, because
+    /// there the value is written; it is pinned there, not pretended here.
     fn into_domain(self) -> Result<UpcastTransform, &'static str> {
         Ok(match self {
             WireTransform::CopyAs { from, to } => UpcastTransform::CopyAs { from, to },
@@ -191,7 +215,12 @@ pub async fn attest(
         transforms,
     };
     let tenant = tenant.lock().await;
-    if let Err(error) = plan.validate(&tenant.projection.engine) {
+    // `registry_input`, NOT `engine`: the runner's own admission gate reads
+    // the untouched fold input (`runner.rs`), and the writer stamps revisions
+    // from it. `engine` is that seed plus accumulated link instances, so
+    // validating against it can admit a plan the runner would refuse — which
+    // is exactly the fixpoint claim this surface must never make.
+    if let Err(error) = plan.validate(&tenant.projection.registry_input) {
         state.metrics.read_refused();
         return refuse(
             StatusCode::BAD_REQUEST,
