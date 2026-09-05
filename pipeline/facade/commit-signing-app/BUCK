@@ -1,0 +1,30 @@
+_COMMIT_SIGNING_APP_TEST_ENV = {
+    "CARGO_BIN_EXE_pipeline-commit-signing-app": "$(location :pipeline-commit-signing-app)",
+}
+
+_COMMIT_SIGNING_APP_TEST_RESOURCES = [":pipeline-commit-signing-app"]
+
+rust_binary(
+    name = "pipeline-commit-signing-app",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "pipeline_commit_signing_app",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pipeline/core/admission:pipeline-admission",
+    ],
+)
+
+rust_test(
+    name = "pipeline-commit-signing-app-signing-admission",
+    srcs = ["tests/signing_admission.rs"],
+    crate = "pipeline_commit_signing_app_signing_admission",
+    crate_root = "tests/signing_admission.rs",
+    env = _COMMIT_SIGNING_APP_TEST_ENV,
+    resources = _COMMIT_SIGNING_APP_TEST_RESOURCES,
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-commit-signing-app",
+        "//pipeline/core/admission:pipeline-admission",
+    ],
+)
