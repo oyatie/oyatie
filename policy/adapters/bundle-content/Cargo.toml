@@ -1,0 +1,22 @@
+[package]
+name = "policy-bundle-content"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Content identity and candidate construction for authored policy bundles"
+
+[dependencies]
+policy-pdp-kernel = { path = "../../core/pdp-kernel" }
+shared-audit-digest-adapter-awslc = { path = "../../../audit/adapters/digest-awslc" }
+shared-audit-event-kernel = { path = "../../../audit/core/event-kernel" }
+shared-platform-contracts-kernel = { path = "../../../iam/core/platform-contracts-kernel" }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true

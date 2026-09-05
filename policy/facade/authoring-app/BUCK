@@ -1,0 +1,61 @@
+_NAMED_DEPS = {
+    "policy_bundle_content": "//policy/adapters/bundle-content:policy-bundle-content",
+    "policy_pdp_bundle_file": "//policy/adapters/pdp-bundle-file:policy-pdp-bundle-file",
+    "policy_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar",
+    "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+}
+
+_DEPS = [
+    "//audit/core/event-kernel:shared-audit-event-kernel",
+    "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+    "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
+    "third-party//:serde",
+]
+
+rust_library(
+    name = "policy-authoring-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "policy_authoring_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
+    deps = _DEPS,
+)
+
+_TEST_NAMED_DEPS = {
+    "policy_bundle_content": "//policy/adapters/bundle-content:policy-bundle-content",
+    "policy_pdp_bundle_file": "//policy/adapters/pdp-bundle-file:policy-pdp-bundle-file",
+    "policy_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar",
+    "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+    "policy_authoring_app": ":policy-authoring-app",
+}
+
+_TEST_DEPS = _DEPS + ["third-party//:serde_json"]
+
+rust_test(
+    name = "policy-authoring-app-qualification",
+    srcs = [
+        "tests/qualification.rs",
+        "tests/support/mod.rs",
+        "tests/fixtures/read-access.json",
+    ],
+    crate = "qualification",
+    crate_root = "tests/qualification.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _TEST_NAMED_DEPS,
+    deps = _TEST_DEPS,
+)
+
+rust_test(
+    name = "policy-authoring-app-source-identity",
+    srcs = [
+        "tests/source_identity.rs",
+        "tests/support/mod.rs",
+        "tests/fixtures/read-access.json",
+    ],
+    crate = "source_identity",
+    crate_root = "tests/source_identity.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _TEST_NAMED_DEPS,
+    deps = _TEST_DEPS,
+)

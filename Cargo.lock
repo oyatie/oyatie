@@ -6504,11 +6504,49 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4596b6d070b27117e987119b4dac604f3c58cfb0b191112e24771b2faeac1a6"
 
 [[package]]
+name = "policy-authoring-app"
+version = "0.1.0"
+dependencies = [
+ "policy-bundle-content",
+ "policy-pdp-bundle-file",
+ "policy-pdp-cedar",
+ "policy-pdp-kernel",
+ "serde",
+ "serde_json",
+ "shared-audit-event-kernel",
+ "shared-platform-contracts-kernel",
+ "shared-ulid-id-kernel",
+]
+
+[[package]]
+name = "policy-bundle-content"
+version = "0.1.0"
+dependencies = [
+ "policy-pdp-kernel",
+ "serde",
+ "serde_json",
+ "shared-audit-digest-adapter-awslc",
+ "shared-audit-event-kernel",
+ "shared-platform-contracts-kernel",
+]
+
+[[package]]
 name = "policy-cedar-domain"
 version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "policy-cli-app"
+version = "0.1.0"
+dependencies = [
+ "policy-authoring-app",
+ "policy-pdp-cedar",
+ "policy-pdp-kernel",
+ "serde_json",
+ "shared-ulid-id-kernel",
 ]
 
 [[package]]
@@ -6531,6 +6569,27 @@ version = "0.1.0"
 dependencies = [
  "policy-pdp-kernel",
  "shared-platform-contracts-kernel",
+]
+
+[[package]]
+name = "policy-engine-app"
+version = "0.1.0"
+dependencies = [
+ "policy-authoring-app",
+ "policy-bundle-content",
+ "policy-cedar-domain",
+ "policy-decision-domain",
+ "policy-decision-service-kernel",
+ "policy-pdp-bundle-file",
+ "policy-pdp-cedar",
+ "policy-pdp-kernel",
+ "policy-rebac-domain",
+ "policy-tuple-store-inmemory",
+ "serde_json",
+ "shared-audit-digest-adapter-awslc",
+ "shared-audit-event-kernel",
+ "shared-platform-contracts-kernel",
+ "shared-ulid-id-kernel",
 ]
 
 [[package]]

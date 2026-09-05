@@ -1,0 +1,66 @@
+_POLICY_CLI_APP_TEST_ENV = {
+    "CARGO_BIN_EXE_policy-cli-app": "$(location :policy-cli-app)",
+}
+
+_POLICY_CLI_APP_TEST_RESOURCES = [":policy-cli-app"]
+
+rust_library(
+    name = "policy-cli-app-lib",
+    srcs = ["src/lib.rs", "src/command.rs"],
+    crate = "policy_cli_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    named_deps = {
+        "policy_authoring_app": "//policy/facade/authoring-app:policy-authoring-app",
+    },
+    deps = [
+        "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_binary(
+    name = "policy-cli-app",
+    srcs = ["src/main.rs"],
+    crate = "policy_cli_app_bin",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    named_deps = {"policy_cli_app": ":policy-cli-app-lib"},
+)
+
+rust_test(
+    name = "policy-cli-app-unittest",
+    srcs = ["src/main.rs"],
+    crate = "policy_cli_app_bin",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    named_deps = {"policy_cli_app": ":policy-cli-app-lib"},
+)
+
+rust_test(
+    name = "policy-cli-app-command",
+    srcs = ["tests/command.rs", "tests/fixtures/read-access.json"],
+    crate = "command",
+    crate_root = "tests/command.rs",
+    visibility = ["PUBLIC"],
+    named_deps = {
+        "policy_cli_app": ":policy-cli-app-lib",
+        "policy_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar",
+        "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+    },
+    deps = ["third-party//:serde_json"],
+)
+
+rust_test(
+    name = "policy-cli-app-process",
+    srcs = ["tests/process.rs", "tests/fixtures/read-access.json"],
+    crate = "process",
+    crate_root = "tests/process.rs",
+    env = _POLICY_CLI_APP_TEST_ENV,
+    resources = _POLICY_CLI_APP_TEST_RESOURCES,
+    visibility = ["PUBLIC"],
+    named_deps = {
+        "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+    },
+    deps = ["third-party//:serde_json"],
+)

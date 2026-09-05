@@ -1,0 +1,27 @@
+[package]
+name = "policy-authoring-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Offline Cedar policy qualification and signed publication composition"
+
+[dependencies]
+policy-bundle-content = { path = "../../adapters/bundle-content" }
+policy-pdp-kernel = { path = "../../core/pdp-kernel" }
+policy-pdp-cedar = { path = "../../adapters/pdp-cedar" }
+policy-pdp-bundle-file = { path = "../../adapters/pdp-bundle-file" }
+shared-audit-event-kernel = { path = "../../../audit/core/event-kernel" }
+shared-platform-contracts-kernel = { path = "../../../iam/core/platform-contracts-kernel" }
+shared-ulid-id-kernel = { path = "../../../data/core/ulid-id-kernel" }
+serde = { workspace = true, features = ["derive"] }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true

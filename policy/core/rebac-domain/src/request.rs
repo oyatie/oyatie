@@ -59,7 +59,13 @@ impl<'a, S: RebacTupleStore> Expander<'a, S> {
         object: &RebacObjectRef,
     ) -> Result<bool, ExpansionError> {
         let snapshot = resolve_snapshot(self.store, &self.tenant, self.snapshot.clone())?;
-        ExpansionSession::new(self.store, self.namespace, snapshot, self.bounds)
-            .check(subject, relation, object)
+        ExpansionSession::new(
+            self.store,
+            self.namespace,
+            subject.clone(),
+            snapshot,
+            self.bounds,
+        )
+        .check(relation, object)
     }
 }

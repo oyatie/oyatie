@@ -18,6 +18,7 @@ use crate::join_fixtures::{
 struct OutOfQueryStore {
     tuple_tenant: RebacTenantScope,
     tuple: &'static str,
+    corrupt_on_read: usize,
     queries: RefCell<Vec<RebacTupleQuery>>,
 }
 
@@ -26,6 +27,16 @@ impl OutOfQueryStore {
         Self {
             tuple_tenant,
             tuple,
+            corrupt_on_read: 1,
+            queries: RefCell::new(Vec::new()),
+        }
+    }
+
+    fn late(tuple_tenant: RebacTenantScope, tuple: &'static str) -> Self {
+        Self {
+            tuple_tenant,
+            tuple,
+            corrupt_on_read: 2,
             queries: RefCell::new(Vec::new()),
         }
     }
@@ -38,6 +49,25 @@ impl OutOfQueryStore {
                 object("group:eng"),
                 relation("member"),
             )]
+        );
+    }
+
+    fn assert_two_expected_pages(&self) {
+        assert_eq!(
+            self.queries.borrow().as_slice(),
+            &[
+                RebacTupleQuery::object_relation(
+                    tenant(),
+                    object("group:eng"),
+                    relation("member"),
+                ),
+                RebacTupleQuery::object_relation(
+                    tenant(),
+                    object("group:eng"),
+                    relation("member"),
+                )
+                .at_page(Some("second-page".to_owned())),
+            ]
         );
     }
 }
@@ -65,7 +95,21 @@ impl RebacTupleStore for OutOfQueryStore {
         query: &RebacTupleQuery,
         snapshot: &ResolvedRebacSnapshot,
     ) -> Result<RebacTuplePage, RebacTupleStoreError> {
-        self.queries.borrow_mut().push(query.clone());
+        let read = {
+            let mut queries = self.queries.borrow_mut();
+            queries.push(query.clone());
+            queries.len()
+        };
+        if read < self.corrupt_on_read {
+            return Ok(RebacTuplePage {
+                tuples: vec![
+                    RebacTuple::parse(query.tenant.clone(), "group:eng#member@user:bob")
+                        .expect("non-granting tuple is valid"),
+                ],
+                snapshot: snapshot.clone(),
+                next_page_token: Some("second-page".to_owned()),
+            });
+        }
         Ok(RebacTuplePage {
             tuples: vec![
                 RebacTuple::parse(self.tuple_tenant.clone(), self.tuple)
@@ -106,6 +150,35 @@ fn tuple_store_cannot_return_a_tuple_from_another_tenant() {
             && tuple.relation == relation("member")
     ));
     store.assert_only_expected_query();
+    assert!(!engine.was_consulted());
+}
+
+#[test]
+fn later_tuple_page_cannot_return_an_out_of_query_tuple() {
+    let store = OutOfQueryStore::late(tenant(), "group:other#member@user:alice");
+    let namespace = model();
+    let candidates = [eng_candidate()];
+    let inputs = graph(&store, &namespace, RebacReadSnapshot::latest(), &candidates);
+    let engine = MustNotDecide::new();
+
+    let result = decide(
+        &engine,
+        &inputs,
+        &request("alice"),
+        BTreeMap::new(),
+        context_entities(),
+    );
+
+    assert!(matches!(
+        result,
+        Err(DecisionError::Expansion(ExpansionError::Store(
+            RebacTupleStoreError::TupleOutsideQuery { query, tuple }
+        ))) if query.object.as_ref() == Some(&object("group:eng"))
+            && query.relation.as_ref() == Some(&relation("member"))
+            && query.page_token.as_deref() == Some("second-page")
+            && tuple.object == object("group:other")
+    ));
+    store.assert_two_expected_pages();
     assert!(!engine.was_consulted());
 }
 

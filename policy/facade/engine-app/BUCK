@@ -1,0 +1,67 @@
+_NAMED_DEPS = {
+    "policy_bundle_content": "//policy/adapters/bundle-content:policy-bundle-content",
+    "policy_decision_service_kernel": "//policy/core/decision-service-kernel:policy-decision-service-kernel",
+    "policy_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar",
+    "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+}
+
+_DEPS = [
+    "//policy/core/cedar-domain:policy-cedar-domain",
+    "//policy/core/decision-domain:policy-decision-domain",
+    "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+    "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
+    "third-party//:serde_json",
+]
+
+rust_library(
+    name = "policy-engine-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "policy_engine_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
+    deps = _DEPS,
+)
+
+alias(
+    name = "policy-engine-cli",
+    actual = "//policy/facade/cli-app:policy-cli-app",
+    visibility = ["PUBLIC"],
+)
+
+_TEST_NAMED_DEPS = {
+    "policy_authoring_app": "//policy/facade/authoring-app:policy-authoring-app",
+    "policy_bundle_content": "//policy/adapters/bundle-content:policy-bundle-content",
+    "policy_decision_service_kernel": "//policy/core/decision-service-kernel:policy-decision-service-kernel",
+    "policy_pdp_bundle_file": "//policy/adapters/pdp-bundle-file:policy-pdp-bundle-file",
+    "policy_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar",
+    "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+}
+
+_TEST_DEPS = _DEPS + [
+    ":policy-engine-app",
+    "//policy/core/rebac-domain:policy-rebac-domain",
+    "//policy/adapters/tuple-store-inmemory:policy-tuple-store-inmemory",
+    "//audit/adapters/digest-awslc:shared-audit-digest-adapter-awslc",
+    "//audit/core/event-kernel:shared-audit-event-kernel",
+]
+
+rust_test(
+    name = "policy-engine-lifecycle",
+    srcs = ["tests/engine_lifecycle.rs", "tests/support/mod.rs"],
+    crate = "engine_lifecycle",
+    crate_root = "tests/engine_lifecycle.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _TEST_NAMED_DEPS,
+    deps = _TEST_DEPS,
+)
+
+rust_test(
+    name = "policy-engine-content-admission",
+    srcs = ["tests/content_admission.rs", "tests/support/mod.rs"],
+    crate = "content_admission",
+    crate_root = "tests/content_admission.rs",
+    visibility = ["PUBLIC"],
+    named_deps = _TEST_NAMED_DEPS,
+    deps = _TEST_DEPS,
+)
