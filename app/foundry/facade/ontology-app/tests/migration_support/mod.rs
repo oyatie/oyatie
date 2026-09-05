@@ -4,6 +4,9 @@
 //! with the tests the review asked for still unwritten, and a second suite
 //! needs the same registry evolution and the same POST helper.
 
+use foundry_records_draft::RecordsLog;
+use foundry_records_sqlite_draft::SqliteRecordsLog;
+
 use crate::facade_support::{Fixture, Session};
 
 use axum::body::Body;
@@ -88,17 +91,36 @@ pub(crate) fn state_with_two_revisions(config: &Config) -> AppState {
     state
 }
 
-/// POST a plan. The shared harness posts only to `/v1/actions`, and widening
-/// it would have touched sixteen call sites in four unrelated files for one
-/// new route.
+/// POST a plan to the RUN surface.
+pub(crate) async fn run(
+    session: &Session,
+    token: Option<&str>,
+    plan: &str,
+) -> (StatusCode, String) {
+    post_plan(session, token, plan, "/v1/migrations/run").await
+}
+
+/// POST a plan to the ATTEST surface.
 pub(crate) async fn attest(
     session: &Session,
     token: Option<&str>,
     plan: &str,
 ) -> (StatusCode, String) {
+    post_plan(session, token, plan, "/v1/migrations/attest").await
+}
+
+/// POST a plan to one of the migration surfaces. The shared harness posts
+/// only to `/v1/actions`, and widening it would have touched sixteen call
+/// sites in four unrelated files for two new routes.
+async fn post_plan(
+    session: &Session,
+    token: Option<&str>,
+    plan: &str,
+    uri: &str,
+) -> (StatusCode, String) {
     let mut request = Request::builder()
         .method("POST")
-        .uri("/v1/migrations/attest")
+        .uri(uri)
         .header("content-type", "application/json");
     if let Some(token) = token {
         request = request.header("authorization", format!("Bearer {token}"));
@@ -148,4 +170,78 @@ pub(crate) fn state_with_engine_only_evolved(config: &Config) -> AppState {
         .registry_input
         .clone();
     state
+}
+
+/// A durable head, read from the store itself rather than from anything the
+/// process reports about itself. Both logs are named by the `Config` the test
+/// composed, so no shared harness has to grow a accessor for them.
+fn head_of(path: &std::path::Path) -> u64 {
+    SqliteRecordsLog::open(path)
+        .expect("the log opens")
+        .head("ten_acme")
+        .expect("head is readable")
+}
+
+pub(crate) fn action_head(config: &Config) -> u64 {
+    head_of(&config.action_log)
+}
+
+pub(crate) fn denial_head(config: &Config) -> u64 {
+    head_of(&config.denial_log)
+}
+
+/// The `decision_id` and `principal_id` of an object's upcast entry.
+///
+/// Identified as the LAST row rather than by its audit event: an upcast is
+/// submitted under the plan's `action_type`, so it inherits that action's own
+/// audit event (`record.written`) and is indistinguishable by name from the
+/// write that preceded it. The row count is asserted first, so "the last row"
+/// cannot silently mean "the write" when no upcast happened at all.
+pub(crate) async fn upcast_row(
+    session: &Session,
+    token: Option<&str>,
+    object_ref: &str,
+) -> (String, String) {
+    let (status, body) = session
+        .get(token, &format!("/v1/objects/{object_ref}/history"))
+        .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(
+        body.matches(r#""ordinal":"#).count(),
+        2,
+        "{object_ref} must carry the write AND its upcast: {body}"
+    );
+    (
+        last_field(&body, r#""decision_id":""#),
+        last_field(&body, r#""principal_id":""#),
+    )
+}
+fn last_field(body: &str, needle: &str) -> String {
+    let at = body
+        .rfind(needle)
+        .unwrap_or_else(|| panic!("no {needle} in {body}"));
+    let rest = &body[at + needle.len()..];
+    rest[..rest.find('"').expect("a closed string")].to_owned()
+}
+pub(crate) async fn write_owing(
+    session: &Session,
+    token: Option<&str>,
+    object_ref: &str,
+    key: &str,
+) {
+    let (status, reply) = session
+        .post(
+            token,
+            &format!(
+                r#"{{"object_ref":"{object_ref}","action_type":"aty_record_write",
+                    "idempotency_key":"{key}","occurred_at_epoch_seconds":1700000000,
+                    "properties":{{"name":"Ada","note":"Countess"}}}}"#
+            ),
+        )
+        .await;
+    assert_eq!(
+        status,
+        StatusCode::OK,
+        "the fixture write must land: {reply}"
+    );
 }

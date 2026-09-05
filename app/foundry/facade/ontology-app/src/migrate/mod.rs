@@ -1,45 +1,34 @@
-//! The migration surfaces.
+//! The migration surfaces and the wire vocabulary they share.
 //!
-//! `POST /v1/migrations/attest` reports what a plan still owes. It is a READ
-//! of the projection dressed as a POST, because a plan does not fit in a
-//! query string — so it is gated on `Use`, not `Invoke`, and it mutates
-//! nothing. The attestation is pure and recomputable at any time.
+//! `POST /v1/migrations/attest` reports what a plan still owes; it is a READ
+//! dressed as a POST and mutates nothing. `POST /v1/migrations/run` executes
+//! one, and is a write. Each lives in its own module; what they SHARE is the
+//! plan on the wire, and it is shared rather than copied so that a rule
+//! landing on one cannot silently miss the other.
 //!
 //! THE TENANT IS THE CREDENTIAL'S. `MigrationPlan` carries its own
-//! `tenant_id`, and the write path already settled what that means: nothing
-//! in the body may move the tenant. A plan whose tenant disagrees with the
+//! `tenant_id`, and the write path settled what that means: nothing in the
+//! body may move the tenant. A plan whose tenant disagrees with the
 //! credential is refused rather than silently rewritten — a caller who names
 //! the wrong tenant has asked a question this process should not answer.
 //!
-//! This check is DEFENCE IN DEPTH and is not what stops a cross-tenant read;
-//! claiming otherwise would misdirect the next reader to the wrong control.
-//! Two layers already do that, in order: the PDP refuses a caller whose
-//! credential does not carry the tenant, and `tenant_of` resolves the
-//! projection by `caller.tenant_id` unconditionally, so the body cannot
-//! select one. `migration_attestation` then reads only that projection's own
-//! `tenant_id` and its own poison ledger. Delete the check and a foreign plan
-//! still refuses, as `UnknownEntityType` from `validate` — a worse diagnostic
-//! for the same refusal, which is the reason to keep it.
-//!
-//! The plan is VALIDATED against the tenant's registry before it is
-//! attested. `MigrationPlan::validate` is the same check the runner makes,
-//! so an attestation can never claim a fixpoint over a plan the runner would
-//! refuse to execute.
+//! That check is DEFENCE IN DEPTH on both surfaces and is not what stops a
+//! cross-tenant access; claiming otherwise would misdirect the next reader to
+//! the wrong control. The PDP refuses a caller whose credential does not
+//! carry the tenant, and `tenant_of` resolves the tenant by
+//! `caller.tenant_id` unconditionally, so the body cannot select one. Delete
+//! the check and a foreign plan still refuses, with a worse diagnostic — which
+//! is the reason to keep it.
 
-use std::sync::Arc;
+pub(crate) mod attest;
+pub(crate) mod run;
 
-use axum::Json;
-use axum::extract::State;
-use axum::http::{HeaderMap, StatusCode};
-use axum::response::{IntoResponse, Response};
+use serde::Deserialize;
+
 use foundry_edits::WireDouble;
 use foundry_spine::{
     DefaultValue, MigrationPlan, UpcastTransform, ValueConversion, migration_attestation,
 };
-use serde::{Deserialize, Serialize};
-
-use crate::composition::AppState;
-use crate::reads::{TENANT_SCOPED_RESOURCE, authorized, refuse, tenant_of};
 
 /// UNKNOWN FIELDS ARE REFUSED, and the omission was nearly catastrophic.
 /// With `transforms` defaulting and an unknown key discarded, a one-character
@@ -50,7 +39,7 @@ use crate::reads::{TENANT_SCOPED_RESOURCE, authorized, refuse, tenant_of};
 /// from the same file.
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct AttestRequest {
+pub(crate) struct PlanRequest {
     pub(crate) tenant_id: String,              // data_class: INTERNAL_ONLY
     pub(crate) entity_type: String,            // data_class: INTERNAL_ONLY
     pub(crate) from_revision: u32,             // data_class: INTERNAL_ONLY
@@ -162,85 +151,4 @@ impl WireTransform {
             },
         })
     }
-}
-
-#[derive(Debug, Serialize)]
-pub(crate) struct AttestBody {
-    pub(crate) fixpoint: bool,       // data_class: INTERNAL_ONLY
-    pub(crate) pending: Vec<String>, // data_class: INTERNAL_ONLY
-    pub(crate) poisoned: Vec<u64>,   // data_class: INTERNAL_ONLY
-}
-
-pub async fn attest(
-    State(state): State<Arc<AppState>>,
-    headers: HeaderMap,
-    body: String,
-) -> Response {
-    let caller = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
-        Ok(caller) => caller,
-        Err(response) => return *response,
-    };
-    let Ok(request) = serde_json::from_str::<AttestRequest>(&body) else {
-        state.metrics.read_refused();
-        return refuse(
-            StatusCode::BAD_REQUEST,
-            "surface",
-            "the request is not a migration plan",
-        );
-    };
-    // The credential's tenant, checked rather than substituted.
-    if request.tenant_id != caller.tenant_id {
-        state.metrics.read_refused();
-        return refuse(
-            StatusCode::BAD_REQUEST,
-            "surface",
-            "the plan names a tenant other than the credential's",
-        );
-    }
-    let tenant = match tenant_of(&state, &caller) {
-        Ok(tenant) => tenant,
-        Err(response) => return *response,
-    };
-    let mut transforms = Vec::with_capacity(request.transforms.len());
-    for wire in request.transforms {
-        match wire.into_domain() {
-            Ok(transform) => transforms.push(transform),
-            Err(cause) => {
-                state.metrics.read_refused();
-                return refuse(StatusCode::BAD_REQUEST, "surface", cause);
-            }
-        }
-    }
-    let plan = MigrationPlan {
-        tenant_id: request.tenant_id,
-        entity_type: request.entity_type,
-        from_revision: request.from_revision,
-        to_revision: request.to_revision,
-        action_type: request.action_type,
-        audit_event_type: request.audit_event_type,
-        declared_at_epoch_seconds: request.declared_at_epoch_seconds,
-        transforms,
-    };
-    let tenant = tenant.lock().await;
-    // `registry_input`, NOT `engine`: the runner's own admission gate reads
-    // the untouched fold input (`runner.rs`), and the writer stamps revisions
-    // from it. `engine` is that seed plus accumulated link instances, so
-    // validating against it can admit a plan the runner would refuse — which
-    // is exactly the fixpoint claim this surface must never make.
-    if let Err(error) = plan.validate(&tenant.projection.registry_input) {
-        state.metrics.read_refused();
-        return refuse(
-            StatusCode::BAD_REQUEST,
-            "surface",
-            &format!("the plan is not executable: {error:?}"),
-        );
-    }
-    let attestation = migration_attestation(&tenant.projection, &plan);
-    state.metrics.read_served();
-    Json(AttestBody {
-        fixpoint: attestation.fixpoint,
-        pending: attestation.pending,
-        poisoned: attestation.poisoned,
-    })
-    .into_response()
 }
