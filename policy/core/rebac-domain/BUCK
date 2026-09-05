@@ -20,3 +20,20 @@ rust_test(
         "//policy/core/cedar-domain:policy-cedar-domain",
     ],
 )
+
+rust_test(
+    name = "policy-rebac-domain-membership-conformance",
+    srcs = [
+        "tests/membership_conformance.rs",
+        "tests/finite_model/mod.rs",
+        "tests/finite_model/families.rs",
+        "tests/finite_model/store.rs",
+    ],
+    crate = "membership_conformance",
+    crate_root = "tests/membership_conformance.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":policy-rebac-domain",
+        "//policy/core/cedar-domain:policy-cedar-domain",
+    ],
+)
