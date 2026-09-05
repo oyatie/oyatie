@@ -233,15 +233,11 @@ async fn a_default_whose_variant_matches_the_declared_type_is_admitted() {
     assert_eq!(status, StatusCode::OK, "{body}");
 }
 
-/// An unknown FIELD inside a default is refused — which is not what an
-/// unknown TYPE tests.
-///
-/// A bad `type` is rejected by tag matching whether or not
-/// `deny_unknown_fields` is present on the enum, so the unknown-type test
-/// above pins nothing about the attribute. This carries a well-formed
-/// `integer` default with a stray `epoch_millis` alongside it: exactly the
-/// shape a half-edited plan takes, and admitted silently without the
-/// attribute the F1 fix added to both wire enums.
+/// An unknown FIELD inside a default is refused — not what an unknown TYPE
+/// tests, which tag matching rejects with or without `deny_unknown_fields`.
+/// A well-formed `integer` default with a stray `epoch_millis` beside it is
+/// the shape a half-edited plan takes, and was admitted silently until the
+/// attribute landed on both wire enums.
 #[tokio::test]
 async fn a_default_carrying_a_field_from_another_variant_is_refused() {
     let fixture = Fixture::new("attest-default-mixed-fields");
@@ -272,4 +268,30 @@ async fn a_transform_carrying_a_field_from_another_kind_is_refused() {
 
     assert_eq!(status, StatusCode::BAD_REQUEST, "{body}");
     assert!(!body.contains(r#""fixpoint""#), "{body}");
+}
+
+/// The remaining two arms, pinned the same way and for the same reason.
+///
+/// `Boolean` and `Double` were the last of the five wire defaults whose
+/// variant nothing checked: mapping either onto `Integer` admitted a plan the
+/// registry refuses. Both are held against the Integer-declared target, where
+/// the only correct answer is a type refusal.
+#[tokio::test]
+async fn a_boolean_or_double_default_is_refused_by_an_integer_target() {
+    let fixture = Fixture::new("attest-typed-default-others");
+    let session = Session::from_state(state_with_two_revisions(&fixture.config()));
+    for value in [
+        r#"{"type":"boolean","value":true}"#,
+        r#"{"type":"double","value":1.5}"#,
+    ] {
+        let plan = plan_for("ten_acme").replace(
+            r#"{"kind":"copy_as","from":"note","to":"nickname"}"#,
+            &format!(r#"{{"kind":"default_to","to":"counter","value":{value}}}"#),
+        );
+
+        let (status, body) = attest(&session, Some(fixture.operator_token()), &plan).await;
+
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{value}: {body}");
+        assert!(body.contains("TypeIncompatible"), "{value}: {body}");
+    }
 }
