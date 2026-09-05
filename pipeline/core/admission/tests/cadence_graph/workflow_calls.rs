@@ -21,12 +21,7 @@ pub(super) fn validate(workflow: &str) -> Result<(), String> {
                     file.strip_suffix(".yml")
                         .or_else(|| file.strip_suffix(".yaml"))
                 });
-            if !file.is_some_and(|name| {
-                !name.is_empty()
-                    && name
-                        .bytes()
-                        .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'))
-            }) {
+            if !file.is_some_and(|name| !name.is_empty() && !name.contains('/')) {
                 return Err(format!(
                     "job {name}: reusable workflow must use an Oyatie workflow at @dev"
                 ));
@@ -60,8 +55,24 @@ fn protected_calls_accept_semantically_equivalent_yaml() {
     for workflow in [
         "jobs:\n  qualification:\n    uses: oyatie/oyatie/.github/workflows/qualification.yml@dev\n",
         "jobs: {qualification: {uses: 'oyatie/oyatie/.github/workflows/qualification.yml@dev'}}",
+        "jobs: {qualification: {uses: 'oyatie/oyatie/.github/workflows/qualification.v2.yml@dev'}}",
     ] {
         assert!(validate(workflow).is_ok());
+    }
+}
+
+#[test]
+fn aliased_call_values_retain_their_source_identity() {
+    for (source, accepted) in [
+        (
+            "oyatie/oyatie/.github/workflows/qualification.yml@dev",
+            true,
+        ),
+        ("./.github/workflows/qualification.yml", false),
+    ] {
+        let workflow =
+            format!("jobs:\n  first:\n    uses: &call '{source}'\n  second:\n    uses: *call\n");
+        assert_eq!(validate(&workflow).is_ok(), accepted);
     }
 }
 
