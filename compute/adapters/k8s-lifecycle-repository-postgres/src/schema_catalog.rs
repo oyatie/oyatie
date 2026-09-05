@@ -3,57 +3,55 @@ use std::collections::BTreeSet;
 use sqlx::{PgConnection, Row};
 
 use crate::error::PgK8sLifecycleSchemaError;
-use crate::schema_contract::{
-    EXPECTED_COLUMNS, EXPECTED_CONSTRAINTS, EXPECTED_GRANTS, EXPECTED_INDEXES, EXPECTED_POLICIES,
-};
+use crate::schema_phase::SchemaPhase;
 use crate::{RUNTIME_ROLE, SCHEMA_NAME};
-
-const EXPECTED_RELATIONS: &[&str] = &[
-    "clusters|r|p|true|true|false|heap|true|true",
-    "operations|r|p|true|true|false|heap|true|true",
-    "schema_migrations|r|p|false|false|false|heap|true|true",
-];
 
 pub(crate) async fn attest_schema(
     connection: &mut PgConnection,
+    phase: SchemaPhase,
 ) -> Result<(), PgK8sLifecycleSchemaError> {
-    crate::role_database_claim::attest_role_database_claim(connection, false).await?;
-    attest_runtime_role(connection).await?;
-    attest_namespace(connection).await?;
-    attest_ownership(connection).await?;
+    crate::role_database_claim::attest_role_database_claim(connection, !phase.has_runtime())
+        .await?;
+    if phase.has_runtime() {
+        attest_runtime_role(connection).await?;
+    }
+    attest_namespace(connection, phase).await?;
+    if phase.has_runtime() {
+        attest_ownership(connection, phase).await?;
+    }
     crate::expression_dependencies::attest_expression_dependencies(connection).await?;
     attest_set(
         connection,
         columns_sql(),
-        EXPECTED_COLUMNS,
+        &phase.columns(),
         PgK8sLifecycleSchemaError::ColumnContract,
     )
     .await?;
     attest_set(
         connection,
         constraints_sql(),
-        EXPECTED_CONSTRAINTS,
+        &phase.constraints(),
         PgK8sLifecycleSchemaError::ConstraintContract,
     )
     .await?;
     attest_set(
         connection,
         indexes_sql(),
-        EXPECTED_INDEXES,
+        &phase.indexes(),
         PgK8sLifecycleSchemaError::IndexContract,
     )
     .await?;
     attest_set(
         connection,
         policies_sql(),
-        EXPECTED_POLICIES,
+        &phase.policies(),
         PgK8sLifecycleSchemaError::PolicyContract,
     )
     .await?;
     attest_set(
         connection,
         grants_sql(),
-        EXPECTED_GRANTS,
+        &phase.grants(),
         PgK8sLifecycleSchemaError::GrantContract,
     )
     .await
@@ -93,7 +91,10 @@ async fn attest_runtime_role(
         .ok_or(PgK8sLifecycleSchemaError::RuntimeRoleContract)
 }
 
-async fn attest_namespace(connection: &mut PgConnection) -> Result<(), PgK8sLifecycleSchemaError> {
+async fn attest_namespace(
+    connection: &mut PgConnection,
+    phase: SchemaPhase,
+) -> Result<(), PgK8sLifecycleSchemaError> {
     let relations: BTreeSet<String> = sqlx::query_scalar(
         "SELECT concat(c.relname, '|', c.relkind::text, '|', c.relpersistence::text, '|', c.relrowsecurity::text, '|', c.relforcerowsecurity::text, '|', c.relispartition::text, '|', am.amname, '|', (c.reltablespace = 0)::text, '|', (c.reloptions IS NULL)::text) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace LEFT JOIN pg_am am ON am.oid = c.relam WHERE n.nspname = $1 AND c.relkind IN ('r', 'p', 'v', 'm', 'S', 'f')",
     )
@@ -111,17 +112,21 @@ async fn attest_namespace(connection: &mut PgConnection) -> Result<(), PgK8sLife
     let inheritance_edges: i64 = sqlx::query_scalar(
         "SELECT count(*) FROM pg_inherits inheritance JOIN pg_class relation ON relation.oid IN (inheritance.inhrelid, inheritance.inhparent) JOIN pg_namespace n ON n.oid = relation.relnamespace WHERE n.nspname = $1",
     ).bind(SCHEMA_NAME).fetch_one(&mut *connection).await?;
-    (relations == strings(EXPECTED_RELATIONS) && unexpected_objects == 0 && inheritance_edges == 0)
+    (relations == strings(&phase.relations()) && unexpected_objects == 0 && inheritance_edges == 0)
         .then_some(())
         .ok_or(PgK8sLifecycleSchemaError::NamespaceContract)
 }
 
-async fn attest_ownership(connection: &mut PgConnection) -> Result<(), PgK8sLifecycleSchemaError> {
+async fn attest_ownership(
+    connection: &mut PgConnection,
+    phase: SchemaPhase,
+) -> Result<(), PgK8sLifecycleSchemaError> {
     let matches: Option<bool> = sqlx::query_scalar(
-        "SELECT count(*) = 3 AND bool_and(c.relowner = n.nspowner) AND NOT pg_has_role($2, n.nspowner, 'MEMBER') FROM pg_namespace n JOIN pg_class c ON c.relnamespace = n.oid AND c.relkind = 'r' WHERE n.nspname = $1 GROUP BY n.nspowner",
+        "SELECT count(*) = $3 AND bool_and(c.relowner = n.nspowner) AND NOT pg_has_role($2, n.nspowner, 'MEMBER') FROM pg_namespace n JOIN pg_class c ON c.relnamespace = n.oid AND c.relkind = 'r' WHERE n.nspname = $1 GROUP BY n.nspowner",
     )
     .bind(SCHEMA_NAME)
     .bind(RUNTIME_ROLE)
+    .bind(i64::try_from(phase.relations().len()).map_err(|_| PgK8sLifecycleSchemaError::OwnershipContract)?)
     .fetch_optional(connection)
     .await?;
     matches

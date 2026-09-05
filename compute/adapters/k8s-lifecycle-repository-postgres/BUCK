@@ -43,6 +43,8 @@ rust_test(
         "//compute/core/resource:compute-resource",
         "//compute/ports/k8s-api:compute-k8s-api",
         "//data/core/postgres-command-kernel:shared-postgres-command-kernel",
+        "third-party//:serde_json",
+        "third-party//:sha2",
         "third-party//:sqlx",
         "third-party//:tokio",
     ],

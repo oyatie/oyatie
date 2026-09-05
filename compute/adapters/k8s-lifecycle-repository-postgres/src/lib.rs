@@ -24,6 +24,7 @@ mod runtime_guard;
 mod schema;
 mod schema_catalog;
 mod schema_contract;
+mod schema_phase;
 mod serving_role_guard;
 
 use error::validate_database_url;
@@ -32,8 +33,9 @@ pub use error::{
     PgK8sLifecycleSchemaError,
 };
 pub use migrations::{
-    CURRENT_MIGRATION_VERSION, K8S_LIFECYCLE_MIGRATIONS, K8S_LIFECYCLE_REPOSITORY_MIGRATION,
-    K8S_LIFECYCLE_RUNTIME_ROLE_MIGRATION, MIGRATIONS_TABLE, PgK8sLifecycleMigration,
+    CURRENT_MIGRATION_VERSION, K8S_LIFECYCLE_MIGRATIONS, K8S_LIFECYCLE_PENDING_INTENT_MIGRATION,
+    K8S_LIFECYCLE_REPOSITORY_MIGRATION, K8S_LIFECYCLE_RUNTIME_ROLE_MIGRATION, MIGRATIONS_TABLE,
+    PgK8sLifecycleMigration,
 };
 pub use migrator::{PgK8sLifecycleMigrationReport, PgK8sLifecycleMigrator};
 pub use runtime_contract::{PgK8sLifecycleRuntimeContract, PgK8sLifecycleRuntimeContractError};
