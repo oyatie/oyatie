@@ -15,6 +15,13 @@ FACADE_TEST_DEPS = [
     "third-party//:tower",
 ]
 
+# The migration suites evolve a composed registry, so they name the kernel's
+# definition vocabulary on top of the shared driven-surface set.
+MIGRATION_TEST_DEPS = FACADE_TEST_DEPS + [
+    "//data/core/data-boundary-kernel:data-boundary-kernel",
+    "//data/core/ontology-kernel:data-ontology-kernel",
+]
+
 rust_library(
     name = "foundry-ontology-app",
     srcs = glob(["src/**/*.rs"]),
@@ -245,4 +252,33 @@ rust_test(
     crate_root = "tests/statusz_serves_the_operator.rs",
     visibility = ["PUBLIC"],
     deps = FACADE_TEST_DEPS,
+)
+
+rust_test(
+    name = "foundry-ontology-app-migration-attest",
+    srcs = [
+        "tests/facade_support/mod.rs",
+        "tests/migration_attest_is_the_callers_own.rs",
+        "tests/migration_support/mod.rs",
+        "tests/out_of_band/mod.rs",
+    ],
+    crate = "migration_attest_is_the_callers_own",
+    crate_root = "tests/migration_attest_is_the_callers_own.rs",
+    visibility = ["PUBLIC"],
+    # The registry evolution these suites install is a second revision of an
+    # entity type, so they name the kernel's definition vocabulary directly.
+    deps = MIGRATION_TEST_DEPS,
+)
+
+rust_test(
+    name = "foundry-ontology-app-migration-attest-malformed",
+    srcs = [
+        "tests/facade_support/mod.rs",
+        "tests/migration_attest_refuses_a_malformed_plan.rs",
+        "tests/migration_support/mod.rs",
+    ],
+    crate = "migration_attest_refuses_a_malformed_plan",
+    crate_root = "tests/migration_attest_refuses_a_malformed_plan.rs",
+    visibility = ["PUBLIC"],
+    deps = MIGRATION_TEST_DEPS,
 )

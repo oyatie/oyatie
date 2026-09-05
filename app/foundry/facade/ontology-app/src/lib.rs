@@ -21,6 +21,7 @@ pub mod composition;
 pub mod config;
 pub mod dto;
 pub mod metrics;
+mod migrate;
 pub mod observability;
 pub mod observation;
 pub mod pdp;

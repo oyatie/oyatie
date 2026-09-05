@@ -286,7 +286,7 @@ pub async fn types(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Re
 /// one; it names the tenant's own view, not any object in it.
 pub(crate) const TENANT_SCOPED_RESOURCE: &str = "ent_tenant_view";
 
-fn refuse(status: StatusCode, gate: &str, cause: &str) -> Response {
+pub(crate) fn refuse(status: StatusCode, gate: &str, cause: &str) -> Response {
     (
         status,
         Json(RefusalBody {

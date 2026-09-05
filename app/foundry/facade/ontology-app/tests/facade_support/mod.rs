@@ -253,7 +253,7 @@ impl Session {
             .await
     }
 
-    async fn send(&self, request: Request<Body>) -> (StatusCode, String) {
+    pub async fn send(&self, request: Request<Body>) -> (StatusCode, String) {
         let response = self
             .router
             .clone()
