@@ -29,6 +29,7 @@ pub mod reads;
 pub mod routes;
 pub mod seed;
 pub mod slo;
+mod status;
 pub mod submit;
 
 pub use auth::OperatorCredential;

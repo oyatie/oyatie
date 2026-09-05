@@ -4,11 +4,12 @@
 //! to its log head. **A poisoned entry never un-readies the process**: a
 //! poison advances the fold and touches nothing else, so treating it as
 //! un-ready would red the instrument exactly when the system is making
-//! progress. `/statusz` is deny-by-default from birth; it opens only when
-//! the authorizer is composed.
+//! progress. `/statusz` is deny-by-default and now answers: the authorizer
+//! is composed, so it authorizes like the other tenant-wide views instead of
+//! refusing everything.
 //!
 //! Operator procedure: `/readyz` 503 means lag — the fold is behind the log;
-//! read `/statusz` (once authorized) or the process logs for the lag figure.
+//! read `/statusz` as an operator, or the process logs, for the lag figure.
 //! Poison is NOT a readiness fault; `first_poisoned_ordinal` is where triage
 //! starts, and poisons un-poison on refold once the missing law lands.
 
@@ -155,13 +156,18 @@ async fn a_poisoned_entry_never_un_readies_the_process() {
 }
 
 #[tokio::test]
-async fn statusz_denies_by_default_until_the_authorizer_lands() {
+async fn statusz_refuses_an_unauthenticated_caller() {
     let fixture = Fixture::new("statusz");
     let (status, _) = get(&fixture, "/statusz").await;
+    // 401, not the 403 this asserted while the surface was a blanket stub.
+    // The property is unchanged — no credential, no operator status — but
+    // the code is now the precise one: nothing was presented, so nothing was
+    // refused on its merits. The authenticated-but-unauthorized case is 403
+    // and is covered in `statusz_serves_the_operator`.
     assert_eq!(
         status,
-        StatusCode::FORBIDDEN,
-        "an operator surface with no authorizer composed must refuse, never serve"
+        StatusCode::UNAUTHORIZED,
+        "an operator surface must not answer a caller it cannot identify"
     );
 }
 

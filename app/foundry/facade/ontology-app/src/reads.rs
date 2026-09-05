@@ -41,7 +41,7 @@ use crate::read_dto::{
 
 /// Authenticate, then authorize the read action. Both failures are the
 /// caller's answer; neither reveals whether the addressed object exists.
-fn authorized(
+pub(crate) fn authorized(
     state: &AppState,
     headers: &HeaderMap,
     object_ref: &str,
@@ -75,7 +75,7 @@ fn authorized(
 }
 
 /// The tenant is the credential's; a caller can never read another's.
-fn tenant_of<'a>(
+pub(crate) fn tenant_of<'a>(
     state: &'a AppState,
     caller: &Caller,
 ) -> Result<&'a tokio::sync::Mutex<crate::composition::TenantState>, Box<Response>> {
@@ -284,7 +284,7 @@ pub async fn types(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Re
 /// The resource a tenant-wide read is authorized against. It is an
 /// `ent_`-shaped id because the kernel's authorization vocabulary requires
 /// one; it names the tenant's own view, not any object in it.
-const TENANT_SCOPED_RESOURCE: &str = "ent_tenant_view";
+pub(crate) const TENANT_SCOPED_RESOURCE: &str = "ent_tenant_view";
 
 fn refuse(status: StatusCode, gate: &str, cause: &str) -> Response {
     (

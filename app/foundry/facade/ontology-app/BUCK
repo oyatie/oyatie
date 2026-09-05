@@ -232,3 +232,17 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = FACADE_TEST_DEPS,
 )
+
+rust_test(
+    name = "foundry-ontology-app-statusz",
+    srcs = [
+        "tests/facade_support/mod.rs",
+        "tests/failing_log/mod.rs",
+        "tests/out_of_band/mod.rs",
+        "tests/statusz_serves_the_operator.rs",
+    ],
+    crate = "statusz_serves_the_operator",
+    crate_root = "tests/statusz_serves_the_operator.rs",
+    visibility = ["PUBLIC"],
+    deps = FACADE_TEST_DEPS,
+)
