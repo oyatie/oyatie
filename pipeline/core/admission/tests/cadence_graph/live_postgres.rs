@@ -82,7 +82,7 @@ const PRESUBMIT_FANIN_STEP: &str = r#"      - name: Fan-in verdict
           occ() {
             if [ "${EVENT}" = "pull_request" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
           }
-          gate "${BACKBONE_POSTGRES}" && gate "${COMPUTE_LIFECYCLE_POSTGRES}" && gate "${REINDEER}" && req "${{ needs.layout.result }}" && occ "${{ needs.occupancy.result }}" && req "${{ needs.lint.result }}" && req "${{ needs.clippy.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.change-gates.result }}" && reindeer "${{ needs.reindeer-source-qualification.result }}" && pg "${{ needs.live-postgres.result }}" && exit 0 || exit 1"#;
+          gate "${BACKBONE_POSTGRES}" && gate "${COMPUTE_LIFECYCLE_POSTGRES}" && gate "${REINDEER}" && req "${{ needs.layout.result }}" && occ "${{ needs.occupancy.result }}" && req "${{ needs.lint.result }}" && req "${{ needs.clippy.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.change-gates.result }}" && reindeer "${{ needs.reindeer-source-qualification.result }}" && pg "${{ needs.live-postgres.result }}" && req "${{ needs.build-cache-qualification.result }}" && exit 0 || exit 1"#;
 
 fn between<'a>(text: &'a str, start: &str, end: &str) -> Option<&'a str> {
     text.split_once(start)?
@@ -229,8 +229,12 @@ fn each_cell_rejects_zero_test_and_cross_cell_package_mutations() {
 #[test]
 fn protected_and_postsubmit_callers_select_cells_explicitly() {
     let presubmit = super::read(".github/workflows/presubmit.yml");
-    let caller = between(&presubmit, "\n  live-postgres:\n", "\n  presubmit:\n")
-        .expect("presubmit live-Postgres caller");
+    let caller = between(
+        &presubmit,
+        "\n  live-postgres:\n",
+        "\n  build-cache-qualification:\n",
+    )
+    .expect("presubmit live-Postgres caller");
     assert_eq!(caller.trim_end(), PRESUBMIT_CALLER);
     for output in ["backbone_postgres", "compute_lifecycle_postgres"] {
         assert!(presubmit.contains(&format!(

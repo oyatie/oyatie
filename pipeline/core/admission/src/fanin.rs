@@ -66,6 +66,7 @@ pub struct FanIn<'a> {
     pub backbone_postgres_gate: &'a str,
     pub compute_lifecycle_postgres_gate: &'a str,
     pub reindeer_gate: &'a str,
+    pub build_cache_qualification: &'a str,
     pub pull_request: bool,
 }
 
@@ -92,6 +93,7 @@ pub fn fan_in_ok(g: FanIn<'_>) -> bool {
             backbone_postgres_required || compute_lifecycle_postgres_required,
         )
         && reindeer_qualification_ok(g.reindeer_qualification, reindeer_required)
+        && required_success(g.build_cache_qualification)
 }
 
 /// Trunk honesty. Both jobs must run; skip is red.
@@ -117,6 +119,7 @@ mod tests {
             backbone_postgres_gate: "true",
             compute_lifecycle_postgres_gate: "true",
             reindeer_gate: "true",
+            build_cache_qualification: "success",
             pull_request: true,
         }
     }
@@ -124,6 +127,18 @@ mod tests {
     #[test]
     fn live_all_success() {
         assert!(fan_in_ok(green()));
+    }
+
+    #[test]
+    fn cache_qualification_requires_success_for_every_event() {
+        for pull_request in [true, false] {
+            for result in ["success", "skipped", "cancelled", "failure", "", "unknown"] {
+                let mut g = green();
+                g.pull_request = pull_request;
+                g.build_cache_qualification = result;
+                assert_eq!(fan_in_ok(g), result == "success", "{result:?}");
+            }
+        }
     }
 
     #[test]

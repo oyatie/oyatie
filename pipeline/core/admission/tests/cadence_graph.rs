@@ -1,9 +1,10 @@
-//! Occupants of each cadence file. Equality on the set, not a denylist of
-//! last week's extra job.
+//! Cadence file occupants are checked as complete sets.
 
 use pipeline_admission::{POSTSUBMIT_JOBS, PRESUBMIT_JOBS, WORKFLOW_FILES};
 use std::path::{Path, PathBuf};
 
+#[path = "cadence_graph/cache_qualification.rs"]
+mod cache_qualification;
 #[path = "cadence_graph/live_postgres.rs"]
 mod live_postgres;
 #[path = "cadence_graph/qualification_closure.rs"]
@@ -62,7 +63,7 @@ fn presubmit_jobs_are_the_occupant_set() {
     );
     assert!(
         y.contains(
-            "needs: [layout, occupancy, lint, clippy, test, deny, change-gates, reindeer-source-qualification, live-postgres]"
+            "needs: [layout, occupancy, lint, clippy, test, deny, change-gates, reindeer-source-qualification, live-postgres, build-cache-qualification]"
         )
     );
     assert!(y.contains("needs: [layout, occupancy]"));

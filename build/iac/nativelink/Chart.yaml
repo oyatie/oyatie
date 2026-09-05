@@ -1,0 +1,6 @@
+apiVersion: v2
+name: nativelink-cache
+description: Cache-only REv2 endpoint with mutually authenticated method authorization
+type: application
+version: 0.1.0
+appVersion: "1.6.6"

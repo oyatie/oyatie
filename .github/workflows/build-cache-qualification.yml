@@ -1,0 +1,125 @@
+name: Build cache qualification
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+    branches: [dev]
+    paths:
+      - build/iac/nativelink/**
+      - .github/workflows/build-cache-qualification.yml
+permissions:
+  contents: read
+jobs:
+  qualify:
+    name: Cache runtime (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-24.04
+            platform: linux/amd64
+            crane_sha256: 0ab7a1d6932a213aed964ce97666c3077fe691c8606413674a8b3e0b9ec4cda0
+            grpcurl_target: x86_64
+            grpcurl_sha256: a926b62a85787ccf73ef8736b3ae554f1242e39d92bb8767a79d6dd23b11d1d5
+            helm_target: amd64
+            helm_sha256: dbb4c8fc8e19d159d1a63dda8db655f9ffa4aac1b9a6b188b34a40957119b286
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            platform: linux/arm64
+            crane_sha256: 898c0cff975f898a33e8c4580bdafb0e7c02c7faa33374e946762f97c4ab7110
+            grpcurl_target: arm64
+            grpcurl_sha256: b20a00c1cb82ab81ec32696766d4076e99b4cb5ca0823a71767ba64dbea0f263
+            helm_target: arm64
+            helm_sha256: bfb14953295d5324d47ab55f3dfba6da28d46c848978c8fbf412d4271bdc29f1
+    steps:
+      - name: Check out candidate tree
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Acquire Remote Execution protocol
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: bazelbuild/remote-apis
+          ref: 77ec630134abbf9aa525f921eee4e5d11dc20f7e
+          path: qualification-inputs/remote-apis
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Acquire Google protocol dependencies
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: googleapis/googleapis
+          ref: 64aa30b277168edd20efee0c9ceb4ca01248931d
+          path: qualification-inputs/googleapis
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify protocol revisions
+        shell: bash
+        env:
+          CANDIDATE_REVISION: ${{ github.sha }}
+          WORKFLOW_REVISION: ${{ github.workflow_sha }}
+          WORKFLOW_SOURCE: ${{ github.workflow_ref }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse --verify 'HEAD^{commit}')" = "$CANDIDATE_REVISION"
+          printf 'candidate_commit=%s\ncandidate_tree=%s\nworkflow_commit=%s\nworkflow_source=%s\n' "$CANDIDATE_REVISION" "$(git rev-parse 'HEAD^{tree}')" "$WORKFLOW_REVISION" "$WORKFLOW_SOURCE"
+          test "$(git -C qualification-inputs/remote-apis rev-parse --verify 'HEAD^{commit}')" = 77ec630134abbf9aa525f921eee4e5d11dc20f7e
+          test "$(git -C qualification-inputs/googleapis rev-parse --verify 'HEAD^{commit}')" = 64aa30b277168edd20efee0c9ceb4ca01248931d
+      - name: Install checksum-verified runtime inputs
+        shell: bash
+        env:
+          CRANE_TARGET: ${{ matrix.arch }}
+          CRANE_SHA256: ${{ matrix.crane_sha256 }}
+          GRPCURL_TARGET: ${{ matrix.grpcurl_target }}
+          GRPCURL_SHA256: ${{ matrix.grpcurl_sha256 }}
+          HELM_TARGET: ${{ matrix.helm_target }}
+          HELM_SHA256: ${{ matrix.helm_sha256 }}
+        run: |
+          set -euo pipefail
+          qualification_dir="$(mktemp -d "$RUNNER_TEMP/build-cache-qualification.XXXXXX")"
+          mkdir "$qualification_dir/bin" "$qualification_dir/helm"
+          acquire() {
+            curl --fail --show-error --location --retry 2 --connect-timeout 10 --max-time 180 "$1" --output "$qualification_dir/$2"
+            printf '%s  %s\n' "$3" "$qualification_dir/$2" | sha256sum --check --strict
+          }
+          acquire "https://github.com/google/go-containerregistry/releases/download/v0.22.1/go-containerregistry_Linux_${CRANE_TARGET}.tar.gz" crane.tar.gz "$CRANE_SHA256"
+          acquire "https://github.com/fullstorydev/grpcurl/releases/download/v1.9.3/grpcurl_1.9.3_linux_${GRPCURL_TARGET}.tar.gz" grpcurl.tar.gz "$GRPCURL_SHA256"
+          acquire "https://get.helm.sh/helm-v3.20.0-linux-${HELM_TARGET}.tar.gz" helm.tar.gz "$HELM_SHA256"
+          acquire "https://rubygems.org/downloads/minitest-5.25.5.gem" minitest.gem 391b6c6cb43a4802bfb7c93af1ebe2ac66a210293f4a3fb7db36f2fc7dc2c756
+          tar -xzf "$qualification_dir/crane.tar.gz" -C "$qualification_dir/bin" crane
+          tar -xzf "$qualification_dir/grpcurl.tar.gz" -C "$qualification_dir/bin" grpcurl
+          tar -xzf "$qualification_dir/helm.tar.gz" -C "$qualification_dir/helm" "linux-${HELM_TARGET}/helm"
+          mv "$qualification_dir/helm/linux-${HELM_TARGET}/helm" "$qualification_dir/bin/helm"
+          timeout --signal=TERM --kill-after=5s 60s gem install --local "$qualification_dir/minitest.gem" --install-dir "$qualification_dir/gems" --ignore-dependencies --no-document
+          printf '%s\n' "$qualification_dir/bin" >> "$GITHUB_PATH"
+          printf 'CRANE_BIN=%s/bin/crane\nCACHE_RUNTIME_DIR=%s/bin\nGRPCURL_BIN=%s/bin/grpcurl\nGEM_HOME=%s/gems\nGEM_PATH=%s/gems\n' "$qualification_dir" "$qualification_dir" "$qualification_dir" "$qualification_dir" "$qualification_dir" >> "$GITHUB_ENV"
+      - name: Refute divergent image qualification inputs
+        shell: bash
+        run: timeout --signal=TERM --kill-after=5s 60s ruby build/iac/nativelink/tests/runtime_images_test.rb
+      - name: Acquire executables from rendered chart images
+        shell: bash
+        env:
+          CACHE_PLATFORM: ${{ matrix.platform }}
+        run: timeout --signal=TERM --kill-after=5s 10m ruby build/iac/nativelink/tests/runtime_images.rb
+      - name: Qualify rendered chart and real cache processes
+        shell: bash
+        env:
+          REMOTE_APIS_DIR: ${{ github.workspace }}/qualification-inputs/remote-apis
+          GOOGLEAPIS_DIR: ${{ github.workspace }}/qualification-inputs/googleapis
+        run: |
+          set -euo pipefail
+          timeout 10s ruby --version
+          timeout 10s helm version --short
+          timeout 10s "$NATIVELINK_BIN" --version
+          timeout 10s "$ENVOY_BIN" --version
+          timeout 10s "$GRPCURL_BIN" --version
+          ruby -e 'gem "minitest", "= 5.25.5"; require "minitest"; abort "wrong minitest" unless Minitest::VERSION == "5.25.5"'
+          timeout --signal=TERM --kill-after=5s 60s helm lint build/iac/nativelink --set nodeHostname=qualification-node --set existingClaim=qualification-cache --set existingTlsSecret=qualification-tls --set certificateRevision=qualification
+          timeout --signal=TERM --kill-after=5s 60s ruby build/iac/nativelink/tests/fixture_test.rb
+          timeout --signal=TERM --kill-after=5s 60s ruby build/iac/nativelink/tests/chart_test.rb
+          timeout --signal=TERM --kill-after=5s 120s ruby build/iac/nativelink/tests/store_test.rb
+          timeout --signal=TERM --kill-after=5s 180s ruby build/iac/nativelink/tests/gateway_test.rb
