@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/assurance.proto";
+import "cell/placement/v1/capacity.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/topology.proto";
+import "tenancy/identity/v1/identity.proto";
+
+message ImmutableEvidenceRefV1 {
+  string authority_id = 1;
+  string repository_id = 2;
+  string object_id = 3;
+  uint64 object_version = 4;
+  Digest32 content_digest = 5;
+}
+
+message AssuranceAuditPolicyV1 {
+  ImmutableEvidenceRefV1 evidence_record = 1;
+  Digest32 requirements_digest = 2;
+  uint64 minimum_retention_seconds = 3;
+  ImmutableAuditStorageRequirementV1 immutable_storage = 4;
+}
+
+message EvidenceSetCommitmentV1 {
+  Digest32 ordered_root_digest = 1;
+  uint64 member_count = 2;
+  ImmutableEvidenceRefV1 immutable_object = 3;
+}
+
+message EvidenceSetMemberRefV1 {
+  ImmutableEvidenceRefV1 set = 1;
+  uint64 ordinal = 2;
+  Digest32 member_digest = 3;
+  repeated Digest32 inclusion_path = 4;
+}
+
+message CapabilityPlacementProofV1 {
+  string capability_id = 1;
+  CellId cell_id = 2;
+  Digest32 resilience_objective_digest = 3;
+  ImmutableEvidenceRefV1 placement_proof = 4;
+  ImmutableEvidenceRefV1 replication_proof = 5;
+  ImmutableEvidenceRefV1 capacity_proof = 6;
+  Digest32 member_digest = 7;
+}
+
+message AssuranceEvidencePayloadV1 {
+  uint32 schema_version = 1;
+  PlacementOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  CellId cell_id = 4;
+  PlacementLocationV1 location = 5;
+  uint64 assurance_generation = 6;
+  string assurance_compiler_version = 7;
+  Digest32 assurance_requirements_digest = 8;
+  ResilienceObjectiveV1 resilience_objective = 9;
+  ImmutableEvidenceRefV1 resilience_proof = 10;
+  EvidenceSetCommitmentV1 required_certification_set = 11;
+  EvidenceSetCommitmentV1 certification_evidence_set = 12;
+  IsolationClassV1 isolation = 13;
+  HardwareClassV1 hardware = 14;
+  EncryptionRequirementV1 encryption = 15;
+  EvidenceSetCommitmentV1 key_custody_evidence_set = 16;
+  ExclusiveTenantKeyRequirementV1 exclusive_tenant_key = 17;
+  uint64 minimum_audit_retention_seconds = 18;
+  ImmutableAuditStorageRequirementV1 immutable_audit_storage = 19;
+  ImmutableEvidenceRefV1 evidence_record = 20;
+  uint64 observed_at_unix_seconds = 21;
+  uint64 expires_at_unix_seconds = 22;
+  EvidenceSetCommitmentV1 required_capability_set = 23;
+  EvidenceSetCommitmentV1 capability_placement_proof_set = 24;
+}
+
+message StandardRecoveryEvidenceV1 {
+  PlacementLocationV1 backup_storage_location = 1;
+  PlacementLocationV1 restore_staging_location = 2;
+  PlacementLocationV1 restore_location = 3;
+  ImmutableEvidenceRefV1 backup_proof = 4;
+  ImmutableEvidenceRefV1 restore_exercise_proof = 5;
+  EvidenceSetCommitmentV1 capability_recovery_proof_set = 6;
+}
+
+message WarmRecoveryEvidenceV1 {
+  CellId recovery_cell_id = 1;
+  PlacementLocationV1 recovery_location = 2;
+  ReservationRefV1 recovery_reservation = 3;
+  ImmutableEvidenceRefV1 failure_independence_proof = 4;
+  ImmutableEvidenceRefV1 recovery_readiness_proof = 5;
+  EvidenceSetCommitmentV1 capability_recovery_proof_set = 6;
+}
+
+message RecoveryEvidenceModeV1 {
+  oneof mode {
+    StandardRecoveryEvidenceV1 standard = 1;
+    WarmRecoveryEvidenceV1 warm = 2;
+  }
+}
+
+message RecoveryEvidencePayloadV1 {
+  uint32 schema_version = 1;
+  PlacementOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  CellId home_cell_id = 4;
+  uint64 assurance_generation = 5;
+  string assurance_compiler_version = 6;
+  Digest32 assurance_requirements_digest = 7;
+  RecoveryEvidenceModeV1 mode = 8;
+  uint64 proven_rpo_seconds = 9;
+  uint64 proven_rto_seconds = 10;
+  ImmutableEvidenceRefV1 evidence_record = 11;
+  uint64 observed_at_unix_seconds = 12;
+  uint64 expires_at_unix_seconds = 13;
+}
+
+message SignedAssuranceEvidenceV1 {
+  AssuranceEvidencePayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message SignedRecoveryEvidenceV1 {
+  RecoveryEvidencePayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

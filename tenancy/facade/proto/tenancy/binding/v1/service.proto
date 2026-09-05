@@ -1,0 +1,221 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/placement.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/reservation.proto";
+import "cell/placement/v1/movement.proto";
+import "tenancy/binding/v1/attempt.proto";
+import "tenancy/binding/v1/binding.proto";
+import "tenancy/binding/v1/migration.proto";
+import "tenancy/binding/v1/operation.proto";
+import "tenancy/binding/v1/participant.proto";
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/binding/v1/repair.proto";
+import "tenancy/binding/v1/rollback_window.proto";
+import "tenancy/binding/v1/transfer_authority.proto";
+import "tenancy/binding/v1/write_authority.proto";
+import "tenancy/identity/v1/identity.proto";
+
+service TenancyBindingService {
+  rpc GetBinding(GetBindingRequestV1) returns (TenantCellBindingV1);
+  rpc CommitInitialBinding(CommitInitialBindingRequestV1) returns (BindingOperationV1);
+  rpc MoveBinding(MoveBindingRequestV1) returns (BindingOperationV1);
+  rpc OpenBindingAttempt(OpenBindingAttemptRequestV1) returns (BindingAttemptMutationResultV1);
+  rpc CheckpointBindingAttempt(CheckpointBindingAttemptRequestV1) returns (BindingAttemptMutationResultV1);
+  rpc AbortBindingOutcome(AbortBindingOutcomeRequestV1) returns (cell.placement.v1.SignedBindingOutcomeV1);
+  rpc ClaimMigrationFence(ClaimMigrationFenceRequestV1) returns (MigrationFenceClaimMutationResultV1);
+  rpc CommitMigrationWriteFence(CommitMigrationWriteFenceRequestV1) returns (MigrationWriteFenceMutationResultV1);
+  rpc RetargetMigration(RetargetMigrationRequestV1) returns (MigrationRetargetMutationResultV1);
+  rpc ListBindingHistory(ListBindingHistoryRequestV1) returns (ListBindingHistoryResponseV1);
+  rpc GetBindingOperation(GetBindingOperationRequestV1) returns (BindingOperationV1);
+  rpc CancelBindingOperation(MutateBindingOperationRequestV1) returns (BindingOperationV1);
+  rpc RepairBindingOperation(RepairBindingOperationRequestV1) returns (BindingOperationV1);
+  rpc GetBindingOutcome(GetBindingOutcomeRequestV1) returns (cell.placement.v1.SignedBindingOutcomeV1);
+  rpc GetMigrationFenceClaim(GetMigrationFenceClaimRequestV1) returns (MigrationFenceClaimV1);
+  rpc GetMigrationWriteFence(GetMigrationWriteFenceRequestV1) returns (SignedWriteFenceV1);
+  rpc GetBindingAttempt(GetBindingAttemptRequestV1) returns (BindingReservationAttemptV1);
+  rpc FinalizeMigrationRelease(FinalizeMigrationReleaseRequestV1) returns (cell.placement.v1.SignedSourceReservationReleasePermitV1);
+}
+
+message GetBindingRequestV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+}
+
+message CommitInitialBindingRequestV1 {
+  tenancy.identity.v1.TenantBirthRefV1 tenant_birth = 1;
+  BindingOperationKeyV1 operation = 2;
+  reserved 3, 4;
+  reserved "placement_decision", "reservation_commit_permit";
+  string idempotency_key = 5;
+  Digest32 canonical_request_digest = 6;
+  uint64 expected_attempt_revision = 7;
+  uint64 expected_operation_revision = 8;
+  SignedParticipantPhaseClosureV1 prepared_participant_closure = 9;
+}
+
+message MoveBindingRequestV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  BindingOperationKeyV1 operation = 2;
+  cell.placement.v1.CellId expected_source_cell_id = 3;
+  uint64 expected_generation = 4;
+  uint64 expected_revision = 5;
+  reserved 6, 7;
+  reserved "placement_decision", "reservation_commit_permit";
+  SignedMigrationCommitSealV1 migration_commit_seal = 8;
+  string idempotency_key = 9;
+  Digest32 canonical_request_digest = 10;
+  uint64 expected_attempt_revision = 11;
+  uint64 expected_operation_revision = 12;
+  Digest32 expected_record_digest = 13;
+}
+
+message AbortBindingOutcomeRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 expected_operation_revision = 2;
+  cell.placement.v1.BindingAbortCodeV1 abort_code = 3;
+  reserved 4;
+  reserved "arm_receipts";
+  string idempotency_key = 5;
+  Digest32 canonical_request_digest = 6;
+}
+
+message OpenBindingAttemptRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  cell.placement.v1.SignedPlacementDecisionV1 placement_decision = 2;
+  string idempotency_key = 3;
+  Digest32 canonical_request_digest = 4;
+  SignedParticipantManifestV1 participant_manifest = 5;
+}
+
+message CheckpointBindingAttemptRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  BindingReservationAttemptPreconditionV1 precondition = 2;
+  uint64 expected_operation_revision = 3;
+  BindingAttemptCheckpointEvidenceV1 evidence = 4;
+  string idempotency_key = 5;
+  Digest32 canonical_request_digest = 6;
+}
+
+message ClaimMigrationFenceRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 expected_operation_revision = 2;
+  reserved 3;
+  reserved "claim";
+  string idempotency_key = 4;
+  Digest32 canonical_request_digest = 5;
+  cell.placement.v1.CellId expected_source_cell_id = 6;
+  uint64 expected_source_generation = 7;
+  uint64 expected_source_revision = 8;
+  Digest32 source_binding_record_digest = 9;
+  Digest32 binding_attempt_digest = 10;
+  SignedParticipantManifestV1 participant_manifest = 11;
+  cell.placement.v1.SignedPlacementDecisionV1 placement_decision = 12;
+  cell.placement.v1.SignedReservationCommitPermitV1 reservation_commit_permit = 13;
+  reserved 14;
+  reserved "transfer_authorizations";
+  SignedResidencyTransferAuthorizationSetV1 transfer_authorization_set = 15;
+  cell.placement.v1.SignedCellMovementPermitV1 movement_permit = 16;
+  SignedTransferEffectManifestV1 transfer_effect_manifest = 17;
+  SignedParticipantPhaseClosureV1 prepared_participant_closure = 18;
+  WriteAuthorityLeaseStatePreconditionV1 expected_source_write_authority_lease_state = 19;
+  reserved 20;
+  reserved "expected_source_write_authority_token_ledger_digest";
+}
+
+message CommitMigrationWriteFenceRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 expected_operation_revision = 2;
+  SignedWriteFenceV1 write_fence = 3;
+  string idempotency_key = 4;
+  Digest32 canonical_request_digest = 5;
+  SourceFencingCompletionV1 source_fencing_completion = 6;
+}
+
+message RetargetMigrationRequestV1 {
+  BindingOperationKeyV1 superseded_operation = 1;
+  BindingOperationKeyV1 replacement_operation = 2;
+  uint64 expected_superseded_operation_revision = 3;
+  uint64 expected_replacement_operation_revision = 4;
+  MigrationFenceClaimPreconditionV1 active_claim_precondition = 5;
+  MigrationFenceClaimV1 replacement_claim = 6;
+  string idempotency_key = 7;
+  Digest32 canonical_request_digest = 8;
+}
+
+message MigrationRetargetMutationResultV1 {
+  MigrationFenceClaimV1 superseded_claim = 1;
+  MigrationFenceClaimV1 replacement_claim = 2;
+  BindingOperationV1 superseded_operation = 3;
+  BindingOperationV1 replacement_operation = 4;
+}
+
+message ListBindingHistoryRequestV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  uint32 page_size = 2;
+  bytes page_token = 3;
+}
+
+message ListBindingHistoryResponseV1 {
+  repeated BindingHistoryEntryV1 bindings = 1;
+  bytes next_page_token = 2;
+}
+
+message GetBindingOperationRequestV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  string operation_id = 2;
+}
+
+message MutateBindingOperationRequestV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  string operation_id = 2;
+  uint64 expected_revision = 3;
+  string idempotency_key = 4;
+  Digest32 canonical_request_digest = 5;
+}
+
+message RepairBindingOperationRequestV1 {
+  BindingOperationKeyV1 repair_operation = 1;
+  BindingOperationKeyV1 target_operation = 2;
+  uint64 expected_target_revision = 3;
+  SignedBindingRepairAuthorityV1 authority = 4;
+  string idempotency_key = 5;
+  Digest32 canonical_request_digest = 6;
+}
+
+message GetBindingOutcomeRequestV1 {
+  cell.placement.v1.BindingOutcomeQueryRefV1 query = 1;
+}
+
+message GetMigrationFenceClaimRequestV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  string operation_id = 2;
+}
+
+message GetMigrationWriteFenceRequestV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  string operation_id = 2;
+}
+
+message GetBindingAttemptRequestV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  string operation_id = 2;
+}
+
+message FinalizeMigrationReleaseRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 expected_operation_revision = 2;
+  uint64 expected_binding_generation = 3;
+  uint64 expected_binding_revision = 4;
+  SignedParticipantPhaseClosureV1 target_activation_closure = 5;
+  SignedParticipantPhaseClosureV1 source_release_closure = 6;
+  SignedProjectionConvergenceV1 projection_convergence = 7;
+  reserved 8;
+  reserved "rollback_window_ended_at_unix_seconds";
+  string idempotency_key = 9;
+  Digest32 canonical_request_digest = 10;
+  SignedRollbackWindowElapsedV1 rollback_window = 11;
+  Digest32 expected_binding_record_digest = 12;
+  Digest32 expected_projection_audience_policy_digest = 13;
+}

@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/proof.proto";
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/binding/v1/migration.proto";
+import "tenancy/binding/v1/write_authority.proto";
+import "tenancy/identity/v1/identity.proto";
+
+message CapabilityWriteAuthorityStateV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  string participant_id = 2;
+  cell.placement.v1.CellId cell_id = 3;
+  uint64 binding_generation = 4;
+  uint64 binding_revision = 5;
+  uint64 write_authority_epoch = 6;
+  Digest32 participant_manifest_digest = 7;
+  uint64 revision = 8;
+  Digest32 last_authority_proof_digest = 9;
+  Digest32 record_digest = 10;
+  uint64 authority_expires_at_unix_seconds = 11;
+  CapabilityWriteAuthorityDispositionV1 disposition = 12;
+  Digest32 write_authority_lease_digest = 13;
+}
+
+enum CapabilityWriteAuthorityDispositionV1 {
+  CAPABILITY_WRITE_AUTHORITY_DISPOSITION_V1_UNSPECIFIED = 0;
+  CAPABILITY_WRITE_AUTHORITY_DISPOSITION_V1_WRITABLE = 1;
+  CAPABILITY_WRITE_AUTHORITY_DISPOSITION_V1_FENCED = 2;
+}
+
+message ActivateCapabilityWriteAuthorityV1 {
+  SignedWriteAuthorityTokenV1 token = 1;
+  SignedWriteAuthorityLeaseV1 lease = 2;
+}
+
+message FenceCapabilitySourceAuthorityV1 {
+  SignedSourceFenceDirectiveV1 directive = 1;
+}
+
+message CapabilityWriteAuthorityTransitionEvidenceV1 {
+  oneof evidence {
+    ActivateCapabilityWriteAuthorityV1 activate = 1;
+    FenceCapabilitySourceAuthorityV1 fence_source = 2;
+  }
+}
+
+message CapabilityWriteAuthorityTransitionV1 {
+  CapabilityWriteAuthorityStateV1 previous = 1;
+  CapabilityWriteAuthorityTransitionEvidenceV1 evidence = 2;
+  CapabilityWriteAuthorityStateV1 next = 3;
+  Digest32 local_idempotency_digest = 4;
+  Digest32 local_proof_consumption_digest = 5;
+  Digest32 local_audit_record_digest = 6;
+  uint64 write_attempt_at_unix_seconds = 7;
+}
+
+message CapabilityAuthorizedWriteV1 {
+  SignedWriteAuthorityTokenV1 authority = 1;
+  CapabilityWriteAuthorityStateV1 expected_authority_state = 2;
+  Digest32 local_effect_digest = 3;
+  Digest32 local_idempotency_digest = 4;
+  Digest32 local_proof_consumption_digest = 5;
+  Digest32 local_audit_record_digest = 6;
+  uint64 write_attempt_at_unix_seconds = 7;
+}

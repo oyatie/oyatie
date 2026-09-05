@@ -1,0 +1,113 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/drain.proto";
+import "cell/placement/v1/proof.proto";
+
+enum DrainContributorStateDispositionV1 {
+  DRAIN_CONTRIBUTOR_STATE_DISPOSITION_V1_UNSPECIFIED = 0;
+  DRAIN_CONTRIBUTOR_STATE_DISPOSITION_V1_OPEN = 1;
+  DRAIN_CONTRIBUTOR_STATE_DISPOSITION_V1_SEALED = 2;
+}
+
+message DrainContributorStateV1 {
+  CellId cell_id = 1;
+  DrainContributorKindV1 contributor_kind = 2;
+  string contributor_id = 3;
+  DrainContributorStateDispositionV1 disposition = 4;
+  optional uint64 drain_term = 5;
+  uint64 state_creation_high_water = 6;
+  Digest32 state_root_digest = 7;
+  uint64 state_count = 8;
+  uint64 revision = 9;
+  Digest32 record_digest = 10;
+}
+
+message DrainContributorMutationPreconditionV1 {
+  CellId cell_id = 1;
+  string contributor_id = 2;
+  DrainContributorStateDispositionV1 expected_disposition = 3;
+  uint64 expected_revision = 4;
+  Digest32 expected_record_digest = 5;
+}
+
+enum DrainContributorMutationKindV1 {
+  DRAIN_CONTRIBUTOR_MUTATION_KIND_V1_UNSPECIFIED = 0;
+  DRAIN_CONTRIBUTOR_MUTATION_KIND_V1_CREATE = 1;
+  DRAIN_CONTRIBUTOR_MUTATION_KIND_V1_UPDATE_WHILE_OPEN = 2;
+  DRAIN_CONTRIBUTOR_MUTATION_KIND_V1_CLEANUP = 3;
+}
+
+enum DrainContributorSubjectRelationKindV1 {
+  DRAIN_CONTRIBUTOR_SUBJECT_RELATION_KIND_V1_UNSPECIFIED = 0;
+  DRAIN_CONTRIBUTOR_SUBJECT_RELATION_KIND_V1_ABSENT = 1;
+  DRAIN_CONTRIBUTOR_SUBJECT_RELATION_KIND_V1_PRESENT = 2;
+}
+
+message DrainContributorSubjectRelationV1 {
+  DrainContributorSubjectRelationKindV1 relation_kind = 1;
+  Digest32 subject_digest = 2;
+  Digest32 expected_state_root_digest = 3;
+  repeated Digest32 relation_proof_path = 4;
+  Digest32 relation_digest = 5;
+}
+
+message DrainContributorStateMutationV1 {
+  DrainContributorMutationPreconditionV1 precondition = 1;
+  DrainContributorStateV1 next_state = 2;
+  DrainContributorMutationKindV1 mutation_kind = 3;
+  DrainContributorSubjectRelationV1 subject_relation = 4;
+  Digest32 mutation_digest = 5;
+}
+
+message DrainContributorMutationSetV1 {
+  repeated DrainContributorStateMutationV1 mutations = 1;
+  Digest32 ordered_mutation_root_digest = 2;
+  uint64 mutation_count = 3;
+  Digest32 ordered_subject_relation_root_digest = 4;
+  Digest32 set_digest = 5;
+}
+
+message DrainContributorSealIntentV1 {
+  uint32 schema_version = 1;
+  CellId cell_id = 2;
+  uint64 drain_term = 3;
+  Digest32 manifest_digest = 4;
+  DrainContributorKindV1 contributor_kind = 5;
+  string contributor_id = 6;
+  uint64 sealed_state_revision = 7;
+  uint64 sealed_state_creation_high_water = 8;
+  Digest32 sealed_state_root_digest = 9;
+  uint64 sealed_state_count = 10;
+  Digest32 sealed_state_record_digest = 11;
+  Digest32 intent_digest = 12;
+}
+
+message DrainContributorSealCommitAttestationPayloadV1 {
+  uint32 schema_version = 1;
+  Digest32 seal_intent_digest = 2;
+  uint64 sealed_state_revision = 3;
+  Digest32 sealed_state_record_digest = 4;
+  Digest32 committed_transaction_digest = 5;
+  uint64 committed_at_unix_seconds = 6;
+}
+
+message SignedDrainContributorSealCommitAttestationV1 {
+  DrainContributorSealCommitAttestationPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message DrainContributorSealPayloadV1 {
+  uint32 schema_version = 1;
+  DrainContributorSealIntentV1 intent = 2;
+  SignedDrainContributorSealCommitAttestationV1 commit_attestation = 3;
+  Digest32 seal_digest = 4;
+}
+
+message SignedDrainContributorSealV1 {
+  DrainContributorSealPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

@@ -1,0 +1,122 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/capacity.proto";
+import "cell/placement/v1/evidence.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/reservation.proto";
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/binding/v1/write_authority.proto";
+import "tenancy/identity/v1/identity.proto";
+
+message TenantCellBindingV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  cell.placement.v1.CellId home_cell_id = 2;
+  cell.placement.v1.CellId warm_recovery_cell_id = 3;
+  uint64 generation = 4;
+  uint64 revision = 5;
+  uint64 write_authority_epoch = 6;
+  Digest32 placement_decision_digest = 7;
+  Digest32 reservation_commit_permit_digest = 8;
+  Digest32 migration_commit_seal_digest = 9;
+  Digest32 record_digest = 10;
+  uint64 assurance_generation = 11;
+  string assurance_compiler_version = 12;
+  Digest32 assurance_requirements_digest = 13;
+  Digest32 binding_attempt_digest = 14;
+  Digest32 assurance_evidence_digest = 15;
+  Digest32 recovery_evidence_digest = 16;
+  cell.placement.v1.ReservationRefV1 home_reservation = 17;
+  cell.placement.v1.ReservationRefV1 warm_recovery_reservation = 18;
+  Digest32 participant_manifest_digest = 19;
+  cell.placement.v1.ImmutableEvidenceRefV1 assurance_evidence_ref = 20;
+  cell.placement.v1.ImmutableEvidenceRefV1 recovery_evidence_ref = 21;
+  Digest32 participant_preparation_closure_digest = 22;
+  ProjectionAudiencePolicyV1 projection_audience_policy = 23;
+}
+
+enum ProjectionRefreshClassV1 {
+  PROJECTION_REFRESH_CLASS_V1_UNSPECIFIED = 0;
+  PROJECTION_REFRESH_CLASS_V1_STANDARD = 1;
+  PROJECTION_REFRESH_CLASS_V1_EXTENDED_CONTROL_PLANE_OUTAGE = 2;
+}
+
+enum ProjectionServingPolicyV1 {
+  PROJECTION_SERVING_POLICY_V1_UNSPECIFIED = 0;
+  PROJECTION_SERVING_POLICY_V1_CONTINUE_LAST_VERIFIED_ASSIGNMENT_DURING_CONTROL_PLANE_LOSS = 1;
+}
+
+message BindingProjectionV1 {
+  uint32 schema_version = 1;
+  string audience = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  cell.placement.v1.CellId cell_id = 4;
+  uint64 generation = 5;
+  uint64 write_authority_epoch = 6;
+  uint64 issued_at_unix_seconds = 7;
+  reserved 8;
+  reserved "not_after_unix_seconds";
+  ProjectionRefreshClassV1 refresh_class = 9;
+  reserved 10;
+  reserved "projection_digest";
+  Digest32 binding_record_digest = 11;
+  uint64 refresh_due_at_unix_seconds = 12;
+  ProjectionServingPolicyV1 serving_policy = 13;
+  Digest32 projection_partition_digest = 14;
+}
+
+message SignedBindingProjectionV1 {
+  BindingProjectionV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message ProjectionConvergencePayloadV1 {
+  uint32 schema_version = 1;
+  tenancy.identity.v1.TenantId tenant_id = 2;
+  cell.placement.v1.CellId cell_id = 3;
+  uint64 binding_generation = 4;
+  uint64 binding_revision = 5;
+  Digest32 binding_record_digest = 6;
+  reserved 7, 8, 11;
+  reserved "required_audience_root_digest", "required_audience_count", "maximum_projection_age_seconds";
+  Digest32 installed_audience_root_digest = 9;
+  uint64 installed_audience_count = 10;
+  uint64 observed_at_unix_seconds = 12;
+  Digest32 record_digest = 13;
+  ProjectionAudiencePolicyV1 audience_policy = 14;
+  uint64 oldest_installed_projection_age_seconds = 15;
+  uint64 write_authority_epoch = 16;
+}
+
+message ProjectionAudiencePolicyV1 {
+  cell.placement.v1.ImmutableEvidenceRefV1 source = 1;
+  uint64 policy_generation = 2;
+  Digest32 required_audience_root_digest = 3;
+  uint64 required_audience_count = 4;
+  uint64 maximum_allowed_projection_age_seconds = 5;
+  Digest32 policy_digest = 6;
+}
+
+message SignedProjectionConvergenceV1 {
+  ProjectionConvergencePayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message BindingHistoryEntryV1 {
+  TenantCellBindingV1 binding = 1;
+  cell.placement.v1.CellId previous_cell_id = 2;
+  BindingOperationKeyV1 operation = 3;
+  uint64 committed_at_unix_seconds = 4;
+  Digest32 actor_digest = 5;
+}
+
+message BindingMutationResultV1 {
+  TenantCellBindingV1 binding = 1;
+  BindingHistoryEntryV1 history = 2;
+  SignedBindingProjectionV1 projection = 3;
+  cell.placement.v1.SignedBindingOutcomeV1 reservation_outcome = 4;
+  WriteAuthorityLeaseIssuanceRecordV1 write_authority_lease_issuance = 5;
+}

@@ -1,0 +1,276 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/evidence.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/topology.proto";
+import "tenancy/identity/v1/identity.proto";
+
+message MovementWorkerLeaseV1 {
+  string worker_id = 1;
+  uint64 lease_epoch = 2;
+  uint64 not_before_unix_seconds = 3;
+  uint64 expires_at_unix_seconds = 4;
+}
+
+message MovementBudgetV1 {
+  uint64 maximum_bytes = 1;
+  uint64 maximum_effects = 2;
+  uint64 maximum_cost_microunits = 3;
+  string currency = 4;
+  Digest32 budget_relation_digest = 5;
+}
+
+message TransferBudgetRequirementV1 {
+  Digest32 transfer_effect_manifest_digest = 1;
+  uint64 maximum_total_bytes = 2;
+  uint64 maximum_total_effects = 3;
+  uint64 maximum_total_cost_microunits = 4;
+  string currency = 5;
+  Digest32 requirement_digest = 6;
+}
+
+message MovementBudgetRequestV1 {
+  uint64 placement_policy_generation = 1;
+  TransferBudgetRequirementV1 transfer = 2;
+  MovementBudgetV1 ordinary_budget = 3;
+  MovementBudgetV1 required_forward_completion_reserve = 4;
+  uint64 requested_window_start_unix_seconds = 5;
+  uint64 requested_window_end_unix_seconds = 6;
+  Digest32 request_digest = 7;
+}
+
+message ForwardCompletionCoverageV1 {
+  Digest32 transfer_requirement_digest = 1;
+  Digest32 transfer_effect_manifest_digest = 2;
+  uint64 required_bytes = 3;
+  uint64 required_effects = 4;
+  uint64 required_cost_microunits = 5;
+  uint64 reserved_bytes = 6;
+  uint64 reserved_effects = 7;
+  uint64 reserved_cost_microunits = 8;
+  ForwardCompletionCoverageDispositionV1 disposition = 9;
+  Digest32 coverage_proof_digest = 10;
+}
+
+enum ForwardCompletionCoverageDispositionV1 {
+  FORWARD_COMPLETION_COVERAGE_DISPOSITION_V1_UNSPECIFIED = 0;
+  FORWARD_COMPLETION_COVERAGE_DISPOSITION_V1_COMPLETE_FOR_SEALED_MANIFEST_AND_NON_REVOCABLE_AFTER_FENCE = 1;
+}
+
+message ForwardCompletionReserveV1 {
+  uint64 reserved_bytes = 1;
+  uint64 reserved_effects = 2;
+  uint64 reserved_cost_microunits = 3;
+  ForwardCompletionReserveDispositionV1 disposition = 4;
+  Digest32 reserve_digest = 5;
+}
+
+enum ForwardCompletionReserveDispositionV1 {
+  FORWARD_COMPLETION_RESERVE_DISPOSITION_V1_UNSPECIFIED = 0;
+  FORWARD_COMPLETION_RESERVE_DISPOSITION_V1_NON_REVOCABLE_AFTER_FENCE = 1;
+}
+
+message FleetPartitionMovementBudgetScopeV1 {
+  PlacementPartitionV1 partition = 1;
+}
+
+message CellMovementBudgetScopeV1 {
+  CellId cell_id = 1;
+}
+
+message TenantMovementBudgetScopeV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+}
+
+message MovementBudgetScopeV1 {
+  oneof scope {
+    FleetPartitionMovementBudgetScopeV1 fleet_partition = 1;
+    CellMovementBudgetScopeV1 cell = 2;
+    TenantMovementBudgetScopeV1 tenant = 3;
+  }
+}
+
+message MovementBudgetScopeAllocationV1 {
+  MovementBudgetScopeV1 scope = 1;
+  uint64 window_start_unix_seconds = 2;
+  uint64 window_end_unix_seconds = 3;
+  MovementBudgetV1 ordinary_budget = 4;
+  ForwardCompletionReserveV1 forward_completion_reserve = 5;
+  Digest32 quota_allocation_digest = 6;
+}
+
+message MovementBudgetDelegationV1 {
+  string authority_partition = 1;
+  string delegation_id = 2;
+  MovementBudgetScopeV1 parent_scope = 3;
+  MovementBudgetScopeAllocationV1 child_allocation = 4;
+  optional Digest32 parent_delegation_digest = 5;
+  uint64 parent_state_revision_at_commit = 6;
+  Digest32 parent_state_record_digest_at_commit = 7;
+  uint64 child_state_revision_at_commit = 8;
+  Digest32 child_state_record_digest_at_commit = 9;
+  Digest32 record_digest = 10;
+}
+
+message MovementBudgetLineageV1 {
+  MovementBudgetDelegationV1 fleet_to_cell = 1;
+  MovementBudgetDelegationV1 cell_to_tenant = 2;
+  Digest32 ordered_delegation_root_digest = 3;
+  uint64 delegation_count = 4;
+  Digest32 lineage_digest = 5;
+}
+
+message MovementBudgetGrantV1 {
+  string authority_partition = 1;
+  string grant_id = 2;
+  MovementBudgetLineageV1 lineage = 3;
+  MovementBudgetScopeAllocationV1 leaf_scope_allocation = 4;
+  uint64 leaf_state_revision_at_commit = 5;
+  Digest32 leaf_state_record_digest_at_commit = 6;
+  Digest32 grant_digest = 7;
+}
+
+message MovementBudgetAuthorityStateV1 {
+  string authority_partition = 1;
+  MovementBudgetScopeV1 scope = 2;
+  optional Digest32 parent_delegation_digest = 3;
+  uint64 policy_generation = 4;
+  uint64 window_start_unix_seconds = 5;
+  uint64 window_end_unix_seconds = 6;
+  MovementBudgetV1 ordinary_ceiling = 7;
+  uint64 ordinary_delegated_bytes = 8;
+  uint64 ordinary_delegated_effects = 9;
+  uint64 ordinary_delegated_cost_microunits = 10;
+  uint64 ordinary_granted_bytes = 11;
+  uint64 ordinary_granted_effects = 12;
+  uint64 ordinary_granted_cost_microunits = 13;
+  ForwardCompletionReserveV1 forward_completion_ceiling = 14;
+  uint64 forward_completion_delegated_bytes = 15;
+  uint64 forward_completion_delegated_effects = 16;
+  uint64 forward_completion_delegated_cost_microunits = 17;
+  uint64 forward_completion_outstanding_bytes = 18;
+  uint64 forward_completion_outstanding_effects = 19;
+  uint64 forward_completion_outstanding_cost_microunits = 20;
+  uint64 outstanding_movement_count = 21;
+  Digest32 ordered_delegation_root_digest = 22;
+  uint64 delegation_count = 23;
+  Digest32 ordered_grant_root_digest = 24;
+  uint64 grant_count = 25;
+  ImmutableEvidenceRefV1 policy_evidence = 26;
+  uint64 revision = 27;
+  Digest32 record_digest = 28;
+}
+
+message MovementBudgetAuthorityPreconditionV1 {
+  string authority_partition = 1;
+  MovementBudgetScopeV1 scope = 2;
+  uint64 expected_revision = 3;
+  Digest32 expected_record_digest = 4;
+}
+
+message BindingParticipantManifestCommitmentPayloadV1 {
+  uint32 schema_version = 1;
+  tenancy.identity.v1.TenantId tenant_id = 2;
+  BindingOutcomeQueryRefV1 binding_operation = 3;
+  Digest32 binding_attempt_digest = 4;
+  Digest32 participant_manifest_record_digest = 5;
+  Digest32 capability_inventory_snapshot_digest = 6;
+  Digest32 ordered_participant_root_digest = 7;
+  uint64 participant_count = 8;
+  Digest32 required_writable_capability_root_digest = 9;
+  uint64 required_writable_capability_count = 10;
+  Digest32 covered_writable_capability_root_digest = 11;
+  uint64 covered_writable_capability_count = 12;
+  Digest32 coverage_proof_digest = 13;
+  uint64 committed_at_unix_seconds = 14;
+}
+
+message SignedBindingParticipantManifestCommitmentV1 {
+  BindingParticipantManifestCommitmentPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message CellMovementPermitIntentV1 {
+  uint32 schema_version = 1;
+  tenancy.identity.v1.TenantId tenant_id = 2;
+  BindingOutcomeQueryRefV1 binding_operation = 3;
+  CellId source_cell_id = 4;
+  CellId target_cell_id = 5;
+  uint64 placement_policy_generation = 6;
+  Digest32 placement_decision_digest = 7;
+  reserved 8;
+  reserved "participant_manifest_digest";
+  string scheduling_permit_id = 9;
+  uint64 parent_deadline_unix_seconds = 10;
+  MovementWorkerLeaseV1 worker_lease = 11;
+  MovementBudgetV1 ordinary_budget = 12;
+  ForwardCompletionReserveV1 forward_completion_reserve = 13;
+  Digest32 assurance_requirements_digest = 14;
+  Digest32 binding_attempt_digest = 15;
+  Digest32 reservation_commit_permit_digest = 16;
+  reserved 17;
+  reserved "budget_request_digest";
+  PlacementOperationKeyV1 scheduling_operation = 18;
+  Digest32 assurance_evidence_digest = 19;
+  Digest32 recovery_evidence_digest = 20;
+  MovementBudgetGrantV1 budget_grant = 21;
+  Digest32 binding_participant_commitment_digest = 22;
+  Digest32 participant_manifest_record_digest = 23;
+  Digest32 capability_inventory_snapshot_digest = 24;
+  Digest32 ordered_participant_root_digest = 25;
+  uint64 participant_count = 26;
+  Digest32 coverage_proof_digest = 27;
+  MovementBudgetRequestV1 budget_request = 28;
+  ForwardCompletionCoverageV1 forward_completion_coverage = 29;
+  Digest32 intent_digest = 30;
+}
+
+message MovementPermitCommitAttestationPayloadV1 {
+  uint32 schema_version = 1;
+  uint64 issuance_revision = 2;
+  Digest32 issuance_record_digest = 3;
+  Digest32 movement_intent_digest = 4;
+  Digest32 grant_digest = 5;
+  uint64 leaf_state_revision = 6;
+  Digest32 leaf_state_record_digest = 7;
+  Digest32 committed_transaction_digest = 8;
+  uint64 committed_at_unix_seconds = 9;
+  MovementPermitCommitContextV1 context = 10;
+}
+
+message ReconciliationMovementPermitCommitContextV1 {
+  Digest32 candidate_digest = 1;
+  uint64 lease_epoch = 2;
+  Digest32 lease_digest = 3;
+}
+
+message MovementPermitCommitContextV1 {
+  oneof context {
+    bool request = 1;
+    ReconciliationMovementPermitCommitContextV1 reconciliation = 2;
+  }
+}
+
+message SignedMovementPermitCommitAttestationV1 {
+  MovementPermitCommitAttestationPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message CellMovementPermitPayloadV1 {
+  uint32 schema_version = 1;
+  CellMovementPermitIntentV1 intent = 2;
+  uint64 issuance_revision = 3;
+  Digest32 issuance_record_digest = 4;
+  SignedMovementPermitCommitAttestationV1 commit_attestation = 5;
+  Digest32 permit_digest = 6;
+}
+
+message SignedCellMovementPermitV1 {
+  CellMovementPermitPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

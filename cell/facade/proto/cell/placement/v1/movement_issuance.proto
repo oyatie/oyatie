@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/movement.proto";
+import "cell/placement/v1/proof.proto";
+
+enum MovementPermitIssuanceStatusV1 {
+  MOVEMENT_PERMIT_ISSUANCE_STATUS_V1_UNSPECIFIED = 0;
+  MOVEMENT_PERMIT_ISSUANCE_STATUS_V1_PENDING_SIGNATURE = 1;
+  MOVEMENT_PERMIT_ISSUANCE_STATUS_V1_PUBLISHED = 2;
+}
+
+message MovementPermitIssuancePreconditionV1 {
+  uint64 expected_revision = 1;
+  MovementPermitIssuanceStatusV1 expected_status = 2;
+  Digest32 expected_record_digest = 3;
+}
+
+message MovementPermitIssuanceRecordV1 {
+  CellMovementPermitIntentV1 intent = 1;
+  MovementBudgetGrantV1 grant = 2;
+  uint64 leaf_state_revision_at_commit = 3;
+  Digest32 leaf_state_record_digest_at_commit = 4;
+  MovementPermitIssuanceStatusV1 status = 5;
+  SignedCellMovementPermitV1 signed_permit = 6;
+  uint64 revision = 7;
+  Digest32 record_digest = 8;
+}
+
+message CommittedMovementPermitIssuanceClaimV1 {
+  MovementPermitIssuanceRecordV1 issuance = 1;
+  SignedMovementPermitCommitAttestationV1 attestation = 2;
+  MovementPermitCommitContextV1 context = 3;
+}

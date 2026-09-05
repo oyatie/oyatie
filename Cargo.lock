@@ -918,6 +918,14 @@ name = "cell-location"
 version = "0.1.0"
 
 [[package]]
+name = "cell-placement"
+version = "0.1.0"
+dependencies = [
+ "cell-location",
+ "tenancy-kernel",
+]
+
+[[package]]
 name = "cell-region"
 version = "0.1.0"
 dependencies = [
@@ -8754,6 +8762,10 @@ dependencies = [
 [[package]]
 name = "tenancy-cell-assignment"
 version = "0.1.0"
+dependencies = [
+ "cell-placement",
+ "tenancy-kernel",
+]
 
 [[package]]
 name = "tenancy-cli"

@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/operation.proto";
+import "cell/placement/v1/movement.proto";
+import "cell/placement/v1/placement.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/repair.proto";
+import "cell/placement/v1/reservation.proto";
+import "tenancy/identity/v1/identity.proto";
+
+service CellPlacementService {
+  rpc SelectAndReserve(SelectAndReserveRequestV1) returns (PlacementOperationV1);
+  rpc ArmReservation(ArmReservationRequestV1) returns (PlacementOperationV1);
+  rpc FinalizeReservationCommitPermit(FinalizeReservationCommitPermitRequestV1) returns (PlacementOperationV1);
+  rpc ScheduleMovement(ScheduleMovementRequestV1) returns (PlacementOperationV1);
+  rpc ApplyBindingOutcome(ApplyBindingOutcomeRequestV1) returns (PlacementOperationV1);
+  rpc ApplySourceReservationRelease(ApplySourceReservationReleaseRequestV1) returns (PlacementOperationV1);
+  rpc GetPlacementOperation(GetPlacementOperationRequestV1) returns (PlacementOperationV1);
+  rpc CancelPlacementOperation(MutatePlacementOperationRequestV1) returns (PlacementOperationV1);
+  rpc RepairPlacementOperation(RepairPlacementOperationRequestV1) returns (PlacementOperationV1);
+}
+
+message SelectAndReserveRequestV1 {
+  PlacementOperationKeyV1 operation = 1;
+  SignedPlacementIntentV1 intent = 2;
+  string idempotency_key = 3;
+  Digest32 canonical_request_digest = 4;
+}
+
+message ArmReservationRequestV1 {
+  PlacementOperationKeyV1 operation = 1;
+  SignedReservationArmIntentV1 intent = 2;
+  string idempotency_key = 3;
+  Digest32 canonical_request_digest = 4;
+}
+
+message ApplyBindingOutcomeRequestV1 {
+  PlacementOperationKeyV1 operation = 1;
+  SignedBindingOutcomeV1 outcome = 2;
+  string idempotency_key = 3;
+  Digest32 canonical_request_digest = 4;
+}
+
+message ApplySourceReservationReleaseRequestV1 {
+  PlacementOperationKeyV1 operation = 1;
+  SignedSourceReservationReleasePermitV1 permit = 2;
+  string idempotency_key = 3;
+  Digest32 canonical_request_digest = 4;
+}
+
+message FinalizeReservationCommitPermitRequestV1 {
+  PlacementOperationKeyV1 operation = 1;
+  SignedReservationArmReceiptV1 home_arm_receipt = 2;
+  SignedReservationArmReceiptV1 warm_recovery_arm_receipt = 3;
+  string idempotency_key = 4;
+  Digest32 canonical_request_digest = 5;
+}
+
+message ScheduleMovementRequestV1 {
+  PlacementOperationKeyV1 operation = 1;
+  SignedPlacementDecisionV1 placement_decision = 2;
+  SignedReservationCommitPermitV1 reservation_commit_permit = 3;
+  BindingOutcomeQueryRefV1 binding_operation = 4;
+  reserved 5;
+  reserved "participant_manifest_digest";
+  reserved 6;
+  reserved "budget_request_digest";
+  uint64 requested_deadline_unix_seconds = 7;
+  string idempotency_key = 8;
+  Digest32 canonical_request_digest = 9;
+  SignedBindingParticipantManifestCommitmentV1 participant_manifest = 10;
+  MovementBudgetRequestV1 budget_request = 11;
+}
+
+message GetPlacementOperationRequestV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  string operation_id = 2;
+}
+
+message MutatePlacementOperationRequestV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  string operation_id = 2;
+  uint64 expected_revision = 3;
+  string idempotency_key = 4;
+  Digest32 canonical_request_digest = 5;
+}
+
+message RepairPlacementOperationRequestV1 {
+  PlacementOperationKeyV1 repair_operation = 1;
+  PlacementOperationKeyV1 target_operation = 2;
+  uint64 expected_target_revision = 3;
+  reserved 4;
+  reserved "scope";
+  SignedPlacementRepairAuthorityV1 authority = 5;
+  string idempotency_key = 6;
+  Digest32 canonical_request_digest = 7;
+}
