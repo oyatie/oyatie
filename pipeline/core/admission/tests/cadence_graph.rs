@@ -115,10 +115,23 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("req \"${{ needs.layout.result }}\""));
     assert!(y.contains("req \"${{ needs.clippy.result }}\""));
     assert!(y.contains("uses: oyatie/oyatie/.github/workflows/live-postgres.yml@dev"));
-    assert!(
-        !y.contains("uses: ./.github/workflows/live-postgres.yml"),
-        "the ruleset-required caller must not resolve reusable workflow code from the candidate"
-    );
+    // THE SHAPE, NOT ONE FILENAME. This law existed and named
+    // `live-postgres.yml` exactly, so a second caller added with a different
+    // filename walked straight past it and wedged the repository: the
+    // required workflow is pinned at `refs/heads/dev`, a `./` reference
+    // resolves against the candidate, and every presubmit run after it landed
+    // ended in `startup_failure` — including the runs of any PR that would
+    // fix it. A law that pins a value cannot see the next instance of its
+    // own violation.
+    for (line_number, line) in y.lines().enumerate() {
+        assert!(
+            !line.trim_start().starts_with("uses: ./"),
+            "line {}: the ruleset-required caller must not resolve reusable \
+             workflow code from the candidate; call it as \
+             `oyatie/oyatie/.github/workflows/<name>.yml@dev`",
+            line_number + 1
+        );
+    }
     assert!(y.contains("cargo-nextest nextest run"));
     assert!(!y.contains("cargo nextest run"));
     assert!(y.contains("name: occupancy (path-set)\n    if: github.event_name == 'pull_request'"));
