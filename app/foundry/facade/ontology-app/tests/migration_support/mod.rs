@@ -10,9 +10,28 @@ use axum::body::Body;
 use axum::http::{Request, StatusCode};
 use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
-    EntityTypeDefinition, EntityTypeId, EntityTypePropertyDefinition, PropertyTier,
+    EntityTypeDefinition, EntityTypeId, EntityTypePropertyDefinition, PropertyTier, ScalarType,
+    ValueTypeDeclaration,
 };
 use foundry_ontology_app::{AppState, Config, compose};
+
+/// A property with a DECLARED scalar type.
+///
+/// An untyped declaration carries the legacy String contract, under which
+/// every non-string default is incompatible and they all refuse ALIKE — so an
+/// untyped target cannot tell one wire default variant from another. A typed
+/// one can: `check_transform` compares the declared scalar against
+/// `DefaultValue::scalar_type()`, which is a function of the VARIANT, not of
+/// the value it carries.
+pub(crate) fn scalar_of_type(
+    name: &str,
+    class: PrivacyDataClass,
+    scalar_type: ScalarType,
+) -> EntityTypePropertyDefinition {
+    let mut property = scalar(name, class, false);
+    property.value_type = Some(ValueTypeDeclaration::Scalar(scalar_type));
+    property
+}
 
 pub(crate) fn scalar(
     name: &str,
@@ -57,6 +76,7 @@ pub(crate) fn state_with_two_revisions(config: &Config) -> AppState {
                         scalar("name", internal, true),
                         scalar("note", internal, false),
                         scalar("nickname", internal, false),
+                        scalar_of_type("counter", internal, ScalarType::Integer),
                     ],
                     2,
                 )

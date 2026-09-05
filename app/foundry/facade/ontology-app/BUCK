@@ -276,7 +276,6 @@ rust_test(
         "tests/facade_support/mod.rs",
         "tests/migration_attest_refuses_a_malformed_plan.rs",
         "tests/migration_support/mod.rs",
-        "tests/out_of_band/mod.rs",
     ],
     crate = "migration_attest_refuses_a_malformed_plan",
     crate_root = "tests/migration_attest_refuses_a_malformed_plan.rs",

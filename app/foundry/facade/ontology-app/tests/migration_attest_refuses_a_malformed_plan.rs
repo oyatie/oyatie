@@ -9,7 +9,6 @@
 
 mod facade_support;
 mod migration_support;
-mod out_of_band;
 
 use axum::http::StatusCode;
 use facade_support::{Fixture, Session, scrape, value_of};
@@ -190,4 +189,87 @@ async fn a_default_does_not_overwrite_a_value_the_object_already_holds() {
         body.contains(r#""fixpoint":true"#) && body.contains(r#""pending":[]"#),
         "the object holds a value already, so the default is not owed it: {body}"
     );
+}
+
+/// A default's VARIANT is checked against the target's declared type.
+///
+/// The variant, not the value it carries: `check_transform` compares the
+/// declared scalar against `DefaultValue::scalar_type()`. An untyped target
+/// cannot see this at all — it carries the legacy String contract, so every
+/// non-string default is incompatible and they all refuse alike. `counter` is
+/// declared `Integer` precisely so the arms stop being interchangeable, and a
+/// timestamp default into it must refuse while an integer default is admitted.
+#[tokio::test]
+async fn a_default_whose_variant_does_not_match_the_declared_type_is_refused() {
+    let fixture = Fixture::new("attest-typed-default-wrong");
+    let session = Session::from_state(state_with_two_revisions(&fixture.config()));
+    let plan = plan_for("ten_acme").replace(
+        r#"{"kind":"copy_as","from":"note","to":"nickname"}"#,
+        r#"{"kind":"default_to","to":"counter","value":{"type":"timestamp","epoch_millis":5}}"#,
+    );
+
+    let (status, body) = attest(&session, Some(fixture.operator_token()), &plan).await;
+
+    assert_eq!(status, StatusCode::BAD_REQUEST, "{body}");
+    assert!(
+        body.contains("TypeIncompatible"),
+        "a timestamp is not an integer, and the registry is what says so: {body}"
+    );
+}
+
+/// The control for the test above: the matching variant IS admitted, so the
+/// refusal there is the type mismatch and not the typed target itself.
+#[tokio::test]
+async fn a_default_whose_variant_matches_the_declared_type_is_admitted() {
+    let fixture = Fixture::new("attest-typed-default-right");
+    let session = Session::from_state(state_with_two_revisions(&fixture.config()));
+    let plan = plan_for("ten_acme").replace(
+        r#"{"kind":"copy_as","from":"note","to":"nickname"}"#,
+        r#"{"kind":"default_to","to":"counter","value":{"type":"integer","value":5}}"#,
+    );
+
+    let (status, body) = attest(&session, Some(fixture.operator_token()), &plan).await;
+
+    assert_eq!(status, StatusCode::OK, "{body}");
+}
+
+/// An unknown FIELD inside a default is refused — which is not what an
+/// unknown TYPE tests.
+///
+/// A bad `type` is rejected by tag matching whether or not
+/// `deny_unknown_fields` is present on the enum, so the unknown-type test
+/// above pins nothing about the attribute. This carries a well-formed
+/// `integer` default with a stray `epoch_millis` alongside it: exactly the
+/// shape a half-edited plan takes, and admitted silently without the
+/// attribute the F1 fix added to both wire enums.
+#[tokio::test]
+async fn a_default_carrying_a_field_from_another_variant_is_refused() {
+    let fixture = Fixture::new("attest-default-mixed-fields");
+    let session = Session::from_state(state_with_two_revisions(&fixture.config()));
+    let plan = plan_for("ten_acme").replace(
+        r#"{"kind":"copy_as","from":"note","to":"nickname"}"#,
+        r#"{"kind":"default_to","to":"counter","value":{"type":"integer","value":5,"epoch_millis":9}}"#,
+    );
+
+    let (status, body) = attest(&session, Some(fixture.operator_token()), &plan).await;
+
+    assert_eq!(status, StatusCode::BAD_REQUEST, "{body}");
+    assert!(!body.contains(r#""fixpoint""#), "{body}");
+}
+
+/// The same law on the transform enum, which the F1 fix also widened and
+/// which nothing else pins.
+#[tokio::test]
+async fn a_transform_carrying_a_field_from_another_kind_is_refused() {
+    let fixture = Fixture::new("attest-transform-mixed-fields");
+    let session = Session::from_state(state_with_two_revisions(&fixture.config()));
+    let plan = plan_for("ten_acme").replace(
+        r#"{"kind":"copy_as","from":"note","to":"nickname"}"#,
+        r#"{"kind":"copy_as","from":"note","to":"nickname","conversion":"integer_to_string"}"#,
+    );
+
+    let (status, body) = attest(&session, Some(fixture.operator_token()), &plan).await;
+
+    assert_eq!(status, StatusCode::BAD_REQUEST, "{body}");
+    assert!(!body.contains(r#""fixpoint""#), "{body}");
 }

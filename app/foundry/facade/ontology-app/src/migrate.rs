@@ -124,13 +124,20 @@ impl WireDefault {
 }
 
 impl WireTransform {
-    /// The VALUE a `DefaultTo` carries is not observable through this surface,
-    /// and that is a property of the attestation rather than a gap in its
-    /// tests. `computed_target` returns early when the target property is
-    /// present — a default fills an absence and never overwrites — and when it
-    /// is absent, any value at all yields a computed target. So `pending`
-    /// cannot depend on which value the arm produced, and no test here can
-    /// distinguish a correct mapping from one carrying the wrong constant.
+    /// The VARIANT is observable here; the VALUE it carries is not. The
+    /// distinction is exact and was got wrong once, so it is written down.
+    ///
+    /// The variant is checked: `check_transform` compares the target's
+    /// declared scalar against `DefaultValue::scalar_type()`, which is a
+    /// function of the variant alone. That check is invisible against an
+    /// UNTYPED target, which carries the legacy String contract under which
+    /// every non-string default is incompatible and they all refuse alike —
+    /// so the suite declares a typed property for the arms to be told apart.
+    ///
+    /// The value is not: `computed_target` returns early when the target
+    /// property is present — a default fills an absence and never overwrites
+    /// — and when it is absent, any value at all yields a computed target. So
+    /// `pending` cannot depend on which constant the arm produced.
     /// `POST /v1/migrations/run` is where that becomes observable, because
     /// there the value is written; it is pinned there, not pretended here.
     fn into_domain(self) -> Result<UpcastTransform, &'static str> {
