@@ -272,7 +272,7 @@ jobs:
   build-cache-qualification:
     needs: [layout]
     permissions: {contents: read}
-    uses: ./.github/workflows/build-cache-qualification.yml
+    uses: oyatie/oyatie/.github/workflows/build-cache-qualification.yml@dev
   presubmit:
     name: presubmit
     runs-on: ubuntu-24.04
