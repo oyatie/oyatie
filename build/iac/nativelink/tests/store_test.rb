@@ -1,48 +1,6 @@
-require 'base64'
-require 'digest'
-require 'fileutils'
-require 'minitest/autorun'
-require 'net/http'
-require 'securerandom'
-require 'socket'
-require 'timeout'
-require 'tmpdir'
-require_relative 'helper'
+require_relative 'runtime_helper'
 
-class CacheStoreTest < Minitest::Test
-  def setup
-    @native = ENV.fetch('NATIVELINK_BIN')
-    @grpcurl = ENV.fetch('GRPCURL_BIN')
-    @remote_apis = ENV.fetch('REMOTE_APIS_DIR')
-    @googleapis = ENV.fetch('GOOGLEAPIS_DIR')
-    version, error, status = Open3.capture3(@native, '--version')
-    assert status.success?, error
-    assert_includes version, '1.6.6'
-    @scratch = Dir.mktmpdir('oyatie-cache-store-')
-    @rpc_port = unused_port
-    @health_port = unused_port
-    config = CacheChart.native_config
-    config.fetch('stores').each do |store|
-      next unless store.key?('filesystem')
-
-      filesystem = store.fetch('filesystem')
-      %w[content_path temp_path].each do |key|
-        filesystem[key] = filesystem.fetch(key).sub('/cache', @scratch)
-      end
-      filesystem.fetch('eviction_policy')['max_count'] = 3
-    end
-    config.fetch('servers')[0].fetch('listener').fetch('http')['socket_address'] = "127.0.0.1:#{@rpc_port}"
-    config.fetch('servers')[1].fetch('listener').fetch('http')['socket_address'] = "127.0.0.1:#{@health_port}"
-    @config_path = File.join(@scratch, 'config.json')
-    File.write(@config_path, JSON.generate(config))
-    start_server
-  end
-
-  def teardown
-    stop_server
-    FileUtils.remove_entry_secure(@scratch) if @scratch && File.directory?(@scratch)
-  end
-
+class CacheStoreTest < CacheRuntimeTest
   def test_real_store_integrity_streaming_restart_and_stale_action_rejection
     capabilities = rpc('Capabilities/GetCapabilities', instanceName: 'main')
     refute capabilities.dig('executionCapabilities', 'execEnabled')
@@ -97,69 +55,7 @@ class CacheStoreTest < Minitest::Test
 
   private
 
-  def unused_port
-    TCPServer.open('127.0.0.1', 0) { |socket| socket.addr[1] }
-  end
-
-  def start_server
-    log_path = File.join(@scratch, 'server.log')
-    @pid = Process.spawn(@native, @config_path, out: log_path, err: [:child, :out])
-    Timeout.timeout(20) do
-      loop do
-        begin
-          response = Net::HTTP.start('127.0.0.1', @health_port, nil, open_timeout: 1, read_timeout: 1) { |http| http.get('/status') }
-          break if response.code == '200'
-        rescue Errno::ECONNREFUSED, Errno::ECONNRESET, EOFError, Net::ReadTimeout
-          # Only bounded local readiness polling; no remote endpoints are contacted.
-        end
-        sleep 0.1
-      end
-    end
-  rescue Timeout::Error
-    flunk "NativeLink did not become ready: #{File.read(log_path)}"
-  end
-
-  def stop_server
-    return unless @pid
-
-    Process.kill('TERM', @pid)
-    Timeout.timeout(5) { Process.wait(@pid) }
-  rescue Errno::ESRCH, Errno::ECHILD
-    nil
-  rescue Timeout::Error
-    Process.kill('KILL', @pid)
-    Process.wait(@pid)
-  ensure
-    @pid = nil
-  end
-
-  def blob_digest(data)
-    { hash: Digest::SHA256.hexdigest(data), sizeBytes: data.bytesize }
-  end
-
-  def write_blob(data)
-    response = rpc('ContentAddressableStorage/BatchUpdateBlobs',
-                   instanceName: 'main', requests: [{ digest: blob_digest(data), data: Base64.strict_encode64(data) }])
-    assert_equal 0, response.fetch('responses')[0].fetch('status').fetch('code', 0)
-  end
-
-  def read_blob(digest)
-    response = rpc('ContentAddressableStorage/BatchReadBlobs', instanceName: 'main', digests: [digest])
-    entry = response.fetch('responses')[0]
-    assert_equal 0, entry.fetch('status').fetch('code', 0)
-    Base64.strict_decode64(entry.fetch('data'))
-  end
-
-  def rpc(method, request)
-    output, error, status = invoke("build.bazel.remote.execution.v2.#{method}", JSON.generate(request))
-    assert status.success?, error
-    JSON.parse(output)
-  end
-
-  def invoke(method, input)
-    proto = method.start_with?('google.bytestream.') ? 'google/bytestream/bytestream.proto' : 'build/bazel/remote/execution/v2/remote_execution.proto'
-    Open3.capture3(@grpcurl, '-plaintext', '-max-time', '15',
-                   '-import-path', @remote_apis, '-import-path', @googleapis,
-                   '-proto', proto, '-d', '@', "127.0.0.1:#{@rpc_port}", method, stdin_data: input)
+  def object_limit
+    3
   end
 end

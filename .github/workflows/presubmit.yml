@@ -6,13 +6,8 @@ on:
     types: [opened, reopened, synchronize]
   merge_group:
     types: [checks_requested]
-permissions:
-  contents: read
-  pull-requests: read
-env:
-  CARGO_PROFILE_DEV_DEBUG: "0"
-  CARGO_PROFILE_TEST_DEBUG: "0"
-  CARGO_INCREMENTAL: "0"
+permissions: {contents: read, pull-requests: read}
+env: {CARGO_PROFILE_DEV_DEBUG: "0", CARGO_PROFILE_TEST_DEBUG: "0", CARGO_INCREMENTAL: "0"}
 jobs:
   layout:
     name: repository layout
@@ -271,11 +266,15 @@ jobs:
     with:
       run_backbone: ${{ needs.change-gates.outputs.backbone_postgres == 'true' }}
       run_compute_lifecycle: ${{ needs.change-gates.outputs.compute_lifecycle_postgres == 'true' }}
+  build-cache-qualification:
+    needs: [layout]
+    permissions: {contents: read}
+    uses: ./.github/workflows/build-cache-qualification.yml
   presubmit:
     name: presubmit
     runs-on: ubuntu-24.04
     if: always()
-    needs: [layout, occupancy, lint, clippy, test, deny, change-gates, reindeer-source-qualification, live-postgres]
+    needs: [layout, occupancy, lint, clippy, test, deny, change-gates, reindeer-source-qualification, live-postgres, build-cache-qualification]
     steps:
       - name: Fan-in verdict
         env:
@@ -295,4 +294,4 @@ jobs:
           occ() {
             if [ "${EVENT}" = "pull_request" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
           }
-          gate "${BACKBONE_POSTGRES}" && gate "${COMPUTE_LIFECYCLE_POSTGRES}" && gate "${REINDEER}" && req "${{ needs.layout.result }}" && occ "${{ needs.occupancy.result }}" && req "${{ needs.lint.result }}" && req "${{ needs.clippy.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.change-gates.result }}" && reindeer "${{ needs.reindeer-source-qualification.result }}" && pg "${{ needs.live-postgres.result }}" && exit 0 || exit 1
+          gate "${BACKBONE_POSTGRES}" && gate "${COMPUTE_LIFECYCLE_POSTGRES}" && gate "${REINDEER}" && req "${{ needs.layout.result }}" && occ "${{ needs.occupancy.result }}" && req "${{ needs.lint.result }}" && req "${{ needs.clippy.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.change-gates.result }}" && reindeer "${{ needs.reindeer-source-qualification.result }}" && pg "${{ needs.live-postgres.result }}" && req "${{ needs.build-cache-qualification.result }}" && exit 0 || exit 1
