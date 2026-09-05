@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 
+use policy_bundle_content::PolicySource;
 use policy_cedar_domain::rebac::RebacTupleStore;
 use policy_decision_domain::{DecisionError, DecisionInputs, JoinedDecision};
 use policy_decision_service_kernel::{BundleStoreError, PolicyBundleStore};
@@ -10,8 +11,6 @@ use policy_pdp_kernel::{
 };
 use shared_platform_contracts_kernel::pdp::{AuthorizationRequest, PolicyVersion};
 use shared_ulid_id_kernel::IdGenerator;
-
-use crate::PolicySource;
 
 #[derive(Debug)]
 pub enum EngineLoadError {

@@ -1,14 +1,18 @@
+//! Authored policy-bundle content identity and candidate construction.
+#![forbid(unsafe_code)]
+
 use std::collections::BTreeMap;
 
-use policy_pdp_kernel::{EntitySlice, PolicyBundle, TemplateLink, TemplateSrc};
+use policy_pdp_kernel::{PolicyBundle, TemplateLink, TemplateSrc};
 use serde::{Deserialize, Serialize};
 use shared_audit_digest_adapter_awslc::Sha256Digester;
 use shared_audit_event_kernel::Digester;
-use shared_platform_contracts_kernel::pdp::{
-    AuthorizationRequest, Decision, Obligation, PolicyVersion,
-};
+use shared_platform_contracts_kernel::pdp::PolicyVersion;
 
-use crate::QualificationError;
+#[derive(Debug)]
+pub enum ContentIdentityError {
+    Encoding { detail: String },
+}
 
 /// Complete authored serving inputs. Version is derived, never caller assigned.
 /// Source whitespace and vector order are significant; map insertion order is not.
@@ -29,14 +33,18 @@ impl PolicySource {
     ///
     /// # Errors
     /// Returns a serialization or version-contract refusal.
-    pub fn content_version(&self) -> Result<PolicyVersion, QualificationError> {
+    pub fn content_version(&self) -> Result<PolicyVersion, ContentIdentityError> {
         let digest = content_digest(b"oyatie-policy-source/v1\0", self)?;
-        PolicyVersion::new(digest).map_err(|violations| QualificationError::Encoding {
+        PolicyVersion::new(digest).map_err(|violations| ContentIdentityError::Encoding {
             detail: format!("content identity violates version contract: {violations:?}"),
         })
     }
 
-    pub(crate) fn candidate(&self) -> Result<PolicyBundle, QualificationError> {
+    /// Materialize the complete serving candidate with its derived version.
+    ///
+    /// # Errors
+    /// Returns a content-identity refusal.
+    pub fn candidate(&self) -> Result<PolicyBundle, ContentIdentityError> {
         Ok(PolicyBundle {
             version: self.content_version()?,
             schema_src: self.schema_src.clone(),
@@ -62,38 +70,16 @@ impl From<&PolicyBundle> for PolicySource {
     }
 }
 
-/// Expected complete enforcement content; random correlation IDs are excluded.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct DecisionExpectation {
-    pub decision: Decision,
-    pub determining_policy_ids: Vec<String>,
-    pub obligations: Vec<Obligation>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct PolicyCase {
-    pub name: String,
-    pub request: AuthorizationRequest,
-    pub entities: EntitySlice,
-    pub expected: DecisionExpectation,
-}
-
-/// Closed source-and-tests input to offline qualification.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct PolicyProject {
-    pub source: PolicySource,
-    pub cases: Vec<PolicyCase>,
-}
-
-pub(crate) fn content_digest(
+/// Compute a domain-separated digest over the serialized value.
+///
+/// # Errors
+/// Returns the serializer's refusal with its original detail.
+pub fn content_digest(
     domain: &[u8],
     value: &impl Serialize,
-) -> Result<String, QualificationError> {
+) -> Result<String, ContentIdentityError> {
     let mut bytes = domain.to_vec();
-    serde_json::to_writer(&mut bytes, value).map_err(|error| QualificationError::Encoding {
+    serde_json::to_writer(&mut bytes, value).map_err(|error| ContentIdentityError::Encoding {
         detail: error.to_string(),
     })?;
     Ok(Sha256Digester.digest_hex(&bytes))

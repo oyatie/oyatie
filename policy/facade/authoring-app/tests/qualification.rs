@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 mod support;
 
-use policy_engine_app::{PolicyProject, QualificationError};
+use policy_authoring_app::{PolicyProject, QualificationError};
 use shared_platform_contracts_kernel::pdp::Decision;
 use support::*;
 

@@ -1,6 +1,7 @@
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
+use policy_bundle_content::{ContentIdentityError, content_digest};
 use policy_pdp_bundle_file::{BundlePublishError, FilePolicyBundleStore};
 use policy_pdp_cedar::CedarPdp;
 use policy_pdp_kernel::{PdpError, PolicyBundle, PolicyDecisionPoint};
@@ -9,7 +10,6 @@ use shared_audit_event_kernel::ChainSigner;
 use shared_platform_contracts_kernel::pdp::PolicyVersion;
 use shared_ulid_id_kernel::IdGenerator;
 
-use crate::source::content_digest;
 use crate::{DecisionExpectation, PolicyProject};
 
 #[derive(Debug)]
@@ -70,7 +70,10 @@ impl PolicyProject {
                 });
             }
         }
-        let bundle = self.source.candidate()?;
+        let bundle = self
+            .source
+            .candidate()
+            .map_err(map_content_identity_error)?;
         let engine = CedarPdp::load(&bundle, id_gen, 0).map_err(QualificationError::Admission)?;
         for case in &self.cases {
             let outcome = engine
@@ -94,10 +97,17 @@ impl PolicyProject {
         }
         let report = QualificationReport {
             policy_version: bundle.version.clone(),
-            qualification_digest: content_digest(b"oyatie-policy-qualification/v1\0", self)?,
+            qualification_digest: content_digest(b"oyatie-policy-qualification/v1\0", self)
+                .map_err(map_content_identity_error)?,
             passed_cases: self.cases.len(),
         };
         Ok(PreparedPolicy { bundle, report })
+    }
+}
+
+fn map_content_identity_error(error: ContentIdentityError) -> QualificationError {
+    match error {
+        ContentIdentityError::Encoding { detail } => QualificationError::Encoding { detail },
     }
 }
 
