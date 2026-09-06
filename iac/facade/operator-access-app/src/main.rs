@@ -5,12 +5,12 @@ fn execute() -> Result<(), AccessError> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args == ["--help"] {
         println!(
-            "iac-operator-access-app status <profile-name>\nProfiles: $OYATIE_ACCESS_PROFILE_DIR/<name>.json or $HOME/.config/oyatie/operator-access/<name>.json\nRead-only Talos/Kubernetes status; no provisioning or reset. Requires oci, age, tar, ssh, talosctl, kubectl.\nCredentials stay in memory. Bastion sessions expire after 30 minutes even if cleanup is interrupted by SIGKILL or host loss."
+            "iac-operator-access-app <status|inspect> <profile-name>\nProfiles: $OYATIE_ACCESS_PROFILE_DIR/<name>.json or $HOME/.config/oyatie/operator-access/<name>.json\nRead-only status or fixed Kubernetes/Talos disk inventory; no provisioning or reset. Inspection reports observations, not deployment readiness. Requires oci, age, tar, ssh, talosctl, kubectl.\nCredentials stay in memory. Bastion sessions expire after 30 minutes even if cleanup is interrupted by SIGKILL or host loss."
         );
         return Ok(());
     }
     if args.len() != 2
-        || args[0] != "status"
+        || !matches!(args[0].as_str(), "status" | "inspect")
         || args[1].is_empty()
         || !args[1]
             .bytes()
@@ -28,7 +28,11 @@ fn execute() -> Result<(), AccessError> {
     let profile: Profile =
         serde_json::from_slice(&bytes).map_err(|_| AccessError::InvalidProfile)?;
     runtime::install_signal_handlers()?;
-    let report = runtime::status(&profile)?;
+    let report = if args[0] == "inspect" {
+        runtime::inspect(&profile)?
+    } else {
+        runtime::status(&profile)?
+    };
     println!("{report}");
     Ok(())
 }
