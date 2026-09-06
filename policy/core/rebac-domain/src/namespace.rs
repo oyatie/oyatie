@@ -5,12 +5,13 @@
 //! expands to. This is the binding, and it is deny-by-omission: a relation
 //! with no entry grants nothing rather than falling back to direct tuples.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet, btree_map::Entry};
 
 use policy_cedar_domain::rebac::{RebacRelation, UsersetRewrite};
 
 use crate::error::ExpansionError;
 use crate::stratify::assert_stratified;
+use crate::{NamespaceCompileError, compile::check_references};
 
 /// `(object_type, relation)` → the rewrite that defines it.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -19,6 +20,46 @@ pub struct NamespaceConfig {
 }
 
 impl NamespaceConfig {
+    /// Compile complete fragments without implicit replacement. Unlike
+    /// [`Self::define`], even identical duplicate definitions are refused.
+    /// Forward references are resolved after all definitions are collected.
+    ///
+    /// Same-type computed relations and tupleset source relations must exist.
+    /// Tuple target types are not declared by the rewrite vocabulary, so their
+    /// computed relations remain runtime checks, not a compilation guarantee.
+    ///
+    /// # Errors
+    /// Duplicate definitions, unknown local references, empty composites, or
+    /// existing model stratification failures. Duplicates take precedence and
+    /// are selected in key order; other checks use key order then authored
+    /// left-to-right rewrite order, before stratification.
+    pub fn compile(
+        definitions: impl IntoIterator<Item = (String, RebacRelation, UsersetRewrite)>,
+    ) -> Result<ValidatedNamespace, NamespaceCompileError> {
+        let mut relations = BTreeMap::new();
+        let mut duplicates = BTreeSet::new();
+        for (object_type, relation, rewrite) in definitions {
+            match relations.entry((object_type, relation.as_str().to_owned())) {
+                Entry::Vacant(entry) => {
+                    entry.insert(rewrite);
+                }
+                Entry::Occupied(entry) => {
+                    duplicates.insert(entry.key().clone());
+                }
+            }
+        }
+        if let Some((object_type, relation)) = duplicates.into_iter().next() {
+            return Err(NamespaceCompileError::DuplicateRelation {
+                object_type,
+                relation,
+            });
+        }
+        check_references(&relations)?;
+        Self { relations }
+            .validated()
+            .map_err(NamespaceCompileError::Model)
+    }
+
     #[must_use]
     pub fn new() -> Self {
         Self::default()

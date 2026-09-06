@@ -10,6 +10,21 @@ rust_library(
 )
 
 rust_test(
+    name = "policy-rebac-domain-model-compilation",
+    srcs = [
+        "tests/model_compilation.rs",
+        "tests/model_compilation_support/mod.rs",
+    ],
+    crate = "model_compilation",
+    crate_root = "tests/model_compilation.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":policy-rebac-domain",
+        "//policy/core/cedar-domain:policy-cedar-domain",
+    ],
+)
+
+rust_test(
     name = "policy-rebac-domain-session-consistency",
     srcs = ["tests/session_consistency.rs"],
     crate = "session_consistency",

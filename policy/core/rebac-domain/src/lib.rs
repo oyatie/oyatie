@@ -14,6 +14,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 mod bounds;
+mod compile;
+mod compile_error;
 mod error;
 mod expander;
 mod namespace;
@@ -23,6 +25,7 @@ mod stratify;
 mod walk;
 
 pub use bounds::ExpansionBounds;
+pub use compile_error::NamespaceCompileError;
 pub use error::ExpansionError;
 pub use namespace::{NamespaceConfig, ValidatedNamespace};
 pub use request::Expander;
