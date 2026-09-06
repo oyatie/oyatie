@@ -7,6 +7,7 @@
 //! per-object idempotency key can never overflow the envelope cap.
 
 mod attest;
+mod dependencies;
 mod runner;
 mod value;
 
@@ -96,6 +97,8 @@ pub enum PlanError {
     DuplicateTarget { name: String },
     /// The transform is not total over the declared types.
     TypeIncompatible { target: String },
+    /// Cross-property dependencies must be acyclic to reach a fixpoint.
+    CyclicTransforms,
 }
 
 impl MigrationPlan {
@@ -140,7 +143,7 @@ impl MigrationPlan {
             }
             check_transform(transform, from_definition, primary_key, target)?;
         }
-        Ok(())
+        dependencies::check(&self.transforms)
     }
 
     /// FNV-1a-64 over the plan's canonical bytes, as 16 hex characters.

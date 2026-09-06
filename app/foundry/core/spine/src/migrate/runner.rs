@@ -13,7 +13,7 @@ use data_ontology_kernel::{
     EntityTypeDefinition, EntityTypeId, ObjectEntity, PropertyValue,
 };
 use foundry_edits::{EditSet, OntologyEdit, WireProperty, WireValue};
-use foundry_records_draft::RecordsLog;
+use foundry_records_draft::{RecordsLog, RecordsLogError};
 
 use crate::boundary;
 use crate::state::ProjectionState;
@@ -55,7 +55,13 @@ pub struct MigrationStatus {
     /// Submissions a writer gate refused (each is on the denial trail).
     pub refused: u64, // data_class: INTERNAL_ONLY
     /// Appends the log refused as divergent idempotency-key reuse.
-    pub conflicted: u64, // data_class: INTERNAL_ONLY
+    pub conflicted: u64,
+    /// Appends the log could not accept at all — an adapter fault, not a
+    /// verdict about the submission. Held apart from `conflicted` because
+    /// this crate's own law says so: a storage fault reported as a key
+    /// conflict is "a cause that did not occur, blame in the wrong place,
+    /// and advice against the retry that would work".
+    pub unavailable: u64, // data_class: INTERNAL_ONLY
     /// Entries that appended but poisoned at apply.
     pub poisoned: u64, // data_class: INTERNAL_ONLY
     /// `pending == 0` over a full rescan — the plan's value fixpoint.
@@ -126,6 +132,7 @@ pub fn run_to_fixpoint(
         pending: 0,
         refused: 0,
         conflicted: 0,
+        unavailable: 0,
         poisoned: 0,
         fixpoint: false,
     };
@@ -171,14 +178,27 @@ pub fn run_to_fixpoint(
                     progressed = true;
                 }
                 Ok(ApplyOutcome::Poisoned { .. }) => {
+                    // NOT progress. A poison stands in the log and advances
+                    // the fold, but it never binds the object: `apply_sealed`
+                    // leaves `bindings` untouched, so `plan_owes` still owes
+                    // it, the same drift-sensitive key is re-derived, the
+                    // byte-identical append deduplicates onto the same
+                    // poisoned ordinal, and the next pass is identical to
+                    // this one. Counting it as progress made this loop
+                    // unbounded — a fixed point of its own body that it
+                    // refused to recognise, holding the tenant lock forever.
+                    // The module's own law says a pass that makes no progress
+                    // stops; a poison is exactly that class.
                     status.poisoned += 1;
-                    progressed = true;
                 }
                 Err(WriteError::Refused(_)) => {
                     status.refused += 1;
                 }
-                Err(WriteError::Log(_)) => {
+                Err(WriteError::Log(RecordsLogError::IdempotencyConflict { .. })) => {
                     status.conflicted += 1;
+                }
+                Err(WriteError::Log(RecordsLogError::Storage { .. })) => {
+                    status.unavailable += 1;
                 }
             }
         }
