@@ -1,0 +1,181 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/capacity.proto";
+import "cell/placement/v1/proof.proto";
+import "tenancy/identity/v1/identity.proto";
+
+message ReservationArmIntentPayloadV1 {
+  uint32 schema_version = 1;
+  PlacementOperationKeyV1 placement_operation = 2;
+  BindingOutcomeQueryRefV1 binding_outcome_query = 3;
+  Digest32 placement_decision_digest = 4;
+  ReservationRefV1 home_reservation = 5;
+  ReservationRefV1 warm_recovery_reservation = 6;
+  Digest32 binding_precondition_digest = 7;
+  Digest32 binding_attempt_digest = 8;
+  ReservationRefV1 reservation_to_arm = 9;
+  Digest32 required_reservation_set_digest = 10;
+  PlacementOperationKeyV1 arm_operation = 11;
+}
+
+message ReservationArmReceiptPayloadV1 {
+  uint32 schema_version = 1;
+  PlacementOperationKeyV1 placement_operation = 2;
+  BindingOutcomeQueryRefV1 binding_outcome_query = 3;
+  Digest32 binding_attempt_digest = 4;
+  Digest32 placement_decision_digest = 5;
+  ReservationRefV1 reservation = 6;
+  Digest32 required_reservation_set_digest = 7;
+  uint64 armed_revision = 8;
+  uint64 armed_at_unix_seconds = 9;
+  PlacementOperationKeyV1 arm_operation = 10;
+}
+
+message SignedReservationArmReceiptV1 {
+  ReservationArmReceiptPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message SignedReservationArmIntentV1 {
+  ReservationArmIntentPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message ReservationCommitPermitPayloadV1 {
+  uint32 schema_version = 1;
+  PlacementOperationKeyV1 placement_operation = 2;
+  BindingOutcomeQueryRefV1 binding_outcome_query = 3;
+  Digest32 placement_decision_digest = 4;
+  ReservationRefV1 home_reservation = 5;
+  ReservationRefV1 warm_recovery_reservation = 6;
+  Digest32 binding_precondition_digest = 7;
+  uint64 fully_armed_at_unix_seconds = 8;
+  uint64 outcome_pending_revision = 9;
+  Digest32 binding_attempt_digest = 10;
+  Digest32 required_reservation_set_digest = 11;
+  Digest32 home_arm_receipt_digest = 12;
+  Digest32 warm_recovery_arm_receipt_digest = 13;
+  PlacementOperationKeyV1 permit_operation = 14;
+}
+
+message SignedReservationCommitPermitV1 {
+  ReservationCommitPermitPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+enum BindingAbortCodeV1 {
+  BINDING_ABORT_CODE_V1_UNSPECIFIED = 0;
+  BINDING_ABORT_CODE_V1_PLACEMENT_ABANDONED = 1;
+  BINDING_ABORT_CODE_V1_BINDING_CONFLICT = 2;
+  BINDING_ABORT_CODE_V1_CAPABILITY_PREPARATION_FAILED = 3;
+  BINDING_ABORT_CODE_V1_DEADLINE_EXCEEDED_BEFORE_FENCE = 4;
+}
+
+message BindingCommittedV1 {
+  uint64 binding_generation = 1;
+  uint64 binding_revision = 2;
+  Digest32 binding_record_digest = 3;
+  uint64 committed_at_unix_seconds = 4;
+}
+
+message BindingAbortedV1 {
+  BindingAbortCodeV1 code = 1;
+}
+
+message ReservationOutcomeMemberV1 {
+  ReservationRefV1 reservation = 1;
+  Digest32 arm_receipt_digest = 2;
+}
+
+message BindingOutcomePayloadV1 {
+  uint32 schema_version = 1;
+  tenancy.identity.v1.TenantId tenant_id = 2;
+  string binding_operation_id = 3;
+  Digest32 reservation_commit_permit_digest = 4;
+  Digest32 placement_decision_digest = 5;
+  oneof outcome {
+    BindingCommittedV1 committed = 6;
+    BindingAbortedV1 aborted = 7;
+  }
+  Digest32 binding_attempt_digest = 8;
+  repeated ReservationOutcomeMemberV1 armed_reservations = 9;
+  string tenancy_shard_key = 10;
+  ReservationRefV1 home_reservation = 11;
+  ReservationRefV1 warm_recovery_reservation = 12;
+  Digest32 required_reservation_set_digest = 13;
+}
+
+message SignedBindingOutcomeV1 {
+  BindingOutcomePayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message SourceReservationReleaseIntentV1 {
+  uint32 schema_version = 1;
+  tenancy.identity.v1.TenantId tenant_id = 2;
+  string binding_operation_id = 3;
+  string tenancy_shard_key = 4;
+  uint64 source_binding_generation = 5;
+  uint64 source_binding_revision = 6;
+  Digest32 source_binding_record_digest = 7;
+  uint64 successor_binding_generation = 8;
+  uint64 successor_binding_revision = 9;
+  Digest32 successor_binding_record_digest = 10;
+  Digest32 migration_commit_seal_digest = 11;
+  ReservationRefV1 source_home_reservation = 12;
+  ReservationRefV1 source_warm_recovery_reservation = 13;
+  Digest32 source_reservation_set_digest = 14;
+  Digest32 target_activation_closure_digest = 15;
+  Digest32 source_release_closure_digest = 16;
+  Digest32 routing_convergence_digest = 17;
+  reserved 18, 19;
+  reserved "rollback_window_ended_at_unix_seconds", "permitted_at_unix_seconds";
+  uint64 rollback_policy_generation = 20;
+  Digest32 rollback_policy_digest = 21;
+  uint64 rollback_window_duration_seconds = 22;
+  uint64 successor_binding_committed_at_unix_seconds = 23;
+  uint64 release_not_before_unix_seconds = 24;
+  Digest32 trusted_time_evidence_digest = 25;
+  Digest32 clock_authority_digest = 26;
+  uint64 observed_clock_uncertainty_millis = 27;
+  Digest32 intent_digest = 28;
+}
+
+message SourceReservationReleasePermitPayloadV1 {
+  uint32 schema_version = 1;
+  SourceReservationReleaseIntentV1 intent = 2;
+  uint64 release_issuance_revision = 3;
+  Digest32 release_issuance_record_digest = 4;
+  Digest32 tenancy_commit_attestation_digest = 5;
+  uint64 permitted_at_unix_seconds = 6;
+}
+
+enum TenancyReleaseProofDomainV1 {
+  TENANCY_RELEASE_PROOF_DOMAIN_V1_UNSPECIFIED = 0;
+  TENANCY_RELEASE_PROOF_DOMAIN_V1_SOURCE_RESERVATION_RELEASE_PERMIT = 1;
+}
+
+message TenancyReleaseProofEnvelopeV1 {
+  uint32 schema_version = 1;
+  uint32 signing_format_version = 2;
+  TenancyReleaseProofDomainV1 domain = 3;
+  string producer = 4;
+  ProducerIdV1 audience = 5;
+  string key_id = 6;
+  string nonce = 7;
+  uint64 issued_at_unix_seconds = 8;
+  uint64 expires_at_unix_seconds = 9;
+  Digest32 payload_digest = 10;
+}
+
+message SignedSourceReservationReleasePermitV1 {
+  SourceReservationReleasePermitPayloadV1 payload = 1;
+  TenancyReleaseProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

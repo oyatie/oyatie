@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/capacity.proto";
+import "cell/placement/v1/proof.proto";
+
+message PlacementLocationV1 {
+  string realm = 1;
+  string jurisdiction = 2;
+  string region = 3;
+}
+
+message PlacementPartitionV1 {
+  string realm = 1;
+  string jurisdiction = 2;
+  string region = 3;
+  string pool = 4;
+}
+
+message CorrelationSetRefV1 {
+  string authority = 1;
+  string identifier = 2;
+}
+
+message TopologyDomainKeyV1 {
+  string authority = 1;
+  string kind = 2;
+  string identifier = 3;
+}
+
+message TopologyDomainRefV1 {
+  TopologyDomainKeyV1 key = 1;
+  TopologyDomainKeyV1 parent = 2;
+  repeated CorrelationSetRefV1 correlation_sets = 3;
+}
+
+message FailureScenarioV1 {
+  repeated CorrelationSetRefV1 unavailable_correlation_sets = 1;
+  CapacityVectorV1 required_surviving_capacity = 2;
+}
+
+message ResilienceObjectiveV1 {
+  repeated FailureScenarioV1 scenarios = 1;
+  PlacementLocationV1 scope = 2;
+  Digest32 declared_correlation_set_root_digest = 3;
+  uint64 declared_correlation_set_count = 4;
+  Digest32 ordered_scenario_root_digest = 5;
+  uint64 scenario_count = 6;
+  Digest32 coverage_proof_digest = 7;
+}
