@@ -2,7 +2,7 @@ use crate::{
     BindingAuditRecordV1, BindingIdempotencyRecordV1, BindingOperationRevision, BindingOperationV1,
     BindingPersistenceAuthorityV1, BindingProofConsumptionV1, BindingStoreError,
     BindingWritePrecondition, MigrationFenceClaimV1, SignedWriteFenceV1,
-    SourceFenceDirectiveLedgerV1, VerifiedSourceFencingCompletionV1, VerifiedWriteFence,
+    SourceFenceDirectiveLedgerV1, VerifiedRetiredSourceEffectClosureV1, VerifiedWriteFence,
 };
 
 #[derive(Debug, Eq, PartialEq)]
@@ -11,8 +11,9 @@ pub struct BindingMigrationWriteFenceWriteSetV1 {
     binding_precondition: BindingWritePrecondition,
     expected_operation_revision: BindingOperationRevision,
     migration_fence_claim: MigrationFenceClaimV1,
+    source_authority_retirement: crate::VerifiedServingAuthorityRetirementV1,
     source_fence_directive_ledger: Option<SourceFenceDirectiveLedgerV1>,
-    source_fencing_completion: VerifiedSourceFencingCompletionV1,
+    source_fencing_completion: VerifiedRetiredSourceEffectClosureV1,
     write_fence: VerifiedWriteFence,
     operation: BindingOperationV1,
     idempotency: BindingIdempotencyRecordV1,
@@ -26,8 +27,9 @@ pub struct BindingMigrationWriteFenceWriteSetPartsV1 {
     pub binding_precondition: BindingWritePrecondition,
     pub expected_operation_revision: BindingOperationRevision,
     pub migration_fence_claim: MigrationFenceClaimV1,
+    pub source_authority_retirement: crate::VerifiedServingAuthorityRetirementV1,
     pub source_fence_directive_ledger: Option<SourceFenceDirectiveLedgerV1>,
-    pub source_fencing_completion: VerifiedSourceFencingCompletionV1,
+    pub source_fencing_completion: VerifiedRetiredSourceEffectClosureV1,
     pub write_fence: VerifiedWriteFence,
     pub operation: BindingOperationV1,
     pub idempotency: BindingIdempotencyRecordV1,
@@ -58,6 +60,11 @@ impl BindingMigrationWriteFenceWriteSetV1 {
     }
 
     #[must_use]
+    pub fn source_authority_retirement(&self) -> &crate::VerifiedServingAuthorityRetirementV1 {
+        &self.source_authority_retirement
+    }
+
+    #[must_use]
     pub fn migration_fence_claim(&self) -> &MigrationFenceClaimV1 {
         &self.migration_fence_claim
     }
@@ -68,7 +75,7 @@ impl BindingMigrationWriteFenceWriteSetV1 {
     }
 
     #[must_use]
-    pub fn source_fencing_completion(&self) -> &VerifiedSourceFencingCompletionV1 {
+    pub fn source_fencing_completion(&self) -> &VerifiedRetiredSourceEffectClosureV1 {
         &self.source_fencing_completion
     }
 

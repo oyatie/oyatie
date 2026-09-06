@@ -1,0 +1,22 @@
+syntax = "proto3";
+package tenancy.binding.v1;
+
+import "tenancy/binding/v1/binding_control_contribution_handoff.proto";
+
+import "tenancy/binding/v1/binding_control_contribution.proto";
+
+import "tenancy/binding/v1/serving_authority.proto";
+import "tenancy/binding/v1/cell_index.proto";
+import "cell/placement/v1/drain_seal.proto";
+
+message BindingControlPartitionMutationV1 {
+  TenantControlPartitionRefV1 binding_partition = 1;
+  TenantControlPartitionRefV1 cell_index_partition = 2;
+  TenantControlPartitionRefV1 drain_contributor_partition = 3;
+  CellBindingIndexMutationSetV1 cell_index_mutations = 4;
+  cell.placement.v1.DrainContributorMutationSetV1 drain_mutations = 5;
+  reserved 6;
+  reserved "contribution_projection_outbox";
+  BindingControlContributionOutboxV1 contribution_outbox = 7;
+  BindingControlContributionLimitsV1 contribution_limits = 8;
+}
