@@ -2998,6 +2998,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "iac-operator-access-app"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "libc",
+ "rcgen",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sha2",
+ "x509-parser",
+ "zeroize",
+]
+
+[[package]]
 name = "iac-rest"
 version = "0.1.0"
 dependencies = [
