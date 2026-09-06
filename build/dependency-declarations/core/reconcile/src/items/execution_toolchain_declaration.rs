@@ -85,7 +85,12 @@ fn parse_toolchain(source: &str) -> Result<ParsedToolchain, DeclarationRefusal> 
         .ok_or(DeclarationRefusal::WrongType("toolchain", "table"))?;
     if let Some(field) = table
         .keys()
-        .filter(|field| !matches!(field.as_str(), "channel" | "components" | "profile" | "targets"))
+        .filter(|field| {
+            !matches!(
+                field.as_str(),
+                "channel" | "components" | "profile" | "targets"
+            )
+        })
         .min()
     {
         return Err(DeclarationRefusal::Unknown(format!("toolchain.{field}")));
@@ -97,11 +102,7 @@ fn parse_toolchain(source: &str) -> Result<ParsedToolchain, DeclarationRefusal> 
             .ok_or(DeclarationRefusal::Missing("toolchain.components"))?,
         "toolchain.components",
     )?;
-    let profile = parse_profile(take_string(
-        &mut table,
-        "profile",
-        "toolchain.profile",
-    )?)?;
+    let profile = parse_profile(take_string(&mut table, "profile", "toolchain.profile")?)?;
     let targets = table
         .remove("targets")
         .map(|value| unique_set(value, "toolchain.targets"))
@@ -170,13 +171,9 @@ fn unique_set(
         .ok_or(DeclarationRefusal::WrongType(field, "array of strings"))?;
     let mut unique = BTreeSet::new();
     for value in values {
-        let value = value
-            .as_str()
-            .filter(|value| !value.is_empty())
-            .ok_or(DeclarationRefusal::WrongType(
-                field,
-                "array of non-empty strings",
-            ))?;
+        let value = value.as_str().filter(|value| !value.is_empty()).ok_or(
+            DeclarationRefusal::WrongType(field, "array of non-empty strings"),
+        )?;
         if !unique.insert(value.to_owned()) {
             return Err(DeclarationRefusal::Duplicate(field, value.to_owned()));
         }
