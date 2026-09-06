@@ -1,4 +1,5 @@
 use std::sync::{Arc, Mutex};
+use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -98,6 +99,29 @@ pub struct ServingSnapshot {
     pub active: [usize; 3],
     pub high_water: [usize; 3],
     pub capacity_refusals: [u64; 3],
+    pub events: ServingEvents,
+    pub admission_healthy: bool,
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct ServingEvents {
+    pub request_refusals: u64,
+    pub body_timeouts: u64,
+    pub body_limits: u64,
+    pub handler_panics: u64,
+    pub connection_failures: u64,
+    pub accept_failures: u64,
+    pub drain_deadlines: u64,
+}
+
+pub(crate) enum RuntimeEvent {
+    RequestRefused,
+    BodyTimeout,
+    BodyLimit,
+    HandlerPanic,
+    ConnectionFailure,
+    AcceptFailure,
+    DrainDeadline,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -111,6 +135,7 @@ pub(crate) enum AdmissionRefusal {
 struct State {
     snapshot: ServingSnapshot,
     drain_started: Option<Instant>,
+    quiescence: Option<Waker>,
 }
 
 #[derive(Debug)]
@@ -128,8 +153,11 @@ impl Admission {
                     active: [0; 3],
                     high_water: [0; 3],
                     capacity_refusals: [0; 3],
+                    events: ServingEvents::default(),
+                    admission_healthy: true,
                 },
                 drain_started: None,
+                quiescence: None,
             }),
         })
     }
@@ -180,11 +208,45 @@ impl Admission {
     }
 
     pub(crate) fn snapshot(&self) -> ServingSnapshot {
-        self.state
+        match self.state.lock() {
+            Ok(state) => state.snapshot.clone(),
+            Err(poisoned) => {
+                let mut snapshot = poisoned.into_inner().snapshot.clone();
+                snapshot.admission_healthy = false;
+                snapshot
+            }
+        }
+    }
+
+    pub(crate) fn poll_quiescent(&self, context: &mut Context<'_>) -> Poll<()> {
+        let mut state = self
+            .state
             .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
-            .snapshot
-            .clone()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        state.quiescence = Some(context.waker().clone());
+        if state.snapshot.active == [0; 3] {
+            Poll::Ready(())
+        } else {
+            Poll::Pending
+        }
+    }
+
+    pub(crate) fn record(&self, event: RuntimeEvent) {
+        let mut state = self
+            .state
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        let events = &mut state.snapshot.events;
+        let counter = match event {
+            RuntimeEvent::RequestRefused => &mut events.request_refusals,
+            RuntimeEvent::BodyTimeout => &mut events.body_timeouts,
+            RuntimeEvent::BodyLimit => &mut events.body_limits,
+            RuntimeEvent::HandlerPanic => &mut events.handler_panics,
+            RuntimeEvent::ConnectionFailure => &mut events.connection_failures,
+            RuntimeEvent::AcceptFailure => &mut events.accept_failures,
+            RuntimeEvent::DrainDeadline => &mut events.drain_deadlines,
+        };
+        *counter = counter.saturating_add(1);
     }
 }
 
@@ -203,6 +265,11 @@ impl Drop for Permit {
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner());
         state.snapshot.active[self.budget.index()] -= 1;
+        let quiescence = state.quiescence.take();
+        drop(state);
+        if let Some(waker) = quiescence {
+            waker.wake();
+        }
     }
 }
 

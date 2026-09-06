@@ -24,7 +24,9 @@ mod admission;
 mod execution;
 mod response;
 mod supervisor;
-pub use admission::{InvalidServingLimits, ServingLimits, ServingPhase, ServingSnapshot};
+pub use admission::{
+    InvalidServingLimits, ServingEvents, ServingLimits, ServingPhase, ServingSnapshot,
+};
 pub use supervisor::{ServingControl, ServingOutcome, ServingReport};
 
 use std::collections::BTreeMap;
@@ -557,6 +559,9 @@ pub fn serve_with_signals_on_std_listener(
 mod tests {
     use super::*;
     use http_router_kernel::Router;
+    use hyper::service::service_fn;
+    use hyper_util::rt::TokioIo;
+    use std::convert::Infallible;
 
     fn ok_handler(body: &'static [u8]) -> SyncHandler {
         Arc::new(move |_req: HttpRequest| HttpResponse::new(200).with_body(body.to_vec()))

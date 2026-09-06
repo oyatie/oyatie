@@ -15,8 +15,8 @@ use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::watch;
 use tokio::task::JoinSet;
 
-use crate::admission::{Admission, Budget, Permit};
-use crate::execution::Execution;
+use crate::admission::{Admission, AdmissionRefusal, Budget, Permit, RuntimeEvent};
+use crate::execution::{Execution, ExecutionFailure};
 use crate::{
     HttpRequest, HttpResponse, HyperRuntimeError, MiddlewareChain, Router, ServerConfig,
     ServingLimits, ServingPhase, ServingSnapshot, SyncHandler, collect_hyper_request,
@@ -89,7 +89,13 @@ impl Context {
         let is_http1 = request.version() != hyper::Version::HTTP_2;
         let permit = match self.control.admission.acquire(Budget::Request) {
             Ok(permit) => permit,
-            Err(_) => return refusal(503, is_http1, None),
+            Err(error) => {
+                self.control.admission.record(RuntimeEvent::RequestRefused);
+                if error == AdmissionRefusal::Poisoned {
+                    self.control.request_drain();
+                }
+                return refusal(503, is_http1, None);
+            }
         };
         let deadline = self.control.snapshot().limits.body_deadline;
         let parsed = match tokio::time::timeout(
@@ -99,8 +105,16 @@ impl Context {
         .await
         {
             Ok(Ok(parsed)) => parsed,
-            Ok(Err(error)) => return refusal(error.status_code(), is_http1, Some(permit)),
-            Err(_) => return refusal(408, is_http1, Some(permit)),
+            Ok(Err(error)) => {
+                if matches!(error, HyperRuntimeError::BodyTooLarge { .. }) {
+                    self.control.admission.record(RuntimeEvent::BodyLimit);
+                }
+                return refusal(error.status_code(), is_http1, Some(permit));
+            }
+            Err(_) => {
+                self.control.admission.record(RuntimeEvent::BodyTimeout);
+                return refusal(408, is_http1, Some(permit));
+            }
         };
         let response = match self.execution.submit(
             parsed,
@@ -109,7 +123,19 @@ impl Context {
             permit.clone(),
         ) {
             Ok(response) => response,
-            Err(_) => return refusal(503, is_http1, Some(permit)),
+            Err(error) => {
+                self.control.admission.record(RuntimeEvent::RequestRefused);
+                if !matches!(
+                    error,
+                    ExecutionFailure::Admission(
+                        AdmissionRefusal::Capacity(_) | AdmissionRefusal::Draining
+                    )
+                ) {
+                    self.control.request_drain();
+                    return refusal(500, is_http1, Some(permit));
+                }
+                return refusal(503, is_http1, Some(permit));
+            }
         };
         match response.await {
             Ok(response) => crate::response::convert(response.response, Some(response.request)),
@@ -235,13 +261,28 @@ pub(crate) async fn run(
         }
         tokio::select! {
             _ = drain.changed(), if deadline.is_none() => {},
+            _ = poll_fn(|cx| control.admission.poll_quiescent(cx)), if deadline.is_some() && connections.is_empty() && context.execution.is_empty() => {},
             completion = poll_fn(|cx| context.execution.poll_reap(cx)) => {
+                if matches!(completion, Some(Ok(true))) {
+                    control.admission.record(RuntimeEvent::HandlerPanic);
+                }
                 if let Some(Err(error)) = completion {
                     failure = Some(format!("execution supervision failed: {error:?}"));
                     control.request_drain();
                 }
             },
-            _completion = connections.join_next(), if !connections.is_empty() => {},
+            completion = connections.join_next(), if !connections.is_empty() => {
+                if matches!(completion, Some(Ok((Err(_), _)))) {
+                    control.admission.record(RuntimeEvent::ConnectionFailure);
+                }
+                if let Some(Err(error)) = completion {
+                    if !error.is_cancelled() {
+                        control.admission.record(RuntimeEvent::ConnectionFailure);
+                        failure = Some("connection supervisor task failed".into());
+                        control.request_drain();
+                    }
+                }
+            },
             result = async { match &listener { Some(listener) => listener.accept().await, None => std::future::pending().await } }, if reserved.is_some() => {
                 match result {
                     Ok((stream, _)) => {
@@ -255,6 +296,7 @@ pub(crate) async fn run(
                         }
                     }
                     Err(error) => {
+                        control.admission.record(RuntimeEvent::AcceptFailure);
                         failure = Some(format!("listener accept failed: {error}"));
                         control.request_drain();
                     }
@@ -262,6 +304,7 @@ pub(crate) async fn run(
             },
             _ = async { match deadline { Some(deadline) => tokio::time::sleep_until(deadline.into()).await, None => std::future::pending().await } }, if reported.is_none() => {
                 connections.abort_all();
+                control.admission.record(RuntimeEvent::DrainDeadline);
                 let report = ServingReport { outcome: ServingOutcome::DeadlineExceeded,
                     snapshot: control.snapshot(), completion: control.clone(), failure: failure.clone() };
                 if let Some(sender) = &early_report { let _ = sender.send(Ok(report.clone())); }
