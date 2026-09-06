@@ -20,8 +20,14 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+mod admission;
+mod execution;
+mod response;
+mod supervisor;
+pub use admission::{InvalidServingLimits, ServingLimits, ServingPhase, ServingSnapshot};
+pub use supervisor::{ServingControl, ServingOutcome, ServingReport};
+
 use std::collections::BTreeMap;
-use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::net::TcpListener as StdTcpListener;
 use std::sync::Arc;
@@ -30,14 +36,12 @@ use std::time::Duration;
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full, Limited};
 use hyper::body::{Body, Incoming};
-use hyper::service::service_fn;
 use hyper::{Request, Response};
 use hyper_rustls::ConfigBuilderExt;
 use hyper_util::client::legacy::Client;
 use hyper_util::client::legacy::connect::HttpConnector;
-use hyper_util::rt::{TokioExecutor, TokioIo, TokioTimer};
-use hyper_util::server::conn::auto::Builder as ConnBuilder;
-use tokio::net::{TcpListener, TcpStream};
+use hyper_util::rt::TokioExecutor;
+use tokio::net::TcpListener;
 
 use http_middleware_kernel::{Handler, MiddlewareChain, call_into_response};
 pub use http_middleware_kernel::{HttpRequest, HttpResponse};
@@ -291,23 +295,7 @@ where
 /// Boundary conversion: kernel `Vec<u8>` body → hyper `Bytes`. Zero-copy via
 /// `Bytes::from(Vec<u8>)` (Bytes takes ownership of the buffer).
 pub fn to_hyper_response(resp: HttpResponse) -> Response<Full<Bytes>> {
-    let mut builder = Response::builder().status(resp.status);
-    for (name, value) in &resp.headers {
-        builder = builder.header(name, value);
-    }
-    builder
-        .body(Full::new(Bytes::from(resp.body)))
-        .unwrap_or_else(|_| {
-            // ADR-0083 Tier 1: avoid `.expect()` on the fallback Response::builder.
-            // Construct directly via `Response::new(body)` (infallible), then set
-            // the status code on the parts. This path is hit only if the outer
-            // builder rejected the header set; the fallback intentionally drops
-            // user headers and serves a fixed 500 body.
-            let mut response =
-                Response::new(Full::new(Bytes::from_static(b"response build failed")));
-            *response.status_mut() = hyper::StatusCode::INTERNAL_SERVER_ERROR;
-            response
-        })
+    response::convert(resp, None)
 }
 
 /// Dispatch a request through router → middleware chain → handler.
@@ -432,20 +420,17 @@ pub async fn serve_listener(
     chain: Arc<MiddlewareChain<HttpRequest, HttpResponse>>,
     config: ServerConfig,
 ) -> Result<(), HyperRuntimeError> {
-    let config = Arc::new(config);
-    loop {
-        let (stream, _peer) = match listener.accept().await {
-            Ok(pair) => pair,
-            Err(_) => continue,
-        };
-        let io = TokioIo::new(stream);
-        let router = router.clone();
-        let chain = chain.clone();
-        let config = config.clone();
-        tokio::spawn(async move {
-            let _ = serve_stream(io, router, chain, config).await;
-        });
-    }
+    supervisor::run(
+        listener,
+        router,
+        chain,
+        config,
+        ServingControl::new(ServingLimits::default()),
+        None,
+        None,
+    )
+    .await?
+    .into_result()
 }
 
 /// Serve exactly one accepted connection from an already-bound listener.
@@ -480,21 +465,17 @@ pub async fn serve_n_connections(
             "max_connections must be greater than zero".to_string(),
         ));
     }
-    let config = Arc::new(config);
-    for _ in 0..max_connections {
-        let (stream, _peer) = listener
-            .accept()
-            .await
-            .map_err(|error| HyperRuntimeError::Bind(error.to_string()))?;
-        serve_stream(
-            TokioIo::new(stream),
-            router.clone(),
-            chain.clone(),
-            config.clone(),
-        )
-        .await?;
-    }
-    Ok(())
+    supervisor::run(
+        listener,
+        router,
+        chain,
+        config,
+        ServingControl::new(ServingLimits::default()),
+        Some(max_connections),
+        None,
+    )
+    .await?
+    .into_result()
 }
 
 /// Blocking wrapper for deterministic tests that need to bind a std listener
@@ -521,18 +502,16 @@ pub fn serve_n_connections_on_std_listener(
     config: ServerConfig,
     max_connections: usize,
 ) -> Result<(), HyperRuntimeError> {
-    listener
-        .set_nonblocking(true)
-        .map_err(|error| HyperRuntimeError::Bind(error.to_string()))?;
-    let runtime = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .map_err(|error| HyperRuntimeError::Runtime(error.to_string()))?;
-    runtime.block_on(async move {
-        let listener = TcpListener::from_std(listener)
-            .map_err(|error| HyperRuntimeError::Bind(error.to_string()))?;
-        serve_n_connections(listener, router, chain, config, max_connections).await
-    })
+    supervisor::run_std(
+        listener,
+        router,
+        chain,
+        config,
+        ServingControl::new(ServingLimits::default()),
+        Some(max_connections),
+        false,
+    )?
+    .into_result()
 }
 
 /// Blocking wrapper for daemon entrypoints that pre-bind a std listener while
@@ -543,57 +522,35 @@ pub fn serve_on_std_listener(
     chain: Arc<MiddlewareChain<HttpRequest, HttpResponse>>,
     config: ServerConfig,
 ) -> Result<(), HyperRuntimeError> {
-    listener
-        .set_nonblocking(true)
-        .map_err(|error| HyperRuntimeError::Bind(error.to_string()))?;
-    let runtime = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .map_err(|error| HyperRuntimeError::Runtime(error.to_string()))?;
-    runtime.block_on(async move {
-        let listener = TcpListener::from_std(listener)
-            .map_err(|error| HyperRuntimeError::Bind(error.to_string()))?;
-        serve_listener(listener, router, chain, config).await
-    })
+    serve_controlled_on_std_listener(
+        listener,
+        router,
+        chain,
+        config,
+        ServingControl::new(ServingLimits::default()),
+    )?
+    .into_result()
 }
 
-async fn serve_stream(
-    io: TokioIo<TcpStream>,
+pub fn serve_controlled_on_std_listener(
+    listener: StdTcpListener,
     router: Arc<Router<SyncHandler>>,
     chain: Arc<MiddlewareChain<HttpRequest, HttpResponse>>,
-    config: Arc<ServerConfig>,
-) -> Result<(), HyperRuntimeError> {
-    let timer_config = config.clone();
-    let service = service_fn(move |req: Request<Incoming>| {
-        let router = router.clone();
-        let chain = chain.clone();
-        let config = config.clone();
-        async move {
-            let response = match collect_hyper_request(req, config.max_body_bytes).await {
-                Ok(parsed) => dispatch(parsed, &router, &chain),
-                Err(err) => HttpResponse::from(err),
-            };
-            Ok::<_, Infallible>(to_hyper_response(response))
-        }
-    });
-    let mut builder = ConnBuilder::new(hyper_util::rt::TokioExecutor::new());
-    // S4 hardening: bound how long we'll wait for headers from a slow client.
-    builder
-        .http1()
-        .header_read_timeout(timer_config.header_read_timeout)
-        .keep_alive(true)
-        .timer(TokioTimer::new());
-    // HTTP/2: keepalive ping bounds idle connections.
-    builder
-        .http2()
-        .keep_alive_interval(Some(timer_config.keepalive_timeout / 2))
-        .keep_alive_timeout(timer_config.keepalive_timeout)
-        .timer(TokioTimer::new());
-    builder
-        .serve_connection(io, service)
-        .await
-        .map_err(|error| HyperRuntimeError::Connection(error.to_string()))?;
-    Ok(())
+    config: ServerConfig,
+    control: ServingControl,
+) -> Result<ServingReport, HyperRuntimeError> {
+    supervisor::run_std(listener, router, chain, config, control, None, false)
+}
+
+/// Explicit executable opt-in; ordinary library serving installs no signal handlers.
+pub fn serve_with_signals_on_std_listener(
+    listener: StdTcpListener,
+    router: Arc<Router<SyncHandler>>,
+    chain: Arc<MiddlewareChain<HttpRequest, HttpResponse>>,
+    config: ServerConfig,
+    control: ServingControl,
+) -> Result<ServingReport, HyperRuntimeError> {
+    supervisor::run_std(listener, router, chain, config, control, None, true)
 }
 
 #[cfg(test)]

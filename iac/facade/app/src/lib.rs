@@ -22,8 +22,9 @@ use std::sync::Arc;
 use http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
 use http_router_kernel::{HttpMethod, Router, RouterError};
 use http_runtime_hyper_adapter::{
-    HyperRuntimeError, ServerConfig, SyncHandler, dispatch as dispatch_hyper_adapter_request,
-    serve_n_connections_on_std_listener, serve_on_std_listener,
+    HyperRuntimeError, ServerConfig, ServingControl, ServingLimits, SyncHandler,
+    dispatch as dispatch_hyper_adapter_request, serve_n_connections_on_std_listener,
+    serve_on_std_listener, serve_with_signals_on_std_listener,
 };
 use iac_api::{
     CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE, CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
@@ -1391,6 +1392,13 @@ pub fn serve_bounded_iac_app_on_listener(
 }
 
 pub fn run_iac_app(config: CloudIacAppConfig) -> Result<(), CloudIacAppError> {
+    run_iac_app_with_termination(config, false)
+}
+
+fn run_iac_app_with_termination(
+    config: CloudIacAppConfig,
+    process_signals: bool,
+) -> Result<(), CloudIacAppError> {
     // BOOT-FATAL: refuse to serve the supply-chain surface without a verifiable
     // bearer SECRET and a bound principal id (no default-allow; AUTH-005).
     let authz_provider = config.module_registry_authz_provider()?;
@@ -1398,10 +1406,28 @@ pub fn run_iac_app(config: CloudIacAppConfig) -> Result<(), CloudIacAppError> {
         build_iac_app_service_from_release_index_path(&config.release_index_path, authz_provider)?;
     let listener = StdTcpListener::bind(config.bind_addr)
         .map_err(|error| CloudIacAppError::Bind(error.to_string()))?;
-    serve_iac_app_on_listener(listener, service)
+    if process_signals {
+        let (router, middleware, server_config) = service.into_serve_parts();
+        serve_with_signals_on_std_listener(
+            listener,
+            Arc::new(router),
+            Arc::new(middleware),
+            server_config,
+            ServingControl::new(ServingLimits::default()),
+        )?
+        .into_result()?;
+        Ok(())
+    } else {
+        serve_iac_app_on_listener(listener, service)
+    }
 }
 
 pub fn run_iac_app_from_env() -> Result<(), CloudIacAppError> {
     let config = CloudIacAppConfig::from_env_pairs(std::env::vars())?;
     run_iac_app(config)
+}
+
+pub fn run_iac_app_with_signals_from_env() -> Result<(), CloudIacAppError> {
+    let config = CloudIacAppConfig::from_env_pairs(std::env::vars())?;
+    run_iac_app_with_termination(config, true)
 }

@@ -11,7 +11,7 @@ http-router-kernel = { path = "../../core/http-router-kernel" }
 http-middleware-kernel = { path = "../../core/http-middleware-kernel" }
 hyper.workspace = true
 hyper-util.workspace = true
-tokio.workspace = true
+tokio = { workspace = true, features = ["sync", "time", "signal"] }
 http-body-util.workspace = true
 bytes.workspace = true
 hyper-rustls = { workspace = true }
