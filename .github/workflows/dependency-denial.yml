@@ -1,0 +1,25 @@
+# Dependency denial, called by the required presubmit graph. Reusable
+# because that workflow is AT its 300-line file budget: with it inline,
+# no gate could be added there by anyone. Moved verbatim — the job id,
+# its display name and its steps are unchanged.
+name: dependency denial
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  deny:
+    name: deny (licenses bans sources)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25
+        with:
+          command: check
+          command-arguments: licenses bans sources
+          rust-version: "1.98.0"

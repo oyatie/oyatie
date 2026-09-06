@@ -6478,6 +6478,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "pipeline-commit-signing-app"
+version = "0.1.0"
+dependencies = [
+ "pipeline-admission",
+]
+
+[[package]]
 name = "pipeline-path-layout-app"
 version = "0.1.0"
 dependencies = [
