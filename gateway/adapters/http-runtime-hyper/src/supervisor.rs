@@ -85,7 +85,7 @@ struct Context {
 }
 
 pub(crate) async fn run(
-    listener: TcpListener,
+    listener: impl accept::Acceptor,
     router: Arc<Router<SyncHandler>>,
     chain: Arc<MiddlewareChain<HttpRequest, HttpResponse>>,
     config: ServerConfig,
@@ -251,10 +251,15 @@ fn transient_accept(kind: std::io::ErrorKind) -> bool {
     )
 }
 
+mod accept;
 mod runtime_owner;
 mod transport;
 pub(crate) use runtime_owner::run_std;
 use transport::connection;
 
 #[cfg(test)]
+mod http2_tests;
+#[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod wire_tests;

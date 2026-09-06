@@ -24,11 +24,6 @@ pub(crate) fn run_std(
                 runtime.block_on(async {
                     let listener = TcpListener::from_std(listener)
                         .map_err(|error| HyperRuntimeError::Bind(error.to_string()))?;
-                    let signals = if process_signals {
-                        Some(Signals::install()?)
-                    } else {
-                        None
-                    };
                     let serving = run(
                         listener,
                         router,
@@ -38,14 +33,14 @@ pub(crate) fn run_std(
                         max_accepts,
                         Some(sender.clone()),
                     );
-                    tokio::pin!(serving);
-                    if let Some(mut signals) = signals {
-                        tokio::select! {
-                            result = &mut serving => return result,
-                            _ = signals.recv() => control.request_drain(),
+                    serve_with_termination(serving, control, || {
+                        if process_signals {
+                            Signals::install().map(Some)
+                        } else {
+                            Ok(None)
                         }
-                    }
-                    serving.await
+                    })
+                    .await
                 })
             })();
             let _ = sender.send(result);
@@ -55,6 +50,23 @@ pub(crate) fn run_std(
         .recv()
         .map_err(|error| HyperRuntimeError::Runtime(error.to_string()))?
 }
+
+async fn serve_with_termination(
+    serving: impl Future<Output = Result<ServingReport, HyperRuntimeError>>,
+    control: ServingControl,
+    install: impl FnOnce() -> Result<Option<Signals>, HyperRuntimeError>,
+) -> Result<ServingReport, HyperRuntimeError> {
+    let signals = install()?;
+    tokio::pin!(serving);
+    if let Some(mut signals) = signals {
+        tokio::select! {
+            result = &mut serving => return result,
+            _ = signals.recv() => control.request_drain(),
+        }
+    }
+    serving.await
+}
+
 
 #[cfg(unix)]
 struct Signals {
@@ -90,5 +102,34 @@ impl Signals {
     }
     async fn recv(&mut self) {
         self.0.recv().await;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn signal_registration_failure_refuses_before_serving_is_polled() {
+        let polled = AtomicBool::new(false);
+        let control = ServingControl::new(ServingLimits::default());
+        let result = serve_with_termination(
+            async {
+                polled.store(true, Ordering::SeqCst);
+                Err(HyperRuntimeError::Runtime("unexpected serving".into()))
+            },
+            control.clone(),
+            || {
+                Err(HyperRuntimeError::Runtime(
+                    "signal registration failed: injected".into(),
+                ))
+            },
+        )
+        .await;
+        assert!(
+            matches!(result, Err(HyperRuntimeError::Runtime(message)) if message == "signal registration failed: injected")
+        );
+        assert!(!polled.load(Ordering::SeqCst));
+        assert_eq!(control.snapshot().active, [0; 3]);
     }
 }
