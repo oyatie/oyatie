@@ -149,6 +149,8 @@ fn observe(p: &Profile, inspect: bool) -> Result<Value, AccessError> {
         if inspect {
             report["inventory"] = inventory::collect(p, &server, &kube, &node)?;
             report["inventory"]["talos_storage"] = talos_inventory::collect(p, &endpoint, &talos)?;
+            report["inventory"]["talos_security"] =
+                talos_inventory::collect_security(p, &endpoint, &talos)?;
         }
         Ok(report)
     })();
