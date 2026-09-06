@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "tenancy/binding/v1/proof.proto";
+
+enum BindingRepairScopeV1 {
+  BINDING_REPAIR_SCOPE_V1_UNSPECIFIED = 0;
+  BINDING_REPAIR_SCOPE_V1_RESERVATION_OUTCOME = 1;
+  BINDING_REPAIR_SCOPE_V1_MIGRATION_FENCE_CLAIM = 2;
+  BINDING_REPAIR_SCOPE_V1_FORWARD_COMPLETION = 3;
+  BINDING_REPAIR_SCOPE_V1_PROJECTION_CONVERGENCE = 4;
+  BINDING_REPAIR_SCOPE_V1_TRANSFER_EXECUTION_LEDGER = 5;
+}
+
+message BindingRepairAuthorityPayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 repair_operation = 2;
+  BindingOperationKeyV1 target_operation = 3;
+  uint64 expected_target_revision = 4;
+  BindingRepairScopeV1 scope = 5;
+  Digest32 requested_checkpoint_digest = 6;
+  Digest32 reason_digest = 7;
+  uint64 expires_at_unix_seconds = 8;
+}
+
+message SignedBindingRepairAuthorityV1 {
+  BindingRepairAuthorityPayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message BindingRepairAppliedV1 {
+  BindingOperationKeyV1 target_operation = 1;
+  uint64 repaired_target_revision = 2;
+  BindingRepairScopeV1 scope = 3;
+  Digest32 applied_checkpoint_digest = 4;
+}

@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/proof.proto";
+
+enum CellLifecycleStateV1 {
+  CELL_LIFECYCLE_STATE_V1_UNSPECIFIED = 0;
+  CELL_LIFECYCLE_STATE_V1_REGISTERED = 1;
+  CELL_LIFECYCLE_STATE_V1_PROVISIONING = 2;
+  CELL_LIFECYCLE_STATE_V1_SERVING = 3;
+  CELL_LIFECYCLE_STATE_V1_DRAINING = 4;
+  CELL_LIFECYCLE_STATE_V1_DRAINED = 5;
+  CELL_LIFECYCLE_STATE_V1_DECOMMISSIONED = 6;
+}
+
+enum CellReadinessRingV1 {
+  CELL_READINESS_RING_V1_UNSPECIFIED = 0;
+  CELL_READINESS_RING_V1_CANDIDATE = 1;
+  CELL_READINESS_RING_V1_CANARY = 2;
+  CELL_READINESS_RING_V1_PRODUCTION = 3;
+}
+
+message CellLifecycleRecordV1 {
+  CellId cell_id = 1;
+  CellLifecycleStateV1 lifecycle = 2;
+  CellReadinessRingV1 readiness = 3;
+  uint64 revision = 4;
+  uint64 admission_epoch = 5;
+  optional uint64 drain_term = 6;
+  uint64 transition_at_unix_seconds = 7;
+  Digest32 record_digest = 8;
+}
+
+message CellAdmissionTermV1 {
+  CellId cell_id = 1;
+  uint64 lifecycle_revision = 2;
+  uint64 admission_epoch = 3;
+  CellLifecycleStateV1 lifecycle = 4;
+  CellReadinessRingV1 readiness = 5;
+  Digest32 term_digest = 6;
+  uint64 cell_spec_revision = 7;
+  Digest32 cell_resource_digest = 8;
+  uint64 capacity_revision = 9;
+  Digest32 capacity_record_digest = 10;
+}
+
+enum CellControlActionV1 {
+  CELL_CONTROL_ACTION_V1_UNSPECIFIED = 0;
+  CELL_CONTROL_ACTION_V1_CREATE = 1;
+  CELL_CONTROL_ACTION_V1_GET = 2;
+  CELL_CONTROL_ACTION_V1_PROMOTE = 3;
+  CELL_CONTROL_ACTION_V1_DEMOTE = 4;
+  CELL_CONTROL_ACTION_V1_BEGIN_DRAIN = 5;
+  CELL_CONTROL_ACTION_V1_APPEND_DRAIN_PROOF = 6;
+  CELL_CONTROL_ACTION_V1_COMPLETE_DRAIN = 7;
+  CELL_CONTROL_ACTION_V1_DECOMMISSION = 8;
+  CELL_CONTROL_ACTION_V1_LIST = 9;
+  CELL_CONTROL_ACTION_V1_UPDATE = 10;
+  CELL_CONTROL_ACTION_V1_CREATE_REBALANCE_JOB = 11;
+  CELL_CONTROL_ACTION_V1_GET_REBALANCE_JOB = 12;
+  CELL_CONTROL_ACTION_V1_CANCEL_REBALANCE_JOB = 13;
+  CELL_CONTROL_ACTION_V1_GET_CONTROL_OPERATION = 14;
+  CELL_CONTROL_ACTION_V1_CANCEL_CONTROL_OPERATION = 15;
+  CELL_CONTROL_ACTION_V1_REPAIR_CONTROL_OPERATION = 16;
+}
+
+message CellControlCellSubjectV1 {
+  CellId cell_id = 1;
+}
+
+message CellControlPartitionSubjectV1 {
+  string realm = 1;
+  string jurisdiction = 2;
+  string region = 3;
+  string pool = 4;
+}
+
+message CellControlSubjectV1 {
+  oneof subject {
+    CellControlCellSubjectV1 cell = 1;
+    CellControlPartitionSubjectV1 partition = 2;
+  }
+}

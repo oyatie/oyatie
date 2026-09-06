@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/evidence.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/rebalance_budget.proto";
+import "cell/placement/v1/rebalance_candidates.proto";
+import "cell/placement/v1/topology.proto";
+
+message DrainRebalanceTriggerV1 {
+  CellId source_cell_id = 1;
+  uint64 drain_term = 2;
+}
+
+message RecoveryRebalanceTriggerV1 {
+  CellId source_cell_id = 1;
+  ImmutableEvidenceRefV1 failure_evidence = 2;
+}
+
+message DeploymentPolicyRebalanceTriggerV1 {
+  ImmutableEvidenceRefV1 release_evidence = 1;
+}
+
+message SustainedCapacityBandCrossingTriggerV1 {
+  CellId source_cell_id = 1;
+  uint64 observation_window_start_unix_seconds = 2;
+  uint64 observation_window_end_unix_seconds = 3;
+  ImmutableEvidenceRefV1 telemetry_evidence = 4;
+}
+
+message RebalanceTriggerV1 {
+  oneof trigger {
+    DrainRebalanceTriggerV1 drain = 1;
+    RecoveryRebalanceTriggerV1 recovery = 2;
+    DeploymentPolicyRebalanceTriggerV1 deployment_policy = 3;
+    SustainedCapacityBandCrossingTriggerV1 sustained_capacity_band_crossing = 4;
+  }
+}
+
+message RebalancePolicyV1 {
+  reserved 2;
+  reserved "movement_budget_grant";
+
+  uint64 placement_policy_generation = 1;
+  uint32 maximum_concurrent_movements = 3;
+  uint32 maximum_candidates_per_page = 4;
+  uint32 hysteresis_basis_points = 5;
+  uint64 minimum_stable_observation_seconds = 6;
+  uint64 cooldown_seconds = 7;
+  Digest32 policy_digest = 8;
+  RebalanceBudgetLimitsV1 budget_limits = 9;
+}
+
+enum RebalanceJobStateV1 {
+  REBALANCE_JOB_STATE_V1_UNSPECIFIED = 0;
+  REBALANCE_JOB_STATE_V1_PENDING = 1;
+  REBALANCE_JOB_STATE_V1_SELECTING = 2;
+  REBALANCE_JOB_STATE_V1_MOVING = 3;
+  REBALANCE_JOB_STATE_V1_SUCCEEDED = 4;
+  REBALANCE_JOB_STATE_V1_FAILED = 5;
+  REBALANCE_JOB_STATE_V1_CANCELLED = 6;
+}
+
+message RebalanceJobV1 {
+  reserved 5;
+  reserved "candidate_snapshot";
+
+  string job_id = 1;
+  PlacementPartitionV1 partition = 2;
+  RebalanceTriggerV1 trigger = 3;
+  RebalancePolicyV1 policy = 4;
+  Digest32 selected_movement_root_digest = 6;
+  uint64 selected_movement_count = 7;
+  Digest32 completed_movement_root_digest = 8;
+  uint64 completed_movement_count = 9;
+  RebalanceJobStateV1 state = 10;
+  uint64 revision = 11;
+  Digest32 durable_checkpoint_digest = 12;
+  uint64 created_at_unix_seconds = 13;
+  uint64 updated_at_unix_seconds = 14;
+  Digest32 record_digest = 15;
+  RebalanceCandidateCursorV1 candidate_cursor = 16;
+  RebalanceCandidateSnapshotV1 snapshot = 17;
+  RebalanceBudgetAccountingV1 budget_accounting = 18;
+}

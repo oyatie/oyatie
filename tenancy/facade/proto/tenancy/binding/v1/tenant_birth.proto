@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/evidence.proto";
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/identity/v1/identity.proto";
+
+message StagedTenantBirthRecordPayloadV1 {
+  uint32 schema_version = 1;
+  tenancy.identity.v1.TenantBirthRefV1 reference = 2;
+  uint64 staging_revision = 3;
+  cell.placement.v1.ImmutableEvidenceRefV1 immutable_record = 4;
+  uint64 staged_at_unix_seconds = 5;
+  uint64 expires_at_unix_seconds = 6;
+  Digest32 record_digest = 7;
+}
+
+message SignedStagedTenantBirthRecordV1 {
+  StagedTenantBirthRecordPayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

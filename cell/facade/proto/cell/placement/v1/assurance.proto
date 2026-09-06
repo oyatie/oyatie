@@ -1,0 +1,170 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/capacity.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/topology.proto";
+import "tenancy/identity/v1/identity.proto";
+
+message PlatformPolicyOnlyV1 {}
+
+message DenyAllLocationsV1 {}
+
+message PlacementLocationSetV1 {
+  repeated PlacementLocationV1 locations = 1;
+}
+
+message LocationConstraintV1 {
+  oneof constraint {
+    PlatformPolicyOnlyV1 platform_policy_only = 1;
+    PlacementLocationSetV1 only = 2;
+    DenyAllLocationsV1 deny_all = 3;
+  }
+}
+
+enum IsolationClassV1 {
+  ISOLATION_CLASS_V1_UNSPECIFIED = 0;
+  ISOLATION_CLASS_V1_SHARED_CERTIFIED = 1;
+  ISOLATION_CLASS_V1_DEDICATED_LOGICAL = 2;
+  ISOLATION_CLASS_V1_DEDICATED_PHYSICAL = 3;
+}
+
+enum HardwareClassV1 {
+  HARDWARE_CLASS_V1_UNSPECIFIED = 0;
+  HARDWARE_CLASS_V1_GENERAL_PURPOSE = 1;
+  HARDWARE_CLASS_V1_CONFIDENTIAL_COMPUTE = 2;
+  HARDWARE_CLASS_V1_ACCELERATOR = 3;
+}
+
+enum EncryptionRequirementV1 {
+  ENCRYPTION_REQUIREMENT_V1_UNSPECIFIED = 0;
+  ENCRYPTION_REQUIREMENT_V1_PROVIDER_MANAGED = 1;
+  ENCRYPTION_REQUIREMENT_V1_CUSTOMER_MANAGED = 2;
+  ENCRYPTION_REQUIREMENT_V1_EXTERNAL_KEY_MANAGER = 3;
+}
+
+message KeyCustodyRequirementV1 {
+  repeated string permitted_authorities = 1;
+  ExclusiveTenantKeyRequirementV1 exclusive_tenant_key = 2;
+}
+
+enum ExclusiveTenantKeyRequirementV1 {
+  EXCLUSIVE_TENANT_KEY_REQUIREMENT_V1_UNSPECIFIED = 0;
+  EXCLUSIVE_TENANT_KEY_REQUIREMENT_V1_NOT_REQUIRED = 1;
+  EXCLUSIVE_TENANT_KEY_REQUIREMENT_V1_REQUIRED = 2;
+}
+
+message AuditRequirementV1 {
+  optional uint64 minimum_retention_seconds = 1;
+  ImmutableAuditStorageRequirementV1 immutable_storage = 2;
+}
+
+enum ImmutableAuditStorageRequirementV1 {
+  IMMUTABLE_AUDIT_STORAGE_REQUIREMENT_V1_UNSPECIFIED = 0;
+  IMMUTABLE_AUDIT_STORAGE_REQUIREMENT_V1_NOT_REQUIRED = 1;
+  IMMUTABLE_AUDIT_STORAGE_REQUIREMENT_V1_REQUIRED = 2;
+}
+
+message StandardRecoveryRequirementV1 {
+  LocationConstraintV1 backup_storage_locations = 1;
+  LocationConstraintV1 restore_staging_locations = 2;
+  LocationConstraintV1 allowed_restore_locations = 3;
+  optional uint64 maximum_rpo_seconds = 4;
+  optional uint64 maximum_rto_seconds = 5;
+}
+
+message DedicatedWarmRecoveryReserveV1 {}
+
+message WarmRecoveryRequirementV1 {
+  LocationConstraintV1 allowed_recovery_locations = 1;
+  CapacityVectorV1 recovery_capacity = 2;
+  ResilienceObjectiveV1 recovery_resilience = 3;
+  DedicatedWarmRecoveryReserveV1 reserve_model = 4;
+  optional uint64 maximum_rpo_seconds = 5;
+  optional uint64 maximum_rto_seconds = 6;
+}
+
+message RecoveryRequirementV1 {
+  oneof mode {
+    StandardRecoveryRequirementV1 standard = 1;
+    WarmRecoveryRequirementV1 warm = 2;
+  }
+}
+
+message EffectiveAssuranceRequirementsV1 {
+  uint64 generation = 1;
+  string compiler_version = 2;
+  LocationConstraintV1 primary_locations = 3;
+  repeated string required_certifications = 4;
+  IsolationClassV1 minimum_isolation = 5;
+  HardwareClassV1 required_hardware = 6;
+  EncryptionRequirementV1 encryption = 7;
+  KeyCustodyRequirementV1 key_custody = 8;
+  AuditRequirementV1 audit = 9;
+  RecoveryRequirementV1 recovery = 10;
+  Digest32 capability_requirements_digest = 11;
+  Digest32 compiled_requirements_digest = 12;
+}
+
+message AssuranceRequirementSetV1 {
+  string source_authority_id = 1;
+  string source_repository_id = 2;
+  string source_object_id = 3;
+  uint64 source_object_version = 4;
+  Digest32 ordered_requirement_root_digest = 5;
+  uint64 requirement_count = 6;
+  Digest32 source_content_digest = 7;
+}
+
+message AssuranceRequirementV1 {
+  LocationConstraintV1 primary_locations = 1;
+  repeated string required_certifications = 2;
+  IsolationClassV1 minimum_isolation = 3;
+  HardwareClassV1 required_hardware = 4;
+  EncryptionRequirementV1 encryption = 5;
+  KeyCustodyRequirementV1 key_custody = 6;
+  AuditRequirementV1 audit = 7;
+  RecoveryRequirementV1 recovery = 8;
+  Digest32 requirement_digest = 9;
+}
+
+message AssuranceRequirementMemberV1 {
+  uint64 ordinal = 1;
+  string source_id = 2;
+  AssuranceRequirementV1 requirement = 3;
+  Digest32 member_digest = 4;
+  repeated Digest32 inclusion_path = 5;
+}
+
+message AssuranceRequirementPageRequestV1 {
+  AssuranceRequirementSetV1 set = 1;
+  uint32 page_size = 2;
+  bytes page_token = 3;
+  uint32 maximum_inclusion_path_depth = 4;
+}
+
+message AssuranceRequirementPageV1 {
+  repeated AssuranceRequirementMemberV1 members = 1;
+  bytes next_page_token = 2;
+}
+
+message AssuranceCompilationPayloadV1 {
+  uint32 schema_version = 1;
+  tenancy.identity.v1.TenantId tenant_id = 2;
+  uint64 generation = 3;
+  string compiler_version = 4;
+  AssuranceRequirementSetV1 tenant_floor = 5;
+  AssuranceRequirementSetV1 capability_requirements = 6;
+  uint64 platform_policy_generation = 7;
+  Digest32 platform_policy_digest = 8;
+  EffectiveAssuranceRequirementsV1 effective = 9;
+  uint64 compiled_at_unix_seconds = 10;
+  Digest32 record_digest = 11;
+}
+
+message SignedAssuranceCompilationV1 {
+  AssuranceCompilationPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

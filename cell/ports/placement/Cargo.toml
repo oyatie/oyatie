@@ -1,5 +1,5 @@
 [package]
-name = "tenancy-cell-assignment"
+name = "cell-placement"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -11,8 +11,8 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-cell-placement = { path = "../../../cell/ports/placement" }
-tenancy-kernel = { path = "../kernel" }
+cell-location = { path = "../location" }
+tenancy-kernel = { path = "../../../tenancy/core/kernel" }
 
 [lints]
 workspace = true

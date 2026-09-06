@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/authority.proto";
+import "cell/placement/v1/control_reconciliation.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/reconciliation.proto";
+
+enum ReconciliationActionV1 {
+  RECONCILIATION_ACTION_V1_UNSPECIFIED = 0;
+  RECONCILIATION_ACTION_V1_LIST_PLACEMENT_CANDIDATES = 1;
+  RECONCILIATION_ACTION_V1_CLAIM_PLACEMENT_CANDIDATE = 2;
+  RECONCILIATION_ACTION_V1_COMPLETE_PLACEMENT_CANDIDATE = 3;
+  RECONCILIATION_ACTION_V1_LIST_CELL_CONTROL_CANDIDATES = 4;
+  RECONCILIATION_ACTION_V1_CLAIM_CELL_CONTROL_CANDIDATE = 5;
+  RECONCILIATION_ACTION_V1_COMPLETE_CELL_CONTROL_CANDIDATE = 6;
+}
+
+message PlacementReconciliationScopeV1 {
+  string partition = 1;
+  CellReconciliationWorkClassV1 work_class = 2;
+  Digest32 candidate_digest = 3;
+  CellId cell_id = 4;
+}
+
+message CellControlReconciliationScopeV1 {
+  string partition = 1;
+  CellControlReconciliationWorkClassV1 work_class = 2;
+  Digest32 candidate_digest = 3;
+  CellId cell_id = 4;
+}
+
+message ReconciliationScopeV1 {
+  oneof scope {
+    PlacementReconciliationScopeV1 placement = 1;
+    CellControlReconciliationScopeV1 cell_control = 2;
+  }
+}
+
+message ReconciliationInvocationPayloadV1 {
+  uint32 schema_version = 1;
+  ReconciliationActionV1 action = 2;
+  ReconciliationScopeV1 scope = 3;
+  string worker_id = 4;
+  Digest32 actor_digest = 5;
+  AuthorizationDecisionReceiptV1 authorization = 6;
+  Digest32 canonical_request_digest = 7;
+  uint64 deadline_unix_seconds = 8;
+}
+
+message SignedReconciliationInvocationV1 {
+  ReconciliationInvocationPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

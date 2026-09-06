@@ -1,0 +1,286 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/proof.proto";
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/identity/v1/identity.proto";
+
+message CapabilityInventorySnapshotRefV1 {
+  string authority_id = 1;
+  string repository_id = 2;
+  string object_id = 3;
+  uint64 object_version = 4;
+  Digest32 content_digest = 5;
+}
+
+message InitialBindingManifestBasisV1 {
+  reserved 1;
+  reserved "tenant_birth_digest";
+  Digest32 capability_requirements_digest = 2;
+  Digest32 tenant_birth_reference_digest = 3;
+  Digest32 staged_tenant_record_digest = 4;
+  Digest32 assurance_requirements_digest = 5;
+}
+
+message ExistingBindingManifestBasisV1 {
+  Digest32 binding_record_digest = 1;
+  uint64 binding_generation = 2;
+  uint64 binding_revision = 3;
+  Digest32 predecessor_manifest_digest = 4;
+}
+
+message ParticipantManifestBasisV1 {
+  oneof basis {
+    InitialBindingManifestBasisV1 initial_binding = 1;
+    ExistingBindingManifestBasisV1 existing_binding = 2;
+  }
+}
+
+message ParticipantManifestCoverageV1 {
+  Digest32 required_writable_capability_root_digest = 1;
+  uint64 required_writable_capability_count = 2;
+  Digest32 covered_writable_capability_root_digest = 3;
+  uint64 covered_writable_capability_count = 4;
+  Digest32 coverage_proof_digest = 5;
+}
+
+message ParticipantManifestPayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  ParticipantManifestBasisV1 basis = 4;
+  CapabilityInventorySnapshotRefV1 inventory_snapshot = 5;
+  string compiler_version = 6;
+  Digest32 ordered_participant_root_digest = 7;
+  uint64 participant_count = 8;
+  ParticipantManifestCoverageV1 coverage = 9;
+  Digest32 record_digest = 10;
+  ParticipantManifestMemberSnapshotV1 member_snapshot = 11;
+}
+
+message SignedParticipantManifestV1 {
+  ParticipantManifestPayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+enum ParticipantWriteRoleV1 {
+  PARTICIPANT_WRITE_ROLE_V1_UNSPECIFIED = 0;
+  PARTICIPANT_WRITE_ROLE_V1_SOURCE_AND_TARGET_WRITER = 1;
+  PARTICIPANT_WRITE_ROLE_V1_SOURCE_FENCE_ONLY = 2;
+  PARTICIPANT_WRITE_ROLE_V1_TARGET_WRITER_ONLY = 3;
+}
+
+message ParticipantManifestMemberV1 {
+  uint64 ordinal = 1;
+  string participant_id = 2;
+  string capability_id = 3;
+  ParticipantWriteRoleV1 role = 4;
+  Digest32 member_digest = 5;
+  repeated Digest32 inclusion_path = 6;
+}
+
+message ParticipantManifestMemberSnapshotV1 {
+  BindingOperationKeyV1 operation = 1;
+  reserved 2;
+  reserved "manifest_digest";
+  string object_authority = 3;
+  string repository_id = 4;
+  string object_id = 5;
+  uint64 object_version = 6;
+  Digest32 content_digest = 7;
+  Digest32 ordered_member_root_digest = 8;
+  uint64 member_count = 9;
+  Digest32 snapshot_digest = 10;
+}
+
+message ParticipantManifestMemberPageRequestV1 {
+  ParticipantManifestMemberSnapshotV1 snapshot = 1;
+  uint64 start_ordinal = 2;
+  uint32 page_size = 3;
+  bytes page_token = 4;
+  Digest32 manifest_digest = 5;
+}
+
+message ParticipantManifestMemberPageV1 {
+  ParticipantManifestMemberSnapshotV1 snapshot = 1;
+  uint64 start_ordinal = 2;
+  repeated ParticipantManifestMemberV1 members = 3;
+  uint64 next_ordinal = 4;
+  bytes next_page_token = 5;
+  Digest32 page_digest = 6;
+}
+
+enum ParticipantReceiptPhaseV1 {
+  PARTICIPANT_RECEIPT_PHASE_V1_UNSPECIFIED = 0;
+  PARTICIPANT_RECEIPT_PHASE_V1_PREPARED = 1;
+  PARTICIPANT_RECEIPT_PHASE_V1_SOURCE_FENCED = 2;
+  PARTICIPANT_RECEIPT_PHASE_V1_TARGET_ACTIVATED = 3;
+  PARTICIPANT_RECEIPT_PHASE_V1_SOURCE_RELEASED = 4;
+}
+
+message PreparedParticipantEvidenceV1 {
+  Digest32 preparation_digest = 1;
+}
+
+message SourceFencedParticipantEvidenceV1 {
+  Digest32 source_fence_directive_digest = 1;
+  uint64 write_authority_epoch = 2;
+  Digest32 fenced_authority_state_digest = 3;
+}
+
+message TargetActivatedParticipantEvidenceV1 {
+  Digest32 binding_record_digest = 1;
+  uint64 generation = 2;
+  uint64 revision = 3;
+  uint64 write_authority_epoch = 4;
+  Digest32 write_token_digest = 5;
+  Digest32 activated_authority_state_digest = 6;
+  Digest32 write_authority_lease_digest = 7;
+}
+
+message InitialBindingParticipantContextV1 {
+  cell.placement.v1.CellId target_cell_id = 1;
+  Digest32 binding_attempt_digest = 2;
+  Digest32 placement_decision_digest = 3;
+  Digest32 reservation_commit_permit_digest = 4;
+}
+
+message MigrationParticipantContextV1 {
+  cell.placement.v1.CellId source_cell_id = 1;
+  cell.placement.v1.CellId target_cell_id = 2;
+  uint64 source_generation = 3;
+  uint64 source_revision = 4;
+  Digest32 source_binding_record_digest = 5;
+  Digest32 migration_fence_claim_digest = 6;
+}
+
+message MigrationPreparationParticipantContextV1 {
+  cell.placement.v1.CellId source_cell_id = 1;
+  cell.placement.v1.CellId target_cell_id = 2;
+  uint64 source_generation = 3;
+  uint64 source_revision = 4;
+  Digest32 source_binding_record_digest = 5;
+  Digest32 binding_attempt_digest = 6;
+  Digest32 placement_decision_digest = 7;
+  Digest32 reservation_commit_permit_digest = 8;
+}
+
+message ParticipantPlacementContextV1 {
+  oneof context {
+    InitialBindingParticipantContextV1 initial_binding = 1;
+    MigrationParticipantContextV1 migration = 2;
+    MigrationPreparationParticipantContextV1 migration_preparation = 3;
+  }
+}
+
+message SourceReleasedParticipantEvidenceV1 {
+  Digest32 successor_binding_record_digest = 1;
+  Digest32 release_digest = 2;
+}
+
+message ParticipantReceiptEvidenceV1 {
+  oneof evidence {
+    PreparedParticipantEvidenceV1 prepared = 1;
+    SourceFencedParticipantEvidenceV1 source_fenced = 2;
+    TargetActivatedParticipantEvidenceV1 target_activated = 3;
+    SourceReleasedParticipantEvidenceV1 source_released = 4;
+  }
+}
+
+message ParticipantReceiptPayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  reserved 4, 5, 6, 7;
+  reserved "source_cell_id", "target_cell_id", "source_generation", "source_revision";
+  Digest32 participant_manifest_digest = 8;
+  ParticipantManifestMemberV1 member = 9;
+  ParticipantReceiptPhaseV1 phase = 10;
+  ParticipantReceiptEvidenceV1 evidence = 11;
+  uint64 occurred_at_unix_seconds = 12;
+  Digest32 record_digest = 13;
+  ParticipantPlacementContextV1 placement_context = 14;
+}
+
+message SignedParticipantReceiptV1 {
+  ParticipantReceiptPayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+enum ParticipantReceiptWorkDispositionV1 {
+  PARTICIPANT_RECEIPT_WORK_DISPOSITION_V1_UNSPECIFIED = 0;
+  PARTICIPANT_RECEIPT_WORK_DISPOSITION_V1_PENDING = 1;
+  PARTICIPANT_RECEIPT_WORK_DISPOSITION_V1_RECEIPT_COMMITTED = 2;
+}
+
+message ParticipantReceiptWorkItemV1 {
+  BindingOperationKeyV1 operation = 1;
+  ParticipantReceiptPhaseV1 phase = 2;
+  uint64 participant_ordinal = 3;
+  Digest32 member_digest = 4;
+  ParticipantReceiptWorkDispositionV1 disposition = 5;
+  Digest32 idempotency_digest = 6;
+  SignedParticipantReceiptV1 receipt = 7;
+  uint64 revision = 8;
+  Digest32 record_digest = 9;
+  Digest32 placement_context_digest = 10;
+}
+
+message ParticipantReceiptWorkPageRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  ParticipantReceiptPhaseV1 phase = 2;
+  uint64 ledger_revision = 3;
+  Digest32 ledger_record_digest = 4;
+  uint64 start_ordinal = 5;
+  uint32 page_size = 6;
+  bytes page_token = 7;
+  Digest32 placement_context_digest = 8;
+}
+
+message ParticipantReceiptWorkPageV1 {
+  BindingOperationKeyV1 operation = 1;
+  ParticipantReceiptPhaseV1 phase = 2;
+  repeated ParticipantReceiptWorkItemV1 items = 3;
+  uint64 next_ordinal = 4;
+  bytes next_page_token = 5;
+  Digest32 page_digest = 6;
+  Digest32 placement_context_digest = 7;
+}
+
+message ParticipantReceiptLedgerV1 {
+  BindingOperationKeyV1 operation = 1;
+  ParticipantReceiptPhaseV1 phase = 2;
+  Digest32 manifest_digest = 3;
+  Digest32 expected_participant_root_digest = 4;
+  uint64 expected_participant_count = 5;
+  uint64 next_participant_ordinal = 6;
+  Digest32 applied_participant_root_digest = 7;
+  Digest32 applied_receipt_root_digest = 8;
+  uint64 revision = 9;
+  Digest32 record_digest = 10;
+  Digest32 placement_context_digest = 11;
+}
+
+message ParticipantPhaseClosurePayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  ParticipantReceiptPhaseV1 phase = 4;
+  Digest32 manifest_digest = 5;
+  Digest32 participant_root_digest = 6;
+  Digest32 receipt_root_digest = 7;
+  uint64 participant_count = 8;
+  uint64 ledger_revision = 9;
+  uint64 closed_at_unix_seconds = 10;
+  Digest32 record_digest = 11;
+  Digest32 placement_context_digest = 12;
+}
+
+message SignedParticipantPhaseClosureV1 {
+  ParticipantPhaseClosurePayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

@@ -1,0 +1,198 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/capacity.proto";
+import "cell/placement/v1/topology.proto";
+import "tenancy/identity/v1/identity.proto";
+
+enum CommitmentTreatmentV1 {
+  COMMITMENT_TREATMENT_V1_UNSPECIFIED = 0;
+  COMMITMENT_TREATMENT_V1_EXCLUDE = 1;
+  COMMITMENT_TREATMENT_V1_AMORTIZED_EFFECTIVE_COST = 2;
+  COMMITMENT_TREATMENT_V1_INCREMENTAL_COMMITTED_COST = 3;
+}
+
+enum SpotTreatmentV1 {
+  SPOT_TREATMENT_V1_UNSPECIFIED = 0;
+  SPOT_TREATMENT_V1_EXCLUDE = 1;
+  SPOT_TREATMENT_V1_RISK_ADJUSTED_EXPECTED_COST = 2;
+}
+
+message MoneyMicrounitsV1 {
+  string currency = 1;
+  uint64 microunits = 2;
+}
+
+enum CommercialAvailabilityStateV1 {
+  COMMERCIAL_AVAILABILITY_STATE_V1_UNSPECIFIED = 0;
+  COMMERCIAL_AVAILABILITY_STATE_V1_AVAILABLE = 1;
+  COMMERCIAL_AVAILABILITY_STATE_V1_DRAINING = 2;
+  COMMERCIAL_AVAILABILITY_STATE_V1_UNAVAILABLE = 3;
+}
+
+message CommercialSourceRecordRefV1 {
+  string authority_id = 1;
+  string repository_id = 2;
+  string object_id = 3;
+  uint64 object_version = 4;
+  reserved 5;
+  reserved "source";
+  uint32 source_schema_version = 6;
+  Digest32 content_digest = 7;
+}
+
+message StableSupplyV1 {
+  optional string reserved_capacity_id = 1;
+  optional string commitment_id = 2;
+  optional uint32 term_months = 3;
+  optional uint64 committed_units = 4;
+  optional uint32 discount_basis_points = 5;
+}
+
+message SpotSupplyV1 {
+  string pool_id = 1;
+  CommercialAvailabilityStateV1 state = 2;
+  CapacityVectorV1 available_capacity = 3;
+  MoneyMicrounitsV1 current_unit_price = 4;
+  uint32 interruption_notice_seconds = 5;
+}
+
+message CapacitySupplyV1 {
+  oneof supply {
+    StableSupplyV1 on_demand = 1;
+    StableSupplyV1 reserved = 2;
+    StableSupplyV1 committed_use = 3;
+    SpotSupplyV1 spot = 4;
+  }
+}
+
+message CommercialSnapshotEntryV1 {
+  string entry_id = 1;
+  reserved 2;
+  reserved "source";
+  uint32 source_schema_version = 3;
+  Digest32 source_record_digest = 4;
+  reserved 5;
+  reserved "region_identifier";
+  PlacementLocationV1 location = 6;
+  CellId cell_id = 7;
+  string capacity_class = 8;
+  reserved 9;
+  reserved "sku_id";
+  CapacityVectorV1 unit_capacity = 10;
+  MoneyMicrounitsV1 list_unit_price = 11;
+  CapacitySupplyV1 supply = 12;
+  uint64 valid_at_unix_seconds = 13;
+  uint64 expires_at_unix_seconds = 14;
+  Digest32 entry_digest = 15;
+  CommercialSourceRecordRefV1 source_record = 16;
+  string offer_id = 17;
+  uint64 rate_period_seconds = 18;
+  uint64 priced_quantity = 19;
+  Digest32 normalized_capacity_unit_digest = 20;
+  uint64 valuation_horizon_seconds = 21;
+  string price_calculation_policy_version = 22;
+  Digest32 price_calculation_policy_digest = 23;
+}
+
+message CommercialSnapshotV1 {
+  string authority_id = 1;
+  string snapshot_id = 2;
+  uint64 revision = 3;
+  string partition = 4;
+  Digest32 ordered_entry_root_digest = 5;
+  uint64 entry_count = 6;
+  uint64 valid_at_unix_seconds = 7;
+  uint64 expires_at_unix_seconds = 8;
+  Digest32 snapshot_digest = 9;
+}
+
+message CommercialSnapshotPageRequestV1 {
+  string partition = 1;
+  CellId cell_id = 2;
+  uint32 page_size = 3;
+  bytes page_token = 4;
+}
+
+message CommercialSnapshotPageV1 {
+  CommercialSnapshotV1 snapshot = 1;
+  repeated CommercialSnapshotEntryV1 entries = 2;
+  bytes next_page_token = 3;
+}
+
+enum SpotDataLossToleranceV1 {
+  SPOT_DATA_LOSS_TOLERANCE_V1_UNSPECIFIED = 0;
+  SPOT_DATA_LOSS_TOLERANCE_V1_NO_DATA_LOSS = 1;
+  SPOT_DATA_LOSS_TOLERANCE_V1_CHECKPOINT_BOUNDED = 2;
+}
+
+message SpotAcceptanceV1 {
+  MoneyMicrounitsV1 maximum_unit_price = 1;
+  uint32 minimum_interruption_notice_seconds = 2;
+  uint32 maximum_interruptions_per_horizon = 3;
+  SpotDataLossToleranceV1 tolerance = 4;
+}
+
+message StableCapacityOnlyV1 {}
+
+message CapacityPurchasePreferenceV1 {
+  oneof preference {
+    StableCapacityOnlyV1 stable_only = 1;
+    SpotAcceptanceV1 spot_allowed = 2;
+  }
+}
+
+message CommercialAllocationAttributionV1 {
+  string snapshot_id = 1;
+  uint64 snapshot_revision = 2;
+  string entry_id = 3;
+  Digest32 entry_digest = 4;
+  CapacitySupplyV1 supply = 5;
+  MoneyMicrounitsV1 attributed_cost = 6;
+  Digest32 attribution_digest = 7;
+  tenancy.identity.v1.TenantId tenant_id = 8;
+  uint64 allocated_quantity = 9;
+  uint64 valuation_horizon_seconds = 10;
+  Digest32 normalized_charge_basis_digest = 11;
+  Digest32 formula_input_root_digest = 12;
+  uint64 formula_input_count = 13;
+  string calculation_policy_version = 14;
+  Digest32 calculation_policy_digest = 15;
+}
+
+message CommercialSourceRecordReadRequestV1 {
+  CommercialSourceRecordRefV1 source_record = 1;
+  uint64 maximum_bytes = 2;
+}
+
+message CanonicalCommercialSourceRecordV1 {
+  CommercialSourceRecordRefV1 source_record = 1;
+  string canonical_encoding = 2;
+  bytes canonical_bytes = 3;
+}
+
+message CommercialPlacementBasisV1 {
+  string currency = 1;
+  uint64 valuation_horizon_seconds = 2;
+  string price_snapshot_id = 3;
+  uint64 price_snapshot_revision = 4;
+  uint64 valid_at_unix_seconds = 5;
+  uint64 expires_at_unix_seconds = 6;
+  CommitmentTreatmentV1 commitment_treatment = 7;
+  SpotTreatmentV1 spot_treatment = 8;
+  Digest32 capacity_evidence_digest = 9;
+  Digest32 commitment_evidence_digest = 10;
+  Digest32 spot_evidence_digest = 11;
+  uint32 stable_headroom_basis_points = 12;
+  uint32 maximum_rebalance_basis_points = 13;
+  Digest32 commercial_basis_digest = 14;
+  uint32 minimum_spot_interruption_notice_seconds = 15;
+  string commercial_authority_id = 16;
+  string snapshot_partition = 17;
+  Digest32 ordered_entry_root_digest = 18;
+  uint64 snapshot_entry_count = 19;
+  string calculation_policy_version = 20;
+  Digest32 calculation_policy_digest = 21;
+}

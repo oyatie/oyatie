@@ -1,0 +1,143 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/evidence.proto";
+import "tenancy/binding/v1/participant.proto";
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/binding/v1/transfer_authority.proto";
+import "tenancy/identity/v1/identity.proto";
+
+enum MovementBudgetPoolV1 {
+  MOVEMENT_BUDGET_POOL_V1_UNSPECIFIED = 0;
+  MOVEMENT_BUDGET_POOL_V1_ORDINARY = 1;
+  MOVEMENT_BUDGET_POOL_V1_FORWARD_COMPLETION_RESERVE = 2;
+}
+
+message TransferBudgetDebitV1 {
+  MovementBudgetPoolV1 pool = 1;
+  uint64 maximum_bytes = 2;
+  uint64 effects = 3;
+  uint64 maximum_cost_microunits = 4;
+  string currency = 5;
+  Digest32 budget_relation_digest = 6;
+  Digest32 debit_digest = 7;
+}
+
+message TransferExecutionPermitPayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  string participant_id = 4;
+  Digest32 participant_membership_digest = 5;
+  Digest32 participant_manifest_digest = 6;
+  ResidencyTransferEffectV1 effect = 7;
+  Digest32 effect_fingerprint = 8;
+  Digest32 transfer_authorization_digest = 9;
+  Digest32 transfer_authorization_set_digest = 10;
+  Digest32 movement_permit_digest = 11;
+  string scheduling_permit_id = 12;
+  uint64 parent_deadline_unix_seconds = 13;
+  string worker_id = 14;
+  uint64 worker_lease_epoch = 15;
+  uint64 worker_lease_expires_at_unix_seconds = 16;
+  ParticipantReceiptPhaseV1 phase = 17;
+  TransferBudgetDebitV1 budget_debit = 18;
+  uint64 not_before_unix_seconds = 19;
+  uint64 expires_at_unix_seconds = 20;
+  Digest32 binding_participant_commitment_digest = 21;
+  cell.placement.v1.AssuranceAuditPolicyV1 assurance_audit_policy = 22;
+}
+
+message SignedTransferExecutionPermitV1 {
+  TransferExecutionPermitPayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+enum TransferExecutionOutcomeStatusV1 {
+  TRANSFER_EXECUTION_OUTCOME_STATUS_V1_UNSPECIFIED = 0;
+  TRANSFER_EXECUTION_OUTCOME_STATUS_V1_APPLIED = 1;
+  TRANSFER_EXECUTION_OUTCOME_STATUS_V1_FAILED_BEFORE_EFFECT = 2;
+  TRANSFER_EXECUTION_OUTCOME_STATUS_V1_OUTCOME_UNKNOWN = 3;
+}
+
+message TransferExecutionOutcomePayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  string participant_id = 4;
+  Digest32 effect_fingerprint = 5;
+  Digest32 execution_permit_digest = 6;
+  TransferExecutionOutcomeStatusV1 status = 7;
+  uint64 accounted_bytes = 8;
+  uint64 accounted_cost_microunits = 9;
+  Digest32 result_digest = 10;
+  uint64 occurred_at_unix_seconds = 11;
+}
+
+message SignedTransferExecutionOutcomeV1 {
+  TransferExecutionOutcomePayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message TransferExecutionLedgerV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 ordinary_debited_bytes = 2;
+  uint64 ordinary_debited_effects = 3;
+  uint64 ordinary_debited_cost_microunits = 4;
+  uint64 forward_debited_bytes = 5;
+  uint64 forward_debited_effects = 6;
+  uint64 forward_debited_cost_microunits = 7;
+  Digest32 permit_root_digest = 8;
+  uint64 permit_count = 9;
+  Digest32 outcome_root_digest = 10;
+  uint64 outcome_count = 11;
+  uint64 revision = 12;
+  Digest32 record_digest = 13;
+}
+
+enum TransferExecutionItemDispositionV1 {
+  TRANSFER_EXECUTION_ITEM_DISPOSITION_V1_UNSPECIFIED = 0;
+  TRANSFER_EXECUTION_ITEM_DISPOSITION_V1_PENDING_PERMIT = 1;
+  TRANSFER_EXECUTION_ITEM_DISPOSITION_V1_PERMIT_ISSUED = 2;
+  TRANSFER_EXECUTION_ITEM_DISPOSITION_V1_OUTCOME_RECORDED = 3;
+  TRANSFER_EXECUTION_ITEM_DISPOSITION_V1_SETTLEMENT_PENDING = 4;
+  TRANSFER_EXECUTION_ITEM_DISPOSITION_V1_SETTLED = 5;
+}
+
+message TransferExecutionItemV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 effect_ordinal = 2;
+  Digest32 effect_fingerprint = 3;
+  string participant_id = 4;
+  TransferExecutionItemDispositionV1 disposition = 5;
+  SignedTransferExecutionPermitV1 permit = 6;
+  SignedTransferExecutionOutcomeV1 outcome = 7;
+  Digest32 idempotency_digest = 8;
+  string worker_id = 9;
+  uint64 worker_lease_epoch = 10;
+  uint64 worker_lease_expires_at_unix_seconds = 11;
+  Digest32 settlement_claim_digest = 12;
+  Digest32 settlement_digest = 13;
+  uint64 revision = 14;
+  Digest32 record_digest = 15;
+}
+
+message TransferExecutionItemPageRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 ledger_revision = 2;
+  Digest32 ledger_record_digest = 3;
+  uint64 start_ordinal = 4;
+  uint32 page_size = 5;
+  bytes page_token = 6;
+}
+
+message TransferExecutionItemPageV1 {
+  BindingOperationKeyV1 operation = 1;
+  repeated TransferExecutionItemV1 items = 2;
+  uint64 next_ordinal = 3;
+  bytes next_page_token = 4;
+  Digest32 page_digest = 5;
+}

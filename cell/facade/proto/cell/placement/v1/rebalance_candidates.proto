@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/assurance.proto";
+import "cell/placement/v1/capacity.proto";
+import "cell/placement/v1/economics.proto";
+import "cell/placement/v1/evidence.proto";
+import "cell/placement/v1/movement.proto";
+import "cell/placement/v1/placement.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/topology.proto";
+import "tenancy/identity/v1/identity.proto";
+
+message RebalanceCandidatePartitionScopeV1 {}
+
+message RebalanceCandidateScopeV1 {
+  oneof scope {
+    CellId cell = 1;
+    RebalanceCandidatePartitionScopeV1 partition = 2;
+  }
+}
+
+message RebalanceCandidateSnapshotRequestV1 {
+  PlacementPartitionV1 partition = 1;
+  RebalanceCandidateScopeV1 scope = 2;
+  Digest32 trigger_digest = 3;
+  uint64 placement_policy_generation = 4;
+}
+
+message RebalanceCandidateSnapshotV1 {
+  RebalanceCandidateSnapshotRequestV1 request = 1;
+  EvidenceSetCommitmentV1 candidates = 2;
+  Digest32 snapshot_digest = 3;
+}
+
+message RebalanceCandidateCursorV1 {
+  reserved 1, 2, 3;
+  reserved "candidate_snapshot", "snapshot_root_digest", "snapshot_candidate_count";
+
+  uint64 next_candidate_ordinal = 4;
+  bytes next_page_token = 5;
+  uint64 evaluated_candidate_count = 6;
+  Digest32 selection_accumulator_root_digest = 7;
+  uint64 selected_candidate_count = 8;
+  Digest32 cursor_digest = 9;
+  RebalanceCandidateSnapshotV1 snapshot = 10;
+}
+
+message RebalanceCandidatePageRequestV1 {
+  reserved 1, 2, 3, 4;
+  reserved "partition", "source_cell_id", "candidate_snapshot", "expected_snapshot_root_digest";
+
+  uint64 start_ordinal = 5;
+  uint32 page_size = 6;
+  bytes page_token = 7;
+  RebalanceCandidateSnapshotV1 snapshot = 8;
+  uint64 maximum_encoded_bytes = 9;
+  uint32 maximum_inclusion_path_depth = 10;
+}
+
+message RebalanceCandidateV1 {
+  reserved 7;
+  reserved "movement_requirements_digest";
+
+  uint64 ordinal = 1;
+  tenancy.identity.v1.TenantId tenant_id = 2;
+  CellId source_cell_id = 3;
+  uint64 binding_generation = 4;
+  uint64 binding_revision = 5;
+  Digest32 binding_record_digest = 6;
+  Digest32 candidate_digest = 8;
+  repeated Digest32 inclusion_path = 9;
+  ImmutableEvidenceRefV1 movement_requirements = 10;
+}
+
+message RebalanceCandidatePageV1 {
+  reserved 1, 2, 3;
+  reserved "candidate_snapshot", "snapshot_root_digest", "snapshot_candidate_count";
+
+  uint64 start_ordinal = 4;
+  repeated RebalanceCandidateV1 candidates = 5;
+  uint64 next_ordinal = 6;
+  bytes next_page_token = 7;
+  Digest32 page_digest = 8;
+  RebalanceCandidateSnapshotV1 snapshot = 9;
+}
+
+message RebalanceCandidateRequirementsV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  PlacementIncumbentV1 incumbent = 2;
+  SignedAssuranceCompilationV1 assurance_compilation = 3;
+  CapacityVectorV1 home_capacity = 4;
+  CapacityPurchasePreferenceV1 capacity_purchase_preference = 5;
+  ResilienceObjectiveV1 resilience = 6;
+  MovementBudgetV1 ordinary_movement_ceiling = 7;
+  MovementBudgetV1 forward_completion_ceiling = 8;
+  Digest32 requirements_digest = 9;
+}
+
+message RebalanceCandidateRequirementsRequestV1 {
+  RebalanceCandidateSnapshotV1 snapshot = 1;
+  RebalanceCandidateV1 candidate = 2;
+  uint64 maximum_encoded_bytes = 3;
+  uint32 maximum_inclusion_path_depth = 4;
+}

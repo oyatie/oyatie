@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/assurance.proto";
+import "cell/placement/v1/authority.proto";
+import "cell/placement/v1/control_operation.proto";
+import "cell/placement/v1/evidence.proto";
+import "cell/placement/v1/lifecycle.proto";
+import "cell/placement/v1/proof.proto";
+
+message CellControlAuditPolicyV1 {
+  ImmutableEvidenceRefV1 policy_evidence = 1;
+  uint64 minimum_retention_seconds = 2;
+  ImmutableAuditStorageRequirementV1 immutable_storage = 3;
+  Digest32 policy_digest = 4;
+}
+
+message CellCreatedAuditEffectV1 { Digest32 cell_resource_digest = 1; }
+message CellUpdatedAuditEffectV1 { Digest32 cell_resource_digest = 1; }
+message ReadinessMutatedAuditEffectV1 { Digest32 evidence_digest = 1; }
+message DrainStartedAuditEffectV1 { Digest32 manifest_digest = 1; }
+message DrainProofAppendedAuditEffectV1 { Digest32 proof_digest = 1; }
+message DrainCompletedAuditEffectV1 { Digest32 completion_digest = 1; }
+message CellDecommissionedAuditEffectV1 { Digest32 completion_digest = 1; }
+message RebalanceCreatedAuditEffectV1 { Digest32 job_digest = 1; }
+message RebalanceCancelledAuditEffectV1 { Digest32 job_digest = 1; }
+message OperationCancelledAuditEffectV1 { CellControlOperationKeyV1 operation = 1; }
+message ReconciliationClaimedAuditEffectV1 { Digest32 candidate_digest = 1; }
+message ReconciliationCompletedAuditEffectV1 { Digest32 result_digest = 1; }
+
+message CellControlAuditEffectV1 {
+  oneof effect {
+    CellCreatedAuditEffectV1 cell_created = 1;
+    CellUpdatedAuditEffectV1 cell_updated = 2;
+    ReadinessMutatedAuditEffectV1 readiness_mutated = 3;
+    DrainStartedAuditEffectV1 drain_started = 4;
+    DrainProofAppendedAuditEffectV1 drain_proof_appended = 5;
+    DrainCompletedAuditEffectV1 drain_completed = 6;
+    CellDecommissionedAuditEffectV1 cell_decommissioned = 7;
+    RebalanceCreatedAuditEffectV1 rebalance_created = 8;
+    RebalanceCancelledAuditEffectV1 rebalance_cancelled = 9;
+    OperationCancelledAuditEffectV1 operation_cancelled = 10;
+    ReconciliationClaimedAuditEffectV1 reconciliation_claimed = 11;
+    ReconciliationCompletedAuditEffectV1 reconciliation_completed = 12;
+  }
+}
+
+message CellControlAuditRecordV1 {
+  string audit_event_id = 1;
+  CellControlSubjectV1 subject = 2;
+  CellControlActionV1 action = 3;
+  Digest32 actor_digest = 4;
+  AuthorizationDecisionReceiptV1 authorization = 5;
+  string idempotency_key = 6;
+  Digest32 canonical_request_digest = 7;
+  CellControlAuditEffectV1 effect = 8;
+  Digest32 result_digest = 9;
+  uint64 occurred_at_unix_seconds = 10;
+  CellControlAuditPolicyV1 audit_policy = 11;
+  Digest32 record_digest = 12;
+}

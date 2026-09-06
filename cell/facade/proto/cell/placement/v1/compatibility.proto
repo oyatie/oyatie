@@ -1,0 +1,176 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/evidence.proto";
+import "cell/placement/v1/lifecycle.proto";
+import "cell/placement/v1/proof.proto";
+
+message ProtocolVersionRangeV1 {
+  uint32 minimum = 1;
+  uint32 maximum = 2;
+}
+
+enum DeploymentOrderV1 {
+  DEPLOYMENT_ORDER_V1_UNSPECIFIED = 0;
+  DEPLOYMENT_ORDER_V1_EXPAND_READERS_BEFORE_WRITERS = 1;
+}
+
+enum DurableStateRollbackV1 {
+  DURABLE_STATE_ROLLBACK_V1_UNSPECIFIED = 0;
+  DURABLE_STATE_ROLLBACK_V1_BEFORE_WRITER_CUTOVER = 1;
+  DURABLE_STATE_ROLLBACK_V1_FORWARD_RECOVERY_AFTER_WRITER_CUTOVER = 2;
+}
+
+enum ControlPlaneOwnerV1 {
+  CONTROL_PLANE_OWNER_V1_UNSPECIFIED = 0;
+  CONTROL_PLANE_OWNER_V1_CELL = 1;
+  CONTROL_PLANE_OWNER_V1_TENANCY = 2;
+  CONTROL_PLANE_OWNER_V1_GATEWAY_PROJECTION = 3;
+  CONTROL_PLANE_OWNER_V1_CAPABILITY_PARTICIPANT = 4;
+}
+
+message OwnerReleaseCompatibilityPayloadV1 {
+  uint32 schema_version = 1;
+  ControlPlaneOwnerV1 owner = 2;
+  string owner_id = 3;
+  string release_id = 4;
+  string predecessor_release_id = 5;
+  ProtocolVersionRangeV1 api_read_versions = 6;
+  ProtocolVersionRangeV1 api_write_versions = 7;
+  ProtocolVersionRangeV1 proof_read_versions = 8;
+  ProtocolVersionRangeV1 proof_write_versions = 9;
+  ProtocolVersionRangeV1 durable_state_read_versions = 10;
+  uint32 durable_state_write_version = 11;
+  uint32 minimum_forward_recovery_version = 12;
+  DeploymentOrderV1 deployment_order = 13;
+  DurableStateRollbackV1 rollback = 14;
+  Digest32 compatibility_matrix_digest = 15;
+  Digest32 record_digest = 16;
+}
+
+message SignedOwnerReleaseCompatibilityV1 {
+  OwnerReleaseCompatibilityPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message ReleaseCompatibilitySetV1 {
+  ImmutableEvidenceRefV1 immutable_set = 1;
+  Digest32 ordered_release_root_digest = 2;
+  uint64 release_count = 3;
+  Digest32 set_digest = 4;
+}
+
+message ReleaseCompatibilityMemberV1 {
+  uint64 ordinal = 1;
+  SignedOwnerReleaseCompatibilityV1 release = 2;
+  repeated Digest32 inclusion_path = 3;
+}
+
+enum PromotionPrerequisiteStatusV1 {
+  PROMOTION_PREREQUISITE_STATUS_V1_UNSPECIFIED = 0;
+  PROMOTION_PREREQUISITE_STATUS_V1_NOT_SATISFIED = 1;
+  PROMOTION_PREREQUISITE_STATUS_V1_SATISFIED = 2;
+}
+
+message RegionalRolloutCompatibilityEvidenceV1 {
+  ImmutableEvidenceRefV1 source_record = 1;
+  PromotionPrerequisiteStatusV1 contracts_signed = 2;
+  PromotionPrerequisiteStatusV1 controls_validated = 3;
+  PromotionPrerequisiteStatusV1 compliance_evidence_accepted = 4;
+  PromotionPrerequisiteStatusV1 capacity_reserved = 5;
+  Digest32 compatibility_record_digest = 6;
+}
+
+message CellRevisionIdentityV1 {
+  CellId cell_id = 1;
+  Digest32 cell_identity_digest = 2;
+  string deployment_unit_id = 3;
+  uint64 spec_revision = 4;
+  Digest32 spec_digest = 5;
+  Digest32 resource_digest = 6;
+  uint64 lifecycle_revision = 7;
+  uint64 admission_epoch = 8;
+  uint64 capacity_revision = 9;
+  Digest32 capacity_record_digest = 10;
+  Digest32 topology_inventory_digest = 11;
+  Digest32 resilience_objective_digest = 12;
+  Digest32 capability_inventory_digest = 13;
+  Digest32 revision_identity_digest = 14;
+}
+
+message TwoCellIsolationEvidenceV1 {
+  CellRevisionIdentityV1 subject = 1;
+  CellRevisionIdentityV1 counterpart = 2;
+  ImmutableEvidenceRefV1 evidence = 3;
+  uint64 observation_window_start_unix_seconds = 4;
+  uint64 observation_window_end_unix_seconds = 5;
+  Digest32 record_digest = 6;
+}
+
+message PromotionMetricPopulationV1 {
+  string population_name = 1;
+  uint64 denominator = 2;
+  Digest32 population_root_digest = 3;
+  Digest32 population_digest = 4;
+}
+
+message CellPromotionMetricsV1 {
+  ImmutableEvidenceRefV1 slo_snapshot = 1;
+  TwoCellIsolationEvidenceV1 two_cell_isolation_evidence = 2;
+  ImmutableEvidenceRefV1 failure_injection_evidence = 3;
+  uint64 unit_cost_microunits = 4;
+  string currency = 5;
+  uint32 stranded_headroom_basis_points = 6;
+  uint32 recovery_reserve_headroom_basis_points = 7;
+  uint64 reservation_leakage_count = 8;
+  uint64 oldest_reconciliation_age_seconds = 9;
+  uint64 maximum_projection_age_seconds = 10;
+  uint64 cross_cell_traffic_bytes = 11;
+  uint32 movement_churn_basis_points = 12;
+  ImmutableEvidenceRefV1 version_skew_evidence = 13;
+  ImmutableEvidenceRefV1 progressive_delivery_evidence = 14;
+  ImmutableEvidenceRefV1 rollback_rehearsal_evidence = 15;
+  RegionalRolloutCompatibilityEvidenceV1 regional_rollout_compatibility = 16;
+  ImmutableEvidenceRefV1 local_control_plane_resilience_evidence = 17;
+  ImmutableEvidenceRefV1 backup_restore_evidence = 18;
+  ImmutableEvidenceRefV1 noisy_tenant_backpressure_evidence = 19;
+  ImmutableEvidenceRefV1 bad_deployment_containment_evidence = 20;
+  uint64 bytes_moved = 21;
+  uint32 correlated_risk_overlap_millionths = 22;
+  uint64 observation_window_start_unix_seconds = 23;
+  uint64 observation_window_end_unix_seconds = 24;
+  PromotionMetricPopulationV1 tenant_population = 25;
+  PromotionMetricPopulationV1 reservation_population = 26;
+  PromotionMetricPopulationV1 movement_population = 27;
+  ImmutableEvidenceRefV1 economics_evidence = 28;
+  ImmutableEvidenceRefV1 slo_threshold_policy = 29;
+  string calculation_policy_version = 30;
+  Digest32 calculation_policy_digest = 31;
+}
+
+message CellPromotionEvidencePayloadV1 {
+  uint32 schema_version = 1;
+  reserved 2;
+  reserved "cell_id";
+  CellReadinessRingV1 target_readiness = 3;
+  ReleaseCompatibilitySetV1 current_release_set = 4;
+  ReleaseCompatibilitySetV1 target_release_set = 5;
+  CellPromotionMetricsV1 metrics = 6;
+  uint64 policy_generation = 7;
+  uint64 observed_at_unix_seconds = 8;
+  uint64 expires_at_unix_seconds = 9;
+  Digest32 record_digest = 10;
+  CellRevisionIdentityV1 cell = 11;
+  Digest32 required_release_owner_root_digest = 12;
+  uint64 required_release_owner_count = 13;
+  Digest32 current_release_coverage_proof_digest = 14;
+  Digest32 target_release_coverage_proof_digest = 15;
+}
+
+message SignedCellPromotionEvidenceV1 {
+  CellPromotionEvidencePayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

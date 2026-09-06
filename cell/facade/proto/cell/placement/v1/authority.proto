@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/proof.proto";
+
+message AuthorizationDecisionReceiptV1 {
+  string decision_id = 1;
+  string policy_version = 2;
+  Digest32 decision_digest = 3;
+  Digest32 determining_policy_set_digest = 4;
+  Digest32 obligations_digest = 5;
+}

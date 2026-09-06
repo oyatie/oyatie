@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/proof.proto";
+
+enum PlacementRepairScopeV1 {
+  PLACEMENT_REPAIR_SCOPE_V1_UNSPECIFIED = 0;
+  PLACEMENT_REPAIR_SCOPE_V1_SEARCH_CONTINUATION = 1;
+  PLACEMENT_REPAIR_SCOPE_V1_RESERVATION_STATE = 2;
+  PLACEMENT_REPAIR_SCOPE_V1_BINDING_OUTCOME_CONVERGENCE = 3;
+  PLACEMENT_REPAIR_SCOPE_V1_AUDIT_OUTBOX = 4;
+}
+
+message PlacementRepairAuthorityPayloadV1 {
+  uint32 schema_version = 1;
+  PlacementOperationKeyV1 repair_operation = 2;
+  PlacementOperationKeyV1 target_operation = 3;
+  uint64 expected_target_revision = 4;
+  PlacementRepairScopeV1 scope = 5;
+  Digest32 requested_checkpoint_digest = 6;
+  Digest32 reason_digest = 7;
+  uint64 expires_at_unix_seconds = 8;
+}
+
+message SignedPlacementRepairAuthorityV1 {
+  PlacementRepairAuthorityPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message PlacementRepairAppliedV1 {
+  PlacementOperationKeyV1 target_operation = 1;
+  uint64 repaired_target_revision = 2;
+  PlacementRepairScopeV1 scope = 3;
+  Digest32 applied_checkpoint_digest = 4;
+}

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package tenancy.identity.v1;
+
+message TenantId {
+  string value = 1;
+}
+
+message TenantBirthRefV1 {
+  uint32 schema_version = 1;
+  TenantId tenant_id = 2;
+  string staged_tenant_record_name = 3;
+  bytes tenant_record_digest = 4;
+  bytes assurance_requirements_digest = 5;
+}

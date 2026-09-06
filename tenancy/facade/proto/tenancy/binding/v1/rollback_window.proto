@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/evidence.proto";
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/identity/v1/identity.proto";
+
+message RollbackWindowPolicyV1 {
+  uint64 policy_generation = 1;
+  uint64 minimum_duration_seconds = 2;
+  Digest32 clock_authority_digest = 3;
+  uint64 maximum_clock_uncertainty_millis = 4;
+  Digest32 policy_digest = 5;
+}
+
+message RollbackWindowElapsedPayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  uint64 successor_binding_generation = 4;
+  uint64 successor_binding_revision = 5;
+  Digest32 successor_binding_record_digest = 6;
+  Digest32 migration_commit_seal_digest = 7;
+  RollbackWindowPolicyV1 policy = 8;
+  uint64 binding_committed_at_unix_seconds = 9;
+  uint64 release_not_before_unix_seconds = 10;
+  cell.placement.v1.ImmutableEvidenceRefV1 trusted_time_evidence = 11;
+  uint64 observed_at_unix_seconds = 12;
+  uint64 observed_clock_uncertainty_millis = 13;
+  Digest32 record_digest = 14;
+}
+
+message SignedRollbackWindowElapsedV1 {
+  RollbackWindowElapsedPayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/economics.proto";
+import "cell/placement/v1/movement.proto";
+import "cell/placement/v1/proof.proto";
+
+message RebalanceBudgetLimitsV1 {
+  MovementBudgetV1 ordinary_ceiling = 1;
+  MovementBudgetV1 forward_completion_ceiling = 2;
+  uint64 window_start_unix_seconds = 3;
+  uint64 window_end_unix_seconds = 4;
+  Digest32 limits_digest = 5;
+}
+
+message RebalanceBudgetUsageV1 {
+  uint64 bytes = 1;
+  uint64 effects = 2;
+  MoneyMicrounitsV1 cost = 3;
+}
+
+message RebalanceBudgetAccountingV1 {
+  Digest32 limits_digest = 1;
+  RebalanceBudgetUsageV1 ordinary_encumbered = 2;
+  RebalanceBudgetUsageV1 ordinary_debited = 3;
+  RebalanceBudgetUsageV1 forward_completion_encumbered = 4;
+  RebalanceBudgetUsageV1 forward_completion_debited = 5;
+  uint64 outstanding_movement_count = 6;
+  Digest32 accounting_digest = 7;
+}

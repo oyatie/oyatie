@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/proof.proto";
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/identity/v1/identity.proto";
+
+message WriteAuthorityLeaseCommitAttestationPayloadV1 {
+  uint32 schema_version = 1;
+  tenancy.identity.v1.TenantId tenant_id = 2;
+  cell.placement.v1.CellId cell_id = 3;
+  BindingOperationKeyV1 operation = 4;
+  uint64 binding_generation = 5;
+  uint64 binding_revision = 6;
+  Digest32 binding_record_digest = 7;
+  uint64 write_authority_epoch = 8;
+  Digest32 lease_intent_digest = 9;
+  uint64 issuance_revision = 10;
+  Digest32 issuance_record_digest = 11;
+  uint64 lease_state_revision = 12;
+  Digest32 lease_state_record_digest = 13;
+  Digest32 reconciliation_candidate_digest = 14;
+  uint64 reconciliation_lease_epoch = 15;
+  Digest32 reconciliation_lease_digest = 16;
+  uint64 reconciliation_lease_expires_at_unix_seconds = 17;
+  Digest32 committed_transaction_digest = 18;
+  uint64 committed_at_unix_seconds = 19;
+}
+
+message SignedWriteAuthorityLeaseCommitAttestationV1 {
+  WriteAuthorityLeaseCommitAttestationPayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

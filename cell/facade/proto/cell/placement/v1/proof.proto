@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "tenancy/identity/v1/identity.proto";
+
+message Digest32 {
+  bytes value = 1;
+}
+
+message CellId {
+  string value = 1;
+}
+
+message ProducerIdV1 {
+  string value = 1;
+}
+
+message KeyIdV1 {
+  string value = 1;
+}
+
+message ProofNonceV1 {
+  string value = 1;
+}
+
+message PlacementOperationKeyV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  string operation_id = 2;
+}
+
+message BindingOutcomeQueryRefV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  string binding_operation_id = 2;
+  string tenancy_shard_key = 3;
+}
+
+enum CellProofDomainV1 {
+  CELL_PROOF_DOMAIN_V1_UNSPECIFIED = 0;
+  CELL_PROOF_DOMAIN_V1_PLACEMENT_INVOCATION = 1;
+  CELL_PROOF_DOMAIN_V1_PLACEMENT_INTENT = 2;
+  CELL_PROOF_DOMAIN_V1_PLACEMENT_DECISION = 3;
+  CELL_PROOF_DOMAIN_V1_PLACEMENT_CONTINUATION = 4;
+  CELL_PROOF_DOMAIN_V1_PLACEMENT_EXHAUSTION = 5;
+  CELL_PROOF_DOMAIN_V1_RESERVATION_ARM_INTENT = 6;
+  CELL_PROOF_DOMAIN_V1_RESERVATION_COMMIT_PERMIT = 7;
+  CELL_PROOF_DOMAIN_V1_BINDING_OUTCOME = 8;
+  CELL_PROOF_DOMAIN_V1_RESERVATION_ARM_RECEIPT = 9;
+  CELL_PROOF_DOMAIN_V1_MOVEMENT_PERMIT = 10;
+  CELL_PROOF_DOMAIN_V1_REPAIR_AUTHORITY = 11;
+  CELL_PROOF_DOMAIN_V1_ASSURANCE_EVIDENCE = 12;
+  CELL_PROOF_DOMAIN_V1_RECOVERY_EVIDENCE = 13;
+  CELL_PROOF_DOMAIN_V1_CELL_CONTROL_INVOCATION = 14;
+  CELL_PROOF_DOMAIN_V1_DRAIN_CONTRIBUTOR_MANIFEST = 15;
+  CELL_PROOF_DOMAIN_V1_DRAIN_CONTRIBUTOR_PROOF = 16;
+  CELL_PROOF_DOMAIN_V1_DRAIN_COMPLETION = 17;
+  reserved 18;
+  reserved "CELL_PROOF_DOMAIN_V1_SOURCE_RESERVATION_RELEASE_PERMIT";
+  CELL_PROOF_DOMAIN_V1_RELEASE_COMPATIBILITY = 19;
+  CELL_PROOF_DOMAIN_V1_PROMOTION_EVIDENCE = 20;
+  CELL_PROOF_DOMAIN_V1_BINDING_PARTICIPANT_MANIFEST_COMMITMENT = 21;
+  CELL_PROOF_DOMAIN_V1_ASSURANCE_COMPILATION = 22;
+  CELL_PROOF_DOMAIN_V1_RECONCILIATION_INVOCATION = 23;
+  CELL_PROOF_DOMAIN_V1_MOVEMENT_BUDGET_SETTLEMENT_CLAIM = 24;
+  CELL_PROOF_DOMAIN_V1_DRAIN_CONTRIBUTOR_SEAL = 25;
+  CELL_PROOF_DOMAIN_V1_CELL_CONTROL_REPAIR_AUTHORITY = 26;
+  CELL_PROOF_DOMAIN_V1_DRAIN_CONTRIBUTOR_SEAL_COMMIT_ATTESTATION = 27;
+}
+
+message CellProofEnvelopeV1 {
+  uint32 schema_version = 1;
+  uint32 signing_format_version = 2;
+  CellProofDomainV1 domain = 3;
+  ProducerIdV1 producer = 4;
+  ProducerIdV1 audience = 5;
+  KeyIdV1 key_id = 6;
+  ProofNonceV1 nonce = 7;
+  uint64 issued_at_unix_seconds = 8;
+  uint64 expires_at_unix_seconds = 9;
+  Digest32 payload_digest = 10;
+}
+
+message HistoricalSigningKeyEvidenceRefV1 {
+  string authority_id = 1;
+  string repository_id = 2;
+  string object_id = 3;
+  uint64 object_version = 4;
+  string producer_id = 5;
+  string key_id = 6;
+  uint64 key_epoch = 7;
+  Digest32 content_digest = 8;
+}
+
+message HistoricalRevocationEvidenceRefV1 {
+  string authority_id = 1;
+  string repository_id = 2;
+  string object_id = 3;
+  uint64 object_version = 4;
+  uint64 observed_through_unix_seconds = 5;
+  Digest32 content_digest = 6;
+}
+
+message HistoricalProofVerificationContextV1 {
+  uint64 proof_valid_at_unix_seconds = 1;
+  uint64 audited_at_unix_seconds = 2;
+  HistoricalSigningKeyEvidenceRefV1 signing_key_evidence = 3;
+  HistoricalRevocationEvidenceRefV1 revocation_evidence = 4;
+  Digest32 verification_policy_digest = 5;
+}

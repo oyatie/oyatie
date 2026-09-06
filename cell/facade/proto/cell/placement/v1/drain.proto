@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/evidence.proto";
+import "cell/placement/v1/proof.proto";
+
+enum DrainContributorKindV1 {
+  DRAIN_CONTRIBUTOR_KIND_V1_UNSPECIFIED = 0;
+  DRAIN_CONTRIBUTOR_KIND_V1_TENANCY_BINDINGS = 1;
+  DRAIN_CONTRIBUTOR_KIND_V1_CELL_RESERVATIONS = 2;
+  DRAIN_CONTRIBUTOR_KIND_V1_CELL_OPERATIONS = 3;
+  DRAIN_CONTRIBUTOR_KIND_V1_CAPABILITY_STATE = 4;
+  DRAIN_CONTRIBUTOR_KIND_V1_ROUTING_PROJECTIONS = 5;
+}
+
+message DrainContributorManifestPayloadV1 {
+  uint32 schema_version = 1;
+  CellId cell_id = 2;
+  uint64 drain_term = 3;
+  uint64 lifecycle_revision = 4;
+  Digest32 contributor_identity_root_digest = 5;
+  uint64 contributor_count = 6;
+  string compiler_version = 7;
+  Digest32 source_snapshot_digest = 8;
+  Digest32 record_digest = 9;
+  ImmutableEvidenceRefV1 inventory_snapshot = 10;
+}
+
+message SignedDrainContributorManifestV1 {
+  DrainContributorManifestPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message DrainContributorProofPayloadV1 {
+  uint32 schema_version = 1;
+  CellId cell_id = 2;
+  uint64 drain_term = 3;
+  Digest32 manifest_digest = 4;
+  uint64 contributor_ordinal = 5;
+  DrainContributorKindV1 contributor_kind = 6;
+  string contributor_id = 7;
+  Digest32 contributor_identity_digest = 8;
+  Digest32 partition_root_digest = 9;
+  uint64 partition_count = 10;
+  uint64 remaining_binding_count = 11;
+  uint64 remaining_reservation_count = 12;
+  uint64 remaining_operation_count = 13;
+  uint64 remaining_capability_state_count = 14;
+  uint64 remaining_projection_count = 15;
+  uint64 observed_at_unix_seconds = 16;
+  Digest32 record_digest = 17;
+  repeated Digest32 contributor_identity_inclusion_path = 18;
+  Digest32 contributor_seal_digest = 19;
+  uint64 sealed_state_revision = 20;
+  uint64 sealed_state_creation_high_water = 21;
+  Digest32 sealed_state_root_digest = 22;
+  uint64 sealed_state_count = 23;
+}
+
+message SignedDrainContributorProofV1 {
+  DrainContributorProofPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message DrainProofLedgerV1 {
+  CellId cell_id = 1;
+  uint64 drain_term = 2;
+  Digest32 manifest_digest = 3;
+  uint64 expected_contributor_count = 4;
+  uint64 next_contributor_ordinal = 5;
+  Digest32 applied_identity_root_digest = 6;
+  Digest32 applied_proof_root_digest = 7;
+  uint64 total_remaining_bindings = 8;
+  uint64 total_remaining_reservations = 9;
+  uint64 total_remaining_operations = 10;
+  uint64 total_remaining_capability_states = 11;
+  uint64 total_remaining_projections = 12;
+  uint64 revision = 13;
+  Digest32 record_digest = 14;
+  Digest32 applied_seal_root_digest = 15;
+}
+
+message CellDrainCompletionPayloadV1 {
+  uint32 schema_version = 1;
+  CellId cell_id = 2;
+  uint64 drain_term = 3;
+  uint64 lifecycle_revision = 4;
+  Digest32 contributor_manifest_digest = 5;
+  Digest32 contributor_identity_root_digest = 6;
+  Digest32 contributor_proof_root_digest = 7;
+  uint64 contributor_count = 8;
+  uint64 ledger_revision = 9;
+  uint64 zero_bindings = 10;
+  uint64 zero_reservations = 11;
+  uint64 zero_operations = 12;
+  uint64 zero_capability_states = 13;
+  uint64 zero_projections = 14;
+  uint64 completed_at_unix_seconds = 15;
+  Digest32 record_digest = 16;
+  Digest32 contributor_seal_root_digest = 17;
+}
+
+message SignedCellDrainCompletionV1 {
+  CellDrainCompletionPayloadV1 payload = 1;
+  CellProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

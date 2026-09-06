@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/movement.proto";
+import "cell/placement/v1/placement.proto";
+import "tenancy/binding/v1/migration.proto";
+import "tenancy/binding/v1/operation.proto";
+import "tenancy/binding/v1/participant.proto";
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/binding/v1/transfer_authority.proto";
+import "tenancy/binding/v1/transfer_execution.proto";
+import "tenancy/identity/v1/identity.proto";
+
+service TenancyMigrationCoordinationService {
+  rpc PutParticipantManifest(PutParticipantManifestRequestV1) returns (PutParticipantManifestResultV1);
+  rpc AppendParticipantReceipt(AppendParticipantReceiptRequestV1) returns (ParticipantReceiptLedgerV1);
+  rpc CloseParticipantPhase(CloseParticipantPhaseRequestV1) returns (SignedParticipantPhaseClosureV1);
+  rpc AppendTransferAuthorization(AppendTransferAuthorizationRequestV1) returns (TransferAuthorizationJournalV1);
+  rpc SealTransferAuthorizationSet(SealTransferAuthorizationSetRequestV1) returns (SignedResidencyTransferAuthorizationSetV1);
+  rpc IssueTransferExecutionPermit(IssueTransferExecutionPermitRequestV1) returns (SignedTransferExecutionPermitV1);
+  rpc RecordTransferExecutionOutcome(RecordTransferExecutionOutcomeRequestV1) returns (SignedTransferExecutionOutcomeV1);
+  rpc IssueSourceFenceDirective(IssueSourceFenceDirectiveRequestV1) returns (IssueSourceFenceDirectiveResultV1);
+}
+
+message PutParticipantManifestRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 expected_attempt_revision = 2;
+  cell.placement.v1.SignedPlacementDecisionV1 placement_decision = 3;
+  SignedParticipantManifestV1 manifest = 4;
+  string idempotency_key = 5;
+  Digest32 canonical_request_digest = 6;
+  uint64 expected_operation_revision = 7;
+}
+
+message PutParticipantManifestResultV1 {
+  SignedParticipantManifestV1 manifest = 1;
+  cell.placement.v1.SignedBindingParticipantManifestCommitmentV1 cell_commitment = 2;
+}
+
+message AppendParticipantReceiptRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 expected_ledger_revision = 2;
+  SignedParticipantReceiptV1 receipt = 3;
+  string idempotency_key = 4;
+  Digest32 canonical_request_digest = 5;
+  uint64 expected_operation_revision = 6;
+}
+
+message CloseParticipantPhaseRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 expected_ledger_revision = 2;
+  SignedParticipantPhaseClosureV1 closure = 3;
+  string idempotency_key = 4;
+  Digest32 canonical_request_digest = 5;
+  uint64 expected_operation_revision = 6;
+}
+
+message AppendTransferAuthorizationRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 expected_journal_revision = 2;
+  SignedTransferEffectManifestV1 manifest = 3;
+  cell.placement.v1.SignedCellMovementPermitV1 movement_permit = 4;
+  SignedResidencyTransferAuthorizationV1 authorization = 5;
+  string idempotency_key = 6;
+  Digest32 canonical_request_digest = 7;
+  uint64 expected_operation_revision = 8;
+}
+
+message SealTransferAuthorizationSetRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 expected_journal_revision = 2;
+  SignedTransferEffectManifestV1 manifest = 3;
+  SignedResidencyTransferAuthorizationSetV1 set = 4;
+  string idempotency_key = 5;
+  Digest32 canonical_request_digest = 6;
+  uint64 expected_operation_revision = 7;
+}
+
+message IssueTransferExecutionPermitRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 expected_ledger_revision = 2;
+  SignedResidencyTransferAuthorizationV1 authorization = 3;
+  SignedResidencyTransferAuthorizationSetV1 authorization_set = 4;
+  ParticipantManifestMemberV1 participant = 5;
+  cell.placement.v1.SignedCellMovementPermitV1 movement_permit = 6;
+  MovementBudgetPoolV1 requested_budget_pool = 7;
+  string idempotency_key = 8;
+  Digest32 canonical_request_digest = 9;
+  uint64 expected_operation_revision = 10;
+}
+
+message RecordTransferExecutionOutcomeRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 expected_ledger_revision = 2;
+  SignedTransferExecutionOutcomeV1 outcome = 3;
+  string idempotency_key = 4;
+  Digest32 canonical_request_digest = 5;
+  uint64 expected_operation_revision = 6;
+}
+
+message IssueSourceFenceDirectiveRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  uint64 expected_operation_revision = 2;
+  Digest32 migration_fence_claim_digest = 3;
+  uint64 expected_ledger_revision = 4;
+  ParticipantManifestMemberV1 participant = 5;
+  uint64 requested_validity_seconds = 6;
+  string idempotency_key = 7;
+  Digest32 canonical_request_digest = 8;
+  reserved 9, 10;
+  reserved "source_write_authority_lease", "expected_write_authority_token_ledger_digest";
+}
+
+message SourceFenceDirectiveLedgerV1 {
+  BindingOperationKeyV1 operation = 1;
+  Digest32 participant_manifest_digest = 2;
+  Digest32 expected_participant_root_digest = 3;
+  uint64 expected_participant_count = 4;
+  uint64 next_participant_ordinal = 5;
+  Digest32 issued_directive_root_digest = 6;
+  uint64 issued_directive_count = 7;
+  Digest32 source_write_authority_lease_digest = 8;
+  uint64 revision = 9;
+  Digest32 record_digest = 10;
+  uint64 maximum_source_write_authority_lease_expires_at_unix_seconds = 11;
+}
+
+message IssueSourceFenceDirectiveResultV1 {
+  SignedSourceFenceDirectiveV1 directive = 1;
+  SourceFenceDirectiveLedgerV1 ledger = 2;
+  BindingOperationV1 operation = 3;
+}
+
+message TransferAuthorizationJournalV1 {
+  BindingOperationKeyV1 operation = 1;
+  tenancy.identity.v1.TenantId tenant_id = 2;
+  Digest32 effect_manifest_digest = 3;
+  Digest32 expected_effect_root_digest = 4;
+  uint64 expected_effect_count = 5;
+  uint64 next_effect_ordinal = 6;
+  Digest32 applied_effect_root_digest = 7;
+  Digest32 applied_authorization_root_digest = 8;
+  uint64 authorized_maximum_bytes = 9;
+  uint64 authorized_maximum_cost_microunits = 10;
+  uint64 revision = 11;
+  Digest32 record_digest = 12;
+}

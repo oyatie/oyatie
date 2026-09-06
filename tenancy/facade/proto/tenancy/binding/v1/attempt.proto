@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/capacity.proto";
+import "cell/placement/v1/placement.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/reservation.proto";
+import "tenancy/binding/v1/operation.proto";
+import "tenancy/binding/v1/participant.proto";
+import "tenancy/binding/v1/proof.proto";
+
+enum BindingReservationAttemptStateV1 {
+  BINDING_RESERVATION_ATTEMPT_STATE_V1_UNSPECIFIED = 0;
+  BINDING_RESERVATION_ATTEMPT_STATE_V1_OPENED = 1;
+  BINDING_RESERVATION_ATTEMPT_STATE_V1_PARTIALLY_ARMED = 2;
+  BINDING_RESERVATION_ATTEMPT_STATE_V1_FULLY_ARMED = 3;
+  BINDING_RESERVATION_ATTEMPT_STATE_V1_COMMIT_PERMITTED = 4;
+  BINDING_RESERVATION_ATTEMPT_STATE_V1_OUTCOME_COMMITTED = 5;
+  BINDING_RESERVATION_ATTEMPT_STATE_V1_OUTCOME_ABORTED = 6;
+}
+
+message BindingReservationAttemptV1 {
+  BindingOperationKeyV1 operation = 1;
+  cell.placement.v1.BindingOutcomeQueryRefV1 outcome_query = 2;
+  Digest32 binding_attempt_digest = 3;
+  Digest32 placement_decision_digest = 4;
+  Digest32 required_reservation_set_digest = 5;
+  cell.placement.v1.ReservationRefV1 home_reservation = 6;
+  cell.placement.v1.ReservationRefV1 warm_recovery_reservation = 7;
+  repeated cell.placement.v1.SignedReservationArmReceiptV1 arm_receipts = 8;
+  cell.placement.v1.SignedReservationCommitPermitV1 commit_permit = 9;
+  BindingReservationAttemptStateV1 state = 10;
+  uint64 revision = 11;
+  Digest32 record_digest = 12;
+  cell.placement.v1.SignedPlacementDecisionV1 placement_decision = 13;
+  repeated cell.placement.v1.SignedReservationArmIntentV1 arm_intents = 14;
+  Digest32 arm_intent_set_digest = 15;
+  Digest32 binding_precondition_digest = 16;
+  uint64 opened_at_unix_seconds = 17;
+  uint64 settlement_deadline_unix_seconds = 18;
+  SignedParticipantManifestV1 participant_manifest = 19;
+}
+
+message BindingReservationAttemptPreconditionV1 {
+  uint64 revision = 1;
+}
+
+message BindingAttemptCheckpointEvidenceV1 {
+  oneof evidence {
+    cell.placement.v1.SignedReservationArmReceiptV1 arm_receipt = 1;
+    cell.placement.v1.SignedReservationCommitPermitV1 commit_permit = 2;
+  }
+}
+
+message BindingAttemptMutationResultV1 {
+  BindingReservationAttemptV1 attempt = 1;
+  BindingOperationV1 operation = 2;
+}

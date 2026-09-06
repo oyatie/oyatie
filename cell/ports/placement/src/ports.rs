@@ -1,0 +1,197 @@
+use core::future::Future;
+use core::pin::Pin;
+
+use crate::{
+    BindingOutcomeQueryRefV1, Digest32, PlacementIdempotencyKey, PlacementOperationKey,
+    PlacementOperationRevision, PlacementOperationV1, SignedPlacementContinuationV1,
+    SignedPlacementDecisionV1, SignedPlacementExhaustionV1, VerifiedBindingOutcome,
+    VerifiedBindingParticipantManifestCommitment, VerifiedCellPlacementDecision,
+    VerifiedPlacementIntent, VerifiedPlacementInvocation, VerifiedPlacementRepairAuthority,
+    VerifiedReservationArmIntent, VerifiedReservationArmReceipt, VerifiedReservationCommitPermit,
+    VerifiedSourceReservationReleasePermit,
+};
+
+pub type BoxCellFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum PlacementSelectionOutcomeV1 {
+    Selected(Box<SignedPlacementDecisionV1>),
+    Deferred(Box<SignedPlacementContinuationV1>),
+    NoCapacity(Box<SignedPlacementExhaustionV1>),
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum PlacementContractError {
+    NotImplemented,
+    InvalidRequest,
+    IdempotencyKeyReuse,
+    NotFoundOrNotAuthorized,
+    Backpressure,
+    DeadlineExceeded,
+    DependencyUnavailable,
+    VerificationFailed,
+    ProofAlreadyApplied,
+    AuthorizationScopeMismatch,
+    Conflict,
+    TerminalOperation,
+    ForwardRecoveryRequired,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct SelectAndReserveRequestV1 {
+    operation: PlacementOperationKey,
+    intent: VerifiedPlacementIntent,
+    idempotency_key: PlacementIdempotencyKey,
+    canonical_request_digest: Digest32,
+}
+
+impl SelectAndReserveRequestV1 {
+    pub fn assemble(
+        _operation: PlacementOperationKey,
+        _intent: VerifiedPlacementIntent,
+        _idempotency_key: PlacementIdempotencyKey,
+        _canonical_request_digest: Digest32,
+    ) -> Result<Self, PlacementContractError> {
+        Err(PlacementContractError::NotImplemented)
+    }
+
+    #[must_use]
+    pub fn operation(&self) -> &PlacementOperationKey {
+        &self.operation
+    }
+
+    #[must_use]
+    pub fn intent(&self) -> &VerifiedPlacementIntent {
+        &self.intent
+    }
+
+    #[must_use]
+    pub fn idempotency_key(&self) -> &PlacementIdempotencyKey {
+        &self.idempotency_key
+    }
+
+    #[must_use]
+    pub fn canonical_request_digest(&self) -> Digest32 {
+        self.canonical_request_digest
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct ArmReservationRequestV1 {
+    pub operation: PlacementOperationKey,
+    pub intent: VerifiedReservationArmIntent,
+    pub idempotency_key: PlacementIdempotencyKey,
+    pub canonical_request_digest: Digest32,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct ApplyBindingOutcomeRequestV1 {
+    pub operation: PlacementOperationKey,
+    pub outcome: VerifiedBindingOutcome,
+    pub idempotency_key: PlacementIdempotencyKey,
+    pub canonical_request_digest: Digest32,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct ApplySourceReservationReleaseRequestV1 {
+    pub operation: PlacementOperationKey,
+    pub permit: VerifiedSourceReservationReleasePermit,
+    pub idempotency_key: PlacementIdempotencyKey,
+    pub canonical_request_digest: Digest32,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct FinalizeReservationCommitPermitRequestV1 {
+    pub operation: PlacementOperationKey,
+    pub home_arm_receipt: VerifiedReservationArmReceipt,
+    pub warm_recovery_arm_receipt: Option<VerifiedReservationArmReceipt>,
+    pub idempotency_key: PlacementIdempotencyKey,
+    pub canonical_request_digest: Digest32,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct ScheduleMovementRequestV1 {
+    pub operation: PlacementOperationKey,
+    pub placement_decision: VerifiedCellPlacementDecision,
+    pub reservation_commit_permit: VerifiedReservationCommitPermit,
+    pub binding_operation: BindingOutcomeQueryRefV1,
+    pub participant_manifest: VerifiedBindingParticipantManifestCommitment,
+    pub budget_request: crate::MovementBudgetRequestV1,
+    pub requested_deadline_unix_seconds: u64,
+    pub idempotency_key: PlacementIdempotencyKey,
+    pub canonical_request_digest: Digest32,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OperationMutationRequestV1 {
+    pub operation: PlacementOperationKey,
+    pub expected_revision: PlacementOperationRevision,
+    pub idempotency_key: PlacementIdempotencyKey,
+    pub canonical_request_digest: Digest32,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct RepairPlacementOperationRequestV1 {
+    pub repair_operation: PlacementOperationKey,
+    pub target_operation: PlacementOperationKey,
+    pub expected_target_revision: PlacementOperationRevision,
+    pub authority: VerifiedPlacementRepairAuthority,
+    pub idempotency_key: PlacementIdempotencyKey,
+    pub canonical_request_digest: Digest32,
+}
+
+pub trait CellPlacementService: Send + Sync {
+    fn select_and_reserve<'a>(
+        &'a self,
+        invocation: VerifiedPlacementInvocation,
+        request: SelectAndReserveRequestV1,
+    ) -> BoxCellFuture<'a, Result<PlacementOperationV1, PlacementContractError>>;
+
+    fn arm_reservation<'a>(
+        &'a self,
+        invocation: VerifiedPlacementInvocation,
+        request: ArmReservationRequestV1,
+    ) -> BoxCellFuture<'a, Result<PlacementOperationV1, PlacementContractError>>;
+
+    fn apply_binding_outcome<'a>(
+        &'a self,
+        invocation: VerifiedPlacementInvocation,
+        request: ApplyBindingOutcomeRequestV1,
+    ) -> BoxCellFuture<'a, Result<PlacementOperationV1, PlacementContractError>>;
+
+    fn apply_source_reservation_release<'a>(
+        &'a self,
+        invocation: VerifiedPlacementInvocation,
+        request: ApplySourceReservationReleaseRequestV1,
+    ) -> BoxCellFuture<'a, Result<PlacementOperationV1, PlacementContractError>>;
+
+    fn finalize_reservation_commit_permit<'a>(
+        &'a self,
+        invocation: VerifiedPlacementInvocation,
+        request: FinalizeReservationCommitPermitRequestV1,
+    ) -> BoxCellFuture<'a, Result<PlacementOperationV1, PlacementContractError>>;
+
+    fn schedule_movement<'a>(
+        &'a self,
+        invocation: VerifiedPlacementInvocation,
+        request: ScheduleMovementRequestV1,
+    ) -> BoxCellFuture<'a, Result<PlacementOperationV1, PlacementContractError>>;
+
+    fn get_operation<'a>(
+        &'a self,
+        invocation: VerifiedPlacementInvocation,
+        operation: &'a PlacementOperationKey,
+    ) -> BoxCellFuture<'a, Result<PlacementOperationV1, PlacementContractError>>;
+
+    fn cancel_operation<'a>(
+        &'a self,
+        invocation: VerifiedPlacementInvocation,
+        request: OperationMutationRequestV1,
+    ) -> BoxCellFuture<'a, Result<PlacementOperationV1, PlacementContractError>>;
+
+    fn repair_operation<'a>(
+        &'a self,
+        invocation: VerifiedPlacementInvocation,
+        request: RepairPlacementOperationRequestV1,
+    ) -> BoxCellFuture<'a, Result<PlacementOperationV1, PlacementContractError>>;
+}
