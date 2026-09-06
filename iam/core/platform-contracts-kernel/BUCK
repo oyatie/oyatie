@@ -1,0 +1,31 @@
+rust_library(
+    name = "shared-platform-contracts-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "shared_platform_contracts_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = ["third-party//:serde", "third-party//:serde_json"],
+)
+
+rust_test(
+    name = "shared-platform-contracts-kernel-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "shared_platform_contracts_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = ["third-party//:serde", "third-party//:serde_json"],
+)
+
+rust_test(
+    name = "shared-platform-contracts-kernel-cedar-policy-validation",
+    srcs = [
+        "tests/cedar_policy_validation.rs",
+        "cedar/platform.cedarschema",
+        "cedar/platform-policies.cedar",
+        "cedar/platform-templates.cedar",
+    ],
+    crate = "cedar_policy_validation",
+    crate_root = "tests/cedar_policy_validation.rs",
+    visibility = ["PUBLIC"],
+    deps = ["third-party//:cedar-policy"],
+)
