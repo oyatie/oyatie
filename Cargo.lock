@@ -1381,6 +1381,8 @@ dependencies = [
  "data-boundary-kernel",
  "network-residency",
  "serde",
+ "serde_json",
+ "shared-resource-provider-contract-kernel",
  "tokio",
 ]
 
@@ -1395,6 +1397,7 @@ dependencies = [
  "sha2",
  "shared-postgres-command-adapter-sqlx",
  "shared-postgres-command-kernel",
+ "shared-resource-provider-contract-kernel",
  "sqlx",
  "tokio",
 ]

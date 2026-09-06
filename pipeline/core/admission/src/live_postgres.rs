@@ -50,6 +50,7 @@ pub const COMPUTE_LIFECYCLE_LIVE_POSTGRES_PATH_PREFIXES: &[&str] = &[
     "compute/adapters/k8s-lifecycle-repository-postgres/",
     "compute/core/domain/",
     "compute/core/resource/",
+    "compute/core/resource-provider-contract-kernel/",
     "compute/ports/k8s-api/",
     "data/adapters/postgres-command-sqlx/",
     "data/core/data-boundary-kernel/",
@@ -118,9 +119,16 @@ mod tests {
 
     #[test]
     fn shared_packages_select_both_cells() {
-        let path = "data/core/data-boundary-kernel/src/lib.rs";
-        assert!(hits_backbone_postgres_path(path));
-        assert!(hits_compute_lifecycle_postgres_path(path));
+        for path in [
+            "data/core/data-boundary-kernel/src/lib.rs",
+            "compute/core/resource-provider-contract-kernel/src/lib.rs",
+        ] {
+            assert!(hits_backbone_postgres_path(path), "backbone omitted {path}");
+            assert!(
+                hits_compute_lifecycle_postgres_path(path),
+                "Compute omitted {path}"
+            );
+        }
     }
 
     #[test]

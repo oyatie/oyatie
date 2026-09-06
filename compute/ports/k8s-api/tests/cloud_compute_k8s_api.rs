@@ -215,3 +215,16 @@ include!("cloud_compute_k8s_api/delete_support.rs");
 include!("cloud_compute_k8s_api/delete_success.rs");
 include!("cloud_compute_k8s_api/delete_authorization.rs");
 include!("cloud_compute_k8s_api/delete_idempotency.rs");
+
+#[path = "cloud_compute_k8s_api/acceptance.rs"]
+mod acceptance;
+#[path = "cloud_compute_k8s_api/acceptance_authorization.rs"]
+mod acceptance_authorization;
+#[path = "cloud_compute_k8s_api/acceptance_identity.rs"]
+mod acceptance_identity;
+#[path = "cloud_compute_k8s_api/acceptance_integrity.rs"]
+mod acceptance_integrity;
+#[path = "cloud_compute_k8s_api/acceptance_receipt.rs"]
+mod acceptance_receipt;
+#[path = "cloud_compute_k8s_api/acceptance_test_repository.rs"]
+mod acceptance_test_repository;
