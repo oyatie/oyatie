@@ -58,17 +58,22 @@ rust_library(
     crate = "dependency_declarations_reconcile",
     crate_root = "src/lib.rs",
     env = _BUILD_ENV,
-    visibility = ["//build/dependency-declarations/..."],
+    visibility = [
+        "//build/dependency-declarations/...",
+        "//pipeline/facade/path-layout-app:pipeline-path-layout-app",
+    ],
     within_view = [
         "//build/dependency-declarations/core/reconcile/...",
         "//build/dependency-declarations/ports/generation/...",
         "//build/dependency-declarations/ports/publication/...",
+        "third-party//:semver",
         "third-party//:sha2",
         "third-party//:toml",
     ],
     deps = [
         "//build/dependency-declarations/ports/generation:dependency-declarations-generation",
         "//build/dependency-declarations/ports/publication:dependency-declarations-publication",
+        "third-party//:semver",
         "third-party//:sha2",
         "third-party//:toml",
     ],
@@ -79,6 +84,21 @@ rust_test(
     srcs = ["tests/repository_manifests.rs"],
     crate = "dependency_declarations_reconcile_repository_manifests_test",
     crate_root = "tests/repository_manifests.rs",
+    visibility = [],
+    within_view = _PACKAGE_VIEW,
+    deps = [":dependency-declarations-reconcile"],
+)
+
+rust_test(
+    name = "dependency-declarations-reconcile-execution-toolchain-transition-test",
+    srcs = [
+        "tests/execution_toolchain_transition.rs",
+        "tests/execution_toolchain_transition/analysis.rs",
+        "tests/execution_toolchain_transition/patch_policy.rs",
+        "tests/execution_toolchain_transition/support.rs",
+    ],
+    crate = "dependency_declarations_reconcile_execution_toolchain_transition_test",
+    crate_root = "tests/execution_toolchain_transition.rs",
     visibility = [],
     within_view = _PACKAGE_VIEW,
     deps = [":dependency-declarations-reconcile"],

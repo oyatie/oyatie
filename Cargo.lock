@@ -1847,6 +1847,7 @@ version = "0.1.0"
 dependencies = [
  "dependency-declarations-generation",
  "dependency-declarations-publication",
+ "semver",
  "sha2",
  "toml 0.8.23",
 ]
@@ -6493,6 +6494,7 @@ dependencies = [
 name = "pipeline-path-layout-app"
 version = "0.1.0"
 dependencies = [
+ "dependency-declarations-reconcile",
  "pipeline-admission",
  "pipeline-repository-draft",
  "pipeline-repository-git-draft",
