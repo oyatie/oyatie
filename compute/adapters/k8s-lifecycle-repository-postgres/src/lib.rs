@@ -1,13 +1,17 @@
 //! PostgreSQL-backed Kubernetes lifecycle intent and idempotency repository.
 //!
-//! Each operation runs in one transaction, sets the canonical tenant GUC before
-//! touching tenant data, and commits the cluster intent with its replay receipt.
+//! Each operation sets the canonical tenant GUC before touching tenant data.
+//! Legacy lifecycle writes commit cluster intent with a replay receipt; pending
+//! acceptance commits only its immutable receipt and separate Accepted status.
 //! A separate privileged migrator serializes and attests schema changes.
 //! Repository construction accepts only the exact migration ledger and catalog,
 //! a DML-only serving identity, and the expected FORCE RLS posture.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+mod acceptance;
+mod acceptance_integrity;
+mod acceptance_storage;
 mod canonical_json;
 mod catalog_connection;
 mod error;
@@ -24,6 +28,7 @@ mod runtime_guard;
 mod schema;
 mod schema_catalog;
 mod schema_contract;
+mod schema_phase;
 mod serving_role_guard;
 
 use error::validate_database_url;
@@ -32,8 +37,9 @@ pub use error::{
     PgK8sLifecycleSchemaError,
 };
 pub use migrations::{
-    CURRENT_MIGRATION_VERSION, K8S_LIFECYCLE_MIGRATIONS, K8S_LIFECYCLE_REPOSITORY_MIGRATION,
-    K8S_LIFECYCLE_RUNTIME_ROLE_MIGRATION, MIGRATIONS_TABLE, PgK8sLifecycleMigration,
+    CURRENT_MIGRATION_VERSION, K8S_LIFECYCLE_MIGRATIONS, K8S_LIFECYCLE_PENDING_INTENT_MIGRATION,
+    K8S_LIFECYCLE_REPOSITORY_MIGRATION, K8S_LIFECYCLE_RUNTIME_ROLE_MIGRATION, MIGRATIONS_TABLE,
+    PgK8sLifecycleMigration,
 };
 pub use migrator::{PgK8sLifecycleMigrationReport, PgK8sLifecycleMigrator};
 pub use runtime_contract::{PgK8sLifecycleRuntimeContract, PgK8sLifecycleRuntimeContractError};

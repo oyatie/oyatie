@@ -57,6 +57,42 @@ fn rejects_kubernetes_without_ha_spread_or_autoscale_max_node_quota() {
 }
 
 #[test]
+fn legacy_quota_error_still_precedes_invalid_metadata_class() {
+    let mut create = k8s_create();
+    create.quota.vcpu_limit = 8;
+    create.data_class = data_boundary_kernel::DataClass::PiiIdentifying;
+
+    assert_eq!(
+        KubernetesCluster::new(create),
+        Err(CloudComputeError::QuotaExceeded)
+    );
+}
+
+#[test]
+fn legacy_tenant_error_still_precedes_invalid_initial_state() {
+    let mut create = k8s_create();
+    create.tenant_id = "tenant-alpha".to_string();
+    create.state = KubernetesClusterState::Ready;
+
+    assert_eq!(
+        KubernetesCluster::new(create),
+        Err(CloudComputeError::InvalidTenantId)
+    );
+}
+
+#[test]
+fn legacy_initial_state_error_still_precedes_malformed_shape() {
+    let mut create = k8s_create();
+    create.state = KubernetesClusterState::Ready;
+    create.node_pools.clear();
+
+    assert_eq!(
+        KubernetesCluster::new(create),
+        Err(CloudComputeError::InvalidKubernetesState)
+    );
+}
+
+#[test]
 fn kubernetes_reconciliation_is_deterministic_across_lifecycle_states() {
     for observed_state in [
         KubernetesClusterState::Creating,

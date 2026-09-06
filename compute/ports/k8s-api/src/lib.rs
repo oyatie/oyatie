@@ -25,6 +25,7 @@ use network_residency::{
     ResidencyClass, parse_residency_class_label, residency_class_allows_home_region_label,
 };
 use serde::{Deserialize, Serialize};
+use shared_resource_provider_contract_kernel::OperationState;
 
 pub const CLOUD_COMPUTE_K8S_CLUSTER_RECORD_SCHEMA_VERSION: u32 =
     compute_domain::KUBERNETES_CLUSTER_SCHEMA_VERSION;
@@ -37,3 +38,8 @@ include!("create_projection.rs");
 include!("create_result.rs");
 include!("delete_contract.rs");
 include!("delete_flow.rs");
+include!("acceptance_contract.rs");
+include!("acceptance_intent.rs");
+include!("acceptance_integrity.rs");
+include!("acceptance_error.rs");
+include!("acceptance_flow.rs");

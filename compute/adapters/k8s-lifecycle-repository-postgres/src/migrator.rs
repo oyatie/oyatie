@@ -10,8 +10,7 @@ use crate::migrations::{
 use crate::schema::{
     attest_complete, governed_table_count, ledger_exists, load_applied, validate_applied_prefix,
 };
-
-const ADOPTABLE_UNVERSIONED_SCHEMA_VERSION: usize = 2;
+use crate::{schema_catalog, schema_phase::SchemaPhase};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PgK8sLifecycleMigrationReport {
@@ -65,36 +64,51 @@ impl PgK8sLifecycleMigrator {
         crate::role_database_claim::attest_role_database_claim(&mut transaction, true).await?;
         let had_ledger = ledger_exists(&mut transaction).await?;
         let governed_tables = governed_table_count(&mut transaction).await?;
-        if !had_ledger && governed_tables == 1 {
-            return Err(PgK8sLifecycleMigrationError::SchemaStateAmbiguous);
-        }
+        let applied = if had_ledger {
+            load_applied(&mut transaction).await?
+        } else {
+            Vec::new()
+        };
+        let next = validate_applied_prefix(&applied)?;
+        let unversioned_adoption = next == 0 && governed_tables == 2;
+        let phase = match (next, governed_tables, had_ledger) {
+            (0, 2, ledger) => {
+                let ledger_read = if ledger {
+                    sqlx::query_scalar("SELECT has_table_privilege($1, $2, 'SELECT')")
+                        .bind(RUNTIME_ROLE)
+                        .bind(MIGRATIONS_TABLE)
+                        .fetch_one(&mut *transaction)
+                        .await?
+                } else {
+                    false
+                };
+                SchemaPhase::LegacyAdoption {
+                    ledger,
+                    ledger_read,
+                }
+            }
+            (0, 0, false) => SchemaPhase::Empty,
+            (0 | 1, 0, true) => SchemaPhase::RoleBoundary,
+            (2, 2, true) => SchemaPhase::LegacyRepository,
+            (3, 2, true) => SchemaPhase::PendingIntentRepository,
+            _ => return Err(PgK8sLifecycleMigrationError::SchemaStateAmbiguous),
+        };
+        schema_catalog::attest_schema(&mut transaction, phase).await?;
         if !had_ledger {
             execute_statements(&mut transaction, MIGRATION_LEDGER_BOOTSTRAP).await?;
         }
 
-        let applied = load_applied(&mut transaction).await?;
-        let next = validate_applied_prefix(&applied)?;
-        let unversioned_adoption = next == 0
-            && governed_tables == 2
-            && K8S_LIFECYCLE_MIGRATIONS.len() == ADOPTABLE_UNVERSIONED_SCHEMA_VERSION;
-        let expected_tables = next.checked_sub(1).map_or(0, |index| {
-            K8S_LIFECYCLE_MIGRATIONS[index].governed_table_count_after()
-        });
-        if !unversioned_adoption && governed_tables != expected_tables {
-            return Err(PgK8sLifecycleMigrationError::SchemaStateAmbiguous);
-        }
-
         let mut applied_versions = Vec::new();
         if unversioned_adoption {
-            for migration in K8S_LIFECYCLE_MIGRATIONS {
+            for migration in &K8S_LIFECYCLE_MIGRATIONS[..2] {
                 insert_ledger_row(&mut transaction, *migration).await?;
             }
-        } else {
-            for migration in &K8S_LIFECYCLE_MIGRATIONS[next..] {
-                execute_statements(&mut transaction, migration.sql()).await?;
-                insert_ledger_row(&mut transaction, *migration).await?;
-                applied_versions.push(migration.version());
-            }
+        }
+        let next = if unversioned_adoption { 2 } else { next };
+        for migration in &K8S_LIFECYCLE_MIGRATIONS[next..] {
+            execute_statements(&mut transaction, migration.sql()).await?;
+            insert_ledger_row(&mut transaction, *migration).await?;
+            applied_versions.push(migration.version());
         }
         if !had_ledger || unversioned_adoption {
             sqlx::query(&format!(

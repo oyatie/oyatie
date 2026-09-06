@@ -18,20 +18,12 @@ pub(super) async fn assert_ledger_grants(
     runtime_contract: &PgK8sLifecycleRuntimeContract,
 ) {
     let mut outcomes = Vec::new();
-    for prefix_length in [2_i64, 1, 0] {
-        setup_schema(setup, app_role).await;
-        if prefix_length < 2 {
-            sqlx::query(
-                "DROP TABLE compute_k8s_lifecycle.clusters, compute_k8s_lifecycle.operations",
-            )
-            .execute(setup)
-            .await
-            .expect("prepare ordinary earlier schema prefix");
-            sqlx::query("DELETE FROM compute_k8s_lifecycle.schema_migrations WHERE version > $1")
-                .bind(prefix_length)
-                .execute(setup)
-                .await
-                .expect("prepare matching ledger prefix");
+    for prefix_length in [3, 2, 1, 0] {
+        if prefix_length == 3 {
+            setup_schema(setup, app_role).await;
+        } else {
+            super::legacy_fixture::prefix(setup, prefix_length).await;
+            crate::support::grant_runtime_role(setup, app_role).await;
         }
         sqlx::query(REVOKE_LEDGER_READ)
             .execute(setup)
@@ -64,7 +56,8 @@ pub(super) async fn assert_ledger_grants(
             .await
             .expect("explicitly restored grant admits startup");
     }
-    setup_schema(setup, app_role).await;
+    super::legacy_fixture::prefix(setup, 2).await;
+    crate::support::grant_runtime_role(setup, app_role).await;
     sqlx::query("DELETE FROM compute_k8s_lifecycle.schema_migrations")
         .execute(setup)
         .await
@@ -78,14 +71,14 @@ pub(super) async fn assert_ledger_grants(
         .await
         .expect("genuine legacy adoption establishes ledger grant atomically");
     assert!(adopted.adopted_unversioned_schema);
-    assert!(adopted.applied_versions.is_empty());
+    assert_eq!(adopted.applied_versions, [3]);
     assert!(ledger_readable(setup).await);
     PgK8sLifecycleRepository::from_pool(app.clone(), runtime_contract)
         .await
         .expect("adopted ledger grant admits startup");
     assert_eq!(
         outcomes,
-        [(true, true, true); 3],
+        [(true, true, true); 4],
         "current, prefix and empty non-adoption ledgers must refuse revoked grants without changing state"
     );
 }

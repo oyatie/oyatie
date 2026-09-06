@@ -9,7 +9,9 @@ rust_library(
         "//compute/core/resource:compute-resource",
         "//network/core/residency:network-residency",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//compute/core/resource-provider-contract-kernel:shared-resource-provider-contract-kernel",
         "third-party//:serde",
+        "third-party//:serde_json",
     ],
 )
 
@@ -25,7 +27,9 @@ rust_test(
         "//compute/core/resource:compute-resource",
         "//network/core/residency:network-residency",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//compute/core/resource-provider-contract-kernel:shared-resource-provider-contract-kernel",
         "third-party//:serde",
+        "third-party//:serde_json",
         "third-party//:tokio",
     ],
 )

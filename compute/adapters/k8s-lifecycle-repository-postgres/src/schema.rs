@@ -93,7 +93,11 @@ pub(crate) async fn attest_complete(
             });
         }
     }
-    schema_catalog::attest_schema(connection).await
+    schema_catalog::attest_schema(
+        connection,
+        crate::schema_phase::SchemaPhase::PendingIntentRepository,
+    )
+    .await
 }
 
 pub(crate) async fn governed_table_count(
@@ -124,18 +128,18 @@ mod tests {
             .collect();
         assert_eq!(validate_applied_prefix(&[]), Ok(0));
         assert_eq!(validate_applied_prefix(&exact[..1]), Ok(1));
-        assert_eq!(validate_applied_prefix(&exact), Ok(2));
+        assert_eq!(validate_applied_prefix(&exact), Ok(3));
 
         let mut future = exact.clone();
         future.push(AppliedMigration {
-            version: 3,
+            version: 4,
             name: "future".to_owned(),
             sha256: "a".repeat(64),
         });
         assert_eq!(
             validate_applied_prefix(&future),
             Err(PgK8sLifecycleMigrationError::DatabaseAhead {
-                observed: 3,
+                observed: 4,
                 supported: CURRENT_MIGRATION_VERSION
             })
         );

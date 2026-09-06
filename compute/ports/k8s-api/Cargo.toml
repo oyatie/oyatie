@@ -13,6 +13,8 @@ compute-resource = { path = "../../core/resource" }
 
 network-residency = { path = "../../../network/core/residency" }
 serde.workspace = true
+serde_json.workspace = true
+shared-resource-provider-contract-kernel = { path = "../../core/resource-provider-contract-kernel" }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
