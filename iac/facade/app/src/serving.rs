@@ -73,7 +73,6 @@ fn finish_serving(
     report.into_result().map_err(Into::into)
 }
 
-
 pub fn run_iac_app_from_env() -> Result<(), CloudIacAppError> {
     let config = CloudIacAppConfig::from_env_pairs(std::env::vars())?;
     run_iac_app(config)

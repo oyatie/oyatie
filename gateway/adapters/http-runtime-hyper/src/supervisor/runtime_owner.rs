@@ -67,7 +67,6 @@ async fn serve_with_termination(
     serving.await
 }
 
-
 #[cfg(unix)]
 struct Signals {
     interrupt: tokio::signal::unix::Signal,
