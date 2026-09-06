@@ -4,9 +4,7 @@
 use std::collections::BTreeSet;
 use std::process::ExitCode;
 
-use dependency_declarations_reconcile::{
-    analyze_execution_toolchain_transition, apply_patch_only_execution_toolchain_policy,
-};
+use dependency_declarations_reconcile::analyze_execution_toolchain_transition;
 use pipeline_admission::{
     base_admission_violations, cargo_entrypoints, cargo_manifest_for_crate_path,
     cargo_manifest_violations, changed_layout_violations, draft_dependency_violations,
@@ -56,9 +54,11 @@ fn run() -> Result<(), String> {
     );
     match toolchain_analysis {
         Ok(analysis) => {
-            if let Err(refusal) = apply_patch_only_execution_toolchain_policy(&analysis) {
+            if analysis.candidate().execution() < analysis.candidate().msrv() {
                 violations.push(format!(
-                    "rust-toolchain.toml: execution toolchain patch-only policy refused: {refusal}"
+                    "rust-toolchain.toml: execution toolchain {} is below MSRV {}",
+                    analysis.candidate().execution(),
+                    analysis.candidate().msrv()
                 ));
             }
         }
