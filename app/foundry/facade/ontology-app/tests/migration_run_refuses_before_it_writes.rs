@@ -14,6 +14,58 @@ use migration_support::{
     action_head, denial_head, plan_for, run, state_with_two_revisions, write_owing,
 };
 
+#[test]
+fn cyclic_plan_is_refused_without_writes_and_releases_the_tenant() {
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        runtime.block_on(assert_cycle_refusal());
+        tx.send(()).unwrap();
+    });
+    rx.recv_timeout(std::time::Duration::from_secs(30))
+        .expect("cyclic admission must terminate and release the tenant");
+}
+
+async fn assert_cycle_refusal() {
+    let fixture = Fixture::new("run-cycle");
+    let config = fixture.config();
+    let mut state = state_with_two_revisions(&config);
+    let tenant = state.tenants.get_mut("ten_acme").unwrap().get_mut();
+    for engine in [
+        &mut tenant.projection.registry_input,
+        &mut tenant.projection.engine,
+    ] {
+        let id = data_ontology_kernel::EntityTypeId::new("ety_record").unwrap();
+        let mut definition = engine.entity_type("ten_acme", &id).unwrap().clone();
+        definition.revision = 3;
+        engine.evolve_entity_type(definition).unwrap();
+    }
+    let session = Session::from_state(state);
+    let token = Some(fixture.operator_token());
+    let (status, body) = session.post(token, r#"{"object_ref":"ent_alpha","action_type":"aty_record_write","idempotency_key":"cycle-seed","occurred_at_epoch_seconds":1700000000,"properties":{"name":"Ada","note":"A","nickname":"B"}}"#).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let heads = (action_head(&config), denial_head(&config));
+    let cycle = plan_for("ten_acme")
+        .replace("\"from_revision\":1", "\"from_revision\":2")
+        .replace("\"to_revision\":2", "\"to_revision\":3")
+        .replace(r#"{"kind":"copy_as","from":"note","to":"nickname"}"#,
+            r#"{"kind":"copy_as","from":"note","to":"nickname"},{"kind":"copy_as","from":"nickname","to":"note"}"#);
+    let (status, body) = run(&session, token, &cycle).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "{body}");
+    assert!(body.contains("CyclicTransforms"), "{body}");
+    assert_eq!((action_head(&config), denial_head(&config)), heads);
+    let (status, body) = tokio::time::timeout(
+        std::time::Duration::from_secs(2),
+        session.get(token, "/v1/objects/ent_alpha/history"),
+    )
+    .await
+    .expect("tenant lock released");
+    assert_eq!(status, StatusCode::OK, "{body}");
+}
+
 /// A refused caller changes nothing, in either log.
 ///
 /// Both heads are asserted unchanged rather than merely "no error", and the

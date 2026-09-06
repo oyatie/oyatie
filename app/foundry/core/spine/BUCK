@@ -183,6 +183,19 @@ rust_test(
 )
 
 rust_test(
+    name = "foundry-spine-migration-cycles",
+    srcs = ["tests/migration_cycles.rs"],
+    crate = "migration_cycles",
+    crate_root = "tests/migration_cycles.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-spine",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
+)
+
+rust_test(
     name = "foundry-spine-migration-plan",
     srcs = ["tests/migration_plan.rs"],
     crate = "migration_plan",
