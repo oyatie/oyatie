@@ -66,8 +66,8 @@ async fn global_request_budget_survives_http2_reset_and_connection_disconnect() 
         None,
         None,
     ));
-    let (mut first_client, first_driver) = client(address).await;
-    let first = tokio::spawn(first_client.send_request(request()));
+    let (mut first_client, mut first_driver) = client(address).await;
+    let mut first = tokio::spawn(first_client.send_request(request()));
     tokio::time::timeout(Duration::from_secs(2), entered)
         .await
         .unwrap()
@@ -76,10 +76,19 @@ async fn global_request_budget_survives_http2_reset_and_connection_disconnect() 
     for disconnect in [false, true] {
         if disconnect {
             first.abort();
+            assert!((&mut first).await.unwrap_err().is_cancelled());
             // Cancelling a request drops its H2 stream; closing the driver also
             // exercises transport loss while the application effect remains live.
-            tokio::task::yield_now().await;
             first_driver.abort();
+            assert!((&mut first_driver).await.unwrap_err().is_cancelled());
+            tokio::time::timeout(Duration::from_secs(2), async {
+                // One live connection plus the supervisor's reserved accept permit.
+                while control.snapshot().active[0] != 2 {
+                    tokio::task::yield_now().await;
+                }
+            })
+            .await
+            .unwrap();
         }
         let response = tokio::time::timeout(
             Duration::from_secs(2),
@@ -114,7 +123,5 @@ async fn global_request_budget_survives_http2_reset_and_connection_disconnect() 
     assert_eq!(report.snapshot.capacity_refusals[1], 2);
     assert_eq!(report.snapshot.active, [0; 3]);
     second_driver.abort();
-    let _ = first.await;
-    let _ = first_driver.await;
     let _ = second_driver.await;
 }
