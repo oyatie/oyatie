@@ -144,6 +144,14 @@ pub(crate) struct Admission {
 }
 
 impl Admission {
+    #[cfg(test)]
+    pub(crate) fn poison_for_test(&self) {
+        let _ = std::panic::catch_unwind(|| {
+            let _guard = self.state.lock().unwrap();
+            panic!("injected admission poison");
+        });
+    }
+
     pub(crate) fn new(limits: ServingLimits) -> Arc<Self> {
         Arc::new(Self {
             state: Mutex::new(State {

@@ -231,7 +231,7 @@ pub(crate) async fn run(
             if connections.is_empty() && context.execution.is_empty() && snapshot.active == [0; 3] {
                 return Ok(ServingReport {
                     outcome: ServingOutcome::InfrastructureFailure,
-                    snapshot,
+                    snapshot: control.snapshot(),
                     completion: control.clone(),
                     failure,
                 });
@@ -431,6 +431,32 @@ mod tests {
             Duration::from_millis(100),
         )
         .unwrap()
+    }
+
+    #[tokio::test]
+    async fn poisoned_empty_admission_reports_closed_failure_without_spinning() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let control = ServingControl::new(limits(2, 1));
+        control.admission.poison_for_test();
+        let report = tokio::time::timeout(
+            Duration::from_secs(2),
+            run(
+                listener,
+                Arc::new(Router::new()),
+                Arc::new(MiddlewareChain::new()),
+                ServerConfig::default(),
+                control,
+                None,
+                None,
+            ),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert_eq!(report.outcome, ServingOutcome::InfrastructureFailure);
+        assert!(!report.snapshot.admission_healthy);
+        assert_eq!(report.snapshot.phase, ServingPhase::Draining);
+        assert_eq!(report.snapshot, report.completion.snapshot());
     }
 
     #[tokio::test]
