@@ -222,7 +222,21 @@ pub(crate) async fn run(
     let mut reported = None;
     let mut failure = None;
     let mut listener = Some(listener);
+    let mut retry_at = None;
     loop {
+        let snapshot = control.snapshot();
+        if !snapshot.admission_healthy || !context.execution.is_healthy() {
+            failure = Some("serving supervision poisoned".into());
+            control.request_drain();
+            if connections.is_empty() && context.execution.is_empty() && snapshot.active == [0; 3] {
+                return Ok(ServingReport {
+                    outcome: ServingOutcome::InfrastructureFailure,
+                    snapshot,
+                    completion: control.clone(),
+                    failure,
+                });
+            }
+        }
         if control.snapshot().phase != ServingPhase::Running && deadline.is_none() {
             let started = control.admission.request_drain(Instant::now());
             deadline = started.checked_add(control.snapshot().limits.drain_deadline);
@@ -257,7 +271,15 @@ pub(crate) async fn run(
             }));
         }
         if listener.is_some() && reserved.is_none() {
-            reserved = control.admission.acquire(Budget::Connection).ok();
+            match control.admission.acquire(Budget::Connection) {
+                Ok(permit) => reserved = Some(permit),
+                Err(AdmissionRefusal::Poisoned) => {
+                    failure = Some("connection admission poisoned".into());
+                    control.request_drain();
+                    continue;
+                }
+                Err(_) => {}
+            }
         }
         tokio::select! {
             _ = drain.changed(), if deadline.is_none() => {},
@@ -283,9 +305,13 @@ pub(crate) async fn run(
                     }
                 }
             },
-            result = async { match &listener { Some(listener) => listener.accept().await, None => std::future::pending().await } }, if reserved.is_some() => {
+            result = async {
+                if let Some(when) = retry_at { tokio::time::sleep_until(when).await; }
+                match &listener { Some(listener) => listener.accept().await, None => std::future::pending().await }
+            }, if reserved.is_some() => {
                 match result {
                     Ok((stream, _)) => {
+                        retry_at = None;
                         accepted = accepted.saturating_add(1);
                         if let Some(permit) = reserved.take() {
                             let context = context.clone();
@@ -297,8 +323,12 @@ pub(crate) async fn run(
                     }
                     Err(error) => {
                         control.admission.record(RuntimeEvent::AcceptFailure);
-                        failure = Some(format!("listener accept failed: {error}"));
-                        control.request_drain();
+                        if transient_accept(error.kind()) {
+                            retry_at = Some(tokio::time::Instant::now() + std::time::Duration::from_millis(50));
+                        } else {
+                            failure = Some(format!("listener accept failed: {error}"));
+                            control.request_drain();
+                        }
                     }
                 }
             },
@@ -312,6 +342,15 @@ pub(crate) async fn run(
             },
         }
     }
+}
+
+fn transient_accept(kind: std::io::ErrorKind) -> bool {
+    matches!(
+        kind,
+        std::io::ErrorKind::Interrupted
+            | std::io::ErrorKind::ConnectionAborted
+            | std::io::ErrorKind::WouldBlock
+    )
 }
 
 pub(crate) fn run_std(

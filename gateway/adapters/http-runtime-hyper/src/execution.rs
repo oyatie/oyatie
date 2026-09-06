@@ -96,9 +96,11 @@ impl Execution {
         &self,
         context: &mut Context<'_>,
     ) -> Poll<Option<Result<bool, ExecutionFailure>>> {
-        let Ok(mut jobs) = self.jobs.lock() else {
-            return Poll::Ready(Some(Err(ExecutionFailure::SupervisorPoisoned)));
-        };
+        // Poison refuses new submissions, but existing handles still need a single reaper.
+        let mut jobs = self
+            .jobs
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
         jobs.reaper = Some(context.waker().clone());
         let completion = jobs.set.poll_join_next(context);
         if matches!(completion, Poll::Ready(None)) {
@@ -114,7 +116,15 @@ impl Execution {
     }
 
     pub(crate) fn is_empty(&self) -> bool {
-        self.jobs.lock().is_ok_and(|jobs| jobs.set.is_empty())
+        self.jobs
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .set
+            .is_empty()
+    }
+
+    pub(crate) fn is_healthy(&self) -> bool {
+        !self.jobs.is_poisoned()
     }
 }
 
