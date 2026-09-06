@@ -9,6 +9,8 @@ mod cache_qualification;
 mod live_postgres;
 #[path = "cadence_graph/qualification_closure.rs"]
 mod qualification_closure;
+#[path = "cadence_graph/workflow_calls.rs"]
+mod workflow_calls;
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -116,19 +118,7 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("req \"${{ needs.layout.result }}\""));
     assert!(y.contains("req \"${{ needs.clippy.result }}\""));
     assert!(y.contains("uses: oyatie/oyatie/.github/workflows/live-postgres.yml@dev"));
-    // THE SHAPE, NOT ONE FILENAME. Naming `live-postgres.yml` exactly let a
-    // caller with a different filename past, and wedged the repo: the
-    // required workflow is pinned at `refs/heads/dev`, so `./` resolves
-    // against the candidate and no run starts — the fix's own included.
-    for (line_number, line) in y.lines().enumerate() {
-        assert!(
-            !line.trim_start().starts_with("uses: ./"),
-            "line {}: the ruleset-required caller must not resolve reusable \
-             workflow code from the candidate; call it as \
-             `oyatie/oyatie/.github/workflows/<name>.yml@dev`",
-            line_number + 1
-        );
-    }
+    workflow_calls::validate(&y).expect("protected reusable workflow calls");
     assert!(y.contains("cargo-nextest nextest run"));
     assert!(!y.contains("cargo nextest run"));
     assert!(y.contains("name: occupancy (path-set)\n    if: github.event_name == 'pull_request'"));

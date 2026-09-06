@@ -7,6 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+dependency-declarations-reconcile = { path = "../../../build/dependency-declarations/core/reconcile" }
 pipeline-admission = { path = "../../core/admission" }
 pipeline-repository-draft = { path = "../../ports/draft/repository" }
 pipeline-repository-git-draft = { path = "../../adapters/draft/repository-git" }
