@@ -23,16 +23,8 @@ pub fn install_signal_handlers() -> Result<(), AccessError> {
     Ok(())
 }
 
-pub(super) fn kill_group(child: &mut Child) {
-    if !matches!(child.try_wait(), Ok(None)) {
-        return;
-    }
-    // SAFETY: every child here is spawned into its own process group. This PID
-    // remains owned and unreaped until wait(), so it cannot target a reused PID.
-    unsafe {
-        libc::kill(-(child.id() as i32), libc::SIGKILL);
-    }
-    let _ = child.wait();
+pub(super) fn kill_group(child: &mut OwnedProcess) {
+    let _ = child.terminate();
 }
 
 pub(super) fn read_bounded(mut stream: impl Read) -> Result<Zeroizing<Vec<u8>>, AccessError> {
@@ -72,7 +64,7 @@ pub(super) fn run_with_timeout(
     timeout: Duration,
     cancelled: &AtomicBool,
 ) -> Result<Zeroizing<Vec<u8>>, AccessError> {
-    let mut child = Command::new(program)
+    let child = Command::new(program)
         .args(args)
         .process_group(0)
         .stdin(Stdio::piped())
@@ -80,67 +72,36 @@ pub(super) fn run_with_timeout(
         .stderr(Stdio::piped())
         .spawn()
         .map_err(|_| AccessError::DependencyFailed)?;
-    let stdin = child.stdin.take().ok_or(AccessError::DependencyFailed)?;
-    let stdout = child.stdout.take().ok_or(AccessError::DependencyFailed)?;
-    let stderr = child.stderr.take().ok_or(AccessError::DependencyFailed)?;
-    let input = Zeroizing::new(input.to_vec());
-    let writer = thread::spawn(move || {
-        let mut stdin = stdin;
-        stdin.write_all(&input)
-    });
-    let reader = thread::spawn(move || read_bounded(stdout));
-    let errors = thread::spawn(move || read_bounded(stderr));
+    let mut child = OwnedProcess::new(child);
+    let mut stdin = child.child()?.stdin.take();
+    let mut stdout = child.child()?.stdout.take();
+    let mut stderr = child.child()?.stderr.take();
+    pipe_io::nonblocking(stdin.as_ref().ok_or(AccessError::DependencyFailed)?)?;
+    pipe_io::nonblocking(stdout.as_ref().ok_or(AccessError::DependencyFailed)?)?;
+    pipe_io::nonblocking(stderr.as_ref().ok_or(AccessError::DependencyFailed)?)?;
+    let mut output = Zeroizing::new(Vec::new());
+    let mut errors = Zeroizing::new(Vec::new());
+    let mut written = 0;
     let deadline = Instant::now() + timeout;
-    let result = loop {
+    loop {
         if !cleanup && cancelled.load(Ordering::Relaxed) {
-            kill_group(&mut child);
-            break Err(AccessError::Cancelled);
+            return Err(AccessError::Cancelled);
         }
         if Instant::now() >= deadline {
-            kill_group(&mut child);
-            break Err(AccessError::Timeout);
+            return Err(AccessError::Timeout);
         }
-        match child.try_wait() {
-            Ok(Some(status)) => {
-                break if status.success() {
-                    Ok(())
-                } else {
-                    Err(AccessError::DependencyFailed)
-                };
+        pipe_io::write_step(&mut stdin, input, &mut written)?;
+        pipe_io::read_step(&mut stdout, &mut output)?;
+        pipe_io::read_step(&mut stderr, &mut errors)?;
+        if stdin.is_none() && stdout.is_none() && stderr.is_none() && child.exited()? {
+            let status = child.terminate()?;
+            if !status.success() {
+                return Err(AccessError::DependencyFailed);
             }
-            Ok(None) => thread::sleep(Duration::from_millis(25)),
-            Err(_) => {
-                kill_group(&mut child);
-                break Err(AccessError::DependencyFailed);
-            }
+            return Ok(output);
         }
-    };
-    let written = writer.join().map_err(|_| AccessError::DependencyFailed)?;
-    let output = reader.join().map_err(|_| AccessError::DependencyFailed)?;
-    let error_bytes = errors.join().map_err(|_| AccessError::DependencyFailed)??;
-    if result.is_err() {
-        let message = Zeroizing::new(String::from_utf8_lossy(&error_bytes).to_lowercase());
-        let conditions: Vec<_> = [
-            "illegal seek",
-            "permission denied",
-            "unknown authority",
-            "connection refused",
-            "no such file",
-            "cannot unmarshal",
-            "read /dev/stdin",
-            "expired",
-            "certificate",
-            "config",
-            "timeout",
-        ]
-        .into_iter()
-        .filter(|condition| message.contains(condition))
-        .collect();
-        eprintln!("operator_access_dependency_failure program={program} conditions={conditions:?}");
+        thread::sleep(Duration::from_millis(5));
     }
-    result?;
-    written.map_err(|_| AccessError::DependencyFailed)?;
-    output
 }
 
 pub(super) fn strings(values: &[&str]) -> Vec<String> {
@@ -154,6 +115,14 @@ impl Oci<'_> {
         args: &[&str],
         cleanup: bool,
     ) -> Result<Zeroizing<Vec<u8>>, AccessError> {
+        #[cfg(test)]
+        if let Some(result) = super::session_tests::intercept(args, cleanup) {
+            return result.and_then(|v| {
+                serde_json::to_vec(&v)
+                    .map(Zeroizing::new)
+                    .map_err(|_| AccessError::DependencyFailed)
+            });
+        }
         let mut argv = strings(args);
         argv.extend(strings(&[
             "--config-file",

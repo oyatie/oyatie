@@ -11,13 +11,21 @@ use std::time::{Duration, Instant};
 use x509_parser::prelude::*;
 use zeroize::{Zeroize, Zeroizing};
 
+mod creation;
 mod credentials;
+mod owned_process;
+mod pipe_io;
 mod process;
+#[cfg(test)]
+mod process_tests;
+#[cfg(test)]
+mod session_tests;
 mod sessions;
 #[cfg(test)]
 mod tests;
 
 use credentials::{Credentials, credentials};
+use owned_process::OwnedProcess;
 pub use process::install_signal_handlers;
 use process::{CANCELLED, Oci, kill_group, read_bounded, run, strings};
 use sessions::Sessions;
@@ -67,6 +75,7 @@ pub fn status(p: &Profile) -> Result<Value, AccessError> {
         oci,
         ids: Vec::new(),
         tunnels: Vec::new(),
+        attempts: Vec::new(),
     };
     let result = (|| {
         let talos_port = sessions.connect(50000)?;

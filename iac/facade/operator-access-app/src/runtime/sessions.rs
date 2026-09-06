@@ -3,7 +3,8 @@ use super::*;
 pub(super) struct Sessions<'a> {
     pub(super) oci: Oci<'a>,
     pub(super) ids: Vec<String>,
-    pub(super) tunnels: Vec<Child>,
+    pub(super) tunnels: Vec<OwnedProcess>,
+    pub(super) attempts: Vec<creation::Attempt>,
 }
 
 pub(super) fn valid_session_id(id: &str, region: &str) -> bool {
@@ -24,6 +25,9 @@ impl Sessions<'_> {
         let p = self.oci.0;
         let port_string = port.to_string();
         let key = format!("{}.pub", p.ssh_identity_file);
+        let attempt = creation::Attempt::new(port)?;
+        let name = attempt.name.clone();
+        self.attempts.push(attempt);
         let created = self.oci.json(
             &[
                 "bastion",
@@ -32,7 +36,7 @@ impl Sessions<'_> {
                 "--bastion-id",
                 &p.bastion,
                 "--display-name",
-                "seed-operator-access",
+                &name,
                 "--ssh-public-key-file",
                 &key,
                 "--key-type",
@@ -48,12 +52,17 @@ impl Sessions<'_> {
             ],
             false,
         )?;
-        let id = created["data"]["id"]
-            .as_str()
-            .filter(|id| valid_session_id(id, &p.region))
+        let resolved = self
+            .attempts
+            .last()
             .ok_or(AccessError::TargetMismatch)?
-            .to_string();
+            .resolve(p, &json!({"data": [created["data"]]}))?;
+        if resolved.len() != 1 {
+            return Err(AccessError::TargetMismatch);
+        }
+        let id = resolved[0].clone();
         self.ids.push(id.clone());
+        self.attempts.retain(|attempt| attempt.name != name);
         let deadline = Instant::now() + Duration::from_secs(90);
         loop {
             let session = self
@@ -125,7 +134,7 @@ impl Sessions<'_> {
                 .stderr(Stdio::piped())
                 .spawn()
                 .map_err(|_| AccessError::DependencyFailed)?;
-            self.tunnels.push(tunnel);
+            self.tunnels.push(OwnedProcess::new(tunnel));
             let deadline = Instant::now() + Duration::from_secs(15);
             let tunnel = self
                 .tunnels
@@ -135,12 +144,9 @@ impl Sessions<'_> {
                 if CANCELLED.load(Ordering::Relaxed) {
                     return Err(AccessError::Cancelled);
                 }
-                if tunnel
-                    .try_wait()
-                    .map_err(|_| AccessError::DependencyFailed)?
-                    .is_some()
-                {
-                    if let Some(stderr) = tunnel.stderr.take() {
+                if tunnel.exited()? {
+                    if let Some(stderr) = tunnel.child()?.stderr.take() {
+                        pipe_io::nonblocking(&stderr)?;
                         let bytes = read_bounded(stderr)?;
                         let message =
                             Zeroizing::new(String::from_utf8_lossy(&bytes).to_lowercase());
@@ -191,7 +197,8 @@ impl Sessions<'_> {
             kill_group(tunnel);
         }
         self.tunnels.clear();
-        cleanup_ids(&mut self.ids, |id| {
+        let reconciled = creation::reconcile(&self.oci, &mut self.attempts, &mut self.ids);
+        let deleted = cleanup_ids(&mut self.ids, |id| {
             self.oci.run(
                 &[
                     "bastion",
@@ -216,7 +223,8 @@ impl Sessions<'_> {
                 }
                 thread::sleep(Duration::from_millis(250));
             }
-        })
+        });
+        reconciled.and(deleted)
     }
 }
 
