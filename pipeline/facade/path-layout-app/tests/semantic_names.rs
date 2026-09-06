@@ -23,8 +23,13 @@ fn fixture() -> PathBuf {
         &root,
         "Cargo.toml",
         &format!(
-            "[workspace]\nmembers = [\n{members}]\nexclude = [\n{excludes}]\nresolver = '2'\n"
+            "[workspace]\nmembers = [\n{members}]\nexclude = [\n{excludes}]\nresolver = '2'\n[workspace.package]\nrust-version = '1.98.0'\n"
         ),
+    );
+    write(
+        &root,
+        "rust-toolchain.toml",
+        "[toolchain]\nchannel = '1.98.0'\ncomponents = ['rustfmt', 'clippy']\nprofile = 'minimal'\n",
     );
     root
 }

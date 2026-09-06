@@ -33,6 +33,7 @@ rust_test(
         "tests/cadence_graph/live_postgres.rs",
         "tests/cadence_graph/cache_qualification.rs",
         "tests/cadence_graph/qualification_closure.rs",
+        "tests/cadence_graph/workflow_calls.rs",
     ],
     crate = "pipeline_admission_cadence_graph",
     crate_root = "tests/cadence_graph.rs",
@@ -40,6 +41,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":pipeline-admission",
+        "third-party//:serde_yaml",
         "third-party//:toml",
         "//pipeline/core/workspace-members-kernel:workspace-members-kernel",
     ],

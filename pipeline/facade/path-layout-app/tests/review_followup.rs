@@ -18,6 +18,7 @@ fn fixture() -> PathBuf {
     std::fs::create_dir_all(&root).expect("create fixture");
     git(&root, &["init", "--quiet"]);
     write(&root, "Cargo.toml", &workspace_manifest());
+    write(&root, "rust-toolchain.toml", valid_toolchain());
     root
 }
 
@@ -30,7 +31,13 @@ fn workspace_manifest() -> String {
         .iter()
         .map(|entry| format!("  {entry:?},\n"))
         .collect::<String>();
-    format!("[workspace]\nmembers = [\n{members}]\nexclude = [\n{excludes}]\nresolver = '2'\n")
+    format!(
+        "[workspace]\nmembers = [\n{members}]\nexclude = [\n{excludes}]\nresolver = '2'\n[workspace.package]\nrust-version = '1.98.0'\n"
+    )
+}
+
+fn valid_toolchain() -> &'static str {
+    "[toolchain]\nchannel = '1.98.0'\ncomponents = ['rustfmt', 'clippy']\nprofile = 'minimal'\n"
 }
 
 fn write(root: &Path, relative: &str, contents: &str) {

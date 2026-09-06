@@ -4,6 +4,7 @@
 use std::collections::BTreeSet;
 use std::process::ExitCode;
 
+use dependency_declarations_reconcile::analyze_execution_toolchain_transition;
 use pipeline_admission::{
     base_admission_violations, cargo_entrypoints, cargo_manifest_for_crate_path,
     cargo_manifest_violations, changed_layout_violations, draft_dependency_violations,
@@ -40,8 +41,31 @@ fn run() -> Result<(), String> {
         git_change_paths_from_name_status_z(&name_status).map_err(|error| error.message())?;
     let owners_before = owner_tree_state(&repository, &merge_base)?;
     let owners_after = owner_tree_state(&repository, &head)?;
+    let protected_workspace_contents = repository.blob_text(&merge_base, "Cargo.toml")?;
     let workspace_contents = repository.blob_text(&head, "Cargo.toml")?;
+    let protected_toolchain_contents = repository.blob_text(&merge_base, "rust-toolchain.toml")?;
+    let candidate_toolchain_contents = repository.blob_text(&head, "rust-toolchain.toml")?;
     let mut violations = changed_layout_violations(&changes, &owners_before.live);
+    let toolchain_analysis = analyze_execution_toolchain_transition(
+        &protected_toolchain_contents,
+        &candidate_toolchain_contents,
+        &protected_workspace_contents,
+        &workspace_contents,
+    );
+    match toolchain_analysis {
+        Ok(analysis) => {
+            if analysis.candidate().execution() < analysis.candidate().msrv() {
+                violations.push(format!(
+                    "rust-toolchain.toml: execution toolchain {} is below MSRV {}",
+                    analysis.candidate().execution(),
+                    analysis.candidate().msrv()
+                ));
+            }
+        }
+        Err(refusal) => violations.push(format!(
+            "rust-toolchain.toml: execution toolchain analysis refused: {refusal}"
+        )),
+    }
     violations.extend(owner_core_regression_violations(
         &changes,
         &owners_before.complete,
