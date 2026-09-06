@@ -1,5 +1,8 @@
 mod caller_path;
 mod ledger_grants;
+mod legacy_fixture;
+mod pending_intent;
+mod pending_refusal;
 mod runtime_path;
 
 use compute_k8s_lifecycle_repository_postgres::{
@@ -19,13 +22,14 @@ pub(crate) async fn assert_migration_contract(
     app_role: &str,
     runtime_contract: &PgK8sLifecycleRuntimeContract,
 ) {
+    pending_intent::assert_pending_intent_schema(setup, app, app_role, runtime_contract).await;
     ledger_grants::assert_ledger_grants(setup, app, app_role, runtime_contract).await;
     caller_path::assert_caller_path_preserved(setup, app, app_role, runtime_contract).await;
     runtime_path::assert_runtime_path_preserved(setup, app, app_role, runtime_contract).await;
     concurrent_migrators_serialize(setup, app, app_role, runtime_contract).await;
     runtime_refuses_incomplete_and_drifted_ledgers(setup, app, app_role, runtime_contract).await;
     migrator_adopts_only_exact_unversioned_schema(setup, app, app_role, runtime_contract).await;
-    failed_adoption_rolls_back_ledger(setup).await;
+    drifted_adoption_refuses_before_ledger_write(setup).await;
 }
 
 async fn concurrent_migrators_serialize(
@@ -58,7 +62,7 @@ async fn concurrent_migrators_serialize(
     assert_eq!(
         reports
             .iter()
-            .filter(|report| report.applied_versions == [1, 2])
+            .filter(|report| report.applied_versions == [1, 2, 3])
             .count(),
         1
     );
@@ -112,7 +116,7 @@ async fn runtime_refuses_incomplete_and_drifted_ledgers(
 
     setup_schema(setup, app_role).await;
     sqlx::query(&format!(
-        "INSERT INTO {MIGRATIONS_TABLE} (version, name, sha256) VALUES (3, 'unsupported-future', repeat('a', 64))"
+        "INSERT INTO {MIGRATIONS_TABLE} (version, name, sha256) VALUES (4, 'unsupported-future', repeat('a', 64))"
     ))
     .execute(setup)
     .await
@@ -122,7 +126,7 @@ async fn runtime_refuses_incomplete_and_drifted_ledgers(
             .migrate()
             .await,
         Err(PgK8sLifecycleMigrationError::DatabaseAhead {
-            observed: 3,
+            observed: 4,
             supported: CURRENT_MIGRATION_VERSION
         })
     ));
@@ -163,7 +167,7 @@ async fn migrator_adopts_only_exact_unversioned_schema(
         .await
         .expect("exact unversioned schema is adopted");
     assert!(report.adopted_unversioned_schema);
-    assert!(report.applied_versions.is_empty());
+    assert_eq!(report.applied_versions, [3]);
     grant_runtime_role(setup, app_role).await;
     PgK8sLifecycleRepository::from_pool(app.clone(), runtime_contract)
         .await
@@ -192,12 +196,8 @@ async fn migrator_adopts_only_exact_unversioned_schema(
     assert!(ledger.is_none());
 }
 
-async fn failed_adoption_rolls_back_ledger(setup: &PgPool) {
-    reset_runtime_role(setup).await;
-    PgK8sLifecycleMigrator::from_pool(setup.clone())
-        .migrate()
-        .await
-        .expect("prepare exact schema");
+async fn drifted_adoption_refuses_before_ledger_write(setup: &PgPool) {
+    legacy_fixture::prefix(setup, 2).await;
     sqlx::query(&format!("DELETE FROM {MIGRATIONS_TABLE}"))
         .execute(setup)
         .await
@@ -218,11 +218,13 @@ async fn failed_adoption_rolls_back_ledger(setup: &PgPool) {
         PgK8sLifecycleMigrator::from_pool(setup.clone())
             .migrate()
             .await,
-        Err(PgK8sLifecycleMigrationError::Sqlx(_))
+        Err(PgK8sLifecycleMigrationError::Schema(
+            compute_k8s_lifecycle_repository_postgres::PgK8sLifecycleSchemaError::NamespaceContract
+        ))
     ));
     let rows: i64 = sqlx::query_scalar(&format!("SELECT count(*)::bigint FROM {MIGRATIONS_TABLE}"))
         .fetch_one(setup)
         .await
-        .expect("count rolled-back ledger rows");
+        .expect("count unchanged ledger rows after preflight refusal");
     assert_eq!(rows, 0);
 }

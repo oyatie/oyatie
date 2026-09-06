@@ -11,8 +11,8 @@ use crate::canonical_json::json_digest;
 use crate::integrity::validate_cluster_projection;
 use crate::{SCHEMA_VERSION, error::integrity, error::unavailable};
 
-pub(crate) const RESERVE_OPERATION_SQL: &str = "INSERT INTO compute_k8s_lifecycle.operations (tenant_id, principal_id, surface, idempotency_key, resource_id, request_fingerprint, schema_version) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (tenant_id, principal_id, surface, idempotency_key) DO NOTHING RETURNING 1 AS inserted";
-pub(crate) const SELECT_OPERATION_FOR_UPDATE_SQL: &str = "SELECT resource_id, request_fingerprint, receipt_kind, receipt_json, receipt_digest, schema_version FROM compute_k8s_lifecycle.operations WHERE tenant_id = $1 AND principal_id = $2 AND surface = $3 AND idempotency_key = $4 FOR UPDATE";
+pub(crate) const RESERVE_OPERATION_SQL: &str = "INSERT INTO compute_k8s_lifecycle.operations (tenant_id, principal_id, surface, idempotency_key, resource_id, request_fingerprint, schema_version, request_contract, operation_state) VALUES ($1, $2, $3, $4, $5, $6, $7, 'trusted_envelope', NULL) ON CONFLICT (tenant_id, principal_id, surface, idempotency_key) DO NOTHING RETURNING 1 AS inserted";
+pub(crate) const SELECT_OPERATION_FOR_UPDATE_SQL: &str = "SELECT resource_id, request_fingerprint, receipt_kind, receipt_json, receipt_digest, schema_version, request_contract, operation_state FROM compute_k8s_lifecycle.operations WHERE tenant_id = $1 AND principal_id = $2 AND surface = $3 AND idempotency_key = $4 FOR UPDATE";
 pub(crate) const COMPLETE_OPERATION_SQL: &str = "UPDATE compute_k8s_lifecycle.operations SET receipt_kind = $5, receipt_json = $6, receipt_digest = $7, completed_at = now() WHERE tenant_id = $1 AND principal_id = $2 AND surface = $3 AND idempotency_key = $4";
 
 pub(crate) const INSERT_CLUSTER_SQL: &str = "INSERT INTO compute_k8s_lifecycle.clusters (tenant_id, resource_id, desired_spec_json, cluster_json, observed_state, desired_state, schema_version) VALUES ($1, $2, $3, $4, $5, $6, $7)";
@@ -95,7 +95,23 @@ pub(crate) fn validate_delete_command(
 
 fn stored_operation(
     row: &PgRow,
+    key: &CloudComputeK8sOperationKey,
 ) -> Result<StoredOperation, CloudComputeK8sLifecycleRepositoryError> {
+    let contract: String = row.try_get("request_contract").map_err(integrity)?;
+    let state: Option<String> = row.try_get("operation_state").map_err(integrity)?;
+    match (contract.as_str(), state.as_deref()) {
+        ("trusted_envelope", None) => {}
+        ("pending_intent", Some("accepted"))
+            if key.surface == CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE =>
+        {
+            return Err(
+                CloudComputeK8sLifecycleRepositoryError::IdempotencyKeyReused {
+                    idempotency_key: key.idempotency_key.clone(),
+                },
+            );
+        }
+        _ => return Err(CloudComputeK8sLifecycleRepositoryError::IntegrityViolation),
+    }
     Ok(StoredOperation {
         resource_id: row.try_get("resource_id").map_err(integrity)?,
         request_fingerprint: row.try_get("request_fingerprint").map_err(integrity)?,
@@ -125,7 +141,7 @@ pub(crate) fn replay_create(
     row: &PgRow,
     command: &CloudComputeK8sCreateCommand,
 ) -> Result<CloudComputeK8sCreateReceipt, CloudComputeK8sLifecycleRepositoryError> {
-    let stored = stored_operation(row)?;
+    let stored = stored_operation(row, &command.operation_key)?;
     if stored.resource_id != command.cluster.resource_id
         || stored.request_fingerprint != command.fingerprint
     {
@@ -150,7 +166,7 @@ pub(crate) fn replay_delete(
     command: &CloudComputeK8sDeleteCommand,
     desired_spec: &compute_k8s_api::CloudComputeK8sClusterCreateRequest,
 ) -> Result<CloudComputeK8sDeleteReceipt, CloudComputeK8sLifecycleRepositoryError> {
-    let stored = stored_operation(row)?;
+    let stored = stored_operation(row, &command.operation_key)?;
     if stored.resource_id != command.resource_id.value
         || stored.request_fingerprint != command.resource_id.value
     {

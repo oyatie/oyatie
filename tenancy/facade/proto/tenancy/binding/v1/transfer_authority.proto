@@ -1,0 +1,144 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/capacity.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/topology.proto";
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/identity/v1/identity.proto";
+
+enum TransferDataClassV1 {
+  TRANSFER_DATA_CLASS_V1_UNSPECIFIED = 0;
+  TRANSFER_DATA_CLASS_V1_PUBLIC = 1;
+  TRANSFER_DATA_CLASS_V1_INTERNAL = 2;
+  TRANSFER_DATA_CLASS_V1_CONFIDENTIAL = 3;
+  TRANSFER_DATA_CLASS_V1_REGULATED = 4;
+}
+
+enum TransferPurposeV1 {
+  TRANSFER_PURPOSE_V1_UNSPECIFIED = 0;
+  TRANSFER_PURPOSE_V1_INITIAL_COPY = 1;
+  TRANSFER_PURPOSE_V1_FINAL_DELTA = 2;
+  TRANSFER_PURPOSE_V1_RECOVERY_PREPARATION = 3;
+  TRANSFER_PURPOSE_V1_DISASTER_RECOVERY = 4;
+}
+
+message TransferEffectManifestPayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  Digest32 participant_manifest_digest = 4;
+  Digest32 ordered_effect_root_digest = 5;
+  uint64 effect_count = 6;
+  uint64 maximum_total_bytes = 7;
+  uint64 maximum_total_cost_microunits = 8;
+  string currency = 9;
+  Digest32 record_digest = 10;
+  TransferEffectSnapshotV1 effect_snapshot = 11;
+}
+
+message SignedTransferEffectManifestV1 {
+  TransferEffectManifestPayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message ResidencyTransferEffectV1 {
+  string effect_id = 1;
+  string participant_id = 2;
+  cell.placement.v1.CellId source_cell_id = 3;
+  cell.placement.v1.CellId target_cell_id = 4;
+  cell.placement.v1.PlacementLocationV1 source = 5;
+  cell.placement.v1.PlacementLocationV1 destination = 6;
+  cell.placement.v1.ReservationRefV1 destination_reservation = 7;
+  TransferDataClassV1 data_class = 8;
+  TransferPurposeV1 purpose = 9;
+  Digest32 prepared_effect_digest = 10;
+  uint64 maximum_bytes = 11;
+  uint64 ordinal = 12;
+  uint64 maximum_cost_microunits = 13;
+  repeated Digest32 inclusion_path = 14;
+}
+
+message TransferEffectSnapshotV1 {
+  BindingOperationKeyV1 operation = 1;
+  reserved 2;
+  reserved "manifest_digest";
+  string object_authority = 3;
+  string repository_id = 4;
+  string object_id = 5;
+  uint64 object_version = 6;
+  Digest32 content_digest = 7;
+  Digest32 ordered_effect_root_digest = 8;
+  uint64 effect_count = 9;
+  Digest32 snapshot_digest = 10;
+}
+
+message TransferEffectPageRequestV1 {
+  TransferEffectSnapshotV1 snapshot = 1;
+  uint64 start_ordinal = 2;
+  uint32 page_size = 3;
+  bytes page_token = 4;
+  Digest32 manifest_digest = 5;
+}
+
+message TransferEffectPageV1 {
+  TransferEffectSnapshotV1 snapshot = 1;
+  uint64 start_ordinal = 2;
+  repeated ResidencyTransferEffectV1 effects = 3;
+  uint64 next_ordinal = 4;
+  bytes next_page_token = 5;
+  Digest32 page_digest = 6;
+}
+
+message ResidencyTransferAuthorizationPayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  uint64 assurance_generation = 4;
+  string assurance_compiler_version = 5;
+  Digest32 assurance_requirements_digest = 6;
+  ResidencyTransferEffectV1 effect = 7;
+  Digest32 legal_basis_digest = 8;
+  Digest32 consent_receipt_digest = 9;
+  Digest32 policy_decision_digest = 10;
+  Digest32 transport_policy_digest = 11;
+  Digest32 destination_key_custody_digest = 12;
+  Digest32 audit_receipt_digest = 13;
+  Digest32 movement_permit_digest = 14;
+  string scheduling_permit_id = 15;
+  uint64 parent_deadline_unix_seconds = 16;
+  string worker_id = 17;
+  uint64 worker_lease_epoch = 18;
+  uint64 worker_lease_expires_at_unix_seconds = 19;
+  Digest32 ordinary_budget_relation_digest = 20;
+  Digest32 forward_completion_reserve_digest = 21;
+}
+
+message SignedResidencyTransferAuthorizationV1 {
+  ResidencyTransferAuthorizationPayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message ResidencyTransferAuthorizationSetPayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  uint64 assurance_generation = 4;
+  string assurance_compiler_version = 5;
+  Digest32 assurance_requirements_digest = 6;
+  Digest32 required_effect_manifest_digest = 7;
+  reserved 8;
+  reserved "authorization_digests";
+  Digest32 ordered_authorization_root_digest = 9;
+  uint64 authorization_count = 10;
+  uint64 journal_revision = 11;
+}
+
+message SignedResidencyTransferAuthorizationSetV1 {
+  ResidencyTransferAuthorizationSetPayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

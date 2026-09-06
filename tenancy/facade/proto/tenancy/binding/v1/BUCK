@@ -1,0 +1,109 @@
+export_file(
+    name = "attempt.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "binding.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "cell_index.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "migration.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "migration_service.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "operation.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "participant.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "proof.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "projection_store.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "repair.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "rollback_window.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "reconciliation.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "reconciliation_authority.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "service.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "tenant_birth.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "store_commit_attestation.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "source_release_issuance.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "transfer_execution.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "transfer_authority.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "write_authority_consumer.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "write_authority.proto",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "work_snapshot.proto",
+    visibility = ["PUBLIC"],
+)

@@ -202,7 +202,7 @@ impl CloudComputeK8sAuthorizationVerifier for CloudComputeK8sTrustedAuthorizatio
 pub type CloudComputeK8sRepositoryFuture<'a, T> =
     Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub struct CloudComputeK8sOperationKey {
     pub tenant_id: String,       // data_class: INTERNAL_ONLY
     pub principal_id: String,    // data_class: INTERNAL_ONLY

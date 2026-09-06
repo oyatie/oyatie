@@ -1,0 +1,236 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/evidence.proto";
+import "tenancy/binding/v1/participant.proto";
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/binding/v1/store_commit_attestation.proto";
+import "tenancy/identity/v1/identity.proto";
+
+message InitialWriteAuthorityBasisV1 {
+  Digest32 binding_attempt_digest = 1;
+  Digest32 placement_decision_digest = 2;
+  Digest32 reservation_commit_permit_digest = 3;
+  Digest32 binding_outcome_digest = 4;
+  Digest32 participant_preparation_closure_digest = 5;
+}
+
+message MigrationWriteAuthorityBasisV1 {
+  Digest32 migration_fence_claim_digest = 1;
+  Digest32 movement_permit_digest = 2;
+  Digest32 write_fence_digest = 3;
+  Digest32 migration_commit_seal_digest = 4;
+}
+
+message WriteAuthorityBasisV1 {
+  oneof basis {
+    InitialWriteAuthorityBasisV1 initial = 1;
+    MigrationWriteAuthorityBasisV1 migration = 2;
+  }
+}
+
+message WriteAuthorityLeaseIntentV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  cell.placement.v1.CellId cell_id = 4;
+  uint64 binding_generation = 5;
+  uint64 binding_revision = 6;
+  uint64 write_authority_epoch = 7;
+  Digest32 participant_manifest_digest = 8;
+  Digest32 binding_record_digest = 9;
+  WriteAuthorityBasisV1 basis = 10;
+  uint64 maximum_participant_token_validity_seconds = 11;
+  uint64 not_before_unix_seconds = 12;
+  uint64 expires_at_unix_seconds = 13;
+  Digest32 lease_intent_digest = 14;
+  Digest32 lease_policy_digest = 15;
+  Digest32 clock_authority_digest = 16;
+  uint64 maximum_clock_uncertainty_millis = 17;
+  cell.placement.v1.AssuranceAuditPolicyV1 assurance_audit_policy = 18;
+}
+
+message WriteAuthorityLeasePayloadV1 {
+  uint32 schema_version = 1;
+  WriteAuthorityLeaseIntentV1 intent = 2;
+  uint64 issuance_revision = 3;
+  Digest32 issuance_record_digest = 4;
+  SignedWriteAuthorityLeaseCommitAttestationV1 commit_attestation = 5;
+  Digest32 lease_digest = 6;
+}
+
+message SignedWriteAuthorityLeaseV1 {
+  WriteAuthorityLeasePayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message WriteAuthorityTokenPayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  cell.placement.v1.CellId cell_id = 4;
+  uint64 binding_generation = 5;
+  uint64 binding_revision = 6;
+  uint64 write_authority_epoch = 7;
+  string participant_id = 8;
+  reserved 9, 10;
+  reserved "migration_fence_claim_digest", "movement_permit_digest";
+  Digest32 participant_manifest_digest = 11;
+  Digest32 binding_record_digest = 12;
+  uint64 not_before_unix_seconds = 13;
+  uint64 expires_at_unix_seconds = 14;
+  Digest32 participant_membership_digest = 15;
+  WriteAuthorityBasisV1 basis = 16;
+  uint64 authority_expires_at_unix_seconds = 17;
+  Digest32 write_authority_lease_digest = 18;
+  cell.placement.v1.AssuranceAuditPolicyV1 assurance_audit_policy = 19;
+}
+
+message SignedWriteAuthorityTokenV1 {
+  WriteAuthorityTokenPayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+enum WriteAuthorityLeaseDispositionV1 {
+  WRITE_AUTHORITY_LEASE_DISPOSITION_V1_UNSPECIFIED = 0;
+  WRITE_AUTHORITY_LEASE_DISPOSITION_V1_ACTIVE = 1;
+  WRITE_AUTHORITY_LEASE_DISPOSITION_V1_FROZEN_FOR_MIGRATION = 2;
+  WRITE_AUTHORITY_LEASE_DISPOSITION_V1_RETIRED = 3;
+}
+
+message WriteAuthorityLeaseStateV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  cell.placement.v1.CellId cell_id = 2;
+  uint64 binding_generation = 3;
+  uint64 binding_revision = 4;
+  uint64 write_authority_epoch = 5;
+  Digest32 participant_manifest_digest = 6;
+  Digest32 binding_record_digest = 7;
+  WriteAuthorityLeaseDispositionV1 disposition = 8;
+  Digest32 current_lease_digest = 9;
+  uint64 maximum_issued_lease_expires_at_unix_seconds = 10;
+  BindingOperationKeyV1 frozen_by_operation = 11;
+  uint64 revision = 12;
+  Digest32 record_digest = 13;
+}
+
+message WriteAuthorityLeaseStatePreconditionV1 {
+  uint64 revision = 1;
+  WriteAuthorityLeaseDispositionV1 disposition = 2;
+  Digest32 current_lease_digest = 3;
+  uint64 maximum_issued_lease_expires_at_unix_seconds = 4;
+  Digest32 record_digest = 5;
+}
+
+enum WriteAuthorityLeaseIssuanceStatusV1 {
+  WRITE_AUTHORITY_LEASE_ISSUANCE_STATUS_V1_UNSPECIFIED = 0;
+  WRITE_AUTHORITY_LEASE_ISSUANCE_STATUS_V1_PENDING_SIGNATURE = 1;
+  WRITE_AUTHORITY_LEASE_ISSUANCE_STATUS_V1_PUBLISHED = 2;
+}
+
+enum WriteAuthorityLeaseIssuanceKindV1 {
+  WRITE_AUTHORITY_LEASE_ISSUANCE_KIND_V1_UNSPECIFIED = 0;
+  WRITE_AUTHORITY_LEASE_ISSUANCE_KIND_V1_BINDING_ACTIVATION = 1;
+  WRITE_AUTHORITY_LEASE_ISSUANCE_KIND_V1_RENEWAL = 2;
+}
+
+message WriteAuthorityLeaseIssuanceRecordV1 {
+  WriteAuthorityLeaseIntentV1 intent = 1;
+  uint64 lease_state_revision_at_commit = 2;
+  Digest32 lease_state_record_digest_at_commit = 3;
+  WriteAuthorityLeaseIssuanceStatusV1 status = 4;
+  SignedWriteAuthorityLeaseV1 signed_lease = 5;
+  uint64 revision = 6;
+  Digest32 record_digest = 7;
+  WriteAuthorityLeaseIssuanceKindV1 kind = 8;
+}
+
+message GetWriteAuthorityLeaseRequestV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  cell.placement.v1.CellId cell_id = 2;
+  uint64 binding_generation = 3;
+  uint64 write_authority_epoch = 4;
+  uint64 minimum_valid_until_unix_seconds = 5;
+}
+
+message RenewWriteAuthorityLeaseRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  cell.placement.v1.CellId expected_cell_id = 2;
+  uint64 expected_generation = 3;
+  uint64 expected_binding_revision = 4;
+  Digest32 expected_binding_record_digest = 5;
+  WriteAuthorityLeaseStatePreconditionV1 expected_lease_state = 6;
+  uint64 requested_validity_seconds = 7;
+  string idempotency_key = 8;
+  Digest32 canonical_request_digest = 9;
+}
+
+message WriteAuthorityLeaseRenewalResultV1 {
+  WriteAuthorityLeaseIssuanceRecordV1 lease_issuance = 1;
+  WriteAuthorityLeaseStateV1 state = 2;
+}
+
+message PublishedWriteAuthorityLeaseV1 {
+  SignedWriteAuthorityLeaseV1 lease = 1;
+  WriteAuthorityLeaseIssuanceRecordV1 issuance = 2;
+}
+
+service TenancyWriteAuthorityLeaseService {
+  rpc GetWriteAuthorityLease(GetWriteAuthorityLeaseRequestV1) returns (PublishedWriteAuthorityLeaseV1);
+  rpc RenewWriteAuthorityLease(RenewWriteAuthorityLeaseRequestV1) returns (WriteAuthorityLeaseRenewalResultV1);
+}
+
+message CellLocalWriteAuthorityTokenLedgerV1 {
+  tenancy.identity.v1.TenantId tenant_id = 1;
+  cell.placement.v1.CellId cell_id = 2;
+  string participant_id = 3;
+  uint64 binding_generation = 4;
+  uint64 binding_revision = 5;
+  uint64 write_authority_epoch = 6;
+  Digest32 write_authority_lease_digest = 7;
+  uint64 write_authority_lease_expires_at_unix_seconds = 8;
+  Digest32 participant_manifest_digest = 9;
+  Digest32 issued_token_root_digest = 10;
+  uint64 issued_token_count = 11;
+  uint64 maximum_token_expires_at_unix_seconds = 12;
+  uint64 revision = 13;
+  Digest32 record_digest = 14;
+}
+
+message AbsentCellLocalWriteAuthorityTokenLedgerV1 {}
+
+message MatchingCellLocalWriteAuthorityTokenLedgerV1 {
+  uint64 revision = 1;
+  Digest32 write_authority_lease_digest = 2;
+  Digest32 record_digest = 3;
+}
+
+message CellLocalWriteAuthorityTokenLedgerPreconditionV1 {
+  oneof precondition {
+    AbsentCellLocalWriteAuthorityTokenLedgerV1 absent = 1;
+    MatchingCellLocalWriteAuthorityTokenLedgerV1 matches = 2;
+  }
+}
+
+message IssueWriteAuthorityTokenRequestV1 {
+  BindingOperationKeyV1 operation = 1;
+  SignedWriteAuthorityLeaseV1 lease = 2;
+  ParticipantManifestMemberV1 participant = 3;
+  CellLocalWriteAuthorityTokenLedgerPreconditionV1 ledger_precondition = 4;
+  uint64 requested_validity_seconds = 5;
+  string idempotency_key = 6;
+  Digest32 canonical_request_digest = 7;
+}
+
+message WriteAuthorityTokenIssueResultV1 {
+  SignedWriteAuthorityTokenV1 token = 1;
+  CellLocalWriteAuthorityTokenLedgerV1 ledger = 2;
+}
+
+service CellLocalWriteAuthorityService {
+  rpc IssueWriteAuthorityToken(IssueWriteAuthorityTokenRequestV1) returns (WriteAuthorityTokenIssueResultV1);
+}

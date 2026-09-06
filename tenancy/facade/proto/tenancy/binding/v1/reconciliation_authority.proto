@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/binding/v1/reconciliation.proto";
+import "tenancy/identity/v1/identity.proto";
+
+enum BindingReconciliationActionV1 {
+  BINDING_RECONCILIATION_ACTION_V1_UNSPECIFIED = 0;
+  BINDING_RECONCILIATION_ACTION_V1_LIST_CANDIDATES = 1;
+  BINDING_RECONCILIATION_ACTION_V1_CLAIM_CANDIDATE = 2;
+  BINDING_RECONCILIATION_ACTION_V1_COMPLETE_CANDIDATE = 3;
+  BINDING_RECONCILIATION_ACTION_V1_READ_CANDIDATE_WORK = 4;
+  BINDING_RECONCILIATION_ACTION_V1_CHECKPOINT_CANDIDATE_WORK = 5;
+}
+
+message BindingReconciliationAuthorizationReceiptV1 {
+  string decision_id = 1;
+  string policy_version = 2;
+  Digest32 decision_digest = 3;
+  Digest32 determining_policy_set_digest = 4;
+  Digest32 obligations_digest = 5;
+}
+
+message BindingReconciliationScopeV1 {
+  string partition = 1;
+  BindingReconciliationWorkClassV1 work_class = 2;
+  Digest32 candidate_digest = 3;
+  tenancy.identity.v1.TenantId tenant_id = 4;
+  BindingOperationKeyV1 operation = 5;
+}
+
+message BindingReconciliationInvocationPayloadV1 {
+  uint32 schema_version = 1;
+  BindingReconciliationActionV1 action = 2;
+  BindingReconciliationScopeV1 scope = 3;
+  string worker_id = 4;
+  Digest32 actor_digest = 5;
+  BindingReconciliationAuthorizationReceiptV1 authorization = 6;
+  Digest32 canonical_request_digest = 7;
+  uint64 deadline_unix_seconds = 8;
+}
+
+message SignedBindingReconciliationInvocationV1 {
+  BindingReconciliationInvocationPayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/lifecycle.proto";
+
+enum CapacityDimensionV1 {
+  CAPACITY_DIMENSION_V1_UNSPECIFIED = 0;
+  CAPACITY_DIMENSION_V1_CPU_MILLIS = 1;
+  CAPACITY_DIMENSION_V1_MEMORY_BYTES = 2;
+  CAPACITY_DIMENSION_V1_STORAGE_BYTES = 3;
+  CAPACITY_DIMENSION_V1_NETWORK_MEGABITS_PER_SECOND = 4;
+  CAPACITY_DIMENSION_V1_IPV4_ADDRESSES = 5;
+  CAPACITY_DIMENSION_V1_LOCAL_SSD_BYTES = 6;
+  CAPACITY_DIMENSION_V1_ACCELERATOR_UNITS = 7;
+}
+
+message CapacityAmountV1 {
+  CapacityDimensionV1 dimension = 1;
+  uint64 units = 2;
+}
+
+message CapacityVectorV1 {
+  repeated CapacityAmountV1 amounts = 1;
+}
+
+message CellCapacityLedgerV1 {
+  CellId cell_id = 1;
+  uint64 revision = 2;
+  CapacityVectorV1 total = 3;
+  CapacityVectorV1 safety_headroom = 4;
+  CapacityVectorV1 recovery_reserve = 5;
+  CapacityVectorV1 tentative_home = 6;
+  CapacityVectorV1 committed_home = 7;
+  CapacityVectorV1 tentative_warm_recovery = 8;
+  CapacityVectorV1 committed_warm_recovery = 9;
+  uint64 observed_at_unix_seconds = 10;
+  Digest32 record_digest = 11;
+}
+
+message CellCapacityPreconditionV1 {
+  uint64 expected_revision = 1;
+  Digest32 expected_record_digest = 2;
+}
+
+enum CapacityAccountingClassV1 {
+  CAPACITY_ACCOUNTING_CLASS_V1_UNSPECIFIED = 0;
+  CAPACITY_ACCOUNTING_CLASS_V1_HOME = 1;
+  CAPACITY_ACCOUNTING_CLASS_V1_WARM_RECOVERY = 2;
+}
+
+message ReservationRefV1 {
+  CellId cell_id = 1;
+  string reservation_id = 2;
+  uint64 term = 3;
+  CapacityAccountingClassV1 accounting_class = 4;
+  CapacityVectorV1 capacity = 5;
+  Digest32 reservation_digest = 6;
+  CellAdmissionTermV1 admission_term = 7;
+}
+
+enum ReservationLifecycleV1 {
+  RESERVATION_LIFECYCLE_V1_UNSPECIFIED = 0;
+  RESERVATION_LIFECYCLE_V1_TENTATIVE_HELD = 1;
+  RESERVATION_LIFECYCLE_V1_AWAITING_BINDING_OUTCOME = 2;
+  RESERVATION_LIFECYCLE_V1_COMMITTED = 3;
+  RESERVATION_LIFECYCLE_V1_RELEASED = 4;
+}
+
+message ReservationStatusV1 {
+  ReservationRefV1 reservation = 1;
+  ReservationLifecycleV1 lifecycle = 2;
+  uint64 revision = 3;
+  optional uint64 tentative_expires_at_unix_seconds = 4;
+  Digest32 binding_operation_digest = 5;
+  BindingOutcomeQueryRefV1 binding_outcome_query = 6;
+  Digest32 reservation_commit_permit_digest = 7;
+  Digest32 binding_attempt_digest = 8;
+  Digest32 reservation_arm_receipt_digest = 9;
+  uint64 lifecycle_changed_at_unix_seconds = 10;
+}

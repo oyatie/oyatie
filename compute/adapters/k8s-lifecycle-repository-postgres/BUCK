@@ -6,6 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//compute/ports/k8s-api:compute-k8s-api",
+        "//compute/core/resource-provider-contract-kernel:shared-resource-provider-contract-kernel",
         "//data/adapters/postgres-command-sqlx:shared-postgres-command-adapter-sqlx",
         "//data/core/postgres-command-kernel:shared-postgres-command-kernel",
         "third-party//:serde",
@@ -23,6 +24,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//compute/ports/k8s-api:compute-k8s-api",
+        "//compute/core/resource-provider-contract-kernel:shared-resource-provider-contract-kernel",
         "//data/adapters/postgres-command-sqlx:shared-postgres-command-adapter-sqlx",
         "//data/core/postgres-command-kernel:shared-postgres-command-kernel",
         "third-party//:serde",
@@ -42,7 +44,10 @@ rust_test(
         ":compute-k8s-lifecycle-repository-postgres",
         "//compute/core/resource:compute-resource",
         "//compute/ports/k8s-api:compute-k8s-api",
+        "//compute/core/resource-provider-contract-kernel:shared-resource-provider-contract-kernel",
         "//data/core/postgres-command-kernel:shared-postgres-command-kernel",
+        "third-party//:serde_json",
+        "third-party//:sha2",
         "third-party//:sqlx",
         "third-party//:tokio",
     ],

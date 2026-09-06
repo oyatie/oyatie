@@ -7,9 +7,12 @@ publish = false
 license = "Apache-2.0"
 
 [lib]
-name = "tenancy_cell_assignment"
 path = "src/lib.rs"
 doctest = false
+
+[dependencies]
+cell-placement = { path = "../../../cell/ports/placement" }
+tenancy-kernel = { path = "../kernel" }
 
 [lints]
 workspace = true

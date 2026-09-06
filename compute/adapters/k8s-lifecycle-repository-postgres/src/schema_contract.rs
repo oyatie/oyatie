@@ -26,6 +26,16 @@ pub(crate) const EXPECTED_COLUMNS: &[&str] = &[
     "schema_migrations|4|applied_at|pg_catalog.timestamptz|-1|true|||now()|",
 ];
 
+pub(crate) const PENDING_COLUMNS: &[&str] = &[
+    "operations|13|request_contract|pg_catalog.text|-1|true|||'trusted_envelope'::text|pg_catalog.\"default\"",
+    "operations|14|operation_state|pg_catalog.text|-1|false||||pg_catalog.\"default\"",
+];
+
+pub(crate) const PENDING_CONSTRAINTS: &[&str] = &[
+    "operations|operations_request_contract|c|true|false|false|CHECK (request_contract = ANY (ARRAY['trusted_envelope'::text, 'pending_intent'::text]))",
+    "operations|operations_contract_state|c|true|false|false|CHECK (request_contract = 'trusted_envelope'::text AND operation_state IS NULL OR request_contract = 'pending_intent'::text AND surface = 'cloud.compute.k8s.cluster.create'::text AND operation_state IS NOT NULL AND operation_state = 'accepted'::text)",
+];
+
 pub(crate) const EXPECTED_CONSTRAINTS: &[&str] = &[
     "clusters|clusters_created_at_matches_desired|c|true|false|false|CHECK (desired_spec_json ? 'created_at_epoch_seconds'::text AND cluster_json ? 'created_at_epoch_seconds'::text AND (cluster_json -> 'created_at_epoch_seconds'::text) = (desired_spec_json -> 'created_at_epoch_seconds'::text))",
     "clusters|clusters_data_class_matches_desired|c|true|false|false|CHECK (desired_spec_json ? 'data_class'::text AND cluster_json ? 'data_class'::text AND (cluster_json -> 'data_class'::text) = (desired_spec_json -> 'data_class'::text))",

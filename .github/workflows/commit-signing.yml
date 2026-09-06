@@ -1,0 +1,51 @@
+# Commit-range admission for the signing clause; called by the required
+# presubmit graph. Reusable because the protected workflow is at its file
+# budget: a gate added inline there cannot land at all.
+name: commit signing
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  commit-signing:
+    name: commit signing
+    # Lanes only. A merge-queue commit has ONE parent and is forged by the
+    # host: it is the lane squashed, PGP-signed by web-flow, and carries no
+    # author signature. Judging it would fail `HEAD^2` outright and then
+    # refuse every queue entry, wedging the repository behind this gate.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out candidate tree
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          path: candidate
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check out protected admission source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: trusted
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: "1.98.0"
+      - name: Build protected commit-signing application
+        working-directory: ${{ runner.temp }}
+        run: >-
+          cargo build --locked
+          --manifest-path "$GITHUB_WORKSPACE/trusted/Cargo.toml"
+          --target x86_64-unknown-linux-gnu
+          --target-dir "$RUNNER_TEMP/oyatie-commit-signing-admission"
+          -p pipeline-commit-signing-app
+      - name: Admit the lane's commits
+        working-directory: candidate
+        run: |
+          set -euo pipefail
+          base_sha="$(git rev-parse --verify 'HEAD^1^{commit}')"
+          head_sha="$(git rev-parse --verify 'HEAD^2^{commit}')"
+          "$RUNNER_TEMP/oyatie-commit-signing-admission/x86_64-unknown-linux-gnu/debug/pipeline-commit-signing-app" "$base_sha" "$head_sha"

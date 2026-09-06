@@ -2,7 +2,7 @@ use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
 
 pub const MIGRATIONS_TABLE: &str = "compute_k8s_lifecycle.schema_migrations";
-pub const CURRENT_MIGRATION_VERSION: i64 = 2;
+pub const CURRENT_MIGRATION_VERSION: i64 = 3;
 
 pub(crate) const MIGRATION_LOCK_KEY: i64 = 0x4f59_4154_4945_4b38;
 pub(crate) const MIGRATION_LEDGER_BOOTSTRAP: &str = r#"CREATE SCHEMA IF NOT EXISTS compute_k8s_lifecycle;
@@ -136,6 +136,19 @@ GRANT SELECT, INSERT, UPDATE ON compute_k8s_lifecycle.clusters TO compute_k8s_li
 GRANT SELECT, INSERT, UPDATE ON compute_k8s_lifecycle.operations TO compute_k8s_lifecycle_runtime;
 "#;
 
+pub const K8S_LIFECYCLE_PENDING_INTENT_MIGRATION: &str = r#"ALTER TABLE compute_k8s_lifecycle.operations
+  ADD COLUMN request_contract text NOT NULL DEFAULT 'trusted_envelope',
+  ADD COLUMN operation_state text;
+ALTER TABLE compute_k8s_lifecycle.operations
+  ADD CONSTRAINT operations_request_contract CHECK
+    (request_contract IN ('trusted_envelope', 'pending_intent')),
+  ADD CONSTRAINT operations_contract_state CHECK
+    ((request_contract = 'trusted_envelope' AND operation_state IS NULL)
+     OR (request_contract = 'pending_intent'
+         AND surface = 'cloud.compute.k8s.cluster.create'
+         AND operation_state IS NOT NULL AND operation_state = 'accepted'));
+"#;
+
 pub const K8S_LIFECYCLE_MIGRATIONS: &[PgK8sLifecycleMigration] = &[
     PgK8sLifecycleMigration {
         version: 1,
@@ -147,6 +160,12 @@ pub const K8S_LIFECYCLE_MIGRATIONS: &[PgK8sLifecycleMigration] = &[
         version: 2,
         name: "tenant-lifecycle-repository",
         sql: K8S_LIFECYCLE_REPOSITORY_MIGRATION,
+        governed_table_count_after: 2,
+    },
+    PgK8sLifecycleMigration {
+        version: 3,
+        name: "pending-intent-acceptance",
+        sql: K8S_LIFECYCLE_PENDING_INTENT_MIGRATION,
         governed_table_count_after: 2,
     },
 ];
@@ -177,13 +196,13 @@ mod tests {
     #[test]
     fn migration_registry_is_contiguous_named_and_digestible() {
         assert!(registry_is_valid());
-        assert_eq!(K8S_LIFECYCLE_MIGRATIONS.len(), 2);
+        assert_eq!(K8S_LIFECYCLE_MIGRATIONS.len(), 3);
         assert_eq!(
             K8S_LIFECYCLE_MIGRATIONS
                 .iter()
                 .map(|migration| migration.governed_table_count_after())
                 .collect::<Vec<_>>(),
-            [0, 2]
+            [0, 2, 2]
         );
         assert_eq!(
             format!(
@@ -195,6 +214,7 @@ mod tests {
         assert_eq!(
             K8S_LIFECYCLE_MIGRATIONS
                 .iter()
+                .take(2)
                 .map(|migration| migration.sha256())
                 .collect::<Vec<_>>(),
             [

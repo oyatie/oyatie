@@ -918,6 +918,14 @@ name = "cell-location"
 version = "0.1.0"
 
 [[package]]
+name = "cell-placement"
+version = "0.1.0"
+dependencies = [
+ "cell-location",
+ "tenancy-kernel",
+]
+
+[[package]]
 name = "cell-region"
 version = "0.1.0"
 dependencies = [
@@ -1373,6 +1381,8 @@ dependencies = [
  "data-boundary-kernel",
  "network-residency",
  "serde",
+ "serde_json",
+ "shared-resource-provider-contract-kernel",
  "tokio",
 ]
 
@@ -1387,6 +1397,7 @@ dependencies = [
  "sha2",
  "shared-postgres-command-adapter-sqlx",
  "shared-postgres-command-kernel",
+ "shared-resource-provider-contract-kernel",
  "sqlx",
  "tokio",
 ]
@@ -2988,6 +2999,21 @@ dependencies = [
  "iac-api",
  "iac-domain",
  "iac-rest",
+]
+
+[[package]]
+name = "iac-operator-access-app"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "libc",
+ "rcgen",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sha2",
+ "x509-parser",
+ "zeroize",
 ]
 
 [[package]]
@@ -6457,6 +6483,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "pipeline-commit-signing-app"
+version = "0.1.0"
+dependencies = [
+ "pipeline-admission",
+]
+
+[[package]]
 name = "pipeline-path-layout-app"
 version = "0.1.0"
 dependencies = [
@@ -8815,6 +8848,10 @@ dependencies = [
 [[package]]
 name = "tenancy-cell-assignment"
 version = "0.1.0"
+dependencies = [
+ "cell-placement",
+ "tenancy-kernel",
+]
 
 [[package]]
 name = "tenancy-cli"

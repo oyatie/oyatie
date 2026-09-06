@@ -1,0 +1,124 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/capacity.proto";
+import "cell/placement/v1/movement.proto";
+import "cell/placement/v1/placement.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/repair.proto";
+import "cell/placement/v1/reservation.proto";
+
+enum PlacementOperationStateV1 {
+  PLACEMENT_OPERATION_STATE_V1_UNSPECIFIED = 0;
+  PLACEMENT_OPERATION_STATE_V1_ACCEPTED = 1;
+  PLACEMENT_OPERATION_STATE_V1_VALIDATING = 2;
+  PLACEMENT_OPERATION_STATE_V1_QUEUED = 3;
+  PLACEMENT_OPERATION_STATE_V1_RUNNING = 4;
+  PLACEMENT_OPERATION_STATE_V1_WAITING_FOR_RECONCILER = 5;
+  PLACEMENT_OPERATION_STATE_V1_SUCCEEDED = 6;
+  PLACEMENT_OPERATION_STATE_V1_FAILED = 7;
+  PLACEMENT_OPERATION_STATE_V1_CANCEL_REQUESTED = 8;
+  PLACEMENT_OPERATION_STATE_V1_CANCELLED = 9;
+  PLACEMENT_OPERATION_STATE_V1_COMPENSATING = 10;
+  PLACEMENT_OPERATION_STATE_V1_ROLLED_BACK = 11;
+}
+
+enum PlacementOperationEffectBoundaryV1 {
+  PLACEMENT_OPERATION_EFFECT_BOUNDARY_V1_UNSPECIFIED = 0;
+  PLACEMENT_OPERATION_EFFECT_BOUNDARY_V1_NO_EFFECT = 1;
+  PLACEMENT_OPERATION_EFFECT_BOUNDARY_V1_REVERSIBLE = 2;
+  PLACEMENT_OPERATION_EFFECT_BOUNDARY_V1_AWAITING_BINDING_OUTCOME = 3;
+  PLACEMENT_OPERATION_EFFECT_BOUNDARY_V1_IRREVERSIBLE_FORWARD_ONLY = 4;
+}
+
+enum PlacementCancellationDispositionV1 {
+  PLACEMENT_CANCELLATION_DISPOSITION_V1_UNSPECIFIED = 0;
+  PLACEMENT_CANCELLATION_DISPOSITION_V1_NOT_REQUESTED = 1;
+  PLACEMENT_CANCELLATION_DISPOSITION_V1_STOPPED_BEFORE_EFFECT = 2;
+  PLACEMENT_CANCELLATION_DISPOSITION_V1_COMPENSATING = 3;
+  PLACEMENT_CANCELLATION_DISPOSITION_V1_REFUSED_FORWARD_RECOVERY_REQUIRED = 4;
+}
+
+enum PlacementRetryClassificationV1 {
+  PLACEMENT_RETRY_CLASSIFICATION_V1_UNSPECIFIED = 0;
+  PLACEMENT_RETRY_CLASSIFICATION_V1_TRANSIENT = 1;
+  PLACEMENT_RETRY_CLASSIFICATION_V1_BACKPRESSURE = 2;
+  PLACEMENT_RETRY_CLASSIFICATION_V1_DEPENDENCY = 3;
+  PLACEMENT_RETRY_CLASSIFICATION_V1_OPERATOR_REQUIRED = 4;
+  PLACEMENT_RETRY_CLASSIFICATION_V1_FORWARD_RECOVERY = 5;
+}
+
+message PlacementRetryStatusV1 {
+  uint32 attempt = 1;
+  uint32 maximum_attempts = 2;
+  PlacementRetryClassificationV1 classification = 3;
+  uint64 next_attempt_not_before_unix_seconds = 4;
+}
+
+message PlacementProgressV1 {
+  uint64 completed_work_units = 1;
+  uint64 total_work_units = 2;
+  uint64 evaluated_partitions = 3;
+  uint64 evaluated_windows = 4;
+}
+
+message EmptyPlacementResultV1 {}
+
+message PlacementOperationSuccessV1 {
+  oneof result {
+    SignedPlacementDecisionV1 placement_selected = 1;
+    SignedReservationArmReceiptV1 reservation_armed = 2;
+    ReservationStatusV1 binding_outcome_applied = 3;
+    EmptyPlacementResultV1 cancelled_before_effect = 4;
+    PlacementRepairAppliedV1 repair_applied = 5;
+    SignedReservationCommitPermitV1 reservation_commit_permit_issued = 6;
+    SignedCellMovementPermitV1 movement_scheduled = 7;
+    ReservationStatusV1 source_reservation_released = 8;
+  }
+}
+
+enum PlacementRefusalCodeV1 {
+  PLACEMENT_REFUSAL_CODE_V1_UNSPECIFIED = 0;
+  PLACEMENT_REFUSAL_CODE_V1_NO_CAPACITY = 1;
+  PLACEMENT_REFUSAL_CODE_V1_ASSURANCE_UNSATISFIABLE = 2;
+  reserved 3;
+  reserved "PLACEMENT_REFUSAL_CODE_V1_SEARCH_SCOPE_TOO_LARGE";
+  PLACEMENT_REFUSAL_CODE_V1_IDEMPOTENCY_KEY_REUSE = 4;
+  PLACEMENT_REFUSAL_CODE_V1_STALE_RESERVATION_TERM = 5;
+  PLACEMENT_REFUSAL_CODE_V1_OUTCOME_REJECTED = 6;
+  PLACEMENT_REFUSAL_CODE_V1_CANCELLATION_UNSAFE = 7;
+  PLACEMENT_REFUSAL_CODE_V1_NOT_FOUND_OR_NOT_AUTHORIZED = 8;
+}
+
+enum PlacementFailureCodeV1 {
+  PLACEMENT_FAILURE_CODE_V1_UNSPECIFIED = 0;
+  PLACEMENT_FAILURE_CODE_V1_DEPENDENCY_UNAVAILABLE = 1;
+  PLACEMENT_FAILURE_CODE_V1_INTEGRITY_FAILURE = 2;
+  PLACEMENT_FAILURE_CODE_V1_DEADLINE_EXCEEDED = 3;
+  PLACEMENT_FAILURE_CODE_V1_FORWARD_RECOVERY_REQUIRED = 4;
+  PLACEMENT_FAILURE_CODE_V1_OPERATOR_INTERVENTION_REQUIRED = 5;
+}
+
+message PlacementOperationTerminalV1 {
+  oneof outcome {
+    PlacementOperationSuccessV1 success = 1;
+    PlacementRefusalCodeV1 refusal = 2;
+    PlacementFailureCodeV1 failure = 3;
+  }
+}
+
+message PlacementOperationV1 {
+  PlacementOperationKeyV1 key = 1;
+  uint64 revision = 2;
+  PlacementOperationStateV1 state = 3;
+  PlacementOperationEffectBoundaryV1 effect_boundary = 4;
+  PlacementCancellationDispositionV1 cancellation = 5;
+  PlacementRetryStatusV1 retry = 6;
+  PlacementProgressV1 progress = 7;
+  PlacementOperationTerminalV1 terminal = 8;
+  Digest32 record_digest = 9;
+  SignedPlacementContinuationV1 continuation = 10;
+  Digest32 durable_checkpoint_digest = 11;
+  uint64 updated_at_unix_seconds = 12;
+}

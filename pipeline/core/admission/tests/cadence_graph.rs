@@ -65,7 +65,7 @@ fn presubmit_jobs_are_the_occupant_set() {
     );
     assert!(
         y.contains(
-            "needs: [layout, occupancy, lint, clippy, test, deny, change-gates, reindeer-source-qualification, live-postgres, build-cache-qualification]"
+            "needs: [layout, occupancy, lint, clippy, test, deny, change-gates, commit-signing, reindeer-source-qualification, live-postgres, build-cache-qualification]"
         )
     );
     assert!(y.contains("needs: [layout, occupancy]"));
@@ -82,6 +82,7 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("pipeline-path-occupancy-app"));
     assert!(y.contains("pipeline-path-layout-app"));
     assert!(y.contains("pipeline-change-gates-app"));
+    assert!(y.contains("uses: oyatie/oyatie/.github/workflows/commit-signing.yml@dev"));
     assert!(y.contains("path: candidate"));
     assert!(y.contains("path: trusted"));
     assert!(y.contains("name: Check out protected admission source"));

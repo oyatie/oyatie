@@ -44,6 +44,7 @@ pub const PRESUBMIT_JOBS: &[&str] = &[
     "build-cache-qualification",
     "change-gates",
     "clippy",
+    "commit-signing",
     "deny",
     "layout",
     "lint",
@@ -61,6 +62,8 @@ pub const POSTSUBMIT_JOBS: &[&str] = &["live-postgres", "postsubmit", "test"];
 pub const WORKFLOW_FILES: &[&str] = &[
     "buck2-weekly-smoke.yml",
     "build-cache-qualification.yml",
+    "commit-signing.yml",
+    "dependency-denial.yml",
     "license-weekly-advisory.yml",
     "live-postgres.yml",
     "nightly.yml",

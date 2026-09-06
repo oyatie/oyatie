@@ -1,0 +1,255 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/capacity.proto";
+import "cell/placement/v1/evidence.proto";
+import "cell/placement/v1/movement.proto";
+import "cell/placement/v1/placement.proto";
+import "cell/placement/v1/proof.proto";
+import "cell/placement/v1/reservation.proto";
+import "tenancy/binding/v1/operation.proto";
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/binding/v1/participant.proto";
+import "tenancy/binding/v1/transfer_authority.proto";
+import "tenancy/binding/v1/rollback_window.proto";
+import "tenancy/identity/v1/identity.proto";
+
+enum WriteFenceModeV1 {
+  WRITE_FENCE_MODE_V1_UNSPECIFIED = 0;
+  WRITE_FENCE_MODE_V1_COOPERATIVE_SOURCE_FENCE = 1;
+  WRITE_FENCE_MODE_V1_RECOVERY_LEASE_EXPIRY = 2;
+  WRITE_FENCE_MODE_V1_RECOVERY_STONITH = 3;
+}
+
+enum MigrationFenceClaimDispositionV1 {
+  MIGRATION_FENCE_CLAIM_DISPOSITION_V1_UNSPECIFIED = 0;
+  MIGRATION_FENCE_CLAIM_DISPOSITION_V1_ACTIVE = 1;
+  MIGRATION_FENCE_CLAIM_DISPOSITION_V1_SUPERSEDED = 2;
+  MIGRATION_FENCE_CLAIM_DISPOSITION_V1_CONSUMED_BY_BINDING_COMMIT = 3;
+}
+
+message MigrationFenceClaimPreconditionV1 {
+  uint64 revision = 1;
+  MigrationFenceClaimDispositionV1 disposition = 2;
+  Digest32 record_digest = 3;
+}
+
+message SourceFenceDirectivePayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  cell.placement.v1.CellId source_cell_id = 4;
+  cell.placement.v1.CellId target_cell_id = 5;
+  uint64 source_generation = 6;
+  uint64 source_revision = 7;
+  Digest32 source_binding_record_digest = 8;
+  uint64 successor_generation = 9;
+  uint64 write_authority_epoch = 10;
+  Digest32 migration_fence_claim_digest = 11;
+  string participant_id = 12;
+  Digest32 participant_membership_digest = 13;
+  Digest32 participant_manifest_digest = 14;
+  uint64 not_before_unix_seconds = 15;
+  uint64 expires_at_unix_seconds = 16;
+  uint64 maximum_source_write_authority_lease_expires_at_unix_seconds = 17;
+  Digest32 source_write_authority_lease_digest = 18;
+}
+
+message SignedSourceFenceDirectiveV1 {
+  SourceFenceDirectivePayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message RecoverySourceFenceCompletionPayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  cell.placement.v1.CellId source_cell_id = 4;
+  cell.placement.v1.CellId target_cell_id = 5;
+  uint64 source_generation = 6;
+  uint64 source_revision = 7;
+  uint64 successor_generation = 8;
+  uint64 write_authority_epoch = 9;
+  Digest32 migration_fence_claim_digest = 10;
+  Digest32 participant_manifest_digest = 11;
+  Digest32 participant_root_digest = 12;
+  uint64 participant_count = 13;
+  WriteFenceModeV1 mode = 14;
+  Digest32 evidence_set_root_digest = 15;
+  uint64 evidence_count = 16;
+  cell.placement.v1.ImmutableEvidenceRefV1 evidence_record = 17;
+  uint64 maximum_source_write_authority_lease_expires_at_unix_seconds = 18;
+  cell.placement.v1.ImmutableEvidenceRefV1 source_isolation_proof = 19;
+  uint64 clock_uncertainty_bound_millis = 20;
+  uint64 completed_at_unix_seconds = 21;
+  Digest32 record_digest = 22;
+  Digest32 source_write_authority_lease_digest = 23;
+  Digest32 clock_authority_digest = 24;
+}
+
+message SignedRecoverySourceFenceCompletionV1 {
+  RecoverySourceFenceCompletionPayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message SourceFencingCompletionV1 {
+  oneof completion {
+    SignedParticipantPhaseClosureV1 cooperative = 1;
+    SignedRecoverySourceFenceCompletionV1 recovery = 2;
+  }
+}
+
+message CooperativeSourceFenceEvidenceV1 {
+  Digest32 source_fence_directive_root_digest = 1;
+}
+
+message RecoveryLeaseExpiryEvidenceV1 {
+  Digest32 recovery_fence_completion_digest = 1;
+}
+
+message RecoveryStonithEvidenceV1 {
+  Digest32 recovery_fence_completion_digest = 1;
+}
+
+message WriteFenceEvidenceV1 {
+  oneof evidence {
+    CooperativeSourceFenceEvidenceV1 cooperative_source_fence = 1;
+    RecoveryLeaseExpiryEvidenceV1 recovery_lease_expiry = 2;
+    RecoveryStonithEvidenceV1 recovery_stonith = 3;
+  }
+}
+
+message WriteFencePayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  cell.placement.v1.CellId source_cell_id = 4;
+  cell.placement.v1.CellId target_cell_id = 5;
+  uint64 source_generation = 6;
+  uint64 source_revision = 7;
+  uint64 successor_generation = 8;
+  uint64 write_authority_epoch = 9;
+  reserved 10;
+  reserved "mode";
+  Digest32 source_binding_record_digest = 11;
+  Digest32 migration_fence_claim_digest = 12;
+  Digest32 movement_permit_digest = 13;
+  Digest32 placement_decision_digest = 14;
+  Digest32 reservation_commit_permit_digest = 15;
+  Digest32 transfer_authorization_set_digest = 16;
+  Digest32 required_transfer_effect_manifest_digest = 17;
+  Digest32 participant_manifest_digest = 18;
+  Digest32 source_fencing_completion_digest = 19;
+  Digest32 final_delta_digest = 20;
+  WriteFenceEvidenceV1 evidence = 21;
+  uint64 clock_uncertainty_bound_millis = 22;
+  uint64 irreversible_at_unix_seconds = 23;
+  Digest32 binding_attempt_digest = 24;
+  Digest32 source_write_authority_lease_digest = 25;
+  uint64 maximum_source_write_authority_lease_expires_at_unix_seconds = 26;
+  reserved 27 to 30;
+  Digest32 source_fence_directive_ledger_digest = 31;
+}
+
+message SignedWriteFenceV1 {
+  WriteFencePayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}
+
+message MigrationFenceClaimV1 {
+  BindingOperationKeyV1 operation = 1;
+  tenancy.identity.v1.TenantId tenant_id = 2;
+  cell.placement.v1.CellId source_cell_id = 3;
+  cell.placement.v1.CellId target_cell_id = 4;
+  uint64 source_generation = 5;
+  uint64 source_revision = 6;
+  Digest32 source_binding_record_digest = 7;
+  uint64 successor_generation = 8;
+  uint64 write_authority_epoch = 9;
+  SignedParticipantManifestV1 participant_manifest = 10;
+  cell.placement.v1.SignedPlacementDecisionV1 placement_decision = 11;
+  cell.placement.v1.SignedReservationCommitPermitV1 reservation_commit_permit = 12;
+  SignedResidencyTransferAuthorizationSetV1 transfer_authorization_set = 13;
+  cell.placement.v1.SignedCellMovementPermitV1 movement_permit = 14;
+  uint64 claimed_at_unix_seconds = 15;
+  Digest32 record_digest = 16;
+  reserved 17;
+  reserved "transfer_authorizations";
+  Digest32 binding_attempt_digest = 18;
+  uint64 authority_high_water_revision = 19;
+  Digest32 authority_high_water_record_digest = 20;
+  SignedTransferEffectManifestV1 transfer_effect_manifest = 21;
+  SignedParticipantPhaseClosureV1 prepared_participant_closure = 22;
+  uint64 frozen_source_write_authority_lease_state_revision = 23;
+  Digest32 frozen_source_write_authority_lease_state_digest = 24;
+  Digest32 source_write_authority_lease_digest = 25;
+  uint64 maximum_source_write_authority_lease_expires_at_unix_seconds = 26;
+  Digest32 forward_completion_coverage_digest = 27;
+  uint64 revision = 28;
+  MigrationFenceClaimDispositionV1 disposition = 29;
+  BindingOperationKeyV1 superseded_by_operation = 30;
+}
+
+message MigrationFenceClaimMutationResultV1 {
+  MigrationFenceClaimV1 claim = 1;
+  BindingOperationV1 operation = 2;
+}
+
+message MigrationWriteFenceMutationResultV1 {
+  SignedWriteFenceV1 write_fence = 1;
+  BindingOperationV1 operation = 2;
+}
+
+message MigrationCommitSealPayloadV1 {
+  uint32 schema_version = 1;
+  BindingOperationKeyV1 operation = 2;
+  tenancy.identity.v1.TenantId tenant_id = 3;
+  cell.placement.v1.CellId source_cell_id = 4;
+  cell.placement.v1.CellId target_cell_id = 5;
+  uint64 source_generation = 6;
+  uint64 source_revision = 7;
+  Digest32 source_binding_record_digest = 8;
+  uint64 successor_generation = 9;
+  uint64 assurance_generation = 10;
+  string assurance_compiler_version = 11;
+  Digest32 assurance_requirements_digest = 12;
+  Digest32 placement_decision_digest = 13;
+  cell.placement.v1.ReservationRefV1 home_reservation = 14;
+  cell.placement.v1.ReservationRefV1 warm_recovery_reservation = 15;
+  Digest32 reservation_commit_permit_digest = 16;
+  Digest32 transfer_authorization_set_digest = 17;
+  Digest32 required_transfer_effect_manifest_digest = 18;
+  Digest32 migration_fence_claim_digest = 19;
+  Digest32 movement_permit_digest = 20;
+  Digest32 participant_manifest_digest = 21;
+  Digest32 initial_copy_digest = 22;
+  Digest32 final_delta_digest = 23;
+  Digest32 write_fence_digest = 24;
+  uint64 write_authority_epoch = 25;
+  WriteFenceModeV1 write_fence_mode = 26;
+  Digest32 target_readiness_digest = 27;
+  Digest32 recovery_evidence_digest = 28;
+  Digest32 target_activation_nonce_digest = 29;
+  Digest32 binding_attempt_digest = 30;
+  Digest32 placement_assurance_evidence_digest = 31;
+  Digest32 placement_recovery_evidence_digest = 32;
+  cell.placement.v1.ReservationRefV1 source_home_reservation = 33;
+  cell.placement.v1.ReservationRefV1 source_warm_recovery_reservation = 34;
+  Digest32 source_reservation_set_digest = 35;
+  Digest32 source_fencing_completion_digest = 36;
+  Digest32 source_write_authority_lease_digest = 37;
+  Digest32 frozen_source_write_authority_lease_state_digest = 38;
+  uint64 maximum_source_write_authority_lease_expires_at_unix_seconds = 39;
+  Digest32 forward_completion_coverage_digest = 40;
+  RollbackWindowPolicyV1 rollback_window_policy = 41;
+}
+
+message SignedMigrationCommitSealV1 {
+  MigrationCommitSealPayloadV1 payload = 1;
+  BindingProofEnvelopeV1 envelope = 2;
+  bytes signature = 3;
+}

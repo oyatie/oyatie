@@ -17,6 +17,23 @@ FACADE_TEST_DEPS = [
 
 # The migration suites evolve a composed registry, so they name the kernel's
 # definition vocabulary on top of the shared driven-surface set.
+# The two modules every migration suite carries. Named for the same reason the
+# dep set is: four verbatim copies is how a BUCK file reaches its line budget,
+# and a budget spent on duplication buys nothing.
+# The module sets these suites share, named for the same reason the dep set
+# is: duplication is what fills this file's line budget.
+FAULT_SRCS = [
+    "tests/facade_support/mod.rs",
+    "tests/failing_log/mod.rs",
+]
+
+PROBE_SRCS = FAULT_SRCS + ["tests/out_of_band/mod.rs"]
+
+MIGRATION_SRCS = [
+    "tests/facade_support/mod.rs",
+    "tests/migration_support/mod.rs",
+]
+
 MIGRATION_TEST_DEPS = FACADE_TEST_DEPS + [
     "//data/core/data-boundary-kernel:data-boundary-kernel",
     "//data/core/ontology-kernel:data-ontology-kernel",
@@ -90,10 +107,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-submit",
-    srcs = [
-        "tests/facade_support/mod.rs",
-        "tests/submit_contract.rs",
-    ],
+    srcs = ["tests/facade_support/mod.rs", "tests/submit_contract.rs"],
     crate = "submit_contract",
     crate_root = "tests/submit_contract.rs",
     visibility = ["PUBLIC"],
@@ -114,10 +128,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-reads",
-    srcs = [
-        "tests/facade_support/mod.rs",
-        "tests/read_contract.rs",
-    ],
+    srcs = ["tests/facade_support/mod.rs", "tests/read_contract.rs"],
     crate = "read_contract",
     crate_root = "tests/read_contract.rs",
     visibility = ["PUBLIC"],
@@ -138,10 +149,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-slo-render",
-    srcs = [
-        "tests/facade_support/mod.rs",
-        "tests/slo_render_is_the_source.rs",
-    ],
+    srcs = ["tests/facade_support/mod.rs", "tests/slo_render_is_the_source.rs"],
     crate = "slo_render_is_the_source",
     crate_root = "tests/slo_render_is_the_source.rs",
     visibility = ["PUBLIC"],
@@ -150,10 +158,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-metrics-counts",
-    srcs = [
-        "tests/facade_support/mod.rs",
-        "tests/metrics_count_what_happened.rs",
-    ],
+    srcs = ["tests/facade_support/mod.rs", "tests/metrics_count_what_happened.rs"],
     crate = "metrics_count_what_happened",
     crate_root = "tests/metrics_count_what_happened.rs",
     visibility = ["PUBLIC"],
@@ -162,10 +167,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-metrics-submissions",
-    srcs = [
-        "tests/facade_support/mod.rs",
-        "tests/metrics_count_submissions.rs",
-    ],
+    srcs = ["tests/facade_support/mod.rs", "tests/metrics_count_submissions.rs"],
     crate = "metrics_count_submissions",
     crate_root = "tests/metrics_count_submissions.rs",
     visibility = ["PUBLIC"],
@@ -174,9 +176,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-storage-fault",
-    srcs = [
-        "tests/facade_support/mod.rs",
-        "tests/failing_log/mod.rs",
+    srcs = FAULT_SRCS + [
         "tests/storage_fault_is_not_a_conflict.rs",
     ],
     crate = "storage_fault_is_not_a_conflict",
@@ -187,9 +187,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-live-views",
-    srcs = [
-        "tests/facade_support/mod.rs",
-        "tests/failing_log/mod.rs",
+    srcs = FAULT_SRCS + [
         "tests/views_read_the_log_not_a_boot_mirror.rs",
     ],
     crate = "views_read_the_log_not_a_boot_mirror",
@@ -200,11 +198,8 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-durable-lag",
-    srcs = [
-        "tests/facade_support/mod.rs",
-        "tests/failing_log/mod.rs",
+    srcs = PROBE_SRCS + [
         "tests/lag_is_measured_against_the_durable_head.rs",
-        "tests/out_of_band/mod.rs",
     ],
     crate = "lag_is_measured_against_the_durable_head",
     crate_root = "tests/lag_is_measured_against_the_durable_head.rs",
@@ -214,10 +209,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-readyz-refusals",
-    srcs = [
-        "tests/facade_support/mod.rs",
-        "tests/failing_log/mod.rs",
-        "tests/out_of_band/mod.rs",
+    srcs = PROBE_SRCS + [
         "tests/readyz_distinguishes_its_refusals.rs",
     ],
     crate = "readyz_distinguishes_its_refusals",
@@ -228,11 +220,8 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-freshness",
-    srcs = [
-        "tests/facade_support/mod.rs",
-        "tests/failing_log/mod.rs",
+    srcs = PROBE_SRCS + [
         "tests/freshness_is_a_signal_that_can_breach.rs",
-        "tests/out_of_band/mod.rs",
     ],
     crate = "freshness_is_a_signal_that_can_breach",
     crate_root = "tests/freshness_is_a_signal_that_can_breach.rs",
@@ -242,10 +231,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-statusz",
-    srcs = [
-        "tests/facade_support/mod.rs",
-        "tests/failing_log/mod.rs",
-        "tests/out_of_band/mod.rs",
+    srcs = PROBE_SRCS + [
         "tests/statusz_serves_the_operator.rs",
     ],
     crate = "statusz_serves_the_operator",
@@ -256,10 +242,8 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-migration-attest",
-    srcs = [
-        "tests/facade_support/mod.rs",
+    srcs = MIGRATION_SRCS + [
         "tests/migration_attest_is_the_callers_own.rs",
-        "tests/migration_support/mod.rs",
         "tests/out_of_band/mod.rs",
     ],
     crate = "migration_attest_is_the_callers_own",
@@ -271,11 +255,33 @@ rust_test(
 )
 
 rust_test(
+    name = "foundry-ontology-app-migration-run-refusals",
+    srcs = MIGRATION_SRCS + [
+        "tests/migration_run_refuses_before_it_writes.rs",
+    ],
+    crate = "migration_run_refuses_before_it_writes",
+    crate_root = "tests/migration_run_refuses_before_it_writes.rs",
+    visibility = ["PUBLIC"],
+    deps = MIGRATION_TEST_DEPS,
+)
+
+rust_test(
+    name = "foundry-ontology-app-migration-run",
+    srcs = MIGRATION_SRCS + [
+        "tests/failing_log/mod.rs",
+        "tests/migration_run_executes_the_callers_own_plan.rs",
+        "tests/out_of_band/mod.rs",
+    ],
+    crate = "migration_run_executes_the_callers_own_plan",
+    crate_root = "tests/migration_run_executes_the_callers_own_plan.rs",
+    visibility = ["PUBLIC"],
+    deps = MIGRATION_TEST_DEPS,
+)
+
+rust_test(
     name = "foundry-ontology-app-migration-attest-malformed",
-    srcs = [
-        "tests/facade_support/mod.rs",
+    srcs = MIGRATION_SRCS + [
         "tests/migration_attest_refuses_a_malformed_plan.rs",
-        "tests/migration_support/mod.rs",
     ],
     crate = "migration_attest_refuses_a_malformed_plan",
     crate_root = "tests/migration_attest_refuses_a_malformed_plan.rs",

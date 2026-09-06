@@ -67,6 +67,8 @@ pub struct FanIn<'a> {
     pub compute_lifecycle_postgres_gate: &'a str,
     pub reindeer_gate: &'a str,
     pub build_cache_qualification: &'a str,
+    /// Pull requests only; a skip elsewhere is the design.
+    pub commit_signing: &'a str,
     pub pull_request: bool,
 }
 
@@ -94,6 +96,7 @@ pub fn fan_in_ok(g: FanIn<'_>) -> bool {
         )
         && reindeer_qualification_ok(g.reindeer_qualification, reindeer_required)
         && required_success(g.build_cache_qualification)
+        && occupancy_ok(g.commit_signing, g.pull_request)
 }
 
 /// Trunk honesty. Both jobs must run; skip is red.
@@ -120,8 +123,28 @@ mod tests {
             compute_lifecycle_postgres_gate: "true",
             reindeer_gate: "true",
             build_cache_qualification: "success",
+            commit_signing: "success",
             pull_request: true,
         }
+    }
+
+    /// A red signing gate blocks; its skip is admissible only off a pull
+    /// request, or the queue wedges behind a gate that never runs there.
+    #[test]
+    fn a_refused_signing_gate_blocks_and_only_skips_off_a_pull_request() {
+        assert!(fan_in_ok(green()));
+        let mut refused = green();
+        refused.commit_signing = "failure";
+        assert!(!fan_in_ok(refused));
+        // On a pull request a skip is an unjudged lane; off one it is the
+        // design, because the job does not run against a queue commit.
+        let skipped = |pull_request| FanIn {
+            commit_signing: "skipped",
+            pull_request,
+            ..green()
+        };
+        assert!(!fan_in_ok(skipped(true)));
+        assert!(fan_in_ok(skipped(false)));
     }
 
     #[test]

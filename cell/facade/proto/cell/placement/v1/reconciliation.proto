@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package cell.placement.v1;
+
+import "cell/placement/v1/capacity.proto";
+import "cell/placement/v1/movement_issuance.proto";
+import "cell/placement/v1/operation.proto";
+import "cell/placement/v1/proof.proto";
+
+enum CellReconciliationWorkClassV1 {
+  CELL_RECONCILIATION_WORK_CLASS_V1_UNSPECIFIED = 0;
+  CELL_RECONCILIATION_WORK_CLASS_V1_TENTATIVE_RESERVATION_EXPIRED = 1;
+  CELL_RECONCILIATION_WORK_CLASS_V1_AWAITING_BINDING_OUTCOME = 2;
+  CELL_RECONCILIATION_WORK_CLASS_V1_PENDING_RESERVATION_RELEASE = 3;
+  CELL_RECONCILIATION_WORK_CLASS_V1_NONTERMINAL_OPERATION = 4;
+  CELL_RECONCILIATION_WORK_CLASS_V1_PENDING_MOVEMENT_BUDGET_SETTLEMENT = 5;
+  CELL_RECONCILIATION_WORK_CLASS_V1_PENDING_MOVEMENT_PERMIT_PUBLICATION = 6;
+}
+
+message CellReconciliationQueryV1 {
+  string partition = 1;
+  CellReconciliationWorkClassV1 work_class = 2;
+  uint64 changed_before_unix_seconds = 3;
+  uint32 page_size = 4;
+  bytes page_token = 5;
+}
+
+message ReservationReconciliationSubjectV1 {
+  ReservationRefV1 reference = 1;
+  uint64 expected_revision = 2;
+  ReservationStatusV1 status = 3;
+}
+
+message OperationReconciliationSubjectV1 {
+  PlacementOperationKeyV1 key = 1;
+  uint64 expected_revision = 2;
+  PlacementOperationV1 operation = 3;
+}
+
+message MovementPermitIssuanceReconciliationSubjectV1 {
+  string authority_partition = 1;
+  Digest32 issuance_record_digest = 2;
+  uint64 expected_revision = 3;
+  MovementPermitIssuanceStatusV1 expected_status = 4;
+}
+
+message CellReconciliationSubjectV1 {
+  oneof subject {
+    ReservationReconciliationSubjectV1 reservation = 1;
+    OperationReconciliationSubjectV1 operation = 2;
+    MovementPermitIssuanceReconciliationSubjectV1 movement_permit_issuance = 3;
+  }
+}
+
+message CellReconciliationCandidateV1 {
+  CellId cell_id = 1;
+  CellReconciliationWorkClassV1 work_class = 2;
+  CellReconciliationSubjectV1 subject = 3;
+  Digest32 durable_checkpoint_digest = 4;
+  Digest32 candidate_digest = 5;
+}
+
+message CellReconciliationPageV1 {
+  repeated CellReconciliationCandidateV1 candidates = 1;
+  bytes next_page_token = 2;
+}
+
+message CellReconciliationLeaseV1 {
+  Digest32 candidate_digest = 1;
+  string worker_id = 2;
+  uint64 lease_epoch = 3;
+  uint64 not_before_unix_seconds = 4;
+  uint64 expires_at_unix_seconds = 5;
+  Digest32 lease_digest = 6;
+}
+
+message CompleteCellReconciliationV1 {
+  Digest32 candidate_digest = 1;
+  Digest32 lease_digest = 2;
+  Digest32 applied_checkpoint_digest = 3;
+  Digest32 result_digest = 4;
+}

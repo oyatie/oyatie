@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package tenancy.binding.v1;
+
+import "cell/placement/v1/placement.proto";
+import "tenancy/binding/v1/operation.proto";
+import "tenancy/binding/v1/participant.proto";
+import "tenancy/binding/v1/proof.proto";
+import "tenancy/binding/v1/transfer_authority.proto";
+
+enum BindingWorkSnapshotKindV1 {
+  BINDING_WORK_SNAPSHOT_KIND_V1_UNSPECIFIED = 0;
+  BINDING_WORK_SNAPSHOT_KIND_V1_PARTICIPANT_MEMBERS = 1;
+  BINDING_WORK_SNAPSHOT_KIND_V1_TRANSFER_EFFECTS = 2;
+}
+
+enum BindingWorkSnapshotStateV1 {
+  BINDING_WORK_SNAPSHOT_STATE_V1_UNSPECIFIED = 0;
+  BINDING_WORK_SNAPSHOT_STATE_V1_OPEN = 1;
+  BINDING_WORK_SNAPSHOT_STATE_V1_SEALED = 2;
+  BINDING_WORK_SNAPSHOT_STATE_V1_PUBLISHED = 3;
+}
+
+message BindingWorkSnapshotKeyV1 {
+  BindingOperationKeyV1 operation = 1;
+  BindingWorkSnapshotKindV1 kind = 2;
+  Digest32 snapshot_digest = 3;
+}
+
+message BindingWorkSnapshotDescriptorV1 {
+  oneof descriptor {
+    ParticipantManifestMemberSnapshotV1 participant_members = 1;
+    TransferEffectSnapshotV1 transfer_effects = 2;
+  }
+}
+
+message BindingWorkSnapshotProgressV1 {
+  BindingWorkSnapshotKeyV1 key = 1;
+  BindingWorkSnapshotDescriptorV1 descriptor = 2;
+  BindingWorkSnapshotStateV1 state = 3;
+  uint64 next_ordinal = 4;
+  Digest32 committed_item_root_digest = 5;
+  uint64 revision = 6;
+  Digest32 record_digest = 7;
+  BindingWorkSnapshotPublicationIntentV1 publication_intent = 8;
+}
+
+message ParticipantManifestPublicationIntentV1 {
+  uint64 expected_attempt_revision = 1;
+  uint64 expected_operation_revision = 2;
+  BindingOperationV1 operation = 3;
+  cell.placement.v1.SignedPlacementDecisionV1 placement_decision = 4;
+  SignedParticipantManifestV1 manifest = 5;
+  string idempotency_key = 6;
+  Digest32 canonical_request_digest = 7;
+}
+
+message TransferManifestPublicationIntentV1 {
+  uint64 expected_operation_revision = 1;
+  BindingOperationV1 operation = 2;
+  SignedTransferEffectManifestV1 manifest = 3;
+  string idempotency_key = 4;
+  Digest32 canonical_request_digest = 5;
+}
+
+message BindingWorkSnapshotPublicationIntentV1 {
+  oneof intent {
+    ParticipantManifestPublicationIntentV1 participant_manifest = 1;
+    TransferManifestPublicationIntentV1 transfer_manifest = 2;
+  }
+}
+
+message ParticipantSnapshotSourcePageRequestV1 {
+  ParticipantManifestMemberSnapshotV1 snapshot = 1;
+  uint64 start_ordinal = 2;
+  uint32 page_size = 3;
+  bytes page_token = 4;
+}
+
+message TransferSnapshotSourcePageRequestV1 {
+  TransferEffectSnapshotV1 snapshot = 1;
+  uint64 start_ordinal = 2;
+  uint32 page_size = 3;
+  bytes page_token = 4;
+}

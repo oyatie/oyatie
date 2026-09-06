@@ -10,6 +10,7 @@ rust_library(
         "//network/core/residency:network-residency",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//audit/core/chain-domain:audit-chain-domain",
+        "//iam/core/domain-control:iam-domain",
         "//observability/core/domain:observability-domain",
     ],
 )
@@ -26,6 +27,7 @@ rust_test(
         "//network/core/residency:network-residency",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//audit/core/chain-domain:audit-chain-domain",
+        "//iam/core/domain-control:iam-domain",
         "//observability/core/domain:observability-domain",
     ],
 )
