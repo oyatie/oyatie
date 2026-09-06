@@ -104,14 +104,7 @@ rust_test(
     crate = "writer_durability",
     crate_root = "tests/writer_durability.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-spine",
-        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
-        "//app/foundry/core/edits:foundry-edits",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//data/core/ontology-kernel:data-ontology-kernel",
-    ],
+    deps = SPINE_TEST_DEPS + ["//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft"],
 )
 
 rust_test(
@@ -138,14 +131,7 @@ rust_test(
     crate = "cedar_policy_gate",
     crate_root = "tests/cedar_policy_gate.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-spine",
-        "third-party//:cedar-policy",
-        "//app/foundry/core/edits:foundry-edits",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//data/core/ontology-kernel:data-ontology-kernel",
-    ],
+    deps = SPINE_TEST_DEPS + ["third-party//:cedar-policy"],
 )
 
 rust_test(
@@ -163,14 +149,7 @@ rust_test(
     crate = "audit_emission",
     crate_root = "tests/audit_emission.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-spine",
-        "//app/foundry/core/edits:foundry-edits",
-        "//app/foundry/ports/draft/audit:foundry-audit-draft",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//data/core/ontology-kernel:data-ontology-kernel",
-    ],
+    deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/audit:foundry-audit-draft"],
 )
 
 rust_test(
@@ -180,6 +159,19 @@ rust_test(
     crate_root = "tests/revision_pinning.rs",
     visibility = ["PUBLIC"],
     deps = SPINE_TEST_DEPS,
+)
+
+rust_test(
+    name = "foundry-spine-migration-cycles",
+    srcs = ["tests/migration_cycles.rs"],
+    crate = "migration_cycles",
+    crate_root = "tests/migration_cycles.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":foundry-spine",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+    ],
 )
 
 rust_test(
