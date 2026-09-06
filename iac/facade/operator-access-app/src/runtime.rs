@@ -13,6 +13,9 @@ use zeroize::{Zeroize, Zeroizing};
 
 mod creation;
 mod credentials;
+mod inventory;
+#[cfg(test)]
+mod inventory_tests;
 mod owned_process;
 mod pipe_io;
 mod process;
@@ -21,6 +24,7 @@ mod process_tests;
 #[cfg(test)]
 mod session_tests;
 mod sessions;
+mod talos_inventory;
 #[cfg(test)]
 mod tests;
 
@@ -31,6 +35,14 @@ use process::{CANCELLED, Oci, kill_group, read_bounded, run, strings};
 use sessions::Sessions;
 
 pub fn status(p: &Profile) -> Result<Value, AccessError> {
+    observe(p, false)
+}
+
+pub fn inspect(p: &Profile) -> Result<Value, AccessError> {
+    observe(p, true)
+}
+
+fn observe(p: &Profile, inspect: bool) -> Result<Value, AccessError> {
     p.validate()?;
     let oci = Oci(p);
     oci.run(&["session", "validate", "--local"], false)
@@ -129,12 +141,15 @@ pub fn status(p: &Profile) -> Result<Value, AccessError> {
             a.iter()
                 .any(|v| v["type"] == "Ready" && v["status"] == "True")
         });
-        Ok(
-            json!({"schema": 1, "node": p.node_name, "talos_authenticated": true,
+        let mut report = json!({"schema": 1, "node": p.node_name, "talos_authenticated": true,
             "kubernetes_authenticated": true, "node_ready": ready,
             "os_image": node["status"]["nodeInfo"]["osImage"],
-            "kubernetes_version": node["status"]["nodeInfo"]["kubeletVersion"]}),
-        )
+            "kubernetes_version": node["status"]["nodeInfo"]["kubeletVersion"]});
+        if inspect {
+            report["inventory"] = inventory::collect(p, &server, &kube, &node)?;
+            report["inventory"]["talos_storage"] = talos_inventory::collect(p, &endpoint, &talos)?;
+        }
+        Ok(report)
     })();
     sessions.close()?;
     result
