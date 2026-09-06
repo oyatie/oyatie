@@ -13,6 +13,7 @@ use zeroize::{Zeroize, Zeroizing};
 
 mod creation;
 mod credentials;
+mod diagnostics;
 mod inventory;
 #[cfg(test)]
 mod inventory_tests;

@@ -1,5 +1,41 @@
 use super::*;
 
+#[test]
+fn fixed_api_paths_preserve_server_lists_without_arbitrary_raw_access() {
+    assert_eq!(
+        inventory::api_path("persistentvolumes"),
+        Ok("/api/v1/persistentvolumes")
+    );
+    assert_eq!(
+        inventory::api_path("deployments.apps"),
+        Ok("/apis/apps/v1/deployments")
+    );
+    for refused in [
+        "secrets",
+        "/api/v1/secrets",
+        "pods?watch=true",
+        "pods/status",
+    ] {
+        assert_eq!(
+            inventory::api_path(refused),
+            Err(AccessError::DependencyFailed)
+        );
+    }
+}
+
+#[test]
+fn generic_printer_lists_are_refused_but_typed_api_items_inherit_kind() {
+    let pod = json!({"metadata": {"name": "cache", "namespace": "build", "uid": "u", "resourceVersion": "7"},
+        "spec": {"containers": [{"name": "cache"}]}, "status": {"phase": "Running"}});
+    let generic =
+        json!({"kind": "List", "metadata": {"resourceVersion": ""}, "items": [pod.clone()]});
+    assert!(inventory::project_list(&generic, "Pod").is_err());
+    assert!(inventory::project_list(&list("Pod", vec![pod.clone()]), "Pod").is_ok());
+    let mut wrong = pod;
+    wrong["kind"] = json!("Secret");
+    assert!(inventory::project_list(&list("Pod", vec![wrong]), "Pod").is_err());
+}
+
 fn node() -> Value {
     json!({"metadata": {"name": "seed", "resourceVersion": "1", "labels": {"kubernetes.io/hostname": "seed"}},
         "spec": {}, "status": {"nodeInfo": {"architecture": "arm64"},

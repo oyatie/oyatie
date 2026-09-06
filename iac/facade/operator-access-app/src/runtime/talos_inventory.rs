@@ -1,4 +1,5 @@
 use super::*;
+use diagnostics::{Stage, at, invalid};
 use inventory::text;
 
 pub(super) fn collect(
@@ -11,26 +12,34 @@ pub(super) fn collect(
         ("disks", "Disks.block.talos.dev"),
         ("volumestatus", "VolumeStatuses.block.talos.dev"),
     ] {
-        let output = run(
-            "talosctl",
-            &strings(&[
-                "--talosconfig",
-                "/dev/stdin",
-                "--endpoints",
-                endpoint,
-                "--nodes",
-                &p.private_ip,
-                "get",
-                resource,
-                "--namespace",
-                "runtime",
-                "--output",
-                "json",
-            ]),
-            credentials,
-            false,
+        let output = at(
+            resource,
+            Stage::Command,
+            run(
+                "talosctl",
+                &strings(&[
+                    "--talosconfig",
+                    "/dev/stdin",
+                    "--endpoints",
+                    endpoint,
+                    "--nodes",
+                    &p.private_ip,
+                    "get",
+                    resource,
+                    "--namespace",
+                    "runtime",
+                    "--output",
+                    "json",
+                ]),
+                credentials,
+                false,
+            ),
         )?;
-        result[resource] = project(&output, &p.private_ip, kind)?;
+        result[resource] = at(
+            resource,
+            Stage::Projection,
+            project(&output, &p.private_ip, kind),
+        )?;
     }
     Ok(result)
 }
@@ -39,20 +48,21 @@ fn project(bytes: &[u8], node: &str, kind: &str) -> Result<Value, AccessError> {
     let mut items = Vec::new();
     let mut ids = std::collections::BTreeSet::new();
     for value in serde_json::Deserializer::from_slice(bytes).into_iter::<Value>() {
-        let value = value.map_err(|_| AccessError::DependencyFailed)?;
+        let value = value.map_err(|_| invalid("/items", "complete_json_stream"))?;
         if text(&value, "/node")? != node
             || text(&value, "/metadata/namespace")? != "runtime"
             || text(&value, "/metadata/type")? != kind
         {
+            invalid("/node", "matching_node_namespace_type");
             return Err(AccessError::TargetMismatch);
         }
         let id = text(&value, "/metadata/id")?;
         if !ids.insert(id.to_string()) {
-            return Err(AccessError::DependencyFailed);
+            return Err(invalid("/metadata/id", "unique_identity"));
         }
         let version = value
             .pointer("/metadata/version")
-            .ok_or(AccessError::DependencyFailed)?;
+            .ok_or_else(|| invalid("/metadata/version", "version"))?;
         if version.as_u64().is_none() {
             text(&value, "/metadata/version")?;
         }
@@ -62,16 +72,18 @@ fn project(bytes: &[u8], node: &str, kind: &str) -> Result<Value, AccessError> {
                 item["size_bytes"] = json!(
                     value["spec"]["size"]
                         .as_u64()
-                        .ok_or(AccessError::DependencyFailed)?
+                        .ok_or_else(|| invalid("/spec/size", "unsigned_integer"))?
                 );
                 item["readonly"] = json!(
                     value["spec"]["readonly"]
                         .as_bool()
-                        .ok_or(AccessError::DependencyFailed)?
+                        .ok_or_else(|| invalid("/spec/readonly", "boolean"))?
                 );
                 item["dev_path"] = json!(text(&value, "/spec/dev_path")?);
                 if let Some(symlinks) = value.pointer("/spec/symlinks") {
-                    let links = symlinks.as_array().ok_or(AccessError::DependencyFailed)?;
+                    let links = symlinks
+                        .as_array()
+                        .ok_or_else(|| invalid("/spec/symlinks", "array"))?;
                     item["symlinks"] = Value::Array(
                         links
                             .iter()
@@ -85,7 +97,10 @@ fn project(bytes: &[u8], node: &str, kind: &str) -> Result<Value, AccessError> {
                 item["phase"] = json!(text(&value, "/spec/phase")?);
                 item["type"] = json!(text(&value, "/spec/type")?);
                 if let Some(size) = value.pointer("/spec/size") {
-                    item["size_bytes"] = json!(size.as_u64().ok_or(AccessError::DependencyFailed)?);
+                    item["size_bytes"] = json!(
+                        size.as_u64()
+                            .ok_or_else(|| invalid("/spec/size", "unsigned_integer"))?
+                    );
                 }
                 &[
                     "location",
@@ -106,7 +121,7 @@ fn project(bytes: &[u8], node: &str, kind: &str) -> Result<Value, AccessError> {
         items.push(item);
     }
     if items.is_empty() {
-        return Err(AccessError::DependencyFailed);
+        return Err(invalid("/items", "nonempty_stream"));
     }
     Ok(Value::Array(items))
 }
