@@ -1,7 +1,6 @@
-//! Structural home for the pure dependency-declaration reconciliation kernel.
+//! Pure dependency-declaration reconciliation kernel.
 //!
-//! Wave S establishes module discovery only. Reconciliation behavior lands in
-//! the separately reviewed kernel wave.
+//! The build script assembles direct semantic items in deterministic byte order.
 
 #![forbid(unsafe_code)]
 

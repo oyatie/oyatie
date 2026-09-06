@@ -5,6 +5,7 @@ rust_binary(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//build/dependency-declarations/core/reconcile:dependency-declarations-reconcile",
         "//pipeline/core/admission:pipeline-admission",
         "//pipeline/ports/draft/repository:pipeline-repository-draft",
         "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
@@ -22,6 +23,23 @@ rust_test(
         "//pipeline/core/admission:pipeline-admission",
         "//pipeline/ports/draft/repository:pipeline-repository-draft",
         "//pipeline/adapters/draft/repository-git:pipeline-repository-git-draft",
+    ],
+)
+
+rust_test(
+    name = "pipeline-path-layout-app-execution-toolchain-transition",
+    srcs = [
+        "tests/execution_toolchain_transition.rs",
+        "tests/support/mod.rs",
+    ],
+    crate = "pipeline_path_layout_app_execution_toolchain_transition",
+    crate_root = "tests/execution_toolchain_transition.rs",
+    run_env = {
+        "PIPELINE_PATH_LAYOUT_APP_EXECUTABLE": "$(exe_target :pipeline-path-layout-app)",
+    },
+    visibility = [],
+    deps = [
+        "//pipeline/core/admission:pipeline-admission",
     ],
 )
 

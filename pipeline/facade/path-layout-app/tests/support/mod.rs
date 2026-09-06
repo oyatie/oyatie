@@ -20,6 +20,7 @@ pub fn fixture() -> PathBuf {
     std::fs::create_dir_all(&root).expect("create fixture");
     git(&root, &["init", "--quiet"]);
     write(&root, "Cargo.toml", &workspace_manifest(&[]));
+    write(&root, "rust-toolchain.toml", valid_toolchain());
     root
 }
 
@@ -33,7 +34,13 @@ pub fn workspace_manifest(extra_excludes: &[&str]) -> String {
         .chain(extra_excludes)
         .map(|entry| format!("  {entry:?},\n"))
         .collect::<String>();
-    format!("[workspace]\nmembers = [\n{members}]\nexclude = [\n{excludes}]\nresolver = '2'\n")
+    format!(
+        "[workspace]\nmembers = [\n{members}]\nexclude = [\n{excludes}]\nresolver = '2'\n[workspace.package]\nrust-version = '1.98.0'\n"
+    )
+}
+
+pub fn valid_toolchain() -> &'static str {
+    "[toolchain]\nchannel = '1.98.0'\ncomponents = ['rustfmt', 'clippy']\nprofile = 'minimal'\n"
 }
 
 pub fn write(root: &Path, relative: &str, contents: &str) {
@@ -91,7 +98,13 @@ pub fn git_text(root: &Path, args: &[&str]) -> String {
 }
 
 pub fn admit(root: &Path, base: &str, head: &str) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_pipeline-path-layout-app"))
+    let runner_value = std::env::var_os("PIPELINE_PATH_LAYOUT_APP_EXECUTABLE")
+        .or_else(|| {
+            option_env!("CARGO_BIN_EXE_pipeline-path-layout-app").map(std::ffi::OsString::from)
+        })
+        .expect("path-layout executable must be supplied by the test runner");
+    let executable = std::path::absolute(runner_value).expect("resolve path-layout executable");
+    Command::new(executable)
         .current_dir(root)
         .args([base, head])
         // A repository Cargo config can force these legacy variables. Conflicting values
