@@ -54,13 +54,11 @@ pub fn apply_patch_only_execution_toolchain_policy(
                 candidate: analysis.candidate.execution.clone(),
             })
         }
-        delta => Err(
-            PatchOnlyExecutionToolchainRefusal::VersionDeltaNotAdmitted(
-                delta,
-                analysis.protected.execution.clone(),
-                analysis.candidate.execution.clone(),
-            ),
-        ),
+        delta => Err(PatchOnlyExecutionToolchainRefusal::VersionDeltaNotAdmitted(
+            delta,
+            analysis.protected.execution.clone(),
+            analysis.candidate.execution.clone(),
+        )),
     }
 }
 
@@ -123,7 +121,10 @@ impl fmt::Display for DeclarationRefusal {
             Self::WrongType(field, expected) => write!(formatter, "`{field}` must be {expected}"),
             Self::Duplicate(field, value) => write!(formatter, "`{field}` duplicates `{value}`"),
             Self::InvalidStableVersion(field, value) => {
-                write!(formatter, "`{field}` value `{value}` is not an exact stable version")
+                write!(
+                    formatter,
+                    "`{field}` value `{value}` is not an exact stable version"
+                )
             }
             Self::UnsupportedValue(field, value) => {
                 write!(formatter, "`{field}` value `{value}` is unsupported")
@@ -164,7 +165,10 @@ impl fmt::Display for PatchOnlyExecutionToolchainRefusal {
                 "MSRV changed from {protected} to {candidate} without qualification"
             ),
             Self::ExecutionBelowMsrv(execution, msrv) => {
-                write!(formatter, "execution toolchain {execution} is below MSRV {msrv}")
+                write!(
+                    formatter,
+                    "execution toolchain {execution} is below MSRV {msrv}"
+                )
             }
             Self::VersionDeltaNotAdmitted(delta, protected, candidate) => write!(
                 formatter,

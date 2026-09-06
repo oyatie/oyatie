@@ -100,9 +100,8 @@ fn parse_state(
     toolchain_source: &str,
     workspace_source: &str,
 ) -> Result<ExecutionToolchainState, ExecutionToolchainAnalysisRefusal> {
-    let toolchain = parse_toolchain(toolchain_source).map_err(|reason| {
-        ExecutionToolchainAnalysisRefusal::InvalidToolchain(side, reason)
-    })?;
+    let toolchain = parse_toolchain(toolchain_source)
+        .map_err(|reason| ExecutionToolchainAnalysisRefusal::InvalidToolchain(side, reason))?;
     let msrv = parse_msrv(workspace_source)
         .map_err(|reason| ExecutionToolchainAnalysisRefusal::InvalidMsrv(side, reason))?;
     Ok(ExecutionToolchainState {
@@ -114,10 +113,7 @@ fn parse_state(
     })
 }
 
-fn execution_delta(
-    protected: &Version,
-    candidate: &Version,
-) -> ExecutionVersionDelta {
+fn execution_delta(protected: &Version, candidate: &Version) -> ExecutionVersionDelta {
     if candidate == protected {
         ExecutionVersionDelta::Unchanged
     } else if candidate < protected {
