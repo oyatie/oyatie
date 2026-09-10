@@ -97,6 +97,12 @@ pub fn unclassified_field_violations(path: &str, contents: &[u8]) -> Vec<String>
             index += 1;
             continue;
         };
+        let opens = (index..lines.len()).find(|line| code(lines[*line]).ends_with('{'));
+        let closes = (index..lines.len()).find(|line| code(lines[*line]).ends_with([';', '}']));
+        if opens.is_none_or(|open| closes.is_some_and(|close| close <= open)) {
+            index = closes.map_or(lines.len(), |close| close + 1);
+            continue;
+        }
         let end = (index + 1..lines.len())
             .find(|line| lines[*line].trim_start().starts_with('}'))
             .unwrap_or(lines.len());
@@ -164,19 +170,21 @@ fn annotated(body: &[&str], index: usize) -> bool {
             .is_some()
 }
 
-/// A named struct's own name, generics and any wrapped `where` clause split
-/// off it. A tuple struct is not one: its fields have no names to report, and
-/// reading its head as a named struct's would attribute the NEXT struct's
-/// fields to it.
-// ponytail: `(` before the brace rejects the head, so `struct Foo<T: Fn(u8)> {`
-// is a false negative — same uncovered class as tuple structs themselves.
+/// The line with any `//` comment removed and trailing space trimmed.
+fn code(line: &str) -> &str {
+    line.split("//").next().unwrap_or_default().trim_end()
+}
+
+/// The name of the struct declared on this line. The caller reads fields only
+/// between a `{` that ends a line and the `}` that closes it; a declaration
+/// that closes first — `;` after a unit or tuple head, `{}`, or a one-line
+/// body — has no such body, and a tuple struct has no field names to report.
+// ponytail: a one-line body `struct Tag { v: u8 }` is skipped, not parsed: a
+// silent miss, never a wrong owner. Parse the body properly if it shows up.
 fn struct_head(line: &str) -> Option<&str> {
     let head = strip_visibility(line.trim_start())
         .strip_prefix("struct ")?
         .trim();
-    if head.split('{').next()?.contains('(') {
-        return None;
-    }
     let name = head.split(['<', ' ', '{']).next()?;
     is_identifier(name).then_some(name)
 }
