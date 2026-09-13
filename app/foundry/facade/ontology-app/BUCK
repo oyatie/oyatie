@@ -283,3 +283,12 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = ["third-party//:serde_json"],
 )
+
+rust_test(
+    name = "foundry-ontology-app-statusz-triage-facts",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "statusz_serves_the_triage_facts",
+    crate_root = "tests/statusz_serves_the_triage_facts.rs",
+    visibility = ["PUBLIC"],
+    deps = MIGRATION_TEST_DEPS,
+)
