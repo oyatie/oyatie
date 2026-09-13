@@ -78,6 +78,16 @@ registry/fixuptasks.jsonl merge=fixup-ledger
 # git config get a normal conflict; cloud-ci gates remain the canonical backstop.
 ci/facade/action-item-accounting/friction-ledger.jsonl merge=friction-ledger
 
+# The admission crate root is a re-export hub every lane appends to. Declared here so
+# occupancy does not refuse two lanes that both add a module. No driver is registered
+# for this name and none is intended: git runs its ordinary three-way text merge.
+# Additions at distinct anchors merge clean; additions at one anchor -- the common
+# case, since new `pub mod` lines sort adjacently (#2449 and #2456 conflict twice) --
+# conflict AT MERGE and cost a rebase. Not `union`: rewrapped `pub use` groups and a
+# duplicated `//!` line would merge silently. Interim until the crate root is generated
+# (ADR-0719 D-41) and there is no hub to contend for.
+pipeline/core/admission/src/lib.rs merge=concurrent-lanes
+
 # Force LF for Rust sources so include_bytes! / git-blob identity stays platform-stable.
 # Hosted windows-latest defaults to core.autocrlf=true; CRLF worktree + LF blobs broke
 # corpus-doc-parser census ParserSource equality (soft platform-smoke scm-facts integration).
