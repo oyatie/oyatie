@@ -221,11 +221,13 @@ fn a_declaration_outside_a_comment_is_not_an_annotation() {
 }
 
 #[test]
-fn a_generic_struct_head_does_not_hide_its_fields() {
+fn a_head_that_opens_a_body_is_read_whatever_else_it_carries() {
     for head in [
         "pub struct Row<T> {",
         "pub struct Row<'a> {",
         "pub struct Row<'a, T: Debug> {",
+        "pub struct Row<T: Fn(u8)> {",
+        "pub struct Row { // (the wire shape)",
     ] {
         let text = format!("{head}\n    pub id: Classified<String>,\n    pub email: String,\n}}\n");
         let refusals = holes(&text);
@@ -269,10 +271,24 @@ fn a_struct_head_whose_brace_wrapped_past_a_where_clause_is_still_read() {
 }
 
 #[test]
-fn a_paren_after_the_brace_does_not_hide_the_struct_head() {
-    let text = "pub struct Row { // (the wire shape)\n    \
-                pub id: Classified<String>,\n    pub email: String,\n}\n";
-    let refusals = holes(text);
-    assert_eq!(refusals.len(), 1, "{refusals:?}");
-    assert!(refusals[0].contains("Row.email"), "{}", refusals[0]);
+fn a_head_that_closes_without_a_body_does_not_adopt_the_next_struct() {
+    for head in [
+        "pub struct Marker {}",
+        "pub struct Marker<T>;",
+        "pub struct Marker { pub v: u8 }",
+        "pub struct Marker<T>; // a marker",
+        "pub struct Marker<T>\nwhere\n    T: Debug;",
+        "pub struct Marker<T>\nwhere\n    T: Debug,\n{}",
+        "pub struct Marker<T>\nwhere\n    T: Trait<{ N }>,\n{}",
+        "pub struct Id<T>(\n    pub u64,\n);",
+        "pub struct Id<const N: usize = { 3 }>(\n    pub u64,\n);",
+    ] {
+        let text = format!(
+            "{head}\npub struct Row {{\n    pub id: Classified<String>,\n    \
+             pub email: String,\n}}\n"
+        );
+        let refusals = holes(&text);
+        assert_eq!(refusals.len(), 1, "{head}: {refusals:?}");
+        assert!(refusals[0].contains("Row.email"), "{head}: {}", refusals[0]);
+    }
 }
