@@ -143,6 +143,7 @@ fn exempt(path: &str) -> bool {
         || vendored_lock_step_snapshot(path)
         || live_apex_adr(path)
         || owner_law(&parts)
+        || facade_assets(&parts)
 }
 
 fn vendored_lock_step_snapshot(path: &str) -> bool {
@@ -188,6 +189,14 @@ fn owner_law(parts: &[&str]) -> bool {
     matches!(parts, [owner, name] if is_capability_root(owner) && OWNER_LAW.contains(name))
         || matches!(parts, ["app", product, name]
             if APP_PRODUCT_DIRS.contains(product) && OWNER_LAW.contains(name))
+}
+
+/// Served assets, matched by position: `<owner>/facade/<leaf>/assets/<file..>`
+/// or `app/<product>/facade/<leaf>/assets/<file..>`.
+fn facade_assets(parts: &[&str]) -> bool {
+    matches!(parts, [owner, "facade", _, "assets", _, ..] if is_capability_root(owner))
+        || matches!(parts, ["app", product, "facade", _, "assets", _, ..]
+            if APP_PRODUCT_DIRS.contains(product))
 }
 
 #[cfg(test)]
