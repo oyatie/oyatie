@@ -9,7 +9,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use intelligence_kernel::{SeatId, TenantId};
-use intelligence_rest::{
+use intelligence_rest_proxy::{
     AnthropicAdapter, RestAdapterError, SecretProviderFuture, SecretProviderStore,
 };
 

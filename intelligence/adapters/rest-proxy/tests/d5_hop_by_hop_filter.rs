@@ -15,7 +15,9 @@
 use std::collections::BTreeMap;
 
 use intelligence_kernel::TenantId;
-use intelligence_rest::{AnthropicAdapter, ProxyRequest, RestAdapterError, SecretProviderStore};
+use intelligence_rest_proxy::{
+    AnthropicAdapter, ProxyRequest, RestAdapterError, SecretProviderStore,
+};
 use scripted_http_server::{Chunk, RecordedRequest, ScriptedResponse, ScriptedServer};
 
 // ---------------------------------------------------------------------------
@@ -27,14 +29,14 @@ impl SecretProviderStore for StubStore {
     fn fetch_refresh_token<'a>(
         &'a self,
         _: &'a str,
-    ) -> intelligence_rest::SecretProviderFuture<'a, String> {
+    ) -> intelligence_rest_proxy::SecretProviderFuture<'a, String> {
         Box::pin(async { Ok("stub-rt".to_string()) })
     }
     fn store_refresh_token<'a>(
         &'a self,
         _: &'a str,
         _: &'a str,
-    ) -> intelligence_rest::SecretProviderFuture<'a, ()> {
+    ) -> intelligence_rest_proxy::SecretProviderFuture<'a, ()> {
         Box::pin(async { Ok(()) })
     }
 }
