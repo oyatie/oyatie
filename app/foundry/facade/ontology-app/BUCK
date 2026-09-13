@@ -250,3 +250,36 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = MIGRATION_TEST_DEPS,
 )
+
+rust_test(
+    name = "foundry-ontology-app-drill-corrupt-store",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "corrupt_store_boot_refusal",
+    crate_root = "tests/corrupt_store_boot_refusal.rs",
+    env = {"CARGO_BIN_EXE_foundry-ontology-app": "$(location :foundry-ontology-app-bin)"},
+    resources = [":foundry-ontology-app-bin"],
+    visibility = ["PUBLIC"],
+    deps = ["third-party//:serde_json"],
+)
+
+rust_test(
+    name = "foundry-ontology-app-drill-sigkill-replay",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "kill_midwrite_replay_identity",
+    crate_root = "tests/kill_midwrite_replay_identity.rs",
+    env = {"CARGO_BIN_EXE_foundry-ontology-app": "$(location :foundry-ontology-app-bin)"},
+    resources = [":foundry-ontology-app-bin"],
+    visibility = ["PUBLIC"],
+    deps = ["third-party//:serde_json"],
+)
+
+rust_test(
+    name = "foundry-ontology-app-drill-drain",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "shutdown_drains_inflight",
+    crate_root = "tests/shutdown_drains_inflight.rs",
+    env = {"CARGO_BIN_EXE_foundry-ontology-app": "$(location :foundry-ontology-app-bin)"},
+    resources = [":foundry-ontology-app-bin"],
+    visibility = ["PUBLIC"],
+    deps = ["third-party//:serde_json"],
+)
