@@ -12,6 +12,8 @@ pub mod render_envelope;
 #[cfg(any(feature = "ssr", test))]
 pub mod server;
 pub mod shell_capability_registry;
+mod shell_context_grants;
+mod shell_modules;
 #[cfg(any(feature = "ssr", test))]
 pub mod token_broker;
 

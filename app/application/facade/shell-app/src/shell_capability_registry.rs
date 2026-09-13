@@ -17,221 +17,14 @@ use shared_platform_contracts_kernel::shell_bff::{
 };
 
 use crate::render_envelope::{ModuleCard, OperatorContext};
+use crate::shell_context_grants::{
+    CONTEXT_ACTION_GRANTS, ContextActionGrant, context_action_grants, grants_for,
+};
+use crate::shell_modules::PRODUCTION_MODULES;
 
 const SHELL_CONTRACT_SOURCE_ID: &str = "shell-bff-contract-source:v1";
 const SHELL_CONTRACT_AUTHORITY: &str =
     "ADR-0393 production portal-shell + shared-platform-contracts-kernel::shell_bff";
-
-/// One production module surface: the locked-contract registry row plus the
-/// shell display metadata used to render its module card.
-struct RegisteredModule {
-    capability_id: &'static str,
-    display_name: &'static str,
-    module_id: &'static str,
-    required_action: &'static str,
-    route_prefix: &'static str,
-    upstream_service: &'static str,
-    group: &'static str,
-    description: &'static str,
-    action_label: &'static str,
-}
-
-const PRODUCTION_MODULES: &[RegisteredModule] = &[
-    RegisteredModule {
-        capability_id: "tenant-admin",
-        display_name: "Tenant Admin",
-        module_id: "tenancy",
-        required_action: "tenancy.administer",
-        route_prefix: "/tenancy",
-        upstream_service: "tenancy",
-        group: "Control",
-        description: "Users, roles, packs, residency, module enablement",
-        action_label: "Review posture",
-    },
-    RegisteredModule {
-        capability_id: "cloud-compute",
-        display_name: "Cloud Compute",
-        module_id: "cloud-compute",
-        required_action: "compute.operate",
-        route_prefix: "/cloud-compute",
-        upstream_service: "cloud-compute",
-        group: "Cloud",
-        description: "VMs, functions, Kubernetes workloads, and runtime tiers",
-        action_label: "Open compute",
-    },
-    RegisteredModule {
-        capability_id: "cloud-network",
-        display_name: "Cloud Network",
-        module_id: "cloud-network",
-        required_action: "network.operate",
-        route_prefix: "/cloud-network",
-        upstream_service: "cloud-network",
-        group: "Cloud",
-        description: "VPC, DNS, load balancing, ingress posture",
-        action_label: "Open network",
-    },
-    RegisteredModule {
-        capability_id: "finops",
-        display_name: "FinOps",
-        module_id: "finops",
-        required_action: "finops.review",
-        route_prefix: "/finops",
-        upstream_service: "finops",
-        group: "Operations",
-        description: "Cost allocation, budgets, sustainability views",
-        action_label: "Review spend",
-    },
-    RegisteredModule {
-        capability_id: "audit-chain",
-        display_name: "Audit Chain",
-        module_id: "audit",
-        required_action: "audit.inspect",
-        route_prefix: "/audit",
-        upstream_service: "audit",
-        group: "Trust",
-        description: "Sealed evidence and policy event review",
-        action_label: "Inspect evidence",
-    },
-    RegisteredModule {
-        capability_id: "work-home",
-        display_name: "Work Home",
-        module_id: "workspace",
-        required_action: "workspace.use",
-        route_prefix: "/workspace",
-        upstream_service: "workspace",
-        group: "Daily",
-        description: "Tasks, calendar, mail, messenger, and approvals",
-        action_label: "Open home",
-    },
-    RegisteredModule {
-        capability_id: "accounting",
-        display_name: "Accounting",
-        module_id: "accounting",
-        required_action: "accounting.close",
-        route_prefix: "/accounting",
-        upstream_service: "accounting",
-        group: "Corporate",
-        description: "Invoices, close tasks, budgets, and exceptions",
-        action_label: "Review close",
-    },
-    RegisteredModule {
-        capability_id: "human-resources",
-        display_name: "Human Resources",
-        module_id: "human-resources",
-        required_action: "hr.operate",
-        route_prefix: "/human-resources",
-        upstream_service: "human-resources",
-        group: "Corporate",
-        description: "Onboarding, policy acknowledgements, and payroll workflows",
-        action_label: "Open HR",
-    },
-    RegisteredModule {
-        capability_id: "approvals",
-        display_name: "Approvals",
-        module_id: "approvals",
-        required_action: "approvals.review",
-        route_prefix: "/approvals",
-        upstream_service: "approvals",
-        group: "Workflow",
-        description: "Plain-language approvals with policy context",
-        action_label: "Review queue",
-    },
-    RegisteredModule {
-        capability_id: "workflow-studio",
-        display_name: "Workflow Studio",
-        module_id: "workflow-studio",
-        required_action: "workflow.design",
-        route_prefix: "/workflow-studio",
-        upstream_service: "workflow-studio",
-        group: "No-code",
-        description: "Design approvals and operating workflows safely",
-        action_label: "Open studio",
-    },
-    RegisteredModule {
-        capability_id: "clinical-home",
-        display_name: "Clinical Home",
-        module_id: "clinical",
-        required_action: "care.home",
-        route_prefix: "/clinical",
-        upstream_service: "clinical",
-        group: "Healthcare",
-        description: "Care tasks, visits, and secure team messages",
-        action_label: "Open home",
-    },
-    RegisteredModule {
-        capability_id: "patient-schedule",
-        display_name: "Patient Schedule",
-        module_id: "patient-schedule",
-        required_action: "care.schedule",
-        route_prefix: "/patient-schedule",
-        upstream_service: "patient-schedule",
-        group: "Healthcare",
-        description: "Visit flow with compliance-safe placeholders",
-        action_label: "Review schedule",
-    },
-    RegisteredModule {
-        capability_id: "care-workflows",
-        display_name: "Care Workflows",
-        module_id: "care-workflows",
-        required_action: "care.workflows",
-        route_prefix: "/care-workflows",
-        upstream_service: "care-workflows",
-        group: "Healthcare",
-        description: "Accredited workflow templates for care coordination",
-        action_label: "Open workflows",
-    },
-    RegisteredModule {
-        capability_id: "secure-messenger",
-        display_name: "Secure Messenger",
-        module_id: "secure-messenger",
-        required_action: "care.message",
-        route_prefix: "/secure-messenger",
-        upstream_service: "secure-messenger",
-        group: "Healthcare",
-        description: "Team communication with care-context labels",
-        action_label: "Open messages",
-    },
-];
-
-#[derive(Clone, Copy, Debug)]
-pub struct ContextActionGrant {
-    context: OperatorContext,
-    actions: &'static [&'static str],
-}
-
-const CONTEXT_ACTION_GRANTS: &[ContextActionGrant] = &[
-    ContextActionGrant {
-        context: OperatorContext::TenantAdmin,
-        actions: &[
-            "tenancy.administer",
-            "compute.operate",
-            "network.operate",
-            "finops.review",
-            "workflow.design",
-            "audit.inspect",
-        ],
-    },
-    ContextActionGrant {
-        context: OperatorContext::CorporateOffice,
-        actions: &[
-            "workspace.use",
-            "accounting.close",
-            "hr.operate",
-            "approvals.review",
-            "workflow.design",
-        ],
-    },
-    ContextActionGrant {
-        context: OperatorContext::HealthcareClinician,
-        actions: &[
-            "care.home",
-            "care.schedule",
-            "care.workflows",
-            "care.message",
-            "workflow.design",
-        ],
-    },
-];
 
 /// Production shell-BFF contract source consumed by the shell crate.
 ///
@@ -267,21 +60,6 @@ impl ShellContractSource {
     pub fn granted_actions(&self, context: OperatorContext) -> BTreeSet<&'static str> {
         grants_for(self.context_grants, context)
     }
-}
-
-/// Resolve a context's granted actions directly from static grant data, with no
-/// registry allocation. `permitted_module_cards` (SSR render path) uses this so
-/// it never builds the full `ShellContractSource` just to read the grant set.
-fn context_action_grants(context: OperatorContext) -> BTreeSet<&'static str> {
-    grants_for(CONTEXT_ACTION_GRANTS, context)
-}
-
-fn grants_for(grants: &[ContextActionGrant], context: OperatorContext) -> BTreeSet<&'static str> {
-    grants
-        .iter()
-        .find(|grant| grant.context == context)
-        .map(|grant| grant.actions.iter().copied().collect())
-        .unwrap_or_default()
 }
 
 /// Per-context display copy for capabilities whose card text differs by
@@ -419,6 +197,10 @@ mod tests {
         assert!(admin_names.contains(&"Tenant Admin"));
         assert!(admin_names.contains(&"Audit Chain"));
         assert!(
+            admin_names.contains(&"Ontology"),
+            "tenant admin holds foundry.ontology.use and must see the Ontology card"
+        );
+        assert!(
             !admin_names.contains(&"Clinical Home"),
             "unaccredited context must not receive healthcare capabilities"
         );
@@ -433,6 +215,20 @@ mod tests {
             !clinician_names.contains(&"Tenant Admin"),
             "clinician context must not receive tenancy administration"
         );
+
+        for context in [
+            OperatorContext::CorporateOffice,
+            OperatorContext::HealthcareClinician,
+        ] {
+            let names: Vec<_> = permitted_module_cards(context)
+                .into_iter()
+                .map(|card| card.name)
+                .collect();
+            assert!(
+                !names.iter().any(|name| name == "Ontology"),
+                "{context:?} holds no foundry.ontology.use grant and must not see the Ontology card"
+            );
+        }
     }
 
     #[test]
