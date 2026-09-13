@@ -1,12 +1,12 @@
 #[cfg(target_arch = "wasm32")]
 fn main() {
-    application_shell_frontend::mount_app();
+    application_shell_app::mount_app();
 }
 
 #[cfg(all(not(target_arch = "wasm32"), feature = "ssr"))]
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    application_shell_frontend::server::run().await
+    application_shell_app::server::run().await
 }
 
 #[cfg(all(not(target_arch = "wasm32"), not(feature = "ssr")))]

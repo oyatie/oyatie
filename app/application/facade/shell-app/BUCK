@@ -1,7 +1,7 @@
 rust_library(
-    name = "application-shell-frontend",
+    name = "application-shell-app",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "application_shell_frontend",
+    crate = "application_shell_app",
     crate_root = "src/lib.rs",
     rustc_flags = ["--cfg", "feature=\"ssr\""],
     visibility = ["PUBLIC"],
@@ -22,9 +22,9 @@ rust_library(
 )
 
 rust_test(
-    name = "application-shell-frontend-unittest",
+    name = "application-shell-app-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "application_shell_frontend",
+    crate = "application_shell_app",
     crate_root = "src/lib.rs",
     rustc_flags = ["--cfg", "feature=\"ssr\""],
     visibility = ["PUBLIC"],
@@ -45,13 +45,13 @@ rust_test(
 )
 
 rust_binary(
-    name = "application-shell-frontend-bin",
+    name = "application-shell-app-bin",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate_root = "src/main.rs",
     rustc_flags = ["--cfg", "feature=\"ssr\""],
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/application/crates/application-shell-frontend:application-shell-frontend",
+        ":application-shell-app",
         "//libs/shared-oidc-client-kernel:shared-oidc-client-kernel",
         "//libs/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
         "third-party//:any_spawner",
@@ -68,14 +68,14 @@ rust_binary(
 )
 
 rust_test(
-    name = "application-shell-frontend-live-server-integration",
+    name = "application-shell-app-live-server-integration",
     srcs = ["tests/live_server.rs", "src/app.rs", "src/lib.rs"],
-    crate = "application_shell_frontend_live_server",
+    crate = "application_shell_app_live_server",
     crate_root = "tests/live_server.rs",
     rustc_flags = ["--cfg", "feature=\"ssr\""],
     visibility = ["PUBLIC"],
     deps = [
-        ":application-shell-frontend",
+        ":application-shell-app",
         "third-party//:tokio",
     ],
 )

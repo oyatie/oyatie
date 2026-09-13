@@ -19,8 +19,8 @@ use leptos::prelude::*;
 
 use crate::render_envelope_json;
 
-const TOKENS_CSS: &str = include_str!("../style/tokens.css");
-const APP_CSS: &str = include_str!("../style/app.css");
+const TOKENS_CSS: &str = include_str!("../assets/tokens.css");
+const APP_CSS: &str = include_str!("../assets/app.css");
 const SITE_ROOT: &str = "target/site";
 
 #[derive(Clone)]
@@ -166,7 +166,7 @@ async fn package_asset_empty() -> Response {
 #[component]
 fn ServerShell() -> impl IntoView {
     let wasm_package_available = Path::new(SITE_ROOT)
-        .join("pkg/application_shell_frontend.js")
+        .join("pkg/application_shell_app.js")
         .exists();
     let island_bootstrap = format!(
         r#"const wasmPackageAvailable = {wasm_package_available};
@@ -175,7 +175,7 @@ async function mountDashboardIsland() {{
     console.info('Oyatie console: WASM island package missing from /pkg; serving the server-rendered shell only.');
     return;
   }}
-  const wasm = await import('/pkg/application_shell_frontend.js');
+  const wasm = await import('/pkg/application_shell_app.js');
   await wasm.default();
   wasm.mount_dashboard_islands();
 }}
@@ -285,7 +285,7 @@ mod tests {
 
     #[test]
     fn package_paths_reject_traversal_and_only_accept_normal_components() {
-        assert!(safe_site_package_path("application_shell_frontend.js").is_some());
+        assert!(safe_site_package_path("application_shell_app.js").is_some());
         assert!(safe_site_package_path("nested/module.wasm").is_some());
         assert!(safe_site_package_path("../secret").is_none());
         assert!(safe_site_package_path("..%2Fsecret").is_none());
