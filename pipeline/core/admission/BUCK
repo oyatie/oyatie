@@ -128,6 +128,18 @@ rust_test(
 )
 
 rust_test(
+    name = "pipeline-admission-layout-facade-assets",
+    srcs = ["tests/layout_facade_assets.rs"],
+    crate = "pipeline_admission_layout_facade_assets",
+    crate_root = "tests/layout_facade_assets.rs",
+    env = _CARGO_ENV,
+    visibility = ["PUBLIC"],
+    deps = [
+        ":pipeline-admission",
+    ],
+)
+
+rust_test(
     name = "pipeline-admission-layout-change",
     srcs = ["tests/layout_change.rs"],
     crate = "pipeline_admission_layout_change",
