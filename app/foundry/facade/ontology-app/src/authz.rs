@@ -40,12 +40,13 @@ impl PolicyEnforcementPoint {
         caller: &Caller,
         surface: Surface,
         object_ref: &str,
+        served_tenant: &str,
     ) -> Result<ActionPolicyDecision, PepError> {
         let outcome = self
             .guard
             .authorize(
                 &request(caller, surface, object_ref),
-                &entities(caller, object_ref),
+                &entities(caller, object_ref, served_tenant),
             )
             .map_err(|_| PepError::Denied)?;
         if outcome.response.decision != Decision::Allow {
@@ -101,7 +102,7 @@ fn request(caller: &Caller, surface: Surface, object_ref: &str) -> Authorization
     }
 }
 
-fn entities(caller: &Caller, object_ref: &str) -> EntitySlice {
+fn entities(caller: &Caller, object_ref: &str, served_tenant: &str) -> EntitySlice {
     let role_refs: Vec<EntityRef> = caller
         .roles
         .iter()
@@ -123,7 +124,7 @@ fn entities(caller: &Caller, object_ref: &str) -> EntitySlice {
             uid: object_ref_of(object_ref),
             attributes: BTreeMap::from([(
                 "tenant".to_owned(),
-                serde_json::Value::String(TENANT_OF_RECORD.to_owned()),
+                serde_json::Value::String(served_tenant.to_owned()),
             )]),
             parents: Vec::new(),
         },
@@ -135,5 +136,3 @@ fn entities(caller: &Caller, object_ref: &str) -> EntitySlice {
     }));
     EntitySlice { entities: records }
 }
-
-const TENANT_OF_RECORD: &str = "ten_acme";
