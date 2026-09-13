@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//intelligence/core/kernel:intelligence-kernel",
-        "//intelligence/adapters/rest:intelligence-rest",
+        "//intelligence/adapters/rest-proxy:intelligence-rest-proxy",
         "third-party//:base64",
         "third-party//:bytes",
         "third-party//:reqwest",

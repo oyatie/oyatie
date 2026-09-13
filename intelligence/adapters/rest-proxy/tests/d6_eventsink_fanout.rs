@@ -7,7 +7,7 @@
 use intelligence_kernel::{
     AgentId, EventSink, EventStatus, LlmGatewayEvent, Provider, SeatId, TenantId,
 };
-use intelligence_rest::EventSinkFanout;
+use intelligence_rest_proxy::EventSinkFanout;
 use std::sync::{Arc, Mutex};
 
 // ---------------------------------------------------------------------------
