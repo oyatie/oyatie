@@ -19,10 +19,10 @@ pub mod slo;
 mod status;
 pub mod submit;
 
-pub use auth::OperatorCredential;
-pub use authz::{Caller, PolicyEnforcementPoint};
+pub use authz::PolicyEnforcementPoint;
 pub use composition::{AppState, BootError, TenantState, compose};
 pub use config::{Config, ConfigError};
+pub use foundry_caller_draft::{Caller, CallerVerifier, OperatorCredential};
 pub use pdp::{PepError, Surface};
 pub use routes::{router, router_from};
 pub use seed::SeedError;

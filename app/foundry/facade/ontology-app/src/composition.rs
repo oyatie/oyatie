@@ -1,12 +1,12 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
+use foundry_caller_draft::{CallerVerifier, RosterVerifier};
 use foundry_records_draft::{RecordsLog, RecordsLogError, SealedEnvelope};
 use foundry_records_sqlite_draft::SqliteRecordsLog;
 use foundry_spine::{ProjectionState, SyncStatus, fold_from_scratch};
 use tokio::sync::Mutex;
 
-use crate::auth::OperatorCredential;
 use crate::authz::PolicyEnforcementPoint;
 use crate::config::Config;
 use crate::seed::registry_for;
@@ -131,12 +131,23 @@ impl TenantState {
 /// Everything the surface serves from. One mutex per tenant is honest: a
 /// submission needs the log and the projection together, and SQLite is a
 /// single-writer store.
-#[derive(Debug)]
 pub struct AppState {
     pub tenants: BTreeMap<String, Mutex<TenantState>>,
     pub pep: PolicyEnforcementPoint,
     pub metrics: crate::metrics::Metrics,
-    pub operators: Vec<OperatorCredential>,
+    /// Held behind the PORT so a test can install a verifier of its own.
+    pub verifier: Box<dyn CallerVerifier>,
+}
+
+impl std::fmt::Debug for AppState {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("AppState")
+            .field("tenants", &self.tenants)
+            .field("pep", &self.pep)
+            .field("metrics", &self.metrics)
+            .finish_non_exhaustive()
+    }
 }
 
 impl AppState {
@@ -202,7 +213,7 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
         tenants,
         pep,
         metrics: crate::metrics::Metrics::default(),
-        operators: config.operators.clone(),
+        verifier: Box::new(RosterVerifier::new(config.operators.clone())),
     })
 }
 

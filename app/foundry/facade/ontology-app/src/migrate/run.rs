@@ -14,7 +14,7 @@ use foundry_spine::{MigrationAuthority, MigrationPlan, run_to_fixpoint};
 use serde::Serialize;
 
 use super::PlanRequest;
-use crate::auth::{authenticate, bearer_token};
+use crate::auth::bearer_token;
 use crate::composition::AppState;
 use crate::pdp::Surface;
 use crate::reads::{TENANT_SCOPED_RESOURCE, refuse};
@@ -44,7 +44,7 @@ pub async fn run(State(state): State<Arc<AppState>>, headers: HeaderMap, body: S
             "no bearer credential",
         );
     };
-    let Some(caller) = authenticate(&state.operators, token) else {
+    let Some(caller) = state.verifier.verify(Some(token)) else {
         state.metrics.submit_refused();
         return refuse(
             StatusCode::UNAUTHORIZED,
