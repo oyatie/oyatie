@@ -17,7 +17,7 @@ const FIXTURE_BINDINGS: &[(&str, &str)] = &[
     ),
     (
         "OYATIE_INTELLIGENCE_REST_SOURCE",
-        "intelligence/adapters/rest/src/lib.rs",
+        "intelligence/adapters/rest-proxy/src/lib.rs",
     ),
     (
         "OYATIE_INTELLIGENCE_OPENAPI_CONTRACT",

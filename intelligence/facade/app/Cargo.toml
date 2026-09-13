@@ -14,19 +14,14 @@ license = "Apache-2.0"
 #
 # Real OpenBao adapter and ClickHouse/Valkey sinks are Stage-7 items.
 
-[[bin]]
-name = "intelligence-app"
-path = "src/main.rs"
-
 [lib]
-name = "intelligence_app"
 path = "src/lib.rs"
 doctest = false
 
 [dependencies]
 shared-olap-clickhouse-adapter = { path = "../../../data/adapters/olap-clickhouse" }
 intelligence-kernel = { path = "../../core/kernel" }
-intelligence-rest = { path = "../../adapters/rest" }
+intelligence-rest = { package = "intelligence-rest-proxy", path = "../../adapters/rest-proxy" }
 intelligence-authz-cedar-adapter = { path = "../../adapters/authz-cedar-adapter" }
 intelligence-openbao-adapter = { path = "../../adapters/openbao-adapter" }
 intelligence-eventsink-clickhouse-adapter = { path = "../../adapters/eventsink-clickhouse-adapter" }
