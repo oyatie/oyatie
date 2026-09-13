@@ -96,8 +96,8 @@ fn every_acknowledged_write_survives_a_sigkill_and_refolds_without_poison() {
     let head = applied.keys().last().copied().unwrap_or(0);
     assert!(
         head == max_acked || head == max_acked + 1,
-        "the log may hold at most one write the kill cut off before its acknowledgement \
-         (head {head}, last acknowledged {max_acked})"
+        "the projection's applied head may be at most one write past the last acknowledgement: \
+         the one the kill cut off before its response (head {head}, last acknowledged {max_acked})"
     );
     assert!(
         applied
@@ -151,5 +151,14 @@ fn every_acknowledged_write_survives_a_sigkill_and_refolds_without_poison() {
     let status = json_of(&get(reopened.address, "/statusz"));
     assert_eq!(status["poisoned_entries"], 0, "{status}");
     assert_eq!(status["projection_lag"], 0, "{status}");
+    assert_eq!(
+        status["tenant"]["log_head"], head,
+        "after a whole-log refold the durable log's head is the projection's applied head: {status}"
+    );
+    assert_eq!(
+        status["tenant"]["first_poisoned_ordinal"],
+        serde_json::Value::Null,
+        "{status}"
+    );
     assert!(reopened.is_running());
 }

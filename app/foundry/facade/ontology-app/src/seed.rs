@@ -45,6 +45,7 @@ pub fn registry_for(tenant_id: &str) -> Result<OntologyEngine, SeedError> {
 }
 
 const SEEDED_ENTITY_TYPE: &str = "ety_record";
+const SEEDED_ACTION_TYPE: &str = "aty_record_write";
 
 fn build(tenant_id: &str) -> Result<OntologyEngine, SeedError> {
     let mut engine = OntologyEngine::default();
@@ -69,7 +70,7 @@ fn build(tenant_id: &str) -> Result<OntologyEngine, SeedError> {
     )?;
     engine.register_action_type(ActionTypeDefinition::new(
         tenant_id,
-        ActionTypeId::new("aty_record_write")?,
+        ActionTypeId::new(SEEDED_ACTION_TYPE)?,
         record,
         "ops-console",
         AutonomyTier::T1Assist,
@@ -86,5 +87,16 @@ pub fn declared_entity_types<'a>(
         .into_iter()
         .flatten()
         .filter_map(|id| engine.entity_type(tenant_id, &id))
+        .collect()
+}
+
+pub fn declared_action_types<'a>(
+    engine: &'a OntologyEngine,
+    tenant_id: &str,
+) -> Vec<&'a ActionTypeDefinition> {
+    [ActionTypeId::new(SEEDED_ACTION_TYPE)]
+        .into_iter()
+        .flatten()
+        .filter_map(|id| engine.action_type(tenant_id, &id))
         .collect()
 }
