@@ -1,5 +1,5 @@
 [package]
-name = "application-shell-frontend"
+name = "application-shell-app"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -8,14 +8,9 @@ license = "Apache-2.0"
 description = "Production Leptos portal-shell for the Oyatie console (ADR-0393): SSR+hydration shell whose module visibility derives from the locked shell-BFF capability-registry contracts."
 
 [lib]
-name = "application_shell_frontend"
 path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 doctest = false
-
-[[bin]]
-name = "application-shell-frontend"
-path = "src/main.rs"
 
 [features]
 default = ["csr"]
@@ -45,7 +40,7 @@ wasm-bindgen = { version = "=0.2.121", optional = true }
 # explicit `ssr` contract for its test target without broadening production
 # defaults, and add only the Tokio I/O capability used by the live server.
 [dev-dependencies]
-application-shell-frontend = { path = ".", default-features = false, features = ["ssr"] }
+application-shell-app = { path = ".", default-features = false, features = ["ssr"] }
 tokio = { workspace = true, features = ["io-util"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -70,10 +65,10 @@ web-sys = { version = "=0.3.98", features = [
 ] }
 
 [package.metadata.leptos]
-output-name = "application_shell_frontend"
+output-name = "application_shell_app"
 site-root = "target/site"
 site-pkg-dir = "pkg"
-style-file = "style/app.css"
+style-file = "assets/app.css"
 site-addr = "127.0.0.1:3000"
 reload-port = 3001
 browserquery = "defaults"

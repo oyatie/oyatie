@@ -139,11 +139,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "application-shell-frontend"
+name = "application-shell-app"
 version = "0.1.0"
 dependencies = [
  "any_spawner",
- "application-shell-frontend",
+ "application-shell-app",
  "axum",
  "leptos",
  "leptos_axum",
