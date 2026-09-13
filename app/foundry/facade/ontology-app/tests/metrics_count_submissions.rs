@@ -118,7 +118,7 @@ async fn each_submit_refusal_site_counts_exactly_once() {
             StatusCode::FORBIDDEN,
         ),
         (
-            "cross-tenant (a second exercise of the policy-denial site)",
+            "cross-tenant (the roster refuses an unserved tenant)",
             Some(fixture.foreign_token()),
             WRITE,
             StatusCode::FORBIDDEN,

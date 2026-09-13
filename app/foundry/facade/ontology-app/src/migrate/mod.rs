@@ -2,10 +2,10 @@
 //! own `tenant_id` disagrees is refused rather than rewritten.
 //!
 //! That check is DEFENCE IN DEPTH, not the control that stops a cross-tenant
-//! access: the PDP refuses a caller whose credential does not carry the
-//! tenant, and `tenant_of` resolves by `caller.tenant_id` unconditionally, so
-//! deleting the check would still refuse a foreign plan — with a worse
-//! diagnostic, which is the reason to keep it.
+//! access: the roster resolves the served tenant by `caller.tenant_id`
+//! unconditionally and the PDP decides against that tenant, so deleting the
+//! check would still refuse a foreign plan — with a worse diagnostic, which
+//! is the reason to keep it.
 
 pub(crate) mod attest;
 pub(crate) mod run;

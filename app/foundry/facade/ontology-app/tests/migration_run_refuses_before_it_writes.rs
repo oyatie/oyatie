@@ -150,9 +150,9 @@ async fn an_invalid_plan_touches_nothing() {
 }
 /// Every exit this surface takes is counted, and counted as a WRITE: the
 /// surface mutates, so its outcomes belong to the submission counters and not
-/// the read ones. The unserved-roster exit is the one this cannot reach — a
-/// foreign credential is refused earlier, by the PDP — so it has the separate
-/// fixture below.
+/// the read ones. The foreign credential reaches the unserved-roster exit
+/// under the default roster; the separate fixture below pins the same exit
+/// from the other direction, with a roster varied away from the operator.
 ///
 /// Exact totals rather than "greater than", because a site that stops
 /// counting cannot then hide behind one that starts, and because counting a
@@ -189,7 +189,7 @@ async fn every_exit_is_counted_against_the_write_meters() {
             plan_for("ten_other"),
         ),
         (
-            "a foreign credential the policy refuses",
+            "a foreign credential of a tenant the roster does not serve",
             Some(fixture.foreign_token()),
             plan_for("ten_other"),
         ),
@@ -230,11 +230,10 @@ async fn every_exit_is_counted_against_the_write_meters() {
 /// A credential whose own tenant this process does not serve is refused, and
 /// the refusal is counted.
 ///
-/// It needs its own fixture: the foreign operator is refused earlier, by the
-/// PDP, so the roster is varied instead — the credential is well-formed and
-/// policy-clean, and the process simply does not serve its tenant. Without
-/// this the site is unreachable, and an unreachable site is one whose counter
-/// can be deleted unnoticed.
+/// The default-roster foreign credential reaches the same site, so this
+/// fixture adds the other shape that reaches it: a config whose operator
+/// list and tenant roster disagree, where the credential is well-formed and
+/// policy-clean for its own tenant and the process simply does not serve it.
 #[tokio::test]
 async fn a_credential_for_an_unserved_tenant_is_refused_and_counted() {
     let fixture = Fixture::new("run-unserved-tenant");

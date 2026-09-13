@@ -9,7 +9,7 @@ use serde::Serialize;
 
 use super::PlanRequest;
 use crate::composition::AppState;
-use crate::reads::{TENANT_SCOPED_RESOURCE, authorized, refuse, tenant_of};
+use crate::reads::{TENANT_SCOPED_RESOURCE, authorized, refuse};
 
 #[derive(Debug, Serialize)]
 pub(crate) struct AttestBody {
@@ -23,8 +23,8 @@ pub async fn attest(
     headers: HeaderMap,
     body: String,
 ) -> Response {
-    let caller = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
-        Ok(caller) => caller,
+    let (caller, tenant) = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
+        Ok(authorized) => authorized,
         Err(response) => return *response,
     };
     let Ok(request) = serde_json::from_str::<PlanRequest>(&body) else {
@@ -43,10 +43,6 @@ pub async fn attest(
             "the plan names a tenant other than the credential's",
         );
     }
-    let tenant = match tenant_of(&state, &caller) {
-        Ok(tenant) => tenant,
-        Err(response) => return *response,
-    };
     let mut transforms = Vec::with_capacity(request.transforms.len());
     for wire in request.transforms {
         match wire.into_domain() {

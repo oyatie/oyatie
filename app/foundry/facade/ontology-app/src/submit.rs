@@ -56,27 +56,28 @@ pub async fn submit_action(
         );
     };
 
+    // The tenant is the CREDENTIAL's. Nothing in the body can move it.
+    let Some((served_tenant, tenant)) = state.tenants.get_key_value(&caller.tenant_id) else {
+        state.metrics.submit_refused();
+        return refuse(
+            StatusCode::FORBIDDEN,
+            "authorization",
+            "the credential names a tenant this process does not serve",
+        );
+    };
+
     // AUTHORIZE before anything is built: the decision is the PDP's, and a
     // refusal ends the request here, with nothing appended anywhere.
-    let Ok(decision) = state
-        .pep
-        .decide(&caller, Surface::Invoke, &request.object_ref)
+    let Ok(decision) =
+        state
+            .pep
+            .decide(&caller, Surface::Invoke, &request.object_ref, served_tenant)
     else {
         state.metrics.submit_refused();
         return refuse(
             StatusCode::FORBIDDEN,
             "authorization",
             "the policy decision point refused this invocation",
-        );
-    };
-
-    // The tenant is the CREDENTIAL's. Nothing in the body can move it.
-    let Some(tenant) = state.tenants.get(&caller.tenant_id) else {
-        state.metrics.submit_refused();
-        return refuse(
-            StatusCode::FORBIDDEN,
-            "authorization",
-            "the credential names a tenant this process does not serve",
         );
     };
     let mut tenant = tenant.lock().await;

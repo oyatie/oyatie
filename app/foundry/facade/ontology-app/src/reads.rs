@@ -22,11 +22,21 @@ use crate::read_dto::{
     AuditRow, EntityTypeRow, HistoryRow, PinnedObjectBody, PropertyBody, RevisionPin, json_value,
 };
 
-pub(crate) fn authorized(
-    state: &AppState,
+/// Verify the credential, resolve the tenant this process serves for it,
+/// then ask the policy decision point with that served tenant as the
+/// resource's tenant. The roster is consulted before the PDP because the
+/// served tenant is an input to the decision, not a consequence of it.
+pub(crate) fn authorized<'a>(
+    state: &'a AppState,
     headers: &HeaderMap,
     object_ref: &str,
-) -> Result<Caller, Box<Response>> {
+) -> Result<
+    (
+        Caller,
+        &'a tokio::sync::Mutex<crate::composition::TenantState>,
+    ),
+    Box<Response>,
+> {
     let Some(token) = bearer_token(headers.get("authorization").and_then(|v| v.to_str().ok()))
     else {
         state.metrics.read_refused();
@@ -44,7 +54,19 @@ pub(crate) fn authorized(
             "the presented credential is not recognized",
         )));
     };
-    if state.pep.decide(&caller, Surface::Use, object_ref).is_err() {
+    let Some((served_tenant, tenant)) = state.tenants.get_key_value(&caller.tenant_id) else {
+        state.metrics.read_refused();
+        return Err(Box::new(refuse(
+            StatusCode::FORBIDDEN,
+            "authorization",
+            "the credential names a tenant this process does not serve",
+        )));
+    };
+    if state
+        .pep
+        .decide(&caller, Surface::Use, object_ref, served_tenant)
+        .is_err()
+    {
         state.metrics.read_refused();
         return Err(Box::new(refuse(
             StatusCode::FORBIDDEN,
@@ -52,21 +74,7 @@ pub(crate) fn authorized(
             "the policy decision point refused this read",
         )));
     }
-    Ok(caller)
-}
-
-pub(crate) fn tenant_of<'a>(
-    state: &'a AppState,
-    caller: &Caller,
-) -> Result<&'a tokio::sync::Mutex<crate::composition::TenantState>, Box<Response>> {
-    state.tenants.get(&caller.tenant_id).ok_or_else(|| {
-        state.metrics.read_refused();
-        Box::new(refuse(
-            StatusCode::FORBIDDEN,
-            "authorization",
-            "the credential names a tenant this process does not serve",
-        ))
-    })
+    Ok((caller, tenant))
 }
 
 pub async fn object(
@@ -75,12 +83,8 @@ pub async fn object(
     RawQuery(raw_query): RawQuery,
     headers: HeaderMap,
 ) -> Response {
-    let caller = match authorized(&state, &headers, &object_ref) {
-        Ok(caller) => caller,
-        Err(response) => return *response,
-    };
-    let tenant = match tenant_of(&state, &caller) {
-        Ok(tenant) => tenant,
+    let (_, tenant) = match authorized(&state, &headers, &object_ref) {
+        Ok(authorized) => authorized,
         Err(response) => return *response,
     };
     let RevisionPin::Pinned(revision) = RevisionPin::parse(raw_query.as_deref()) else {
@@ -158,12 +162,8 @@ pub async fn history(
     Path(object_ref): Path<String>,
     headers: HeaderMap,
 ) -> Response {
-    let caller = match authorized(&state, &headers, &object_ref) {
-        Ok(caller) => caller,
-        Err(response) => return *response,
-    };
-    let tenant = match tenant_of(&state, &caller) {
-        Ok(tenant) => tenant,
+    let (caller, tenant) = match authorized(&state, &headers, &object_ref) {
+        Ok(authorized) => authorized,
         Err(response) => return *response,
     };
     let tenant = tenant.lock().await;
@@ -188,12 +188,8 @@ pub async fn history(
 }
 
 pub async fn audit(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response {
-    let caller = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
-        Ok(caller) => caller,
-        Err(response) => return *response,
-    };
-    let tenant = match tenant_of(&state, &caller) {
-        Ok(tenant) => tenant,
+    let (caller, tenant) = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
+        Ok(authorized) => authorized,
         Err(response) => return *response,
     };
     let tenant = tenant.lock().await;
@@ -226,12 +222,8 @@ pub async fn audit(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Re
 }
 
 pub async fn types(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response {
-    let caller = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
-        Ok(caller) => caller,
-        Err(response) => return *response,
-    };
-    let tenant = match tenant_of(&state, &caller) {
-        Ok(tenant) => tenant,
+    let (caller, tenant) = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
+        Ok(authorized) => authorized,
         Err(response) => return *response,
     };
     let tenant = tenant.lock().await;
