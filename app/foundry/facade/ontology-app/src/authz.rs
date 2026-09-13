@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::sync::Arc;
 
 use data_ontology_kernel::{ActionPolicyDecision, AutonomyTier};
 use foundry_caller_draft::Caller;
@@ -27,6 +28,20 @@ impl PolicyEnforcementPoint {
         Ok(Self {
             guard: crate::pdp::load_guarded(version)?,
         })
+    }
+
+    /// Held behind the PORT so a test can install a decision point of its
+    /// own: an authorizer outage is only reachable through a double.
+    pub fn with_pdp(pdp: Arc<dyn PolicyDecisionPoint>) -> Self {
+        Self {
+            guard: crate::pdp::guard_around(pdp),
+        }
+    }
+
+    /// The unguarded Cedar decision point for `version`, so a double can
+    /// wrap a real decision rather than invent one.
+    pub fn cedar(version: &str) -> Result<Arc<dyn PolicyDecisionPoint>, PepError> {
+        crate::pdp::cedar(version)
     }
 
     pub fn loaded_policy_version(&self) -> PolicyVersion {

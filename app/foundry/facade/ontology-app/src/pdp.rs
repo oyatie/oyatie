@@ -77,6 +77,11 @@ fn bundle(version: &str) -> Result<PolicyBundle, PepError> {
 }
 
 pub fn load_guarded(version: &str) -> Result<PdpRuntimeGuard, PepError> {
+    Ok(guard_around(cedar(version)?))
+}
+
+/// The Cedar decision point alone, before the runtime guard wraps it.
+pub(crate) fn cedar(version: &str) -> Result<Arc<dyn PolicyDecisionPoint>, PepError> {
     let pdp = CedarPdp::load(
         &bundle(version)?,
         Arc::new(SeededIdGenerator::default()),
@@ -85,10 +90,17 @@ pub fn load_guarded(version: &str) -> Result<PdpRuntimeGuard, PepError> {
     .map_err(|error| PepError::BundleRejected {
         detail: format!("{error:?}"),
     })?;
-    Ok(PdpRuntimeGuard::new(
-        Arc::new(pdp) as Arc<dyn PolicyDecisionPoint>,
+    Ok(Arc::new(pdp))
+}
+
+/// The one place the runtime guard is configured, so a decision point
+/// installed by a test runs under the same deadline and circuit
+/// configuration as Cedar.
+pub(crate) fn guard_around(pdp: Arc<dyn PolicyDecisionPoint>) -> PdpRuntimeGuard {
+    PdpRuntimeGuard::new(
+        pdp,
         PdpRuntimeConfig::new(DECISION_DEADLINE, CIRCUIT_OPEN_AFTER_FAILURES),
-    ))
+    )
 }
 
 const DECISION_CACHE_CAPACITY: usize = 256;
