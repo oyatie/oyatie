@@ -4,7 +4,7 @@
 //! secret-provider/KMS port. Concrete backing engines are transient adapters;
 //! here we use in-process mocks that demonstrate the expected semantics.
 
-use intelligence_rest::{RestAdapterError, SecretProviderFuture, SecretProviderStore};
+use intelligence_rest_proxy::{RestAdapterError, SecretProviderFuture, SecretProviderStore};
 use std::collections::HashMap;
 use std::sync::Mutex;
 

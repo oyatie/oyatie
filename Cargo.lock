@@ -3933,7 +3933,7 @@ dependencies = [
  "intelligence-eventsink-valkey-adapter",
  "intelligence-kernel",
  "intelligence-openbao-adapter",
- "intelligence-rest",
+ "intelligence-rest-proxy",
  "reqwest 0.13.4",
  "serde",
  "shared-olap-clickhouse-adapter",
@@ -4566,7 +4566,7 @@ dependencies = [
  "bytes",
  "futures",
  "intelligence-kernel",
- "intelligence-rest",
+ "intelligence-rest-proxy",
  "reqwest 0.13.4",
  "scripted-http-server",
  "serde",
@@ -4688,7 +4688,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "intelligence-rest"
+name = "intelligence-rest-proxy"
 version = "0.1.0"
 dependencies = [
  "axum",
