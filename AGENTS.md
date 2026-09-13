@@ -114,6 +114,38 @@ Every new load-bearing `MUST` uses the same five fields: achieves, origin, rule,
 ensure, and overturn_when. Amend it through a recorded challenge and a
 same-change replacement, never by silent drift.
 
+### Wedge product and port-pulled infrastructure
+
+- **achieves:** every lane serves the one product a paying tenant will run
+  first, and infrastructure earns its place by being what that product
+  consumes through a contract.
+- **origin:** founder ruling, 2026-09-13. Measured on `dev` at `11b646355`:
+  573 commits between 2026-07-14 and 2026-09-12 landed mostly on
+  delivery-system and capability roots, with `app/` seventh; no product
+  manifest named an `iam/ports/` crate, and the served product authenticated
+  from an operator table in its own facade; two products had no Rust and two
+  had in-memory storage and no deployed listener. This narrows ADR-0719 D-23,
+  which refused an app crate any cloud `core/` or `ports/` path and which
+  `dev` already breaches.
+- **rule:** `app/foundry` V1 Ontology is the wedge product. A product lane MUST
+  serve the wedge until the wedge is Served: a facade process with a listener,
+  a shell module card, generated SLOs, runbooks, and failure injection. A
+  capability lane MUST name the product port that pulls it. A product manifest,
+  `Cargo.toml` or `BUCK`, MUST NOT name another capability's `core/` or
+  `adapters/` crate unless a manifest of that product already names it on
+  `dev`; a new target is reached through a `ports/` crate, the product's own or
+  the capability's, with a fake adapter admitted before a real one. Targets
+  already named on `dev` are not refusals.
+- **ensure:** review refuses a lane charter that names neither a wedge purpose
+  nor a pulling port; review refuses a product `Cargo.toml` or `BUCK` hunk that
+  names another capability's `core/` or `adapters/` target no manifest of that
+  product names on `dev`; Served is claimed only with presubmit green on the
+  facade, a module card that renders deny-by-default,
+  `app/foundry/observability/slos/*.generated.openslo.yaml`, and fault tests
+  in the spine and the facade.
+- **overturn_when:** the wedge is Served, or a recorded challenge shows a
+  paying tenant requires a different product first.
+
 ## Per-dispatch ritual (Tier 2)
 
 1. Declare exactly one role and the one thing it must not do. Name the affected
