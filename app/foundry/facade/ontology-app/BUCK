@@ -15,11 +15,6 @@ FACADE_TEST_DEPS = [
     "third-party//:tower",
 ]
 
-# The migration suites evolve a composed registry, so they name the kernel's
-# definition vocabulary on top of the shared driven-surface set.
-# The two modules every migration suite carries. Named for the same reason the
-# dep set is: four verbatim copies is how a BUCK file reaches its line budget,
-# and a budget spent on duplication buys nothing.
 # Shared module sets: duplication is what fills this file's budget.
 FAULT_SRCS = [
     "tests/facade_support/mod.rs",
@@ -48,6 +43,7 @@ rust_library(
         "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
         "//app/foundry/core/edits:foundry-edits",
         "//app/foundry/core/spine:foundry-spine",
+        "//app/foundry/ports/draft/caller:foundry-caller-draft",
         "//app/foundry/ports/draft/records:foundry-records-draft",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//data/core/ontology-kernel:data-ontology-kernel",

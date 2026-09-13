@@ -10,11 +10,11 @@ use axum::Json;
 use axum::extract::{Path, RawQuery, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
+use foundry_caller_draft::Caller;
 use foundry_records_draft::SealedEnvelope;
 use foundry_spine::{ViewError, audit_view, object_at_revision, object_history};
 
-use crate::auth::{authenticate, bearer_token};
-use crate::authz::Caller;
+use crate::auth::bearer_token;
 use crate::composition::AppState;
 use crate::dto::RefusalBody;
 use crate::pdp::Surface;
@@ -36,7 +36,7 @@ pub(crate) fn authorized(
             "no bearer credential",
         )));
     };
-    let Some(caller) = authenticate(&state.operators, token) else {
+    let Some(caller) = state.verifier.verify(Some(token)) else {
         state.metrics.read_refused();
         return Err(Box::new(refuse(
             StatusCode::UNAUTHORIZED,

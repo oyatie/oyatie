@@ -92,6 +92,49 @@ fn nth_decision(n: u64) -> String {
     )
 }
 
+/// Accepts one token that no roster in this suite carries.
+struct OutOfRosterVerifier;
+
+const OUT_OF_ROSTER_TOKEN: &str = "token-no-roster-holds";
+
+impl foundry_ontology_app::CallerVerifier for OutOfRosterVerifier {
+    fn verify(&self, presented_bearer: Option<&str>) -> Option<foundry_ontology_app::Caller> {
+        (presented_bearer == Some(OUT_OF_ROSTER_TOKEN)).then(|| foundry_ontology_app::Caller {
+            tenant_id: "ten_acme".into(),
+            principal_id: "prn_alice".into(),
+            roles: vec!["foundry-operator".into()],
+        })
+    }
+}
+
+#[tokio::test]
+async fn the_run_route_verifies_callers_through_the_port_not_the_roster() {
+    let fixture = Fixture::new("run-port-verifier");
+    let mut state = state_with_two_revisions(&fixture.config());
+    state.verifier = Box::new(OutOfRosterVerifier);
+    let session = Session::from_state(state);
+    write_owing(&session, Some(OUT_OF_ROSTER_TOKEN), "ent_alpha", "idem_1").await;
+
+    let (status, body) = run(&session, Some(OUT_OF_ROSTER_TOKEN), &plan_for("ten_acme")).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(
+        body,
+        r#"{"total":1,"upcast":1,"pending":0,"refused":0,"conflicted":0,"unavailable":0,"poisoned":0,"fixpoint":true}"#
+    );
+
+    let (status, body) = run(
+        &session,
+        Some(fixture.operator_token()),
+        &plan_for("ten_acme"),
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::UNAUTHORIZED,
+        "a roster token the verifier does not know must not run a plan: {body}"
+    );
+}
+
 #[tokio::test]
 async fn a_second_run_at_the_fixpoint_writes_nothing() {
     let fixture = Fixture::new("run-idempotent");

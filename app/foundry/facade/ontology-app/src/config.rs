@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::auth::OperatorCredential;
+use foundry_caller_draft::OperatorCredential;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Config {
