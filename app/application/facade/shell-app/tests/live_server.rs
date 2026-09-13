@@ -7,7 +7,7 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
-use application_shell_frontend::server::{router_for_package_root, serve_router_until_shutdown};
+use application_shell_app::server::{router_for_package_root, serve_router_until_shutdown};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::TcpStream,
@@ -28,7 +28,7 @@ fn post_bootstrap_mount_contract_preserves_one_host_and_one_island_root() {
     // `mount_dashboard_island_by_id` clears this stable host, then pinned Leptos 0.8.19
     // `mount_to(parent, DashboardIsland)` calls `mountable.mount(&parent, None)`: it appends the
     // component root beneath the host rather than replacing the host itself. The two source
-    // contracts below, plus this resulting-DOM model, prevent duplicate IDs after bootstrap.
+    // contracts below prevent duplicate IDs after bootstrap.
     assert!(app_source.contains("<div id=crate::DASHBOARD_MOUNT_HOST_ID>"));
     assert!(bootstrap_source.contains("element.set_inner_html(\"\");"));
     assert!(bootstrap_source.contains("mount_to(parent, DashboardIsland)"));
@@ -38,20 +38,6 @@ fn post_bootstrap_mount_contract_preserves_one_host_and_one_island_root() {
             .next()
             .expect("DashboardIsland component boundary")
             .contains("DASHBOARD_MOUNT_HOST_ID")
-    );
-
-    let post_bootstrap_dom = r#"<div id="dashboard-island-root"><div class="dashboard-island" data-island="render-envelope-dashboard"></div></div>"#;
-    assert_eq!(
-        post_bootstrap_dom
-            .matches("id=\"dashboard-island-root\"")
-            .count(),
-        1
-    );
-    assert_eq!(
-        post_bootstrap_dom
-            .matches("data-island=\"render-envelope-dashboard\"")
-            .count(),
-        1
     );
 }
 
