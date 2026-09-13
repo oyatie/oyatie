@@ -102,7 +102,10 @@ rust_test(
     crate = "authorizer_outage_is_deny",
     crate_root = "tests/authorizer_outage_is_deny.rs",
     visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS,
+    deps = FACADE_TEST_DEPS + [
+        "//policy/core/pdp-kernel:policy-pdp-kernel",
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+    ],
 )
 
 rust_test(
