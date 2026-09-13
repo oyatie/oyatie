@@ -124,6 +124,13 @@ impl Fixture {
             .head(TENANT)
             .expect("head is readable")
     }
+
+    pub fn denial_head(&self) -> u64 {
+        SqliteRecordsLog::open(&self.denial)
+            .expect("the denial trail opens")
+            .head(TENANT)
+            .expect("head is readable")
+    }
 }
 
 impl Drop for Fixture {
