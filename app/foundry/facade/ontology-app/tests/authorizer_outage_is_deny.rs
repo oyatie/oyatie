@@ -19,7 +19,7 @@ fn an_uncompilable_policy_version_refuses_to_load() {
 #[tokio::test]
 async fn a_cross_tenant_write_is_refused_and_recorded_on_the_denial_trail() {
     let fixture = Fixture::new("outage-cross-tenant");
-    // The credential names tenant B; the seeded objects belong to tenant A.
+    // The credential names tenant B; the process serves only tenant A.
     let (status, _) = post(
         &fixture,
         Some(fixture.foreign_token()),

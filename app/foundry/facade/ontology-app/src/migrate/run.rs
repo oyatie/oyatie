@@ -61,12 +61,23 @@ pub async fn run(State(state): State<Arc<AppState>>, headers: HeaderMap, body: S
         );
     };
 
+    let Some((served_tenant, tenant)) = state.tenants.get_key_value(&caller.tenant_id) else {
+        state.metrics.submit_refused();
+        return refuse(
+            StatusCode::FORBIDDEN,
+            "authorization",
+            "the credential names a tenant this process does not serve",
+        );
+    };
+
     // AUTHORIZE before anything is built, and keep the decision: it is the
     // authority the runner stamps, not merely a yes.
-    let Ok(decision) = state
-        .pep
-        .decide(&caller, Surface::Invoke, TENANT_SCOPED_RESOURCE)
-    else {
+    let Ok(decision) = state.pep.decide(
+        &caller,
+        Surface::Invoke,
+        TENANT_SCOPED_RESOURCE,
+        served_tenant,
+    ) else {
         state.metrics.submit_refused();
         return refuse(
             StatusCode::FORBIDDEN,
@@ -83,14 +94,6 @@ pub async fn run(State(state): State<Arc<AppState>>, headers: HeaderMap, body: S
             "the plan names a tenant other than the credential's",
         );
     }
-    let Some(tenant) = state.tenants.get(&caller.tenant_id) else {
-        state.metrics.submit_refused();
-        return refuse(
-            StatusCode::FORBIDDEN,
-            "authorization",
-            "the credential names a tenant this process does not serve",
-        );
-    };
     let mut transforms = Vec::with_capacity(request.transforms.len());
     for wire in request.transforms {
         match wire.into_domain() {

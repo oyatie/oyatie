@@ -41,11 +41,10 @@ impl Fixture {
     }
 
     /// A process serving a DIFFERENT tenant from the one its operator
-    /// credential names. The policy decision point permits the caller — the
-    /// object it addresses belongs to the caller's own tenant — and the
-    /// roster then does not hold it, which is the only way to reach the
-    /// unserved-tenant refusal. Reachable in production through a config
-    /// whose operator list and tenant roster disagree.
+    /// credential names: the roster does not hold the credential's tenant,
+    /// so the request is refused before the policy decision point is asked.
+    /// Reachable in production through a config whose operator list and
+    /// tenant roster disagree.
     pub fn config_with_unserved_operator_tenant(&self) -> Config {
         let mut config = self.config();
         config.tenants = vec!["ten_elsewhere".into()];
@@ -84,6 +83,16 @@ impl Fixture {
                     roles: Vec::new(),
                 },
             ],
+        }
+    }
+
+    /// A process serving BOTH fixture tenants, so the foreign credential is
+    /// a served operator of its own tenant rather than a stranger.
+    pub fn both_tenants_session(&self) -> Session {
+        let mut config = self.config();
+        config.tenants.push("ten_other".into());
+        Session {
+            router: router(compose(&config).expect("boots")),
         }
     }
 

@@ -29,13 +29,11 @@ async fn an_answered_read_increments_served() {
 /// per-case delta localizes, which means deleting any single counting call
 /// fails a case that names its site.
 ///
-/// Not every case has a site to itself, and the cross-tenant cases are the
-/// deliberate exception: Cedar's forbid refuses a foreign tenant before the
-/// roster is ever consulted, so they are a SECOND exercise of the
-/// policy-denial site rather than a pin on the roster site. That is the
-/// property worth keeping — it is why the roster refusal needs the separate
-/// fixture below — but it means deleting the policy-denial call fails the
-/// earlier of the two cases, not both.
+/// Not every case has a site to itself: the cross-tenant cases and the
+/// unserved-tenant fixture below both land on the roster site, because the
+/// roster is consulted before the policy decision point and refuses a
+/// credential whose tenant it does not hold. Deleting the roster-site call
+/// fails both tests, each at its own case.
 async fn assert_read_refusal_delta(
     session: &Session,
     label: &str,
@@ -86,7 +84,7 @@ async fn each_read_refusal_site_counts_exactly_once() {
     .await;
     assert_read_refusal_delta(
         &session,
-        "cross-tenant (a second exercise of the policy-denial site)",
+        "cross-tenant (the roster refuses an unserved tenant)",
         path,
         Some(fixture.foreign_token()),
         StatusCode::FORBIDDEN,
@@ -118,14 +116,10 @@ async fn each_read_refusal_site_counts_exactly_once() {
     .await;
 }
 
-/// The unserved-tenant refusal on BOTH surfaces, which no other case reaches.
-///
-/// The policy point permits this caller — it addresses an object in its own
-/// tenant — and the roster then does not hold that tenant. An earlier
-/// revision believed a foreign-tenant credential exercised this site; it
-/// does not, because the Cedar cross-tenant forbid refuses first, so that
-/// case was a second exercise of the policy-denial site and this one was
-/// never executed at all.
+/// The unserved-tenant refusal on BOTH surfaces under a roster that does
+/// not hold the operator's own tenant: the same site the cross-tenant cases
+/// reach, pinned here from the other direction (a well-formed, policy-clean
+/// credential against a roster varied away from it).
 #[tokio::test]
 async fn the_unserved_tenant_refusal_counts() {
     let fixture = Fixture::new("metrics-unserved-tenant");

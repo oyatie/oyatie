@@ -11,7 +11,7 @@
 mod support;
 
 use axum::http::StatusCode;
-use support::{Fixture, get, write_a_record};
+use support::{Fixture, WRITE_BODY, get, write_a_record};
 
 #[tokio::test]
 async fn a_foreign_credential_cannot_read_another_tenants_object() {
@@ -66,4 +66,41 @@ async fn a_foreign_credential_reads_neither_history_nor_audit() {
             "{path} must not leak the other tenant's actor: {body}"
         );
     }
+}
+
+#[tokio::test]
+async fn a_second_served_tenant_operates_its_own_log() {
+    // The other side of the wall: when the roster serves the foreign
+    // credential's tenant, that operator writes and reads within it. Without
+    // this control every cross-tenant refusal above would also pass against
+    // a process that refuses every tenant but one.
+    let fixture = Fixture::new("iso-second-tenant");
+    let session = fixture.both_tenants_session();
+    let (status, body) = session
+        .post(Some(fixture.foreign_token()), WRITE_BODY)
+        .await;
+    assert_eq!(
+        status,
+        StatusCode::OK,
+        "a served operator's write lands: {body}"
+    );
+    let (status, body) = session
+        .get(Some(fixture.foreign_token()), "/v1/types")
+        .await;
+    assert_eq!(
+        status,
+        StatusCode::OK,
+        "a served operator reads its own tenant: {body}"
+    );
+    let (status, body) = session
+        .get(
+            Some(fixture.operator_token()),
+            "/v1/objects/ent_alpha?revision=1",
+        )
+        .await;
+    assert_ne!(
+        status,
+        StatusCode::OK,
+        "the first tenant must not see the second tenant's write: {body}"
+    );
 }

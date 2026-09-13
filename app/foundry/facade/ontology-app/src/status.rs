@@ -12,7 +12,7 @@ use axum::response::{IntoResponse, Response};
 use serde::Serialize;
 
 use crate::composition::AppState;
-use crate::reads::{TENANT_SCOPED_RESOURCE, authorized, tenant_of};
+use crate::reads::{TENANT_SCOPED_RESOURCE, authorized};
 
 #[derive(Debug, Serialize)]
 pub(crate) struct StatusBody {
@@ -31,12 +31,8 @@ pub(crate) struct StatusBody {
 }
 
 pub async fn statusz(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response {
-    let caller = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
-        Ok(caller) => caller,
-        Err(response) => return *response,
-    };
-    let tenant = match tenant_of(&state, &caller) {
-        Ok(tenant) => tenant,
+    let (caller, tenant) = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
+        Ok(authorized) => authorized,
         Err(response) => return *response,
     };
     let seen = crate::observation::observe(&state);
