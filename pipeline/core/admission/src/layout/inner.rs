@@ -1,6 +1,6 @@
 //! Inner owner grammar. Provenance: ADR-0719 D-8.
 
-use super::payload::{validate_cedar, validate_iac};
+use super::payload::{validate_assets, validate_cedar, validate_iac};
 use super::test_fixture::validate_test_tree;
 use super::{FORBIDDEN_NAMES, cap_root_file_ok, face_dir_ok};
 
@@ -87,8 +87,9 @@ fn validate_crate_path(file: &str, face: &str, parts: &[&str], violations: &mut 
         violations.push(format!("{file}: crate name must be a directory"));
         return;
     };
+    let facade_assets = face == "facade" && *entry == "assets";
     if descendants.is_empty() {
-        if matches!(*entry, "src" | "tests") {
+        if matches!(*entry, "src" | "tests") || facade_assets {
             violations.push(format!("{file}: `{entry}` must be a directory"));
         } else if !CRATE_FILES.contains(entry) {
             violations.push(format!("{file}: `{entry}` is not allowed at a crate root"));
@@ -97,9 +98,11 @@ fn validate_crate_path(file: &str, face: &str, parts: &[&str], violations: &mut 
         validate_rust_tree(file, face, descendants, violations);
     } else if *entry == "tests" {
         validate_test_tree(file, descendants, violations);
+    } else if facade_assets {
+        validate_assets(file, descendants, violations);
     } else {
         violations.push(format!(
-            "{file}: crate content must live under `src/` or `tests/`"
+            "{file}: crate content must live under `src/`, `tests/` or facade `assets/`"
         ));
     }
 }

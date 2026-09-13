@@ -146,6 +146,35 @@ same-change replacement, never by silent drift.
 - **overturn_when:** the wedge is Served, or a recorded challenge shows a
   paying tenant requires a different product first.
 
+### Facade static assets
+
+- **achieves:** a served surface keeps the stylesheet and static files the
+  browser fetches beside the crate that compiles them in, without a line
+  budget the gate cannot measure.
+- **origin:** ADR-0719 D-8
+  (`docs/decisions/ADR-0719-eac-serving-control-north-star.md:615`) closes a
+  crate to `Cargo.toml`, `src/`, `tests/`, `OWNERS`, `BUCK`, and the frozen
+  corpus refuses amending it. Founder ruling 2026-09-13: that closure would
+  have deleted 12,595 lines of live production CSS to rename
+  `application-shell-frontend` to the `*-app` leaf the same grammar requires.
+- **rule:** a `facade/<leaf>/assets/` directory MAY hold static files whose
+  extension is one of `css`, `svg`, `png`, `webp`, `woff2`, `ico`, in
+  lowercase-segment directories and names; `OWNERS` and `BUCK` are admitted by
+  name. Only the `facade` face; no `.rs`, no Markdown, no JSON, no `plan/` or
+  `tasks/`. Files under a capability root's or a registered product's facade
+  `assets/` are exempt from the file budget by path position; other faces and
+  `src/assets/` stay refused.
+- **ensure:** `layout_facade_assets` pins an admitted `assets/app.css` under a
+  facade, a refused `assets/` under `core`, a refused `assets/foo.rs`,
+  `client-manifest.json` and `a.txt`, a refused uppercase `Assets/`, and a
+  12,600-line CSS exempt under a facade and charged under `core`, under
+  `src/`, under an unregistered product and under a non-root owner; every
+  refusal asserts the rule text that fired.
+- **overturn_when:** a served surface no longer compiles its own static bytes,
+  the assets move behind a content-addressed `storage/` face or a
+  build-produced site root, and the same change deletes both the grammar arm
+  and the budget exemption.
+
 ## Per-dispatch ritual (Tier 2)
 
 1. Declare exactly one role and the one thing it must not do. Name the affected

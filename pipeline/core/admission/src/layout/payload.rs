@@ -11,6 +11,8 @@ const FORBIDDEN_PAYLOAD_DIRS: &[&str] = &[
     "kustomize",
 ];
 
+const ASSET_EXTENSIONS: &[&str] = &["css", "svg", "png", "webp", "woff2", "ico"];
+
 pub(super) fn validate_cedar(file: &str, parts: &[&str], violations: &mut Vec<String>) {
     validate_payload(file, parts, &["cedar", "cedarschema"], "Cedar", violations);
 }
@@ -21,6 +23,16 @@ pub(super) fn validate_iac(file: &str, parts: &[&str], violations: &mut Vec<Stri
         parts,
         &["proto", "textproto"],
         "IaC protobuf IR",
+        violations,
+    );
+}
+
+pub(super) fn validate_assets(file: &str, parts: &[&str], violations: &mut Vec<String>) {
+    validate_payload(
+        file,
+        parts,
+        ASSET_EXTENSIONS,
+        "facade static asset",
         violations,
     );
 }
