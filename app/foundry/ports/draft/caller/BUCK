@@ -1,0 +1,24 @@
+rust_library(
+    name = "foundry-caller-draft",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_caller_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "foundry-caller-draft-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_caller_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "foundry-caller-draft-roster",
+    srcs = ["tests/roster_conformance.rs"],
+    crate = "roster_conformance",
+    crate_root = "tests/roster_conformance.rs",
+    visibility = ["PUBLIC"],
+    deps = [":foundry-caller-draft"],
+)

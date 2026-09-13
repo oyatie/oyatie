@@ -2237,6 +2237,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundry-caller-draft"
+version = "0.1.0"
+
+[[package]]
 name = "foundry-edits"
 version = "0.1.0"
 
@@ -2247,6 +2251,7 @@ dependencies = [
  "axum",
  "data-boundary-kernel",
  "data-ontology-kernel",
+ "foundry-caller-draft",
  "foundry-edits",
  "foundry-records-draft",
  "foundry-records-sqlite-draft",

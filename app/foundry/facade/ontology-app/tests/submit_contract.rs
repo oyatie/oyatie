@@ -97,3 +97,52 @@ async fn an_undeclared_property_is_refused_by_the_writer_not_the_surface() {
         "a refused submission appends nothing"
     );
 }
+
+/// Accepts one token that no roster in this suite carries.
+struct OutOfRosterVerifier;
+
+const OUT_OF_ROSTER_TOKEN: &str = "token-no-roster-holds";
+
+impl foundry_ontology_app::CallerVerifier for OutOfRosterVerifier {
+    fn verify(&self, presented_bearer: Option<&str>) -> Option<foundry_ontology_app::Caller> {
+        (presented_bearer == Some(OUT_OF_ROSTER_TOKEN)).then(|| foundry_ontology_app::Caller {
+            tenant_id: support::TENANT.into(),
+            principal_id: "prn_alice".into(),
+            roles: vec!["foundry-operator".into()],
+        })
+    }
+}
+
+#[tokio::test]
+async fn callers_are_verified_through_the_port_not_the_roster() {
+    let fixture = Fixture::new("submit-port-verifier");
+    let mut state = fixture.state();
+    state.verifier = Box::new(OutOfRosterVerifier);
+    let session = support::Session::from_state(state);
+    let (status, body) = session
+        .post(Some(OUT_OF_ROSTER_TOKEN), support::WRITE_BODY)
+        .await;
+    assert_eq!(
+        status,
+        StatusCode::OK,
+        "the injected verifier's caller writes: {body}"
+    );
+    let (status, _) = session.get(Some(OUT_OF_ROSTER_TOKEN), "/v1/types").await;
+    assert_eq!(
+        status,
+        StatusCode::OK,
+        "the injected verifier's caller reads"
+    );
+    let (status, _) = session
+        .post(Some(fixture.operator_token()), support::WRITE_BODY)
+        .await;
+    assert_eq!(
+        status,
+        StatusCode::UNAUTHORIZED,
+        "a roster token the verifier does not know must not be consulted elsewhere"
+    );
+    let (status, _) = session
+        .get(Some(fixture.operator_token()), "/v1/types")
+        .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED, "nor on the read plane");
+}

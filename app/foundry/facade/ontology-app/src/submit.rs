@@ -9,7 +9,7 @@ use foundry_edits::{EditSet, OntologyEdit, WireDataClass, WireProperty, WireTier
 use foundry_records_draft::RecordsLogError;
 use foundry_spine::{ActionSubmission, ApplyOutcome, WriteError, submit};
 
-use crate::auth::{authenticate, bearer_token};
+use crate::auth::bearer_token;
 use crate::composition::AppState;
 use crate::dto::{RefusalBody, SubmitRequest, SubmitResponse};
 use crate::pdp::Surface;
@@ -31,7 +31,7 @@ pub async fn submit_action(
             "no bearer credential",
         );
     };
-    let Some(caller) = authenticate(&state.operators, token) else {
+    let Some(caller) = state.verifier.verify(Some(token)) else {
         state.metrics.submit_refused();
         return refuse(
             StatusCode::UNAUTHORIZED,

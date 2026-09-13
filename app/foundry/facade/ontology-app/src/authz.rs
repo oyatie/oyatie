@@ -1,19 +1,13 @@
 use std::collections::BTreeMap;
 
 use data_ontology_kernel::{ActionPolicyDecision, AutonomyTier};
+use foundry_caller_draft::Caller;
 use policy_pdp_kernel::{EntityRecord, EntitySlice, PdpRuntimeGuard, PolicyDecisionPoint};
 use shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, Decision, EntityRef, PolicyVersion,
 };
 
 use crate::pdp::{OPS_CONSOLE, PepError, Surface};
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Caller {
-    pub tenant_id: String,    // data_class: TENANT_SCOPED
-    pub principal_id: String, // data_class: TENANT_SCOPED
-    pub roles: Vec<String>,   // data_class: TENANT_SCOPED
-}
 
 pub struct PolicyEnforcementPoint {
     guard: PdpRuntimeGuard,
