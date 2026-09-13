@@ -1,10 +1,6 @@
 # The dependency set every driven-surface test in this package shares: the
 # library under test, the durable records adapter behind its port, and the
 # axum/tower machinery for driving a router in-process.
-#
-# Named rather than repeated. Twelve verbatim copies is how this file reached
-# the 300-line budget, and a budget spent on duplication buys nothing — the
-# next test target had nowhere to go.
 FACADE_TEST_DEPS = [
     ":foundry-ontology-app",
     "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
@@ -15,10 +11,14 @@ FACADE_TEST_DEPS = [
     "third-party//:tower",
 ]
 
+# The registry evolution the migration suites install is a second revision of
+# an entity type, so they name the kernel's definition vocabulary directly.
 MIGRATION_TEST_DEPS = FACADE_TEST_DEPS + [
     "//data/core/data-boundary-kernel:data-boundary-kernel",
     "//data/core/ontology-kernel:data-ontology-kernel",
 ]
+
+TEST_SRCS = glob(["tests/**/*.rs"])
 
 rust_library(
     name = "foundry-ontology-app",
@@ -60,238 +60,65 @@ rust_binary(
     ],
 )
 
-rust_test(
-    name = "foundry-ontology-app-boot",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "boot_refuses_on_unopenable_log",
-    crate_root = "tests/boot_refuses_on_unopenable_log.rs",
-    visibility = ["PUBLIC"],
-    deps = [":foundry-ontology-app"],
-)
-
-rust_test(
-    name = "foundry-ontology-app-probes",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "probes_report_honest_readiness",
-    crate_root = "tests/probes_report_honest_readiness.rs",
-    visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-pep",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "pep_denies_by_default",
-    crate_root = "tests/pep_denies_by_default.rs",
-    visibility = ["PUBLIC"],
-    deps = [":foundry-ontology-app"],
-)
-
-rust_test(
-    name = "foundry-ontology-app-submit",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "submit_contract",
-    crate_root = "tests/submit_contract.rs",
-    visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-authorizer-outage",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "authorizer_outage_is_deny",
-    crate_root = "tests/authorizer_outage_is_deny.rs",
-    visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS + [
+# One row per in-process test crate: the target's name suffix, the crate root's
+# stem under tests/, and its deps.
+FACADE_TESTS = [
+    ("boot", "boot_refuses_on_unopenable_log", [":foundry-ontology-app"]),
+    ("probes", "probes_report_honest_readiness", FACADE_TEST_DEPS),
+    ("pep", "pep_denies_by_default", [":foundry-ontology-app"]),
+    ("submit", "submit_contract", FACADE_TEST_DEPS),
+    ("authorizer-outage", "authorizer_outage_is_deny", FACADE_TEST_DEPS + [
         "//policy/core/pdp-kernel:policy-pdp-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
-    ],
-)
+    ]),
+    ("reads", "read_contract", FACADE_TEST_DEPS),
+    ("cross-tenant", "cross_tenant_isolation", FACADE_TEST_DEPS),
+    ("slo-render", "slo_render_is_the_source", FACADE_TEST_DEPS),
+    ("metrics-counts", "metrics_count_what_happened", FACADE_TEST_DEPS),
+    ("metrics-submissions", "metrics_count_submissions", FACADE_TEST_DEPS),
+    ("storage-fault", "storage_fault_is_not_a_conflict", FACADE_TEST_DEPS),
+    ("live-views", "views_read_the_log_not_a_boot_mirror", FACADE_TEST_DEPS),
+    ("durable-lag", "lag_is_measured_against_the_durable_head", FACADE_TEST_DEPS),
+    ("readyz-refusals", "readyz_distinguishes_its_refusals", FACADE_TEST_DEPS),
+    ("freshness", "freshness_is_a_signal_that_can_breach", FACADE_TEST_DEPS),
+    ("statusz", "statusz_serves_the_operator", FACADE_TEST_DEPS),
+    ("migration-attest", "migration_attest_is_the_callers_own", MIGRATION_TEST_DEPS),
+    ("migration-run-refusals", "migration_run_refuses_before_it_writes", MIGRATION_TEST_DEPS),
+    ("migration-run-degraded", "migration_run_reports_what_it_could_not_do", MIGRATION_TEST_DEPS),
+    ("migration-run", "migration_run_executes_the_callers_own_plan", MIGRATION_TEST_DEPS),
+    ("migration-attest-malformed", "migration_attest_refuses_a_malformed_plan", MIGRATION_TEST_DEPS),
+    ("statusz-triage-facts", "statusz_serves_the_triage_facts", MIGRATION_TEST_DEPS),
+]
 
-rust_test(
-    name = "foundry-ontology-app-reads",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "read_contract",
-    crate_root = "tests/read_contract.rs",
-    visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS,
-)
+[
+    rust_test(
+        name = "foundry-ontology-app-" + suffix,
+        srcs = TEST_SRCS,
+        crate = stem,
+        crate_root = "tests/" + stem + ".rs",
+        visibility = ["PUBLIC"],
+        deps = deps,
+    )
+    for suffix, stem, deps in FACADE_TESTS
+]
 
-rust_test(
-    name = "foundry-ontology-app-cross-tenant",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "cross_tenant_isolation",
-    crate_root = "tests/cross_tenant_isolation.rs",
-    visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS,
-)
+# The drills spawn the real executable, located through the env cargo sets.
+DRILLS = [
+    ("drill-corrupt-store", "corrupt_store_boot_refusal"),
+    ("drill-sigkill-replay", "kill_midwrite_replay_identity"),
+    ("drill-drain", "shutdown_drains_inflight"),
+]
 
-rust_test(
-    name = "foundry-ontology-app-slo-render",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "slo_render_is_the_source",
-    crate_root = "tests/slo_render_is_the_source.rs",
-    visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-metrics-counts",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "metrics_count_what_happened",
-    crate_root = "tests/metrics_count_what_happened.rs",
-    visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-metrics-submissions",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "metrics_count_submissions",
-    crate_root = "tests/metrics_count_submissions.rs",
-    visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-storage-fault",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "storage_fault_is_not_a_conflict",
-    crate_root = "tests/storage_fault_is_not_a_conflict.rs",
-    visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-live-views",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "views_read_the_log_not_a_boot_mirror",
-    crate_root = "tests/views_read_the_log_not_a_boot_mirror.rs",
-    visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-durable-lag",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "lag_is_measured_against_the_durable_head",
-    crate_root = "tests/lag_is_measured_against_the_durable_head.rs",
-    visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-readyz-refusals",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "readyz_distinguishes_its_refusals",
-    crate_root = "tests/readyz_distinguishes_its_refusals.rs",
-    visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-freshness",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "freshness_is_a_signal_that_can_breach",
-    crate_root = "tests/freshness_is_a_signal_that_can_breach.rs",
-    visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-statusz",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "statusz_serves_the_operator",
-    crate_root = "tests/statusz_serves_the_operator.rs",
-    visibility = ["PUBLIC"],
-    deps = FACADE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-migration-attest",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "migration_attest_is_the_callers_own",
-    crate_root = "tests/migration_attest_is_the_callers_own.rs",
-    visibility = ["PUBLIC"],
-    # The registry evolution these suites install is a second revision of an
-    # entity type, so they name the kernel's definition vocabulary directly.
-    deps = MIGRATION_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-migration-run-refusals",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "migration_run_refuses_before_it_writes",
-    crate_root = "tests/migration_run_refuses_before_it_writes.rs",
-    visibility = ["PUBLIC"],
-    deps = MIGRATION_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-migration-run-degraded",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "migration_run_reports_what_it_could_not_do",
-    crate_root = "tests/migration_run_reports_what_it_could_not_do.rs",
-    visibility = ["PUBLIC"],
-    deps = MIGRATION_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-migration-run",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "migration_run_executes_the_callers_own_plan",
-    crate_root = "tests/migration_run_executes_the_callers_own_plan.rs",
-    visibility = ["PUBLIC"],
-    deps = MIGRATION_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-migration-attest-malformed",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "migration_attest_refuses_a_malformed_plan",
-    crate_root = "tests/migration_attest_refuses_a_malformed_plan.rs",
-    visibility = ["PUBLIC"],
-    deps = MIGRATION_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-ontology-app-drill-corrupt-store",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "corrupt_store_boot_refusal",
-    crate_root = "tests/corrupt_store_boot_refusal.rs",
-    env = {"CARGO_BIN_EXE_foundry-ontology-app": "$(location :foundry-ontology-app-bin)"},
-    resources = [":foundry-ontology-app-bin"],
-    visibility = ["PUBLIC"],
-    deps = ["third-party//:serde_json"],
-)
-
-rust_test(
-    name = "foundry-ontology-app-drill-sigkill-replay",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "kill_midwrite_replay_identity",
-    crate_root = "tests/kill_midwrite_replay_identity.rs",
-    env = {"CARGO_BIN_EXE_foundry-ontology-app": "$(location :foundry-ontology-app-bin)"},
-    resources = [":foundry-ontology-app-bin"],
-    visibility = ["PUBLIC"],
-    deps = ["third-party//:serde_json"],
-)
-
-rust_test(
-    name = "foundry-ontology-app-drill-drain",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "shutdown_drains_inflight",
-    crate_root = "tests/shutdown_drains_inflight.rs",
-    env = {"CARGO_BIN_EXE_foundry-ontology-app": "$(location :foundry-ontology-app-bin)"},
-    resources = [":foundry-ontology-app-bin"],
-    visibility = ["PUBLIC"],
-    deps = ["third-party//:serde_json"],
-)
-
-rust_test(
-    name = "foundry-ontology-app-statusz-triage-facts",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "statusz_serves_the_triage_facts",
-    crate_root = "tests/statusz_serves_the_triage_facts.rs",
-    visibility = ["PUBLIC"],
-    deps = MIGRATION_TEST_DEPS,
-)
+[
+    rust_test(
+        name = "foundry-ontology-app-" + suffix,
+        srcs = TEST_SRCS,
+        crate = stem,
+        crate_root = "tests/" + stem + ".rs",
+        env = {"CARGO_BIN_EXE_foundry-ontology-app": "$(location :foundry-ontology-app-bin)"},
+        resources = [":foundry-ontology-app-bin"],
+        visibility = ["PUBLIC"],
+        deps = ["third-party//:serde_json"],
+    )
+    for suffix, stem in DRILLS
+]
