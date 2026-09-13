@@ -15,19 +15,6 @@ FACADE_TEST_DEPS = [
     "third-party//:tower",
 ]
 
-# Shared module sets: duplication is what fills this file's budget.
-FAULT_SRCS = [
-    "tests/facade_support/mod.rs",
-    "tests/failing_log/mod.rs",
-]
-
-PROBE_SRCS = FAULT_SRCS + ["tests/out_of_band/mod.rs"]
-
-MIGRATION_SRCS = [
-    "tests/facade_support/mod.rs",
-    "tests/migration_support/mod.rs",
-]
-
 MIGRATION_TEST_DEPS = FACADE_TEST_DEPS + [
     "//data/core/data-boundary-kernel:data-boundary-kernel",
     "//data/core/ontology-kernel:data-ontology-kernel",
@@ -75,7 +62,7 @@ rust_binary(
 
 rust_test(
     name = "foundry-ontology-app-boot",
-    srcs = ["tests/boot_refuses_on_unopenable_log.rs"],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "boot_refuses_on_unopenable_log",
     crate_root = "tests/boot_refuses_on_unopenable_log.rs",
     visibility = ["PUBLIC"],
@@ -84,7 +71,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-probes",
-    srcs = ["tests/probes_report_honest_readiness.rs"],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "probes_report_honest_readiness",
     crate_root = "tests/probes_report_honest_readiness.rs",
     visibility = ["PUBLIC"],
@@ -93,7 +80,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-pep",
-    srcs = ["tests/pep_denies_by_default.rs"],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "pep_denies_by_default",
     crate_root = "tests/pep_denies_by_default.rs",
     visibility = ["PUBLIC"],
@@ -102,7 +89,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-submit",
-    srcs = ["tests/facade_support/mod.rs", "tests/submit_contract.rs"],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "submit_contract",
     crate_root = "tests/submit_contract.rs",
     visibility = ["PUBLIC"],
@@ -111,10 +98,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-authorizer-outage",
-    srcs = [
-        "tests/authorizer_outage_is_deny.rs",
-        "tests/facade_support/mod.rs",
-    ],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "authorizer_outage_is_deny",
     crate_root = "tests/authorizer_outage_is_deny.rs",
     visibility = ["PUBLIC"],
@@ -123,7 +107,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-reads",
-    srcs = ["tests/facade_support/mod.rs", "tests/read_contract.rs"],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "read_contract",
     crate_root = "tests/read_contract.rs",
     visibility = ["PUBLIC"],
@@ -132,10 +116,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-cross-tenant",
-    srcs = [
-        "tests/cross_tenant_isolation.rs",
-        "tests/facade_support/mod.rs",
-    ],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "cross_tenant_isolation",
     crate_root = "tests/cross_tenant_isolation.rs",
     visibility = ["PUBLIC"],
@@ -144,7 +125,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-slo-render",
-    srcs = ["tests/facade_support/mod.rs", "tests/slo_render_is_the_source.rs"],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "slo_render_is_the_source",
     crate_root = "tests/slo_render_is_the_source.rs",
     visibility = ["PUBLIC"],
@@ -153,7 +134,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-metrics-counts",
-    srcs = ["tests/facade_support/mod.rs", "tests/metrics_count_what_happened.rs"],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "metrics_count_what_happened",
     crate_root = "tests/metrics_count_what_happened.rs",
     visibility = ["PUBLIC"],
@@ -162,7 +143,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-metrics-submissions",
-    srcs = ["tests/facade_support/mod.rs", "tests/metrics_count_submissions.rs"],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "metrics_count_submissions",
     crate_root = "tests/metrics_count_submissions.rs",
     visibility = ["PUBLIC"],
@@ -171,9 +152,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-storage-fault",
-    srcs = FAULT_SRCS + [
-        "tests/storage_fault_is_not_a_conflict.rs",
-    ],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "storage_fault_is_not_a_conflict",
     crate_root = "tests/storage_fault_is_not_a_conflict.rs",
     visibility = ["PUBLIC"],
@@ -182,9 +161,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-live-views",
-    srcs = FAULT_SRCS + [
-        "tests/views_read_the_log_not_a_boot_mirror.rs",
-    ],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "views_read_the_log_not_a_boot_mirror",
     crate_root = "tests/views_read_the_log_not_a_boot_mirror.rs",
     visibility = ["PUBLIC"],
@@ -193,9 +170,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-durable-lag",
-    srcs = PROBE_SRCS + [
-        "tests/lag_is_measured_against_the_durable_head.rs",
-    ],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "lag_is_measured_against_the_durable_head",
     crate_root = "tests/lag_is_measured_against_the_durable_head.rs",
     visibility = ["PUBLIC"],
@@ -204,9 +179,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-readyz-refusals",
-    srcs = PROBE_SRCS + [
-        "tests/readyz_distinguishes_its_refusals.rs",
-    ],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "readyz_distinguishes_its_refusals",
     crate_root = "tests/readyz_distinguishes_its_refusals.rs",
     visibility = ["PUBLIC"],
@@ -215,9 +188,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-freshness",
-    srcs = PROBE_SRCS + [
-        "tests/freshness_is_a_signal_that_can_breach.rs",
-    ],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "freshness_is_a_signal_that_can_breach",
     crate_root = "tests/freshness_is_a_signal_that_can_breach.rs",
     visibility = ["PUBLIC"],
@@ -226,9 +197,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-statusz",
-    srcs = PROBE_SRCS + [
-        "tests/statusz_serves_the_operator.rs",
-    ],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "statusz_serves_the_operator",
     crate_root = "tests/statusz_serves_the_operator.rs",
     visibility = ["PUBLIC"],
@@ -237,10 +206,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-migration-attest",
-    srcs = MIGRATION_SRCS + [
-        "tests/migration_attest_is_the_callers_own.rs",
-        "tests/out_of_band/mod.rs",
-    ],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "migration_attest_is_the_callers_own",
     crate_root = "tests/migration_attest_is_the_callers_own.rs",
     visibility = ["PUBLIC"],
@@ -251,9 +217,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-migration-run-refusals",
-    srcs = MIGRATION_SRCS + [
-        "tests/migration_run_refuses_before_it_writes.rs",
-    ],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "migration_run_refuses_before_it_writes",
     crate_root = "tests/migration_run_refuses_before_it_writes.rs",
     visibility = ["PUBLIC"],
@@ -262,11 +226,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-migration-run-degraded",
-    srcs = MIGRATION_SRCS + [
-        "tests/failing_log/mod.rs",
-        "tests/migration_run_reports_what_it_could_not_do.rs",
-        "tests/out_of_band/mod.rs",
-    ],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "migration_run_reports_what_it_could_not_do",
     crate_root = "tests/migration_run_reports_what_it_could_not_do.rs",
     visibility = ["PUBLIC"],
@@ -275,9 +235,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-migration-run",
-    srcs = MIGRATION_SRCS + [
-        "tests/migration_run_executes_the_callers_own_plan.rs",
-    ],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "migration_run_executes_the_callers_own_plan",
     crate_root = "tests/migration_run_executes_the_callers_own_plan.rs",
     visibility = ["PUBLIC"],
@@ -286,9 +244,7 @@ rust_test(
 
 rust_test(
     name = "foundry-ontology-app-migration-attest-malformed",
-    srcs = MIGRATION_SRCS + [
-        "tests/migration_attest_refuses_a_malformed_plan.rs",
-    ],
+    srcs = glob(["tests/**/*.rs"]),
     crate = "migration_attest_refuses_a_malformed_plan",
     crate_root = "tests/migration_attest_refuses_a_malformed_plan.rs",
     visibility = ["PUBLIC"],
