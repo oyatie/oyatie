@@ -144,6 +144,9 @@ pub async fn run(State(state): State<Arc<AppState>>, headers: HeaderMap, body: S
                     "durable projection catch-up after a migration run refused"
                 );
             }
+            state
+                .metrics
+                .denials_issued(status.refused, status.refused_recorded);
             state.metrics.submit_served();
             Json(RunBody {
                 total: status.total,

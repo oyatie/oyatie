@@ -53,8 +53,11 @@ pub struct MigrationStatus {
     pub upcast: u64, // data_class: INTERNAL_ONLY
     /// Objects still owed after the final rescan.
     pub pending: u64, // data_class: INTERNAL_ONLY
-    /// Submissions a writer gate refused (each is on the denial trail).
+    /// Submissions a writer gate refused.
     pub refused: u64, // data_class: INTERNAL_ONLY
+    /// Of `refused`, the denials the trail holds; the gap is refusals whose
+    /// record the trail did not take.
+    pub refused_recorded: u64, // data_class: INTERNAL_ONLY
     /// Appends the log refused as divergent idempotency-key reuse. An
     /// ATTEMPT count: there is no receipt to deduplicate against, so a
     /// re-attempt of the same object in a later pass counts again.
@@ -132,6 +135,7 @@ pub fn run_to_fixpoint(
         upcast: 0,
         pending: 0,
         refused: 0,
+        refused_recorded: 0,
         conflicted: 0,
         unavailable: 0,
         poisoned: 0,
@@ -145,14 +149,13 @@ pub fn run_to_fixpoint(
         let mut progressed = false;
         for owed in pending {
             let key = upcast_idempotency_key(plan, &owed.object_ref, owed.last_ordinal);
-            let Ok(edit) = OntologyEdit::upsert_properties(owed.targets) else {
-                status.refused += 1;
-                continue;
-            };
-            let Ok(edits) = EditSet::new(vec![edit]) else {
-                status.refused += 1;
-                continue;
-            };
+            // Neither constructor can refuse here: `upsert_properties` is
+            // total, and `EditSet::new` refuses only an empty vec. Counting
+            // these as `refused` would put a refusal no writer gate made on
+            // the denial series, where every sentence says a writer issued it.
+            let edit =
+                OntologyEdit::upsert_properties(owed.targets).expect("upsert_properties is total");
+            let edits = EditSet::new(vec![edit]).expect("one edit is not empty");
             let submission = ActionSubmission {
                 request: ActionInvocationRequest {
                     tenant_id: plan.tenant_id.clone(),
@@ -189,8 +192,11 @@ pub fn run_to_fixpoint(
                         status.poisoned += 1;
                     }
                 }
-                Err(WriteError::Refused(_)) => {
+                Err(WriteError::Refused(refused)) => {
                     status.refused += 1;
+                    if refused.recorded_on_trail {
+                        status.refused_recorded += 1;
+                    }
                 }
                 Err(WriteError::Log(RecordsLogError::IdempotencyConflict { .. })) => {
                     status.conflicted += 1;

@@ -4,7 +4,7 @@ mod migration_support;
 mod out_of_band;
 
 use axum::http::StatusCode;
-use facade_support::{Fixture, Session};
+use facade_support::{Fixture, Session, scrape, value_of};
 use failing_log::AlwaysFailingLog;
 use migration_support::{plan_for, run, state_with_two_revisions, write_owing};
 
@@ -37,13 +37,20 @@ async fn a_run_that_cannot_write_reports_the_work_it_could_not_do() {
     let (status, body) = run(&session, token, &plan_for("ten_acme")).await;
 
     assert_eq!(status, StatusCode::OK, "{body}");
-    // Exact, so `conflicted` is pinned at ZERO here and at one nowhere else:
-    // a store that could not accept the append is not a caller who reused an
+    // Exact, so `conflicted` is pinned at ZERO for a store outage: a store
+    // that could not accept the append is not a caller who reused an
     // idempotency key, and reporting it as one is blame in the wrong place
-    // and advice against the retry that would work.
+    // and advice against the retry that would work. The value it is pinned
+    // at ONE is the second operator's conflict, in the denial-series file.
     assert_eq!(
         body,
         r#"{"total":1,"upcast":0,"pending":1,"refused":0,"conflicted":0,"unavailable":1,"poisoned":0,"fixpoint":false}"#
+    );
+    // No writer gate refused here, so nothing reaches the denial series: a
+    // store outage and a poison are run outcomes, not denials.
+    assert_eq!(
+        value_of(&scrape(&session).await, "foundry_denial_issued_total"),
+        0
     );
 }
 /// THE RUN TERMINATES. Not "converges quickly" — terminates at all.
@@ -101,9 +108,10 @@ fn a_run_against_a_lagging_projection_terminates_rather_than_spinning() {
 ///
 /// The retry carries a fresh decision id, which the writer no longer treats
 /// as divergent content (`foundry_spine::same_request`), so the spent key
-/// answers the original, poisoned receipt. Nothing here is a conflict, and no
-/// run in this file reaches `conflicted`: a hardcoded zero there survives.
-/// The object stays owed until the projection is refolded.
+/// answers the original, poisoned receipt. Nothing here is a conflict; the
+/// run that does reach one is a second operator re-deriving the spent key,
+/// in the denial-series file. The object stays owed until the projection is
+/// refolded.
 #[tokio::test]
 async fn a_retried_upcast_deduplicates_onto_its_own_poisoned_entry() {
     let (tx, rx) = std::sync::mpsc::channel();
@@ -159,5 +167,11 @@ async fn a_poisoned_entry_is_counted_once_not_once_per_pass() {
     assert_eq!(
         body,
         r#"{"total":2,"upcast":1,"pending":1,"refused":0,"conflicted":0,"unavailable":0,"poisoned":1,"fixpoint":false}"#
+    );
+    // No writer gate refused here, so nothing reaches the denial series: a
+    // store outage and a poison are run outcomes, not denials.
+    assert_eq!(
+        value_of(&scrape(&session).await, "foundry_denial_issued_total"),
+        0
     );
 }
