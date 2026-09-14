@@ -6,7 +6,7 @@ mod process;
 use std::io::Write;
 use std::time::{Duration, Instant};
 
-use process::{Store, connect, free_address, spawn};
+use process::{Store, connect, free_address, spawn, spawn_serving};
 
 fn not_a_database(path: &std::path::Path) {
     let mut file = std::fs::File::create(path).expect("the store path is writable");
@@ -66,5 +66,29 @@ fn a_denial_trail_that_is_not_a_database_refuses_boot_before_the_listener_binds(
     assert!(
         store.stdout_contains("denial"),
         "the refusal names the denial trail"
+    );
+}
+
+#[test]
+fn a_projection_store_that_is_not_a_database_refuses_boot_before_the_listener_binds() {
+    let store = Store::new("corrupt-projection");
+    not_a_database(&store.projection);
+    refuses_before_serving(&store);
+    assert!(
+        store.stdout_contains("projection store"),
+        "the refusal names the projection store"
+    );
+}
+
+/// The control for the three refusals above. `Store::new` leaves all three
+/// paths absent and the arms differ from this test only by the garbage they
+/// then write, so a spawn that writes none must serve and log no refusal.
+#[test]
+fn a_spawn_that_garbages_no_store_serves_and_refuses_nothing() {
+    let store = Store::new("nothing-garbaged");
+    let _process = spawn_serving(&store, free_address());
+    assert!(
+        !store.stdout_contains("boot refused"),
+        "a boot with nothing garbaged refuses nothing"
     );
 }
