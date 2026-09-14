@@ -139,24 +139,41 @@ impl RecordsLog for SqliteRecordsLog {
             )
             .map_err(storage)
     }
+
+    fn spent(
+        &self,
+        tenant_id: &str,
+        idempotency_key: &str,
+    ) -> Result<Option<SealedEnvelope>, RecordsLogError> {
+        spent_on(&self.connection, tenant_id, idempotency_key)
+    }
 }
 
 fn spent_key(
     transaction: &rusqlite::Transaction<'_>,
     envelope: &ActionEnvelope,
 ) -> Result<Option<(Receipt, ActionEnvelope)>, RecordsLogError> {
-    transaction
+    spent_on(transaction, &envelope.tenant_id, &envelope.idempotency_key)
+        .map(|sealed| sealed.map(|sealed| (sealed.receipt, sealed.envelope)))
+}
+
+/// One lookup through `action_log_idempotency`.
+fn spent_on(
+    connection: &Connection,
+    tenant_id: &str,
+    idempotency_key: &str,
+) -> Result<Option<SealedEnvelope>, RecordsLogError> {
+    connection
         .query_row(
             "SELECT tenant_id, ordinal, object_ref, object_sequence, action_type,
                     idempotency_key, schema_revision, payload, observed_at_epoch_ms
              FROM action_log
              WHERE tenant_id = ?1 AND idempotency_key = ?2",
-            params![envelope.tenant_id, envelope.idempotency_key],
+            params![tenant_id, idempotency_key],
             sealed_from_row,
         )
         .optional()
         .map_err(storage)
-        .map(|sealed| sealed.map(|sealed| (sealed.receipt, sealed.envelope)))
 }
 
 fn sealed_from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<SealedEnvelope> {

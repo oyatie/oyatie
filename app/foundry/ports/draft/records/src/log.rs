@@ -31,4 +31,18 @@ pub trait RecordsLog {
 
     /// The tenant's highest ordinal; zero when the tenant has no envelopes.
     fn head(&self, tenant_id: &str) -> Result<u64, RecordsLogError>;
+
+    /// The sealed envelope an idempotency key was spent on, or `None` while
+    /// the key is unspent for this tenant. The default scans a full replay;
+    /// an adapter with a key index answers in one lookup.
+    fn spent(
+        &self,
+        tenant_id: &str,
+        idempotency_key: &str,
+    ) -> Result<Option<SealedEnvelope>, RecordsLogError> {
+        Ok(self
+            .replay(tenant_id, 1)?
+            .into_iter()
+            .find(|sealed| sealed.envelope.idempotency_key == idempotency_key))
+    }
 }

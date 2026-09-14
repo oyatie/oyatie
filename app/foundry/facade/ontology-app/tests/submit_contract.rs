@@ -54,13 +54,16 @@ async fn an_unknown_token_is_refused_and_appends_nothing() {
     assert_eq!(fixture.log_head(), 0);
 }
 
+/// Through ONE process: the per-request helper composes a fresh process per
+/// call, whose decision ids restart, which would pass for the wrong reason.
 #[tokio::test]
 async fn a_byte_identical_retry_deduplicates_to_the_original_outcome() {
     let fixture = Fixture::new("submit-retry");
+    let session = fixture.session();
     let payload = r#"{"object_ref":"ent_alpha","action_type":"aty_record_write","idempotency_key":"idem_same","occurred_at_epoch_seconds":1700000000,"properties":{"name":"Ada"}}"#;
-    let (first, _) = post(&fixture, Some(fixture.operator_token()), payload).await;
+    let (first, _) = session.post(Some(fixture.operator_token()), payload).await;
     assert_eq!(first, StatusCode::OK);
-    let (second, body) = post(&fixture, Some(fixture.operator_token()), payload).await;
+    let (second, body) = session.post(Some(fixture.operator_token()), payload).await;
     assert_eq!(second, StatusCode::OK);
     assert!(
         body.contains("\"deduplicated\":true"),

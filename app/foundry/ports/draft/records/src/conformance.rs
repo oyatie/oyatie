@@ -111,6 +111,35 @@ pub fn check_idempotent_replay_returns_the_original_receipt<F: RecordsFixture>(
     Ok(())
 }
 
+pub fn check_spent_answers_the_original_envelope<F: RecordsFixture>(
+    fixture: &mut F,
+) -> Result<(), String> {
+    let log = fixture.log();
+    let sent = envelope("ten_a", "obj:1", "spent-once");
+    let receipt = log.append(sent.clone()).map_err(|e| format!("{e:?}"))?;
+    let found = log
+        .spent("ten_a", "spent-once")
+        .map_err(|e| format!("{e:?}"))?
+        .ok_or_else(|| fail("a spent key answers", "None".to_owned()))?;
+    if found.envelope != sent || found.receipt.ordinal != receipt.ordinal {
+        return Err(fail(
+            "the answer is the appended envelope at its position",
+            format!("{found:?}"),
+        ));
+    }
+    let unspent = log.spent("ten_a", "never").map_err(|e| format!("{e:?}"))?;
+    if unspent.is_some() {
+        return Err(fail("an unspent key answers None", format!("{unspent:?}")));
+    }
+    let foreign = log
+        .spent("ten_b", "spent-once")
+        .map_err(|e| format!("{e:?}"))?;
+    if foreign.is_some() {
+        return Err(fail("a key is spent per tenant", format!("{foreign:?}")));
+    }
+    Ok(())
+}
+
 pub fn check_conflicting_idempotency_key_reuse_is_refused<F: RecordsFixture>(
     fixture: &mut F,
 ) -> Result<(), String> {
