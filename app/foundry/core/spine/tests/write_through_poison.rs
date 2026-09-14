@@ -9,12 +9,15 @@
 //! its head one below it — which is what the two `submit_through` tests
 //! separate.
 
+#[path = "write_through_support/mod.rs"]
+mod failing;
 #[path = "migration_support/mod.rs"]
 mod support;
 
 use data_ontology_kernel::{
     ActionInvocationRequest, ActionPolicyDecision, ActionTypeId, AutonomyTier,
 };
+use failing::FailsAt;
 use foundry_edits::{EditSet, OntologyEdit};
 use foundry_projection_draft::{MemoryProjectionStore, ProjectionStore};
 use foundry_records_draft::{ActionEnvelope, Receipt, RecordsLog, SealedEnvelope};
@@ -172,9 +175,10 @@ fn an_applied_write_is_mirrored_as_an_object_and_no_poison() {
 
 /// The poison `submit_through` CAN mirror: the store is level with the log
 /// while the projection is behind, so the refused entry is dense for the
-/// store and it records a poison row rather than binding an object. The
-/// test above has the store behind too, so it can only watch the mirror be
-/// refused; this one watches what the mirror writes.
+/// store and it records a poison row rather than binding an object.
+/// `a_write_that_poisons_is_reported_poisoned_and_its_mirror_is_refused` has
+/// the store behind too, so it can only watch the mirror be refused; this
+/// one watches what the mirror writes.
 #[test]
 fn a_poison_the_store_can_take_is_recorded_as_a_poison_and_binds_no_object() {
     let engine = registry();
@@ -215,5 +219,61 @@ fn a_poison_the_store_can_take_is_recorded_as_a_poison_and_binds_no_object() {
         store.get("ten_test", "ent_alpha").unwrap(),
         None,
         "an entry the fold refused binds no object",
+    );
+}
+
+/// A deduplicated append consults no store: the retry below runs against a
+/// store that refuses the ordinal the first write already took, so a mirror
+/// that reached the store at all would come back `Err`.
+#[test]
+fn a_deduplicated_retry_consults_no_store() {
+    let engine = registry();
+    let mut log = MemoryLog::default();
+    let mut denials = MemoryLog::default();
+    let mut projection = ProjectionState::new("ten_test", &engine);
+    let mut store = MemoryProjectionStore::default();
+
+    let first = submit_through(
+        submission("ent_alpha", "idem_same"),
+        &mut log,
+        &mut denials,
+        &mut projection,
+        &mut store,
+    )
+    .expect("the first write lands");
+    assert!(matches!(first.outcome, ApplyOutcome::Applied { .. }));
+    assert!(first.mirror.is_ok(), "{:?}", first.mirror);
+    assert_eq!(store.applied_head("ten_test").unwrap(), 1);
+
+    let mut refuses = FailsAt {
+        inner: store,
+        fail_on_ordinal: 1,
+        fail_head: false,
+        fail_poisoned: false,
+    };
+    let retry = submit_through(
+        submission("ent_alpha", "idem_same"),
+        &mut log,
+        &mut denials,
+        &mut projection,
+        &mut refuses,
+    )
+    .expect("a byte-identical retry is accepted");
+    let ApplyOutcome::Applied { receipt } = retry.outcome else {
+        panic!("a retry of an applied write is applied");
+    };
+    assert!(
+        receipt.deduplicated,
+        "the same request under the same key deduplicates"
+    );
+    assert!(
+        retry.mirror.is_ok(),
+        "a store that refuses ordinal 1 was never asked: {:?}",
+        retry.mirror
+    );
+    assert_eq!(
+        refuses.applied_head("ten_test").unwrap(),
+        1,
+        "the store still holds exactly the first write"
     );
 }

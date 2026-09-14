@@ -141,6 +141,23 @@ async fn two_pages_partition_the_objects_with_no_overlap_and_no_gap() {
     let mut seen = refs(&first);
     seen.extend(refs(&second));
     assert_eq!(seen, vec!["ent_mine_a", "ent_mine_b", "ent_mine_c"]);
+
+    // `next` is present exactly when objects remain: a page whose limit
+    // equals the count left carries none, so a caller is never sent back
+    // for a page that would be empty.
+    let (status, exact) = list(
+        &session,
+        fixture.operator_token(),
+        &format!("type={TYPE}&revision=1&limit=3"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{exact}");
+    assert_eq!(refs(&exact), vec!["ent_mine_a", "ent_mine_b", "ent_mine_c"]);
+    assert_eq!(
+        exact["next"],
+        Value::Null,
+        "a page holding the last object carries no cursor"
+    );
 }
 
 /// A cursor is a position, not a capability. The reference used here is a
