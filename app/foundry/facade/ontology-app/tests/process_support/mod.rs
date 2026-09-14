@@ -14,11 +14,13 @@ const READY_DEADLINE: Duration = Duration::from_secs(10);
 const EXIT_DEADLINE: Duration = Duration::from_secs(10);
 const SOCKET_TIMEOUT: Duration = Duration::from_secs(5);
 
-/// The durable files one drill owns: both logs and the process's stdout,
-/// where the JSON log lines land. Removed when the drill ends.
+/// The durable files one drill owns: both logs, the projection store and
+/// the process's stdout, where the JSON log lines land. Removed when the
+/// drill ends.
 pub struct Store {
     pub action: PathBuf,
     pub denial: PathBuf,
+    pub projection: PathBuf,
     pub stdout: PathBuf,
 }
 
@@ -37,6 +39,7 @@ impl Store {
         let store = Self {
             action: name("action.sqlite"),
             denial: name("denial.sqlite"),
+            projection: name("projection.sqlite"),
             stdout: name("stdout.log"),
         };
         store.remove();
@@ -46,7 +49,7 @@ impl Store {
     /// Removes the logs, their SQLite WAL sidecars (a killed child never
     /// checkpoints them), and the captured stdout.
     fn remove(&self) {
-        for path in [&self.action, &self.denial] {
+        for path in [&self.action, &self.denial, &self.projection] {
             for suffix in ["", "-wal", "-shm"] {
                 let _ = std::fs::remove_file(format!("{}{suffix}", path.display()));
             }
@@ -139,6 +142,10 @@ pub fn spawn(store: &Store, address: SocketAddr) -> Process {
         .env("OYATIE_FOUNDRY_ONTOLOGY_LISTEN_ADDR", address.to_string())
         .env("OYATIE_FOUNDRY_ONTOLOGY_ACTION_LOG", &store.action)
         .env("OYATIE_FOUNDRY_ONTOLOGY_DENIAL_LOG", &store.denial)
+        .env(
+            "OYATIE_FOUNDRY_ONTOLOGY_PROJECTION_STORE",
+            &store.projection,
+        )
         .env("OYATIE_FOUNDRY_ONTOLOGY_TENANTS", TENANT)
         .env(
             "OYATIE_FOUNDRY_ONTOLOGY_OPERATORS",

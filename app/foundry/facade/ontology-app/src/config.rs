@@ -9,6 +9,10 @@ pub struct Config {
     pub listen_addr: String, // data_class: INTERNAL_ONLY
     pub action_log: PathBuf, // data_class: INTERNAL_ONLY
     pub denial_log: PathBuf, // data_class: INTERNAL_ONLY
+    /// The durable projection: brought to the log head at boot, mirrored by
+    /// each write path while it takes the mirror, and the store the sync
+    /// status is read from.
+    pub projection_store: PathBuf, // data_class: INTERNAL_ONLY
     /// The tenants this process serves. `RecordsLog` cannot enumerate
     /// tenants, so the roster IS the served set.
     pub tenants: Vec<String>, // data_class: INTERNAL_ONLY
@@ -33,6 +37,7 @@ impl std::fmt::Display for ConfigError {
 const LISTEN_ADDR: &str = "OYATIE_FOUNDRY_ONTOLOGY_LISTEN_ADDR";
 const ACTION_LOG: &str = "OYATIE_FOUNDRY_ONTOLOGY_ACTION_LOG";
 const DENIAL_LOG: &str = "OYATIE_FOUNDRY_ONTOLOGY_DENIAL_LOG";
+const PROJECTION_STORE: &str = "OYATIE_FOUNDRY_ONTOLOGY_PROJECTION_STORE";
 const TENANTS: &str = "OYATIE_FOUNDRY_ONTOLOGY_TENANTS";
 const OPERATORS: &str = "OYATIE_FOUNDRY_ONTOLOGY_OPERATORS";
 
@@ -46,6 +51,11 @@ impl Config {
             denial_log: PathBuf::from(non_empty(DENIAL_LOG).ok_or(ConfigError::Missing {
                 variable: DENIAL_LOG,
             })?),
+            projection_store: PathBuf::from(non_empty(PROJECTION_STORE).ok_or(
+                ConfigError::Missing {
+                    variable: PROJECTION_STORE,
+                },
+            )?),
             tenants: non_empty(TENANTS)
                 .ok_or(ConfigError::Missing { variable: TENANTS })?
                 .split(',')

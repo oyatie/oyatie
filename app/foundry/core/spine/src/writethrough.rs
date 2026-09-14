@@ -25,11 +25,12 @@ use foundry_projection_draft::{
     AppliedEntry, EntryOutcome, KeyDesignations, ProjectedLink, ProjectedObject, ProjectionStore,
     ProjectionStoreError,
 };
-use foundry_records_draft::SealedEnvelope;
+use foundry_records_draft::{RecordsLog, RecordsLogError, SealedEnvelope};
 
 use crate::emission::poison_label;
 use crate::fold::{FoldOutcome, apply_sealed};
 use crate::state::ProjectionState;
+use crate::writer::{ActionSubmission, ApplyOutcome, WriteError, submit};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum WriteThroughError {
@@ -39,6 +40,16 @@ pub enum WriteThroughError {
         ordinal: u64,
         error: ProjectionStoreError,
     },
+    /// The log would not hand back the entry it had just accepted, so
+    /// nothing could be mirrored; the entry is in the log and the fold.
+    EntryUnreadable {
+        ordinal: u64,
+        error: RecordsLogError,
+    },
+    /// The replay from the accepted ordinal did not contain it. Not
+    /// reachable while the caller holds the tenant's write lock, which is
+    /// what `submit_through` assumes; kept as a refusal rather than a panic.
+    EntryAbsent { ordinal: u64 },
 }
 
 /// Fold `entries` into `state`, mirroring each outcome into `store`.
@@ -51,33 +62,91 @@ pub fn project_through(
 ) -> Result<u64, WriteThroughError> {
     let mut mirrored = 0;
     for sealed in entries {
-        let ordinal = sealed.receipt.ordinal;
-        let object_ref = sealed.envelope.object_ref.clone();
-        let outcome = match apply_sealed(state, sealed) {
-            FoldOutcome::Applied => EntryOutcome::Applied {
-                // One envelope is one object_ref (spine law), so the
-                // touched set is at most that single object.
-                objects: projected(state, &object_ref).into_iter().collect(),
-                // Edges are durable projection state too: without them a
-                // store rebuilt from the log comes back with objects and
-                // no traversal at all.
-                links: registered_links(sealed, &object_ref),
-            },
-            FoldOutcome::Poisoned(reason) => EntryOutcome::Poisoned {
-                reason: poison_label(&reason).to_owned(),
-            },
-        };
-        let entry = AppliedEntry {
-            tenant_id: state.tenant_id.clone(),
-            ordinal,
-            outcome,
-        };
-        store
-            .apply(entry, &designations(state, &object_ref))
-            .map_err(|error| WriteThroughError::Store { ordinal, error })?;
+        let fold = apply_sealed(state, sealed);
+        mirror_folded(state, store, sealed, &fold)?;
         mirrored += 1;
     }
     Ok(mirrored)
+}
+
+/// Mirror one entry the fold has ALREADY applied to `state`. The store row
+/// is built from the post-fold state, so the entry is never applied twice.
+pub fn mirror_folded(
+    state: &ProjectionState,
+    store: &mut dyn ProjectionStore,
+    sealed: &SealedEnvelope,
+    fold: &FoldOutcome,
+) -> Result<(), WriteThroughError> {
+    let ordinal = sealed.receipt.ordinal;
+    let object_ref = sealed.envelope.object_ref.as_str();
+    let outcome = match fold {
+        FoldOutcome::Applied => EntryOutcome::Applied {
+            // One envelope is one object_ref (spine law), so the touched
+            // set is at most that single object.
+            objects: projected(state, object_ref).into_iter().collect(),
+            // Edges are durable projection state too: without them a store
+            // rebuilt from the log comes back with objects and no traversal.
+            links: registered_links(sealed, object_ref),
+        },
+        FoldOutcome::Poisoned(reason) => EntryOutcome::Poisoned {
+            reason: poison_label(reason).to_owned(),
+        },
+    };
+    let entry = AppliedEntry {
+        tenant_id: state.tenant_id.clone(),
+        ordinal,
+        outcome,
+    };
+    store
+        .apply(entry, &designations(state, object_ref))
+        .map_err(|error| WriteThroughError::Store { ordinal, error })?;
+    Ok(())
+}
+
+/// A submission's outcome, and separately whether the durable store took
+/// its mirror. The outcome stands on its own: the log accepted the write
+/// and the fold applied it before the store was asked.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Mirrored {
+    pub outcome: ApplyOutcome,                 // data_class: INTERNAL_ONLY
+    pub mirror: Result<(), WriteThroughError>, // data_class: INTERNAL_ONLY
+}
+
+/// [`submit`], then mirror the accepted entry into `store`. A deduplicated
+/// append mirrors nothing: the store is not consulted for it, so a mirror
+/// the store missed earlier is repaired by catch-up, not by a retry.
+pub fn submit_through(
+    submission: ActionSubmission,
+    log: &mut dyn RecordsLog,
+    denial_log: &mut dyn RecordsLog,
+    projection: &mut ProjectionState,
+    store: &mut dyn ProjectionStore,
+) -> Result<Mirrored, WriteError> {
+    let outcome = submit(submission, log, denial_log, projection)?;
+    let (receipt, fold) = match &outcome {
+        ApplyOutcome::Applied { receipt } => (receipt, FoldOutcome::Applied),
+        ApplyOutcome::Poisoned { receipt, reason } => {
+            (receipt, FoldOutcome::Poisoned(reason.clone()))
+        }
+    };
+    if receipt.deduplicated {
+        return Ok(Mirrored {
+            outcome,
+            mirror: Ok(()),
+        });
+    }
+    let ordinal = receipt.ordinal;
+    let mirror = log
+        .replay(&projection.tenant_id, ordinal)
+        .map_err(|error| WriteThroughError::EntryUnreadable { ordinal, error })
+        .and_then(|entries| {
+            entries
+                .iter()
+                .find(|sealed| sealed.receipt.ordinal == ordinal)
+                .map(|sealed| mirror_folded(projection, store, sealed, &fold))
+                .unwrap_or(Err(WriteThroughError::EntryAbsent { ordinal }))
+        });
+    Ok(Mirrored { outcome, mirror })
 }
 
 /// The edges this entry registered. `CreateLink` is owned by the FROM

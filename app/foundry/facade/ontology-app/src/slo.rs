@@ -76,12 +76,15 @@ pub static SLOS: &[SloSpec] = &[
         display_name: "foundry-ontology — projection caught up to its log",
         sli_class: "freshness",
         description: "A scrape is good when every tenant the process could read had \
-                      consumed its whole log. Reads from a lagging projection are \
-                      answers about the past. This is a SCRAPE-level boolean, not a \
+                      its durable projection store at its log head. A store behind its log \
+                      is one this process's write path could not mirror, or one whose \
+                      log grew behind the process; readiness refuses until a catch-up \
+                      repairs it. This is a SCRAPE-level boolean, not a \
                       per-tenant ratio: the signal is process-wide and unlabelled \
                       because this surface is unauthenticated and must not become a \
-                      tenancy oracle. A tenant whose log head could not be READ \
-                      scores zero — an unreadable store is not a fresh one. A tenant \
+                      tenancy oracle. A tenant whose log head or projection store \
+                      could not be READ scores zero — an unreadable store is not a \
+                      fresh one. A tenant \
                       that was merely BUSY does not, because a lock held by a request \
                       in flight is a service being used, and an objective that reds \
                       because the service is being used teaches operators to ignore \
