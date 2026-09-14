@@ -154,7 +154,7 @@ rust_test(
     crate = "revision_pinning",
     crate_root = "tests/revision_pinning.rs",
     visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS,
+    deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/projection:foundry-projection-draft"],
 )
 
 rust_test(

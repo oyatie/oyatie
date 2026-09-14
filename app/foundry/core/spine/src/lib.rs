@@ -33,7 +33,9 @@ pub use migrate::{
     PendingUpcast, PlanError, UpcastTransform, ValueConversion, migration_attestation,
     pending_objects, run_to_fixpoint, upcast_idempotency_key,
 };
-pub use revision::{PinnedObject, UpcastState, ViewError, object_at_revision};
+pub use revision::{
+    PinnedObject, UpcastState, ViewError, object_at_revision, object_at_revision_in_store,
+};
 pub use state::{ObjectBinding, ProjectionState};
 pub use writer::{ActionSubmission, ApplyOutcome, WriteError, submit};
 pub use writethrough::{

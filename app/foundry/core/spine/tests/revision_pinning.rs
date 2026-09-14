@@ -15,9 +15,11 @@ use foundry_edits::{
     ActionRecord, EditSet, OntologyEdit, WireDataClass, WireProperty, WireTier, WireValue,
     encode_action_record,
 };
+use foundry_projection_draft::MemoryProjectionStore;
 use foundry_records_draft::{ActionEnvelope, Receipt, SealedEnvelope};
 use foundry_spine::{
     ProjectionState, UpcastState, ViewError, fold_from_scratch, object_at_revision,
+    object_at_revision_in_store, project_through,
 };
 
 fn internal() -> PrivacyDataClass {
@@ -125,7 +127,7 @@ fn sealed_at(
 /// `ent_old` written under revision 1 (name only); `ent_new` written under
 /// revision 2 (name + grade). Both entries must APPLY — a poisoned fixture
 /// would silently hollow every assertion downstream.
-fn mixed_revision_state() -> ProjectionState {
+fn mixed_revision_entries() -> (OntologyEngine, Vec<SealedEnvelope>) {
     let registry = registry_two_revisions();
     let old = sealed_at(
         "ent_old",
@@ -145,7 +147,12 @@ fn mixed_revision_state() -> ProjectionState {
             .unwrap(),
         ],
     );
-    let state = fold_from_scratch("ten_test", &registry, [&old, &new]);
+    (registry, vec![old, new])
+}
+
+fn mixed_revision_state() -> ProjectionState {
+    let (registry, entries) = mixed_revision_entries();
+    let state = fold_from_scratch("ten_test", &registry, entries.iter());
     assert!(
         state.poison.is_empty(),
         "fixture must fold clean: {:?}",
@@ -153,6 +160,30 @@ fn mixed_revision_state() -> ProjectionState {
     );
     assert_eq!(state.applied_ordinal, 2);
     state
+}
+
+/// The store-rooted view answers exactly what the fold-rooted view answers,
+/// for both objects at both pins and for both typed refusals.
+#[test]
+fn the_store_rooted_view_equals_the_fold_rooted_view() {
+    let (registry, entries) = mixed_revision_entries();
+    let mut state = ProjectionState::new("ten_test", &registry);
+    let mut store = MemoryProjectionStore::default();
+    project_through(&mut state, &mut store, &entries).unwrap();
+    let mut compared = 0;
+    for object in ["ent_old", "ent_new", "ent_absent"] {
+        for pin in [1, 2, 9] {
+            let fold = object_at_revision(&state, object, pin, None);
+            let durable = object_at_revision_in_store(&store, &registry, "ten_test", object, pin);
+            assert_eq!(fold, durable, "{object} at {pin}");
+            compared += 1;
+        }
+    }
+    assert_eq!(compared, 9);
+    assert!(
+        object_at_revision_in_store(&store, &registry, "ten_test", "ent_old", 2).is_ok(),
+        "the comparison is not all refusals"
+    );
 }
 
 #[test]

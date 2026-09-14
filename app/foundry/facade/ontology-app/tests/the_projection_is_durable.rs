@@ -47,7 +47,7 @@ async fn an_accepted_write_is_in_the_durable_store_when_the_response_returns() {
     assert_eq!(fixture.log_head(), 1);
 }
 
-/// Reads answer from the in-memory fold; the fold and the store agree on
+/// Reads answer from the durable store; the fold and the store agree on
 /// the name and the last ordinal of the object a client sees.
 #[tokio::test]
 async fn a_read_through_http_agrees_with_the_durable_store() {
@@ -185,6 +185,57 @@ async fn a_mirror_the_store_refuses_is_lag_the_store_reports() {
     assert!(
         status.contains(r#""log_head":2,"applied_ordinal":0,"lag":2"#),
         "{status}"
+    );
+}
+
+/// A read is the STORE's answer: a write whose mirror the store refused is
+/// in the log and the fold, and the reader is told it is unknown while the
+/// sync surface shows the lag. An unreadable store refuses the read.
+#[tokio::test]
+async fn an_object_read_answers_from_the_store_not_the_fold() {
+    let fixture = Fixture::new("durable-read-is-the-stores");
+    let mut state = fixture.state();
+    state
+        .tenants
+        .get_mut(TENANT)
+        .expect("served")
+        .get_mut()
+        .projection_store = Box::new(ApplyRefusingStore::refusing_the_first(1));
+    let session = Session::from_state(state);
+    let (status, _) = session.post(Some(fixture.operator_token()), WRITE).await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, body) = session
+        .get(
+            Some(fixture.operator_token()),
+            "/v1/objects/ent_alpha?revision=1",
+        )
+        .await;
+    assert_eq!(status, StatusCode::NOT_FOUND, "{body}");
+    let (_, status) = session
+        .get(Some(fixture.operator_token()), "/statusz")
+        .await;
+    assert!(status.contains(r#""lag":1"#), "{status}");
+
+    let mut state = fixture.state();
+    state
+        .tenants
+        .get_mut(TENANT)
+        .expect("served")
+        .get_mut()
+        .projection_store = Box::new(AlwaysFailingStore {
+        detail: "the store is gone",
+    });
+    let session = Session::from_state(state);
+    let (status, body) = session
+        .get(
+            Some(fixture.operator_token()),
+            "/v1/objects/ent_alpha?revision=1",
+        )
+        .await;
+    assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE, "{body}");
+    assert_eq!(
+        value_of(&scrape(&session).await, "foundry_read_refused_total"),
+        1
     );
 }
 

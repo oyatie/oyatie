@@ -12,7 +12,7 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use foundry_caller_draft::Caller;
 use foundry_records_draft::SealedEnvelope;
-use foundry_spine::{ViewError, audit_view, object_at_revision, object_history};
+use foundry_spine::{ViewError, audit_view, object_at_revision_in_store, object_history};
 
 use crate::auth::bearer_token;
 use crate::composition::AppState;
@@ -83,7 +83,7 @@ pub async fn object(
     RawQuery(raw_query): RawQuery,
     headers: HeaderMap,
 ) -> Response {
-    let (_, tenant) = match authorized(&state, &headers, &object_ref) {
+    let (caller, tenant) = match authorized(&state, &headers, &object_ref) {
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };
@@ -96,7 +96,15 @@ pub async fn object(
         );
     };
     let tenant = tenant.lock().await;
-    match object_at_revision(&tenant.projection, &object_ref, revision, None) {
+    // The durable store answers, never the in-memory fold: a write the store
+    // did not take is lag on the sync surface, not an object a reader sees.
+    match object_at_revision_in_store(
+        &*tenant.projection_store,
+        &tenant.projection.engine,
+        &caller.tenant_id,
+        &object_ref,
+        revision,
+    ) {
         Ok(pinned) => {
             state.metrics.read_served();
             Json(PinnedObjectBody {
@@ -137,6 +145,14 @@ pub async fn object(
                 StatusCode::CONFLICT,
                 "surface",
                 "that revision was never accepted for this entity type",
+            )
+        }
+        Err(ViewError::StoreUnreadable(_)) => {
+            state.metrics.read_refused();
+            refuse(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "log",
+                "the projection store could not be read",
             )
         }
     }
