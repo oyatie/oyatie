@@ -7,6 +7,7 @@ mod boot;
 pub mod composition;
 pub mod config;
 pub mod dto;
+mod listing;
 pub mod metrics;
 mod migrate;
 pub mod observability;

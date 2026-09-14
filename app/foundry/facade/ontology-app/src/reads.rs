@@ -18,9 +18,7 @@ use crate::auth::bearer_token;
 use crate::composition::AppState;
 use crate::dto::RefusalBody;
 use crate::pdp::Surface;
-use crate::read_dto::{
-    AuditRow, EntityTypeRow, HistoryRow, PinnedObjectBody, PropertyBody, RevisionPin, json_value,
-};
+use crate::read_dto::{AuditRow, EntityTypeRow, HistoryRow, RevisionPin, pinned_body};
 
 /// Verify the credential, resolve the tenant this process serves for it,
 /// then ask the policy decision point with that served tenant as the
@@ -109,29 +107,7 @@ pub async fn object(
     ) {
         Ok(pinned) => {
             state.metrics.read_served();
-            Json(PinnedObjectBody {
-                object_ref,
-                written_revision: pinned.written_revision,
-                upcast_state: match pinned.upcast_state {
-                    foundry_spine::UpcastState::Current => "current",
-                    foundry_spine::UpcastState::UpcastPending => "upcast_pending",
-                },
-                properties: pinned
-                    .properties
-                    .iter()
-                    .map(|(name, property)| {
-                        (
-                            name.clone(),
-                            PropertyBody {
-                                value_type: property.value.value.type_label(),
-                                data_class: property.value.data_class.label(),
-                                value: json_value(&property.value.value),
-                            },
-                        )
-                    })
-                    .collect(),
-            })
-            .into_response()
+            Json(pinned_body(object_ref, &pinned)).into_response()
         }
         Err(ViewError::UnknownObject) => {
             state.metrics.read_refused();
