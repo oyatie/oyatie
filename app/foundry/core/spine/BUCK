@@ -31,262 +31,58 @@ rust_test(
     ],
 )
 
-rust_test(
-    name = "foundry-spine-refusals",
-    srcs = ["tests/refusal_taxonomy.rs"],
-    crate = "refusal_taxonomy",
-    crate_root = "tests/refusal_taxonomy.rs",
-    visibility = ["PUBLIC"],
-    deps = [":foundry-spine"],
-)
+PROJECTION_TEST_DEPS = SPINE_TEST_DEPS + [
+    "//app/foundry/ports/draft/projection:foundry-projection-draft",
+]
 
-rust_test(
-    name = "foundry-spine-projector",
-    srcs = ["tests/projector_fold.rs"],
-    crate = "projector_fold",
-    crate_root = "tests/projector_fold.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS,
-)
+KERNEL_TEST_DEPS = [
+    ":foundry-spine",
+    "//data/core/data-boundary-kernel:data-boundary-kernel",
+    "//data/core/ontology-kernel:data-ontology-kernel",
+]
 
-rust_test(
-    name = "foundry-spine-fold-law",
-    srcs = ["tests/fold_law.rs"],
-    crate = "fold_law",
-    crate_root = "tests/fold_law.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS,
-)
+# One row per test crate built from a tests/ file: the target's name suffix
+# after foundry-spine-, the crate root's stem under tests/, the
+# package-relative paths of any support modules it includes, and its deps.
+# The crate's own unittest target is glob-sourced over src/ and stays a
+# stanza above.
+SPINE_TESTS = [
+    ("refusals", "refusal_taxonomy", [], [":foundry-spine"]),
+    ("projector", "projector_fold", [], SPINE_TEST_DEPS),
+    ("fold-law", "fold_law", [], SPINE_TEST_DEPS),
+    ("determinism", "fold_determinism", [], SPINE_TEST_DEPS),
+    ("checkpoints", "checkpoint_resume", [], SPINE_TEST_DEPS),
+    ("writer-gates", "writer_gates", [], SPINE_TEST_DEPS),
+    ("writer-retry", "writer_retry", [], SPINE_TEST_DEPS),
+    ("writer-retry-fields", "writer_retry_fields", ["tests/migration_support/log.rs"], SPINE_TEST_DEPS),
+    ("writer-durability", "writer_durability", [], SPINE_TEST_DEPS + ["//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft"]),
+    ("history", "history_views", [], SPINE_TEST_DEPS),
+    ("denials", "denial_trail", [], SPINE_TEST_DEPS),
+    ("cedar", "cedar_policy_gate", [], SPINE_TEST_DEPS + ["third-party//:cedar-policy"]),
+    ("cedar-seed", "cedar_seed", [], ["third-party//:cedar-policy"]),
+    ("audit-emission", "audit_emission", [], SPINE_TEST_DEPS + ["//app/foundry/ports/draft/audit:foundry-audit-draft"]),
+    ("revision-pinning", "revision_pinning", [], PROJECTION_TEST_DEPS),
+    ("migration-cycles", "migration_cycles", [], KERNEL_TEST_DEPS),
+    ("migration-plan", "migration_plan", ["tests/migration_plan_support/mod.rs"], KERNEL_TEST_DEPS),
+    ("migration-runner", "migration_runner", ["tests/migration_support/log.rs", "tests/migration_support/mod.rs"], SPINE_TEST_DEPS),
+    ("migration-runner-faults", "migration_runner_faults", ["tests/migration_support/log.rs", "tests/migration_support/mod.rs"], SPINE_TEST_DEPS),
+    ("migration-audit", "migration_audit", ["tests/migration_support/log.rs", "tests/migration_support/mod.rs"], SPINE_TEST_DEPS),
+    ("write-through", "write_through", ["tests/write_through_support/mod.rs"], PROJECTION_TEST_DEPS),
+    ("write-through-links", "write_through_links", [], PROJECTION_TEST_DEPS),
+    ("store-sync-status", "store_sync_status", [], PROJECTION_TEST_DEPS),
+    ("projection-catchup", "projection_catchup", ["tests/catchup_support/mod.rs", "tests/write_through_support/mod.rs"], PROJECTION_TEST_DEPS),
+    ("durable-projection-rebuild", "durable_projection_rebuild", ["tests/catchup_support/mod.rs"], SPINE_TEST_DEPS + ["//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft", "//app/foundry/ports/draft/projection:foundry-projection-draft"]),
+    ("catchup-refusals", "catchup_refusals", ["tests/catchup_support/mod.rs", "tests/write_through_support/mod.rs"], PROJECTION_TEST_DEPS),
+]
 
-rust_test(
-    name = "foundry-spine-determinism",
-    srcs = ["tests/fold_determinism.rs"],
-    crate = "fold_determinism",
-    crate_root = "tests/fold_determinism.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-spine-checkpoints",
-    srcs = ["tests/checkpoint_resume.rs"],
-    crate = "checkpoint_resume",
-    crate_root = "tests/checkpoint_resume.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-spine-writer-gates",
-    srcs = ["tests/writer_gates.rs"],
-    crate = "writer_gates",
-    crate_root = "tests/writer_gates.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-spine-writer-retry",
-    srcs = ["tests/writer_retry.rs"],
-    crate = "writer_retry",
-    crate_root = "tests/writer_retry.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-spine-writer-retry-fields",
-    srcs = [
-        "tests/migration_support/log.rs",
-        "tests/writer_retry_fields.rs",
-    ],
-    crate = "writer_retry_fields",
-    crate_root = "tests/writer_retry_fields.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-spine-writer-durability",
-    srcs = ["tests/writer_durability.rs"],
-    crate = "writer_durability",
-    crate_root = "tests/writer_durability.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS + ["//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft"],
-)
-
-rust_test(
-    name = "foundry-spine-history",
-    srcs = ["tests/history_views.rs"],
-    crate = "history_views",
-    crate_root = "tests/history_views.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-spine-denials",
-    srcs = ["tests/denial_trail.rs"],
-    crate = "denial_trail",
-    crate_root = "tests/denial_trail.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-spine-cedar",
-    srcs = ["tests/cedar_policy_gate.rs"],
-    crate = "cedar_policy_gate",
-    crate_root = "tests/cedar_policy_gate.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS + ["third-party//:cedar-policy"],
-)
-
-rust_test(
-    name = "foundry-spine-cedar-seed",
-    srcs = ["tests/cedar_seed.rs"],
-    crate = "cedar_seed",
-    crate_root = "tests/cedar_seed.rs",
-    visibility = ["PUBLIC"],
-    deps = ["third-party//:cedar-policy"],
-)
-
-rust_test(
-    name = "foundry-spine-audit-emission",
-    srcs = ["tests/audit_emission.rs"],
-    crate = "audit_emission",
-    crate_root = "tests/audit_emission.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/audit:foundry-audit-draft"],
-)
-
-rust_test(
-    name = "foundry-spine-revision-pinning",
-    srcs = ["tests/revision_pinning.rs"],
-    crate = "revision_pinning",
-    crate_root = "tests/revision_pinning.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/projection:foundry-projection-draft"],
-)
-
-rust_test(
-    name = "foundry-spine-migration-cycles",
-    srcs = ["tests/migration_cycles.rs"],
-    crate = "migration_cycles",
-    crate_root = "tests/migration_cycles.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-spine",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//data/core/ontology-kernel:data-ontology-kernel",
-    ],
-)
-
-rust_test(
-    name = "foundry-spine-migration-plan",
-    srcs = ["tests/migration_plan.rs", "tests/migration_plan_support/mod.rs"],
-    crate = "migration_plan",
-    crate_root = "tests/migration_plan.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":foundry-spine",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//data/core/ontology-kernel:data-ontology-kernel",
-    ],
-)
-
-rust_test(
-    name = "foundry-spine-migration-runner",
-    srcs = [
-        "tests/migration_runner.rs",
-        "tests/migration_support/log.rs",
-        "tests/migration_support/mod.rs",
-    ],
-    crate = "migration_runner",
-    crate_root = "tests/migration_runner.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-spine-migration-runner-faults",
-    srcs = [
-        "tests/migration_runner_faults.rs",
-        "tests/migration_support/log.rs",
-        "tests/migration_support/mod.rs",
-    ],
-    crate = "migration_runner_faults",
-    crate_root = "tests/migration_runner_faults.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-spine-migration-audit",
-    srcs = [
-        "tests/migration_audit.rs",
-        "tests/migration_support/log.rs",
-        "tests/migration_support/mod.rs",
-    ],
-    crate = "migration_audit",
-    crate_root = "tests/migration_audit.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS,
-)
-
-rust_test(
-    name = "foundry-spine-write-through",
-    srcs = [
-        "tests/write_through.rs",
-        "tests/write_through_support/mod.rs",
-    ],
-    crate = "write_through",
-    crate_root = "tests/write_through.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/projection:foundry-projection-draft"],
-)
-
-rust_test(
-    name = "foundry-spine-write-through-links",
-    srcs = ["tests/write_through_links.rs"],
-    crate = "write_through_links",
-    crate_root = "tests/write_through_links.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/projection:foundry-projection-draft"],
-)
-
-rust_test(
-    name = "foundry-spine-store-sync-status",
-    srcs = ["tests/store_sync_status.rs"],
-    crate = "store_sync_status",
-    crate_root = "tests/store_sync_status.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/projection:foundry-projection-draft"],
-)
-
-rust_test(
-    name = "foundry-spine-projection-catchup",
-    srcs = ["tests/catchup_support/mod.rs", "tests/projection_catchup.rs", "tests/write_through_support/mod.rs"],
-    crate = "projection_catchup",
-    crate_root = "tests/projection_catchup.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/projection:foundry-projection-draft"],
-)
-
-rust_test(
-    name = "foundry-spine-durable-projection-rebuild",
-    srcs = ["tests/catchup_support/mod.rs", "tests/durable_projection_rebuild.rs"],
-    crate = "durable_projection_rebuild",
-    crate_root = "tests/durable_projection_rebuild.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS + ["//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft", "//app/foundry/ports/draft/projection:foundry-projection-draft"],
-)
-
-rust_test(
-    name = "foundry-spine-catchup-refusals",
-    srcs = ["tests/catchup_refusals.rs", "tests/catchup_support/mod.rs", "tests/write_through_support/mod.rs"],
-    crate = "catchup_refusals",
-    crate_root = "tests/catchup_refusals.rs",
-    visibility = ["PUBLIC"],
-    deps = SPINE_TEST_DEPS + ["//app/foundry/ports/draft/projection:foundry-projection-draft"],
-)
+[
+    rust_test(
+        name = "foundry-spine-" + suffix,
+        srcs = sorted(["tests/" + stem + ".rs"] + support),
+        crate = stem,
+        crate_root = "tests/" + stem + ".rs",
+        visibility = ["PUBLIC"],
+        deps = deps,
+    )
+    for suffix, stem, support, deps in SPINE_TESTS
+]
