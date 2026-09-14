@@ -71,6 +71,17 @@ fn submit_gated(
     let schema_revision = admit_edits_and_stamp_registered_revision(&registry, submission)?;
     let envelope = encode_envelope(submission, &receipt, schema_revision)?;
     advisory_dry_run_against_scratch_fold(projection, &envelope)?;
+    // A retry under a fresh decision is the same request: the log keeps the
+    // first decision and this appends nothing.
+    if let Some(stored) = log
+        .spent(&envelope.tenant_id, &envelope.idempotency_key)
+        .map_err(WriteError::Log)?
+        && crate::retry::same_request(&stored.envelope, &envelope)
+    {
+        let mut log_receipt = stored.receipt;
+        log_receipt.deduplicated = true;
+        return Ok(outcome_of_deduplicated_append(projection, log_receipt));
+    }
     let log_receipt =
         append_with_receipt(receipt, log, envelope.clone()).map_err(WriteError::Log)?;
     if log_receipt.deduplicated {

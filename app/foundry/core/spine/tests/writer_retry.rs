@@ -1,7 +1,9 @@
-//! The writer's retry contract: a byte-identical retry deduplicates to
-//! the original outcome without re-applying, a fresh-decision retry
-//! conflicts loudly, and a dedup onto a poisoned ordinal reports
-//! Poisoned — never lies.
+//! The writer's retry contract: a retry of the same request deduplicates
+//! to the original outcome whether or not its decision is fresh (the log
+//! keeps the first decision; this overturns the earlier conflict pin, since
+//! the decision point mints a decision per request), divergent content
+//! under a spent key conflicts, and a dedup onto a poisoned ordinal reports
+//! Poisoned.
 
 use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
@@ -203,8 +205,7 @@ fn byte_identical_retry_dedups_to_the_original_outcome() {
     assert_eq!(log.head("ten_test").unwrap(), 1);
 }
 
-#[test]
-fn a_fresh_decision_retry_conflicts_loudly() {
+fn applied_once() -> (MemoryLog, MemoryLog, ProjectionState) {
     let registry = registry();
     let mut log = MemoryLog::default();
     let mut denials = MemoryLog::default();
@@ -216,16 +217,39 @@ fn a_fresh_decision_retry_conflicts_loudly() {
         &mut projection,
     )
     .unwrap();
+    (log, denials, projection)
+}
 
+#[test]
+fn a_fresh_decision_retry_deduplicates_and_the_log_keeps_the_first_decision() {
+    let (mut log, mut denials, mut projection) = applied_once();
     let mut fresh = create_submission("idem_1");
     fresh.decision.decision_id = "dec_2".into();
+    let ApplyOutcome::Applied { receipt } =
+        submit(fresh, &mut log, &mut denials, &mut projection).unwrap()
+    else {
+        panic!("expected the original applied outcome");
+    };
+    assert!(receipt.deduplicated);
+    assert_eq!(receipt.ordinal, 1);
+    assert_eq!(log.head("ten_test").unwrap(), 1, "appends nothing");
+    let stored = foundry_edits::decode_action_record(&log.entries[0].envelope.payload).unwrap();
+    assert_eq!(stored.decision_id, "dec_1", "the first decision stays");
+}
+
+#[test]
+fn a_fresh_decision_retry_with_divergent_content_conflicts_loudly() {
+    let (mut log, mut denials, mut projection) = applied_once();
+    let mut fresh = create_submission("idem_1");
+    fresh.decision.decision_id = "dec_2".into();
+    fresh.request.requested_at_epoch_seconds += 1;
     let error = submit(fresh, &mut log, &mut denials, &mut projection).unwrap_err();
     assert!(
         matches!(
             error,
             WriteError::Log(RecordsLogError::IdempotencyConflict { .. })
         ),
-        "one applied action cannot have two decisions in its trail: {error:?}",
+        "divergent content under a spent key is a conflict: {error:?}",
     );
 }
 

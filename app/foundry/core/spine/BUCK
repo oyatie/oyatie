@@ -95,6 +95,18 @@ rust_test(
 )
 
 rust_test(
+    name = "foundry-spine-writer-retry-fields",
+    srcs = [
+        "tests/migration_support/log.rs",
+        "tests/writer_retry_fields.rs",
+    ],
+    crate = "writer_retry_fields",
+    crate_root = "tests/writer_retry_fields.rs",
+    visibility = ["PUBLIC"],
+    deps = SPINE_TEST_DEPS,
+)
+
+rust_test(
     name = "foundry-spine-writer-durability",
     srcs = ["tests/writer_durability.rs"],
     crate = "writer_durability",

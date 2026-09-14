@@ -195,18 +195,21 @@ async fn an_idempotency_conflict_is_neither_a_denial_nor_an_answer() {
     assert_eq!(fixture.log_head(), 1);
 }
 
-/// PRESENT BEHAVIOUR, pinned for the lane that changes it: within one
-/// process a byte-identical retry is a conflict, not a deduplication, because
-/// the decision id is minted per request and encoded into the record.
+/// Within one process a byte-identical retry carries a fresh decision id and
+/// still deduplicates: the writer keys the retry on the request, and the log
+/// keeps the first decision. Both posts are accepted invocations, so both
+/// are timed.
 #[tokio::test]
-async fn a_byte_identical_retry_within_one_process_conflicts_today() {
-    let fixture = Fixture::new("denial-retry-today");
+async fn a_byte_identical_retry_within_one_process_deduplicates() {
+    let fixture = Fixture::new("denial-retry-dedup");
     let session = fixture.session();
     let (first, _) = session.post(Some(fixture.operator_token()), WRITE).await;
     assert_eq!(first, StatusCode::OK);
     let (second, body) = session.post(Some(fixture.operator_token()), WRITE).await;
-    assert_eq!(second, StatusCode::CONFLICT, "{body}");
+    assert_eq!(second, StatusCode::OK, "{body}");
+    assert!(body.contains(r#""deduplicated":true"#), "{body}");
     assert_eq!(fixture.log_head(), 1);
+    assert_eq!(value_of(&scrape(&session).await, ANSWERED), 2);
 }
 
 /// The denial's key is its own content, and that content carries the decision
