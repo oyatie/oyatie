@@ -1,8 +1,10 @@
+mod failing_store;
 #[path = "facade_support/mod.rs"]
 mod support;
 
 use axum::http::StatusCode;
-use support::{Fixture, Session, WRITE_BODY as WRITE, scrape, value_of};
+use failing_store::AlwaysFailingStore;
+use support::{Fixture, Session, TENANT, WRITE_BODY as WRITE, scrape, value_of};
 
 #[tokio::test]
 async fn an_answered_read_increments_served() {
@@ -112,6 +114,25 @@ async fn each_read_refusal_site_counts_exactly_once() {
         "/v1/objects/ent_alpha?revision=9",
         Some(fixture.operator_token()),
         StatusCode::CONFLICT,
+    )
+    .await;
+    // The seventh site needs its own process: the store is unreadable from
+    // boot, which the sites above would not survive.
+    let mut state = fixture.state();
+    state
+        .tenants
+        .get_mut(TENANT)
+        .expect("served")
+        .get_mut()
+        .projection_store = Box::new(AlwaysFailingStore {
+        detail: "the store is gone",
+    });
+    assert_read_refusal_delta(
+        &Session::from_state(state),
+        "unreadable projection store",
+        path,
+        Some(fixture.operator_token()),
+        StatusCode::SERVICE_UNAVAILABLE,
     )
     .await;
 }

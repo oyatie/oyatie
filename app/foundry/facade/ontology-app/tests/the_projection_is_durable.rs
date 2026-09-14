@@ -47,8 +47,8 @@ async fn an_accepted_write_is_in_the_durable_store_when_the_response_returns() {
     assert_eq!(fixture.log_head(), 1);
 }
 
-/// Reads answer from the in-memory fold; the fold and the store agree on
-/// the name and the last ordinal of the object a client sees.
+/// The HTTP read and a direct read of the store agree on the name; the
+/// store's last ordinal for that object is the write's.
 #[tokio::test]
 async fn a_read_through_http_agrees_with_the_durable_store() {
     let fixture = Fixture::new("durable-read");

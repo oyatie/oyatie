@@ -76,7 +76,9 @@ FACADE_TESTS = [
     ("reads", "read_contract", FACADE_TEST_DEPS),
     ("cross-tenant", "cross_tenant_isolation", FACADE_TEST_DEPS),
     ("slo-render", "slo_render_is_the_source", FACADE_TEST_DEPS),
-    ("metrics-counts", "metrics_count_what_happened", FACADE_TEST_DEPS),
+    ("metrics-counts", "metrics_count_what_happened", FACADE_TEST_DEPS + [
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+    ]),
     ("metrics-submissions", "metrics_count_submissions", FACADE_TEST_DEPS),
     ("storage-fault", "storage_fault_is_not_a_conflict", FACADE_TEST_DEPS),
     ("live-views", "views_read_the_log_not_a_boot_mirror", FACADE_TEST_DEPS),
@@ -93,6 +95,9 @@ FACADE_TESTS = [
     ("objectives-measure", "objectives_measure_latency_and_the_denial_trail", FACADE_TEST_DEPS),
     ("durable-projection", "the_projection_is_durable", FACADE_TEST_DEPS + [
         "//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+    ]),
+    ("reads-are-the-stores", "reads_are_the_stores", FACADE_TEST_DEPS + [
         "//app/foundry/ports/draft/projection:foundry-projection-draft",
     ]),
     ("store-follows-migration", "the_store_follows_a_migration_run", MIGRATION_TEST_DEPS + [

@@ -61,19 +61,25 @@ impl ProjectionStore for AlwaysFailingStore {
     }
 }
 
-/// Reads answer from a memory store; the first `refusals` mirrors are
-/// refused and the rest are taken. The shape of a store that is reachable
-/// but could not take a write.
+/// Reads answer from a memory store; the first `taken` mirrors are taken,
+/// the next `refusals` are refused, and the rest are taken. The shape of a
+/// store that is reachable but could not take a write.
 #[derive(Default)]
 pub struct ApplyRefusingStore {
     inner: MemoryProjectionStore,
+    taken: usize,
     refusals: usize,
 }
 
 impl ApplyRefusingStore {
     pub fn refusing_the_first(refusals: usize) -> Self {
+        Self::taking_then_refusing(0, refusals)
+    }
+
+    pub fn taking_then_refusing(taken: usize, refusals: usize) -> Self {
         Self {
             inner: MemoryProjectionStore::default(),
+            taken,
             refusals,
         }
     }
@@ -85,7 +91,9 @@ impl ProjectionStore for ApplyRefusingStore {
         entry: AppliedEntry,
         keys: &KeyDesignations,
     ) -> Result<ApplyReceipt, ProjectionStoreError> {
-        if self.refusals > 0 {
+        if self.taken > 0 {
+            self.taken -= 1;
+        } else if self.refusals > 0 {
             self.refusals -= 1;
             return Err(ProjectionStoreError::Storage {
                 detail: "the store refused this mirror".to_owned(),
