@@ -15,9 +15,11 @@ use foundry_edits::{
     ActionRecord, EditSet, OntologyEdit, WireDataClass, WireProperty, WireTier, WireValue,
     encode_action_record,
 };
+use foundry_projection_draft::MemoryProjectionStore;
 use foundry_records_draft::{ActionEnvelope, Receipt, SealedEnvelope};
 use foundry_spine::{
     ProjectionState, UpcastState, ViewError, fold_from_scratch, object_at_revision,
+    object_at_revision_in_store, project_through,
 };
 
 fn internal() -> PrivacyDataClass {
@@ -123,9 +125,10 @@ fn sealed_at(
 }
 
 /// `ent_old` written under revision 1 (name only); `ent_new` written under
-/// revision 2 (name + grade). Both entries must APPLY — a poisoned fixture
-/// would silently hollow every assertion downstream.
-fn mixed_revision_state() -> ProjectionState {
+/// revision 2 (name + grade); `ent_late` written under revision 1 at
+/// ordinal 3. All three entries must APPLY — a poisoned fixture would
+/// silently hollow every assertion downstream.
+fn mixed_revision_entries() -> (OntologyEngine, Vec<SealedEnvelope>) {
     let registry = registry_two_revisions();
     let old = sealed_at(
         "ent_old",
@@ -145,14 +148,65 @@ fn mixed_revision_state() -> ProjectionState {
             .unwrap(),
         ],
     );
-    let state = fold_from_scratch("ten_test", &registry, [&old, &new]);
+    // A third object at ordinal 3 written under revision 1, so the store's
+    // last ordinal and written revision cannot stand in for each other.
+    let late = sealed_at(
+        "ent_late",
+        3,
+        1,
+        vec![OntologyEdit::create_object("ety_reading", vec![wire_string("name", "Lin")]).unwrap()],
+    );
+    (registry, vec![old, new, late])
+}
+
+fn mixed_revision_state() -> ProjectionState {
+    let (registry, entries) = mixed_revision_entries();
+    let state = fold_from_scratch("ten_test", &registry, entries.iter());
     assert!(
         state.poison.is_empty(),
         "fixture must fold clean: {:?}",
         state.poison
     );
-    assert_eq!(state.applied_ordinal, 2);
+    assert_eq!(state.applied_ordinal, 3);
     state
+}
+
+/// The store-rooted view answers exactly what the fold-rooted view answers,
+/// for three objects and one absent ref at three pins, both typed refusals
+/// included. The store is the in-memory reference implementation; the
+/// facade serves SQLite, which the projection port's own conformance suite
+/// holds to the same laws.
+#[test]
+fn the_store_rooted_view_equals_the_fold_rooted_view() {
+    let (registry, entries) = mixed_revision_entries();
+    let mut state = ProjectionState::new("ten_test", &registry);
+    let mut store = MemoryProjectionStore::default();
+    project_through(&mut state, &mut store, &entries).unwrap();
+    assert!(
+        state.poison.is_empty(),
+        "a poisoned fixture would answer UnknownObject on both sides: {:?}",
+        state.poison
+    );
+    let mut compared = 0;
+    for object in ["ent_old", "ent_new", "ent_late", "ent_absent"] {
+        for pin in [1, 2, 9] {
+            let fold = object_at_revision(&state, object, pin, None);
+            let durable = object_at_revision_in_store(&store, &registry, "ten_test", object, pin);
+            assert_eq!(fold, durable, "{object} at {pin}");
+            compared += 1;
+        }
+    }
+    assert_eq!(compared, 12);
+    let late = object_at_revision_in_store(&store, &registry, "ten_test", "ent_late", 2).unwrap();
+    assert_eq!(
+        (late.written_revision, late.upcast_state),
+        (1, UpcastState::UpcastPending),
+        "written revision is the store's, not its ordinal"
+    );
+    assert!(
+        object_at_revision_in_store(&store, &registry, "ten_test", "ent_old", 2).is_ok(),
+        "the comparison is not all refusals"
+    );
 }
 
 #[test]

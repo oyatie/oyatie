@@ -12,7 +12,7 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use foundry_caller_draft::Caller;
 use foundry_records_draft::SealedEnvelope;
-use foundry_spine::{ViewError, audit_view, object_at_revision, object_history};
+use foundry_spine::{ViewError, audit_view, object_at_revision_in_store, object_history};
 
 use crate::auth::bearer_token;
 use crate::composition::AppState;
@@ -83,7 +83,7 @@ pub async fn object(
     RawQuery(raw_query): RawQuery,
     headers: HeaderMap,
 ) -> Response {
-    let (_, tenant) = match authorized(&state, &headers, &object_ref) {
+    let (caller, tenant) = match authorized(&state, &headers, &object_ref) {
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };
@@ -96,7 +96,17 @@ pub async fn object(
         );
     };
     let tenant = tenant.lock().await;
-    match object_at_revision(&tenant.projection, &object_ref, revision, None) {
+    // The object is the store's: a reader sees its last taken write, and a
+    // write the store did not take is lag on the sync surface until a
+    // catch-up repairs it. The definitions the pin resolves against are
+    // still the fold's registry, which is where revisions are retained.
+    match object_at_revision_in_store(
+        &*tenant.projection_store,
+        &tenant.projection.engine,
+        &caller.tenant_id,
+        &object_ref,
+        revision,
+    ) {
         Ok(pinned) => {
             state.metrics.read_served();
             Json(PinnedObjectBody {
@@ -128,7 +138,7 @@ pub async fn object(
             refuse(
                 StatusCode::NOT_FOUND,
                 "surface",
-                "no applied entry ever bound this object",
+                "the durable projection holds no object at this reference",
             )
         }
         Err(ViewError::UnretainedRevision) => {
@@ -137,6 +147,14 @@ pub async fn object(
                 StatusCode::CONFLICT,
                 "surface",
                 "that revision was never accepted for this entity type",
+            )
+        }
+        Err(ViewError::StoreUnreadable(_)) => {
+            state.metrics.read_refused();
+            refuse(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "store",
+                "the projection store could not be read",
             )
         }
     }

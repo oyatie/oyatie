@@ -9,7 +9,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use data_ontology_kernel::{EntityTypeId, ObjectProperty};
+use data_ontology_kernel::{EntityTypeId, ObjectProperty, OntologyEngine};
+use foundry_projection_draft::{ProjectionStore, ProjectionStoreError};
 
 use crate::migrate::MigrationPlan;
 use crate::state::ProjectionState;
@@ -38,13 +39,17 @@ pub struct PinnedObject {
 /// Typed refusals of the pinned view.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ViewError {
-    /// No applied envelope ever bound this `object_ref` in this tenant's
-    /// projection.
+    /// The projection this view reads holds no object at this `object_ref`
+    /// for this tenant. Over the durable store that means the store holds
+    /// none: an applied entry the store did not mirror is unknown here and
+    /// lag on the sync surface until a catch-up repairs it.
     UnknownObject,
     /// The pinned revision was never accepted for the object's entity type
     /// — retention holds accepted evolutions only, so an unretained pin is
     /// a caller error, not history.
     UnretainedRevision,
+    /// The durable store could not be read; never answered as absence.
+    StoreUnreadable(ProjectionStoreError),
 }
 
 /// The object at `object_ref` as a reader pinned at `pinned` sees it.
@@ -105,6 +110,51 @@ pub fn object_at_revision(
     Ok(PinnedObject {
         properties,
         written_revision: binding.schema_revision,
+        upcast_state,
+    })
+}
+
+/// [`object_at_revision`] over the DURABLE store: what survives a restart is
+/// what a reader is answered from. The registry supplies the retained
+/// definitions; the store supplies the object and the revision it was
+/// written under. This view takes no plan, so the structural rule is the
+/// only one: written below the pin is pending.
+pub fn object_at_revision_in_store(
+    store: &dyn ProjectionStore,
+    registry: &OntologyEngine,
+    tenant_id: &str,
+    object_ref: &str,
+    pinned: u32,
+) -> Result<PinnedObject, ViewError> {
+    let projected = store
+        .get(tenant_id, object_ref)
+        .map_err(ViewError::StoreUnreadable)?
+        .ok_or(ViewError::UnknownObject)?;
+    let type_id = EntityTypeId::new(projected.entity.entity_type.value.clone())
+        .map_err(|_| ViewError::UnknownObject)?;
+    let definition = registry
+        .entity_type_at_revision(tenant_id, &type_id, pinned)
+        .ok_or(ViewError::UnretainedRevision)?;
+    let declared: BTreeSet<&str> = definition
+        .properties
+        .iter()
+        .map(|property| property.name.as_str())
+        .collect();
+    let properties = projected
+        .entity
+        .properties
+        .iter()
+        .filter(|(name, _)| declared.contains(name.as_str()))
+        .map(|(name, property)| (name.clone(), property.clone()))
+        .collect();
+    let upcast_state = if projected.schema_revision >= pinned {
+        UpcastState::Current
+    } else {
+        UpcastState::UpcastPending
+    };
+    Ok(PinnedObject {
+        properties,
+        written_revision: projected.schema_revision,
         upcast_state,
     })
 }

@@ -76,7 +76,8 @@ async fn an_unknown_object_is_not_found() {
     // the router's fallback produces, so status alone would pass with the
     // whole handler removed.
     assert!(
-        body.contains(r#""gate":"surface""#) && body.contains("no applied entry ever bound"),
+        body.contains(r#""gate":"surface""#)
+            && body.contains("the durable projection holds no object"),
         "the refusal must be the handler's typed one: {body}"
     );
 }
