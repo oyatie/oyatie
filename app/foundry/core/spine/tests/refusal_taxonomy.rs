@@ -21,6 +21,7 @@ fn refusals_carry_gate_and_static_cause() {
     let refused = Refused {
         gate: RefusalGate::Admission,
         cause: "reserved edit kind",
+        recorded_on_trail: false,
     };
     assert_eq!(refused.gate.label(), "admission");
     assert_eq!(refused.cause, "reserved edit kind");

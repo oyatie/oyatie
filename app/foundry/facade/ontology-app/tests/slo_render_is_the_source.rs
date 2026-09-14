@@ -181,6 +181,8 @@ async fn the_declared_objectives_are_the_ones_this_vertical_promises() {
     assert_eq!(
         declared,
         BTreeSet::from([
+            "ontology-denial-trail-completeness",
+            "ontology-invocation-latency",
             "ontology-projection-freshness",
             "ontology-read-availability",
             "ontology-submit-availability",

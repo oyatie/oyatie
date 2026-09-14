@@ -3,10 +3,10 @@
 //! consume a tenant object ordinal and never forge an object ref.
 //!
 //! The idempotency key derives from the denial's own canonical bytes
-//! (no clocks, no minted ids), so the identical refusal retried
+//! (no clocks, no ids minted here), so the identical refusal retried
 //! deduplicates while divergent denials never conflict. An audit-append
-//! failure is deliberately swallowed: the refusal returned to the
-//! caller is the truth that must survive.
+//! failure never masks the refusal: the caller learns the refusal stands
+//! and, separately, whether the trail holds it.
 
 use foundry_edits::{DenialRecord, encode_denial_record};
 use foundry_records_draft::{ActionEnvelope, RecordsLog};
@@ -14,11 +14,12 @@ use foundry_records_draft::{ActionEnvelope, RecordsLog};
 use crate::error::Refused;
 use crate::writer::ActionSubmission;
 
+/// Returns whether the trail now holds the denial.
 pub(crate) fn record_denial(
     denial_log: &mut dyn RecordsLog,
     submission: &ActionSubmission,
     refused: &Refused,
-) {
+) -> bool {
     let occurred_at_epoch_ms = submission
         .request
         .requested_at_epoch_seconds
@@ -33,7 +34,7 @@ pub(crate) fn record_denial(
         occurred_at_epoch_ms,
     ) else {
         // A submission too malformed to describe still keeps its refusal.
-        return;
+        return false;
     };
     let payload = encode_denial_record(&record);
     let key = format!("deny_{:016x}", fnv1a(&payload));
@@ -46,9 +47,9 @@ pub(crate) fn record_denial(
         payload,
         occurred_at_epoch_ms,
     ) else {
-        return;
+        return false;
     };
-    let _ = denial_log.append(envelope);
+    denial_log.append(envelope).is_ok()
 }
 
 /// FNV-1a, 64-bit: a tiny deterministic content key with no new

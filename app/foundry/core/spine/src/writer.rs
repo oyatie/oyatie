@@ -51,8 +51,9 @@ pub fn submit(
     projection: &mut ProjectionState,
 ) -> Result<ApplyOutcome, WriteError> {
     match submit_gated(&submission, log, projection) {
-        Err(WriteError::Refused(refused)) => {
-            crate::audit::record_denial(denial_log, &submission, &refused);
+        Err(WriteError::Refused(mut refused)) => {
+            refused.recorded_on_trail =
+                crate::audit::record_denial(denial_log, &submission, &refused);
             Err(WriteError::Refused(refused))
         }
         other => other,
@@ -239,7 +240,11 @@ fn apply_through_fold(
 }
 
 fn refuse(gate: RefusalGate, cause: &'static str) -> WriteError {
-    WriteError::Refused(Refused { gate, cause })
+    WriteError::Refused(Refused {
+        gate,
+        cause,
+        recorded_on_trail: false,
+    })
 }
 
 /// The sole append to the ACTION LOG: no [`ActionInvocationReceipt`] BY

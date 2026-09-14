@@ -1,0 +1,50 @@
+# Generated from `app/foundry/facade/ontology-app/src/slo.rs`. Do not hand-edit:
+# the suite compares this file byte-for-byte against the renderer.
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: ontology-invocation-latency
+  displayName: "foundry-ontology — accepted invocations answered within budget"
+  labels:
+    microservice: foundry-ontology
+    sli_class: latency
+    plane: app
+    owner_team: foundry
+spec:
+  service: foundry-ontology
+  description: |
+    An accepted single-Action invocation is good when the handler
+    answered within 250 ms of its entry: credential, policy decision,
+    tenant lock, append and fold all inside the budget. Only ACCEPTED
+    invocations are measured; a refusal is the availability objective's
+    event, and timing it here would let fast refusals buy latency
+    budget. The migration run surface is not timed against this budget,
+    because one run is many writes. The budget is a counter pair rather
+    than a histogram because this exposition is hand-rendered and
+    unlabelled; the series name carries the budget so a change to one
+    without the other is visible.
+  indicator:
+    metadata:
+      name: ontology-invocation-latency-indicator
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(foundry_action_invocation_answered_within_250ms_total[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(foundry_action_invocation_answered_total[5m]))
+  objectives:
+    - target: 0.99
+      displayName: "99% of accepted invocations answered within 250 ms over 30d"
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences

@@ -5,6 +5,7 @@
 
 use std::collections::BTreeSet;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::Duration;
 
 use crate::composition::AppState;
 use crate::observation::observe;
@@ -18,11 +19,43 @@ pub struct Metrics {
     submit_refused: AtomicU64, // data_class: INTERNAL_ONLY
     read_served: AtomicU64,    // data_class: INTERNAL_ONLY
     read_refused: AtomicU64,   // data_class: INTERNAL_ONLY
+    /// Accepted invocations on the single-Action surface, timed from the
+    /// handler's entry to its answer; the migration run surface, where one
+    /// request is many writes, is not timed against this budget.
+    invocation_answered: AtomicU64, // data_class: INTERNAL_ONLY
+    invocation_answered_within_budget: AtomicU64, // data_class: INTERNAL_ONLY
+    /// Refusals the WRITER issued on the single-Action surface, and how many
+    /// of them the denial trail holds. A refusal before the writer (no
+    /// credential, a malformed body, an unserved tenant, a policy denial, an
+    /// unrepresentable edit) is not a denial, and neither is an append the
+    /// log refused after the writer's gates passed.
+    denial_issued: AtomicU64, // data_class: INTERNAL_ONLY
+    denial_recorded: AtomicU64, // data_class: INTERNAL_ONLY
 }
+
+/// The latency objective's budget; the series name carries the same number.
+pub const INVOCATION_LATENCY_BUDGET: Duration = Duration::from_millis(250);
+const INVOCATION_WITHIN_BUDGET_SERIES: &str =
+    "foundry_action_invocation_answered_within_250ms_total";
 
 impl Metrics {
     pub fn submit_served(&self) {
         self.submit_served.fetch_add(1, Ordering::Relaxed);
+    }
+
+    pub fn invocation_answered(&self, elapsed: Duration) {
+        self.invocation_answered.fetch_add(1, Ordering::Relaxed);
+        if elapsed <= INVOCATION_LATENCY_BUDGET {
+            self.invocation_answered_within_budget
+                .fetch_add(1, Ordering::Relaxed);
+        }
+    }
+
+    pub fn denial_issued(&self, recorded_on_trail: bool) {
+        self.denial_issued.fetch_add(1, Ordering::Relaxed);
+        if recorded_on_trail {
+            self.denial_recorded.fetch_add(1, Ordering::Relaxed);
+        }
     }
 
     pub fn submit_refused(&self) {
@@ -146,6 +179,45 @@ pub fn samples(state: &AppState) -> Vec<Sample> {
             kind: "counter",
             help: "Action submissions refused before or by the writer.",
             value: metrics.submit_refused.load(Ordering::Relaxed),
+            objective_eligible: true,
+            ineligible_because: "",
+        },
+        Sample {
+            name: "foundry_action_invocation_answered_total",
+            kind: "counter",
+            help: "Accepted single-Action invocations, timed from handler entry to \
+                   answer. Migration runs are not timed here.",
+            value: metrics.invocation_answered.load(Ordering::Relaxed),
+            objective_eligible: true,
+            ineligible_because: "",
+        },
+        Sample {
+            name: INVOCATION_WITHIN_BUDGET_SERIES,
+            kind: "counter",
+            help: "The subset of foundry_action_invocation_answered_total answered \
+                   within the 250 ms budget.",
+            value: metrics
+                .invocation_answered_within_budget
+                .load(Ordering::Relaxed),
+            objective_eligible: true,
+            ineligible_because: "",
+        },
+        Sample {
+            name: "foundry_denial_issued_total",
+            kind: "counter",
+            help: "Refusals the writer issued on the single-Action surface. Every \
+                   other refusal there, before the writer or by the log after its \
+                   gates, is counted only in foundry_action_submit_refused_total.",
+            value: metrics.denial_issued.load(Ordering::Relaxed),
+            objective_eligible: true,
+            ineligible_because: "",
+        },
+        Sample {
+            name: "foundry_denial_recorded_total",
+            kind: "counter",
+            help: "The subset of foundry_denial_issued_total the denial trail holds. \
+                   The gap is refusals that stood whose record the trail does not hold.",
+            value: metrics.denial_recorded.load(Ordering::Relaxed),
             objective_eligible: true,
             ineligible_because: "",
         },

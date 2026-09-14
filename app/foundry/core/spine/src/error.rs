@@ -31,4 +31,9 @@ impl RefusalGate {
 pub struct Refused {
     pub gate: RefusalGate,   // data_class: INTERNAL_ONLY
     pub cause: &'static str, // data_class: INTERNAL_ONLY
+    /// True once the denial trail holds this refusal (a deduplicated
+    /// re-append counts). False from the gate that refused, and still false
+    /// when the trail could not take the record or the refusal was too
+    /// malformed to describe: the refusal stands either way.
+    pub recorded_on_trail: bool, // data_class: INTERNAL_ONLY
 }
