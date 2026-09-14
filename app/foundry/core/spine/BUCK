@@ -69,7 +69,7 @@ SPINE_TESTS = [
     ("migration-audit", "migration_audit", ["tests/migration_support/log.rs", "tests/migration_support/mod.rs"], SPINE_TEST_DEPS),
     ("write-through", "write_through", ["tests/write_through_support/mod.rs"], PROJECTION_TEST_DEPS),
     ("write-through-links", "write_through_links", [], PROJECTION_TEST_DEPS),
-    ("write-through-poison", "write_through_poison", ["tests/migration_support/log.rs", "tests/migration_support/mod.rs"], PROJECTION_TEST_DEPS),
+    ("write-through-poison", "write_through_poison", ["tests/migration_support/log.rs", "tests/migration_support/mod.rs", "tests/write_through_support/mod.rs"], PROJECTION_TEST_DEPS),
     ("store-sync-status", "store_sync_status", [], PROJECTION_TEST_DEPS),
     ("projection-catchup", "projection_catchup", ["tests/catchup_support/mod.rs", "tests/write_through_support/mod.rs"], PROJECTION_TEST_DEPS),
     ("durable-projection-rebuild", "durable_projection_rebuild", ["tests/catchup_support/mod.rs"], SPINE_TEST_DEPS + ["//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft", "//app/foundry/ports/draft/projection:foundry-projection-draft"]),
