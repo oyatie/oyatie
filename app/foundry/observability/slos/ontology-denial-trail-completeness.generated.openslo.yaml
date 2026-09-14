@@ -16,10 +16,10 @@ spec:
     A writer refusal is good when the denial trail holds its record. The
     trail is the audit of Actions the writer refused after the policy
     decision point allowed them, so the events are the WRITER's refusals
-    on the single-Action surface. A refusal before the writer is not a
-    denial and counts against availability, not here. A record the trail
-    could not take does not mask the refusal the caller received, which
-    is exactly why it must be counted: the caller saw a denial the audit
+    on either write path. A refusal before the writer is not a denial
+    and counts against availability, not here. A record the trail could
+    not take does not mask the refusal the caller received, which is
+    exactly why it must be counted: the caller saw a denial the audit
     did not. Under an occurrence budget at 99.99%, a 30-day window with
     fewer than ten thousand writer refusals is breached by a single lost
     record, which is the intended posture for an audit control.

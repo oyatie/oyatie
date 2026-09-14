@@ -170,7 +170,7 @@ pub static SLOS: &[SloSpec] = &[
         description: "A writer refusal is good when the denial trail holds its record. \
                       The trail is the audit of Actions the writer refused after the \
                       policy decision point allowed them, so the events are the \
-                      WRITER's refusals on the single-Action surface. A refusal before \
+                      WRITER's refusals on either write path. A refusal before \
                       the writer is not a denial and counts against availability, \
                       not here. A record the trail could not take does \
                       not mask the refusal the caller received, which is exactly why \

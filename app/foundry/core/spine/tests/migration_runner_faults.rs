@@ -22,10 +22,51 @@ fn refusal_lands_on_the_denial_trail_not_the_log() {
         run_to_fixpoint(&plan(), &unauthorized, &mut log, &mut denials, &mut state).unwrap();
     assert_eq!(status.upcast, 0);
     assert_eq!(status.refused, 1);
+    assert_eq!(status.refused_recorded, 1, "the trail holds it");
     assert_eq!(status.pending, 1);
     assert!(!status.fixpoint);
     assert_eq!(log.head("ten_test").unwrap(), 2, "nothing appended");
     assert_eq!(denials.head("ten_test").unwrap(), 1, "denial recorded");
+}
+
+/// A trail that cannot take the record: the refusal is counted, the
+/// record is not.
+#[test]
+fn a_refusal_the_trail_could_not_take_is_refused_but_not_recorded() {
+    struct RefusingTrail;
+    impl foundry_records_draft::RecordsLog for RefusingTrail {
+        fn append(
+            &mut self,
+            _: foundry_records_draft::ActionEnvelope,
+        ) -> Result<foundry_records_draft::Receipt, foundry_records_draft::RecordsLogError>
+        {
+            Err(foundry_records_draft::RecordsLogError::Storage {
+                detail: "unwritable".into(),
+            })
+        }
+        fn replay(
+            &self,
+            _: &str,
+            _: u64,
+        ) -> Result<
+            Vec<foundry_records_draft::SealedEnvelope>,
+            foundry_records_draft::RecordsLogError,
+        > {
+            Ok(Vec::new())
+        }
+        fn head(&self, _: &str) -> Result<u64, foundry_records_draft::RecordsLogError> {
+            Ok(0)
+        }
+    }
+    let (_, mut log, mut state) = fixture();
+    let mut denials = RefusingTrail;
+    let unauthorized = MigrationAuthority {
+        allowed_surfaces: vec!["wrong-console".into()],
+        ..authority()
+    };
+    let status =
+        run_to_fixpoint(&plan(), &unauthorized, &mut log, &mut denials, &mut state).unwrap();
+    assert_eq!((status.refused, status.refused_recorded), (1, 0));
 }
 
 #[test]

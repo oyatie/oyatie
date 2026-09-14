@@ -24,7 +24,7 @@ pub struct Metrics {
     /// request is many writes, is not timed against this budget.
     invocation_answered: AtomicU64, // data_class: INTERNAL_ONLY
     invocation_answered_within_budget: AtomicU64, // data_class: INTERNAL_ONLY
-    /// Refusals the WRITER issued on the single-Action surface, and how many
+    /// Refusals the WRITER issued on either write path, and how many
     /// of them the denial trail holds. A refusal before the writer (no
     /// credential, a malformed body, an unserved tenant, a policy denial, an
     /// unrepresentable edit) is not a denial, and neither is an append the
@@ -52,10 +52,16 @@ impl Metrics {
     }
 
     pub fn denial_issued(&self, recorded_on_trail: bool) {
-        self.denial_issued.fetch_add(1, Ordering::Relaxed);
-        if recorded_on_trail {
-            self.denial_recorded.fetch_add(1, Ordering::Relaxed);
-        }
+        self.denials_issued(1, u64::from(recorded_on_trail));
+    }
+
+    /// `recorded` of `issued` refusals reached the trail. The single-Action
+    /// surface calls it once per refusal; the migration surface calls it once
+    /// for a run that reached the writer, carrying that run's totals, and not
+    /// at all for a plan refused before it.
+    pub fn denials_issued(&self, issued: u64, recorded: u64) {
+        self.denial_issued.fetch_add(issued, Ordering::Relaxed);
+        self.denial_recorded.fetch_add(recorded, Ordering::Relaxed);
     }
 
     pub fn submit_refused(&self) {
@@ -207,9 +213,11 @@ pub fn samples(state: &AppState) -> Vec<Sample> {
         Sample {
             name: "foundry_denial_issued_total",
             kind: "counter",
-            help: "Refusals the writer issued on the single-Action surface. Every \
-                   other refusal there, before the writer or by the log after its \
-                   gates, is counted only in foundry_action_submit_refused_total.",
+            help: "Refusals the writer issued on either write path. On the \
+                   single-Action surface every other refusal, before the writer or by \
+                   the log after its gates, is counted only in \
+                   foundry_action_submit_refused_total; inside a run the log's \
+                   refusals are the run body's conflicted and unavailable counts.",
             value: metrics.denial_issued.load(Ordering::Relaxed),
             objective_eligible: true,
             ineligible_because: "",
