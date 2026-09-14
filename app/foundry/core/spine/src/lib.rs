@@ -36,7 +36,8 @@ pub use migrate::{
 };
 pub use retry::same_request;
 pub use revision::{
-    PinnedObject, UpcastState, ViewError, object_at_revision, object_at_revision_in_store,
+    PinnedObject, PinnedPage, UpcastState, ViewError, object_at_revision,
+    object_at_revision_in_store, objects_of_type_at_revision,
 };
 pub use state::{ObjectBinding, ProjectionState};
 pub use writer::{ActionSubmission, ApplyOutcome, WriteError, submit};

@@ -74,6 +74,7 @@ FACADE_TESTS = [
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
     ]),
     ("reads", "read_contract", FACADE_TEST_DEPS),
+    ("object-listing", "object_listing_contract", FACADE_TEST_DEPS),
     ("cross-tenant", "cross_tenant_isolation", FACADE_TEST_DEPS),
     ("slo-render", "slo_render_is_the_source", FACADE_TEST_DEPS),
     ("metrics-counts", "metrics_count_what_happened", FACADE_TEST_DEPS + [

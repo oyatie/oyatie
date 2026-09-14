@@ -27,6 +27,7 @@ pub fn router_from(state: Arc<AppState>) -> Router {
             post(crate::migrate::attest::attest),
         )
         .route("/v1/migrations/run", post(crate::migrate::run::run))
+        .route("/v1/objects", get(crate::listing::objects))
         .route("/v1/objects/{object_ref}", get(crate::reads::object))
         .route(
             "/v1/objects/{object_ref}/history",

@@ -116,7 +116,33 @@ async fn each_read_refusal_site_counts_exactly_once() {
         StatusCode::CONFLICT,
     )
     .await;
-    // The seventh site needs its own process: the store is unreadable from
+    for (label, path, status) in [
+        (
+            "listing query refusal",
+            "/v1/objects?type=ety_record",
+            StatusCode::BAD_REQUEST,
+        ),
+        (
+            "listing undeclared type",
+            "/v1/objects?type=ety_absent&revision=1",
+            StatusCode::BAD_REQUEST,
+        ),
+        (
+            "listing unretained revision",
+            "/v1/objects?type=ety_record&revision=9",
+            StatusCode::CONFLICT,
+        ),
+    ] {
+        assert_read_refusal_delta(
+            &session,
+            label,
+            path,
+            Some(fixture.operator_token()),
+            status,
+        )
+        .await;
+    }
+    // The store sites need their own process: the store is unreadable from
     // boot, which the sites above would not survive.
     let mut state = fixture.state();
     state
@@ -127,14 +153,23 @@ async fn each_read_refusal_site_counts_exactly_once() {
         .projection_store = Box::new(AlwaysFailingStore {
         detail: "the store is gone",
     });
-    assert_read_refusal_delta(
-        &Session::from_state(state),
-        "unreadable projection store",
-        path,
-        Some(fixture.operator_token()),
-        StatusCode::SERVICE_UNAVAILABLE,
-    )
-    .await;
+    let wedged = Session::from_state(state);
+    for (label, path) in [
+        ("unreadable projection store", path),
+        (
+            "unreadable store under a listing",
+            "/v1/objects?type=ety_record&revision=1",
+        ),
+    ] {
+        assert_read_refusal_delta(
+            &wedged,
+            label,
+            path,
+            Some(fixture.operator_token()),
+            StatusCode::SERVICE_UNAVAILABLE,
+        )
+        .await;
+    }
 }
 
 /// The unserved-tenant refusal on BOTH surfaces under a roster that does
@@ -182,6 +217,7 @@ async fn each_read_serving_route_counts_exactly_once() {
         ("history", "/v1/objects/ent_alpha/history"),
         ("audit", "/v1/audit"),
         ("types", "/v1/types"),
+        ("object listing", "/v1/objects?type=ety_record&revision=1"),
     ] {
         let before = value_of(&scrape(&session).await, "foundry_read_served_total");
         let (status, _) = session.get(Some(fixture.operator_token()), path).await;
