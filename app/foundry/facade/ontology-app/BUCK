@@ -97,6 +97,7 @@ FACADE_TESTS = [
         "//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft",
         "//app/foundry/ports/draft/projection:foundry-projection-draft",
     ]),
+    ("migration-run-denials", "migration_run_denials_are_counted", MIGRATION_TEST_DEPS),
     ("reads-are-the-stores", "reads_are_the_stores", FACADE_TEST_DEPS + [
         "//app/foundry/ports/draft/projection:foundry-projection-draft",
     ]),
