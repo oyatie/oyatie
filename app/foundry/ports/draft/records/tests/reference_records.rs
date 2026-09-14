@@ -10,7 +10,7 @@ use foundry_records_draft::conformance::{
     check_conflicting_idempotency_key_reuse_is_refused, check_durability_across_reopen,
     check_head_tracks_the_last_ordinal, check_idempotent_replay_returns_the_original_receipt,
     check_object_sequences_are_dense_per_object, check_replay_is_tenant_isolated,
-    check_replay_returns_envelopes_in_order,
+    check_replay_returns_envelopes_in_order, check_spent_answers_the_original_envelope,
 };
 use foundry_records_draft::{ActionEnvelope, Receipt, RecordsLog, RecordsLogError, SealedEnvelope};
 
@@ -109,7 +109,7 @@ type Check = fn(&mut InMemoryFixture) -> Result<(), String>;
 
 #[test]
 fn reference_log_satisfies_every_conformance_check() {
-    let checks: [(&str, Check); 8] = [
+    let checks: [(&str, Check); 9] = [
         (
             "dense ordinals",
             check_append_assigns_dense_per_tenant_ordinals,
@@ -125,6 +125,10 @@ fn reference_log_satisfies_every_conformance_check() {
         (
             "conflict refusal",
             check_conflicting_idempotency_key_reuse_is_refused,
+        ),
+        (
+            "spent key answers",
+            check_spent_answers_the_original_envelope,
         ),
         ("ordered replay", check_replay_returns_envelopes_in_order),
         ("tenant isolation", check_replay_is_tenant_isolated),

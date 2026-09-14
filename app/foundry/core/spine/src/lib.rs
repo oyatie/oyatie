@@ -13,6 +13,7 @@ mod error;
 mod fold;
 mod history;
 mod migrate;
+mod retry;
 mod revision;
 mod state;
 mod writer;
@@ -33,6 +34,7 @@ pub use migrate::{
     PendingUpcast, PlanError, UpcastTransform, ValueConversion, migration_attestation,
     pending_objects, run_to_fixpoint, upcast_idempotency_key,
 };
+pub use retry::same_request;
 pub use revision::{PinnedObject, UpcastState, ViewError, object_at_revision};
 pub use state::{ObjectBinding, ProjectionState};
 pub use writer::{ActionSubmission, ApplyOutcome, WriteError, submit};

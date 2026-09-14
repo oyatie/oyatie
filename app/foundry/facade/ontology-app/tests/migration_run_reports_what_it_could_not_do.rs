@@ -96,19 +96,16 @@ fn a_run_against_a_lagging_projection_terminates_rather_than_spinning() {
         r#"{"total":1,"upcast":0,"pending":1,"refused":0,"conflicted":0,"unavailable":0,"poisoned":1,"fixpoint":false}"#
     );
 }
-/// A SECOND run over a poisoned object reports a CONFLICT, and the conflict
-/// is this process's own retry rather than anything the caller did.
+/// A SECOND run over a poisoned object deduplicates its retry onto the
+/// poisoned ordinal and reports it POISONED, not conflicted.
 ///
-/// Worth pinning for two reasons. It is the only state in which `conflicted`
-/// is non-zero, so without it a hardcoded zero survives every other test
-/// here. And it is a diagnosis an operator will misread: `conflicted` means
-/// "a spent idempotency key, different content", and the caller reused
-/// nothing — the upcast's payload carries the decision id, the PDP mints a
-/// fresh decision per request, so the retry differs from the first attempt in
-/// a byte the idempotency key does not cover. There is no action the operator
-/// can take, and the object stays owed until the projection is refolded.
+/// The retry carries a fresh decision id, which the writer no longer treats
+/// as divergent content (`foundry_spine::same_request`), so the spent key
+/// answers the original, poisoned receipt. Nothing here is a conflict, and no
+/// run in this file reaches `conflicted`: a hardcoded zero there survives.
+/// The object stays owed until the projection is refolded.
 #[tokio::test]
-async fn a_retried_upcast_conflicts_with_its_own_earlier_attempt() {
+async fn a_retried_upcast_deduplicates_onto_its_own_poisoned_entry() {
     let (tx, rx) = std::sync::mpsc::channel();
     std::thread::spawn(move || {
         let runtime = tokio::runtime::Builder::new_current_thread()
@@ -134,7 +131,7 @@ async fn a_retried_upcast_conflicts_with_its_own_earlier_attempt() {
     assert_eq!(status, StatusCode::OK, "{body}");
     assert_eq!(
         body,
-        r#"{"total":1,"upcast":0,"pending":1,"refused":0,"conflicted":1,"unavailable":0,"poisoned":0,"fixpoint":false}"#
+        r#"{"total":1,"upcast":0,"pending":1,"refused":0,"conflicted":0,"unavailable":0,"poisoned":1,"fixpoint":false}"#
     );
 }
 /// A poisoned ENTRY is counted once, however many passes re-attempt it.
