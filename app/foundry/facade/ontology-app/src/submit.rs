@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::time::Instant;
 
 use axum::Json;
 use axum::extract::State;
@@ -19,6 +20,7 @@ pub async fn submit_action(
     headers: HeaderMap,
     body: String,
 ) -> Response {
+    let started = Instant::now();
     let Some(token) = bearer_token(
         headers
             .get("authorization")
@@ -107,8 +109,15 @@ pub async fn submit_action(
     let (log, denial_log, projection) = tenant.write_handles();
     let outcome = submit(submission, log, denial_log, projection);
     match &outcome {
-        Ok(_) => state.metrics.submit_served(),
-        Err(_) => state.metrics.submit_refused(),
+        Ok(_) => {
+            state.metrics.submit_served();
+            state.metrics.invocation_answered(started.elapsed());
+        }
+        Err(WriteError::Refused(refused)) => {
+            state.metrics.submit_refused();
+            state.metrics.denial_issued(refused.recorded_on_trail);
+        }
+        Err(WriteError::Log(_)) => state.metrics.submit_refused(),
     }
     match outcome {
         Ok(ApplyOutcome::Applied { receipt }) => Json(SubmitResponse {

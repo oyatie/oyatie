@@ -88,6 +88,7 @@ FACADE_TESTS = [
     ("migration-run", "migration_run_executes_the_callers_own_plan", MIGRATION_TEST_DEPS),
     ("migration-attest-malformed", "migration_attest_refuses_a_malformed_plan", MIGRATION_TEST_DEPS),
     ("statusz-triage-facts", "statusz_serves_the_triage_facts", MIGRATION_TEST_DEPS),
+    ("objectives-measure", "objectives_measure_latency_and_the_denial_trail", FACADE_TEST_DEPS),
 ]
 
 [

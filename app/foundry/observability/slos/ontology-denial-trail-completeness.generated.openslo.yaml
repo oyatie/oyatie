@@ -1,0 +1,50 @@
+# Generated from `app/foundry/facade/ontology-app/src/slo.rs`. Do not hand-edit:
+# the suite compares this file byte-for-byte against the renderer.
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: ontology-denial-trail-completeness
+  displayName: "foundry-ontology — writer refusals the denial trail holds"
+  labels:
+    microservice: foundry-ontology
+    sli_class: correctness
+    plane: app
+    owner_team: foundry
+spec:
+  service: foundry-ontology
+  description: |
+    A writer refusal is good when the denial trail holds its record. The
+    trail is the audit of Actions the writer refused after the policy
+    decision point allowed them, so the events are the WRITER's refusals
+    on the single-Action surface. A refusal before the writer is not a
+    denial and counts against availability, not here. A record the trail
+    could not take does not mask the refusal the caller received, which
+    is exactly why it must be counted: the caller saw a denial the audit
+    did not. Under an occurrence budget at 99.99%, a 30-day window with
+    fewer than ten thousand writer refusals is breached by a single lost
+    record, which is the intended posture for an audit control.
+  indicator:
+    metadata:
+      name: ontology-denial-trail-completeness-indicator
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(foundry_denial_recorded_total[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(foundry_denial_issued_total[5m]))
+  objectives:
+    - target: 0.9999
+      displayName: "99.99% of writer refusals durably on the denial trail over 30d"
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
