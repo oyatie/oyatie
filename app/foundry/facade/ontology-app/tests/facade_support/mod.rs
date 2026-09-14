@@ -13,6 +13,10 @@ pub const TENANT: &str = "ten_acme";
 const OPERATOR_TOKEN: &str = "operator-token-for-tests";
 const FOREIGN_TOKEN: &str = "foreign-token-for-tests";
 const ROLELESS_TOKEN: &str = "roleless-token-for-tests";
+pub const FIRST_TENANT: &str = "ten_aardvark";
+pub const LAST_TENANT: &str = "ten_zenith";
+const FIRST_TOKEN: &str = "first-token-for-tests";
+const LAST_TOKEN: &str = "last-token-for-tests";
 
 pub struct Fixture {
     action: PathBuf,
@@ -95,6 +99,36 @@ impl Fixture {
         Session {
             router: router(compose(&config).expect("boots")),
         }
+    }
+
+    /// A process serving three tenants, each with its own operator: the
+    /// shape a per-tenant surface is judged on, where the tenant under
+    /// test is neither the first nor the last the roster holds.
+    pub fn three_tenants_session(&self) -> Session {
+        let mut config = self.config();
+        config.tenants = vec![FIRST_TENANT.into(), TENANT.into(), LAST_TENANT.into()];
+        for (token, tenant_id, principal_id) in [
+            (FIRST_TOKEN, FIRST_TENANT, "prn_first"),
+            (LAST_TOKEN, LAST_TENANT, "prn_last"),
+        ] {
+            config.operators.push(OperatorCredential {
+                token: token.into(),
+                tenant_id: tenant_id.into(),
+                principal_id: principal_id.into(),
+                roles: vec!["foundry-operator".into()],
+            });
+        }
+        Session {
+            router: router(compose(&config).expect("boots")),
+        }
+    }
+
+    pub fn first_token(&self) -> &'static str {
+        FIRST_TOKEN
+    }
+
+    pub fn last_token(&self) -> &'static str {
+        LAST_TOKEN
     }
 
     pub fn state(&self) -> AppState {

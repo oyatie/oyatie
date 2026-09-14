@@ -10,7 +10,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use data_ontology_kernel::{EntityTypeId, ObjectProperty, OntologyEngine};
-use foundry_projection_draft::{ProjectionStore, ProjectionStoreError};
+use foundry_projection_draft::{
+    PageRequest, ProjectionCursor, ProjectionStore, ProjectionStoreError,
+};
 
 use crate::migrate::MigrationPlan;
 use crate::state::ProjectionState;
@@ -82,17 +84,7 @@ pub fn object_at_revision(
         .objects
         .get(&state.tenant_id, object_ref)
         .ok_or(ViewError::UnknownObject)?;
-    let declared: BTreeSet<&str> = definition
-        .properties
-        .iter()
-        .map(|property| property.name.as_str())
-        .collect();
-    let properties = entity
-        .properties
-        .iter()
-        .filter(|(name, _)| declared.contains(name.as_str()))
-        .map(|(name, property)| (name.clone(), property.clone()))
-        .collect();
+    let properties = retained(definition, &entity.properties);
     let upcast_state = if binding.schema_revision >= pinned {
         UpcastState::Current
     } else {
@@ -135,26 +127,85 @@ pub fn object_at_revision_in_store(
     let definition = registry
         .entity_type_at_revision(tenant_id, &type_id, pinned)
         .ok_or(ViewError::UnretainedRevision)?;
+    Ok(pinned_view(definition, &projected, pinned))
+}
+
+/// One projected object as a reader pinned at `pinned` sees it, without a
+/// plan: the properties `definition` declares, and written below the pin
+/// is pending. Both store-backed views build every object through this, so
+/// a page and a single read cannot derive the same object differently.
+fn pinned_view(
+    definition: &data_ontology_kernel::EntityTypeDefinition,
+    projected: &foundry_projection_draft::ProjectedObject,
+    pinned: u32,
+) -> PinnedObject {
+    PinnedObject {
+        properties: retained(definition, &projected.entity.properties),
+        written_revision: projected.schema_revision,
+        upcast_state: if projected.schema_revision >= pinned {
+            UpcastState::Current
+        } else {
+            UpcastState::UpcastPending
+        },
+    }
+}
+
+/// The properties of an object that `definition` declares. Behind a pin the
+/// filter is lossless under additive-only evolution; a property the pinned
+/// definition does not declare is not the pinned reader's to see.
+fn retained(
+    definition: &data_ontology_kernel::EntityTypeDefinition,
+    properties: &BTreeMap<String, ObjectProperty>,
+) -> BTreeMap<String, ObjectProperty> {
     let declared: BTreeSet<&str> = definition
         .properties
         .iter()
         .map(|property| property.name.as_str())
         .collect();
-    let properties = projected
-        .entity
-        .properties
+    properties
         .iter()
         .filter(|(name, _)| declared.contains(name.as_str()))
         .map(|(name, property)| (name.clone(), property.clone()))
+        .collect()
+}
+
+/// One page of a type's objects, each as a reader pinned at `pinned` sees
+/// it, in `object_ref` order. `next` is present exactly when the store has
+/// more objects of this type past the page.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PinnedPage {
+    pub objects: Vec<(String, PinnedObject)>, // data_class: PROPERTY_VALUE_PRIVACY_CLASS
+    pub next: Option<ProjectionCursor>,       // data_class: INTERNAL_ONLY
+}
+
+/// [`object_at_revision_in_store`] over a whole page of one entity type.
+/// The pin resolves against the registry once, not per row, because every
+/// object on the page has the queried type. This view takes no plan, so
+/// written below the pin is pending for every row.
+pub fn objects_of_type_at_revision(
+    store: &dyn ProjectionStore,
+    registry: &OntologyEngine,
+    tenant_id: &str,
+    entity_type: &EntityTypeId,
+    pinned: u32,
+    page: &PageRequest,
+) -> Result<PinnedPage, ViewError> {
+    let definition = registry
+        .entity_type_at_revision(tenant_id, entity_type, pinned)
+        .ok_or(ViewError::UnretainedRevision)?;
+    let page = store
+        .objects_of_type(tenant_id, &entity_type.value, page)
+        .map_err(ViewError::StoreUnreadable)?;
+    let objects = page
+        .objects
+        .into_iter()
+        .map(|projected| {
+            let view = pinned_view(definition, &projected, pinned);
+            (projected.entity.id, view)
+        })
         .collect();
-    let upcast_state = if projected.schema_revision >= pinned {
-        UpcastState::Current
-    } else {
-        UpcastState::UpcastPending
-    };
-    Ok(PinnedObject {
-        properties,
-        written_revision: projected.schema_revision,
-        upcast_state,
+    Ok(PinnedPage {
+        objects,
+        next: page.next,
     })
 }

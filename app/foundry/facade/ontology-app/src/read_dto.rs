@@ -1,4 +1,5 @@
 use data_ontology_kernel::PropertyValue;
+use foundry_spine::{PinnedObject, UpcastState};
 use serde::Serialize;
 
 /// `?revision=N`, parsed from the RAW query string inside the handler.
@@ -56,6 +57,41 @@ pub(crate) struct PropertyBody {
     pub(crate) value_type: &'static str, // data_class: INTERNAL_ONLY
     pub(crate) data_class: &'static str, // data_class: INTERNAL_ONLY
     pub(crate) value: serde_json::Value, // data_class: PROPERTY_VALUE_PRIVACY_CLASS
+}
+
+/// One object as the pinned view answered it, rendered for the wire. The
+/// same body shape serves a single read and a row of a listing.
+pub(crate) fn pinned_body(object_ref: String, pinned: &PinnedObject) -> PinnedObjectBody {
+    PinnedObjectBody {
+        object_ref,
+        written_revision: pinned.written_revision,
+        upcast_state: match pinned.upcast_state {
+            UpcastState::Current => "current",
+            UpcastState::UpcastPending => "upcast_pending",
+        },
+        properties: pinned
+            .properties
+            .iter()
+            .map(|(name, property)| {
+                (
+                    name.clone(),
+                    PropertyBody {
+                        value_type: property.value.value.type_label(),
+                        data_class: property.value.data_class.label(),
+                        value: json_value(&property.value.value),
+                    },
+                )
+            })
+            .collect(),
+    }
+}
+
+/// A page of pinned objects. `next` carries the last object reference of
+/// this page and is present exactly when more objects of the type remain.
+#[derive(Debug, Serialize)]
+pub(crate) struct ListingBody {
+    pub(crate) objects: Vec<PinnedObjectBody>, // data_class: PROPERTY_VALUE_PRIVACY_CLASS
+    pub(crate) next: Option<String>,           // data_class: TENANT_SCOPED
 }
 
 #[derive(Debug, Serialize)]
