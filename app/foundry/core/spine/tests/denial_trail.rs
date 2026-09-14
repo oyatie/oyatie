@@ -176,6 +176,10 @@ fn a_refusal_lands_on_the_audit_log_and_nowhere_else() {
         panic!("expected a gate refusal");
     };
     assert_eq!(refused.gate, RefusalGate::Authorization);
+    assert!(
+        refused.recorded_on_trail,
+        "the refusal reports the trail holds it"
+    );
 
     assert_eq!(log.head("ten_test").unwrap(), 0, "no object ordinal spent");
     assert_eq!(
@@ -203,11 +207,18 @@ fn an_identical_refusal_retries_deduplicate_on_the_audit_log() {
     let mut projection = ProjectionState::new("ten_test", &registry);
 
     for _ in 0..2 {
-        let _ = submit(
+        let WriteError::Refused(refused) = submit(
             unauthorized_submission(),
             &mut log,
             &mut denials,
             &mut projection,
+        )
+        .unwrap_err() else {
+            panic!("expected a gate refusal");
+        };
+        assert!(
+            refused.recorded_on_trail,
+            "a deduplicated re-append is a denial the trail holds"
         );
     }
     assert_eq!(
@@ -235,6 +246,10 @@ fn an_audit_append_failure_never_masks_the_refusal() {
         panic!("the caller must see the refusal, not the audit failure: {error:?}");
     };
     assert_eq!(refused.gate, RefusalGate::Authorization);
+    assert!(
+        !refused.recorded_on_trail,
+        "a refusal the trail could not take must say so"
+    );
     assert_eq!(log.head("ten_test").unwrap(), 0);
 }
 

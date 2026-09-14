@@ -139,6 +139,48 @@ pub static SLOS: &[SloSpec] = &[
         objective_display: "99.5% of reads answered over 30d",
         counter: true,
     },
+    SloSpec {
+        name: "ontology-invocation-latency",
+        display_name: "foundry-ontology — accepted invocations answered within budget",
+        sli_class: "latency",
+        description: "An accepted single-Action invocation is good when the handler \
+                      answered within 250 ms of its entry: credential, policy \
+                      decision, tenant lock, append and fold all inside the budget. \
+                      Only ACCEPTED invocations are measured; a refusal is the \
+                      availability objective's event, and timing it here would let \
+                      fast refusals buy latency budget. The migration run surface \
+                      is not timed against this budget, because one run is many \
+                      writes. The budget is a counter pair rather than a histogram \
+                      because this exposition is hand-rendered and unlabelled; the \
+                      series name carries the budget so a change to one without the \
+                      other is visible.",
+        good_query: "sum(rate(foundry_action_invocation_answered_within_250ms_total[5m]))",
+        total_query: "sum(rate(foundry_action_invocation_answered_total[5m]))",
+        target: "0.99",
+        objective_display: "99% of accepted invocations answered within 250 ms over 30d",
+        counter: true,
+    },
+    SloSpec {
+        name: "ontology-denial-trail-completeness",
+        display_name: "foundry-ontology — writer refusals the denial trail holds",
+        sli_class: "correctness",
+        description: "A writer refusal is good when the denial trail holds its record. \
+                      The trail is the audit of Actions the writer refused after the \
+                      policy decision point allowed them, so the events are the \
+                      WRITER's refusals on the single-Action surface. A refusal before \
+                      the writer is not a denial and counts against availability, \
+                      not here. A record the trail could not take does \
+                      not mask the refusal the caller received, which is exactly why \
+                      it must be counted: the caller saw a denial the audit did not. \
+                      Under an occurrence budget at 99.99%, a 30-day window with fewer \
+                      than ten thousand writer refusals is breached by a single lost \
+                      record, which is the intended posture for an audit control.",
+        good_query: "sum(rate(foundry_denial_recorded_total[5m]))",
+        total_query: "sum(rate(foundry_denial_issued_total[5m]))",
+        target: "0.9999",
+        objective_display: "99.99% of writer refusals durably on the denial trail over 30d",
+        counter: true,
+    },
 ];
 
 pub fn render_openslo(spec: &SloSpec) -> String {
