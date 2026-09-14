@@ -31,8 +31,8 @@ pub(crate) struct StatusBody {
     /// a SECOND pass that may disagree with the aggregate above. The two
     /// blocks below are read under the same acquisition and go `null` with it.
     pub(crate) entity_types: Option<Vec<String>>, // data_class: TENANT_SCOPED
-    /// Also `null` when the log head is unreadable: the projection's side is
-    /// known then, but a sync status with a guessed head would be a lie.
+    /// Also `null` when the log head or the projection store is unreadable:
+    /// a sync status with a guessed side would be a lie.
     pub(crate) tenant: Option<TenantSync>, // data_class: INTERNAL_ONLY
     /// The registry snapshot the caller's tenant's fold was seeded with,
     /// which is the one its writes are stamped from. Not the store-side

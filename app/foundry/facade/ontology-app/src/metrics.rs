@@ -95,8 +95,8 @@ pub fn samples(state: &AppState) -> Vec<Sample> {
         Sample {
             name: "foundry_projection_lag",
             kind: "gauge",
-            help: "Entries durably appended to a tenant's log that its projection has \
-                   not yet consumed, summed over served tenants.",
+            help: "Entries durably appended to a tenant's log that its durable \
+                   projection store has not yet applied, summed over served tenants.",
             value: seen.lag,
             objective_eligible: true,
             ineligible_because: "",
@@ -106,7 +106,7 @@ pub fn samples(state: &AppState) -> Vec<Sample> {
             kind: "gauge",
             help: "Served tenants whose mutex was held when the scrape ran — a request \
                    in flight, not a fault. Subtract from foundry_projection_lag_unknown \
-                   for the tenants whose log head could not be read at all. SUSTAINED \
+                   for the tenants whose log head or store could not be read. SUSTAINED \
                    NON-ZERO is the wedge to alert on — reads hold the tenant mutex \
                    across a full replay, so a hung store never releases it. Equality \
                    with the served-tenant count is the subcase the freshness \
@@ -122,8 +122,9 @@ pub fn samples(state: &AppState) -> Vec<Sample> {
         Sample {
             name: "foundry_projection_fresh",
             kind: "gauge",
-            help: "1 when every tenant the process could read has consumed its whole \
-                   log, 0 when any is behind or any log head was unreadable. A tenant \
+            help: "1 when every tenant the process could read has its durable \
+                   projection at its log head, 0 when any is behind or any log head \
+                   or store was unreadable. A tenant \
                    that was merely BUSY does not zero this: a lock held by a request \
                    in flight is a service being used, and lag persists, so a tenant \
                    genuinely behind is seen on the scrapes that are not contended. \
@@ -138,7 +139,8 @@ pub fn samples(state: &AppState) -> Vec<Sample> {
             name: "foundry_projection_lag_unknown",
             kind: "gauge",
             help: "Served tenants whose lag could not be sampled, because the tenant \
-                   was locked or its log head was unreadable. A tenant counted here \
+                   was locked or its log head or projection store was unreadable. A \
+                   tenant counted here \
                    contributes nothing to foundry_projection_lag, so a zero lag is \
                    only evidence of freshness while this is also zero. \
                    foundry_projection_contended splits out the busy half, so the \
@@ -150,7 +152,7 @@ pub fn samples(state: &AppState) -> Vec<Sample> {
         Sample {
             name: "foundry_poisoned_entries",
             kind: "gauge",
-            help: "Log entries the fold consumed and deterministically refused, summed \
+            help: "Log entries the durable store holds as consumed and refused, summed \
                    over served tenants. Taken in the same pass as the lag, so \
                    foundry_projection_lag_unknown qualifies this total too: an \
                    unsampled tenant contributes nothing to either.",

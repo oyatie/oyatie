@@ -8,7 +8,7 @@ use axum::response::{IntoResponse, Response};
 use data_ontology_kernel::{ActionInvocationRequest, ActionTypeId};
 use foundry_edits::{EditSet, OntologyEdit, WireDataClass, WireProperty, WireTier, WireValue};
 use foundry_records_draft::RecordsLogError;
-use foundry_spine::{ActionSubmission, ApplyOutcome, WriteError, submit};
+use foundry_spine::{ActionSubmission, ApplyOutcome, WriteError, submit_through};
 
 use crate::auth::bearer_token;
 use crate::composition::AppState;
@@ -106,8 +106,16 @@ pub async fn submit_action(
         edits,
     };
 
-    let (log, denial_log, projection) = tenant.write_handles();
-    let outcome = submit(submission, log, denial_log, projection);
+    let (log, denial_log, projection, store) = tenant.write_handles();
+    // The write is accepted once the log holds it and the fold applied it. A
+    // mirror the store refused leaves the durable projection behind, which
+    // the sync status reports as lag until catch-up repairs it.
+    let outcome = submit_through(submission, log, denial_log, projection, store).map(|mirrored| {
+        if let Err(error) = mirrored.mirror {
+            tracing::warn!(?error, "durable projection mirror refused");
+        }
+        mirrored.outcome
+    });
     match &outcome {
         Ok(_) => {
             state.metrics.submit_served();

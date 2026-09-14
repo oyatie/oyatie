@@ -2,83 +2,33 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use foundry_caller_draft::{CallerVerifier, RosterVerifier};
+use foundry_projection_draft::{ProjectionStore, ProjectionStoreError};
+use foundry_projection_sqlite_draft::SqliteProjectionStore;
 use foundry_records_draft::{RecordsLog, RecordsLogError, SealedEnvelope};
 use foundry_records_sqlite_draft::SqliteRecordsLog;
-use foundry_spine::{ProjectionState, SyncStatus, fold_from_scratch};
+use foundry_spine::{ProjectionState, SyncStatus, catch_up, fold_from_scratch, store_sync_status};
 use tokio::sync::Mutex;
 
 use crate::authz::PolicyEnforcementPoint;
+pub use crate::boot::BootError;
 use crate::config::Config;
 use crate::seed::registry_for;
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum BootError {
-    ActionLogUnopenable {
-        detail: String,
-    },
-    DenialLogUnopenable {
-        detail: String,
-    },
-    /// Both logs name one path. A shared store would let a refusal land in
-    /// the log it was refused from.
-    LogPathsAliased,
-    NoTenantsConfigured,
-    SeedRefused {
-        tenant_id: String,
-        detail: String,
-    },
-    ReplayFailed {
-        tenant_id: String,
-        detail: String,
-    },
-    PolicyRejected {
-        detail: String,
-    },
-}
-
-impl std::fmt::Display for BootError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::ActionLogUnopenable { detail } => {
-                write!(formatter, "the action log could not be opened: {detail}")
-            }
-            Self::DenialLogUnopenable { detail } => {
-                write!(formatter, "the denial trail could not be opened: {detail}")
-            }
-            Self::LogPathsAliased => write!(
-                formatter,
-                "the action log and the denial trail must be distinct stores"
-            ),
-            Self::NoTenantsConfigured => {
-                write!(
-                    formatter,
-                    "no tenants configured; the roster is the served set"
-                )
-            }
-            Self::SeedRefused { tenant_id, detail } => {
-                write!(
-                    formatter,
-                    "tenant {tenant_id} could not be seeded: {detail}"
-                )
-            }
-            Self::ReplayFailed { tenant_id, detail } => {
-                write!(
-                    formatter,
-                    "tenant {tenant_id} could not be replayed: {detail}"
-                )
-            }
-            Self::PolicyRejected { detail } => {
-                write!(formatter, "the policy seed was rejected: {detail}")
-            }
-        }
-    }
-}
 
 pub struct TenantState {
     pub projection: ProjectionState,
     /// Held behind the PORT so a test can install a log that fails on demand.
     pub action_log: Box<dyn RecordsLog + Send>,
     pub denial_log: Box<dyn RecordsLog + Send>,
+    /// The durable mirror of `projection`; the sync status is read here.
+    pub projection_store: Box<dyn ProjectionStore + Send>,
+}
+
+/// Why a tenant's sync status could not be read: either side may fail, and
+/// an unreadable store is never lag zero.
+#[derive(Debug)]
+pub enum SyncError {
+    Log(RecordsLogError),
+    Store(ProjectionStoreError),
 }
 
 impl std::fmt::Debug for TenantState {
@@ -91,7 +41,7 @@ impl std::fmt::Debug for TenantState {
 }
 
 impl TenantState {
-    /// The three handles `submit` requires, borrowed together so the
+    /// The four handles a write-through requires, borrowed together so the
     /// borrow checker enforces what the write path already assumes.
     pub fn write_handles(
         &mut self,
@@ -99,11 +49,13 @@ impl TenantState {
         &mut dyn RecordsLog,
         &mut dyn RecordsLog,
         &mut ProjectionState,
+        &mut dyn ProjectionStore,
     ) {
         (
             &mut *self.action_log,
             &mut *self.denial_log,
             &mut self.projection,
+            &mut *self.projection_store,
         )
     }
 }
@@ -121,10 +73,14 @@ impl TenantState {
         self.action_log.replay(tenant_id, 1)
     }
 
-    pub fn sync_status(&self, tenant_id: &str) -> Result<SyncStatus, RecordsLogError> {
-        Ok(self
-            .projection
-            .sync_status(self.action_log.head(tenant_id)?))
+    /// The DURABLE store's position against the log head, never the
+    /// in-memory fold's: what survives a restart is what an operator asks.
+    /// The two positions agree while this process is the sole writer of its
+    /// log and every mirror was taken, which is the same assumption
+    /// `entries_now` states.
+    pub fn sync_status(&self, tenant_id: &str) -> Result<SyncStatus, SyncError> {
+        let head = self.action_log.head(tenant_id).map_err(SyncError::Log)?;
+        store_sync_status(&*self.projection_store, tenant_id, head).map_err(SyncError::Store)
     }
 }
 
@@ -163,6 +119,11 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
     if paths_alias(&config.action_log, &config.denial_log) {
         return Err(BootError::LogPathsAliased);
     }
+    if paths_alias(&config.projection_store, &config.action_log)
+        || paths_alias(&config.projection_store, &config.denial_log)
+    {
+        return Err(BootError::StorePathAliased);
+    }
     let action_log = SqliteRecordsLog::open(&config.action_log).map_err(|error| {
         BootError::ActionLogUnopenable {
             detail: format!("{error:?}"),
@@ -188,6 +149,18 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
                 tenant_id: tenant_id.clone(),
                 detail: format!("{error:?}"),
             })?;
+        let mut store = SqliteProjectionStore::open(&config.projection_store).map_err(|error| {
+            BootError::ProjectionStoreUnopenable {
+                detail: format!("{error:?}"),
+            }
+        })?;
+        catch_up(tenant_id, &registry, &mut store, &entries).map_err(|error| {
+            BootError::CatchUpRefused {
+                tenant_id: tenant_id.clone(),
+                detail: format!("{error:?}"),
+            }
+        })?;
+        // Folded a second time: catch-up folds to mirror and keeps nothing.
         let projection = fold_from_scratch(tenant_id, &registry, entries.iter());
         drop(entries);
         let action_log = SqliteRecordsLog::open(&config.action_log).map_err(|error| {
@@ -206,6 +179,7 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
                 projection,
                 action_log: Box::new(action_log),
                 denial_log: Box::new(denial_log),
+                projection_store: Box::new(store),
             }),
         );
     }
