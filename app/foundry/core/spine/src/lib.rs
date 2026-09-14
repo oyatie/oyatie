@@ -36,4 +36,6 @@ pub use migrate::{
 pub use revision::{PinnedObject, UpcastState, ViewError, object_at_revision};
 pub use state::{ObjectBinding, ProjectionState};
 pub use writer::{ActionSubmission, ApplyOutcome, WriteError, submit};
-pub use writethrough::{WriteThroughError, project_through};
+pub use writethrough::{
+    Mirrored, WriteThroughError, mirror_folded, project_through, submit_through,
+};

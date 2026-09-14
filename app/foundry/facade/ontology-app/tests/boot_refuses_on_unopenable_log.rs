@@ -20,15 +20,22 @@ fn a_path_that_cannot_be_opened(under: &std::path::Path) -> PathBuf {
 struct Paths {
     action: PathBuf,
     denial: PathBuf,
+    store: PathBuf,
 }
 
 impl Paths {
     fn new(case: &str) -> Self {
         let action = temp_path(case, "action");
         let denial = temp_path(case, "denial");
-        let _ = std::fs::remove_file(&action);
-        let _ = std::fs::remove_file(&denial);
-        Self { action, denial }
+        let store = temp_path(case, "store");
+        for path in [&action, &denial, &store] {
+            let _ = std::fs::remove_file(path);
+        }
+        Self {
+            action,
+            denial,
+            store,
+        }
     }
 
     fn config(&self) -> Config {
@@ -36,6 +43,7 @@ impl Paths {
             listen_addr: "127.0.0.1:0".into(),
             action_log: self.action.clone(),
             denial_log: self.denial.clone(),
+            projection_store: self.store.clone(),
             tenants: vec!["ten_test".into()],
             operators: Vec::new(),
         }
@@ -44,8 +52,9 @@ impl Paths {
 
 impl Drop for Paths {
     fn drop(&mut self) {
-        let _ = std::fs::remove_file(&self.action);
-        let _ = std::fs::remove_file(&self.denial);
+        for path in [&self.action, &self.denial, &self.store] {
+            let _ = std::fs::remove_file(path);
+        }
     }
 }
 

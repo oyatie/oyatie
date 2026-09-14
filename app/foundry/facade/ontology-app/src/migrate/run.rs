@@ -10,7 +10,7 @@ use axum::Json;
 use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
-use foundry_spine::{MigrationAuthority, MigrationPlan, run_to_fixpoint};
+use foundry_spine::{MigrationAuthority, MigrationPlan, catch_up, run_to_fixpoint};
 use serde::Serialize;
 
 use super::PlanRequest;
@@ -122,9 +122,28 @@ pub async fn run(State(state): State<Arc<AppState>>, headers: HeaderMap, body: S
     };
 
     let mut tenant = tenant.lock().await;
-    let (log, denial_log, projection) = tenant.write_handles();
+    let (log, denial_log, projection, store) = tenant.write_handles();
     match run_to_fixpoint(&plan, &authority, log, denial_log, projection) {
         Ok(status) => {
+            // A run is many writes; the store is caught up once, afterwards.
+            let caught_up = log
+                .replay(&caller.tenant_id, 1)
+                .map_err(|error| format!("{error:?}"))
+                .and_then(|entries| {
+                    catch_up(
+                        &caller.tenant_id,
+                        &projection.registry_input,
+                        store,
+                        &entries,
+                    )
+                    .map_err(|error| format!("{error:?}"))
+                });
+            if let Err(error) = caught_up {
+                tracing::warn!(
+                    error,
+                    "durable projection catch-up after a migration run refused"
+                );
+            }
             state.metrics.submit_served();
             Json(RunBody {
                 total: status.total,

@@ -48,11 +48,23 @@ pub(crate) fn scalar(
 /// so the second revision is a TEST fact, registered on a composed engine
 /// the same way an evolution lane would land it.
 pub(crate) fn state_with_two_revisions(config: &Config) -> AppState {
+    state_with_two_revisions_for(config, &["ten_acme"])
+}
+
+/// The same evolution for each named served tenant.
+pub(crate) fn state_with_two_revisions_for(config: &Config, tenants: &[&str]) -> AppState {
     let mut state = compose(config).expect("boots");
+    for tenant_id in tenants {
+        evolve_to_revision_two(&mut state, tenant_id);
+    }
+    state
+}
+
+fn evolve_to_revision_two(state: &mut AppState, tenant_id: &str) {
     let internal = PrivacyDataClass::try_from(DataClass::InternalOnly).expect("a privacy class");
     let projection = &mut state
         .tenants
-        .get_mut("ten_acme")
+        .get_mut(tenant_id)
         .expect("the served tenant")
         .get_mut()
         .projection;
@@ -66,7 +78,7 @@ pub(crate) fn state_with_two_revisions(config: &Config) -> AppState {
         engine
             .evolve_entity_type(
                 EntityTypeDefinition::new(
-                    "ten_acme",
+                    tenant_id,
                     EntityTypeId::new("ety_record").expect("a type id"),
                     "Record",
                     vec![
@@ -82,7 +94,6 @@ pub(crate) fn state_with_two_revisions(config: &Config) -> AppState {
             )
             .expect("the evolution registers");
     }
-    state
 }
 
 pub(crate) async fn run(

@@ -219,7 +219,12 @@ async fn an_unreadable_log_nulls_the_sync_facts_and_still_serves_the_registry() 
         body.contains(r#""unreadable_tenants":2"#) && body.contains(r#""tenant":null"#),
         "{body}"
     );
-    assert!(body.contains(SEED_REGISTRY), "{body}");
+    // The caller's own types and registry come from memory, so an unreadable
+    // head withholds only the sync facts.
+    assert!(
+        body.contains(r#""entity_types":["ety_record"]"#) && body.contains(SEED_REGISTRY),
+        "{body}"
+    );
     assert!(
         other.contains(r#""unreadable_tenants":2"#)
             && other.contains(r#""entity_types":["ety_record"]"#)

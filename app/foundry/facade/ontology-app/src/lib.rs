@@ -3,6 +3,7 @@
 
 pub mod auth;
 pub mod authz;
+mod boot;
 pub mod composition;
 pub mod config;
 pub mod dto;
