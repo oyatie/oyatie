@@ -53,13 +53,52 @@ async fn only_canonical_noncommitting_statuses_are_definitive_rejections() {
                 Default::default(),
             )
             .await;
-        assert_eq!(
-            matches!(result, Err(Error::ActionRejected)),
-            matches!(status, 400 | 401 | 403),
-            "HTTP {status}"
-        );
-        assert_eq!(result.is_ok(), status == 200, "HTTP {status}");
+        match status {
+            200 => assert!(result.is_ok(), "HTTP {status}: {result:?}"),
+            400 | 401 | 403 => {
+                assert!(
+                    matches!(result, Err(Error::ActionRejected)),
+                    "HTTP {status}: {result:?}"
+                );
+            }
+            429 | 500 | 503 => {
+                assert!(
+                    matches!(result, Err(Error::Unavailable(_))),
+                    "HTTP {status}: {result:?}"
+                );
+            }
+            _ => assert!(result.is_err(), "HTTP {status}: {result:?}"),
+        }
     }
+    server.abort();
+}
+
+#[tokio::test]
+async fn foundry_503_is_unavailable() {
+    let (listener, origin) = listen().await;
+    let server = tokio::spawn(async move {
+        axum::serve(
+            listener,
+            axum::Router::new().route(
+                "/v1/actions",
+                axum::routing::post(|| async { axum::http::StatusCode::SERVICE_UNAVAILABLE }),
+            ),
+        )
+        .await
+        .unwrap();
+    });
+    let foundry = HttpFoundry::new(&origin, "acme").unwrap();
+    let result = foundry
+        .invoke(
+            "viewer",
+            &object("acme", "item", 1),
+            "assign",
+            "stable-id",
+            1,
+            Default::default(),
+        )
+        .await;
+    assert!(matches!(result, Err(Error::Unavailable(_))), "{result:?}");
     server.abort();
 }
 
