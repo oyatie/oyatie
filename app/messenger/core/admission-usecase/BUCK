@@ -23,25 +23,14 @@ rust_test(
 )
 
 rust_test(
-    name = "messenger-admission-usecase-txn",
-    srcs = ["tests/txn.rs"],
-    crate = "txn",
-    crate_root = "tests/txn.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":messenger-admission-usecase",
-        "third-party//:serde_json",
-    ],
-)
-
-rust_test(
     name = "messenger-admission-usecase-contract",
-    srcs = glob(["tests/contract.rs", "tests/support/**/*.rs"]),
+    srcs = ["tests/contract.rs"],
     crate = "contract",
     crate_root = "tests/contract.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":messenger-admission-usecase",
+        "//app/messenger/adapters/authority-memory:messenger-authority-memory",
         "//app/messenger/core/domain:messenger-domain",
         "//app/messenger/ports/conversation-api:messenger-conversation-api",
         "third-party//:serde_json",

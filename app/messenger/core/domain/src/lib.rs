@@ -37,5 +37,5 @@ pub use message::{
     RoomDelta, SyncUpdate, merge_messages, message_body,
 };
 pub use object::ObjectRef;
-pub use record::{AuthorityRecord, Room, StoredEvent, TxnRecord};
+pub use record::{AuthorityRecord, Room, StoredEvent};
 pub use rooms::{DeviceSummary, LoginMethods, MemberSummary, RoomMode, RoomSummary};

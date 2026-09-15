@@ -5922,6 +5922,7 @@ version = "0.1.0"
 name = "messenger-admission-usecase"
 version = "0.1.0"
 dependencies = [
+ "messenger-authority-memory",
  "messenger-conversation-api",
  "messenger-domain",
  "serde_json",
