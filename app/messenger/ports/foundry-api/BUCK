@@ -1,0 +1,23 @@
+rust_library(
+    name = "messenger-foundry-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_foundry_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "messenger-foundry-api-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_foundry_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "third-party//:serde_json",
+    ],
+)
