@@ -15,6 +15,7 @@ mod history;
 mod migrate;
 mod retry;
 mod revision;
+mod sets;
 mod state;
 mod writer;
 mod writethrough;
@@ -38,6 +39,9 @@ pub use retry::same_request;
 pub use revision::{
     PageError, PinnedObject, PinnedPage, UpcastState, ViewError, object_at_revision,
     object_at_revision_in_store, objects_of_type_at_revision,
+};
+pub use sets::{
+    MAX_SET_LEAVES, MAX_SET_MEMBERS, ObjectSet, SetDefinition, SetError, materialize_object_set,
 };
 pub use state::{ObjectBinding, ProjectionState};
 pub use writer::{ActionSubmission, ApplyOutcome, WriteError, submit};

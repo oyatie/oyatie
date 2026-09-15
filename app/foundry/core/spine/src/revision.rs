@@ -132,9 +132,10 @@ pub fn object_at_revision_in_store(
 
 /// One projected object as a reader pinned at `pinned` sees it, without a
 /// plan: the properties `definition` declares, and written below the pin
-/// is pending. Both store-backed views build every object through this, so
-/// a page and a single read cannot derive the same object differently.
-fn pinned_view(
+/// is pending. Every store-backed view builds its objects through this — the
+/// single read, the page, and a set's named leaf — so no two of them can
+/// derive one object differently.
+pub(crate) fn pinned_view(
     definition: &data_ontology_kernel::EntityTypeDefinition,
     projected: &foundry_projection_draft::ProjectedObject,
     pinned: u32,
@@ -169,10 +170,11 @@ fn retained(
         .collect()
 }
 
-/// Typed refusals of the PAGED view. It shares the pin and store arms with
-/// [`ViewError`] and adds the two only a filter can reach, so the
-/// single-object read cannot be handed them. It has no unknown-object arm:
-/// a page reads no single object, so absence is an empty page.
+/// Typed refusals of the PAGED view, and of anything built on it. It shares
+/// the pin and store arms with [`ViewError`] and adds the two only a filter can
+/// reach, so the single-object read cannot be handed them. It has no
+/// unknown-object arm: no producer of a page reads a single named object whose
+/// absence it must report, so absence is an empty page.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PageError {
     /// The pinned revision was never accepted for this entity type.
@@ -191,10 +193,10 @@ pub enum PageError {
     FilterKindMismatch { property: String },
 }
 
-/// One page of a type's objects, each as a reader pinned at `pinned` sees
-/// it, in `object_ref` order. `next` is present exactly when the store has
-/// more objects past the page that this page's own filter admits — under no
-/// filter, more objects of this type.
+/// One page of rows, each as a reader pinned at `pinned` sees it, in
+/// `object_ref` order. `next` is present exactly when the producer of this
+/// page has rows past it: for a type scan, more objects of the type its
+/// filter admits; for an object set, more members of the set.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PinnedPage {
     pub objects: Vec<(String, PinnedObject)>, // data_class: PROPERTY_VALUE_PRIVACY_CLASS
