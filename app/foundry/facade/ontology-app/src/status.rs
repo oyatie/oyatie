@@ -62,7 +62,7 @@ pub(crate) struct DeclaredType {
 }
 
 pub async fn statusz(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response {
-    let (caller, tenant) = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
+    let (caller, _decision, tenant) = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };

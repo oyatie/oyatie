@@ -26,7 +26,7 @@ pub async fn page(
     headers: HeaderMap,
     body: String,
 ) -> Response {
-    let (caller, tenant) = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
+    let (caller, _decision, tenant) = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };
@@ -72,10 +72,18 @@ pub async fn page(
             })
             .into_response()
         }
+        Err(error) => refuse_set_error(&state, error),
+    }
+}
+
+/// The refusal a set error is answered with, shared by every route that
+/// materializes a set, so a seed and a page cannot answer one state two ways.
+pub(crate) fn refuse_set_error(state: &AppState, error: SetError) -> Response {
+    match error {
         // A leaf refuses for the reasons a listing's page refuses, with the
         // statuses the listing gives them.
-        Err(SetError::Leaf(error)) => refuse_page_error(&state, &error),
-        Err(SetError::TooManyMembers) => {
+        SetError::Leaf(error) => refuse_page_error(state, &error),
+        SetError::TooManyMembers => {
             state.metrics.read_refused();
             refuse(
                 StatusCode::BAD_REQUEST,
@@ -88,7 +96,7 @@ pub async fn page(
         // This route's grammar admits a limit of 1..=1000, so it cannot reach
         // this arm; a caller that builds its own page request can, and gets the
         // same cause the grammar would have given.
-        Err(SetError::UnusablePage) => {
+        SetError::UnusablePage => {
             state.metrics.read_refused();
             refuse(
                 StatusCode::BAD_REQUEST,
@@ -96,7 +104,7 @@ pub async fn page(
                 QueryRefusal::UnusableLimit.cause(),
             )
         }
-        Err(SetError::TooManyLeaves) => {
+        SetError::TooManyLeaves => {
             state.metrics.read_refused();
             refuse(
                 StatusCode::BAD_REQUEST,

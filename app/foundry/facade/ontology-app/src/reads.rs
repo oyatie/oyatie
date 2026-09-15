@@ -31,6 +31,7 @@ pub(crate) fn authorized<'a>(
 ) -> Result<
     (
         Caller,
+        data_ontology_kernel::ActionPolicyDecision,
         &'a tokio::sync::Mutex<crate::composition::TenantState>,
     ),
     Box<Response>,
@@ -60,19 +61,21 @@ pub(crate) fn authorized<'a>(
             "the credential names a tenant this process does not serve",
         )));
     };
-    if state
+    // The decision is returned, not discarded: it is the authority a query
+    // execution records, and a route that needed one would otherwise ask the
+    // policy engine a second time for an answer this gate already has.
+    let Ok(decision) = state
         .pep
         .decide(&caller, Surface::Use, object_ref, served_tenant)
-        .is_err()
-    {
+    else {
         state.metrics.read_refused();
         return Err(Box::new(refuse(
             StatusCode::FORBIDDEN,
             "authorization",
             "the policy decision point refused this read",
         )));
-    }
-    Ok((caller, tenant))
+    };
+    Ok((caller, decision, tenant))
 }
 
 pub async fn object(
@@ -81,7 +84,7 @@ pub async fn object(
     RawQuery(raw_query): RawQuery,
     headers: HeaderMap,
 ) -> Response {
-    let (caller, tenant) = match authorized(&state, &headers, &object_ref) {
+    let (caller, _decision, tenant) = match authorized(&state, &headers, &object_ref) {
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };
@@ -152,7 +155,7 @@ pub async fn history(
     Path(object_ref): Path<String>,
     headers: HeaderMap,
 ) -> Response {
-    let (caller, tenant) = match authorized(&state, &headers, &object_ref) {
+    let (caller, _decision, tenant) = match authorized(&state, &headers, &object_ref) {
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };
@@ -178,7 +181,7 @@ pub async fn history(
 }
 
 pub async fn audit(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response {
-    let (caller, tenant) = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
+    let (caller, _decision, tenant) = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };
@@ -212,7 +215,7 @@ pub async fn audit(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Re
 }
 
 pub async fn types(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response {
-    let (caller, tenant) = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
+    let (caller, _decision, tenant) = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };
