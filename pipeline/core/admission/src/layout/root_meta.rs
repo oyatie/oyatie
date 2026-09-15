@@ -12,6 +12,7 @@ const GITHUB_ROOT_FILES: &[&str] = &[
     "PULL_REQUEST_TEMPLATE.md",
     "SECURITY.md",
     "branch-protection.yaml",
+    "dependabot.yml",
 ];
 
 pub(super) fn validate_base_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
@@ -205,6 +206,16 @@ mod tests {
         ));
         assert!(rejected("packs/eu/plan/todo.md", validate_packs_path));
         assert!(rejected("packs/eu/new-overlay.yaml", validate_packs_path));
+    }
+
+    #[test]
+    fn github_admits_only_the_canonical_dependabot_config() {
+        assert!(!rejected(".github/dependabot.yml", validate_github_path));
+        assert!(rejected(
+            ".github/dependabot/config.yml",
+            validate_github_path
+        ));
+        assert!(rejected(".github/other.yml", validate_github_path));
     }
 
     #[test]
