@@ -1,7 +1,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use messenger_archive_api::{Archive, same_archive_event, validate_capture, validate_page};
+use messenger_archive_api::Archive;
 use messenger_domain::{ArchiveEvent, ArchiveEventPage, Error};
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -34,11 +34,11 @@ fn decode_cursor(cursor: &str) -> Result<(u64, String), Error> {
 
 impl Archive for MemoryArchive {
     async fn capture(&self, room: &str, event: ArchiveEvent) -> Result<(), Error> {
-        validate_capture(room, &event)?;
+        event.validate_capture(room)?;
         let mut inner = self.inner.lock().await;
         let room_events = inner.entry(room.to_owned()).or_default();
         if let Some(stored) = room_events.values().find(|stored| stored.id == event.id) {
-            return if same_archive_event(stored, &event) {
+            return if stored == &event {
                 Ok(())
             } else {
                 Err(Error::Invalid("archive event conflict".into()))
@@ -54,7 +54,7 @@ impl Archive for MemoryArchive {
         after: Option<&str>,
         limit: u16,
     ) -> Result<ArchiveEventPage, Error> {
-        validate_page(room, limit)?;
+        ArchiveEventPage::validate_page(room, limit)?;
         let after = match after {
             Some(cursor) => decode_cursor(cursor)?,
             None => (0, String::new()),

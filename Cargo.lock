@@ -5923,7 +5923,6 @@ name = "messenger-archive-api"
 version = "0.1.0"
 dependencies = [
  "messenger-domain",
- "serde_json",
 ]
 
 [[package]]
