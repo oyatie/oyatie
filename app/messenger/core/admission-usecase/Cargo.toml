@@ -11,6 +11,9 @@ messenger-conversation-api = { path = "../../ports/conversation-api" }
 messenger-domain = { path = "../domain" }
 
 [dev-dependencies]
+messenger-authority-memory = { path = "../../adapters/authority-memory" }
+messenger-conversation-api = { path = "../../ports/conversation-api" }
+messenger-domain = { path = "../domain" }
 serde_json.workspace = true
 tokio.workspace = true
 

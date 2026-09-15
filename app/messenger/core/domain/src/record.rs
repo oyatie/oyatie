@@ -23,17 +23,12 @@ impl Room {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct TxnRecord {
-    pub event_id: String,
-}
-
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct AuthorityRecord {
     pub generation: u64,
     pub seq: u64,
     pub rooms: BTreeMap<String, Room>,
-    pub txns: BTreeMap<String, TxnRecord>,
+    pub txns: BTreeMap<String, String>,
 }
 
 impl AuthorityRecord {

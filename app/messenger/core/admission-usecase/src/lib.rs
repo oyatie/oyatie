@@ -3,15 +3,10 @@
 
 mod txn;
 
-use messenger_domain::validate_admit;
+use messenger_conversation_api::RoomAuthority;
+use messenger_domain::{Admission, AdmitCommand, Error, validate_admit};
 
-pub const MAX_ADMIT_ATTEMPTS: u32 = 32;
-
-pub use messenger_conversation_api::RoomAuthority;
-pub use messenger_domain::{
-    Admission, AdmitCommand, AuthorityEvent, AuthorityRecord, AuthoritySync, Error, send_endpoint,
-};
-pub use txn::{admit_into, txn_key};
+const MAX_ADMIT_ATTEMPTS: u32 = 32;
 
 /// Admit one event: reuse a committed transaction identity, bind the outbox
 /// result to that identity, and retry serializable conflicts.
@@ -37,7 +32,7 @@ async fn attempt<A: RoomAuthority>(
 ) -> Result<Admission, Error> {
     let snapshot = authority.snapshot().await?;
     let expected = snapshot.generation;
-    let (next, admission) = admit_into(&snapshot, command)?;
+    let (next, admission) = txn::admit_into(&snapshot, command)?;
     authority.commit(expected, next).await?;
     Ok(admission)
 }

@@ -1,11 +1,67 @@
-mod support;
-
-use messenger_admission_usecase::{AdmitCommand, Error, RoomAuthority, admit, send_endpoint};
+use messenger_admission_usecase::admit;
+use messenger_authority_memory::MemoryAuthority;
+use messenger_conversation_api::RoomAuthority;
+use messenger_domain::{
+    AdmitCommand, AuthorityEvent, AuthorityRecord, AuthoritySync, Error, send_endpoint,
+};
 use serde_json::json;
-use support::{Contending, Memory};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 const ALICE: &str = "@alice:messenger.test";
 const BOB: &str = "@bob:messenger.test";
+
+struct Contending {
+    inner: Arc<MemoryAuthority>,
+    fail_commits: Mutex<u32>,
+}
+
+impl Contending {
+    fn new(inner: Arc<MemoryAuthority>, fail_commits: u32) -> Arc<Self> {
+        Arc::new(Self {
+            inner,
+            fail_commits: Mutex::new(fail_commits),
+        })
+    }
+}
+
+impl RoomAuthority for Contending {
+    async fn create_room(&self, creator: &str, join_rule: &str) -> Result<String, Error> {
+        self.inner.create_room(creator, join_rule).await
+    }
+
+    async fn snapshot(&self) -> Result<AuthorityRecord, Error> {
+        self.inner.snapshot().await
+    }
+
+    async fn commit(&self, expected_generation: u64, record: AuthorityRecord) -> Result<(), Error> {
+        let mut remaining = self.fail_commits.lock().await;
+        if *remaining > 0 {
+            *remaining -= 1;
+            return Err(Error::Unavailable("injected contention".into()));
+        }
+        drop(remaining);
+        self.inner.commit(expected_generation, record).await
+    }
+
+    async fn sync(
+        &self,
+        user: &str,
+        device: &str,
+        since: Option<&str>,
+    ) -> Result<AuthoritySync, Error> {
+        self.inner.sync(user, device, since).await
+    }
+
+    async fn state(
+        &self,
+        room: &str,
+        event_type: &str,
+        state_key: &str,
+    ) -> Result<Option<AuthorityEvent>, Error> {
+        self.inner.state(room, event_type, state_key).await
+    }
+}
 
 fn send(room: &str, sender: &str, device: &str, txn: &str, body: &str) -> AdmitCommand {
     AdmitCommand {
@@ -33,8 +89,8 @@ fn member(room: &str, sender: &str, target: &str, membership: &str) -> AdmitComm
     }
 }
 
-async fn public_room() -> (std::sync::Arc<Memory>, String) {
-    let store = Memory::new("messenger.test");
+async fn public_room() -> (Arc<MemoryAuthority>, String) {
+    let store = MemoryAuthority::new("messenger.test");
     let room = store.create_room(ALICE, "public").await.unwrap();
     admit(&*store, &member(&room, BOB, BOB, "join"))
         .await
@@ -42,7 +98,7 @@ async fn public_room() -> (std::sync::Arc<Memory>, String) {
     (store, room)
 }
 
-async fn bodies(store: &Memory, user: &str, room: &str) -> Vec<String> {
+async fn bodies(store: &MemoryAuthority, user: &str, room: &str) -> Vec<String> {
     store
         .sync(user, "DEVICE", None)
         .await
@@ -184,7 +240,7 @@ async fn admit_retries_serializable_conflicts_then_commits() {
 
 #[tokio::test]
 async fn invalid_commands_are_not_retried() {
-    let store = Memory::new("messenger.test");
+    let store = MemoryAuthority::new("messenger.test");
     let mut command = send("!room:messenger.test", ALICE, "DEV", "txn", "hello");
     command.sender = "alice".into();
     assert!(matches!(
