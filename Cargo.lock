@@ -6168,6 +6168,25 @@ name = "messaging-substrate-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "messenger-archive-api"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+ "serde_json",
+]
+
+[[package]]
+name = "messenger-archive-postgres"
+version = "0.1.0"
+dependencies = [
+ "messenger-archive-api",
+ "messenger-domain",
+ "serde_json",
+ "sqlx",
+ "tokio",
+]
+
+[[package]]
 name = "messenger-authority-memory"
 version = "0.1.0"
 dependencies = [

@@ -1,0 +1,42 @@
+rust_library(
+    name = "messenger-archive-postgres",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_archive_postgres",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/archive-api:messenger-archive-api",
+        "third-party//:serde_json",
+        "third-party//:sqlx",
+    ],
+)
+
+rust_test(
+    name = "messenger-archive-postgres-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_archive_postgres",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/archive-api:messenger-archive-api",
+        "third-party//:serde_json",
+        "third-party//:sqlx",
+    ],
+)
+
+rust_test(
+    name = "messenger-archive-postgres-contract",
+    srcs = ["tests/contract.rs"],
+    crate = "contract",
+    crate_root = "tests/contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-archive-postgres",
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/archive-api:messenger-archive-api",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)
