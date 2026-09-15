@@ -3,7 +3,7 @@
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
 use http_body_util::BodyExt;
-use messenger_homeserver_app::{compose, router};
+use messenger_homeserver_app::router;
 use serde_json::{Value, json};
 use tower::ServiceExt;
 
@@ -17,7 +17,7 @@ struct Client {
 impl Client {
     fn new() -> Self {
         Self {
-            router: router(compose("messenger.test")),
+            router: router("messenger.test"),
         }
     }
 

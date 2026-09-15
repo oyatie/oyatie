@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
 
-use messenger_homeserver_app::{compose, router};
+use messenger_homeserver_app::router;
 
 #[tokio::main]
 async fn main() {
@@ -13,7 +13,7 @@ async fn main() {
             std::process::exit(1);
         }
     };
-    if let Err(error) = axum::serve(listener, router(compose(server))).await {
+    if let Err(error) = axum::serve(listener, router(server)).await {
         eprintln!("{error}");
         std::process::exit(1);
     }
