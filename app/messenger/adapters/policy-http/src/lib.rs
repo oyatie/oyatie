@@ -2,7 +2,7 @@
 #![forbid(unsafe_code)]
 
 use messenger_domain::Error;
-use messenger_policy_api::{Action, Decision, Policy, Principal};
+use messenger_policy_api::{Action, Policy};
 use serde::Deserialize;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -61,15 +61,16 @@ struct Response {
 impl Policy for OyatiePolicy {
     async fn authorize(
         &self,
-        principal: &Principal,
+        tenant: &str,
+        subject: &str,
         action: Action,
         resource: &str,
-    ) -> Result<Decision, Error> {
-        if principal.tenant.is_empty() || principal.subject.is_empty() || resource.is_empty() {
+    ) -> Result<(), Error> {
+        if tenant.is_empty() || subject.is_empty() || resource.is_empty() {
             return Err(Error::Denied);
         }
         let id = request_id();
-        let body = authorize_body(principal, action, resource, &id, &self.version)?;
+        let body = authorize_body(tenant, subject, action, resource, &id, &self.version)?;
         let unavailable = || Error::Unavailable("Policy service unavailable".into());
         let mut response = self
             .client
@@ -103,10 +104,19 @@ impl Policy for OyatiePolicy {
         {
             return Err(Error::Denied);
         }
-        Ok(Decision {
-            id: response.decision_id,
-            version: response.policy_version,
-        })
+        Ok(())
+    }
+}
+
+fn action_slug(action: Action) -> &'static str {
+    match action {
+        Action::CreateRoom => "messenger.room.create",
+        Action::ManageRoom => "messenger.room.manage",
+        Action::Send => "messenger.message.send",
+        Action::Invite => "messenger.room.invite",
+        Action::Archive => "messenger.archive.capture",
+        Action::ReadObject => "messenger.object.read",
+        Action::InvokeAction => "messenger.object.invoke",
     }
 }
 
@@ -146,7 +156,8 @@ fn request_id() -> String {
 }
 
 fn authorize_body(
-    principal: &Principal,
+    tenant: &str,
+    subject: &str,
     action: Action,
     resource: &str,
     request_id: &str,
@@ -154,27 +165,42 @@ fn authorize_body(
 ) -> Result<serde_json::Value, Error> {
     let principal_ref = serde_json::json!({
         "entity_type": "OyatieMessenger::Principal",
-        "entity_id": serde_json::to_string(&(principal.tenant.as_str(), principal.subject.as_str()))
-            .map_err(|_| Error::Denied)?,
+        "entity_id": serde_json::to_string(&(tenant, subject)).map_err(|_| Error::Denied)?,
     });
     let resource_ref = serde_json::json!({
         "entity_type": "OyatieMessenger::Room",
-        "entity_id": serde_json::to_string(&(principal.tenant.as_str(), resource))
-            .map_err(|_| Error::Denied)?,
+        "entity_id": serde_json::to_string(&(tenant, resource)).map_err(|_| Error::Denied)?,
     });
     Ok(serde_json::json!({"request": {
         "request_id": request_id,
-        "tenant_id": principal.tenant,
+        "tenant_id": tenant,
         "principal": principal_ref,
-        "action": action.slug(),
+        "action": action_slug(action),
         "resource": resource_ref,
         "context": {
-            "caller_tenant": principal.tenant,
-            "caller_id": principal.subject,
+            "caller_tenant": tenant,
+            "caller_id": subject,
         },
         "min_policy_version": version,
     }, "entities": [
-        {"uid": principal_ref, "attributes": {"tenant_id": principal.tenant}, "parents": []},
-        {"uid": resource_ref, "attributes": {"tenant_id": principal.tenant}, "parents": []},
+        {"uid": principal_ref, "attributes": {"tenant_id": tenant}, "parents": []},
+        {"uid": resource_ref, "attributes": {"tenant_id": tenant}, "parents": []},
     ]}))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::action_slug;
+    use messenger_policy_api::Action;
+
+    #[test]
+    fn slugs_match_cedar_seed_action_map() {
+        assert_eq!(action_slug(Action::CreateRoom), "messenger.room.create");
+        assert_eq!(action_slug(Action::ManageRoom), "messenger.room.manage");
+        assert_eq!(action_slug(Action::Send), "messenger.message.send");
+        assert_eq!(action_slug(Action::Invite), "messenger.room.invite");
+        assert_eq!(action_slug(Action::Archive), "messenger.archive.capture");
+        assert_eq!(action_slug(Action::ReadObject), "messenger.object.read");
+        assert_eq!(action_slug(Action::InvokeAction), "messenger.object.invoke");
+    }
 }
