@@ -11,6 +11,9 @@ dependency-declarations-generation = { path = "../../ports/generation" }
 dependency-declarations-reconcile = { path = "../../core/reconcile" }
 rustix = { workspace = true, features = ["process"] }
 
+[target.'cfg(target_os = "macos")'.dependencies]
+libproc = "=0.14.11"
+
 [lib]
 doctest = false
 

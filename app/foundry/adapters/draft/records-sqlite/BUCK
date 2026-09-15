@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//app/foundry/ports/draft/records:foundry-records-draft",
-        "third-party//:rusqlite",
+        "third-party//mail/sqlite:rusqlite",
     ],
 )
 
@@ -19,6 +19,6 @@ rust_test(
     deps = [
         ":foundry-records-sqlite-draft",
         "//app/foundry/ports/draft/records:foundry-records-draft",
-        "third-party//:rusqlite",
+        "third-party//mail/sqlite:rusqlite",
     ],
 )

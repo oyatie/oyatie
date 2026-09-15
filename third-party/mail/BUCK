@@ -1,0 +1,172 @@
+load("//:pinned.bzl", "pinned_crate")
+
+# Stalwart Labs SMTP parser: Apache-2.0 OR MIT; baseline-aligned and unmodified.
+pinned_crate(
+    name = "smtp-proto",
+    version = "0.2.4",
+    sha256 = "707104487221ff447b5b796b5049e5c09cf52ff9fc1c8abba4695b89ac4b0f37",
+    edition = "2024",
+    deps = [":memchr"],
+    visibility = ["PUBLIC"],
+)
+
+pinned_crate(
+    name = "memchr",
+    version = "2.8.3",
+    sha256 = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98",
+    features = ["std", "alloc"],
+)
+
+pinned_crate(
+    name = "mail-builder",
+    version = "1.0.0",
+    sha256 = "ccbc27cb02a58a311a404769a22f5abf63fe3173b290d80be7c534f9c7023151",
+    edition = "2024",
+    visibility = ["PUBLIC"],
+)
+
+# AGPL-3.0-only OR LicenseRef-SEL. Only the isolated conformance test consumes
+# these unchanged assertions; no mail production target links upstream server code.
+http_archive(
+    name = "stalwart-tests",
+    urls = ["https://codeload.github.com/stalwartlabs/stalwart/tar.gz/474dd0229cb20cf513036619781ed97bd8073c3f"],
+    sha256 = "69bcb9e703497da3ff6b4d9fd16025d0ec2f6fc06a024f8610344b44babd3fab",
+    strip_prefix = "stalwart-474dd0229cb20cf513036619781ed97bd8073c3f",
+    sub_targets = ["tests/src/jmap/compliance/submission.rs", "tests/src/jmap/compliance/core.rs", "tests/src/jmap/compliance/binary.rs", "tests/src/jmap/compliance/email/mutate.rs", "tests/src/jmap/compliance/mailbox.rs", "tests/src/jmap/compliance/email/inspect.rs", "tests/src/jmap/compliance/thread.rs", "tests/src/imap/search.rs", "tests/src/imap/condstore.rs", "tests/src/imap/thread.rs", "tests/src/imap/objectid.rs", "tests/src/imap/uidonly.rs", "tests/src/imap/pop.rs", "tests/src/jmap/compliance/identity.rs", "tests/src/jmap/compliance/search_snippet.rs", "tests/src/jmap/compliance/vacation.rs", "tests/src/imap/append.rs", "tests/resources/imap/000.txt", "tests/resources/imap/001.txt", "tests/resources/imap/002.txt", "tests/resources/imap/003.txt", "tests/resources/imap/004.txt", "tests/resources/imap/005.txt", "tests/resources/imap/006.txt", "tests/resources/imap/007.txt", "tests/resources/imap/008.txt", "tests/resources/imap/009.txt"],
+    visibility = ["root//app/mail/adapters/mail-protocol:mail-protocol-submission-stalwart", "root//app/mail/adapters/mail-protocol:mail-protocol-stalwart", "root//app/mail/adapters/mail-protocol:mail-protocol-imap-stalwart", "root//app/mail/adapters/mail-protocol:mail-protocol-imap-condstore", "root//app/mail/adapters/mail-protocol:mail-protocol-imap-thread", "root//app/mail/adapters/mail-protocol:mail-protocol-imap-objectid", "root//app/mail/adapters/mail-protocol:mail-protocol-imap-uidonly", "root//app/mail/adapters/mail-protocol:mail-protocol-pop-stalwart", "root//app/mail/adapters/mail-protocol:mail-protocol-jmap-profile-stalwart", "root//app/mail/adapters/mail-protocol:mail-protocol-jmap-vacation-stalwart"],
+)
+
+# Stalwart Labs mail-parser 0.11.9 and hashify 0.2.9: Apache-2.0 OR MIT.
+# Native pinned declarations; archive checksums match Cargo.lock.
+pinned_crate(
+    name = "mail-parser",
+    version = "0.11.9",
+    sha256 = "4ec00bda90c6e645a54506c630c2820cd6b1890cfd2b0a169b50f74b2b8c7c86",
+    edition = "2024",
+    features = ["default", "full_encoding", "encoding_rs"],
+    deps = [":hashify", ":encoding_rs"],
+    visibility = ["PUBLIC"],
+)
+
+# Encoding tables retain their BSD-3-Clause WHATWG attribution alongside
+# encoding_rs's Apache-2.0 OR MIT implementation license.
+pinned_crate(
+    name = "encoding_rs",
+    version = "0.8.35",
+    sha256 = "75030f3c4f45dafd7586dd6780965a8c7e8e285a5ecb86713e63a79c5b2766f3",
+    edition = "2018",
+    features = ["default", "alloc"],
+    deps = [":cfg-if"],
+)
+
+pinned_crate(
+    name = "cfg-if",
+    version = "1.0.4",
+    sha256 = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801",
+    edition = "2018",
+)
+
+pinned_crate(
+    name = "hashify",
+    version = "0.2.9",
+    sha256 = "dd1246c0e5493286aeb2dde35b1f4eb9c4ce00e628641210a5e553fc001a1f26",
+    edition = "2024",
+    proc_macro = True,
+    deps = [
+        ":indexmap",
+        ":proc-macro2",
+        ":quote",
+        ":syn",
+    ],
+)
+
+pinned_crate(
+    name = "proc-macro2",
+    version = "1.0.107",
+    sha256 = "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+    features = ["default", "proc-macro"],
+    deps = [":unicode-ident"],
+    build_script = True,
+)
+
+pinned_crate(
+    name = "quote",
+    version = "1.0.47",
+    sha256 = "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+    features = ["default", "proc-macro"],
+    deps = [":proc-macro2"],
+    build_script = True,
+)
+
+pinned_crate(
+    name = "syn",
+    version = "2.0.119",
+    sha256 = "872831b642d1a07999a962a351ed35b955ea2cfc8f3862091e2a240a84f17297",
+    features = ["default", "derive", "parsing", "printing", "clone-impls", "proc-macro", "full"],
+    deps = [":proc-macro2", ":quote", ":unicode-ident"],
+)
+
+pinned_crate(
+    name = "unicode-ident",
+    version = "1.0.24",
+    sha256 = "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75",
+)
+
+pinned_crate(
+    name = "indexmap",
+    version = "2.14.0",
+    sha256 = "d466e9454f08e4a911e14806c24e16fba1b4c121d1ea474396f396069cf949d9",
+    edition = "2024",
+    features = ["default", "std"],
+    deps = [":equivalent", ":hashbrown"],
+)
+
+pinned_crate(
+    name = "equivalent",
+    version = "1.0.2",
+    sha256 = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f",
+    edition = "2015",
+)
+
+pinned_crate(
+    name = "hashbrown",
+    version = "0.17.1",
+    sha256 = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a",
+    edition = "2024",
+)
+
+# Apache-2.0 Unicode titlecase data; required by RFC 5051 collation.
+pinned_crate(
+    name = "unicode-case-mapping",
+    version = "1.0.0",
+    sha256 = "4e9026503b74f3207a4c04e6bf4ea735daa8edf6c0bbfa044cae597bb947a9db",
+    edition = "2018",
+    build_script = True,
+    visibility = ["PUBLIC"],
+)
+
+pinned_crate(
+    name = "unicode-normalization",
+    version = "0.1.25",
+    sha256 = "5fd4f6878c9cb28d874b009da9e8d183b5abc80117c40bbd187a1fde336be6e8",
+    edition = "2018",
+    features = ["default", "std"],
+    deps = [":tinyvec"],
+    visibility = ["PUBLIC"],
+)
+
+pinned_crate(
+    name = "tinyvec",
+    version = "1.12.0",
+    sha256 = "bb4ebadaa0af04fab11ae01eb5f9fdb5f9c5b875506e210e71c07873528baa7f",
+    edition = "2018",
+    features = ["default", "alloc"],
+    deps = [":tinyvec_macros"],
+)
+
+pinned_crate(
+    name = "tinyvec_macros",
+    version = "0.1.1",
+    sha256 = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20",
+    edition = "2018",
+)

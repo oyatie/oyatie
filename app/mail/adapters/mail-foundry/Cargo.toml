@@ -1,0 +1,22 @@
+[package]
+name = "mail-foundry"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+mail-api = { path = "../../ports/mail-api" }
+mail-kernel = { path = "../../core/mail-kernel" }
+foundry-records-draft = { path = "../../../foundry/ports/draft/records" }
+foundry-submission-draft = { path = "../../../foundry/ports/draft/submission" }
+serde_json.workspace = true
+sha2.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+mail-sqlite = { path = "../mail-sqlite" }
+
+[lints]
+workspace = true

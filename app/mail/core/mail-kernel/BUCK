@@ -1,0 +1,51 @@
+rust_library(
+    name = "mail-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "mail_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+    ],
+)
+
+rust_test(
+    name = "mail-kernel-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "mail_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+    ],
+)
+
+rust_test(
+    name = "mail-kernel-mailbox",
+    srcs = ["tests/mailbox.rs"],
+    crate = "mailbox",
+    crate_root = "tests/mailbox.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        ":mail-kernel",
+    ],
+)
+
+rust_test(
+    name = "mail-kernel-modseq",
+    srcs = ["tests/modseq.rs"],
+    crate = "modseq",
+    crate_root = "tests/modseq.rs",
+    visibility = ["PUBLIC"],
+    deps = ["third-party//:serde_json", ":mail-kernel"],
+)
+
+rust_test(
+    name = "mail-kernel-modseq-review",
+    srcs = ["tests/modseq_review.rs"],
+    crate = "modseq_review",
+    crate_root = "tests/modseq_review.rs",
+    visibility = ["PUBLIC"],
+    deps = ["third-party//:serde_json", ":mail-kernel"],
+)

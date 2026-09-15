@@ -7,6 +7,7 @@ FACADE_TEST_DEPS = [
     "//app/foundry/ports/draft/records:foundry-records-draft",
     "third-party//:axum",
     "third-party//:http-body-util",
+    "third-party//:serde_json",
     "third-party//:tokio",
     "third-party//:tower",
 ]
@@ -20,27 +21,45 @@ MIGRATION_TEST_DEPS = FACADE_TEST_DEPS + [
 
 TEST_SRCS = glob(["tests/**/*.rs"])
 
+filegroup(
+    name = "slo-inputs",
+    srcs = {
+        "facade/ontology-app/Cargo.toml": "Cargo.toml",
+        "observability": "//app/foundry/observability:slo-payloads",
+    },
+)
+
+# Preserve the source-relative paths of the compiled-in policy bundle.
+LIBRARY_SRCS = {path: "facade/ontology-app/" + path for path in glob(["src/**/*.rs"])}
+LIBRARY_SRCS.update({
+    "//app/foundry/cedar:foundry.cedarschema": "cedar/foundry.cedarschema",
+    "//app/foundry/cedar:foundry-policies.cedar": "cedar/foundry-policies.cedar",
+})
+
 rust_library(
     name = "foundry-ontology-app",
-    srcs = glob(["src/**/*.rs"]),
+    mapped_srcs = LIBRARY_SRCS,
     crate = "foundry_ontology_app",
-    crate_root = "src/lib.rs",
+    crate_root = "facade/ontology-app/src/lib.rs",
     visibility = ["PUBLIC"],
+    named_deps = {
+        "policy_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar",
+        "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+    },
     deps = [
         "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
         "//app/foundry/core/edits:foundry-edits",
         "//app/foundry/core/spine:foundry-spine",
         "//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft",
-    "//app/foundry/core/ontology-query-domain:foundry-ontology-query-domain",
-    "//app/foundry/core/ontology-query-usecase:foundry-ontology-query-usecase",
+        "//app/foundry/core/ontology-query-domain:foundry-ontology-query-domain",
+        "//app/foundry/core/ontology-query-usecase:foundry-ontology-query-usecase",
         "//app/foundry/ports/draft/caller:foundry-caller-draft",
         "//app/foundry/ports/draft/projection:foundry-projection-draft",
         "//app/foundry/ports/draft/records:foundry-records-draft",
+        "//app/foundry/ports/draft/submission:foundry-submission-draft",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//data/core/ontology-kernel:data-ontology-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
-        "//policy/adapters/pdp-cedar:policy-pdp-cedar",
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
         "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
         "third-party//:axum",
         "third-party//:serde",
@@ -67,6 +86,15 @@ rust_binary(
 # One row per in-process test crate: the target's name suffix, the crate root's
 # stem under tests/, and its deps.
 FACADE_TESTS = [
+    ("submission-review", "submission_review", FACADE_TEST_DEPS + [
+        "//app/foundry/ports/draft/submission:foundry-submission-draft",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+    ]),
+    ("submission-port", "submission_port", FACADE_TEST_DEPS + [
+        "//app/foundry/ports/draft/submission:foundry-submission-draft",
+        "//policy/core/pdp-kernel:policy-pdp-kernel",
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+    ]),
     ("boot", "boot_refuses_on_unopenable_log", [":foundry-ontology-app"]),
     ("probes", "probes_report_honest_readiness", FACADE_TEST_DEPS),
     ("pep", "pep_denies_by_default", [":foundry-ontology-app"]),
@@ -109,6 +137,7 @@ FACADE_TESTS = [
     ("durable-projection", "the_projection_is_durable", FACADE_TEST_DEPS + [
         "//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft",
         "//app/foundry/ports/draft/projection:foundry-projection-draft",
+        "//data/core/ontology-kernel:data-ontology-kernel",
     ]),
     ("migration-run-denials", "migration_run_denials_are_counted", MIGRATION_TEST_DEPS),
     ("reads-are-the-stores", "reads_are_the_stores", FACADE_TEST_DEPS + [
@@ -127,7 +156,14 @@ FACADE_TESTS = [
         crate = stem,
         crate_root = "tests/" + stem + ".rs",
         visibility = ["PUBLIC"],
-        deps = deps,
+        env = {"CARGO_MANIFEST_DIR": "$(location :slo-inputs)/facade/ontology-app"} if suffix == "slo-render" else {},
+        resources = [":slo-inputs"] if suffix == "slo-render" else [],
+        deps = [dep for dep in deps if dep != "//policy/core/pdp-kernel:policy-pdp-kernel"],
+        named_deps = {
+            "policy_pdp_kernel": dep
+            for dep in deps
+            if dep == "//policy/core/pdp-kernel:policy-pdp-kernel"
+        },
     )
     for suffix, stem, deps in FACADE_TESTS
 ]

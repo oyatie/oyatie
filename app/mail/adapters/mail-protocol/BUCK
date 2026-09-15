@@ -1,0 +1,423 @@
+rust_test(
+    name = "mail-protocol-email",
+    srcs = ["tests/email.rs", "tests/email/mailbox.rs", "tests/email/content.rs", "tests/email/inspect.rs", "tests/email/limits.rs", "tests/email/decoding.rs"],
+    crate = "email",
+    crate_root = "tests/email.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":mail-protocol",
+        "//app/mail/core/mail-kernel:mail-kernel",
+        "//app/mail/core/mail-service:mail-service",
+        "//app/mail/ports/mail-api:mail-api",
+        "//app/mail/adapters/mail-sqlite:mail-sqlite",
+        "third-party//:axum",
+        "third-party//:tokio",
+        "third-party//:serde_json",
+        "third-party//:tower",
+        "third-party//:http-body-util",
+        "third-party//mail:mail-parser",
+    ],
+)
+
+rust_test(
+    name = "mail-protocol-stalwart",
+    srcs = ["tests/stalwart.rs", "tests/stalwart/client.rs", "tests/stalwart/mutation_client.rs", "tests/stalwart/fixtures.rs", "tests/stalwart/digests.rs"],
+    crate = "stalwart",
+    crate_root = "tests/stalwart.rs",
+    env = {
+        "STALWART_THREAD_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/thread.rs])",
+        "STALWART_INSPECT_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/email/inspect.rs])",
+        "STALWART_CORE_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/core.rs])",
+        "STALWART_BINARY_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/binary.rs])",
+        "STALWART_MUTATE_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/email/mutate.rs])",
+        "STALWART_MAILBOX_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/mailbox.rs])",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":mail-protocol",
+        "//app/mail/core/mail-kernel:mail-kernel",
+        "//app/mail/core/mail-service:mail-service",
+        "//app/mail/ports/mail-api:mail-api",
+        "//app/mail/adapters/mail-sqlite:mail-sqlite",
+        "third-party//:axum",
+        "third-party//:tokio",
+        "third-party//:serde_json",
+        "third-party//:tower",
+        "third-party//:http-body-util",
+        "third-party//:sha2",
+    ],
+)
+
+rust_library(
+    name = "mail-protocol",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "mail_protocol",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/mail/core/mail-kernel:mail-kernel",
+        "//app/mail/core/mail-service:mail-service",
+        "//app/mail/ports/mail-api:mail-api",
+        "third-party//:base64",
+        "third-party//:axum",
+        "third-party//:tokio",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+        "third-party//mail:mail-parser",
+        "third-party//mail:mail-builder",
+        "third-party//mail:unicode-normalization",
+        "third-party//mail:unicode-case-mapping",
+    ],
+)
+
+rust_test(
+    name = "mail-protocol-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "mail_protocol",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/mail/core/mail-kernel:mail-kernel",
+        "//app/mail/core/mail-service:mail-service",
+        "//app/mail/ports/mail-api:mail-api",
+        "third-party//:base64",
+        "third-party//:axum",
+        "third-party//:tokio",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+        "third-party//mail:mail-parser",
+        "third-party//mail:mail-builder",
+        "third-party//mail:unicode-normalization",
+        "third-party//mail:unicode-case-mapping",
+        "//app/mail/adapters/mail-sqlite:mail-sqlite",
+        "third-party//:tower",
+        "third-party//:http-body-util",
+    ],
+)
+
+rust_test(
+    name = "mail-protocol-jmap",
+    srcs = ["tests/jmap.rs"],
+    crate = "jmap",
+    crate_root = "tests/jmap.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/mail/core/mail-kernel:mail-kernel",
+        "//app/mail/core/mail-service:mail-service",
+        "//app/mail/ports/mail-api:mail-api",
+        "third-party//:axum",
+        "third-party//:tokio",
+        "third-party//:serde_json",
+        "third-party//mail:mail-parser",
+        "third-party//mail:mail-builder",
+        "//app/mail/adapters/mail-sqlite:mail-sqlite",
+        "third-party//:tower",
+        "third-party//:http-body-util",
+        ":mail-protocol",
+    ],
+)
+
+rust_test(
+    name = "mail-protocol-wire",
+    srcs = ["tests/wire.rs", "tests/wire/thread.rs", "tests/wire/thread_review.rs", "tests/wire/multiappend.rs", "tests/wire/multiappend_review.rs", "tests/wire/condstore.rs", "tests/wire/condstore_review.rs", "tests/wire/condstore_cas.rs", "tests/wire/literals.rs", "tests/wire/literal_review.rs", "tests/wire/literal_limits.rs", "tests/wire/authenticate.rs", "tests/wire/authenticate_review.rs", "tests/wire/session.rs", "tests/wire/sequence.rs", "tests/wire/runtime.rs", "tests/wire/append.rs", "tests/wire/transfer.rs", "tests/wire/admin.rs", "tests/wire/starttls.rs", "tests/wire/fetch.rs", "tests/wire/fetch/advanced.rs", "tests/wire/fetch_metadata.rs", "tests/wire/search.rs", "tests/wire/search/saved.rs", "tests/wire/search/zero.rs", "tests/wire/search/literals.rs", "tests/wire/search/literal_review.rs", "tests/wire/fetch_extensions.rs", "tests/wire/object_mailboxes.rs", "tests/wire/mailbox_encoding.rs", "tests/wire/object_review.rs", "tests/wire/objectid_plus.rs", "tests/wire/objectid_plus_review.rs", "tests/wire/sort.rs", "tests/wire/sort/collation.rs", "tests/wire/sort/review.rs", "tests/wire/idle.rs", "tests/wire/idle/support.rs", "tests/wire/idle/boundary.rs"],
+    crate = "wire",
+    crate_root = "tests/wire.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//mail/sqlite:rusqlite",
+        "//app/mail/core/mail-kernel:mail-kernel",
+        "//app/mail/core/mail-service:mail-service",
+        "//app/mail/ports/mail-api:mail-api",
+        "third-party//:base64",
+        "third-party//:axum",
+        "third-party//:tokio",
+        "third-party//:serde_json",
+        "third-party//mail:mail-parser",
+        "third-party//mail:mail-builder",
+        "//app/mail/adapters/mail-sqlite:mail-sqlite",
+        "third-party//:tower",
+        "third-party//:http-body-util",
+        ":mail-protocol",
+    ],
+)
+
+rust_test(
+    name = "mail-protocol-submission",
+    srcs = ["tests/submission.rs", "tests/submission/message.rs"],
+    crate = "submission",
+    crate_root = "tests/submission.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":mail-protocol",
+        "//app/mail/core/mail-kernel:mail-kernel",
+        "//app/mail/core/mail-service:mail-service",
+        "//app/mail/ports/mail-api:mail-api",
+        "//app/mail/adapters/mail-sqlite:mail-sqlite",
+        "third-party//mail:mail-parser",
+        "third-party//:base64",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "mail-protocol-imap-stalwart",
+    srcs = ["tests/imap_stalwart.rs", "tests/stalwart/search.rs", "tests/stalwart/search_client.rs"],
+    crate = "imap_stalwart",
+    crate_root = "tests/imap_stalwart.rs",
+    env = {
+        "STALWART_IMAP_SEARCH_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/imap/search.rs])",
+        "STALWART_IMAP_000": "$(location third-party//mail:stalwart-tests[tests/resources/imap/000.txt])",
+        "STALWART_IMAP_001": "$(location third-party//mail:stalwart-tests[tests/resources/imap/001.txt])",
+        "STALWART_IMAP_002": "$(location third-party//mail:stalwart-tests[tests/resources/imap/002.txt])",
+        "STALWART_IMAP_003": "$(location third-party//mail:stalwart-tests[tests/resources/imap/003.txt])",
+        "STALWART_IMAP_004": "$(location third-party//mail:stalwart-tests[tests/resources/imap/004.txt])",
+        "STALWART_IMAP_005": "$(location third-party//mail:stalwart-tests[tests/resources/imap/005.txt])",
+        "STALWART_IMAP_006": "$(location third-party//mail:stalwart-tests[tests/resources/imap/006.txt])",
+        "STALWART_IMAP_007": "$(location third-party//mail:stalwart-tests[tests/resources/imap/007.txt])",
+        "STALWART_IMAP_008": "$(location third-party//mail:stalwart-tests[tests/resources/imap/008.txt])",
+        "STALWART_IMAP_009": "$(location third-party//mail:stalwart-tests[tests/resources/imap/009.txt])",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":mail-protocol",
+        "//app/mail/core/mail-kernel:mail-kernel",
+        "//app/mail/core/mail-service:mail-service",
+        "//app/mail/ports/mail-api:mail-api",
+        "//app/mail/adapters/mail-sqlite:mail-sqlite",
+        "third-party//:axum",
+        "third-party//:tokio",
+        "third-party//:serde_json",
+        "third-party//:tower",
+        "third-party//:http-body-util",
+        "third-party//:sha2",
+    ],
+)
+
+
+rust_test(
+    name = "mail-protocol-imap-condstore",
+    srcs = ["tests/imap_condstore.rs", "tests/stalwart/condstore.rs", "tests/stalwart/condstore_client.rs", "tests/stalwart/condstore_result.rs"],
+    crate = "imap_condstore",
+    crate_root = "tests/imap_condstore.rs",
+    env = {
+        "STALWART_IMAP_CONDSTORE_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/imap/condstore.rs])",
+        "STALWART_IMAP_APPEND_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/imap/append.rs])",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":mail-protocol",
+        "//app/mail/core/mail-kernel:mail-kernel",
+        "//app/mail/core/mail-service:mail-service",
+        "//app/mail/ports/mail-api:mail-api",
+        "//app/mail/adapters/mail-sqlite:mail-sqlite",
+        "third-party//:tokio",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "mail-protocol-imap-thread",
+    srcs = ["tests/imap_thread.rs", "tests/stalwart/thread.rs", "tests/stalwart/condstore_client.rs", "tests/stalwart/condstore_result.rs"],
+    crate = "imap_thread",
+    crate_root = "tests/imap_thread.rs",
+    env = {
+        "STALWART_IMAP_THREAD_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/imap/thread.rs])",
+        "STALWART_IMAP_APPEND_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/imap/append.rs])",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":mail-protocol",
+        "//app/mail/core/mail-kernel:mail-kernel",
+        "//app/mail/core/mail-service:mail-service",
+        "//app/mail/ports/mail-api:mail-api",
+        "//app/mail/adapters/mail-sqlite:mail-sqlite",
+        "third-party//:tokio",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "mail-protocol-imap-objectid",
+    srcs = ["tests/imap_objectid.rs", "tests/stalwart/condstore_client.rs", "tests/stalwart/condstore_result.rs"],
+    crate = "imap_objectid",
+    crate_root = "tests/imap_objectid.rs",
+    env = {
+        "STALWART_IMAP_OBJECTID_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/imap/objectid.rs])",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":mail-protocol",
+        "//app/mail/core/mail-kernel:mail-kernel",
+        "//app/mail/core/mail-service:mail-service",
+        "//app/mail/ports/mail-api:mail-api",
+        "//app/mail/adapters/mail-sqlite:mail-sqlite",
+        "third-party//:tokio",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "mail-protocol-imap-uidonly",
+    srcs = ["tests/imap_uidonly.rs", "tests/stalwart/uidonly_client.rs", "tests/stalwart/uidonly_hardening.rs", "tests/stalwart/uidonly_runtime.rs", "tests/stalwart/uidonly_review.rs", "tests/stalwart/condstore_result.rs"],
+    crate = "imap_uidonly",
+    crate_root = "tests/imap_uidonly.rs",
+    env = {
+        "STALWART_IMAP_UIDONLY_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/imap/uidonly.rs])",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":mail-protocol",
+        "//app/mail/core/mail-kernel:mail-kernel",
+        "//app/mail/core/mail-service:mail-service",
+        "//app/mail/ports/mail-api:mail-api",
+        "//app/mail/adapters/mail-sqlite:mail-sqlite",
+        "third-party//:tokio",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "mail-protocol-jmap-identity",
+    srcs = ["tests/jmap_identity.rs"],
+    crate = "jmap_identity",
+    crate_root = "tests/jmap_identity.rs",
+    visibility = ["PUBLIC"],
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//:axum", "third-party//:tower", "third-party//:http-body-util", "third-party//mail/sqlite:rusqlite"],
+)
+
+rust_test(
+    name = "mail-protocol-jmap-snippet",
+    srcs = ["tests/jmap_snippet.rs"],
+    crate = "jmap_snippet",
+    crate_root = "tests/jmap_snippet.rs",
+    visibility = ["PUBLIC"],
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//:axum", "third-party//:tower", "third-party//:http-body-util"],
+)
+
+rust_test(
+    name = "mail-protocol-jmap-profile-stalwart",
+    srcs = ["tests/jmap_profile_stalwart.rs", "tests/stalwart/profile_client.rs"],
+    crate = "jmap_profile_stalwart",
+    crate_root = "tests/jmap_profile_stalwart.rs",
+    visibility = ["PUBLIC"],
+    env = {"STALWART_IDENTITY_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/identity.rs])", "STALWART_SEARCH_SNIPPET_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/search_snippet.rs])"},
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//:axum", "third-party//:tower", "third-party//:http-body-util"],
+)
+
+rust_test(
+    name = "mail-protocol-pop",
+    srcs = ["tests/pop.rs", "tests/pop/support.rs", "tests/pop/authentication.rs", "tests/pop/transaction.rs", "tests/pop/framing.rs", "tests/pop/failure.rs"],
+    crate = "pop",
+    crate_root = "tests/pop.rs",
+    visibility = ["PUBLIC"],
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//:axum", "third-party//:tower", "third-party//:http-body-util", "third-party//:base64"],
+)
+
+rust_test(
+    name = "mail-protocol-pop-stalwart",
+    srcs = ["tests/pop_stalwart.rs", "tests/pop/oracle.rs"],
+    crate = "pop_stalwart",
+    crate_root = "tests/pop_stalwart.rs",
+    visibility = ["PUBLIC"],
+    env = {"STALWART_POP_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/imap/pop.rs])"},
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//:axum", "third-party//:tower", "third-party//:http-body-util", "third-party//:base64"],
+)
+
+rust_test(
+    name = "mail-protocol-jmap-profile-review",
+    srcs = ["tests/jmap_profile_review.rs"],
+    crate = "jmap_profile_review",
+    crate_root = "tests/jmap_profile_review.rs",
+    visibility = ["PUBLIC"],
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//:axum", "third-party//:tower", "third-party//:http-body-util"],
+)
+
+
+rust_test(
+    name = "mail-protocol-jmap-runtime",
+    srcs = ["tests/jmap_runtime.rs"],
+    crate = "jmap_runtime",
+    crate_root = "tests/jmap_runtime.rs",
+    visibility = ["PUBLIC"],
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:axum", "third-party//:tower"],
+)
+
+
+rust_test(
+    name = "mail-protocol-jmap-runtime-review",
+    srcs = ["tests/jmap_runtime_review.rs", "tests/runtime_review/support.rs"],
+    crate = "jmap_runtime_review",
+    crate_root = "tests/jmap_runtime_review.rs",
+    visibility = ["PUBLIC"],
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:axum", "third-party//:tower", "third-party//:serde_json", "third-party//:http-body-util"],
+)
+
+
+rust_test(
+    name = "mail-protocol-pop-review",
+    srcs = ["tests/pop_review.rs", "tests/pop/support.rs"],
+    crate = "pop_review",
+    crate_root = "tests/pop_review.rs",
+    visibility = ["PUBLIC"],
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//:axum", "third-party//:tower", "third-party//:http-body-util", "third-party//:base64"],
+)
+
+rust_test(
+    name = "mail-protocol-jmap-submission",
+    srcs = ["tests/jmap_submission.rs"],
+    crate = "jmap_submission",
+    crate_root = "tests/jmap_submission.rs",
+    visibility = ["PUBLIC"],
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//:axum", "third-party//:tower", "third-party//:http-body-util", "third-party//mail/sqlite:rusqlite", "third-party//mail:mail-parser"],
+)
+
+rust_test(
+    name = "mail-protocol-submission-review",
+    srcs = ["tests/submission_review.rs"] + glob(["tests/submission_review/*.rs"]),
+    crate = "submission_review",
+    crate_root = "tests/submission_review.rs",
+    visibility = ["PUBLIC"],
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//:axum", "third-party//:tower", "third-party//:http-body-util", "third-party//mail/sqlite:rusqlite", "third-party//mail:mail-parser"],
+)
+
+rust_test(
+    name = "mail-protocol-jmap-submission-queries",
+    srcs = ["tests/jmap_submission_queries.rs"],
+    crate = "jmap_submission_queries",
+    crate_root = "tests/jmap_submission_queries.rs",
+    visibility = ["PUBLIC"],
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//:axum", "third-party//:tower", "third-party//:http-body-util", "third-party//mail/sqlite:rusqlite", "third-party//mail:mail-parser"],
+)
+
+rust_test(
+    name = "mail-protocol-submission-stalwart",
+    srcs = ["tests/submission_stalwart.rs", "tests/stalwart/profile_client.rs", "tests/stalwart/submission_client.rs"],
+    crate = "submission_stalwart",
+    crate_root = "tests/submission_stalwart.rs",
+    env = {"STALWART_SUBMISSION_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/submission.rs])"},
+    visibility = ["PUBLIC"],
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//:axum", "third-party//:tower", "third-party//:http-body-util", "third-party//mail/sqlite:rusqlite", "third-party//mail:mail-parser"],
+)
+
+rust_test(
+    name = "mail-protocol-jmap-vacation",
+    srcs = ["tests/jmap_vacation.rs"],
+    crate = "jmap_vacation",
+    crate_root = "tests/jmap_vacation.rs",
+    visibility = ["PUBLIC"],
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//:axum", "third-party//:tower", "third-party//:http-body-util"],
+)
+
+rust_test(
+    name = "mail-protocol-jmap-vacation-stalwart",
+    srcs = ["tests/jmap_vacation_stalwart.rs", "tests/stalwart/profile_client.rs", "tests/stalwart/submission_client.rs"],
+    crate = "jmap_vacation_stalwart",
+    crate_root = "tests/jmap_vacation_stalwart.rs",
+    env = {"STALWART_VACATION_SOURCE": "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/vacation.rs])"},
+    visibility = ["PUBLIC"],
+    deps = [":mail-protocol", "//app/mail/core/mail-kernel:mail-kernel", "//app/mail/core/mail-service:mail-service", "//app/mail/ports/mail-api:mail-api", "//app/mail/adapters/mail-sqlite:mail-sqlite", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//:axum", "third-party//:tower", "third-party//:http-body-util"],
+)

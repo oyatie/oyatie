@@ -167,7 +167,7 @@ fn terminate_child(
     run: QualificationRun,
     child: &mut Child,
 ) -> Result<ExitStatus, CandidateHeadQualificationFailure> {
-    let group_result = terminate_provider_group(run, child.id());
+    let group_result = terminate_provider_group(run, child);
     if group_result.is_err() {
         let _ = child.kill();
     }

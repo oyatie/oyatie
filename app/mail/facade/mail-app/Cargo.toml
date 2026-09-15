@@ -1,0 +1,29 @@
+[package]
+name = "mail-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+mail-api = { path = "../../ports/mail-api" }
+mail-relay = { path = "../../adapters/mail-relay" }
+mail-kernel = { path = "../../core/mail-kernel" }
+mail-service = { path = "../../core/mail-service" }
+mail-sqlite = { path = "../../adapters/mail-sqlite" }
+mail-protocol = { path = "../../adapters/mail-protocol" }
+axum.workspace = true
+tokio.workspace = true
+rustls = { version = "=0.23.45", default-features = false, features = ["aws-lc-rs", "prefer-post-quantum", "std", "logging"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["aws_lc_rs", "tls12"] }
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+base64 = "=0.22.1"
+rcgen = { version = "0.14", default-features = false, features = ["aws_lc_rs", "pem"] }
+reqwest.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
