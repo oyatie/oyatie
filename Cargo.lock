@@ -6176,13 +6176,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "messenger-archive-postgres"
+name = "messenger-archive-memory"
 version = "0.1.0"
 dependencies = [
  "messenger-archive-api",
  "messenger-domain",
  "serde_json",
- "sqlx",
  "tokio",
 ]
 

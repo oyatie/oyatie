@@ -1,5 +1,5 @@
 [package]
-name = "messenger-archive-postgres"
+name = "messenger-archive-memory"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -9,11 +9,10 @@ license = "Apache-2.0"
 [dependencies]
 messenger-archive-api = { path = "../../ports/archive-api" }
 messenger-domain = { path = "../../core/domain" }
-serde_json.workspace = true
-sqlx.workspace = true
+tokio.workspace = true
 
 [dev-dependencies]
-tokio.workspace = true
+serde_json.workspace = true
 
 [lib]
 path = "src/lib.rs"
