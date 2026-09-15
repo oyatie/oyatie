@@ -16,31 +16,37 @@ async fn the_filter_grammar_holds_at_both_edges() {
     let base = format!("type={TYPE}&revision=1");
 
     let refused: &[(String, &str)] = &[
-        (format!("{base}&equals=text:Ada"), "a filter is ?property="),
+        (
+            format!("{base}&equals=text:Ada"),
+            "either an equality or both ends",
+        ),
         (
             format!("{base}&from=int:1&to=int:2"),
-            "a filter is ?property=",
+            "either an equality or both ends",
         ),
-        (format!("{base}&property=name"), "a filter is ?property="),
+        (
+            format!("{base}&property=name"),
+            "either an equality or both ends",
+        ),
         (
             format!("{base}&property=name&equals=text:Ada&from=int:1&to=int:2"),
             "not both",
         ),
         (
             format!("{base}&property=name&from=int:1"),
-            "either ?equals= or both",
+            "either an equality or both ends",
         ),
         (
             format!("{base}&property=name&to=int:2"),
-            "either ?equals= or both",
+            "either an equality or both ends",
         ),
         (
             format!("{base}&property=&equals=text:Ada"),
-            "must name the property to filter on",
+            "must name the property it constrains",
         ),
         (
             format!("{base}&property=&from=int:1&to=int:2"),
-            "must name the property to filter on",
+            "must name the property it constrains",
         ),
         (
             format!("{base}&property=name&equals=Ada"),

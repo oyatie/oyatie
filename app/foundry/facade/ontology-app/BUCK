@@ -77,6 +77,10 @@ FACADE_TESTS = [
     ("object-listing", "object_listing_contract", FACADE_TEST_DEPS),
     ("object-filter", "object_filter_contract", FACADE_TEST_DEPS),
     ("object-filter-grammar", "object_filter_grammar", FACADE_TEST_DEPS),
+    ("object-set", "object_set_contract", FACADE_TEST_DEPS),
+    ("object-set-grammar", "object_set_grammar", FACADE_TEST_DEPS),
+    ("object-set-limits", "object_set_limits", FACADE_TEST_DEPS),
+    ("metrics-set-reads", "metrics_count_set_reads", FACADE_TEST_DEPS),
     ("cross-tenant", "cross_tenant_isolation", FACADE_TEST_DEPS),
     ("slo-render", "slo_render_is_the_source", FACADE_TEST_DEPS),
     ("metrics-counts", "metrics_count_what_happened", FACADE_TEST_DEPS + [
