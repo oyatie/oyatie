@@ -86,9 +86,10 @@ pub(crate) fn pinned_body(object_ref: String, pinned: &PinnedObject) -> PinnedOb
     }
 }
 
-/// A page of pinned objects. `next` carries the last object reference of
-/// this page and is present exactly when objects the request's own filter
-/// admits remain past it — unfiltered, more objects of the type.
+/// A page of pinned objects. `next` carries the last object reference of this
+/// page and is present exactly when the request's own producer has rows past
+/// it: for a listing, more objects of the type its filter admits; for an object
+/// set, more members of the set.
 #[derive(Debug, Serialize)]
 pub(crate) struct ListingBody {
     pub(crate) objects: Vec<PinnedObjectBody>, // data_class: PROPERTY_VALUE_PRIVACY_CLASS

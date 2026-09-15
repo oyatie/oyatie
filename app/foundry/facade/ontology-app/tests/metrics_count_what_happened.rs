@@ -6,6 +6,9 @@ use axum::http::StatusCode;
 use failing_store::AlwaysFailingStore;
 use support::{Fixture, Session, TENANT, WRITE_BODY as WRITE, scrape, value_of};
 
+const SET_PAGE_PATH: &str = "/v1/object-sets/page";
+const SET_PAGE: &str = r#"{"type":"ety_record","revision":1,"set":"every"}"#;
+
 #[tokio::test]
 async fn an_answered_read_increments_served() {
     let fixture = Fixture::new("metrics-read-served");
@@ -225,6 +228,17 @@ async fn each_read_serving_route_counts_exactly_once() {
         let after = value_of(&scrape(&session).await, "foundry_read_served_total");
         assert_eq!(after, before + 1, "{label}: a served read must count once");
     }
+    let before = value_of(&scrape(&session).await, "foundry_read_served_total");
+    let (status, reply) = session
+        .post_to(Some(fixture.operator_token()), SET_PAGE_PATH, SET_PAGE)
+        .await;
+    assert_eq!(status, StatusCode::OK, "object set page: {reply}");
+    let after = value_of(&scrape(&session).await, "foundry_read_served_total");
+    assert_eq!(
+        after,
+        before + 1,
+        "object set page: a served read must count once"
+    );
 }
 
 #[tokio::test]

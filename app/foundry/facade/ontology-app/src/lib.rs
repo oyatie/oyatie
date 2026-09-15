@@ -11,6 +11,8 @@ mod listing;
 mod listing_query;
 pub mod metrics;
 mod migrate;
+mod object_set;
+mod object_set_body;
 pub mod observability;
 pub mod observation;
 pub mod pdp;
