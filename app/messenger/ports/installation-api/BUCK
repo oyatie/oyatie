@@ -6,7 +6,6 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//app/messenger/core/domain:messenger-domain",
-        "third-party//:serde_json",
     ],
 )
 
@@ -18,6 +17,5 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//app/messenger/core/domain:messenger-domain",
-        "third-party//:serde_json",
     ],
 )
