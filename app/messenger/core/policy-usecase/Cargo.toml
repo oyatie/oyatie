@@ -1,0 +1,18 @@
+[package]
+name = "messenger-policy-usecase"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+messenger-domain = { path = "../domain" }
+messenger-policy-api = { path = "../../ports/policy-api" }
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
