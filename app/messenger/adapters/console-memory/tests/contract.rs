@@ -32,7 +32,7 @@ fn command() -> ConsoleCommand {
 
 async fn seeded() -> Arc<MemoryConsole> {
     let store = MemoryConsole::new(COMPANY);
-    store.grant("viewer", COMPANY).await.unwrap();
+    store.grant("viewer").await.unwrap();
     store
         .put(object(), json!({"title": "Visible"}))
         .await
@@ -43,9 +43,10 @@ async fn seeded() -> Arc<MemoryConsole> {
 #[tokio::test]
 async fn pinned_read_returns_seeded_body_and_rejects_a_moved_revision() {
     let store = seeded().await;
-    let read = store.read("viewer", &object()).await.unwrap();
-    assert_eq!(read.body, json!({"title": "Visible"}));
-    assert_eq!(read.object, object());
+    assert_eq!(
+        store.read("viewer", &object()).await.unwrap(),
+        json!({"title": "Visible"})
+    );
     let mut stale = object();
     stale.revision = 8;
     assert!(matches!(
@@ -70,57 +71,36 @@ async fn foreign_company_and_unbound_credentials_never_execute() {
         );
     }
     assert_eq!(
-        store
-            .read("viewer", &object())
-            .await
-            .unwrap()
-            .object
-            .revision,
-        7
+        store.read("viewer", &object()).await.unwrap(),
+        json!({"title": "Visible"})
     );
 }
 
 #[tokio::test]
-async fn preflight_does_not_commit_and_execute_does_not_need_it() {
+async fn execute_advances_the_pin_once() {
     let store = seeded().await;
-    let preview = store.preflight("viewer", &command()).await.unwrap();
-    assert!(preview.would_execute);
     assert_eq!(
-        store
-            .read("viewer", &object())
-            .await
-            .unwrap()
-            .object
-            .revision,
-        7
+        store.read("viewer", &object()).await.unwrap(),
+        json!({"title": "Visible"})
     );
-    let receipt = store.execute("viewer", &command()).await.unwrap();
-    assert!(!receipt.reused);
-    assert_eq!(receipt.command_id, COMMAND_ID);
-    assert_eq!(receipt.object.revision, 8);
+    let (pin, reused) = store.execute("viewer", &command()).await.unwrap();
+    assert!(!reused);
+    assert_eq!(pin.revision, 8);
     assert!(matches!(
         store.read("viewer", &object()).await,
         Err(Error::Invalid(_))
     ));
-    assert!(
-        !store
-            .preflight("viewer", &command())
-            .await
-            .unwrap()
-            .would_execute
-    );
 }
 
 #[tokio::test]
-async fn lost_ack_retries_keep_the_original_receipt_and_revision() {
+async fn lost_ack_retries_keep_the_original_pin() {
     let store = seeded().await;
-    let first = store.execute("viewer", &command()).await.unwrap();
+    let (first, _) = store.execute("viewer", &command()).await.unwrap();
     let mut changed = command();
     changed.params = json!({"assignee": "bob"});
-    let retry = store.execute("viewer", &changed).await.unwrap();
-    assert!(retry.reused);
-    assert_eq!(retry.command_id, first.command_id);
-    assert_eq!(retry.object.revision, first.object.revision);
+    let (retry, reused) = store.execute("viewer", &changed).await.unwrap();
+    assert!(reused);
+    assert_eq!(retry, first);
     let mut head = object();
     head.revision = 8;
     store.read("viewer", &head).await.unwrap();
@@ -135,9 +115,9 @@ async fn invalid_command_is_refused_before_a_receipt_exists() {
         store.execute("viewer", &bad).await,
         Err(Error::Invalid(_))
     ));
-    let receipt = store.execute("viewer", &command()).await.unwrap();
-    assert!(!receipt.reused);
-    assert_eq!(receipt.object.revision, 8);
+    let (pin, reused) = store.execute("viewer", &command()).await.unwrap();
+    assert!(!reused);
+    assert_eq!(pin.revision, 8);
 }
 
 #[tokio::test]
