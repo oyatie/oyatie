@@ -1,63 +1,70 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-mod admit;
-mod types;
-
-use admit::{admit_into, create_room_state};
 use messenger_conversation_api::RoomAuthority;
-use messenger_domain::{
-    Admission, AdmitCommand, AuthorityEvent, AuthorityRoomDelta, AuthoritySync, Error, valid_user,
+use messenger_domain::{AuthorityEvent, AuthorityRecord, AuthoritySync, Error, valid_user};
+use sha2::{Digest, Sha256};
+use std::{
+    sync::Arc,
+    time::{SystemTime, UNIX_EPOCH},
 };
-use std::sync::Arc;
 use tokio::sync::Mutex;
-use types::{Inner, membership};
 
 pub struct MemoryAuthority {
     server_name: String,
-    inner: Mutex<Inner>,
+    inner: Mutex<AuthorityRecord>,
 }
 
 impl MemoryAuthority {
     pub fn new(server_name: impl Into<String>) -> Arc<Self> {
         Arc::new(Self {
             server_name: server_name.into(),
-            inner: Mutex::new(Inner::default()),
+            inner: Mutex::new(AuthorityRecord::default()),
         })
     }
 
-    async fn transact<R>(
-        &self,
-        apply: impl Fn(&Inner) -> Result<(Inner, R), Error>,
-    ) -> Result<R, Error> {
-        for _ in 0..32 {
-            let snapshot = self.inner.lock().await.clone();
-            let generation = snapshot.generation;
-            let (mut next, result) = apply(&snapshot)?;
-            let mut guard = self.inner.lock().await;
-            if guard.generation != generation {
-                continue;
-            }
-            next.generation = generation.saturating_add(1);
-            *guard = next;
-            return Ok(result);
+    async fn cas(&self, expected: u64, mut next: AuthorityRecord) -> Result<(), Error> {
+        let mut guard = self.inner.lock().await;
+        if guard.generation != expected {
+            return Err(Error::Unavailable("room contention".into()));
         }
-        Err(Error::Unavailable("room contention".into()))
+        next.generation = expected.saturating_add(1);
+        *guard = next;
+        Ok(())
     }
 }
 
 impl RoomAuthority for MemoryAuthority {
     async fn create_room(&self, creator: &str, join_rule: &str) -> Result<String, Error> {
-        let server = self.server_name.clone();
-        let creator = creator.to_owned();
-        let join_rule = join_rule.to_owned();
-        self.transact(move |inner| create_room_state(inner, &server, &creator, &join_rule))
-            .await
+        if !valid_user(creator) || !matches!(join_rule, "public" | "invite") {
+            return Err(Error::Invalid("invalid room creation".into()));
+        }
+        for _ in 0..32 {
+            let snapshot = self.inner.lock().await.clone();
+            let expected = snapshot.generation;
+            let mut next = snapshot;
+            next.seq = next.seq.saturating_add(1);
+            let opaque = hex_lower(&Sha256::digest(format!(
+                "{}:{}",
+                self.server_name, next.seq
+            )));
+            let room_id = format!("!{opaque}:{}", self.server_name);
+            let room_id = next.create_room(room_id, creator, join_rule, now_ms())?;
+            match self.cas(expected, next).await {
+                Ok(()) => return Ok(room_id),
+                Err(Error::Unavailable(_)) => continue,
+                Err(error) => return Err(error),
+            }
+        }
+        Err(Error::Unavailable("room contention".into()))
     }
 
-    async fn admit(&self, command: AdmitCommand) -> Result<Admission, Error> {
-        self.transact(|inner| admit_into(inner, command.clone()))
-            .await
+    async fn snapshot(&self) -> Result<AuthorityRecord, Error> {
+        Ok(self.inner.lock().await.clone())
+    }
+
+    async fn commit(&self, expected_generation: u64, record: AuthorityRecord) -> Result<(), Error> {
+        self.cas(expected_generation, record).await
     }
 
     async fn sync(
@@ -66,45 +73,7 @@ impl RoomAuthority for MemoryAuthority {
         _device: &str,
         since: Option<&str>,
     ) -> Result<AuthoritySync, Error> {
-        if !valid_user(user) {
-            return Err(Error::Invalid("invalid user".into()));
-        }
-        let after = match since {
-            None | Some("") => 0,
-            Some(token) => token
-                .strip_prefix('s')
-                .and_then(|n| n.parse::<u64>().ok())
-                .ok_or_else(|| Error::Invalid("invalid sync token".into()))?,
-        };
-        let inner = self.inner.lock().await;
-        let mut rooms = Vec::new();
-        let mut newest = after;
-        for (room_id, room) in &inner.rooms {
-            if membership(room, user) != Some("join") {
-                continue;
-            }
-            let events: Vec<_> = room
-                .events
-                .iter()
-                .filter(|stored| stored.seq > after)
-                .map(|stored| {
-                    newest = newest.max(stored.seq);
-                    stored.event.clone()
-                })
-                .collect();
-            rooms.push(AuthorityRoomDelta {
-                room: room_id.clone(),
-                membership: "join".into(),
-                events,
-            });
-        }
-        if newest == after {
-            newest = inner.seq;
-        }
-        Ok(AuthoritySync {
-            next_batch: format!("s{newest}"),
-            rooms,
-        })
+        self.inner.lock().await.sync(user, since)
     }
 
     async fn state(
@@ -113,18 +82,24 @@ impl RoomAuthority for MemoryAuthority {
         event_type: &str,
         state_key: &str,
     ) -> Result<Option<AuthorityEvent>, Error> {
-        let inner = self.inner.lock().await;
-        let Some(room) = inner.rooms.get(room) else {
-            return Ok(None);
-        };
-        Ok(room
-            .events
-            .iter()
-            .rev()
-            .find(|stored| {
-                stored.event.event_type == event_type
-                    && stored.event.state_key.as_deref() == Some(state_key)
-            })
-            .map(|stored| stored.event.clone()))
+        Ok(self.inner.lock().await.state(room, event_type, state_key))
     }
+}
+
+fn now_ms() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .unwrap_or(1)
+        .max(1)
+}
+
+fn hex_lower(bytes: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        out.push(HEX[(byte >> 4) as usize] as char);
+        out.push(HEX[(byte & 0x0f) as usize] as char);
+    }
+    out
 }

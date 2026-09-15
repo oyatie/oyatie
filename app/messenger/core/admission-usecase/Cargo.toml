@@ -1,5 +1,5 @@
 [package]
-name = "messenger-authority-memory"
+name = "messenger-admission-usecase"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -8,8 +8,10 @@ license = "Apache-2.0"
 
 [dependencies]
 messenger-conversation-api = { path = "../../ports/conversation-api" }
-messenger-domain = { path = "../../core/domain" }
-sha2.workspace = true
+messenger-domain = { path = "../domain" }
+
+[dev-dependencies]
+serde_json.workspace = true
 tokio.workspace = true
 
 [lib]

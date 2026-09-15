@@ -5919,12 +5919,21 @@ name = "messaging-substrate-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "messenger-authority-memory"
+name = "messenger-admission-usecase"
 version = "0.1.0"
 dependencies = [
  "messenger-conversation-api",
  "messenger-domain",
  "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "messenger-authority-memory"
+version = "0.1.0"
+dependencies = [
+ "messenger-conversation-api",
+ "messenger-domain",
  "sha2",
  "tokio",
 ]
