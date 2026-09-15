@@ -138,6 +138,14 @@ fn whole_number(value: &serde_json::Value) -> Option<u64> {
     value.as_u64()
 }
 
+/// The set a seed spells, for a route that takes a set as one field of a larger
+/// body. Same grammar, same refusals, so a seed and a page cannot disagree on
+/// what a set is.
+pub(crate) fn seed_definition(node: serde_json::Value) -> Result<SetDefinition, SetRefusal> {
+    let node: SetNode = serde_json::from_value(node).map_err(|_| SetRefusal::UnusableBody)?;
+    definition_of(node)
+}
+
 fn definition_of(node: SetNode) -> Result<SetDefinition, SetRefusal> {
     Ok(match node {
         SetNode::Every => SetDefinition::Every,

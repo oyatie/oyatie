@@ -8,6 +8,7 @@ use support::{Fixture, Session, TENANT, WRITE_BODY as WRITE, scrape, value_of};
 
 const SET_PAGE_PATH: &str = "/v1/object-sets/page";
 const SET_PAGE: &str = r#"{"type":"ety_record","revision":1,"set":"every"}"#;
+const WALK: &str = r#"{"idempotency_key":"idem-census","seed":{"type":"ety_record","revision":1,"set":"every"},"edge_types":["lty_owns"],"max_depth":2,"direction":"outbound","consent":"unrestricted","freshness_floor_epoch_seconds":0,"observed_at_epoch_seconds":1700000000}"#;
 
 #[tokio::test]
 async fn an_answered_read_increments_served() {
@@ -238,6 +239,17 @@ async fn each_read_serving_route_counts_exactly_once() {
         after,
         before + 1,
         "object set page: a served read must count once"
+    );
+    let before = value_of(&scrape(&session).await, "foundry_read_served_total");
+    let (status, reply) = session
+        .post_to(Some(fixture.operator_token()), "/v1/search-around", WALK)
+        .await;
+    assert_eq!(status, StatusCode::OK, "search around: {reply}");
+    let after = value_of(&scrape(&session).await, "foundry_read_served_total");
+    assert_eq!(
+        after,
+        before + 1,
+        "search around: a served read must count once"
     );
 }
 

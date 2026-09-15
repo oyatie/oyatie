@@ -29,6 +29,10 @@ pub fn router_from(state: Arc<AppState>) -> Router {
         .route("/v1/migrations/run", post(crate::migrate::run::run))
         .route("/v1/objects", get(crate::listing::objects))
         .route("/v1/object-sets/page", post(crate::object_set::page))
+        .route(
+            "/v1/search-around",
+            post(crate::search_around::search_around),
+        )
         .route("/v1/objects/{object_ref}", get(crate::reads::object))
         .route(
             "/v1/objects/{object_ref}/history",

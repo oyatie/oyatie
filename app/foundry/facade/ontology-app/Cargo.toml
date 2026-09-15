@@ -14,6 +14,8 @@ foundry-caller-draft = { path = "../../ports/draft/caller" }
 foundry-edits = { path = "../../core/edits" }
 foundry-projection-draft = { path = "../../ports/draft/projection" }
 foundry-projection-sqlite-draft = { path = "../../adapters/draft/projection-sqlite" }
+foundry-ontology-query-domain = { path = "../../core/ontology-query-domain" }
+foundry-ontology-query-usecase = { path = "../../core/ontology-query-usecase" }
 foundry-records-draft = { path = "../../ports/draft/records" }
 foundry-records-sqlite-draft = { path = "../../adapters/draft/records-sqlite" }
 foundry-spine = { path = "../../core/spine" }
