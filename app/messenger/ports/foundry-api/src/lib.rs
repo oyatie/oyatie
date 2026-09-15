@@ -24,5 +24,5 @@ pub trait Foundry: Send + Sync {
         idempotency_key: &str,
         occurred_at: u64,
         properties: BTreeMap<String, String>,
-    ) -> impl std::future::Future<Output = Result<Value, Error>> + Send;
+    ) -> impl std::future::Future<Output = Result<(), Error>> + Send;
 }
