@@ -5919,6 +5919,32 @@ name = "messaging-substrate-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "messenger-authority-memory"
+version = "0.1.0"
+dependencies = [
+ "messenger-conversation-api",
+ "messenger-domain",
+ "serde_json",
+ "sha2",
+ "tokio",
+]
+
+[[package]]
+name = "messenger-conversation-api"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+]
+
+[[package]]
+name = "messenger-domain"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "miette"
 version = "7.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
