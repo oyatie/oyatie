@@ -5965,6 +5965,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "messenger-policy-usecase"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+ "messenger-policy-api",
+]
+
+[[package]]
 name = "miette"
 version = "7.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
