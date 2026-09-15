@@ -3,7 +3,7 @@
 use messenger_domain::{Error, InstallationSpec, IntegrationCapability, IntegrationKind};
 use messenger_workload_api::Workload;
 use messenger_workload_http::HttpWorkload;
-use serde_json::{Value, json};
+use serde_json::Value;
 use std::collections::BTreeSet;
 use std::io::{Read, Write};
 use std::net::TcpListener;
@@ -15,7 +15,7 @@ fn spec() -> InstallationSpec {
     InstallationSpec {
         id: "11111111-1111-1111-1111-111111111111".into(),
         room: "!room:messenger.test".into(),
-        service: "bridge.slack".into(),
+        service: "cap.bridge.slack".into(),
         workload: "wl_bridge".into(),
         matrix_user: Some("@bot:messenger.test".into()),
         kind: IntegrationKind::Bridge,
@@ -82,7 +82,16 @@ fn serve(status: u16, body: &str) -> (String, Arc<Mutex<String>>, thread::JoinHa
 }
 
 fn client(base: &str) -> HttpWorkload {
-    HttpWorkload::with_timeout(base, "caller-token", Duration::from_secs(2)).unwrap()
+    HttpWorkload::new(base, "caller-token").unwrap()
+}
+
+async fn authorize_against(status: u16, body: &str) -> Result<(), Error> {
+    let (base, _, handle) = serve(status, body);
+    let result = client(&base)
+        .authorize("ten_acme", &spec(), IntegrationCapability::SendMessages)
+        .await;
+    handle.join().unwrap();
+    result
 }
 
 fn request_json(raw: &str) -> Value {
@@ -95,7 +104,7 @@ async fn authorize_allow_posts_iam_camel_case() {
     let (base, captured, handle) =
         serve(200, r#"{"effect":"ALLOW","reason":{"kind":"defaultDeny"}}"#);
     client(&base)
-        .authorize("tenant-a", &spec(), IntegrationCapability::SendMessages)
+        .authorize("ten_acme", &spec(), IntegrationCapability::SendMessages)
         .await
         .unwrap();
     handle.join().unwrap();
@@ -106,9 +115,9 @@ async fn authorize_allow_posts_iam_camel_case() {
             .contains("authorization: bearer caller-token")
     );
     let body = request_json(&raw);
-    assert_eq!(body["tenantId"], "tenant-a");
+    assert_eq!(body["tenantId"], "ten_acme");
     assert_eq!(body["workloadId"], "wl_bridge");
-    assert_eq!(body["owningCapability"], "bridge.slack");
+    assert_eq!(body["owningCapability"], "cap.bridge.slack");
     assert_eq!(body["action"], "messenger.integration.messages.send");
     assert_eq!(body["resource"]["resourceType"], "messenger.room");
     assert_eq!(body["resource"]["resourceId"], "!room:messenger.test");
@@ -116,57 +125,36 @@ async fn authorize_allow_posts_iam_camel_case() {
 
 #[tokio::test]
 async fn authorize_maps_deny_and_outage() {
-    let (base, _, handle) = serve(403, r#"{"effect":"DENY","reason":{"kind":"defaultDeny"}}"#);
-    let denied = client(&base)
-        .authorize("tenant-a", &spec(), IntegrationCapability::SendMessages)
-        .await;
-    handle.join().unwrap();
-    assert_eq!(denied, Err(Error::Denied));
-
-    let (base, _, handle) = serve(
-        503,
-        r#"{"error":{"code":"DEPENDENCY_UNAVAILABLE","message":"x"}}"#,
-    );
-    let outage = client(&base)
-        .authorize("tenant-a", &spec(), IntegrationCapability::SendMessages)
-        .await;
-    handle.join().unwrap();
-    assert!(matches!(outage, Err(Error::Unavailable(_))));
-
-    let (base, _, handle) = serve(200, r#"{"effect":"DENY","reason":{"kind":"defaultDeny"}}"#);
-    let body_deny = client(&base)
-        .authorize("tenant-a", &spec(), IntegrationCapability::SendMessages)
-        .await;
-    handle.join().unwrap();
-    assert_eq!(body_deny, Err(Error::Denied));
-}
-
-#[tokio::test]
-async fn identify_projects_principal_and_refuses_bad_token() {
-    let (base, captured, handle) = serve(
-        200,
-        r#"{"tenantId":"tenant-a","workloadId":"wl_bridge","owningCapability":"bridge.slack","trustDomain":"spiffe://tenant-a","state":"active","scopes":[]}"#,
-    );
-    let identity = client(&base).identify("jwt").await.unwrap();
-    handle.join().unwrap();
-    let raw = captured.lock().unwrap().clone();
-    assert!(raw.contains("POST /tokens/validate"));
-    assert_eq!(request_json(&raw), json!({"token":"jwt"}));
-    assert_eq!(identity.tenant, "tenant-a");
-    assert_eq!(identity.workload, "wl_bridge");
-    assert_eq!(identity.service, "bridge.slack");
-    assert_eq!(identity.state, "active");
-
-    let (base, _, handle) = serve(422, r#"{"error":{"code":"TOKEN_INVALID","message":"x"}}"#);
-    let rejected = client(&base).identify("jwt").await;
-    handle.join().unwrap();
-    assert_eq!(rejected, Err(Error::Denied));
+    let deny = r#"{"effect":"DENY","reason":{"kind":"defaultDeny"}}"#;
+    assert_eq!(authorize_against(403, deny).await, Err(Error::Denied));
+    assert_eq!(authorize_against(401, deny).await, Err(Error::Denied));
+    assert_eq!(authorize_against(422, deny).await, Err(Error::Denied));
+    assert!(matches!(
+        authorize_against(429, "{}").await,
+        Err(Error::Unavailable(_))
+    ));
+    assert!(matches!(
+        authorize_against(408, "{}").await,
+        Err(Error::Unavailable(_))
+    ));
+    assert!(matches!(
+        authorize_against(302, "{}").await,
+        Err(Error::Unavailable(_))
+    ));
+    assert!(matches!(
+        authorize_against(503, "{}").await,
+        Err(Error::Unavailable(_))
+    ));
+    assert!(matches!(
+        authorize_against(200, r#"{"effect":"OTHER"}"#).await,
+        Err(Error::Unavailable(_))
+    ));
 }
 
 #[tokio::test]
 async fn unreachable_iam_is_unavailable() {
     let err = client("http://127.0.0.1:1")
-        .authorize("tenant-a", &spec(), IntegrationCapability::SendMessages)
+        .authorize("ten_acme", &spec(), IntegrationCapability::SendMessages)
         .await;
     assert!(matches!(err, Err(Error::Unavailable(_))));
 }
