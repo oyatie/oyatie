@@ -7,9 +7,6 @@ rust_library(
     deps = [
         "//app/messenger/core/domain:messenger-domain",
         "//app/messenger/ports/installation-api:messenger-installation-api",
-        "third-party//:serde",
-        "third-party//:serde_json",
-        "third-party//:sha2",
         "third-party//:tokio",
     ],
 )
@@ -23,9 +20,6 @@ rust_test(
     deps = [
         "//app/messenger/core/domain:messenger-domain",
         "//app/messenger/ports/installation-api:messenger-installation-api",
-        "third-party//:serde",
-        "third-party//:serde_json",
-        "third-party//:sha2",
         "third-party//:tokio",
     ],
 )
@@ -40,7 +34,6 @@ rust_test(
         ":messenger-installation-memory",
         "//app/messenger/core/domain:messenger-domain",
         "//app/messenger/ports/installation-api:messenger-installation-api",
-        "third-party//:serde_json",
         "third-party//:tokio",
     ],
 )

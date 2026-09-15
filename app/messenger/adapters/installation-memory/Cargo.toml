@@ -9,9 +9,6 @@ license = "Apache-2.0"
 [dependencies]
 messenger-domain = { path = "../../core/domain" }
 messenger-installation-api = { path = "../../ports/installation-api" }
-serde.workspace = true
-serde_json.workspace = true
-sha2.workspace = true
 tokio.workspace = true
 
 [lib]
