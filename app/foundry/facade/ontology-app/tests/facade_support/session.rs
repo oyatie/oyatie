@@ -113,6 +113,28 @@ impl Session {
         .await
     }
 
+    /// A POST to a path other than `/v1/actions`.
+    pub async fn post_to(
+        &self,
+        token: Option<&str>,
+        path: &str,
+        body: &str,
+    ) -> (StatusCode, String) {
+        let mut request = Request::builder()
+            .method("POST")
+            .uri(path)
+            .header("content-type", "application/json");
+        if let Some(token) = token {
+            request = request.header("authorization", format!("Bearer {token}"));
+        }
+        self.send(
+            request
+                .body(Body::from(body.to_owned()))
+                .expect("a request"),
+        )
+        .await
+    }
+
     pub async fn get(&self, token: Option<&str>, path: &str) -> (StatusCode, String) {
         let mut request = Request::builder().method("GET").uri(path);
         if let Some(token) = token {

@@ -9,10 +9,10 @@ use data_ontology_kernel::PropertyValue;
 use foundry_projection_draft::{PageRequest, PredicateError, ProjectionCursor, PropertyPredicate};
 
 /// The page size a caller that names none is served.
-const DEFAULT_PAGE_LIMIT: usize = 100;
+pub(crate) const DEFAULT_PAGE_LIMIT: usize = 100;
 /// The largest page this surface will serve, so one request cannot ask the
 /// store for a tenant's whole type.
-const MAX_PAGE_LIMIT: usize = 1000;
+pub(crate) const MAX_PAGE_LIMIT: usize = 1000;
 
 /// `?type=&revision=&limit=&cursor=&property=&equals=&from=&to=`.
 ///
@@ -45,17 +45,24 @@ fn typed_literal(raw: &str) -> Option<PropertyValue> {
     }
 }
 
-/// Why a query string cannot be served. Each names a RULE the request broke, so
+/// Why a read's parameters cannot be served. Each names a RULE the request
+/// broke, so
 /// two requests that break only one rule answer alike however differently they
 /// broke it; a request that breaks two is answered by whichever is reached
 /// first, here or inside the predicate the parser builds.
+///
+/// The filter, page-bound and revision rules are shared with the set body, which
+/// spells them as JSON, so those causes name the rule and not either surface's
+/// spelling. The three that only a query string can break — an unknown key, a
+/// repeated key, and a missing type — keep theirs, because a body cannot reach
+/// them: serde refuses an unknown key and a missing field as a shape.
 pub(crate) enum QueryRefusal {
     UnknownParameter,
     /// The property is not a name the projection could hold. Through a query
     /// string only the empty case arrives: values are not decoded, so an
     /// escaped space is a literal name and a raw one is not a legal request
-    /// target. The space case is the port's rule, for a caller that can spell
-    /// one.
+    /// target. A JSON body carries a padded name, so the set route reaches
+    /// both halves.
     UnusableProperty,
     RepeatedParameter,
     MissingType,
@@ -77,23 +84,25 @@ impl QueryRefusal {
     pub(crate) fn cause(&self) -> &'static str {
         match self {
             Self::UnusableProperty => {
-                "?property= must name the property to filter on, with no surrounding space"
+                "a filter must name the property it constrains, with no surrounding space"
             }
             Self::UnknownParameter => {
                 "this listing defines type, revision, limit, cursor, property, equals, from and to only"
             }
             Self::RepeatedParameter => "a parameter given twice has no single honest answer",
             Self::MissingType => "a listing must name the entity type it lists: ?type=ety_...",
-            Self::UnusableRevision => "a read must pin the revision it understands: ?revision=N",
-            Self::UnusableLimit => "?limit= must be a whole number from 1 to 1000",
-            Self::UnusableCursor => "?cursor= must be the object reference a page ended on",
+            Self::UnusableRevision => {
+                "a read must pin the revision it understands, as a whole number"
+            }
+            Self::UnusableLimit => "a page limit must be a whole number from 1 to 1000",
+            Self::UnusableCursor => "a cursor must be the object reference a page ended on",
             Self::IncompleteFilter => {
-                "a filter is ?property= with either ?equals= or both ?from= and ?to="
+                "a filter is a property with either an equality or both ends of a range"
             }
             Self::ConflictingFilter => "a filter is either an equality or a range, not both",
             Self::UnusableLiteral => "a filter literal is text:, int: or bool: and its value",
             Self::UnusableRange => {
-                "?from= and ?to= must be the same kind, and from may not sort after to"
+                "the ends of a range must be the same kind, and from may not sort after to"
             }
         }
     }
@@ -157,7 +166,7 @@ impl ListingQuery {
 /// The predicate the four filter parameters spell, or `None` when none of
 /// them is present. Each incoherent combination is refused by the rule it
 /// breaks.
-fn filter_of(
+pub(crate) fn filter_of(
     property: Option<String>,
     equals: Option<String>,
     from: Option<String>,

@@ -119,11 +119,7 @@ pub async fn object(
         }
         Err(ViewError::UnretainedRevision) => {
             state.metrics.read_refused();
-            refuse(
-                StatusCode::CONFLICT,
-                "surface",
-                "that revision was never accepted for this entity type",
-            )
+            refuse(StatusCode::CONFLICT, "surface", UNRETAINED_REVISION_CAUSE)
         }
         Err(ViewError::StoreUnreadable(_)) => {
             state.metrics.read_refused();
@@ -242,6 +238,27 @@ pub async fn types(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Re
 /// `ent_`-shaped id because the kernel's authorization vocabulary requires
 /// one; it names the tenant's own view, not any object in it.
 pub(crate) const TENANT_SCOPED_RESOURCE: &str = "ent_tenant_view";
+
+/// The cause a read gives for a revision its tenant never accepted. Shared, so
+/// the single-object read and the paged reads cannot answer one state with two
+/// sentences.
+pub(crate) const UNRETAINED_REVISION_CAUSE: &str =
+    "that revision was never accepted for this entity type";
+
+/// The entity type `raw` names, if this tenant declares it at any revision.
+/// A malformed id and an undeclared one are one answer: which of the two a
+/// caller's guess was is not this surface's to disclose. Separate from a pin
+/// refusal, so a type a tenant never declared is never reported as a revision
+/// it never accepted.
+pub(crate) fn declared_type(
+    engine: &data_ontology_kernel::OntologyEngine,
+    tenant_id: &str,
+    raw: &str,
+) -> Option<data_ontology_kernel::EntityTypeId> {
+    data_ontology_kernel::EntityTypeId::new(raw)
+        .ok()
+        .filter(|id| engine.entity_type(tenant_id, id).is_some())
+}
 
 pub(crate) fn refuse(status: StatusCode, gate: &str, cause: &str) -> Response {
     (
