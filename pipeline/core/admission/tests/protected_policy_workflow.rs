@@ -13,7 +13,7 @@ fn workflow() -> String {
 }
 
 const CHECKOUT: &str = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1";
-const TOOLCHAIN: &str = "dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17";
+const TOOLCHAIN: &str = "dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de";
 const BACKBONE_OUTPUT: &str = "${{ steps.g.outputs.backbone_postgres }}";
 const COMPUTE_OUTPUT: &str = "${{ steps.g.outputs.compute_lifecycle_postgres }}";
 

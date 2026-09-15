@@ -138,11 +138,11 @@ fn real_reindeer_qualification_is_pinned_offline_and_fail_closed() {
         .and_then(|(_, tail)| tail.split_once("\n  change-gates:\n"))
         .map(|(job, _)| job)
         .expect("bounded Reindeer qualification job");
-    let toolchain_action = "dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17";
+    let toolchain_action = "dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de";
     let ordered_toolchains = concat!(
-        "      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17\n",
+        "      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de\n",
         "        with: { toolchain: \"nightly-2026-05-22\", components: \"clippy\" }\n",
-        "      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17\n",
+        "      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de\n",
         "        with: { toolchain: \"nightly-2026-09-10\" }",
     );
 

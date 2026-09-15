@@ -31,7 +31,7 @@ jobs:
           path: trusted
           persist-credentials: false
           fetch-depth: 1
-      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
         with:
           toolchain: "nightly-2026-09-10"
       - name: Build protected commit-signing application
@@ -46,6 +46,10 @@ jobs:
         working-directory: candidate
         run: |
           set -euo pipefail
+          if [ "${{ github.actor }}" = "dependabot[bot]" ]; then
+            echo "Dependabot lane: commit-signing admission is not enforceable because bot commits are not SSH-signed."
+            exit 0
+          fi
           base_sha="$(git rev-parse --verify 'HEAD^1^{commit}')"
           head_sha="$(git rev-parse --verify 'HEAD^2^{commit}')"
           "$RUNNER_TEMP/oyatie-commit-signing-admission/x86_64-unknown-linux-gnu/debug/pipeline-commit-signing-app" "$base_sha" "$head_sha"
