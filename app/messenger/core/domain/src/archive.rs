@@ -1,7 +1,7 @@
-use crate::{Decryption, Error};
+use crate::{Decryption, Error, valid_room, valid_user};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ArchiveEvent {
     pub id: String,
     pub sender: String,
@@ -75,5 +75,50 @@ impl ArchiveEvent {
             }
         }
         Ok(parts)
+    }
+
+    pub fn validate_capture(&self, room: &str) -> Result<(), Error> {
+        if !valid_room(room) {
+            return Err(Error::Invalid("invalid room".into()));
+        }
+        if self.id.is_empty() || self.id.len() > 255 || self.id.chars().any(char::is_control) {
+            return Err(Error::Invalid("invalid archive event id".into()));
+        }
+        if !valid_user(&self.sender) {
+            return Err(Error::Invalid("invalid user".into()));
+        }
+        if self.timestamp == 0 {
+            return Err(Error::Invalid("invalid timestamp".into()));
+        }
+        if self.event_type.is_empty()
+            || self.event_type.len() > 255
+            || self.event_type.chars().any(char::is_control)
+        {
+            return Err(Error::Invalid("invalid event type".into()));
+        }
+        if !self.content.is_object() {
+            return Err(Error::Invalid("invalid event content".into()));
+        }
+        let encoded = serde_json::to_vec(&self.content)
+            .map_err(|_| Error::Invalid("invalid event content".into()))?;
+        if encoded.len() > 65_536 {
+            return Err(Error::Invalid("event content exceeds 65536 bytes".into()));
+        }
+        self.media_parts()?;
+        Ok(())
+    }
+}
+
+impl ArchiveEventPage {
+    pub const MAX_ARCHIVE_PAGE: u16 = 100;
+
+    pub fn validate_page(room: &str, limit: u16) -> Result<(), Error> {
+        if !valid_room(room) {
+            return Err(Error::Invalid("invalid room".into()));
+        }
+        if limit == 0 || limit > Self::MAX_ARCHIVE_PAGE {
+            return Err(Error::Invalid("invalid archive page size".into()));
+        }
+        Ok(())
     }
 }

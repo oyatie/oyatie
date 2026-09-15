@@ -33,3 +33,15 @@ rust_test(
         "third-party//:serde_json",
     ],
 )
+
+rust_test(
+    name = "messenger-domain-archive",
+    srcs = ["tests/archive.rs"],
+    crate = "archive",
+    crate_root = "tests/archive.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-domain",
+        "third-party//:serde_json",
+    ],
+)
