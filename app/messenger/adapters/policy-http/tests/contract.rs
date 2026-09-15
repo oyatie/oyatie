@@ -2,15 +2,8 @@
 
 use axum::{Json, Router, routing::post};
 use messenger_domain::Error;
-use messenger_policy_api::{Action, Policy, Principal};
+use messenger_policy_api::{Action, Policy};
 use messenger_policy_http::OyatiePolicy;
-
-fn alice() -> Principal {
-    Principal {
-        tenant: "acme".into(),
-        subject: "usr_alice".into(),
-    }
-}
 
 #[test]
 fn hosted_https_requires_workload_identity() {
@@ -26,14 +19,7 @@ async fn unavailable_policy_cannot_be_an_allow() {
     assert!(
         matches!(
             policy
-                .authorize(
-                    &Principal {
-                        tenant: "ten_acme".into(),
-                        subject: "alice".into()
-                    },
-                    Action::Send,
-                    "!room:local"
-                )
+                .authorize("ten_acme", "alice", Action::Send, "!room:local")
                 .await,
             Err(Error::Unavailable(_))
         ),
@@ -45,7 +31,9 @@ async fn unavailable_policy_cannot_be_an_allow() {
 async fn empty_identity_is_denied_without_transport() {
     let policy = OyatiePolicy::new("http://127.0.0.1:1", "v1", None).unwrap();
     assert!(matches!(
-        policy.authorize(&alice(), Action::Send, "").await,
+        policy
+            .authorize("acme", "usr_alice", Action::Send, "")
+            .await,
         Err(Error::Denied)
     ));
 }
@@ -108,7 +96,7 @@ async fn only_correlated_fresh_complete_allows_pass() {
         let server = tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
         let policy = OyatiePolicy::new(&format!("http://{address}"), "v1", None).unwrap();
         let result = policy
-            .authorize(&alice(), Action::Send, "!work:local")
+            .authorize("acme", "usr_alice", Action::Send, "!work:local")
             .await;
         assert_eq!(result.is_ok(), mode == "allow", "{mode}");
         if matches!(mode, "http-error" | "overloaded" | "oversized") {
