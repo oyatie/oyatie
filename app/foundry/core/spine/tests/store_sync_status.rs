@@ -1,17 +1,14 @@
-//! Reads answered from the DURABLE store: its sync status, and its page.
+//! Sync status as the DURABLE store reports it.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use data_boundary_kernel::{DataClass, PrivacyDataClass};
-use data_ontology_kernel::{
-    EntityTypeDefinition, EntityTypeId, EntityTypePropertyDefinition, OntologyEngine,
-};
 use data_ontology_kernel::{ObjectEntity, ObjectProperty, PropertyTier};
 use foundry_projection_draft::{
     AppliedEntry, ApplyReceipt, EntryOutcome, KeyDesignations, MemoryProjectionStore, Page,
     PageRequest, ProjectedLink, ProjectedObject, ProjectionStore, ProjectionStoreError,
     PropertyPredicate,
 };
-use foundry_spine::{UpcastState, objects_of_type_at_revision, store_sync_status};
+use foundry_spine::store_sync_status;
 
 fn internal() -> PrivacyDataClass {
     PrivacyDataClass::try_from(DataClass::InternalOnly).unwrap()
@@ -197,104 +194,5 @@ fn a_store_outage_surfaces_instead_of_reading_as_caught_up() {
     assert!(
         matches!(failure, ProjectionStoreError::Storage { .. }),
         "the outage is reported, never rendered as lag 0: {failure:?}",
-    );
-}
-
-fn declared(entity_type: &str, revision: u32, names: &[&str]) -> EntityTypeDefinition {
-    let properties = names
-        .iter()
-        .map(|name| {
-            EntityTypePropertyDefinition::new(*name, PropertyTier::Scalar, internal(), false)
-                .unwrap()
-        })
-        .collect();
-    EntityTypeDefinition::new(
-        "ten_test",
-        EntityTypeId::new(entity_type).unwrap(),
-        "Reading",
-        properties,
-        revision,
-    )
-    .unwrap()
-}
-
-/// `ety_reading` declares `name` at revision 1 and adds `grade` at 2, both
-/// retained; `ety_other` gives a page of one type another to wrongly hold.
-fn registry() -> OntologyEngine {
-    let mut engine = OntologyEngine::default();
-    engine
-        .register_entity_type(declared("ety_reading", 1, &["name"]))
-        .unwrap();
-    engine
-        .evolve_entity_type(declared("ety_reading", 2, &["name", "grade"]))
-        .unwrap();
-    engine
-        .register_entity_type(declared("ety_other", 1, &["name"]))
-        .unwrap();
-    engine
-}
-
-/// One page rendered a row at a time as "ref properties rWRITTEN state",
-/// over a store holding `ent_a` written at revision 1, `ent_b` at 2, and
-/// `ent_c` of the other type. Every object carries `name` and `grade`, so
-/// a property a page drops is the pin's doing, not the object's.
-fn rows(entity_type: &str, pinned: u32) -> Vec<String> {
-    let mut store = MemoryProjectionStore::default();
-    for (ordinal, (object_ref, of_type, revision)) in [
-        ("ent_a", "ety_reading", 1),
-        ("ent_b", "ety_reading", 2),
-        ("ent_c", "ety_other", 1),
-    ]
-    .into_iter()
-    .enumerate()
-    {
-        let entry = applied_of(ordinal as u64 + 1, typed(object_ref, of_type, revision));
-        store.apply(entry, &KeyDesignations::default()).unwrap();
-    }
-    objects_of_type_at_revision(
-        &store,
-        &registry(),
-        "ten_test",
-        &EntityTypeId::new(entity_type).unwrap(),
-        pinned,
-        &PageRequest::first(10),
-    )
-    .unwrap()
-    .objects
-    .iter()
-    .map(|(object_ref, view)| {
-        let names: Vec<&str> = view.properties.keys().map(String::as_str).collect();
-        format!(
-            "{object_ref} {} r{} {:?}",
-            names.join(","),
-            view.written_revision,
-            view.upcast_state
-        )
-    })
-    .collect()
-}
-
-/// Both sides of the pin, row by row, and only the queried type: behind
-/// the pin no row carries the property it does not declare, at it every
-/// row does, and each row reports its own written revision.
-#[test]
-fn every_row_of_a_page_is_pinned_on_its_own_and_only_its_type_is_held() {
-    assert_eq!(
-        rows("ety_reading", 1),
-        ["ent_a name r1 Current", "ent_b name r2 Current"],
-        "revision 1 declares no grade, and both writes are at or beyond it",
-    );
-    assert_eq!(
-        rows("ety_reading", 2),
-        [
-            "ent_a grade,name r1 UpcastPending",
-            "ent_b grade,name r2 Current"
-        ],
-        "revision 2 declares grade, and only the earlier write is behind it",
-    );
-    assert_eq!(
-        rows("ety_other", 1),
-        ["ent_c name r1 Current"],
-        "ent_c was there for the pages above to wrongly include",
     );
 }

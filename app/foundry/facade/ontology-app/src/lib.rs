@@ -8,6 +8,7 @@ pub mod composition;
 pub mod config;
 pub mod dto;
 mod listing;
+mod listing_query;
 pub mod metrics;
 mod migrate;
 pub mod observability;

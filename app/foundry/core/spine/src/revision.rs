@@ -11,7 +11,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use data_ontology_kernel::{EntityTypeId, ObjectProperty, OntologyEngine};
 use foundry_projection_draft::{
-    PageRequest, ProjectionCursor, ProjectionStore, ProjectionStoreError,
+    PageRequest, ProjectionCursor, ProjectionStore, ProjectionStoreError, PropertyPredicate,
 };
 
 use crate::migrate::MigrationPlan;
@@ -169,19 +169,47 @@ fn retained(
         .collect()
 }
 
+/// Typed refusals of the PAGED view. It shares the pin and store arms with
+/// [`ViewError`] and adds the two only a filter can reach, so the
+/// single-object read cannot be handed them. It has no unknown-object arm:
+/// a page reads no single object, so absence is an empty page.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum PageError {
+    /// The pinned revision was never accepted for this entity type.
+    UnretainedRevision,
+    /// The durable store could not be read; never answered as absence.
+    StoreUnreadable(ProjectionStoreError),
+    /// A filter names a property the pinned definition does not declare.
+    /// Refused rather than evaluated: the store matches on the object as
+    /// stored, so such a filter would select rows by a value the pinned
+    /// response omits, making the surface an oracle for a property outside
+    /// the pin.
+    UndeclaredFilterProperty,
+    /// A range filter met a stored value of another kind. The caller's
+    /// bounds are the argument, so this is a caller error; the store is
+    /// not unreadable.
+    FilterKindMismatch { property: String },
+}
+
 /// One page of a type's objects, each as a reader pinned at `pinned` sees
 /// it, in `object_ref` order. `next` is present exactly when the store has
-/// more objects of this type past the page.
+/// more objects past the page that this page's own filter admits — under no
+/// filter, more objects of this type.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PinnedPage {
     pub objects: Vec<(String, PinnedObject)>, // data_class: PROPERTY_VALUE_PRIVACY_CLASS
     pub next: Option<ProjectionCursor>,       // data_class: INTERNAL_ONLY
 }
 
-/// [`object_at_revision_in_store`] over a whole page of one entity type.
-/// The pin resolves against the registry once, not per row, because every
-/// object on the page has the queried type. This view takes no plan, so
-/// written below the pin is pending for every row.
+/// [`object_at_revision_in_store`] over a whole page of one entity type,
+/// optionally filtered. The pin resolves against the registry once, not per
+/// row, because every object on the page has the queried type. This view
+/// takes no plan, so written below the pin is pending for every row.
+///
+/// A `filter` may only name a property the pinned definition declares. The
+/// store matches on the object AS STORED while the rows it returns are
+/// filtered to the pinned vocabulary, so a filter on an undeclared property
+/// would select rows the response cannot account for.
 pub fn objects_of_type_at_revision(
     store: &dyn ProjectionStore,
     registry: &OntologyEngine,
@@ -189,13 +217,29 @@ pub fn objects_of_type_at_revision(
     entity_type: &EntityTypeId,
     pinned: u32,
     page: &PageRequest,
-) -> Result<PinnedPage, ViewError> {
+    filter: Option<&PropertyPredicate>,
+) -> Result<PinnedPage, PageError> {
     let definition = registry
         .entity_type_at_revision(tenant_id, entity_type, pinned)
-        .ok_or(ViewError::UnretainedRevision)?;
-    let page = store
-        .objects_of_type(tenant_id, &entity_type.value, page)
-        .map_err(ViewError::StoreUnreadable)?;
+        .ok_or(PageError::UnretainedRevision)?;
+    if let Some(filter) = filter
+        && !definition
+            .properties
+            .iter()
+            .any(|property| property.name == filter_property(filter))
+    {
+        return Err(PageError::UndeclaredFilterProperty);
+    }
+    let page = match filter {
+        None => store.objects_of_type(tenant_id, &entity_type.value, page),
+        Some(filter) => store.filter(tenant_id, &entity_type.value, filter, page),
+    }
+    .map_err(|error| match error {
+        ProjectionStoreError::KindMismatch { property } => {
+            PageError::FilterKindMismatch { property }
+        }
+        error => PageError::StoreUnreadable(error),
+    })?;
     let objects = page
         .objects
         .into_iter()
@@ -208,4 +252,13 @@ pub fn objects_of_type_at_revision(
         objects,
         next: page.next,
     })
+}
+
+/// The property a predicate constrains.
+fn filter_property(filter: &PropertyPredicate) -> &str {
+    match filter {
+        PropertyPredicate::Equals { property, .. } | PropertyPredicate::Range { property, .. } => {
+            property.as_str()
+        }
+    }
 }
