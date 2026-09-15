@@ -1,6 +1,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+mod apply;
 mod archive;
 mod authority;
 mod calling;
@@ -10,6 +11,8 @@ mod error;
 mod integrations;
 mod message;
 mod object;
+mod query;
+mod record;
 mod rooms;
 
 pub const ENTERPRISE_ROOM_TYPE: &str = "dev.oyatie.enterprise";
@@ -34,4 +37,5 @@ pub use message::{
     RoomDelta, SyncUpdate, merge_messages, message_body,
 };
 pub use object::ObjectRef;
+pub use record::{AuthorityRecord, Room, StoredEvent, TxnRecord};
 pub use rooms::{DeviceSummary, LoginMethods, MemberSummary, RoomMode, RoomSummary};
