@@ -10,7 +10,6 @@ license = "Apache-2.0"
 messenger-domain = { path = "../../core/domain" }
 
 [lib]
-name = "messenger_conversation_api"
 path = "src/lib.rs"
 doctest = false
 
