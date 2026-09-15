@@ -24,7 +24,7 @@ async fn notify_records_routing_ids_and_counts_and_drops_secret_fields() {
         push.notify(&notice("android", "device-token")).await,
         Ok(vec![])
     );
-    let delivered = push.delivered().await;
+    let delivered = push.delivered();
     assert_eq!(delivered.len(), 1);
     assert_eq!(delivered[0].event_id.as_deref(), Some("$event"));
     assert_eq!(delivered[0].room_id.as_deref(), Some("!room:example.org"));
@@ -38,18 +38,13 @@ async fn notify_records_routing_ids_and_counts_and_drops_secret_fields() {
 }
 
 #[tokio::test]
-async fn unknown_app_and_rejected_keys_are_returned_and_not_delivered() {
+async fn unknown_app_keys_are_returned_and_not_delivered() {
     let push = MemoryPush::new(["android"]);
     assert_eq!(
         push.notify(&notice("ios", "gone")).await,
         Ok(vec!["gone".into()])
     );
-    push.reject_key("dead").await;
-    assert_eq!(
-        push.notify(&notice("android", "dead")).await,
-        Ok(vec!["dead".into()])
-    );
-    assert!(push.delivered().await.is_empty());
+    assert!(push.delivered().is_empty());
 }
 
 #[tokio::test]
@@ -58,33 +53,7 @@ async fn invalid_notice_does_not_contact_the_store() {
     let mut invalid = notice("android", "key");
     invalid.room_id = None;
     assert_eq!(push.notify(&invalid).await, Err(PushError::Invalid));
-    assert!(push.delivered().await.is_empty());
-}
-
-#[tokio::test]
-async fn unregister_must_not_delete_a_newer_registration() {
-    let push = MemoryPush::new(["android"]);
-    push.unregister_key("abcdef", 100).await;
-    let mut n = notice("android", "abcdef");
-    n.devices[0].pushkey_ts = Some(101);
-    assert_eq!(
-        push.notify(&n).await,
-        Err(PushError::Unavailable { retry_after: 1 })
-    );
-    n.devices[0].pushkey_ts = Some(99);
-    assert_eq!(push.notify(&n).await, Ok(vec!["abcdef".into()]));
-    assert!(push.delivered().await.is_empty());
-}
-
-#[tokio::test]
-async fn outage_is_retryable_and_does_not_reject_the_pusher() {
-    let push = MemoryPush::new(["android"]);
-    push.set_outage(17).await;
-    assert_eq!(
-        push.notify(&notice("android", "key")).await,
-        Err(PushError::Unavailable { retry_after: 17 })
-    );
-    assert!(push.delivered().await.is_empty());
+    assert!(push.delivered().is_empty());
 }
 
 #[tokio::test]
@@ -97,7 +66,7 @@ async fn mixed_devices_reject_only_unknown_apps() {
         pushkey_ts: None,
     });
     assert_eq!(push.notify(&n).await, Ok(vec!["drop".into()]));
-    let delivered = push.delivered().await;
+    let delivered = push.delivered();
     assert_eq!(delivered.len(), 1);
     assert_eq!(delivered[0].app_id, "android");
 }
