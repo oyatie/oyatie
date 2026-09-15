@@ -5945,6 +5945,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "messenger-enterprise-admission-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "http-body-util",
+ "messenger-domain",
+ "messenger-policy-api",
+ "messenger-policy-http",
+ "messenger-policy-usecase",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tokio",
+ "tower 0.5.3",
+]
+
+[[package]]
 name = "messenger-policy-api"
 version = "0.1.0"
 dependencies = [
