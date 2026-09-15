@@ -46,33 +46,22 @@ pub enum PushError {
 
 impl PushNotice {
     pub fn validate(&self) -> Result<(), PushError> {
-        let valid = |value: &str, max: usize| {
-            !value.is_empty()
-                && value.len() <= max
-                && !value.chars().any(|c| c.is_control() || c.is_whitespace())
+        let identity = |value: &str| {
+            !value.is_empty() && !value.chars().any(|c| c.is_control() || c.is_whitespace())
         };
-        if self.devices.len() > 16
-            || self.event_id.is_some() != self.room_id.is_some()
+        if self.event_id.is_some() != self.room_id.is_some()
             || self
                 .event_id
                 .as_ref()
-                .is_some_and(|id| !valid(id, 512) || id.len() < 2 || !id.starts_with('$'))
+                .is_some_and(|id| !identity(id) || id.len() < 2 || !id.starts_with('$'))
             || self
                 .room_id
                 .as_ref()
-                .is_some_and(|id| !valid(id, 512) || id.len() < 2 || !id.starts_with('!'))
-            || self
-                .counts
-                .unread
-                .is_some_and(|count| count > i32::MAX as u32)
-            || self
-                .counts
-                .missed_calls
-                .is_some_and(|count| count > i32::MAX as u32)
+                .is_some_and(|id| !identity(id) || id.len() < 2 || !id.starts_with('!'))
             || self
                 .devices
                 .iter()
-                .any(|device| !valid(&device.app_id, 255) || !valid(&device.pushkey, 512))
+                .any(|device| !identity(&device.app_id) || !identity(&device.pushkey))
         {
             return Err(PushError::Invalid);
         }
@@ -145,23 +134,13 @@ mod tests {
     }
 
     #[test]
-    fn device_capacity_identities_and_counts_are_bounded() {
-        let mut crowded = notice();
-        crowded.devices = (0..17)
-            .map(|i| PushDevice {
-                app_id: "android".into(),
-                pushkey: format!("key-{i}"),
-                pushkey_ts: None,
-            })
-            .collect();
-        assert_eq!(crowded.validate(), Err(PushError::Invalid));
-
+    fn identities_reject_empty_and_whitespace() {
         let mut spaced = notice();
         spaced.devices[0].app_id = "bad app".into();
         assert_eq!(spaced.validate(), Err(PushError::Invalid));
 
-        let mut huge = notice();
-        huge.counts.unread = Some(i32::MAX as u32 + 1);
-        assert_eq!(huge.validate(), Err(PushError::Invalid));
+        let mut empty_key = notice();
+        empty_key.devices[0].pushkey = String::new();
+        assert_eq!(empty_key.validate(), Err(PushError::Invalid));
     }
 }

@@ -6,7 +6,6 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//app/messenger/ports/push-api:messenger-push-api",
-        "third-party//:tokio",
     ],
 )
 
@@ -18,7 +17,6 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//app/messenger/ports/push-api:messenger-push-api",
-        "third-party//:tokio",
     ],
 )
 
