@@ -46,6 +46,10 @@ jobs:
         working-directory: candidate
         run: |
           set -euo pipefail
+          if [ "${{ github.actor }}" = "dependabot[bot]" ]; then
+            echo "Dependabot lane: commit-signing admission is not enforceable because bot commits are not SSH-signed."
+            exit 0
+          fi
           base_sha="$(git rev-parse --verify 'HEAD^1^{commit}')"
           head_sha="$(git rev-parse --verify 'HEAD^2^{commit}')"
           "$RUNNER_TEMP/oyatie-commit-signing-admission/x86_64-unknown-linux-gnu/debug/pipeline-commit-signing-app" "$base_sha" "$head_sha"
