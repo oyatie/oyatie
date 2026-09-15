@@ -5945,6 +5945,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "messenger-installation-api"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+ "serde_json",
+]
+
+[[package]]
+name = "messenger-installation-memory"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+ "messenger-installation-api",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tokio",
+]
+
+[[package]]
 name = "miette"
 version = "7.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
