@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use foundry_caller_draft::{CallerVerifier, RosterVerifier};
+use foundry_ontology_query_usecase::OntologyQueryExecutionUsecase;
 use foundry_projection_draft::{ProjectionStore, ProjectionStoreError};
 use foundry_projection_sqlite_draft::SqliteProjectionStore;
 use foundry_records_draft::{RecordsLog, RecordsLogError, SealedEnvelope};
@@ -16,6 +17,19 @@ use crate::seed::registry_for;
 
 pub struct TenantState {
     pub projection: ProjectionState,
+    /// Query executions, held per tenant because the usecase recognises a
+    /// replay by the keys it has already answered.
+    pub queries: OntologyQueryExecutionUsecase,
+    /// The policy decision each (principal, idempotency key) was FIRST
+    /// authorized under.
+    ///
+    /// The usecase fingerprints an intent with its decision id, so that a
+    /// replay may return a cached receipt without re-checking policy. A policy
+    /// engine mints a fresh decision per call, so without this every honest
+    /// retry would read as a different intent. Every attempt is still
+    /// authorized on its own before reaching here; this only keeps the evidence
+    /// the first attempt was granted, so the intent is the same intent.
+    pub query_decisions: BTreeMap<(String, String), String>, // data_class: INTERNAL_ONLY
     /// Held behind the PORT so a test can install a log that fails on demand.
     pub action_log: Box<dyn RecordsLog + Send>,
     pub denial_log: Box<dyn RecordsLog + Send>,
@@ -57,6 +71,16 @@ impl TenantState {
             &mut self.projection,
             &mut *self.projection_store,
         )
+    }
+}
+
+impl TenantState {
+    /// The two handles a query execution needs, borrowed together so the borrow
+    /// checker enforces what the read path already assumes: the usecase is
+    /// mutated (it remembers the keys it has answered) while the store it reads
+    /// is not.
+    pub fn query_handles(&mut self) -> (&mut OntologyQueryExecutionUsecase, &dyn ProjectionStore) {
+        (&mut self.queries, &*self.projection_store)
     }
 }
 
@@ -177,6 +201,8 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
             tenant_id.clone(),
             Mutex::new(TenantState {
                 projection,
+                queries: OntologyQueryExecutionUsecase::default(),
+                query_decisions: BTreeMap::new(),
                 action_log: Box::new(action_log),
                 denial_log: Box::new(denial_log),
                 projection_store: Box::new(store),

@@ -3,7 +3,8 @@
 use std::collections::BTreeMap;
 
 use foundry_ontology_query_domain::{
-    KnowledgeGraphQueryError, KnowledgeGraphQueryRequest, query_graph_slice_from_store,
+    EdgeConsent, KnowledgeGraphQueryError, KnowledgeGraphQueryRequest, TraversalDirection,
+    query_graph_slice_from_store,
 };
 use foundry_projection_draft::ProjectionStore;
 
@@ -17,14 +18,21 @@ pub struct OntologyQueryExecutionUsecase {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+/// Everything that defines the walk a key stands for. A replay returns a
+/// cached receipt without re-running the query, so a field left out here is a
+/// field a caller could change under one key and be answered the old graph.
 struct OntologyQueryIntentFingerprint {
     tenant_id: String,
     principal_id: String,
     query_surface: String,
     root_entity_id: String,
+    additional_root_entity_ids: Vec<String>,
     edge_type_ids: Vec<String>,
     max_depth: u32,
     freshness_floor_epoch_seconds: u64,
+    observed_at_epoch_seconds: u64,
+    direction: TraversalDirection,
+    edge_consent: EdgeConsent,
     policy_decision_id: String,
 }
 
@@ -215,19 +223,43 @@ impl OntologyQueryExecutionUsecase {
     }
 }
 
+/// Consent as a SET: `EdgeConsent::permits` asks whether a grant is present, so
+/// two spellings of one grant list are one posture and not two intents.
+fn canonical_consent(consent: &EdgeConsent) -> EdgeConsent {
+    match consent {
+        EdgeConsent::Unrestricted => EdgeConsent::Unrestricted,
+        EdgeConsent::Granted(grants) => {
+            let mut grants = grants.clone();
+            grants.sort();
+            grants.dedup();
+            EdgeConsent::Granted(grants)
+        }
+    }
+}
+
 impl OntologyQueryIntentFingerprint {
     fn from(input: &OntologyQueryExecutionInput) -> Self {
         let mut edge_type_ids = input.request.edge_type_ids.clone();
         edge_type_ids.sort();
         edge_type_ids.dedup();
+        // Sorted and deduplicated for the same reason the edge types are: two
+        // spellings of one seed are one intent, and a reordering is not a new
+        // walk.
+        let mut additional_roots = input.request.additional_root_entity_ids.clone();
+        additional_roots.sort();
+        additional_roots.dedup();
         Self {
             tenant_id: input.request.tenant_id.clone(),
             principal_id: input.principal_id.clone(),
             query_surface: input.query_surface.clone(),
             root_entity_id: input.request.root_entity_id.clone(),
+            additional_root_entity_ids: additional_roots,
             edge_type_ids,
             max_depth: input.request.max_depth,
             freshness_floor_epoch_seconds: input.request.freshness_floor_epoch_seconds,
+            observed_at_epoch_seconds: input.request.observed_at_epoch_seconds,
+            direction: input.request.direction,
+            edge_consent: canonical_consent(&input.request.edge_consent),
             policy_decision_id: input.policy_decision.decision_id.clone(),
         }
     }

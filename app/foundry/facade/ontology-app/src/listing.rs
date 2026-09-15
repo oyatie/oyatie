@@ -25,7 +25,7 @@ pub async fn objects(
     RawQuery(raw_query): RawQuery,
     headers: HeaderMap,
 ) -> Response {
-    let (caller, tenant) = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
+    let (caller, _decision, tenant) = match authorized(&state, &headers, TENANT_SCOPED_RESOURCE) {
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };
