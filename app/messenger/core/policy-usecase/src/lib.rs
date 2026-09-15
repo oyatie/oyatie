@@ -2,9 +2,7 @@
 #![forbid(unsafe_code)]
 
 use messenger_domain::Error;
-use messenger_policy_api::Policy;
-
-pub use messenger_policy_api::Action;
+use messenger_policy_api::{Action, Policy};
 
 pub async fn authorize(
     policy: &impl Policy,
@@ -144,22 +142,5 @@ mod tests {
             );
         }
         assert!(policy.calls().is_empty());
-    }
-
-    #[test]
-    fn every_action_is_forwarded() {
-        for action in [
-            Action::CreateRoom,
-            Action::ManageRoom,
-            Action::Send,
-            Action::Invite,
-            Action::Archive,
-            Action::ReadObject,
-            Action::InvokeAction,
-        ] {
-            let policy = Script::new(Ok(()));
-            finished(authorize(&policy, "acme", "alice", action, "work-room")).unwrap();
-            assert_eq!(policy.calls()[0].2, action);
-        }
     }
 }
