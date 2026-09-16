@@ -1,0 +1,156 @@
+load("//:pinned.bzl", "pinned_crate")
+
+pinned_crate(
+    name = "libproc",
+    version = "0.14.11",
+    sha256 = "a54ad7278b8bc5301d5ffd2a94251c004feb971feba96c971ea4063645990757",
+    build_script = True,
+    build_deps = [":bindgen"],
+    deps = [":errno", "//:libc"],
+    visibility = ["root//build/dependency-declarations/..."],    edition = "2018",
+)
+
+pinned_crate(
+    name = "bindgen",
+    version = "0.72.1",
+    sha256 = "993776b509cfb49c750f11b8f07a46fa23e0a1386ffc01fb1e7d343efc387895",
+    build_script = True,
+    crate_root = "lib.rs",
+    features = ["runtime"],
+    deps = [":bitflags", ":cexpr", ":clang-sys", ":itertools", ":proc-macro2", ":quote", "//:regex", ":rustc-hash", ":shlex", ":syn"],    edition = "2021",
+)
+
+pinned_crate(
+    name = "clang-sys",
+    version = "1.9.1",
+    sha256 = "157a8ba7b480713b56f4c09fd13fc3e0a22a5dfab8097ba61cbc5feef950788a",
+    build_script = True,
+    build_deps = [":glob"],
+    deps = [":glob", "//:libc", ":libloading"],
+    features = ["runtime", "clang_3_5", "clang_3_6", "clang_3_7", "clang_3_8", "clang_3_9", "clang_4_0", "clang_5_0", "clang_6_0", "clang_7_0", "clang_8_0", "clang_9_0", "clang_10_0", "clang_11_0"],    edition = "2021",
+)
+
+pinned_crate(
+    name = "glob",
+    version = "0.3.4",
+    sha256 = "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b",    edition = "2021",
+)
+
+pinned_crate(
+    name = "libloading",
+    version = "0.8.9",
+    sha256 = "d7c4b02199fee7c5d21a5ae7d8cfa79a6ef5bb2fc834d6e9058e89c825efdc55",
+    deps = [":cfg-if"],    edition = "2015",
+)
+
+pinned_crate(
+    name = "cfg-if",
+    version = "1.0.4",
+    sha256 = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801",    edition = "2018",
+)
+
+pinned_crate(
+    name = "cexpr",
+    version = "0.6.0",
+    sha256 = "6fac387a98bb7c37292057cffc56d62ecb629900026402633ae9160df93a8766",
+    deps = [":nom"],    edition = "2018",
+)
+
+pinned_crate(
+    name = "nom",
+    version = "7.1.3",
+    sha256 = "d273983c5a657a70a3e8f2a01329822f3b8c8172b73826411a55751e404a0a4a",
+    deps = [":memchr", ":minimal-lexical"],
+    features = ["std", "alloc"],    edition = "2018",
+)
+
+pinned_crate(
+    name = "minimal-lexical",
+    version = "0.2.1",
+    sha256 = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a",
+    features = ["std"],    edition = "2018",
+)
+
+pinned_crate(
+    name = "memchr",
+    version = "2.8.3",
+    sha256 = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98",
+    features = ["std", "alloc"],    edition = "2021",
+)
+
+pinned_crate(
+    name = "errno",
+    version = "0.3.14",
+    sha256 = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb",
+    deps = ["//:libc"],
+    features = ["std"],    edition = "2018",
+)
+
+pinned_crate(
+    name = "bitflags",
+    version = "2.13.1",
+    sha256 = "b588b76d00fde79687d7646a9b5bdf3cc0f655e0bbd080335a95d7e96f3587da",
+    features = ["std"],    edition = "2021",
+)
+
+pinned_crate(
+    name = "itertools",
+    version = "0.13.0",
+    sha256 = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186",
+    deps = [":either"],
+    features = ["use_alloc"],    edition = "2018",
+)
+
+pinned_crate(
+    name = "either",
+    version = "1.17.0",
+    sha256 = "9e5e8f6c15a24b9a3ee5efec809ccd006d3b30e8b3bb63c39af737c7f87daa1d",
+    features = ["std"],    edition = "2021",
+)
+
+pinned_crate(
+    name = "rustc-hash",
+    version = "2.1.3",
+    sha256 = "6b1e7f9a428571be2dc5bc0505c13fb6bf936822b894ec87abf8a08a4e51742d",
+    features = ["std"],    edition = "2021",
+)
+
+pinned_crate(
+    name = "shlex",
+    version = "1.3.0",
+    sha256 = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64",
+    features = ["std"],    edition = "2015",
+)
+
+pinned_crate(
+    name = "proc-macro2",
+    version = "1.0.107",
+    sha256 = "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+    build_script = True,
+    features = ["default", "proc-macro"],
+    deps = [":unicode-ident"],    edition = "2021",
+)
+
+pinned_crate(
+    name = "quote",
+    version = "1.0.47",
+    sha256 = "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+    build_script = True,
+    features = ["default", "proc-macro"],
+    deps = [":proc-macro2"],    edition = "2021",
+)
+
+pinned_crate(
+    name = "syn",
+    version = "2.0.119",
+    sha256 = "872831b642d1a07999a962a351ed35b955ea2cfc8f3862091e2a240a84f17297",
+    features = ["default", "derive", "parsing", "printing", "clone-impls", "proc-macro", "full", "extra-traits", "visit-mut"],
+    deps = [":proc-macro2", ":quote", ":unicode-ident"],    edition = "2021",
+)
+
+pinned_crate(
+    name = "unicode-ident",
+    version = "1.0.24",
+    sha256 = "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75",    edition = "2021",
+)
+

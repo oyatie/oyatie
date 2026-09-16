@@ -1,0 +1,95 @@
+use super::{SqliteStore, access, storage};
+use mail_api::{DeliveryOutcome, OutboundLease};
+use mail_kernel::Error;
+use rusqlite::{OptionalExtension, TransactionBehavior, params};
+
+pub(super) fn finish(
+    store: &SqliteStore,
+    lease: &OutboundLease,
+    outcome: DeliveryOutcome,
+) -> Result<(), Error> {
+    match outcome {
+        DeliveryOutcome::Temporary(code) if !(400..500).contains(&code) => {
+            return Err(Error::Invalid);
+        }
+        DeliveryOutcome::Permanent(code) if !(500..600).contains(&code) => {
+            return Err(Error::Invalid);
+        }
+        _ => {}
+    }
+    let mut db = store.connection.lock().map_err(|_| Error::Unavailable)?;
+    let tx = db
+        .transaction_with_behavior(TransactionBehavior::Immediate)
+        .map_err(storage)?;
+    let (expired,attempt): (bool,u32) = tx.query_row(
+        "SELECT coalesce((SELECT send_at FROM submission_schedule WHERE message=m.id),m.received_at)<=unixepoch()-432000,j.attempt FROM submitted_messages m JOIN outbound_jobs j ON j.message=m.id AND j.account=m.account WHERE j.message=?1 AND j.account=?2 AND j.recipient=?3 AND j.token=?4 AND j.lease_until>unixepoch()",
+        params![lease.message,lease.account,lease.recipient,lease.token], |r| Ok((r.get(0)?,r.get(1)?)))
+        .optional().map_err(storage)?.ok_or(Error::Conflict)?;
+    let failed = matches!(outcome, DeliveryOutcome::Permanent(_))
+        || expired && outcome != DeliveryOutcome::Delivered;
+    if failed {
+        let code = match outcome {
+            DeliveryOutcome::Permanent(code) => code,
+            _ => 554,
+        };
+        notice(&tx, lease, code, expired)?;
+    }
+    if failed || outcome == DeliveryOutcome::Delivered {
+        tx.execute(
+            "DELETE FROM outbound_jobs WHERE message=?1 AND recipient=?2",
+            params![lease.message, lease.recipient],
+        )
+        .map_err(storage)?;
+        tx.execute("DELETE FROM submitted_messages WHERE id=?1 AND NOT EXISTS(SELECT 1 FROM outbound_jobs WHERE message=?1)",[&lease.message]).map_err(storage)?;
+    } else if let DeliveryOutcome::Temporary(code) = outcome {
+        let delay = (60_u64 << attempt.saturating_sub(1).min(9)).min(21600);
+        tx.execute("UPDATE outbound_jobs SET token=NULL,lease_until=0,next_attempt=unixepoch()+?3,last_code=?4 WHERE message=?1 AND recipient=?2",
+            params![lease.message,lease.recipient,delay,code]).map_err(storage)?;
+    }
+    let (delivered, reply) = match outcome {
+        DeliveryOutcome::Delivered => (mail_kernel::SubmissionDelivered::Yes, "250".to_owned()),
+        DeliveryOutcome::Temporary(code) if !failed => {
+            (mail_kernel::SubmissionDelivered::Queued, code.to_string())
+        }
+        DeliveryOutcome::Temporary(_) => (mail_kernel::SubmissionDelivered::No, "554".to_owned()),
+        DeliveryOutcome::Permanent(code) => {
+            (mail_kernel::SubmissionDelivered::No, code.to_string())
+        }
+    };
+    super::submission_history::finish(&tx, &lease.message, &lease.recipient, delivered, &reply)?;
+    tx.commit().map_err(storage)
+}
+
+fn notice(
+    tx: &rusqlite::Transaction<'_>,
+    lease: &OutboundLease,
+    code: u16,
+    expired: bool,
+) -> Result<(), Error> {
+    let account = access::load(tx, &lease.account)?;
+    let id: String = tx
+        .query_row("SELECT lower(hex(randomblob(16)))", [], |r| r.get(0))
+        .map_err(storage)?;
+    let status = if expired { "5.4.7" } else { "5.0.0" };
+    let time: i64 = tx
+        .query_row("SELECT unixepoch()", [], |r| r.get(0))
+        .map_err(storage)?;
+    let date = mail_builder::headers::date::Date::new(time).to_rfc822();
+    let raw = format!(
+        "From: Mail Delivery System <MAILER-DAEMON@localhost>\r\nTo: {}\r\nDate: {date}\r\nMessage-ID: <{id}@localhost>\r\nAuto-Submitted: auto-generated\r\nSubject: Delivery failure\r\nMIME-Version: 1.0\r\nContent-Type: multipart/report; report-type=delivery-status; boundary=\"{id}\"\r\n\r\n--{id}\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nDelivery to {} failed.\r\n\r\n--{id}\r\nContent-Type: message/delivery-status\r\n\r\nReporting-MTA: dns; localhost\r\nOriginal-Envelope-Id: {}\r\n\r\nFinal-Recipient: rfc822; {}\r\nAction: failed\r\nStatus: {status}\r\nDiagnostic-Code: smtp; {code}\r\n\r\n--{id}--\r\n",
+        account.address, lease.recipient, lease.message, lease.recipient
+    );
+    // Notices are control traffic: queue saturation must not lose the failure.
+    // Each notice replaces one bounded outbound job and is never relayed.
+    tx.execute(
+        "INSERT INTO queued_messages VALUES(?1,'',?2,?3,?4)",
+        params![id, raw.as_bytes(), raw.len(), time],
+    )
+    .map_err(storage)?;
+    tx.execute(
+        "INSERT INTO delivery_jobs(message,account,address,next_attempt) VALUES(?1,?2,?3,?4)",
+        params![id, account.id, account.address, time],
+    )
+    .map_err(storage)?;
+    Ok(())
+}

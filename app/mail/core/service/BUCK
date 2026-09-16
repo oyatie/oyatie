@@ -1,0 +1,27 @@
+rust_library(
+    name = "mail-service",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "mail_service",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//mail:mail-parser",
+        "third-party//mail:mail-builder",
+        "//app/mail/core/kernel:mail-kernel",
+        "//app/mail/ports/api:mail-api",
+    ],
+)
+
+rust_test(
+    name = "mail-service-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "mail_service",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//mail:mail-parser",
+        "third-party//mail:mail-builder",
+        "//app/mail/core/kernel:mail-kernel",
+        "//app/mail/ports/api:mail-api",
+    ],
+)

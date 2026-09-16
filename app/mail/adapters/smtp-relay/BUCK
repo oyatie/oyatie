@@ -1,0 +1,43 @@
+rust_library(
+    name = "mail-smtp-relay",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "mail_smtp_relay",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/mail/ports/api:mail-api",
+        "//app/mail/core/kernel:mail-kernel",
+        "third-party//:tokio", "third-party//mail/tls:rustls", "third-party//mail/tls:tokio-rustls",
+        "third-party//:base64", "third-party//mail:smtp-proto", "third-party//mail/dns:hickory-resolver",
+    ],
+)
+
+rust_test(
+    name = "mail-smtp-relay-tls",
+    srcs = ["tests/tls.rs"],
+    crate = "tls",
+    crate_root = "tests/tls.rs",
+    deps = ["third-party//mail/tls:rustls", "third-party//:rcgen"],
+)
+
+rust_test(
+    name = "mail-smtp-relay-wire",
+    srcs = ["tests/wire.rs"],
+    crate = "wire",
+    crate_root = "tests/wire.rs",
+    deps = [
+        ":mail-smtp-relay",
+        "//app/mail/ports/api:mail-api",
+        "third-party//:tokio", "third-party//mail/tls:rustls", "third-party//mail/tls:tokio-rustls",
+        "third-party//:base64", "third-party//:rcgen",
+    ],
+)
+
+rust_test(
+    name = "mail-smtp-relay-mx",
+    srcs = ["tests/mx.rs", "tests/mx/support.rs", "tests/mx/review.rs", "tests/mx/legacy_review.rs"],
+    crate = "mx",
+    crate_root = "tests/mx.rs",
+    visibility = ["PUBLIC"],
+    deps = [":mail-smtp-relay", "//app/mail/ports/api:mail-api", "third-party//mail/dns:hickory-resolver", "third-party//:tokio", "third-party//mail/tls:rustls"],
+)

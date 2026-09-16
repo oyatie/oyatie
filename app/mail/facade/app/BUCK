@@ -1,0 +1,88 @@
+rust_test(
+    name = "mail-app-wire",
+    srcs = ["tests/wire.rs", "tests/wire/submission.rs", "tests/wire/outbound.rs", "tests/wire/jmap_submission.rs", "tests/wire/starttls.rs", "tests/wire/pop.rs", "tests/wire/mx_config.rs"],
+    crate = "wire",
+    crate_root = "tests/wire.rs",
+    env = {"MAIL_APP_BINARY": "$(location :mail-app-bin)"},
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:base64",
+        "third-party//:rcgen",
+        "third-party//mail/tls:rustls",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+    ],
+)
+
+rust_binary(
+    name = "mail-app-bin",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "mail_app",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/mail/ports/api:mail-api",
+        "//app/mail/adapters/smtp-relay:mail-smtp-relay",
+        "//app/mail/core/kernel:mail-kernel",
+        "//app/mail/core/service:mail-service",
+        "//app/mail/adapters/sqlite-store:mail-sqlite-store",
+        "//app/mail/adapters/protocol-imap:mail-protocol-imap",
+        "third-party//:axum",
+        "third-party//:tokio",
+        "third-party//mail/tls:rustls",
+        "third-party//mail/tls:tokio-rustls",
+    ],
+)
+
+rust_test(
+    name = "mail-app-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "mail_app",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/mail/ports/api:mail-api",
+        "//app/mail/adapters/smtp-relay:mail-smtp-relay",
+        "//app/mail/core/kernel:mail-kernel",
+        "//app/mail/core/service:mail-service",
+        "//app/mail/adapters/sqlite-store:mail-sqlite-store",
+        "//app/mail/adapters/protocol-imap:mail-protocol-imap",
+        "third-party//:axum",
+        "third-party//:tokio",
+        "third-party//mail/tls:rustls",
+        "third-party//mail/tls:tokio-rustls",
+    ],
+)
+
+rust_test(
+    name = "mail-app-queue",
+    srcs = ["tests/queue.rs"],
+    crate = "queue",
+    crate_root = "tests/queue.rs",
+    env = {"MAIL_APP_BINARY": "$(location :mail-app-bin)"},
+    deps = [
+        "//app/mail/ports/api:mail-api",
+        "//app/mail/core/kernel:mail-kernel",
+        "//app/mail/adapters/sqlite-store:mail-sqlite-store",
+        "third-party//:tempfile",
+    ],
+)
+
+
+rust_test(
+    name = "mail-app-facade-review",
+    srcs = ["tests/facade_review.rs", "tests/facade_review/config.rs", "tests/facade_review/direct.rs"],
+    crate = "facade_review",
+    crate_root = "tests/facade_review.rs",
+    env = {"MAIL_APP_BINARY": "$(location :mail-app-bin)"},
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:base64",
+        "third-party//:rcgen",
+        "third-party//mail/tls:rustls",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+    ],
+)
