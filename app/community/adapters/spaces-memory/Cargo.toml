@@ -1,0 +1,21 @@
+[package]
+name = "community-spaces-memory"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+community-spaces-api = { path = "../../ports/spaces-api" }
+
+[dev-dependencies]
+community-post-store-api = { path = "../../ports/post-store-api" }
+community-spaces-usecase = { path = "../../core/spaces-usecase" }
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
