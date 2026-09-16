@@ -5962,6 +5962,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "messenger-foundry-api"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+ "serde_json",
+]
+
+[[package]]
+name = "messenger-foundry-http"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "messenger-domain",
+ "messenger-foundry-api",
+ "reqwest 0.13.4",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "miette"
 version = "7.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
