@@ -1,0 +1,641 @@
+load("//:pinned.bzl", "pinned_crate")
+
+# New archives match Cargo.lock. Shared public native dependencies retain their
+# semver-compatible versions and preserve the canonical Tokio runtime identity.
+# Private generated targets cannot be reused across Buck packages.
+
+pinned_crate(
+    name = "async-trait",
+    version = "0.1.92",
+    sha256 = "82f6aeea286b8eb4dd3431a1be1b59d290ace00f5bfd8e2a159bc2a05e2c1667",
+    edition = "2021",
+    deps = [":proc-macro2", ":quote", ":syn-3"],
+    proc_macro = True,
+)
+
+pinned_crate(
+    name = "autocfg",
+    version = "1.5.1",
+    sha256 = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53",
+    edition = "2015",
+)
+
+pinned_crate(
+    name = "cfg-if",
+    version = "1.0.4",
+    sha256 = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801",
+    edition = "2018",
+)
+
+pinned_crate(
+    name = "chacha20",
+    version = "0.10.1",
+    sha256 = "d524456ba66e72eb8b115ff89e01e497f8e6d11d78b70b1aa13c0fbd97540a81",
+    edition = "2024",
+    features = ["rng"],
+    deps = [":cfg-if", ":rand_core", ":cpufeatures"],
+)
+
+pinned_crate(
+    name = "critical-section",
+    version = "1.2.0",
+    sha256 = "790eea4361631c5e7d22598ecd5723ff611904e3344ce8720784c93e3d83d40b",
+    edition = "2018",
+)
+
+pinned_crate(
+    name = "crossbeam-channel",
+    version = "0.5.17",
+    sha256 = "98b0cc327b5bc766e7fda9c9260cc0fa81b43a8e240440422dff70788e3f9ef1",
+    edition = "2021",
+    features = ["default", "std"],
+    deps = [":crossbeam-utils"],
+)
+
+pinned_crate(
+    name = "crossbeam-epoch",
+    version = "0.9.21",
+    sha256 = "dc74980687109a3b14c72fd458107bf0baa1da1a1a805e178d15501ba9b86d9d",
+    edition = "2021",
+    features = ["alloc", "default", "std"],
+    deps = [":crossbeam-utils"],
+    build_script = True,
+)
+
+pinned_crate(
+    name = "crossbeam-utils",
+    version = "0.8.22",
+    sha256 = "61803da095bee82a81bb1a452ecc25d3b2f1416d1897eb86430c6159ef717c17",
+    edition = "2021",
+    features = ["default", "std"],
+    build_script = True,
+)
+
+pinned_crate(
+    name = "data-encoding",
+    version = "2.11.1",
+    sha256 = "4583a4551df46e2792f82ceeac45e850d2e2d5debba0b91f102385cda5b11f06",
+    edition = "2018",
+    features = ["alloc", "default", "std"],
+)
+
+pinned_crate(
+    name = "displaydoc",
+    version = "0.2.7",
+    sha256 = "c6232dd377dcc64799954cbd3a9bb882e9cdc1308ccd87b1c098f1fb2eaf82a8",
+    edition = "2021",
+    features = ["default", "std"],
+    deps = [":proc-macro2", ":quote", ":syn-3"],
+    proc_macro = True,
+)
+
+pinned_crate(
+    name = "either",
+    version = "1.17.0",
+    sha256 = "9e5e8f6c15a24b9a3ee5efec809ccd006d3b30e8b3bb63c39af737c7f87daa1d",
+    edition = "2021",
+    features = ["default", "serde", "std", "use_std"],
+    deps = ["//:serde"],
+)
+
+pinned_crate(
+    name = "equivalent",
+    version = "1.0.2",
+    sha256 = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f",
+    edition = "2015",
+)
+
+pinned_crate(
+    name = "form_urlencoded",
+    version = "1.2.2",
+    sha256 = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf",
+    edition = "2018",
+    features = ["alloc", "default", "std"],
+    deps = [":percent-encoding"],
+)
+
+pinned_crate(
+    name = "futures-channel",
+    version = "0.3.33",
+    sha256 = "262590f4fe6afeb0bc83be1daa64e52657fe185690a958af7f3ad0e92085c5ae",
+    edition = "2018",
+    features = ["alloc", "default", "futures-sink", "sink", "std"],
+    deps = [":futures-core", ":futures-sink"],
+)
+
+pinned_crate(
+    name = "futures-core",
+    version = "0.3.33",
+    sha256 = "2cd50c473c80f6d7c3670a752354b8e569b1a7cbfdc0419ec88e5edad85e0dc7",
+    edition = "2018",
+    features = ["alloc", "default", "std"],
+)
+
+pinned_crate(
+    name = "futures-io",
+    version = "0.3.33",
+    sha256 = "4577ecaa3c4f96589d473f679a71b596316f6641bc350038b962a5daf0085d7a",
+    edition = "2018",
+    features = ["default", "std"],
+)
+
+pinned_crate(
+    name = "futures-macro",
+    version = "0.3.33",
+    sha256 = "2d6d3cde68c518367be28956066ddfef33813991b77a55005a69dae04bf3b10b",
+    edition = "2018",
+    deps = [":proc-macro2", ":quote", ":syn-2"],
+    proc_macro = True,
+)
+
+pinned_crate(
+    name = "futures-sink",
+    version = "0.3.33",
+    sha256 = "e34418ac499d6305c2fb5ad0ed2f6ac998c5f8ca209b4510f7f94242c647e307",
+    edition = "2018",
+    features = ["alloc", "default", "std"],
+)
+
+pinned_crate(
+    name = "futures-task",
+    version = "0.3.33",
+    sha256 = "b231ed28831efb4a61a08580c4bc233ec56bc009f4cd8f52da2c3cb97df0c109",
+    edition = "2018",
+    features = ["alloc", "std"],
+)
+
+pinned_crate(
+    name = "futures-util",
+    version = "0.3.33",
+    sha256 = "a77a90a256fce34da66415271e30f94ee91c57b04b8a2c042d9cf3220179deaa",
+    edition = "2018",
+    features = ["alloc", "async-await", "async-await-macro", "channel", "default", "futures-channel", "futures-io", "futures-macro", "futures-sink", "io", "memchr", "sink", "slab", "std"],
+    deps = [":futures-channel", ":futures-core", ":futures-io", ":futures-macro", ":futures-sink", ":futures-task", ":memchr", ":pin-project-lite", ":slab"],
+)
+
+pinned_crate(
+    name = "getrandom",
+    version = "0.4.3",
+    sha256 = "300e883d756b2e4ec94e02791f39b04b522276138852cfc41d9fb7e904106099",
+    edition = "2024",
+    features = ["std", "sys_rng", "wasm_js"],
+    deps = [":cfg-if", "//:libc", ":rand_core"],
+    build_script = True,
+)
+
+pinned_crate(
+    name = "hickory-net",
+    version = "0.26.3",
+    sha256 = "c480823ed7c2c5d0f09c41020cb6b7c28029ce60ec42dc942158dcf22f8e0a4d",
+    edition = "2021",
+    features = ["tokio"],
+    deps = [":async-trait", ":cfg-if", ":data-encoding", ":futures-channel", ":futures-io", ":futures-util", ":hickory-proto", ":idna", ":ipnet", ":rand", "//:thiserror", ":tinyvec", "//:tokio", "//:tracing", ":url"],
+)
+
+pinned_crate(
+    name = "hickory-proto",
+    version = "0.26.3",
+    sha256 = "12b92608f679a6fa515dd1d15c1ff89443026e391200a2c840c7afcba482893d",
+    edition = "2021",
+    features = ["access-control", "std"],
+    deps = [":data-encoding", ":idna", ":ipnet", ":once_cell", ":prefix-trie", ":rand", "//:thiserror", ":tinyvec", "//:tracing", ":url"],
+)
+
+pinned_crate(
+    name = "hickory-resolver",
+    version = "0.26.3",
+    sha256 = "3f3da5255c95d5a716857d54b5b8f4e8d67c3484d3beaaaae2ce25063b3ba981",
+    edition = "2021",
+    features = ["tokio"],
+    deps = [":cfg-if", ":futures-util", ":hickory-net", ":hickory-proto", ":ipnet", ":moka", ":once_cell", ":parking_lot", ":rand", ":smallvec", "//:thiserror", "//:tokio", "//:tracing"],
+    visibility = ["PUBLIC"],
+)
+
+pinned_crate(
+    name = "icu_collections",
+    version = "2.2.0",
+    sha256 = "2984d1cd16c883d7935b9e07e44071dca8d917fd52ecc02c04d5fa0b5a3f191c",
+    edition = "2021",
+    deps = [":displaydoc", ":potential_utf", ":utf8_iter", ":yoke", ":zerofrom", ":zerovec"],
+)
+
+pinned_crate(
+    name = "icu_locale_core",
+    version = "2.2.0",
+    sha256 = "92219b62b3e2b4d88ac5119f8904c10f8f61bf7e95b640d25ba3075e6cac2c29",
+    edition = "2021",
+    features = ["zerovec"],
+    deps = [":displaydoc", ":litemap", ":tinystr", ":writeable", ":zerovec"],
+)
+
+pinned_crate(
+    name = "icu_normalizer",
+    version = "2.2.0",
+    sha256 = "c56e5ee99d6e3d33bd91c5d85458b6005a22140021cc324cea84dd0e72cff3b4",
+    edition = "2021",
+    features = ["compiled_data"],
+    deps = [":icu_collections", ":icu_normalizer_data", ":icu_properties", ":icu_provider", ":smallvec", ":zerovec"],
+)
+
+pinned_crate(
+    name = "icu_normalizer_data",
+    version = "2.2.0",
+    sha256 = "da3be0ae77ea334f4da67c12f149704f19f81d1adf7c51cf482943e84a2bad38",
+    edition = "2021",
+    build_script = True,
+)
+
+pinned_crate(
+    name = "icu_properties",
+    version = "2.2.0",
+    sha256 = "bee3b67d0ea5c2cca5003417989af8996f8604e34fb9ddf96208a033901e70de",
+    edition = "2021",
+    features = ["compiled_data"],
+    deps = [":icu_collections", ":icu_locale_core", ":icu_properties_data", ":icu_provider", ":zerotrie", ":zerovec"],
+)
+
+pinned_crate(
+    name = "icu_properties_data",
+    version = "2.2.0",
+    sha256 = "8e2bbb201e0c04f7b4b3e14382af113e17ba4f63e2c9d2ee626b720cbce54a14",
+    edition = "2021",
+    build_script = True,
+)
+
+pinned_crate(
+    name = "icu_provider",
+    version = "2.2.0",
+    sha256 = "139c4cf31c8b5f33d7e199446eff9c1e02decfc2f0eec2c8d71f65befa45b421",
+    edition = "2021",
+    features = ["baked"],
+    deps = [":displaydoc", ":icu_locale_core", ":writeable", ":yoke", ":zerofrom", ":zerotrie", ":zerovec"],
+)
+
+pinned_crate(
+    name = "idna",
+    version = "1.1.0",
+    sha256 = "3b0875f23caa03898994f6ddc501886a45c7d3d62d04d2d90788d47be1b1e4de",
+    edition = "2018",
+    features = ["alloc", "compiled_data", "std"],
+    deps = [":idna_adapter", ":smallvec", ":utf8_iter"],
+)
+
+pinned_crate(
+    name = "idna_adapter",
+    version = "1.2.2",
+    sha256 = "cb68373c0d6620ef8105e855e7745e18b0d00d3bdb07fb532e434244cdb9a714",
+    edition = "2024",
+    features = ["compiled_data"],
+    deps = [":icu_normalizer", ":icu_properties"],
+)
+
+pinned_crate(
+    name = "ipnet",
+    version = "2.12.1",
+    sha256 = "6a756c3fac73139e83f14c2d742155dd2b78d3ee56597b419a0579b7bdd6dd78",
+    edition = "2018",
+    features = ["default", "serde", "std"],
+    deps = ["//:serde"],
+)
+
+pinned_crate(
+    name = "litemap",
+    version = "0.8.2",
+    sha256 = "92daf443525c4cce67b150400bc2316076100ce0b3686209eb8cf3c31612e6f0",
+    edition = "2021",
+)
+
+pinned_crate(
+    name = "lock_api",
+    version = "0.4.14",
+    sha256 = "224399e74b87b5f3557511d98dff8b14089b3dadafcab6bb93eab67d3aace965",
+    edition = "2021",
+    features = ["atomic_usize", "default"],
+    deps = [":scopeguard"],
+)
+
+pinned_crate(
+    name = "memchr",
+    version = "2.8.3",
+    sha256 = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98",
+    edition = "2021",
+    features = ["alloc", "default", "std"],
+)
+
+pinned_crate(
+    name = "moka",
+    version = "0.12.16",
+    sha256 = "4293f18e7567a1caf3c584855554377025c65e0aa445344d04171f5ad63d19b9",
+    edition = "2021",
+    features = ["default", "sync"],
+    deps = [":crossbeam-channel", ":crossbeam-epoch", ":crossbeam-utils", ":equivalent", ":parking_lot", ":portable-atomic", ":smallvec", ":tagptr", "//:uuid"],
+)
+
+pinned_crate(
+    name = "num-traits",
+    version = "0.2.19",
+    sha256 = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841",
+    edition = "2021",
+    features = ["default", "i128", "std"],
+    build_script = True,
+    build_deps = [":autocfg"],
+)
+
+pinned_crate(
+    name = "once_cell",
+    version = "1.21.4",
+    sha256 = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50",
+    edition = "2021",
+    features = ["alloc", "critical-section", "default", "portable-atomic", "race", "std"],
+    deps = [":critical-section", ":portable-atomic"],
+)
+
+pinned_crate(
+    name = "parking_lot",
+    version = "0.12.5",
+    sha256 = "93857453250e3077bd71ff98b6a65ea6621a19bb0f559a85248955ac12c45a1a",
+    edition = "2021",
+    features = ["default"],
+    deps = [":lock_api", ":parking_lot_core"],
+)
+
+pinned_crate(
+    name = "parking_lot_core",
+    version = "0.9.12",
+    sha256 = "2621685985a2ebf1c516881c026032ac7deafcda1a2c9b7850dc81e3dfcb64c1",
+    edition = "2021",
+    deps = [":cfg-if", "//:libc", ":smallvec"],
+    build_script = True,
+)
+
+pinned_crate(
+    name = "percent-encoding",
+    version = "2.3.2",
+    sha256 = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220",
+    edition = "2018",
+    features = ["alloc", "default", "std"],
+)
+
+pinned_crate(
+    name = "pin-project-lite",
+    version = "0.2.17",
+    sha256 = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd",
+    edition = "2018",
+)
+
+pinned_crate(
+    name = "portable-atomic",
+    version = "1.15.0",
+    sha256 = "05c8b63e8d9609db387f0324918f81d68fe27748f084ef092fb35954d0539a85",
+    edition = "2018",
+    features = ["default", "fallback", "require-cas"],
+    build_script = True,
+)
+
+pinned_crate(
+    name = "potential_utf",
+    version = "0.1.5",
+    sha256 = "0103b1cef7ec0cf76490e969665504990193874ea05c85ff9bab8b911d0a0564",
+    edition = "2021",
+    features = ["zerovec"],
+    deps = [":zerovec"],
+)
+
+pinned_crate(
+    name = "prefix-trie",
+    version = "0.8.4",
+    sha256 = "4cf6e3177f0684016a5c209b00882e15f8bdd3f3bb48f0491df10cd102d0c6e7",
+    edition = "2021",
+    features = ["default", "ipnet"],
+    deps = [":either", ":ipnet", ":num-traits"],
+)
+
+pinned_crate(
+    name = "proc-macro2",
+    version = "1.0.107",
+    sha256 = "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+    edition = "2021",
+    features = ["default", "nightly", "proc-macro", "span-locations"],
+    deps = [":unicode-ident"],
+    build_script = True,
+)
+
+pinned_crate(
+    name = "quote",
+    version = "1.0.47",
+    sha256 = "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+    edition = "2021",
+    features = ["default", "proc-macro"],
+    deps = [":proc-macro2"],
+    build_script = True,
+)
+
+pinned_crate(
+    name = "rand",
+    version = "0.10.2",
+    sha256 = "c7f5fa3a058cd35567ef9bfa5e75732bee0f9e4c55fa90477bef2dfcdbc4be80",
+    edition = "2024",
+    features = ["alloc", "default", "std", "std_rng", "sys_rng", "thread_rng"],
+    deps = [":chacha20", ":getrandom", ":rand_core"],
+)
+
+pinned_crate(
+    name = "rand_core",
+    version = "0.10.1",
+    sha256 = "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69",
+    edition = "2024",
+)
+
+pinned_crate(
+    name = "scopeguard",
+    version = "1.2.0",
+    sha256 = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49",
+    edition = "2015",
+)
+
+pinned_crate(
+    name = "slab",
+    version = "0.4.12",
+    sha256 = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5",
+    edition = "2018",
+    features = ["default", "std"],
+)
+
+pinned_crate(
+    name = "smallvec",
+    version = "1.15.2",
+    sha256 = "8ed6a63f02c8539c91a8685a86f4099661ba3da017932f6ebbea6de3f0fa7c90",
+    edition = "2018",
+    features = ["const_generics", "const_new", "serde"],
+    deps = ["//:serde"],
+)
+
+pinned_crate(
+    name = "stable_deref_trait",
+    version = "1.2.1",
+    sha256 = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596",
+    edition = "2015",
+)
+
+pinned_crate(
+    name = "syn-2",
+    package = "syn",
+    version = "2.0.119",
+    sha256 = "872831b642d1a07999a962a351ed35b955ea2cfc8f3862091e2a240a84f17297",
+    edition = "2021",
+    features = ["clone-impls", "default", "derive", "extra-traits", "fold", "full", "parsing", "printing", "proc-macro", "visit", "visit-mut"],
+    deps = [":proc-macro2", ":quote", ":unicode-ident"],
+)
+
+pinned_crate(
+    name = "syn-3",
+    package = "syn",
+    version = "3.0.3",
+    sha256 = "53e9bae58849f64dfa4f5d5ae372c8341f7305f82a3868709269343628b659a3",
+    edition = "2021",
+    features = ["clone-impls", "default", "derive", "full", "parsing", "printing", "proc-macro", "visit-mut"],
+    deps = [":proc-macro2", ":quote", ":unicode-ident"],
+)
+
+pinned_crate(
+    name = "synstructure",
+    version = "0.13.2",
+    sha256 = "728a70f3dbaf5bab7f0c4b1ac8d7ae5ea60a4b5549c8a5914361c99147a709d2",
+    edition = "2018",
+    features = ["default", "proc-macro"],
+    deps = [":proc-macro2", ":quote", ":syn-2"],
+)
+
+pinned_crate(
+    name = "tagptr",
+    version = "0.2.0",
+    sha256 = "7b2093cf4c8eb1e67749a6762251bc9cd836b6fc171623bd0a9d324d37af2417",
+    edition = "2018",
+)
+
+pinned_crate(
+    name = "tinystr",
+    version = "0.8.3",
+    sha256 = "c8323304221c2a851516f22236c5722a72eaa19749016521d6dff0824447d96d",
+    edition = "2021",
+    features = ["zerovec"],
+    deps = [":displaydoc", ":zerovec"],
+)
+
+pinned_crate(
+    name = "tinyvec",
+    version = "1.12.0",
+    sha256 = "bb4ebadaa0af04fab11ae01eb5f9fdb5f9c5b875506e210e71c07873528baa7f",
+    edition = "2018",
+    features = ["alloc", "default", "grab_spare_slice", "std", "tinyvec_macros"],
+    deps = [":tinyvec_macros"],
+)
+
+pinned_crate(
+    name = "tinyvec_macros",
+    version = "0.1.1",
+    sha256 = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20",
+    edition = "2018",
+)
+
+pinned_crate(
+    name = "unicode-ident",
+    version = "1.0.24",
+    sha256 = "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75",
+    edition = "2021",
+)
+
+pinned_crate(
+    name = "url",
+    version = "2.5.8",
+    sha256 = "ff67a8a4397373c3ef660812acab3268222035010ab8680ec4215f38ba3d0eed",
+    edition = "2018",
+    features = ["default", "std"],
+    deps = [":form_urlencoded", ":idna", ":percent-encoding", "//:serde"],
+)
+
+pinned_crate(
+    name = "utf8_iter",
+    version = "1.0.4",
+    sha256 = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be",
+    edition = "2021",
+)
+
+pinned_crate(
+    name = "writeable",
+    version = "0.6.3",
+    sha256 = "1ffae5123b2d3fc086436f8834ae3ab053a283cfac8fe0a0b8eaae044768a4c4",
+    edition = "2021",
+)
+
+pinned_crate(
+    name = "yoke",
+    version = "0.8.3",
+    sha256 = "709fe23a0424b6a435d82152b1bd3fdfb0833487d5fa90d05d42762a9891fef5",
+    edition = "2021",
+    features = ["derive", "zerofrom"],
+    deps = [":stable_deref_trait", ":yoke-derive", ":zerofrom"],
+)
+
+pinned_crate(
+    name = "yoke-derive",
+    version = "0.8.2",
+    sha256 = "de844c262c8848816172cef550288e7dc6c7b7814b4ee56b3e1553f275f1858e",
+    edition = "2021",
+    deps = [":proc-macro2", ":quote", ":syn-2", ":synstructure"],
+    proc_macro = True,
+)
+
+pinned_crate(
+    name = "zerofrom",
+    version = "0.1.8",
+    sha256 = "0ec05a11813ea801ff6d75110ad09cd0824ddba17dfe17128ea0d5f68e6c5272",
+    edition = "2021",
+    features = ["derive"],
+    deps = [":zerofrom-derive"],
+)
+
+pinned_crate(
+    name = "zerofrom-derive",
+    version = "0.1.7",
+    sha256 = "11532158c46691caf0f2593ea8358fed6bbf68a0315e80aae9bd41fbade684a1",
+    edition = "2021",
+    deps = [":proc-macro2", ":quote", ":syn-2", ":synstructure"],
+    proc_macro = True,
+)
+
+pinned_crate(
+    name = "zerotrie",
+    version = "0.2.4",
+    sha256 = "0f9152d31db0792fa83f70fb2f83148effb5c1f5b8c7686c3459e361d9bc20bf",
+    edition = "2021",
+    features = ["yoke", "zerofrom"],
+    deps = [":displaydoc", ":yoke", ":zerofrom"],
+)
+
+pinned_crate(
+    name = "zerovec",
+    version = "0.11.6",
+    sha256 = "90f911cbc359ab6af17377d242225f4d75119aec87ea711a880987b18cd7b239",
+    edition = "2021",
+    features = ["derive", "yoke"],
+    deps = [":yoke", ":zerofrom", ":zerovec-derive"],
+)
+
+pinned_crate(
+    name = "zerovec-derive",
+    version = "0.11.3",
+    sha256 = "625dc425cab0dca6dc3c3319506e6593dcb08a9f387ea3b284dbd52a92c40555",
+    edition = "2021",
+    deps = [":proc-macro2", ":quote", ":syn-2"],
+    proc_macro = True,
+)
+
+# ChaCha selects this on x86/x86_64; keep it available in the portable closure.
+pinned_crate(
+    name = "cpufeatures",
+    version = "0.3.0",
+    sha256 = "8b2a41393f66f16b0823bb79094d54ac5fbd34ab292ddafb9a0456ac9f87d201",
+    edition = "2024",
+    deps = ["//:libc"],
+)

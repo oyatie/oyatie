@@ -1,0 +1,300 @@
+_KERNEL = "//app/mail/core/kernel:mail-kernel"
+_SERVICE = "//app/mail/core/service:mail-service"
+_API = "//app/mail/ports/api:mail-api"
+_STORE = "//app/mail/adapters/sqlite-store:mail-sqlite-store"
+_PROTO = ":mail-protocol-imap"
+_MAIL = [_PROTO, _KERNEL, _SERVICE, _API, _STORE]
+_HTTP = ["third-party//:axum", "third-party//:tokio", "third-party//:tower", "third-party//:http-body-util", "third-party//:serde_json"]
+_SHA = ["third-party//:sha2"]
+_B64 = ["third-party//:base64"]
+_PARSER = ["third-party//mail:mail-parser"]
+_BUILDER = ["third-party//mail:mail-builder"]
+_SQL = ["third-party//mail/sqlite:rusqlite"]
+_THREAD = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/thread.rs])"
+_INSPECT = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/email/inspect.rs])"
+_CORE = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/core.rs])"
+_BINARY = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/binary.rs])"
+_MUTATE = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/email/mutate.rs])"
+_MAILBOX = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/mailbox.rs])"
+_SEARCH = "$(location third-party//mail:stalwart-tests[tests/src/imap/search.rs])"
+_IMAP0 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/000.txt])"
+_IMAP1 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/001.txt])"
+_IMAP2 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/002.txt])"
+_IMAP3 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/003.txt])"
+_IMAP4 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/004.txt])"
+_IMAP5 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/005.txt])"
+_IMAP6 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/006.txt])"
+_IMAP7 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/007.txt])"
+_IMAP8 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/008.txt])"
+_IMAP9 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/009.txt])"
+_CONDSTORE = "$(location third-party//mail:stalwart-tests[tests/src/imap/condstore.rs])"
+_APPEND = "$(location third-party//mail:stalwart-tests[tests/src/imap/append.rs])"
+_IMAP_THREAD = "$(location third-party//mail:stalwart-tests[tests/src/imap/thread.rs])"
+_OBJECTID = "$(location third-party//mail:stalwart-tests[tests/src/imap/objectid.rs])"
+_UIDONLY = "$(location third-party//mail:stalwart-tests[tests/src/imap/uidonly.rs])"
+_IDENTITY = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/identity.rs])"
+_SNIPPET = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/search_snippet.rs])"
+_POP = "$(location third-party//mail:stalwart-tests[tests/src/imap/pop.rs])"
+_SUBMISSION = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/submission.rs])"
+_VACATION = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/vacation.rs])"
+rust_library(
+    name = "mail-protocol-imap",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "mail_protocol_imap",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [_KERNEL, _SERVICE, _API, "third-party//:base64", "third-party//:axum", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//mail:mail-parser", "third-party//mail:mail-builder", "third-party//mail:unicode-normalization", "third-party//mail:unicode-case-mapping"],
+)
+rust_test(
+    name = "mail-protocol-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "mail_protocol_imap",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [_KERNEL, _SERVICE, _API, _STORE, "third-party//:base64", "third-party//:axum", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//mail:mail-parser", "third-party//mail:mail-builder", "third-party//mail:unicode-normalization", "third-party//mail:unicode-case-mapping", "third-party//:tower", "third-party//:http-body-util"],
+)
+
+rust_test(
+    name = "mail-protocol-email",
+    srcs = glob(["tests/email.rs", "tests/email/**/*.rs"]),
+    crate = "email",
+    crate_root = "tests/email.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _PARSER,
+)
+
+rust_test(
+    name = "mail-protocol-stalwart",
+    srcs = ["tests/stalwart.rs", "tests/stalwart/client.rs", "tests/stalwart/mutation_client.rs", "tests/stalwart/fixtures.rs", "tests/stalwart/digests.rs"],
+    crate = "stalwart",
+    crate_root = "tests/stalwart.rs",
+    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
+    env = {"STALWART_THREAD_SOURCE": _THREAD, "STALWART_INSPECT_SOURCE": _INSPECT, "STALWART_CORE_SOURCE": _CORE, "STALWART_BINARY_SOURCE": _BINARY, "STALWART_MUTATE_SOURCE": _MUTATE, "STALWART_MAILBOX_SOURCE": _MAILBOX},
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA,
+)
+
+rust_test(
+    name = "mail-protocol-jmap",
+    srcs = ["tests/jmap.rs"],
+    crate = "jmap",
+    crate_root = "tests/jmap.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _PARSER + _BUILDER,
+)
+
+rust_test(
+    name = "mail-protocol-wire",
+    srcs = glob(["tests/wire.rs", "tests/wire/**/*.rs"]),
+    crate = "wire",
+    crate_root = "tests/wire.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _SQL + _B64 + _HTTP + _PARSER + _BUILDER,
+)
+
+rust_test(
+    name = "mail-protocol-submission",
+    srcs = ["tests/submission.rs", "tests/submission/message.rs"],
+    crate = "submission",
+    crate_root = "tests/submission.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _PARSER + _B64 + ["third-party//:tokio"],
+)
+
+rust_test(
+    name = "mail-protocol-imap-stalwart",
+    srcs = ["tests/imap_stalwart.rs", "tests/stalwart/search.rs", "tests/stalwart/search_client.rs"],
+    crate = "imap_stalwart",
+    crate_root = "tests/imap_stalwart.rs",
+    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
+    env = {"STALWART_IMAP_SEARCH_SOURCE": _SEARCH, "STALWART_IMAP_000": _IMAP0, "STALWART_IMAP_001": _IMAP1, "STALWART_IMAP_002": _IMAP2, "STALWART_IMAP_003": _IMAP3, "STALWART_IMAP_004": _IMAP4, "STALWART_IMAP_005": _IMAP5, "STALWART_IMAP_006": _IMAP6, "STALWART_IMAP_007": _IMAP7, "STALWART_IMAP_008": _IMAP8, "STALWART_IMAP_009": _IMAP9},
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA,
+)
+
+rust_test(
+    name = "mail-protocol-imap-condstore",
+    srcs = ["tests/imap_condstore.rs", "tests/stalwart/condstore.rs", "tests/stalwart/condstore_client.rs", "tests/stalwart/condstore_result.rs"],
+    crate = "imap_condstore",
+    crate_root = "tests/imap_condstore.rs",
+    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
+    env = {"STALWART_IMAP_CONDSTORE_SOURCE": _CONDSTORE, "STALWART_IMAP_APPEND_SOURCE": _APPEND},
+    visibility = ["PUBLIC"],
+    deps = _MAIL + ["third-party//:tokio", "third-party//:serde_json"] + _SHA,
+)
+
+rust_test(
+    name = "mail-protocol-imap-thread",
+    srcs = ["tests/imap_thread.rs", "tests/stalwart/thread.rs", "tests/stalwart/condstore_client.rs", "tests/stalwart/condstore_result.rs"],
+    crate = "imap_thread",
+    crate_root = "tests/imap_thread.rs",
+    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
+    env = {"STALWART_IMAP_THREAD_SOURCE": _IMAP_THREAD, "STALWART_IMAP_APPEND_SOURCE": _APPEND},
+    visibility = ["PUBLIC"],
+    deps = _MAIL + ["third-party//:tokio", "third-party//:serde_json"] + _SHA,
+)
+
+rust_test(
+    name = "mail-protocol-imap-objectid",
+    srcs = ["tests/imap_objectid.rs", "tests/stalwart/condstore_client.rs", "tests/stalwart/condstore_result.rs"],
+    crate = "imap_objectid",
+    crate_root = "tests/imap_objectid.rs",
+    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
+    env = {"STALWART_IMAP_OBJECTID_SOURCE": _OBJECTID},
+    visibility = ["PUBLIC"],
+    deps = _MAIL + ["third-party//:tokio", "third-party//:serde_json"] + _SHA,
+)
+
+rust_test(
+    name = "mail-protocol-imap-uidonly",
+    srcs = ["tests/imap_uidonly.rs", "tests/stalwart/uidonly_client.rs", "tests/stalwart/uidonly_hardening.rs", "tests/stalwart/uidonly_runtime.rs", "tests/stalwart/uidonly_review.rs", "tests/stalwart/condstore_result.rs"],
+    crate = "imap_uidonly",
+    crate_root = "tests/imap_uidonly.rs",
+    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
+    env = {"STALWART_IMAP_UIDONLY_SOURCE": _UIDONLY},
+    visibility = ["PUBLIC"],
+    deps = _MAIL + ["third-party//:tokio", "third-party//:serde_json"] + _SHA,
+)
+
+rust_test(
+    name = "mail-protocol-jmap-identity",
+    srcs = ["tests/jmap_identity.rs"],
+    crate = "jmap_identity",
+    crate_root = "tests/jmap_identity.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA + _SQL,
+)
+
+rust_test(
+    name = "mail-protocol-jmap-snippet",
+    srcs = ["tests/jmap_snippet.rs"],
+    crate = "jmap_snippet",
+    crate_root = "tests/jmap_snippet.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA,
+)
+
+rust_test(
+    name = "mail-protocol-jmap-profile-stalwart",
+    srcs = ["tests/jmap_profile_stalwart.rs", "tests/stalwart/profile_client.rs"],
+    crate = "jmap_profile_stalwart",
+    crate_root = "tests/jmap_profile_stalwart.rs",
+    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
+    env = {"STALWART_IDENTITY_SOURCE": _IDENTITY, "STALWART_SEARCH_SNIPPET_SOURCE": _SNIPPET},
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA,
+)
+
+rust_test(
+    name = "mail-protocol-pop",
+    srcs = glob(["tests/pop.rs", "tests/pop/**/*.rs"], exclude = ["tests/pop/oracle.rs"]),
+    crate = "pop",
+    crate_root = "tests/pop.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA + _B64,
+)
+
+rust_test(
+    name = "mail-protocol-pop-stalwart",
+    srcs = ["tests/pop_stalwart.rs", "tests/pop/oracle.rs"],
+    crate = "pop_stalwart",
+    crate_root = "tests/pop_stalwart.rs",
+    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
+    env = {"STALWART_POP_SOURCE": _POP},
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA + _B64,
+)
+
+rust_test(
+    name = "mail-protocol-jmap-profile-review",
+    srcs = ["tests/jmap_profile_review.rs"],
+    crate = "jmap_profile_review",
+    crate_root = "tests/jmap_profile_review.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA,
+)
+
+rust_test(
+    name = "mail-protocol-jmap-runtime",
+    srcs = ["tests/jmap_runtime.rs"],
+    crate = "jmap_runtime",
+    crate_root = "tests/jmap_runtime.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + ["third-party//:tokio", "third-party//:axum", "third-party//:tower"],
+)
+
+rust_test(
+    name = "mail-protocol-jmap-runtime-review",
+    srcs = ["tests/jmap_runtime_review.rs", "tests/runtime_review/support.rs"],
+    crate = "jmap_runtime_review",
+    crate_root = "tests/jmap_runtime_review.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + ["third-party//:tokio", "third-party//:axum", "third-party//:tower", "third-party//:serde_json", "third-party//:http-body-util"],
+)
+
+rust_test(
+    name = "mail-protocol-pop-review",
+    srcs = ["tests/pop_review.rs", "tests/pop/support.rs"],
+    crate = "pop_review",
+    crate_root = "tests/pop_review.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA + _B64,
+)
+
+rust_test(
+    name = "mail-protocol-jmap-submission",
+    srcs = ["tests/jmap_submission.rs"],
+    crate = "jmap_submission",
+    crate_root = "tests/jmap_submission.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA + _SQL + _PARSER,
+)
+
+rust_test(
+    name = "mail-protocol-submission-review",
+    srcs = glob(["tests/submission_review.rs", "tests/submission_review/**/*.rs"]),
+    crate = "submission_review",
+    crate_root = "tests/submission_review.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA + _SQL + _PARSER,
+)
+
+rust_test(
+    name = "mail-protocol-jmap-submission-queries",
+    srcs = ["tests/jmap_submission_queries.rs"],
+    crate = "jmap_submission_queries",
+    crate_root = "tests/jmap_submission_queries.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA + _SQL + _PARSER,
+)
+
+rust_test(
+    name = "mail-protocol-submission-stalwart",
+    srcs = ["tests/submission_stalwart.rs", "tests/stalwart/profile_client.rs", "tests/stalwart/submission_client.rs"],
+    crate = "submission_stalwart",
+    crate_root = "tests/submission_stalwart.rs",
+    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
+    env = {"STALWART_SUBMISSION_SOURCE": _SUBMISSION},
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA + _SQL + _PARSER,
+)
+
+rust_test(
+    name = "mail-protocol-jmap-vacation",
+    srcs = ["tests/jmap_vacation.rs"],
+    crate = "jmap_vacation",
+    crate_root = "tests/jmap_vacation.rs",
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA,
+)
+
+rust_test(
+    name = "mail-protocol-jmap-vacation-stalwart",
+    srcs = ["tests/jmap_vacation_stalwart.rs", "tests/stalwart/profile_client.rs", "tests/stalwart/submission_client.rs"],
+    crate = "jmap_vacation_stalwart",
+    crate_root = "tests/jmap_vacation_stalwart.rs",
+    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
+    env = {"STALWART_VACATION_SOURCE": _VACATION},
+    visibility = ["PUBLIC"],
+    deps = _MAIL + _HTTP + _SHA,
+)
