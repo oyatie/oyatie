@@ -1,0 +1,41 @@
+rust_library(
+    name = "messenger-authority-memory",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_authority_memory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/conversation-api:messenger-conversation-api",
+        "third-party//:sha2",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "messenger-authority-memory-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_authority_memory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/conversation-api:messenger-conversation-api",
+        "third-party//:sha2",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "messenger-authority-memory-contract",
+    srcs = ["tests/contract.rs"],
+    crate = "contract",
+    crate_root = "tests/contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-authority-memory",
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/conversation-api:messenger-conversation-api",
+        "third-party//:tokio",
+    ],
+)

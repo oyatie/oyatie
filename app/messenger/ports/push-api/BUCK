@@ -1,0 +1,22 @@
+rust_library(
+    name = "messenger-push-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_push_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+    ],
+)
+
+rust_test(
+    name = "messenger-push-api-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_push_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

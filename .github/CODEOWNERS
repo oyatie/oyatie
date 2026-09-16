@@ -28,5 +28,6 @@ app/community/ @oyatie/community
 app/foundry/ @oyatie/foundry
 app/hr/ @oyatie/hr
 app/mail/ @oyatie/mail
+app/messenger/ @oyatie/messenger
 app/payments/ @oyatie/payments
 app/payroll/ @oyatie/payroll
