@@ -90,28 +90,31 @@ pub(crate) fn map_error(error: Error) -> Response {
     }
 }
 
-pub(crate) async fn caller(state: &AppState, headers: &HeaderMap) -> Result<Caller, Response> {
+pub(crate) async fn caller(state: &AppState, headers: &HeaderMap) -> Result<Caller, Box<Response>> {
     let Some(header) = headers
         .get("authorization")
         .and_then(|value| value.to_str().ok())
     else {
-        return Err(matrix_error(
+        return Err(Box::new(matrix_error(
             StatusCode::UNAUTHORIZED,
             "M_MISSING_TOKEN",
             "missing access token",
-        ));
+        )));
     };
     let Some(token) = header.strip_prefix("Bearer ") else {
-        return Err(matrix_error(
+        return Err(Box::new(matrix_error(
             StatusCode::UNAUTHORIZED,
             "M_UNKNOWN_TOKEN",
             "unknown token",
-        ));
+        )));
     };
-    state
-        .lookup(token)
-        .await
-        .ok_or_else(|| matrix_error(StatusCode::UNAUTHORIZED, "M_UNKNOWN_TOKEN", "unknown token"))
+    state.lookup(token).await.ok_or_else(|| {
+        Box::new(matrix_error(
+            StatusCode::UNAUTHORIZED,
+            "M_UNKNOWN_TOKEN",
+            "unknown token",
+        ))
+    })
 }
 
 pub(crate) fn matrix_event(event: &AuthorityEvent) -> Value {
@@ -129,7 +132,12 @@ pub(crate) fn matrix_event(event: &AuthorityEvent) -> Value {
     value
 }
 
-pub(crate) fn parse_json(body: &str) -> Result<Value, Response> {
-    serde_json::from_str(body)
-        .map_err(|_| matrix_error(StatusCode::BAD_REQUEST, "M_NOT_JSON", "not json"))
+pub(crate) fn parse_json(body: &str) -> Result<Value, Box<Response>> {
+    serde_json::from_str(body).map_err(|_| {
+        Box::new(matrix_error(
+            StatusCode::BAD_REQUEST,
+            "M_NOT_JSON",
+            "not json",
+        ))
+    })
 }

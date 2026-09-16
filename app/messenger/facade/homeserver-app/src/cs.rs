@@ -13,7 +13,7 @@ use crate::{AppState, caller, map_error, matrix_error, matrix_event, parse_json}
 pub async fn login(State(state): State<Arc<AppState>>, body: String) -> Response {
     let parsed = match parse_json(&body) {
         Ok(parsed) => parsed,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
     let Some((user, device)) = user_and_device(&parsed) else {
         return matrix_error(StatusCode::BAD_REQUEST, "M_INVALID_PARAM", "user required");
@@ -38,14 +38,14 @@ pub async fn create_room(
 ) -> Response {
     let caller = match caller(&state, &headers).await {
         Ok(caller) => caller,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
     let parsed = if body.trim().is_empty() {
         json!({})
     } else {
         match parse_json(&body) {
             Ok(parsed) => parsed,
-            Err(response) => return response,
+            Err(response) => return *response,
         }
     };
     match state
@@ -66,11 +66,11 @@ pub async fn send(
 ) -> Response {
     let caller = match caller(&state, &headers).await {
         Ok(caller) => caller,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
     let content = match parse_json(&body) {
         Ok(content) => content,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
     let endpoint = format!("PUT /_matrix/client/v3/rooms/{room}/send/{event_type}");
     match messenger_admission_usecase::admit(
@@ -121,7 +121,7 @@ async fn membership(
 ) -> Response {
     let caller = match caller(state, &headers).await {
         Ok(caller) => caller,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
     let user = caller.user.clone();
     let endpoint = format!("POST /_matrix/client/v3/rooms/{room}/{membership}");
@@ -151,7 +151,7 @@ async fn membership(
 pub async fn sync(State(state): State<Arc<AppState>>, headers: HeaderMap, uri: Uri) -> Response {
     let caller = match caller(&state, &headers).await {
         Ok(caller) => caller,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
     match state
         .authority
