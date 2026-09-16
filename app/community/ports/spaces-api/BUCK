@@ -1,0 +1,17 @@
+rust_library(
+    name = "community-spaces-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "community_spaces_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_test(
+    name = "community-spaces-api-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "community_spaces_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

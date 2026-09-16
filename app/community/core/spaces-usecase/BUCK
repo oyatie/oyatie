@@ -1,0 +1,23 @@
+rust_library(
+    name = "community-spaces-usecase",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "community_spaces_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/community/ports/post-store-api:community-post-store-api",
+        "//app/community/ports/spaces-api:community-spaces-api",
+    ],
+)
+
+rust_test(
+    name = "community-spaces-usecase-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "community_spaces_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/community/ports/post-store-api:community-post-store-api",
+        "//app/community/ports/spaces-api:community-spaces-api",
+    ],
+)
