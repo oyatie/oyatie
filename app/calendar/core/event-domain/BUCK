@@ -1,0 +1,17 @@
+rust_library(
+    name = "calendar-event-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "calendar_event_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_test(
+    name = "calendar-event-domain-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "calendar_event_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

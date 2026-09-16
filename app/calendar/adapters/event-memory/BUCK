@@ -1,0 +1,37 @@
+rust_library(
+    name = "calendar-event-memory",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "calendar_event_memory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/calendar/core/event-domain:calendar-event-domain",
+        "//app/calendar/ports/event-api:calendar-event-api",
+    ],
+)
+
+rust_test(
+    name = "calendar-event-memory-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "calendar_event_memory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/calendar/core/event-domain:calendar-event-domain",
+        "//app/calendar/ports/event-api:calendar-event-api",
+    ],
+)
+
+rust_test(
+    name = "calendar-event-memory-contract",
+    srcs = ["tests/contract.rs"],
+    crate = "contract",
+    crate_root = "tests/contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":calendar-event-memory",
+        "//app/calendar/core/event-domain:calendar-event-domain",
+        "//app/calendar/core/event-usecase:calendar-event-usecase",
+        "//app/calendar/ports/event-api:calendar-event-api",
+    ],
+)
