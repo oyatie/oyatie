@@ -1,0 +1,21 @@
+rust_library(
+    name = "messenger-archive-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_archive_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+    ],
+)
+
+rust_test(
+    name = "messenger-archive-api-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_archive_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+    ],
+)

@@ -1,0 +1,43 @@
+rust_library(
+    name = "messenger-foundry-http",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_foundry_http",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/foundry-api:messenger-foundry-api",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "messenger-foundry-http-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_foundry_http",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/foundry-api:messenger-foundry-api",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "messenger-foundry-http-contract",
+    srcs = ["tests/contract.rs"],
+    crate = "contract",
+    crate_root = "tests/contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-foundry-http",
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/foundry-api:messenger-foundry-api",
+        "third-party//:axum",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)
