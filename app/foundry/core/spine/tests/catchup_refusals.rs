@@ -9,8 +9,10 @@ use foundry_projection_draft::{MemoryProjectionStore, ProjectionStore, Projectio
 use foundry_spine::{CatchUpError, catch_up};
 
 #[allow(dead_code)]
+#[rustfmt::skip]
 mod catchup_support;
 #[allow(dead_code)]
+#[rustfmt::skip]
 mod write_through_support;
 
 use catchup_support::{
@@ -201,6 +203,39 @@ fn a_log_beginning_at_ordinal_zero_is_refused() {
         CatchUpError::LogDoesNotStartAtOne { first_ordinal: 0 }
     );
     assert_eq!(store.applied_head(TENANT).unwrap(), 0, "and wrote nothing");
+}
+
+#[test]
+fn a_log_missing_the_resume_point_is_refused() {
+    let registry = registry();
+    let held = vec![
+        sealed(1, "one"),
+        sealed(2, "two"),
+        sealed_by_another_actor(3, "three"),
+    ];
+    let mut store = MemoryProjectionStore::default();
+    catch_up(TENANT, &registry, &mut store, &held).expect("reach head 3");
+
+    // Begins at ordinal 1 but has no entry at 3, so the resume point
+    // cannot be re-applied. Skipping the check would retain the foreign
+    // row while reporting a clean catch-up over a log that never wrote it.
+    let gapped = vec![sealed(1, "one"), sealed(2, "two"), sealed(4, "four")];
+    let error = catch_up(TENANT, &registry, &mut store, &gapped).expect_err("must refuse");
+
+    assert_eq!(
+        error,
+        CatchUpError::ResumePointMissingFromLog { ordinal: 3 }
+    );
+    assert_eq!(
+        store.applied_head(TENANT).unwrap(),
+        3,
+        "and advanced nothing"
+    );
+    assert_eq!(
+        store.get(TENANT, "ent_3").unwrap().unwrap().last_actor,
+        "prn_bob",
+        "the foreign row is still there, and still refused"
+    );
 }
 
 /// Log compaction is unimplemented. When it lands, the retention boundary
