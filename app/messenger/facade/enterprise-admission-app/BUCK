@@ -45,7 +45,6 @@ rust_test(
         "third-party//:serde_json",
         "third-party//:sha2",
         "third-party//:tokio",
-        "third-party//:tower",
     ],
 )
 
