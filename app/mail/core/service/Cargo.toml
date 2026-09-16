@@ -1,0 +1,16 @@
+[package]
+name = "mail-service"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+mail-builder = { version = "=1.0.0", default-features = false }
+mail-parser = { version = "=0.11.9", features = ["full_encoding"] }
+mail-kernel = { path = "../kernel" }
+mail-api = { path = "../../ports/api" }
+
+[lints]
+workspace = true

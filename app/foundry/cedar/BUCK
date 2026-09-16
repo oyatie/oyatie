@@ -1,9 +1,0 @@
-export_file(
-    name = "foundry.cedarschema",
-    visibility = ["//app/foundry/facade/ontology-app:foundry-ontology-app"],
-)
-
-export_file(
-    name = "foundry-policies.cedar",
-    visibility = ["//app/foundry/facade/ontology-app:foundry-ontology-app"],
-)

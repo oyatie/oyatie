@@ -9,7 +9,7 @@ fn provider_exit_does_not_leave_descendants_holding_output_pipes() {
 #[test]
 fn provider_timeout_cleans_up_descendant_pipe_holders() {
     let fixture = Fixture::new("wait-descendant");
-    let limit = Duration::from_secs(5);
+    let limit = Duration::from_secs(1);
     let result = qualify_with(
         &fixture.request(),
         QualificationLimits {

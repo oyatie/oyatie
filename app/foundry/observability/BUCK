@@ -1,5 +1,0 @@
-filegroup(
-    name = "slo-payloads",
-    srcs = glob(["slos/**"]),
-    visibility = ["//app/foundry/facade/ontology-app:slo-inputs"],
-)

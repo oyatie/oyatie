@@ -2323,7 +2323,6 @@ dependencies = [
  "foundry-records-draft",
  "foundry-records-sqlite-draft",
  "foundry-spine",
- "foundry-submission-draft",
  "http-body-util",
  "policy-pdp-cedar",
  "policy-pdp-kernel",
@@ -2399,15 +2398,6 @@ dependencies = [
  "foundry-projection-sqlite-draft",
  "foundry-records-draft",
  "foundry-records-sqlite-draft",
-]
-
-[[package]]
-name = "foundry-submission-draft"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tokio",
 ]
 
 [[package]]
@@ -5997,10 +5987,10 @@ dependencies = [
  "base64",
  "mail-api",
  "mail-kernel",
- "mail-protocol",
- "mail-relay",
+ "mail-protocol-imap",
+ "mail-smtp-relay",
  "mail-service",
- "mail-sqlite",
+ "mail-sqlite-store",
  "rcgen",
  "reqwest 0.13.4",
  "rustls",
@@ -6015,20 +6005,6 @@ name = "mail-builder"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ccbc27cb02a58a311a404769a22f5abf63fe3173b290d80be7c534f9c7023151"
-
-[[package]]
-name = "mail-foundry"
-version = "0.1.0"
-dependencies = [
- "foundry-records-draft",
- "foundry-submission-draft",
- "mail-api",
- "mail-kernel",
- "mail-sqlite",
- "serde_json",
- "sha2",
- "tokio",
-]
 
 [[package]]
 name = "mail-kernel"
@@ -6060,7 +6036,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mail-protocol"
+name = "mail-protocol-imap"
 version = "0.1.0"
 dependencies = [
  "axum",
@@ -6071,7 +6047,7 @@ dependencies = [
  "mail-kernel",
  "mail-parser",
  "mail-service",
- "mail-sqlite",
+ "mail-sqlite-store",
  "rusqlite",
  "serde_json",
  "sha2",
@@ -6082,7 +6058,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mail-relay"
+name = "mail-smtp-relay"
 version = "0.1.0"
 dependencies = [
  "base64",
@@ -6107,7 +6083,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mail-sqlite"
+name = "mail-sqlite-store"
 version = "0.1.0"
 dependencies = [
  "mail-api",

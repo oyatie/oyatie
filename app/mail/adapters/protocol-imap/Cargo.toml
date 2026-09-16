@@ -1,0 +1,33 @@
+[package]
+name = "mail-protocol-imap"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+publish = false
+
+[features]
+upstream-tests = []
+
+[dependencies]
+base64 = "=0.22.1"
+mail-kernel = { path = "../../core/kernel" }
+mail-service = { path = "../../core/service" }
+mail-api = { path = "../../ports/api" }
+axum = { workspace = true, features = ["query"] }
+tokio = { workspace = true, features = ["io-util"] }
+serde_json.workspace = true
+sha2.workspace = true
+mail-parser = { version = "=0.11.9", features = ["full_encoding"] }
+unicode-normalization = "=0.1.25"
+unicode-case-mapping = "=1.0.0"
+mail-builder = { version = "=1.0.0", default-features = false }
+
+[dev-dependencies]
+rusqlite.workspace = true
+mail-sqlite-store = { path = "../sqlite-store" }
+tower.workspace = true
+http-body-util.workspace = true
+
+[lints]
+workspace = true
