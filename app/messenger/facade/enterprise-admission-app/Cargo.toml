@@ -1,0 +1,29 @@
+[package]
+name = "messenger-enterprise-admission-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+axum.workspace = true
+messenger-domain = { path = "../../core/domain" }
+messenger-policy-api = { path = "../../ports/policy-api" }
+messenger-policy-http = { path = "../../adapters/policy-http" }
+messenger-policy-usecase = { path = "../../core/policy-usecase" }
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+http-body-util.workspace = true
+tower.workspace = true
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
