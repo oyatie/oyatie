@@ -1,0 +1,21 @@
+rust_library(
+    name = "application-surface-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "application_surface_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "application-surface-domain-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "application_surface_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+    ],
+)
