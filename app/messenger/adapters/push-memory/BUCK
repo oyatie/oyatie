@@ -1,0 +1,35 @@
+rust_library(
+    name = "messenger-push-memory",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_push_memory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/ports/push-api:messenger-push-api",
+    ],
+)
+
+rust_test(
+    name = "messenger-push-memory-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_push_memory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/ports/push-api:messenger-push-api",
+    ],
+)
+
+rust_test(
+    name = "messenger-push-memory-contract",
+    srcs = ["tests/contract.rs"],
+    crate = "contract",
+    crate_root = "tests/contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-push-memory",
+        "//app/messenger/ports/push-api:messenger-push-api",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)

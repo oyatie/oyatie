@@ -1,0 +1,47 @@
+rust_library(
+    name = "messenger-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "messenger-domain-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "messenger-domain-authority",
+    srcs = ["tests/authority.rs"],
+    crate = "authority",
+    crate_root = "tests/authority.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-domain",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "messenger-domain-archive",
+    srcs = ["tests/archive.rs"],
+    crate = "archive",
+    crate_root = "tests/archive.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-domain",
+        "third-party//:serde_json",
+    ],
+)

@@ -1,0 +1,23 @@
+rust_library(
+    name = "messenger-policy-usecase",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_policy_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/policy-api:messenger-policy-api",
+    ],
+)
+
+rust_test(
+    name = "messenger-policy-usecase-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_policy_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/policy-api:messenger-policy-api",
+    ],
+)

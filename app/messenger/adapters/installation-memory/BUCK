@@ -1,0 +1,39 @@
+rust_library(
+    name = "messenger-installation-memory",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_installation_memory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/installation-api:messenger-installation-api",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "messenger-installation-memory-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_installation_memory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/installation-api:messenger-installation-api",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "messenger-installation-memory-contract",
+    srcs = ["tests/contract.rs"],
+    crate = "contract",
+    crate_root = "tests/contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-installation-memory",
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/installation-api:messenger-installation-api",
+        "third-party//:tokio",
+    ],
+)

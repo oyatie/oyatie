@@ -6168,6 +6168,209 @@ name = "messaging-substrate-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "messenger-admission-usecase"
+version = "0.1.0"
+dependencies = [
+ "messenger-authority-memory",
+ "messenger-conversation-api",
+ "messenger-domain",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "messenger-archive-api"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+]
+
+[[package]]
+name = "messenger-archive-memory"
+version = "0.1.0"
+dependencies = [
+ "messenger-archive-api",
+ "messenger-domain",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "messenger-authority-memory"
+version = "0.1.0"
+dependencies = [
+ "messenger-conversation-api",
+ "messenger-domain",
+ "sha2",
+ "tokio",
+]
+
+[[package]]
+name = "messenger-collaboration-api"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+ "serde_json",
+]
+
+[[package]]
+name = "messenger-console-memory"
+version = "0.1.0"
+dependencies = [
+ "messenger-collaboration-api",
+ "messenger-domain",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "messenger-conversation-api"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+]
+
+[[package]]
+name = "messenger-domain"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "messenger-enterprise-admission-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "http-body-util",
+ "messenger-domain",
+ "messenger-policy-api",
+ "messenger-policy-http",
+ "messenger-policy-usecase",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tokio",
+ "tower 0.5.3",
+]
+
+[[package]]
+name = "messenger-foundry-api"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+ "serde_json",
+]
+
+[[package]]
+name = "messenger-foundry-http"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "messenger-domain",
+ "messenger-foundry-api",
+ "reqwest 0.13.4",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "messenger-homeserver-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "http-body-util",
+ "messenger-admission-usecase",
+ "messenger-authority-memory",
+ "messenger-conversation-api",
+ "messenger-domain",
+ "serde_json",
+ "tokio",
+ "tower 0.5.3",
+]
+
+[[package]]
+name = "messenger-installation-api"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+]
+
+[[package]]
+name = "messenger-installation-memory"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+ "messenger-installation-api",
+ "tokio",
+]
+
+[[package]]
+name = "messenger-policy-api"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+]
+
+[[package]]
+name = "messenger-policy-http"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "messenger-domain",
+ "messenger-policy-api",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "messenger-policy-usecase"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+ "messenger-policy-api",
+]
+
+[[package]]
+name = "messenger-push-api"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "messenger-push-memory"
+version = "0.1.0"
+dependencies = [
+ "messenger-push-api",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "messenger-workload-api"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+]
+
+[[package]]
+name = "messenger-workload-http"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+ "messenger-workload-api",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "miette"
 version = "7.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -1,0 +1,67 @@
+rust_library(
+    name = "messenger-enterprise-admission-app",
+    srcs = glob(["src/**/*.rs"], exclude = ["src/main.rs"]),
+    crate = "messenger_enterprise_admission_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/adapters/policy-http:messenger-policy-http",
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/core/policy-usecase:messenger-policy-usecase",
+        "//app/messenger/ports/policy-api:messenger-policy-api",
+        "third-party//:axum",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+        "third-party//:tokio",
+    ],
+)
+
+rust_binary(
+    name = "messenger-enterprise-admission-app-bin",
+    srcs = ["src/main.rs"],
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-enterprise-admission-app",
+        "third-party//:axum",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "messenger-enterprise-admission-app-unittest",
+    srcs = glob(["src/**/*.rs"], exclude = ["src/main.rs"]),
+    crate = "messenger_enterprise_admission_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/adapters/policy-http:messenger-policy-http",
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/core/policy-usecase:messenger-policy-usecase",
+        "//app/messenger/ports/policy-api:messenger-policy-api",
+        "third-party//:axum",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "messenger-enterprise-admission-app-contract",
+    srcs = ["tests/contract.rs"],
+    crate = "contract",
+    crate_root = "tests/contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-enterprise-admission-app",
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/policy-api:messenger-policy-api",
+        "third-party//:axum",
+        "third-party//:http-body-util",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:tower",
+    ],
+)

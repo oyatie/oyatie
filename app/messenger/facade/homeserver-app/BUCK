@@ -1,0 +1,61 @@
+rust_library(
+    name = "messenger-homeserver-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_homeserver_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/adapters/authority-memory:messenger-authority-memory",
+        "//app/messenger/core/admission-usecase:messenger-admission-usecase",
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/conversation-api:messenger-conversation-api",
+        "third-party//:axum",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)
+
+rust_binary(
+    name = "messenger-homeserver-app-bin",
+    srcs = ["src/main.rs"],
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-homeserver-app",
+        "third-party//:axum",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "messenger-homeserver-app-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_homeserver_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/adapters/authority-memory:messenger-authority-memory",
+        "//app/messenger/core/admission-usecase:messenger-admission-usecase",
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/conversation-api:messenger-conversation-api",
+        "third-party//:axum",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "messenger-homeserver-app-contract",
+    srcs = ["tests/contract.rs"],
+    crate = "contract",
+    crate_root = "tests/contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-homeserver-app",
+        "third-party//:axum",
+        "third-party//:http-body-util",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:tower",
+    ],
+)

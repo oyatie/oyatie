@@ -1,0 +1,42 @@
+rust_library(
+    name = "messenger-console-memory",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_console_memory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/collaboration-api:messenger-collaboration-api",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "messenger-console-memory-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_console_memory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/collaboration-api:messenger-collaboration-api",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "messenger-console-memory-contract",
+    srcs = ["tests/contract.rs"],
+    crate = "contract",
+    crate_root = "tests/contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-console-memory",
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/collaboration-api:messenger-collaboration-api",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)

@@ -1,0 +1,21 @@
+rust_library(
+    name = "messenger-workload-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_workload_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+    ],
+)
+
+rust_test(
+    name = "messenger-workload-api-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_workload_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+    ],
+)

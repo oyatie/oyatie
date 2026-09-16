@@ -1,0 +1,46 @@
+rust_library(
+    name = "messenger-policy-http",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_policy_http",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/policy-api:messenger-policy-api",
+        "third-party//:reqwest",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "messenger-policy-http-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_policy_http",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/policy-api:messenger-policy-api",
+        "third-party//:reqwest",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "messenger-policy-http-contract",
+    srcs = ["tests/contract.rs"],
+    crate = "contract",
+    crate_root = "tests/contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-policy-http",
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/policy-api:messenger-policy-api",
+        "third-party//:axum",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)

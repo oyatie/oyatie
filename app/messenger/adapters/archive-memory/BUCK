@@ -1,0 +1,40 @@
+rust_library(
+    name = "messenger-archive-memory",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_archive_memory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/archive-api:messenger-archive-api",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "messenger-archive-memory-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "messenger_archive_memory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/archive-api:messenger-archive-api",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "messenger-archive-memory-contract",
+    srcs = ["tests/contract.rs"],
+    crate = "contract",
+    crate_root = "tests/contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":messenger-archive-memory",
+        "//app/messenger/core/domain:messenger-domain",
+        "//app/messenger/ports/archive-api:messenger-archive-api",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)

@@ -1,0 +1,13 @@
+// Matches adapters/policy exactly. Entity IDs are JSON [tenant, subject/resource]
+// strings; identity and tenant membership are asserted by the trusted PEP.
+namespace OyatieMessenger {
+    entity Principal = { tenant_id: String };
+    entity Room = { tenant_id: String };
+
+    action CreateRoom, ManageRoom, Send, Invite, Archive, ReadObject, InvokeAction
+    appliesTo {
+        principal: [Principal],
+        resource: [Room],
+        context: { caller_tenant: String, caller_id: String }
+    };
+}

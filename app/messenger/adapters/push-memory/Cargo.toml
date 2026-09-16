@@ -1,0 +1,21 @@
+[package]
+name = "messenger-push-memory"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+messenger-push-api = { path = "../../ports/push-api" }
+
+[dev-dependencies]
+serde_json.workspace = true
+tokio.workspace = true
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
