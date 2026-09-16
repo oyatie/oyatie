@@ -1,3 +1,4 @@
+//! Capture/page validators live on the entity so `archive-api` stays trait-only.
 use crate::{Decryption, Error, valid_room, valid_user};
 use serde::{Deserialize, Serialize};
 

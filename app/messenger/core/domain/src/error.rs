@@ -1,3 +1,5 @@
+//! Messenger domain entity.
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Error {
     Invalid(String),

@@ -1,3 +1,5 @@
+//! Messenger domain entity.
+
 use crate::Error;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

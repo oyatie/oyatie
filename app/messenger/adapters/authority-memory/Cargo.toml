@@ -9,7 +9,6 @@ license = "Apache-2.0"
 [dependencies]
 messenger-conversation-api = { path = "../../ports/conversation-api" }
 messenger-domain = { path = "../../core/domain" }
-serde_json.workspace = true
 sha2.workspace = true
 tokio.workspace = true
 

@@ -1,3 +1,5 @@
+//! Messenger domain entity.
+
 use crate::{Decryption, Error, Message};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};

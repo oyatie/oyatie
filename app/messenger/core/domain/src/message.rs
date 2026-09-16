@@ -1,3 +1,5 @@
+//! Messenger domain entity.
+
 use crate::Error;
 use crate::conversation::{ReactionChange, ReactionSummary};
 use serde::{Deserialize, Serialize};
