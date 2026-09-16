@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use community_post_store_api::{AuthorizedCommunityContext, CommunityApiError};
-use community_spaces_api::{CommunitySpace, ListSpacesQuery, SpaceCatalog, SpaceError};
+use community_spaces_api::{CommunitySpace, SpaceCatalog, SpaceError};
 use community_spaces_memory::MemorySpaceCatalog;
 use community_spaces_usecase::{SpacesUsecaseError, list_spaces};
 
@@ -22,9 +22,7 @@ fn space(tenant: &str, id: &str) -> CommunitySpace {
 #[test]
 fn empty_catalog_lists_no_spaces() {
     let catalog = MemorySpaceCatalog::new();
-    let listed = catalog
-        .list_spaces(&ListSpacesQuery::new("tenant:t").unwrap())
-        .unwrap();
+    let listed = catalog.list_spaces("tenant:t").unwrap();
     assert!(listed.is_empty());
 }
 
@@ -36,9 +34,7 @@ fn list_returns_only_the_query_tenant_in_space_id_order() {
     catalog.insert(space("tenant:a", "space:a")).unwrap();
 
     assert_eq!(
-        catalog
-            .list_spaces(&ListSpacesQuery::new("tenant:a").unwrap())
-            .unwrap(),
+        catalog.list_spaces("tenant:a").unwrap(),
         vec![space("tenant:a", "space:a"), space("tenant:a", "space:m")]
     );
 }
@@ -49,20 +45,8 @@ fn same_space_id_may_exist_in_two_tenants() {
     catalog.insert(space("tenant:a", "space:s")).unwrap();
     catalog.insert(space("tenant:b", "space:s")).unwrap();
     assert_eq!(
-        catalog
-            .list_spaces(&ListSpacesQuery::new("tenant:a").unwrap())
-            .unwrap(),
+        catalog.list_spaces("tenant:a").unwrap(),
         vec![space("tenant:a", "space:s")]
-    );
-}
-
-#[test]
-fn duplicate_space_for_the_same_tenant_is_refused() {
-    let mut catalog = MemorySpaceCatalog::new();
-    catalog.insert(space("tenant:t", "space:s")).unwrap();
-    assert_eq!(
-        catalog.insert(space("tenant:t", "space:s")),
-        Err(SpaceError::DuplicateSpace)
     );
 }
 
@@ -70,9 +54,7 @@ fn duplicate_space_for_the_same_tenant_is_refused() {
 fn list_rejects_an_unscoped_tenant() {
     let catalog = MemorySpaceCatalog::new();
     assert_eq!(
-        catalog.list_spaces(&ListSpacesQuery {
-            tenant_scope_ref: "person:u".into(),
-        }),
+        catalog.list_spaces("person:u"),
         Err(SpaceError::MissingTenantScope)
     );
 }

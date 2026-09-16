@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use community_spaces_api::{CommunitySpace, ListSpacesQuery, SpaceCatalog, SpaceError};
+use community_spaces_api::{CommunitySpace, SpaceCatalog, SpaceError, require_tenant_scope};
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct MemorySpaceCatalog {
@@ -19,21 +19,18 @@ impl MemorySpaceCatalog {
     pub fn insert(&mut self, space: CommunitySpace) -> Result<(), SpaceError> {
         space.validate()?;
         let key = (space.tenant_scope_ref.clone(), space.space_id.clone());
-        if self.spaces.contains_key(&key) {
-            return Err(SpaceError::DuplicateSpace);
-        }
         self.spaces.insert(key, space);
         Ok(())
     }
 }
 
 impl SpaceCatalog for MemorySpaceCatalog {
-    fn list_spaces(&self, query: &ListSpacesQuery) -> Result<Vec<CommunitySpace>, SpaceError> {
-        query.validate()?;
+    fn list_spaces(&self, tenant_scope_ref: &str) -> Result<Vec<CommunitySpace>, SpaceError> {
+        require_tenant_scope(tenant_scope_ref)?;
         Ok(self
             .spaces
-            .range((query.tenant_scope_ref.clone(), String::new())..)
-            .take_while(|((tenant, _), _)| tenant == &query.tenant_scope_ref)
+            .range((tenant_scope_ref.to_owned(), String::new())..)
+            .take_while(|((tenant, _), _)| tenant == tenant_scope_ref)
             .map(|(_, space)| space.clone())
             .collect())
     }

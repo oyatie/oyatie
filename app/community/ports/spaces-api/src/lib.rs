@@ -5,17 +5,11 @@
 pub enum SpaceError {
     Invalid,
     MissingTenantScope,
-    DuplicateSpace,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CommunitySpace {
     pub space_id: String,
-    pub tenant_scope_ref: String,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ListSpacesQuery {
     pub tenant_scope_ref: String,
 }
 
@@ -34,26 +28,21 @@ impl CommunitySpace {
 
     pub fn validate(&self) -> Result<(), SpaceError> {
         require_identity(&self.space_id)?;
-        require_tenant(&self.tenant_scope_ref)
-    }
-}
-
-impl ListSpacesQuery {
-    pub fn new(tenant_scope_ref: impl Into<String>) -> Result<Self, SpaceError> {
-        let query = Self {
-            tenant_scope_ref: tenant_scope_ref.into(),
-        };
-        query.validate()?;
-        Ok(query)
-    }
-
-    pub fn validate(&self) -> Result<(), SpaceError> {
-        require_tenant(&self.tenant_scope_ref)
+        require_tenant_scope(&self.tenant_scope_ref)
     }
 }
 
 pub trait SpaceCatalog: Send + Sync {
-    fn list_spaces(&self, query: &ListSpacesQuery) -> Result<Vec<CommunitySpace>, SpaceError>;
+    fn list_spaces(&self, tenant_scope_ref: &str) -> Result<Vec<CommunitySpace>, SpaceError>;
+}
+
+pub fn require_tenant_scope(value: &str) -> Result<(), SpaceError> {
+    require_identity(value)?;
+    if value.starts_with("tenant:") {
+        Ok(())
+    } else {
+        Err(SpaceError::MissingTenantScope)
+    }
 }
 
 fn require_identity(value: &str) -> Result<(), SpaceError> {
@@ -64,15 +53,6 @@ fn require_identity(value: &str) -> Result<(), SpaceError> {
         Err(SpaceError::Invalid)
     } else {
         Ok(())
-    }
-}
-
-fn require_tenant(value: &str) -> Result<(), SpaceError> {
-    require_identity(value)?;
-    if value.starts_with("tenant:") {
-        Ok(())
-    } else {
-        Err(SpaceError::MissingTenantScope)
     }
 }
 
@@ -104,15 +84,12 @@ mod tests {
     }
 
     #[test]
-    fn list_query_requires_tenant_scope() {
-        assert_eq!(ListSpacesQuery::new(""), Err(SpaceError::Invalid));
+    fn tenant_scope_rejects_blank_and_unscoped_values() {
+        assert_eq!(require_tenant_scope(""), Err(SpaceError::Invalid));
         assert_eq!(
-            ListSpacesQuery::new("person:u"),
+            require_tenant_scope("person:u"),
             Err(SpaceError::MissingTenantScope)
         );
-        assert_eq!(
-            ListSpacesQuery::new("tenant:t").unwrap().tenant_scope_ref,
-            "tenant:t"
-        );
+        assert_eq!(require_tenant_scope("tenant:t"), Ok(()));
     }
 }

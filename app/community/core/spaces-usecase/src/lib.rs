@@ -2,7 +2,7 @@
 #![forbid(unsafe_code)]
 
 use community_post_store_api::{AuthorizedCommunityContext, CommunityApiError};
-use community_spaces_api::{CommunitySpace, ListSpacesQuery, SpaceCatalog, SpaceError};
+use community_spaces_api::{CommunitySpace, SpaceCatalog, SpaceError};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SpacesUsecaseError {
@@ -13,9 +13,7 @@ pub enum SpacesUsecaseError {
 impl From<SpaceError> for SpacesUsecaseError {
     fn from(error: SpaceError) -> Self {
         match error {
-            SpaceError::Invalid | SpaceError::DuplicateSpace => {
-                Self::Api(CommunityApiError::Invalid)
-            }
+            SpaceError::Invalid => Self::Api(CommunityApiError::Invalid),
             SpaceError::MissingTenantScope => Self::Api(CommunityApiError::MissingTenantScope),
         }
     }
@@ -26,8 +24,7 @@ pub fn list_spaces(
     catalog: &impl SpaceCatalog,
 ) -> Result<Vec<CommunitySpace>, SpacesUsecaseError> {
     ctx.validate().map_err(SpacesUsecaseError::Api)?;
-    let query = ListSpacesQuery::new(ctx.tenant_scope_ref.clone())?;
-    let spaces = catalog.list_spaces(&query)?;
+    let spaces = catalog.list_spaces(&ctx.tenant_scope_ref)?;
     if spaces
         .iter()
         .any(|space| space.tenant_scope_ref != ctx.tenant_scope_ref)
@@ -40,6 +37,7 @@ pub fn list_spaces(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use community_spaces_api::require_tenant_scope;
 
     fn ctx() -> AuthorizedCommunityContext {
         AuthorizedCommunityContext {
@@ -56,12 +54,12 @@ mod tests {
     }
 
     impl SpaceCatalog for OwnedCatalog {
-        fn list_spaces(&self, query: &ListSpacesQuery) -> Result<Vec<CommunitySpace>, SpaceError> {
-            query.validate()?;
+        fn list_spaces(&self, tenant_scope_ref: &str) -> Result<Vec<CommunitySpace>, SpaceError> {
+            require_tenant_scope(tenant_scope_ref)?;
             Ok(self
                 .spaces
                 .iter()
-                .filter(|space| space.tenant_scope_ref == query.tenant_scope_ref)
+                .filter(|space| space.tenant_scope_ref == tenant_scope_ref)
                 .cloned()
                 .collect())
         }
@@ -70,8 +68,8 @@ mod tests {
     struct ForeignCatalog;
 
     impl SpaceCatalog for ForeignCatalog {
-        fn list_spaces(&self, query: &ListSpacesQuery) -> Result<Vec<CommunitySpace>, SpaceError> {
-            query.validate()?;
+        fn list_spaces(&self, tenant_scope_ref: &str) -> Result<Vec<CommunitySpace>, SpaceError> {
+            require_tenant_scope(tenant_scope_ref)?;
             CommunitySpace::new("space:s", "tenant:other").map(|space| vec![space])
         }
     }
@@ -79,7 +77,7 @@ mod tests {
     struct PanicCatalog;
 
     impl SpaceCatalog for PanicCatalog {
-        fn list_spaces(&self, _: &ListSpacesQuery) -> Result<Vec<CommunitySpace>, SpaceError> {
+        fn list_spaces(&self, _: &str) -> Result<Vec<CommunitySpace>, SpaceError> {
             panic!("catalog must not be contacted");
         }
     }
