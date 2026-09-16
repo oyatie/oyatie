@@ -6000,6 +6000,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "messenger-installation-api"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+]
+
+[[package]]
+name = "messenger-installation-memory"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+ "messenger-installation-api",
+ "tokio",
+]
+
+[[package]]
 name = "messenger-policy-api"
 version = "0.1.0"
 dependencies = [
