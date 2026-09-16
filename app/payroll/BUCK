@@ -1,0 +1,7 @@
+# Product-root export so //app/payroll/... can name the existing OpenAPI
+# file without a BUCK under the layout-illegal `contracts/` face.
+export_file(
+    name = "openapi-v1.yaml",
+    src = "contracts/openapi-v1.yaml",
+    visibility = ["PUBLIC"],
+)

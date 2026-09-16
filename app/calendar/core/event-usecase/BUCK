@@ -1,0 +1,23 @@
+rust_library(
+    name = "calendar-event-usecase",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "calendar_event_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/calendar/core/event-domain:calendar-event-domain",
+        "//app/calendar/ports/event-api:calendar-event-api",
+    ],
+)
+
+rust_test(
+    name = "calendar-event-usecase-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "calendar_event_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/calendar/core/event-domain:calendar-event-domain",
+        "//app/calendar/ports/event-api:calendar-event-api",
+    ],
+)
