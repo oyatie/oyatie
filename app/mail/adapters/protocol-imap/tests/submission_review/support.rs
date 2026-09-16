@@ -48,7 +48,8 @@ impl Fixture {
             identity: db.clone(),
             policy,
         });
-        let app = mail_protocol_imap::jmap_router(service.clone(), "https://mail.example.org".into());
+        let app =
+            mail_protocol_imap::jmap_router(service.clone(), "https://mail.example.org".into());
         Self { db, service, app }
     }
     pub async fn call(&self, method: &str, args: Value) -> Value {

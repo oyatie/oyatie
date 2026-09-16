@@ -55,11 +55,15 @@ pub(super) fn spawn(
                     tokio::time::timeout(Duration::from_secs(10), tls.accept(stream)).await
                 {
                     let _ = match protocol {
-                        Protocol::Imap => mail_protocol_imap::imap_session(stream, service, true).await,
+                        Protocol::Imap => {
+                            mail_protocol_imap::imap_session(stream, service, true).await
+                        }
                         Protocol::Submission => {
                             mail_protocol_imap::submission_session(stream, service, true).await
                         }
-                        Protocol::Pop => mail_protocol_imap::pop_session(stream, service, true).await,
+                        Protocol::Pop => {
+                            mail_protocol_imap::pop_session(stream, service, true).await
+                        }
                         _ => unreachable!(),
                     };
                 }

@@ -136,7 +136,11 @@ async fn real_foreign_identifiers_only_fall_back_to_the_authorized_local_name() 
     )
     .unwrap();
     let (foreign, server) = tokio::io::duplex(65536);
-    let foreign_task = tokio::spawn(mail_protocol_imap::imap_session(server, service.clone(), true));
+    let foreign_task = tokio::spawn(mail_protocol_imap::imap_session(
+        server,
+        service.clone(),
+        true,
+    ));
     let mut foreign = BufReader::new(foreign);
     command(
         &mut foreign,
@@ -219,7 +223,11 @@ async fn identifier_reads_preserve_readonly_policy_and_recheck_revocation_after_
     let mut service = Arc::try_unwrap(service).ok().unwrap();
     service.policy = Arc::new(MutablePolicy(policy.clone()));
     let (client, server) = tokio::io::duplex(65536);
-    let task = tokio::spawn(mail_protocol_imap::imap_session(server, Arc::new(service), true));
+    let task = tokio::spawn(mail_protocol_imap::imap_session(
+        server,
+        Arc::new(service),
+        true,
+    ));
     let mut client = BufReader::new(client);
     command(&mut client, &format!("a LOGIN alice@example.org {TOKEN}")).await;
     let selected = command(&mut client, "s SELECT INBOX (OBJECTID)").await;

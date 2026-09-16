@@ -111,12 +111,16 @@ async fn stls_propagates_handshake_failure() {
     use tokio::io::BufReader;
     let (service, _) = service();
     let (client, server) = tokio::io::duplex(8192);
-    let task = tokio::spawn(mail_protocol_imap::pop_starttls_session(server, service, |_| {
-        std::future::ready(Err::<tokio::io::DuplexStream, _>(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "TLS rejected",
-        )))
-    }));
+    let task = tokio::spawn(mail_protocol_imap::pop_starttls_session(
+        server,
+        service,
+        |_| {
+            std::future::ready(Err::<tokio::io::DuplexStream, _>(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "TLS rejected",
+            )))
+        },
+    ));
     let mut client = Client(BufReader::new(client));
     client.read().await;
     client.ok("STLS").await;

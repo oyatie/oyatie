@@ -191,7 +191,9 @@ async fn submission_refuses_plaintext_and_does_not_advertise_auth_on_inbound() {
 async fn submission_refuses_malformed_sasl_and_bounds_authentication_attempts() {
     let (service, _) = service(Arc::new(OwnerPolicy));
     let (client, server) = tokio::io::duplex(8192);
-    let task = tokio::spawn(mail_protocol_imap::submission_session(server, service, true));
+    let task = tokio::spawn(mail_protocol_imap::submission_session(
+        server, service, true,
+    ));
     let mut client = BufReader::new(client);
     reply(&mut client, "220").await;
     command(&mut client, "AUTH PLAIN", "503").await;
@@ -231,7 +233,9 @@ async fn submission_requires_policy_permission_separate_from_mailbox_write() {
     }
     let (service, _) = service(Arc::new(Deny));
     let (client, server) = tokio::io::duplex(8192);
-    let task = tokio::spawn(mail_protocol_imap::submission_session(server, service, true));
+    let task = tokio::spawn(mail_protocol_imap::submission_session(
+        server, service, true,
+    ));
     let mut client = BufReader::new(client);
     reply(&mut client, "220").await;
     command(&mut client, "EHLO client", "250").await;
