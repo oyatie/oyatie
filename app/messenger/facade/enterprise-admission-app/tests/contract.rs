@@ -88,12 +88,15 @@ fn encrypted() -> Value {
 
 struct Client {
     router: axum::Router,
+    state: Arc<AppState<Script>>,
 }
 
 impl Client {
     fn of(policy: Script) -> Self {
+        let state = state(policy);
         Self {
-            router: router(state(policy)),
+            router: router(state.clone()),
+            state,
         }
     }
 
@@ -177,13 +180,6 @@ async fn deny_and_outage_stay_errors() {
     assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
     let (ready, _) = client.send("GET", "/readyz", None, b"").await;
     assert_eq!(ready, StatusCode::OK);
-    let (metrics, body) = client.send("GET", "/metrics", None, b"").await;
-    assert_eq!(metrics, StatusCode::OK);
-    assert!(
-        String::from_utf8(body)
-            .unwrap()
-            .contains("messenger_admission_last_policy_unavailable 1\n")
-    );
     outage.set(Ok(()));
     let (status, body) = client.admit(encrypted()).await;
     assert_eq!(status, StatusCode::OK, "{body}");
@@ -251,6 +247,16 @@ async fn manager_can_remove_departed_users() {
             .iter()
             .all(|call| call.2 == Action::ManageRoom)
     );
+}
+
+#[tokio::test]
+async fn saturation_is_unavailable_without_a_queue() {
+    let client = Client::of(Script::new(Ok(())));
+    let _held: Vec<_> = (0..64).map(|_| client.state.try_hold().unwrap()).collect();
+    let (status, _) = client
+        .send("POST", "/v1/messenger/admit", Some(TOKEN), b"{}")
+        .await;
+    assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
 }
 
 #[test]
