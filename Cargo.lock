@@ -5947,6 +5947,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "messenger-collaboration-api"
+version = "0.1.0"
+dependencies = [
+ "messenger-domain",
+ "serde_json",
+]
+
+[[package]]
+name = "messenger-console-memory"
+version = "0.1.0"
+dependencies = [
+ "messenger-collaboration-api",
+ "messenger-domain",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "messenger-conversation-api"
 version = "0.1.0"
 dependencies = [
