@@ -6010,6 +6010,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "messenger-homeserver-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "http-body-util",
+ "messenger-admission-usecase",
+ "messenger-authority-memory",
+ "messenger-conversation-api",
+ "messenger-domain",
+ "serde_json",
+ "tokio",
+ "tower 0.5.3",
+]
+
+[[package]]
 name = "messenger-installation-api"
 version = "0.1.0"
 dependencies = [
