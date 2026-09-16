@@ -7,8 +7,12 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
+type EventKey = (u64, String);
+type RoomEvents = BTreeMap<EventKey, ArchiveEvent>;
+type ArchiveRooms = BTreeMap<String, RoomEvents>;
+
 pub struct MemoryArchive {
-    inner: Mutex<BTreeMap<String, BTreeMap<(u64, String), ArchiveEvent>>>,
+    inner: Mutex<ArchiveRooms>,
 }
 
 impl MemoryArchive {
