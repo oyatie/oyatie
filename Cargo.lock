@@ -1279,6 +1279,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "community-spaces-api"
+version = "0.1.0"
+
+[[package]]
+name = "community-spaces-memory"
+version = "0.1.0"
+dependencies = [
+ "community-post-store-api",
+ "community-spaces-api",
+ "community-spaces-usecase",
+]
+
+[[package]]
+name = "community-spaces-usecase"
+version = "0.1.0"
+dependencies = [
+ "community-post-store-api",
+ "community-spaces-api",
+]
+
+[[package]]
 name = "compliance-dlp"
 version = "0.1.0"
 dependencies = [
