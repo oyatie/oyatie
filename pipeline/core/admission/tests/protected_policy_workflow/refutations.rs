@@ -1,3 +1,4 @@
+//! Pin-asserting refutations for protected workflow admission.
 use super::*;
 
 fn mutate_job(yaml: &str, spec: JobSpec, from: &str, to: &str) -> String {
