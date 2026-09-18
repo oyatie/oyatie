@@ -15,11 +15,10 @@
 //!   clear / range / atomic-op / watch / commit / on_error / conflict-range
 //!   surface the store needs, plus [`Transaction::set_versionstamped_key`]
 //!   for append-only audit keys built with [`crate::key`].
-//!
-//! Linking: `#[link(name = "fdb_c")]` resolves against the `libfdb_c` the lane
-//! provides (`.github/scripts/live-fdb.sh`); `cargo clippy --features fdb`
-//! type-checks without the library, only test binaries link it.
 
+/// Linking: `#[link(name = "fdb_c")]` resolves against the `libfdb_c` the
+/// lane provides (`.github/scripts/live-fdb.sh`); `cargo clippy --features
+/// fdb` type-checks without the library, only test binaries link it.
 pub mod sys;
 
 mod database;
