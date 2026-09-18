@@ -1,11 +1,16 @@
 #![forbid(unsafe_code)]
-use mail_api::{AccountInfo, Action, Identity, Policy, Principal, Store};
+use mail_api::{
+    AccountInfo, Action, Execution, HistoryPage, Identity, MailboxSelection, Policy, Precondition,
+    Principal, Store,
+};
 use mail_kernel::{Account, Command, Error};
 use std::sync::Arc;
+mod admission;
 mod delivery;
 mod email_submission;
 mod submission;
 mod submission_schedule;
+pub use admission::{Budget, MUTATION_DEADLINE, PER_ACCOUNT_MUTATIONS, backoff};
 pub use email_submission::{SubmitEmail, SubmitEmailError};
 pub use submission_schedule::MAX_DELAYED_SEND;
 
@@ -27,35 +32,26 @@ impl MailService {
         self.authorize(token, account, Action::Read)?;
         self.store.messages(account, ids)
     }
-    pub fn mailbox_changes(
+    pub fn mailbox_uids(
         &self,
         token: &str,
         account: &str,
-        since: u64,
-        until: u64,
-    ) -> Result<Vec<mail_api::MailboxChange>, Error> {
+        mailbox: &str,
+    ) -> Result<MailboxSelection, Error> {
         self.authorize(token, account, Action::Read)?;
-        self.store.mailbox_changes(account, since, until)
+        self.store.mailbox_uids(account, mailbox)
     }
-    pub fn changes(
+    /// History rows after `since`; `page.below_floor()` tells the caller to
+    /// fall back per protocol.
+    pub fn history(
         &self,
         token: &str,
         account: &str,
         since: u64,
-        until: u64,
-    ) -> Result<Vec<mail_api::MessageChange>, Error> {
+        limit: usize,
+    ) -> Result<HistoryPage, Error> {
         self.authorize(token, account, Action::Read)?;
-        self.store.message_changes(account, since, until)
-    }
-    pub fn changes_after(
-        &self,
-        token: &str,
-        account: &str,
-        since: u64,
-        until: u64,
-    ) -> Result<Vec<mail_api::MessageChange>, Error> {
-        self.authorize(token, account, Action::Read)?;
-        self.store.message_changes_after(account, since, until)
+        self.store.history(account, since, limit)
     }
     pub fn upload(&self, token: &str, id: &str, raw: &[u8]) -> Result<String, Error> {
         self.authorize(token, id, Action::Write)?;
@@ -83,15 +79,36 @@ impl MailService {
         Ok(account)
     }
 
+    /// One mutation batch under the caller's budget: waits for a per-account
+    /// slot (the wait counts toward the deadline), then commits once. `Busy`
+    /// tells the caller to back off and re-attempt without holding a worker.
     pub fn execute(
         &self,
         token: &str,
         id: &str,
-        revision: u64,
+        precondition: Precondition,
         commands: Vec<Command>,
-    ) -> Result<Account, Error> {
+        budget: &Budget,
+    ) -> Result<Execution, Error> {
         self.authorize(token, id, Action::Write)?;
-        self.store.execute(id, revision, commands)
+        let _slot = admission::Admission::node().acquire(id, budget)?;
+        if budget.expired() {
+            return Err(Error::Busy);
+        }
+        self.store.execute(id, precondition, commands)
+    }
+
+    /// Execute, then read the projection the protocol layer synchronizes from.
+    pub fn execute_read(
+        &self,
+        token: &str,
+        id: &str,
+        precondition: Precondition,
+        commands: Vec<Command>,
+        budget: &Budget,
+    ) -> Result<(Execution, Account), Error> {
+        let execution = self.execute(token, id, precondition, commands, budget)?;
+        Ok((execution, self.store.account(id)?))
     }
 }
 

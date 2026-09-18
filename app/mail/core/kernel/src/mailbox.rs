@@ -2,6 +2,8 @@ use super::{Account, Error, valid_name};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
+/// Mailbox record: properties, the per-mailbox UID counter, HIGHESTMODSEQ and
+/// the MESSAGES/UNSEEN/SIZE counters maintained inside every mutation.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Mailbox {
     pub id: String,
@@ -15,6 +17,16 @@ pub struct Mailbox {
     pub is_subscribed: bool,
     pub uid_next: u32,
     pub uid_validity: u32,
+    #[serde(default)]
+    pub created_revision: u64,
+    #[serde(default)]
+    pub highest_modseq: u64,
+    #[serde(default)]
+    pub total_emails: usize,
+    #[serde(default)]
+    pub unread_emails: usize,
+    #[serde(default)]
+    pub size_bytes: usize,
 }
 fn subscribed() -> bool {
     true
@@ -40,6 +52,23 @@ impl MailboxProperties {
     }
 }
 impl Mailbox {
+    pub fn new(id: &str, name: &str, role: Option<&str>, uid_validity: u32) -> Self {
+        Self {
+            id: id.into(),
+            name: name.into(),
+            role: role.map(Into::into),
+            parent_id: None,
+            sort_order: 0,
+            is_subscribed: true,
+            uid_next: 1,
+            uid_validity,
+            created_revision: 0,
+            highest_modseq: 0,
+            total_emails: 0,
+            unread_emails: 0,
+            size_bytes: 0,
+        }
+    }
     pub fn properties(&self) -> MailboxProperties {
         MailboxProperties {
             name: self.name.clone(),
@@ -56,7 +85,6 @@ pub struct MailboxState {
     pub mailbox: Mailbox,
     pub total_emails: usize,
     pub unread_emails: usize,
-    // Older journal snapshots do not carry thread counters; preserve that absence.
     #[serde(default)]
     pub total_threads: Option<usize>,
     #[serde(default)]
@@ -64,35 +92,33 @@ pub struct MailboxState {
 }
 
 impl Account {
+    /// Counters come from the mailbox record; thread counters need the loaded
+    /// messages and are reported only when the full projection is present.
     pub fn mailbox_states(&self) -> Vec<MailboxState> {
-        let mut counts = BTreeMap::new();
+        let mut threads = BTreeMap::new();
         for message in &self.messages {
-            let unread = !message.keywords.iter().any(|k| k == "$seen");
+            let unread = !message.seen();
             for id in message.mailboxes.keys() {
-                let (total, unseen, threads, unread_threads) = counts
+                let (all, unseen) = threads
                     .entry(id.as_str())
-                    .or_insert((0, 0, BTreeSet::new(), BTreeSet::new()));
-                *total += 1;
-                *unseen += usize::from(unread);
-                threads.insert(message.thread_id());
+                    .or_insert((BTreeSet::new(), BTreeSet::new()));
+                all.insert(message.thread_id());
                 if unread {
-                    unread_threads.insert(message.thread_id());
+                    unseen.insert(message.thread_id());
                 }
             }
         }
         self.mailboxes
             .iter()
             .map(|m| {
-                let (total_emails, unread_emails, total_threads, unread_threads) = counts
+                let (total_threads, unread_threads) = threads
                     .get(m.id.as_str())
-                    .map(|(total, unread, threads, unread_threads)| {
-                        (*total, *unread, threads.len(), unread_threads.len())
-                    })
+                    .map(|(all, unseen)| (all.len(), unseen.len()))
                     .unwrap_or_default();
                 MailboxState {
                     mailbox: m.clone(),
-                    total_emails,
-                    unread_emails,
+                    total_emails: m.total_emails,
+                    unread_emails: m.unread_emails,
                     total_threads: Some(total_threads),
                     unread_threads: Some(unread_threads),
                 }
@@ -125,12 +151,15 @@ impl Account {
         {
             return Err(Error::Forbidden);
         }
+        // Another root mailbox may not take INBOX's reserved name; INBOX itself
+        // keeps its name, so updating INBOX never collides with its siblings.
         if self.mailboxes.iter().any(|m| {
             Some(&m.id) != id.as_ref()
                 && m.parent_id == properties.parent_id
                 && (m.name == properties.name
                     || (properties.parent_id.is_none()
-                        && properties.name.eq_ignore_ascii_case("inbox")))
+                        && properties.name.eq_ignore_ascii_case("inbox")
+                        && m.name.eq_ignore_ascii_case("inbox")))
         }) {
             return Err(Error::Conflict);
         }
@@ -174,29 +203,28 @@ impl Account {
                 .as_deref();
             depth += 1;
         }
-        let (uid_next, uid_validity) = match existing {
-            Some(index) => (
-                self.mailboxes[index].uid_next,
-                self.mailboxes[index].uid_validity,
-            ),
-            None => (
-                1,
-                revision
-                    .checked_add(1)
-                    .and_then(|n| u32::try_from(n).ok())
-                    .ok_or(Error::OverQuota)?,
-            ),
+        let mut mailbox = match existing {
+            Some(index) => self.mailboxes[index].clone(),
+            None => Mailbox {
+                // A new mailbox starts at the account's HIGHESTMODSEQ so an
+                // empty selection reports the same watermark as its siblings.
+                highest_modseq: self.mail_modseq,
+                ..Mailbox::new(
+                    &format!("m{revision}"),
+                    "",
+                    None,
+                    revision
+                        .checked_add(1)
+                        .and_then(|n| u32::try_from(n).ok())
+                        .ok_or(Error::OverQuota)?,
+                )
+            },
         };
-        let mailbox = Mailbox {
-            id: id.unwrap_or_else(|| format!("m{revision}")),
-            name: properties.name,
-            parent_id: properties.parent_id,
-            role: properties.role,
-            sort_order: properties.sort_order,
-            is_subscribed: properties.is_subscribed,
-            uid_next,
-            uid_validity,
-        };
+        mailbox.name = properties.name;
+        mailbox.parent_id = properties.parent_id;
+        mailbox.role = properties.role;
+        mailbox.sort_order = properties.sort_order;
+        mailbox.is_subscribed = properties.is_subscribed;
         if let Some(index) = existing {
             self.mailboxes[index] = mailbox;
         } else {
@@ -205,6 +233,8 @@ impl Account {
         Ok(())
     }
 
+    /// Emptiness comes from the counters; with `remove_emails` the working set
+    /// must hold the mailbox's members (`Scope::Mailbox`).
     pub(super) fn delete_mailbox(&mut self, id: &str, remove_emails: bool) -> Result<(), Error> {
         if id == self.inbox() {
             return Err(Error::Forbidden);
@@ -221,14 +251,20 @@ impl Account {
         {
             return Err(Error::Conflict);
         }
-        if !remove_emails && self.messages.iter().any(|m| m.mailboxes.contains_key(id)) {
+        if !remove_emails && self.mailboxes[index].total_emails > 0 {
             return Err(Error::Conflict);
         }
         if remove_emails {
-            for message in &mut self.messages {
-                message.mailboxes.remove(id);
+            let mut position = 0;
+            while position < self.messages.len() {
+                let before = self.messages.len();
+                if self.messages[position].mailboxes.contains_key(id) {
+                    self.detach(position, id);
+                }
+                if self.messages.len() == before {
+                    position += 1;
+                }
             }
-            self.messages.retain(|m| !m.mailboxes.is_empty());
         }
         self.mailboxes.remove(index);
         Ok(())

@@ -121,7 +121,7 @@ impl DeliveryQueue for SqliteStore {
 }
 
 pub(super) fn enqueue_tx(
-    tx: &rusqlite::Transaction<'_>,
+    tx: &rusqlite::Connection,
     sender: &str,
     recipients: &[DeliveryTarget],
     raw: &[u8],
@@ -163,14 +163,14 @@ pub(super) fn enqueue_tx(
 }
 
 pub(super) fn admit(
-    tx: &rusqlite::Transaction<'_>,
+    tx: &rusqlite::Connection,
     account: &str,
     address: &str,
     size: usize,
 ) -> Result<(), Error> {
     let (actual, quota): (String, usize) = tx
         .query_row(
-            "SELECT address,quota_bytes FROM account_access WHERE account=?1",
+            "SELECT address,quota_bytes FROM accounts WHERE id=?1",
             [account],
             |r| Ok((r.get(0)?, r.get(1)?)),
         )
@@ -184,7 +184,13 @@ pub(super) fn admit(
                 "SELECT count(*),coalesce(sum(size),0) FROM (SELECT m.size FROM delivery_jobs j JOIN queued_messages m ON m.id=j.message WHERE j.account=?1 UNION ALL SELECT m.size FROM failed_delivery_jobs j JOIN failed_delivery_messages m ON m.id=j.message WHERE j.account=?1)",
                 [account], |r| Ok((r.get(0)?,r.get(1)?)),
             ).map_err(storage)?;
-    let used: usize = tx.query_row("SELECT coalesce(sum(json_extract(value,'$.size')),0) FROM accounts a,json_each(a.state,'$.messages') WHERE a.id=?1", [account], |r| r.get(0)).map_err(storage)?;
+    let used: usize = tx
+        .query_row(
+            "SELECT used_bytes FROM accounts WHERE id=?1",
+            [account],
+            |r| r.get(0),
+        )
+        .map_err(storage)?;
     if count >= 1000
         || bytes
             .checked_add(size)

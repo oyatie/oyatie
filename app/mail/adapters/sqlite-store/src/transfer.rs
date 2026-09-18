@@ -1,4 +1,4 @@
-use super::{content, storage};
+use super::storage;
 use mail_kernel::Error;
 use rusqlite::{Connection, params};
 
@@ -14,14 +14,8 @@ pub(super) fn copy(
         "INSERT INTO message_bodies(account,id,content) SELECT account,?3,content FROM message_bodies WHERE account=?1 AND id=?2",
         params![account, source, target],
     ).map_err(storage)?;
-    if copied == 0 {
-        // Old snapshots embed their bodies until the first successful write.
-        let raw = content::get(db, account, source)?;
-        db.execute(
-            "INSERT INTO message_bodies(account,id,content) VALUES(?1,?2,?3)",
-            params![account, target, raw],
-        )
-        .map_err(storage)?;
+    if copied != 1 {
+        return Err(Error::Unavailable);
     }
     let members = db.execute(
         "INSERT INTO thread_members(account,message,subject,thread) SELECT account,?3,subject,thread FROM thread_members WHERE account=?1 AND message=?2",
