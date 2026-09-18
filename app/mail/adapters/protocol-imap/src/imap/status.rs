@@ -3,7 +3,7 @@ use super::{
     response::Output,
     syntax::{Token, tokens},
 };
-use mail_kernel::Account;
+use mail_kernel::{Account, Mailbox};
 
 pub(super) fn execute(
     account: &Account,
@@ -12,14 +12,25 @@ pub(super) fn execute(
 ) -> Result<Option<String>, &'static str> {
     let name = parts.get(2).ok_or("BAD")?;
     let args = parts.get(3..).ok_or("BAD")?.join(" ");
-    let items = tokens(
-        args.strip_prefix('(')
-            .and_then(|a| a.strip_suffix(')'))
-            .ok_or("BAD")?,
-    )
-    .ok_or("BAD")?;
-    let items = items
-        .into_iter()
+    let tokens = tokens(&args).ok_or("BAD")?;
+    let [Token::Open, inner @ .., Token::Close] = tokens.as_slice() else {
+        return Err("BAD");
+    };
+    let items = items(inner)?;
+    if items.iter().any(|i| i == "OBJECTID") {
+        super::objectid::activate(output);
+    }
+    let folder = folders::find(account, name).ok_or("NO [NONEXISTENT]")?;
+    report(account, folder, &items, output);
+    Ok(None)
+}
+
+/// The status data item names inside the parenthesised list, upper-cased and
+/// in request order except SIZE, which upstream computes after the cached
+/// counters and therefore reports last.
+pub(super) fn items(tokens: &[Token]) -> Result<Vec<String>, &'static str> {
+    let mut items = tokens
+        .iter()
         .map(|t| match t {
             Token::Word(item)
                 if [
@@ -45,13 +56,17 @@ pub(super) fn execute(
     if items.is_empty() {
         return Err("BAD");
     }
-    if items.iter().any(|i| i == "OBJECTID") {
-        super::objectid::activate(output);
-    }
-    let folder = folders::find(account, name).ok_or("NO")?;
+    items.sort_by_key(|item| item == "SIZE");
+    Ok(items)
+}
+
+/// One `* STATUS` line in the requested item order; RECENT is always 0.
+pub(super) fn report(account: &Account, folder: &Mailbox, items: &[String], output: &mut Output) {
     let messages = super::selected::messages_in(account, &folder.id);
-    let mailbox =
-        super::mailboxes::quote(&account.mailbox_path(&folder.id).ok_or("NO")?, output.utf8);
+    let Some(path) = account.mailbox_path(&folder.id) else {
+        return;
+    };
+    let mailbox = super::mailboxes::quote(&path, output.utf8);
     output.extend_from_slice(format!("* STATUS {mailbox} (").as_bytes());
     for (i, item) in items.iter().enumerate() {
         let value = match item.as_str() {
@@ -84,5 +99,4 @@ pub(super) fn execute(
         );
     }
     output.extend_from_slice(b")\r\n");
-    Ok(None)
 }

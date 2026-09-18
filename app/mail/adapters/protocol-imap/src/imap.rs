@@ -182,7 +182,6 @@ impl Session {
                 | "CHECK"
                 | "CLOSE"
                 | "EXPUNGE"
-                | "UNSELECT"
                 | "UNAUTHENTICATE"
                 | "NAMESPACE"
         ) && parts.len() != 2
@@ -195,6 +194,7 @@ impl Session {
         let mut code = None;
         match verb.as_str() {
             "CAPABILITY" => uidonly::capabilities(self, encrypted, starttls, output),
+            "ID" => uidonly::id(output),
             "UNAUTHENTICATE" => {
                 if let Err(kind) = uidonly::unauthenticate(self, output) {
                     status = kind;
@@ -274,7 +274,9 @@ mod commands;
 mod condstore;
 mod fetch;
 mod folders;
+mod hierarchy;
 mod idle;
+mod list;
 mod literal;
 mod mailboxes;
 mod objectid;
@@ -289,12 +291,6 @@ mod syntax;
 mod transfer;
 mod uidonly;
 use commands::command;
-
-fn object_id(kind: &str, account: &str, id: &str) -> String {
-    use sha2::{Digest, Sha256};
-    let mut hash = Sha256::new();
-    hash.update((account.len() as u64).to_be_bytes());
-    hash.update(account.as_bytes());
-    hash.update(id.as_bytes());
-    format!("{kind}{:x}", hash.finalize())
-}
+pub use fetch::render;
+pub use folders::matches as list_matches;
+use objectid::object_id;

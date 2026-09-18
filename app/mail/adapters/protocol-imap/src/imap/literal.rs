@@ -90,7 +90,11 @@ pub(super) async fn read<S: AsyncRead + AsyncWrite + Unpin>(
     .to_ascii_uppercase();
     let bytes = if marker(args).is_some() {
         tokio::time::timeout(Duration::from_secs(60), async {
-            let allowed = if verb.eq_ignore_ascii_case("LOGIN") {
+            // Pre-authentication literals are only accepted for the two
+            // credential-bearing commands, and only over TLS.
+            let allowed = if verb.eq_ignore_ascii_case("LOGIN")
+                || verb.eq_ignore_ascii_case("AUTHENTICATE")
+            {
                 encrypted && session.credential.is_empty()
             } else if session.credential.is_empty() {
                 false
@@ -116,6 +120,7 @@ pub(super) async fn read<S: AsyncRead + AsyncWrite + Unpin>(
             let string_command = matches!(
                 operation.as_str(),
                 "LOGIN"
+                    | "AUTHENTICATE"
                     | "CREATE"
                     | "DELETE"
                     | "RENAME"
@@ -154,6 +159,11 @@ pub(super) async fn read<S: AsyncRead + AsyncWrite + Unpin>(
         Some(args.to_vec())
     };
     let Some(bytes) = bytes else { return Ok(None) };
+    let bytes = if verb.eq_ignore_ascii_case("AUTHENTICATE") {
+        inline_response(bytes)
+    } else {
+        bytes
+    };
     let parts = std::str::from_utf8(&bytes)
         .ok()
         .and_then(|args| syntax::command_parts(&format!("{tag} {verb} {args}")));
@@ -162,6 +172,32 @@ pub(super) async fn read<S: AsyncRead + AsyncWrite + Unpin>(
         return Ok(None);
     }
     Ok(parts)
+}
+
+// RFC 3501 lets the SASL initial response travel as a literal. Splice the
+// collected octets back in place of the `{n}` marker so AUTHENTICATE sees the
+// same single word it gets from the inline form; anything else stays as-is and
+// is rejected by the command grammar.
+fn inline_response(bytes: Vec<u8>) -> Vec<u8> {
+    let Some((size, _)) = marker(&bytes).and_then(|(token, _)| specifier(token)) else {
+        return bytes;
+    };
+    let Some(marker) = bytes.len().checked_sub(size + 2) else {
+        return bytes;
+    };
+    let Some(start) = bytes[..marker].iter().rposition(|b| *b == b'{') else {
+        return bytes;
+    };
+    let payload = &bytes[marker + 2..];
+    if specifier(&bytes[start..marker]).map(|(n, _)| n) != Some(size)
+        || &bytes[marker..marker + 2] != b"\r\n"
+        || !payload.iter().all(u8::is_ascii_graphic)
+    {
+        return bytes;
+    }
+    let mut inlined = bytes[..start].to_vec();
+    inlined.extend_from_slice(payload);
+    inlined
 }
 
 pub(super) fn refuse_payload<T>(bytes: &[u8]) -> io::Result<Option<T>> {

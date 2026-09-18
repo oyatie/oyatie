@@ -92,9 +92,9 @@ pub(super) fn synchronize(
             })
             .filter(|entry| !known.contains(entry)),
     );
-    if before != selection.ids.len()
-        || ((selection.qresync || output.uidonly) && previous_count != selection.ids.len())
-    {
+    // EXISTS follows both arrivals and expunges, so the client's message count
+    // is restated after every change (RFC 3501 §7.3.1, matching Stalwart).
+    if before != selection.ids.len() || previous_count != selection.ids.len() {
         output.extend_from_slice(format!("* {} EXISTS\r\n", selection.ids.len()).as_bytes());
     }
     if selection.condstore && !parts[1].eq_ignore_ascii_case("IDLE") {

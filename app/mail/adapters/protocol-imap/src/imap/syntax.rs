@@ -115,12 +115,18 @@ pub(super) fn command_parts(value: &str) -> Option<Vec<String>> {
         if prefix.len() == 2
             && matches!(
                 word.to_ascii_uppercase().as_str(),
-                "STATUS" | "SELECT" | "EXAMINE"
+                "STATUS" | "SELECT" | "EXAMINE" | "CREATE"
             )
         {
             let (mailbox, arguments) = astring_prefix(remaining.trim_start_matches(' '))?;
             prefix.push(mailbox);
             prefix.push(arguments.to_owned());
+            return Some(prefix);
+        }
+        // LIST keeps its whole argument list: selection options, patterns and
+        // return options are tokenised by the list module.
+        if prefix.len() == 2 && matches!(word.to_ascii_uppercase().as_str(), "LIST" | "LSUB") {
+            prefix.push(remaining.trim_start_matches(' ').to_owned());
             return Some(prefix);
         }
         let nested = word.eq_ignore_ascii_case("FETCH")

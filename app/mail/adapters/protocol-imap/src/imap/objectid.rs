@@ -1,6 +1,15 @@
 use super::{response::Output, syntax::Token};
 use mail_kernel::{Account, Mailbox};
 
+pub(super) fn object_id(kind: &str, account: &str, id: &str) -> String {
+    use sha2::{Digest, Sha256};
+    let mut hash = Sha256::new();
+    hash.update((account.len() as u64).to_be_bytes());
+    hash.update(account.as_bytes());
+    hash.update(id.as_bytes());
+    format!("{kind}{:x}", hash.finalize())
+}
+
 #[derive(Default)]
 pub(super) struct Identifiers {
     account: Option<String>,
@@ -18,7 +27,7 @@ pub(super) fn compound(account: &Account, mailbox: &Mailbox) -> String {
     format!(
         "(ACCOUNTID {} MAILBOXID {})",
         account.id,
-        super::object_id("F", &account.id, &mailbox.id)
+        object_id("F", &account.id, &mailbox.id)
     )
 }
 
@@ -33,7 +42,7 @@ impl Identifiers {
         account
             .mailboxes
             .iter()
-            .find(|m| super::object_id("F", &account.id, &m.id) == id)
+            .find(|m| object_id("F", &account.id, &m.id) == id)
     }
 }
 

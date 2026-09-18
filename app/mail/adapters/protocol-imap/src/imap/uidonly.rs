@@ -6,7 +6,8 @@ pub(super) fn capabilities(
     starttls: bool,
     output: &mut Output,
 ) {
-    output.extend_from_slice(b"* CAPABILITY IMAP4rev1 UIDPLUS MOVE ENABLE UTF8=ACCEPT BINARY PREVIEW ESEARCH SEARCHRES OBJECTID+ IDLE SORT ESORT LITERAL+ NAMESPACE UNSELECT MULTIAPPEND CONDSTORE QRESYNC THREAD=REFERENCES THREAD=ORDEREDSUBJECT");
+    // Every token here is a row of tests/capability_matrix.rs with a proof.
+    output.extend_from_slice(b"* CAPABILITY IMAP4rev1 UIDPLUS MOVE ENABLE UTF8=ACCEPT BINARY PREVIEW ESEARCH SEARCHRES OBJECTID+ IDLE SORT ESORT LITERAL+ NAMESPACE UNSELECT MULTIAPPEND CONDSTORE QRESYNC THREAD=REFERENCES THREAD=ORDEREDSUBJECT ID LIST-EXTENDED LIST-STATUS CHILDREN SPECIAL-USE CREATE-SPECIAL-USE");
     if !session.credential.is_empty() {
         output.extend_from_slice(b" UIDONLY UNAUTHENTICATE");
     }
@@ -17,6 +18,11 @@ pub(super) fn capabilities(
     } else {
         b" LOGINDISABLED\r\n"
     });
+}
+
+/// RFC 2971: the server names itself honestly; client parameters are ignored.
+pub(super) fn id(output: &mut Output) {
+    output.extend_from_slice(b"* ID (\"name\" \"Oyatie mail\")\r\n");
 }
 
 pub(super) fn unauthenticate(
