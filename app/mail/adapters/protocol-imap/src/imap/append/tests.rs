@@ -1,5 +1,5 @@
 use super::*;
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::{Account, MAX_MESSAGE_BYTES};
 use mail_service::OwnerPolicy;
 use mail_sqlite_store::SqliteStore;
@@ -10,11 +10,9 @@ fn aggregate_limit_counts_body_and_zero_length_message_metadata_before_allocatio
     let mut append = Append {
         mailbox: "inbox".into(),
         revision: 0,
-        validity: 1,
-        uid: 1,
         remaining: usize::MAX,
         buffered: 0,
-        commands: vec![],
+        bodies: vec![],
     };
     let literal = Literal::parse(&[format!("{{{MAX_MESSAGE_BYTES}}}")], false).unwrap();
     assert!(append.reserve(&literal).is_ok());
@@ -22,9 +20,6 @@ fn aggregate_limit_counts_body_and_zero_length_message_metadata_before_allocatio
     let zero = Literal::parse(&["{0}".into()], false).unwrap();
     append.buffered = BUFFER_LIMIT;
     assert_eq!(append.reserve(&zero), Err("NO [TOOBIG]"));
-    append.buffered = 0;
-    append.uid = u32::MAX;
-    assert_eq!(append.reserve(&zero), Err("NO"));
 }
 
 #[tokio::test]

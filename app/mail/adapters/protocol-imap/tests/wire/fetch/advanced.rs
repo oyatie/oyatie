@@ -142,7 +142,7 @@ async fn fetch_whole_message_does_not_require_successful_mime_parsing() {
         let revision = db.account("a").unwrap().revision;
         db.execute(
             "a",
-            revision,
+            mail_api::Precondition::Observed(revision),
             vec![mail_kernel::Command::Append {
                 mailboxes: vec!["inbox".into()],
                 received_at: 1_000_000_000,

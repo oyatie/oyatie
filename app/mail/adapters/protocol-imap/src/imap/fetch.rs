@@ -6,18 +6,17 @@ mod section;
 mod structure;
 use super::{response::Output, state::Selection, syntax::flags};
 use items::Item;
-use mail_kernel::{Account, Command, Message};
-use mail_service::MailService;
+use mail_kernel::{Command, Message};
 
 pub(super) fn execute(
-    service: &MailService,
-    token: &str,
-    account: &Account,
+    call: &super::retry::Call<'_>,
     selected: &mut Selection,
     chosen: Vec<(usize, &Message)>,
+    set: &[(u32, u32)],
     parts: &[String],
     output: &mut Output,
 ) -> Result<Option<String>, &'static str> {
+    let (service, token, account) = (call.service, call.token, call.account);
     let uid = parts[1].eq_ignore_ascii_case("UID");
     let offset = if uid { 3 } else { 2 };
     let input = parts.get(offset + 1).ok_or("BAD")?;
@@ -36,21 +35,30 @@ pub(super) fn execute(
     if since.is_some() && !items.iter().any(|i| matches!(i, Item::Modseq)) {
         items.push(Item::Modseq);
     }
-    let chosen: Vec<_> = chosen
-        .into_iter()
-        .filter(|(_, m)| since.is_none_or(|s| m.modseq > s))
-        .collect();
-    let earlier = if vanished {
-        super::condstore::vanished(
+    let mut earlier = super::condstore::Vanished::default();
+    if vanished {
+        earlier = super::condstore::vanished(
             service,
             token,
             account,
             &selected.mailbox,
             since.ok_or("BAD")?,
-        )?
-    } else {
-        vec![]
-    };
+        )?;
+        if earlier.below_floor {
+            // RFC 7162 §3.2.5.2: without history back to `since`, every
+            // requested UID that no longer exists is reported as vanished.
+            let present = chosen
+                .iter()
+                .filter_map(|(_, m)| m.uid_in(&selected.mailbox))
+                .collect();
+            earlier.uids = super::condstore::missing(set, selected.uid_next(account), &present);
+        }
+    }
+    // Below the history floor every requested message counts as changed.
+    let chosen: Vec<_> = chosen
+        .into_iter()
+        .filter(|(_, m)| earlier.below_floor || since.is_none_or(|s| m.modseq > s))
+        .collect();
     let set_seen = !selected.readonly
         && items
             .iter()
@@ -70,18 +78,14 @@ pub(super) fn execute(
     let updated = if changes.is_empty() {
         None
     } else {
-        Some(
-            service
-                .execute(token, &account.id, account.revision, changes)
-                .map_err(|_| "NO")?,
-        )
+        Some(call.commit(changes)?.1)
     };
     let updated = updated.as_ref().unwrap_or(account);
-    if !earlier.is_empty() {
+    if !earlier.uids.is_empty() {
         output.extend_from_slice(
             format!(
                 "* VANISHED (EARLIER) {}\r\n",
-                super::condstore::ranges(earlier)
+                super::condstore::ranges(earlier.uids)
             )
             .as_bytes(),
         );
@@ -116,11 +120,11 @@ pub(super) fn execute(
         if items.iter().any(|i| matches!(i, Item::Structure { .. })) {
             structure::validate(parsed.as_ref().ok_or("NO")?)?;
         }
-        let current = updated
-            .messages
-            .iter()
-            .find(|m| m.id == message.id)
-            .ok_or("NO")?;
+        // A message expunged by another session while \Seen was being set
+        // has nothing left to report.
+        let Some(current) = updated.messages.iter().find(|m| m.id == message.id) else {
+            continue;
+        };
         output.fetch_start(sequence + 1, message.uid_in(&selected.mailbox).ok_or("NO")?);
         if current.keywords != message.keywords && !items.iter().any(|i| matches!(i, Item::Flags)) {
             output.extend_from_slice(format!(" FLAGS ({})", flags(current)).as_bytes());
@@ -144,7 +148,7 @@ pub(super) fn execute(
         }
         output.extend_from_slice(b")\r\n");
     }
-    selected.modseq = updated.mail_modseq;
+    selected.modseq = selected.highest_modseq(updated);
     Ok(None)
 }
 

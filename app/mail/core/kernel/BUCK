@@ -38,7 +38,7 @@ rust_test(
     crate = "modseq",
     crate_root = "tests/modseq.rs",
     visibility = ["PUBLIC"],
-    deps = ["third-party//:serde_json", ":mail-kernel"],
+    deps = [":mail-kernel"],
 )
 
 rust_test(
@@ -47,5 +47,5 @@ rust_test(
     crate = "modseq_review",
     crate_root = "tests/modseq_review.rs",
     visibility = ["PUBLIC"],
-    deps = ["third-party//:serde_json", ":mail-kernel"],
+    deps = [":mail-kernel"],
 )

@@ -1,5 +1,5 @@
 use super::{TOKEN, client::*};
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::{Account, Command};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -30,7 +30,7 @@ async fn upstream_imap_condstore() {
     .unwrap();
     db.execute(
         "a",
-        0,
+        mail_api::Precondition::Observed(0),
         vec![Command::CreateMailbox {
             name: "Deleted Items".into(),
         }],

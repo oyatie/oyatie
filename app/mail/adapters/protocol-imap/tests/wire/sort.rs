@@ -61,7 +61,7 @@ async fn session() -> (
         raw.resize(size, b'x');
         db.execute(
             "a",
-            db.account("a").unwrap().revision,
+            mail_api::Precondition::Observed(db.account("a").unwrap().revision),
             vec![Command::Append {
                 mailboxes: vec!["inbox".into()],
                 received_at,
@@ -147,7 +147,7 @@ async fn sort_uid_output_keeps_sequence_search_criteria_and_empty_results() {
     let (mut client, task, db) = session().await;
     db.execute(
         "a",
-        db.account("a").unwrap().revision,
+        mail_api::Precondition::Observed(db.account("a").unwrap().revision),
         vec![Command::Destroy { id: "e1".into() }],
     )
     .unwrap();
@@ -165,7 +165,7 @@ async fn sequence_sort_defers_concurrent_expunge_and_preserves_requested_positio
     let (mut client, task, db) = session().await;
     db.execute(
         "a",
-        db.account("a").unwrap().revision,
+        mail_api::Precondition::Observed(db.account("a").unwrap().revision),
         vec![Command::Destroy { id: "e1".into() }],
     )
     .unwrap();

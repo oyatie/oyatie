@@ -1,5 +1,5 @@
 use axum::{body::Body, http::Request};
-use mail_api::{Identity, Principal, Store};
+use mail_api::{Identity, MetadataStore, Principal};
 use mail_kernel::{Account, Error};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;

@@ -1,6 +1,6 @@
 #[path = "pop/support.rs"]
 mod support;
-use mail_api::{Action, Policy, Store};
+use mail_api::{Action, MetadataStore, Policy};
 use mail_kernel::{Command, Error};
 use mail_service::{MailService, OwnerPolicy};
 use std::sync::{
@@ -45,11 +45,12 @@ async fn stale_pop_uid_cannot_read_or_delete_a_readded_inbox_membership() {
     let account = db
         .execute(
             "a",
-            account.revision,
+            mail_api::Precondition::Observed(account.revision),
             vec![Command::CreateMailbox {
                 name: "Archive".into(),
             }],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     let archive = account
         .mailboxes
@@ -66,22 +67,24 @@ async fn stale_pop_uid_cannot_read_or_delete_a_readded_inbox_membership() {
     let moved = db
         .execute(
             "a",
-            account.revision,
+            mail_api::Precondition::Observed(account.revision),
             vec![Command::SetMailboxes {
                 id: id.clone(),
                 mailboxes: vec![archive.clone()],
             }],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     let restored = db
         .execute(
             "a",
-            moved.revision,
+            mail_api::Precondition::Observed(moved.revision),
             vec![Command::SetMailboxes {
                 id: id.clone(),
                 mailboxes: vec![archive, "inbox".into()],
             }],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     old.ok("RSET").await;
     old.error("RETR 1").await;

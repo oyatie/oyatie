@@ -1,7 +1,7 @@
 #![cfg(feature = "upstream-tests")]
 use axum::{Router, body::Body, http::Request};
 use http_body_util::BodyExt;
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::Account;
 use mail_service::MailService;
 use mail_sqlite_store::SqliteStore;
@@ -192,7 +192,7 @@ async fn upstream_jmap_compliance() {
         .unwrap();
     db.execute(
         "a",
-        1,
+        mail_api::Precondition::Observed(1),
         vec![
             mail_kernel::Command::Append {
                 mailboxes: vec!["inbox".into()],

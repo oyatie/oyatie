@@ -1,6 +1,6 @@
 use super::{TOKEN, client::*};
 use crate::imap::append;
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::{Account, Command};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -52,7 +52,7 @@ fn service() -> Arc<MailService> {
     .unwrap();
     db.execute(
         "a",
-        0,
+        mail_api::Precondition::Observed(0),
         vec![Command::CreateMailbox {
             name: "Deleted Items".into(),
         }],

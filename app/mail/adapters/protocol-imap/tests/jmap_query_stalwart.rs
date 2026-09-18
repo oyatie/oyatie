@@ -3,7 +3,7 @@
 // `chrono` alias resolves the suite's clock import to the shim below.
 extern crate self as chrono;
 use axum::{Router, body::Body, http::Request};
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::Account;
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;

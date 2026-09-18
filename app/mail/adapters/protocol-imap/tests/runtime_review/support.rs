@@ -1,6 +1,7 @@
 use axum::{Router, body::Body, http::Request};
 use mail_api::{
-    AccountInfo, Identity, MailboxChange, MessageChange, MessageSelection, Principal, Store,
+    AccountInfo, Execution, HistoryPage, Identity, MailboxSelection, MessageSelection,
+    MetadataStore, Precondition, Principal,
 };
 use mail_kernel::{Account, Command, Error};
 use mail_service::{MailService, OwnerPolicy};
@@ -81,7 +82,7 @@ impl Identity for Adapter {
         self.db.authenticate(token)
     }
 }
-impl Store for Adapter {
+impl MetadataStore for Adapter {
     fn account_info(&self, id: &str) -> Result<AccountInfo, Error> {
         self.gate.block(Site::AccountInfo);
         self.db.account_info(id)
@@ -92,11 +93,19 @@ impl Store for Adapter {
     fn messages(&self, account: &str, ids: &[String]) -> Result<MessageSelection, Error> {
         self.db.messages(account, ids)
     }
+    fn mailbox_uids(&self, account: &str, mailbox: &str) -> Result<MailboxSelection, Error> {
+        self.db.mailbox_uids(account, mailbox)
+    }
     fn resolve(&self, address: &str) -> Result<String, Error> {
         self.db.resolve(address)
     }
-    fn execute(&self, id: &str, revision: u64, commands: Vec<Command>) -> Result<Account, Error> {
-        self.db.execute(id, revision, commands)
+    fn execute(
+        &self,
+        id: &str,
+        precondition: Precondition,
+        commands: Vec<Command>,
+    ) -> Result<Execution, Error> {
+        self.db.execute(id, precondition, commands)
     }
     fn deliver_once(
         &self,
@@ -115,29 +124,17 @@ impl Store for Adapter {
         self.gate.block(Site::Download);
         self.db.blob(account, id)
     }
-    fn message_changes(
-        &self,
-        account: &str,
-        since: u64,
-        until: u64,
-    ) -> Result<Vec<MessageChange>, Error> {
-        self.db.message_changes(account, since, until)
+    fn history(&self, account: &str, since: u64, limit: usize) -> Result<HistoryPage, Error> {
+        self.db.history(account, since, limit)
     }
-    fn message_changes_after(
+    fn compact_history(
         &self,
         account: &str,
-        since: u64,
-        until: u64,
-    ) -> Result<Vec<MessageChange>, Error> {
-        self.db.message_changes_after(account, since, until)
-    }
-    fn mailbox_changes(
-        &self,
-        account: &str,
-        since: u64,
-        until: u64,
-    ) -> Result<Vec<MailboxChange>, Error> {
-        self.db.mailbox_changes(account, since, until)
+        now: i64,
+        policy: mail_kernel::RetentionPolicy,
+        cursors: &[(mail_api::Consumer, u64)],
+    ) -> Result<mail_kernel::Retention, Error> {
+        self.db.compact_history(account, now, policy, cursors)
     }
 }
 

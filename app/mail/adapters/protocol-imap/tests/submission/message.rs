@@ -29,17 +29,24 @@ fn submission_strips_blind_headers_adds_missing_metadata_and_preserves_body() {
     );
     assert!(text.ends_with("\r\n\r\nBcc: this is body\r\n"));
     // Already valid headers are byte-preserved through a later submission.
+    // The store suppresses an INBOX redelivery of the same Message-ID, so
+    // the copy is observed in a second recipient's mailbox.
+    db.provision(
+        Account::new("b", "t", "bob", "bob@example.org").unwrap(),
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    )
+    .unwrap();
     service
         .submit(
             TOKEN,
             "alice@example.org",
             "alice@example.org",
-            &["alice@example.org".into()],
+            &["bob@example.org".into()],
             &stored,
         )
         .unwrap();
     assert_eq!(service.deliver_pending(1).unwrap(), 1);
-    assert_eq!(db.blob("a", "e2").unwrap(), stored);
+    assert_eq!(db.blob("b", "e1").unwrap(), stored);
     for extra in [
         "Date: invalid\r\n",
         "Message-ID: <>\r\n",

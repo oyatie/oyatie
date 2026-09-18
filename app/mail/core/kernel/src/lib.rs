@@ -193,7 +193,7 @@ impl Account {
             vacation_revision: 0,
             quota_bytes: 1024 * 1024 * 1024,
             used_bytes: 0,
-            mailboxes: vec![Mailbox::new("inbox", "INBOX", Some("inbox"), 0)],
+            mailboxes: vec![Mailbox::new("inbox", "INBOX", Some("inbox"), 1)],
             messages: vec![],
         })
     }

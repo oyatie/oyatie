@@ -26,7 +26,7 @@ async fn thread_groups_shared_conversations_filters_queries_and_keeps_uid_identi
     let before = db.account("a").unwrap();
     db.execute(
         "a",
-        before.revision,
+        mail_api::Precondition::Observed(before.revision),
         vec![mail_kernel::Command::Destroy {
             id: before.messages[0].id.clone(),
         }],

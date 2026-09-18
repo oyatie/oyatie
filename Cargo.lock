@@ -5976,6 +5976,7 @@ dependencies = [
  "mail-sqlite-store",
  "rcgen",
  "reqwest 0.13.4",
+ "rusqlite",
  "rustls",
  "serde_json",
  "tempfile",
@@ -5994,7 +5995,6 @@ name = "mail-kernel"
 version = "0.1.0"
 dependencies = [
  "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -6073,6 +6073,7 @@ dependencies = [
  "mail-builder",
  "mail-kernel",
  "mail-parser",
+ "mail-sqlite-store",
  "rusqlite",
  "serde",
  "serde_json",

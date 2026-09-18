@@ -1,6 +1,6 @@
 use axum::{Router, body::Body, http::Request};
 use http_body_util::BodyExt;
-use mail_api::{Policy, Store};
+use mail_api::{MetadataStore, Policy};
 use mail_kernel::{Account, Command};
 use mail_service::MailService;
 use mail_sqlite_store::SqliteStore;
@@ -32,7 +32,7 @@ impl Fixture {
         }
         db.execute(
             "a",
-            0,
+            mail_api::Precondition::Observed(0),
             vec![Command::Append {
                 mailboxes: vec!["inbox".into()],
                 raw: raw.to_vec(),

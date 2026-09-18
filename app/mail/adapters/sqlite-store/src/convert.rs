@@ -5,7 +5,7 @@ mod legacy;
 mod lock;
 mod verify;
 pub use legacy::{LegacyAccount, LegacyMessage};
-pub use lock::{ConvertError, Converter};
+pub use lock::{Conversion, ConvertError, Converter};
 pub use verify::BackupCheck;
 
 /// Rough duration printed by `serve` when it refuses a below-version file:

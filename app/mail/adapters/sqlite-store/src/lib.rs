@@ -120,6 +120,15 @@ impl SqliteStore {
     }
 }
 
+/// One record row (account, mailbox, message, link, uid or history) mapped
+/// from a query result. The contract gates count these per operation.
+#[cfg(feature = "contract")]
+pub(crate) fn count_row() {
+    contract::count_row();
+}
+#[cfg(not(feature = "contract"))]
+pub(crate) fn count_row() {}
+
 fn storage(error: rusqlite::Error) -> Error {
     match error {
         rusqlite::Error::SqliteFailure(e, _)
@@ -175,7 +184,10 @@ impl MetadataStore for SqliteStore {
             .prepare("SELECT uid,message FROM message_mailboxes WHERE account=?1 AND mailbox=?2 ORDER BY uid")
             .map_err(storage)?;
         let uids = query
-            .query_map(params![account, mailbox], |r| Ok((r.get(0)?, r.get(1)?)))
+            .query_map(params![account, mailbox], |r| {
+                count_row();
+                Ok((r.get(0)?, r.get(1)?))
+            })
             .map_err(storage)?
             .collect::<Result<_, _>>()
             .map_err(storage)?;

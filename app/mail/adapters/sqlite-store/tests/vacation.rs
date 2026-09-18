@@ -1,4 +1,4 @@
-use mail_api::{DeliveryQueue, Store, SubmissionQueue};
+use mail_api::{DeliveryQueue, MetadataStore, Precondition, SubmissionQueue};
 use mail_kernel::{Account, Command, VacationSettings};
 use mail_sqlite_store::SqliteStore;
 
@@ -16,7 +16,7 @@ fn store() -> SqliteStore {
     .unwrap();
     db.execute(
         "a",
-        0,
+        Precondition::Require(0),
         vec![Command::SetVacation {
             settings: VacationSettings {
                 is_enabled: true,

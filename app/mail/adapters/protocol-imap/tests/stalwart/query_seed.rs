@@ -3,7 +3,7 @@
 use super::corpus::{self, Seed};
 use super::corpus_tail;
 use crate::{Duration, Utc};
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::{Command, MailboxProperties};
 use mail_sqlite_store::SqliteStore;
 use std::collections::BTreeMap;
@@ -30,7 +30,7 @@ pub fn seed(db: &SqliteStore, account: &str) -> Seeded {
     let state = db
         .execute(
             account,
-            state.revision,
+            mail_api::Precondition::Observed(state.revision),
             vec![
                 Command::CreateMailbox {
                     name: "Test Folder A".into(),
@@ -53,7 +53,7 @@ pub fn seed(db: &SqliteStore, account: &str) -> Seeded {
     let state = db
         .execute(
             account,
-            state.revision,
+            mail_api::Precondition::Observed(state.revision),
             vec![child("Child 1", &folder_a), child("Child 2", &folder_a)],
         )
         .unwrap();
@@ -79,7 +79,7 @@ pub fn seed(db: &SqliteStore, account: &str) -> Seeded {
         let state = db
             .execute(
                 account,
-                state.revision,
+                mail_api::Precondition::Observed(state.revision),
                 vec![Command::Append {
                     mailboxes: targets,
                     raw: seed.raw.into_bytes(),

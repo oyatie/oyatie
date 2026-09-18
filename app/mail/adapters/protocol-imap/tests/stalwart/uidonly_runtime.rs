@@ -1,5 +1,5 @@
 use super::*;
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::Account;
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -32,7 +32,7 @@ async fn uidonly_idle_uses_uidfetch_and_vanished_after_uid_sequence_divergence()
         .store
         .execute(
             "a",
-            account.revision,
+            mail_api::Precondition::Observed(account.revision),
             vec![Command::Keywords {
                 id: id.clone(),
                 keywords: vec!["$flagged".into()],
@@ -46,7 +46,11 @@ async fn uidonly_idle_uses_uidfetch_and_vanished_after_uid_sequence_divergence()
     );
     service
         .store
-        .execute("a", account.revision, vec![Command::Destroy { id }])
+        .execute(
+            "a",
+            mail_api::Precondition::Observed(account.revision),
+            vec![Command::Destroy { id }],
+        )
         .unwrap();
     let response = client.read_prefix("* VANISHED ").await;
     assert!(

@@ -1,6 +1,6 @@
 use axum::{Router, body::Body, http::Request};
 use http_body_util::BodyExt;
-use mail_api::{Action, Policy, Store};
+use mail_api::{Action, MetadataStore, Policy};
 use mail_kernel::{Account, Error};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -252,36 +252,4 @@ async fn boolean_query_uses_decoded_text_without_negative_snippet_highlights() {
     .await;
     assert_eq!(snippet[1]["list"][0]["subject"], "<mark>café</mark>");
     assert!(snippet[1]["list"][0]["preview"].is_null());
-}
-
-#[test]
-fn legacy_identity_defaults_preserve_mail_and_invalid_present_fields_fail_closed() {
-    let mut account = Account::new("a", "t", "alice", "alice@example.org").unwrap();
-    account
-        .apply(mail_kernel::Command::Append {
-            mailboxes: vec!["inbox".into()],
-            raw: b"Subject: old\r\n\r\nbody".to_vec(),
-            received_at: 1,
-            keywords: vec![],
-        })
-        .unwrap();
-    let mut legacy = serde_json::to_value(&account).unwrap();
-    legacy.as_object_mut().unwrap().remove("identity");
-    legacy.as_object_mut().unwrap().remove("identity_revision");
-    let loaded: Account = serde_json::from_value(legacy.clone()).unwrap();
-    assert_eq!(loaded, account);
-    for invalid in [
-        Value::Null,
-        json!({"name":null}),
-        json!({"unexpected":true}),
-    ] {
-        let mut value = legacy.clone();
-        value["identity"] = invalid;
-        assert!(serde_json::from_value::<Account>(value).is_err());
-    }
-    for invalid in [Value::Null, json!(-1), json!("0")] {
-        let mut value = legacy.clone();
-        value["identity_revision"] = invalid;
-        assert!(serde_json::from_value::<Account>(value).is_err());
-    }
 }

@@ -80,15 +80,6 @@ impl Query {
         });
         rows.into_iter().map(|m| m.id.clone()).collect()
     }
-    fn moved(&self, before: &Mailbox, after: &Mailbox) -> bool {
-        self.sort.iter().any(|(property, _)| {
-            if property == "name" {
-                before.name != after.name
-            } else {
-                before.sort_order != after.sort_order
-            }
-        })
-    }
 }
 
 fn validate(filter: &Value, depth: usize) -> Result<(), &'static str> {
@@ -186,42 +177,15 @@ pub(super) fn changes(
     if !args["calculateTotal"].is_null() && !args["calculateTotal"].is_boolean() {
         return Err("invalidArguments");
     }
-    let history = super::changes::mailbox_history(service, token, account, since)?;
+    let window = super::changes::window(service, token, account, since)?;
     let current: BTreeMap<_, _> = account
         .mailboxes
         .iter()
         .map(|m| (m.id.clone(), m.clone()))
         .collect();
-    let mut old = current.clone();
-    for change in history.iter().rev() {
-        if let Some(before) = &change.before {
-            old.insert(change.id.clone(), before.mailbox.clone());
-        } else {
-            old.remove(&change.id);
-        }
-    }
-    let before = query.ids(&old);
     let after = query.ids(&current);
-    let before_set: BTreeSet<_> = before.iter().collect();
-    let after_set: BTreeSet<_> = after.iter().collect();
-    let moved: BTreeSet<_> = current
-        .iter()
-        .filter(|(id, m)| old.get(*id).is_some_and(|old| query.moved(old, m)))
-        .map(|(id, _)| id)
-        .collect();
-    let removed: Vec<_> = before
-        .iter()
-        .filter(|id| !after_set.contains(id) || moved.contains(id))
-        .collect();
-    let added: Vec<_> = after
-        .iter()
-        .enumerate()
-        .filter(|(_, id)| !before_set.contains(id) || moved.contains(id))
-        .map(|(index, id)| json!({"id":id,"index":index}))
-        .collect();
-    if removed.len() + added.len() > max {
-        return Err("tooManyChanges");
-    }
+    let (ids, kind) = window.mailboxes(account);
+    let (removed, added) = super::changes::delta(&window, &ids, &kind, &after, max)?;
     Ok(
         json!({"accountId":account.id,"oldQueryState":state,"newQueryState":query.state(account.revision),"removed":removed,"added":added,"total":after.len()}),
     )

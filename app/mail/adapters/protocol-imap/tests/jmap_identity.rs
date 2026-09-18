@@ -1,6 +1,6 @@
 use axum::{Router, body::Body, http::Request};
 use http_body_util::BodyExt;
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::Account;
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -159,7 +159,7 @@ async fn identity_patch_validation_and_policy_are_atomic() {
 }
 
 #[tokio::test]
-async fn legacy_snapshot_loads_and_identity_survives_database_reopen() {
+async fn identity_survives_database_reopen() {
     let path = std::env::temp_dir().join(format!(
         "mail-identity-{}-{}.db",
         std::process::id(),
@@ -183,17 +183,13 @@ async fn legacy_snapshot_loads_and_identity_survives_database_reopen() {
         .unwrap();
         before = db.account("a").unwrap();
     }
-    {
-        let connection = rusqlite::Connection::open(&path).unwrap();
-        connection.execute("UPDATE accounts SET state=json_remove(state,'$.identity','$.identity_revision') WHERE id='a'", []).unwrap();
-    }
     let state;
     {
         let db = Arc::new(SqliteStore::open(&path).unwrap());
         assert_eq!(
             db.account("a").unwrap(),
             before,
-            "legacy snapshot defaults must preserve existing mail state"
+            "reopening must preserve existing mail state"
         );
         let app = router(&db, Arc::new(OwnerPolicy));
         let result = response(&app, "Identity/set", json!({"accountId":"a","update":{"a":{"name":"Durable","replyTo":[{"email":"reply@example.org"}]}}})).await;

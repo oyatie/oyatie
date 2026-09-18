@@ -1,4 +1,4 @@
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::Command;
 use mail_sqlite_store::SqliteStore;
 use std::collections::BTreeMap;
@@ -184,7 +184,7 @@ pub fn seed(db: &SqliteStore) -> BTreeMap<String, String> {
         let state = db
             .execute(
                 "a",
-                state.revision,
+                mail_api::Precondition::Observed(state.revision),
                 vec![Command::Append {
                     mailboxes,
                     raw: raw.into_bytes(),

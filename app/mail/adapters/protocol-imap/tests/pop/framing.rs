@@ -66,7 +66,7 @@ async fn top_matches_stalwart_total_line_count_and_zero_means_full_message() {
 
 #[tokio::test]
 async fn bare_lf_and_oversized_commands_close_without_committing_pending_deletions() {
-    use mail_api::Store;
+    use mail_api::MetadataStore;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     for command in [
         b"NOOP\n".to_vec(),
