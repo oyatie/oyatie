@@ -65,6 +65,7 @@ pub const WORKFLOW_FILES: &[&str] = &[
     "commit-signing.yml",
     "dependency-denial.yml",
     "license-weekly-advisory.yml",
+    "live-fdb.yml",
     "live-postgres.yml",
     "nightly.yml",
     "postsubmit.yml",

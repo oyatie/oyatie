@@ -1,0 +1,21 @@
+# Default (shim) build only: links no native library. The `fdb` cargo feature
+# is expressed for Buck as `rustc_flags = ["--cfg=feature=\"fdb\""]` on a
+# target that also links libfdb_c; that target lands with the lane that can
+# provide the library, not here.
+rust_library(
+    name = "mail-store-fdb",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "mail_store_fdb",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = ["//app/mail/core/kernel:mail-kernel"],
+)
+
+rust_test(
+    name = "mail-store-fdb-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "mail_store_fdb",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = ["//app/mail/core/kernel:mail-kernel"],
+)

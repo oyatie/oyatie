@@ -1,0 +1,23 @@
+[package]
+name = "mail-store-fdb"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+publish = false
+
+# App-owned adapter to a declared commodity backend. The default build links
+# nothing and refuses to open; `--features fdb` binds libfdb_c directly.
+[package.metadata.oyatie]
+commodity_backend = "foundationdb"
+backend_release = "7.3.79"
+client_api_version = 730
+
+[features]
+fdb = []
+
+[dependencies]
+mail-kernel = { path = "../../core/kernel" }
+
+[lints]
+workspace = true
