@@ -1,5 +1,5 @@
 use mail_kernel::{Account, Command, Mailbox, MailboxProperties};
-use mail_service::MailService;
+use mail_service::{Budget, MailService};
 use std::borrow::Cow;
 
 pub(super) fn canonical(path: &str) -> String {
@@ -54,6 +54,7 @@ pub(super) fn ensure_parents<'a>(
     token: &str,
     account: &'a Account,
     parents: &[String],
+    budget: &Budget,
 ) -> Result<(Cow<'a, Account>, Option<String>), &'static str> {
     let mut account = Cow::Borrowed(account);
     let mut parent: Option<String> = None;
@@ -62,17 +63,16 @@ pub(super) fn ensure_parents<'a>(
             let mut properties = MailboxProperties::named(name.clone());
             properties.parent_id = parent.clone();
             properties.is_subscribed = false;
-            let updated = service
-                .execute(
-                    token,
-                    &account.id,
-                    account.revision,
-                    vec![Command::SetMailbox {
-                        id: None,
-                        properties,
-                    }],
-                )
-                .map_err(|_| "NO")?;
+            let (_, updated) = super::retry::commit(
+                service,
+                token,
+                &account,
+                vec![Command::SetMailbox {
+                    id: None,
+                    properties,
+                }],
+                budget,
+            )?;
             account = Cow::Owned(updated);
         }
         parent = Some(

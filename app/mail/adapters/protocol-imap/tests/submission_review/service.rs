@@ -90,10 +90,7 @@ async fn local_recipient_quota_failure_rolls_back_remote_jobs_and_submission_his
     let f = Fixture::new(&path, RAW, Arc::new(OwnerPolicy));
     rusqlite::Connection::open(&path)
         .unwrap()
-        .execute(
-            "UPDATE accounts SET state=json_set(state,'$.quota_bytes',0) WHERE id='b'",
-            [],
-        )
+        .execute("UPDATE accounts SET quota_bytes=0 WHERE id='b'", [])
         .unwrap();
     let response = f
         .create(envelope(

@@ -1,5 +1,5 @@
 use super::{REVISION, TOKEN, search_client::*};
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::{Account, Command};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -57,7 +57,7 @@ async fn upstream_imap_search() {
         let account = db.account("a").unwrap();
         db.execute(
             "a",
-            account.revision,
+            mail_api::Precondition::Observed(account.revision),
             vec![Command::Append {
                 mailboxes: vec!["inbox".into()],
                 raw: raw.to_vec(),

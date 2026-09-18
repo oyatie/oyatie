@@ -142,7 +142,7 @@ async fn unselect_readonly_preserves_deleted_and_namespace_rechecks_revocation()
     let state = db.account("a").unwrap();
     db.execute(
         "a",
-        state.revision,
+        mail_api::Precondition::Observed(state.revision),
         vec![mail_kernel::Command::Keywords {
             id: state.messages[0].id.clone(),
             keywords: vec!["$deleted".into()],

@@ -17,7 +17,7 @@ fn status(error: Error) -> StatusCode {
         Error::NotFound | Error::Forbidden => StatusCode::NOT_FOUND,
         Error::OverQuota => StatusCode::PAYLOAD_TOO_LARGE,
         Error::Invalid | Error::Conflict => StatusCode::BAD_REQUEST,
-        Error::Unavailable => StatusCode::SERVICE_UNAVAILABLE,
+        Error::Unavailable | Error::Busy => StatusCode::SERVICE_UNAVAILABLE,
     }
 }
 

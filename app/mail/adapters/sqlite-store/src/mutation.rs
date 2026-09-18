@@ -63,6 +63,7 @@ impl Batch {
             Command::Transfer { id, .. } => Some(id.clone()),
             _ => None,
         };
+        let held: Vec<String> = self.account.messages.iter().map(|m| m.id.clone()).collect();
         self.account.apply(command)?;
         if let Some(raw) = body {
             let id = format!("e{next}");
@@ -82,6 +83,14 @@ impl Batch {
                 &source,
                 &format!("e{}", self.account.revision),
             )?;
+        }
+        // A record whose last link went away in this command must not thread
+        // a later Append of the same batch: forget its keys now, not at commit.
+        for id in held
+            .iter()
+            .filter(|id| !self.account.messages.iter().any(|m| m.id == **id))
+        {
+            threads::forget(db, &self.account.id, id)?;
         }
         Ok(())
     }

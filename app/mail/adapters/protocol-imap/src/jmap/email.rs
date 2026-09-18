@@ -1,6 +1,9 @@
-use super::method::error;
+use super::{
+    method::error,
+    retry::{commit, object},
+};
 use mail_kernel::{Account, Command, Error, Message};
-use mail_service::MailService;
+use mail_service::{Budget, MailService};
 use serde_json::{Value, json};
 
 pub(super) fn utc_date(value: &Value) -> Result<i64, &'static str> {
@@ -37,13 +40,28 @@ pub(super) fn created(message: &Message) -> Value {
     json!({"id":message.id,"blobId":message.id,"threadId":message.thread_id(),"size":message.size})
 }
 
+/// The record one `Append` created, located by the execution's id list.
+pub(super) fn find<'a>(
+    account: &'a Account,
+    execution: &mail_api::Execution,
+) -> Result<&'a Message, &'static str> {
+    let id = execution.ids.first().ok_or("serverFail")?;
+    account
+        .messages
+        .iter()
+        .find(|m| m.id == *id)
+        .ok_or("serverFail")
+}
+
 pub(super) fn import(
     service: &MailService,
     token: &str,
     account: &Account,
     args: &Value,
+    budget: &Budget,
 ) -> Result<Value, &'static str> {
-    if !args["ifInState"].is_null() {
+    let conditional = !args["ifInState"].is_null();
+    if conditional {
         let state = args["ifInState"].as_str().ok_or("invalidArguments")?;
         if state != account.revision.to_string() {
             return Err("stateMismatch");
@@ -54,6 +72,7 @@ pub(super) fn import(
         return Err("tooManyObjects");
     }
     let mut current = account.clone();
+    let mut committed = false;
     let mut response = json!({"accountId":account.id,"oldState":account.revision.to_string(),"created":{},"notCreated":{}});
     for (key, value) in emails {
         let result = (|| {
@@ -82,29 +101,31 @@ pub(super) fn import(
                 true_keys(&value["keywords"])?
             };
             let received_at = utc_date(&value["receivedAt"])?;
-            service
-                .execute(
-                    token,
-                    &current.id,
-                    current.revision,
-                    vec![Command::Append {
-                        mailboxes,
-                        raw,
-                        keywords,
-                        received_at,
-                    }],
-                )
-                .map_err(|e| match e {
-                    Error::Invalid | Error::NotFound => "invalidProperties",
-                    _ => error(e),
-                })
+            commit(
+                service,
+                token,
+                &current,
+                conditional,
+                vec![Command::Append {
+                    mailboxes,
+                    raw,
+                    keywords,
+                    received_at,
+                }],
+                budget,
+            )
+            .map_err(|e| match e {
+                Error::Invalid | Error::NotFound => "invalidProperties",
+                _ => error(e),
+            })
         })();
         match result {
-            Ok(account) => {
-                response["created"][key] = created(account.messages.last().ok_or("serverFail")?);
+            Ok((execution, account)) => {
+                response["created"][key] = created(find(&account, &execution)?);
                 current = account;
+                committed = true;
             }
-            Err(kind) => response["notCreated"][key] = json!({"type":kind}),
+            Err(kind) => response["notCreated"][key] = json!({"type":object(kind, committed)?}),
         }
     }
     response["newState"] = json!(current.revision.to_string());
@@ -160,6 +181,8 @@ pub(super) fn update(
     account: &Account,
     id: &str,
     value: &Value,
+    conditional: bool,
+    budget: &Budget,
 ) -> Result<Account, &'static str> {
     let message = account
         .messages
@@ -200,8 +223,8 @@ pub(super) fn update(
             mailboxes,
         });
     }
-    service
-        .execute(token, &account.id, account.revision, commands)
+    commit(service, token, account, conditional, commands, budget)
+        .map(|(_, account)| account)
         .map_err(|e| {
             if e == Error::Invalid {
                 "invalidProperties"

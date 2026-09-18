@@ -1,5 +1,5 @@
 use mail_kernel::{Account, Command, IdentitySettings};
-use mail_service::MailService;
+use mail_service::{Budget, MailService};
 use serde_json::{Value, json};
 
 pub(super) fn get(account: &Account, args: &Value) -> Result<Value, &'static str> {
@@ -67,6 +67,7 @@ pub(super) fn set(
     token: &str,
     original: &Account,
     args: &Value,
+    budget: &Budget,
 ) -> Result<Value, &'static str> {
     if !args["ifInState"].is_null() && !args["ifInState"].is_string() {
         return Err("invalidArguments");
@@ -112,22 +113,25 @@ pub(super) fn set(
                 Err("notFound")
             } else {
                 patch(original, value).and_then(|settings| {
-                    service
-                        .execute(
-                            token,
-                            &original.id,
-                            original.revision,
-                            vec![Command::SetIdentity { settings }],
-                        )
-                        .map_err(super::method::error)
+                    super::retry::commit(
+                        service,
+                        token,
+                        original,
+                        args["ifInState"].is_string(),
+                        vec![Command::SetIdentity { settings }],
+                        budget,
+                    )
+                    .map_err(super::method::error)
                 })
             };
             match updated {
-                Ok(account) => {
+                Ok((_, account)) => {
                     result["updated"][id] = Value::Null;
                     result["newState"] = json!(account.identity_revision.to_string());
                 }
-                Err(kind) => result["notUpdated"][id] = json!({"type":kind}),
+                Err(kind) => {
+                    result["notUpdated"][id] = json!({"type":super::retry::object(kind, false)?})
+                }
             }
         }
     }

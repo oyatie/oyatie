@@ -186,6 +186,7 @@ pub(super) fn parse(
         }
         let metadata = Message {
             modseq: 1,
+            created_revision: 1,
             id: id.into(),
             thread: None,
             email_identity: None,

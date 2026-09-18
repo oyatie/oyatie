@@ -132,7 +132,7 @@ async fn revoked_identity_before_next_literal_is_refused_before_continuation() {
 }
 
 #[tokio::test]
-async fn concurrent_revision_change_before_final_body_rolls_back_every_append() {
+async fn concurrent_revision_change_before_final_body_reapplies_every_append() {
     let raw = b"Subject: discarded\r\n\r\nbody";
     let (mut client, task, db) = start(65536).await;
     client
@@ -151,11 +151,12 @@ async fn concurrent_revision_change_before_final_body_rolls_back_every_append() 
     let concurrent = db
         .execute(
             "a",
-            current.revision,
+            mail_api::Precondition::Observed(current.revision),
             vec![Command::CreateMailbox {
                 name: "Concurrent".into(),
             }],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     client.get_mut().write_all(raw).await.unwrap();
     client
@@ -165,12 +166,16 @@ async fn concurrent_revision_change_before_final_body_rolls_back_every_append() 
         .unwrap();
     let response = until(&mut client, "next ").await;
     assert!(
-        response.contains("b NO") && response.contains("next OK"),
+        response.contains("b OK [APPENDUID") && response.contains("next OK"),
         "{response}"
     );
-    assert_eq!(db.account("a").unwrap(), concurrent);
-    assert!(db.blob("a", "e1").is_err());
-    assert!(db.blob("a", "e2").is_err());
+    let account = db.account("a").unwrap();
+    assert_eq!(account.mailboxes.len(), concurrent.mailboxes.len());
+    assert!(account.mailboxes.iter().any(|m| m.name == "Concurrent"));
+    assert_eq!(account.messages.len(), 2);
+    for message in &account.messages {
+        assert_eq!(db.blob("a", &message.id).unwrap(), raw);
+    }
     finish(client, task).await;
 }
 

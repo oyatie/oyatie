@@ -70,26 +70,18 @@ pub(super) fn report(account: &Account, folder: &Mailbox, items: &[String], outp
     output.extend_from_slice(format!("* STATUS {mailbox} (").as_bytes());
     for (i, item) in items.iter().enumerate() {
         let value = match item.as_str() {
-            "HIGHESTMODSEQ" => account.mail_modseq.to_string(),
-            "MESSAGES" => messages.len().to_string(),
+            "HIGHESTMODSEQ" => folder.highest_modseq.to_string(),
+            "MESSAGES" => folder.total_emails.to_string(),
             "RECENT" => "0".into(),
             "UIDNEXT" => folder.uid_next.to_string(),
             "UIDVALIDITY" => folder.uid_validity.to_string(),
-            "UNSEEN" => messages
-                .iter()
-                .filter(|m| !m.keywords.iter().any(|k| k == "$seen"))
-                .count()
-                .to_string(),
+            "UNSEEN" => folder.unread_emails.to_string(),
             "DELETED" => messages
                 .iter()
                 .filter(|m| m.keywords.iter().any(|k| k == "$deleted"))
                 .count()
                 .to_string(),
-            "SIZE" => messages
-                .iter()
-                .map(|m| m.size as u64)
-                .sum::<u64>()
-                .to_string(),
+            "SIZE" => folder.size_bytes.to_string(),
             "OBJECTID" => super::objectid::compound(account, folder),
             "MAILBOXID" => format!("({})", object_id("F", &account.id, &folder.id)),
             _ => unreachable!(),

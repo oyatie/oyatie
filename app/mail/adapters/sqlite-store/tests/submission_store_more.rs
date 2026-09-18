@@ -1,6 +1,6 @@
 use mail_api::{
-    DeliveryOutcome, DeliveryQueue, Store, SubmissionAcceptance, SubmissionFailure,
-    SubmissionQueue, SubmissionStore,
+    DeliveryOutcome, DeliveryQueue, SubmissionAcceptance, SubmissionFailure, SubmissionQueue,
+    SubmissionStore,
 };
 use mail_kernel::{
     Account, EnvelopeAddress, Error, SubmissionEnvelope, SubmissionFilter as Filter,

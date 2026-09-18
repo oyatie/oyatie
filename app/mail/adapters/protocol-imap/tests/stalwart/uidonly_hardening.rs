@@ -96,7 +96,7 @@ async fn uidonly_uses_uids_after_sequence_numbers_diverge_and_for_unsolicited_ch
         .store
         .execute(
             "a",
-            account.revision,
+            mail_api::Precondition::Observed(account.revision),
             vec![Command::Keywords {
                 id,
                 keywords: vec!["$answered".into()],

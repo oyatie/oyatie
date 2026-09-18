@@ -86,6 +86,7 @@ pub(crate) fn page(
         .map_err(storage)?;
     let mut collected = Vec::new();
     while let Some(row) = rows.next().map_err(storage)? {
+        crate::count_row();
         let revision: u64 = row.get(0).map_err(storage)?;
         let kind: String = row.get(1).map_err(storage)?;
         let id: String = row.get(2).map_err(storage)?;

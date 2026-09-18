@@ -1,6 +1,7 @@
 use super::{Maildrop, Message, output::Output};
+use mail_api::Precondition;
 use mail_kernel::{Command, Error};
-use mail_service::MailService;
+use mail_service::{Budget, MailService};
 
 impl Maildrop {
     fn totals(&self) -> (usize, usize) {
@@ -95,53 +96,56 @@ impl Maildrop {
         Ok(())
     }
 
-    pub(super) fn commit(&self, service: &MailService) -> Result<(), Error> {
+    /// One observed batch: the store re-applies it on top of a concurrent
+    /// commit and skips messages that are already gone, so no re-read loop
+    /// is needed and a deletion is never partially committed.
+    pub(super) fn commit(&self, service: &MailService, budget: &Budget) -> Result<(), Error> {
         if !self.messages.iter().any(|m| m.deleted) {
             return Ok(());
         }
-        // Revision-checked whole batches permit simultaneous sessions without a
-        // process-local lock. A conflict never partially commits deletions.
-        for _ in 0..3 {
-            service.authorize(&self.credential, &self.account, mail_api::Action::Write)?;
-            let account = service.read(&self.credential, &self.account)?;
-            let current: std::collections::BTreeMap<_, _> = account
-                .messages
-                .iter()
-                .map(|m| (m.id.as_str(), m))
-                .collect();
-            let mut commands = Vec::new();
-            for pending in self.messages.iter().filter(|m| m.deleted) {
-                if let Some(current) = current
-                    .get(pending.id.as_str())
-                    .filter(|m| m.uid_in(account.inbox()) == Some(pending.uid))
-                {
-                    let mailboxes: Vec<_> = current
-                        .mailboxes
-                        .keys()
-                        .filter(|m| m.as_str() != account.inbox())
-                        .cloned()
-                        .collect();
-                    commands.push(if mailboxes.is_empty() {
-                        Command::Destroy {
-                            id: current.id.clone(),
-                        }
-                    } else {
-                        Command::SetMailboxes {
-                            id: current.id.clone(),
-                            mailboxes,
-                        }
-                    });
-                }
-            }
-            if commands.is_empty() {
-                return Ok(());
-            }
-            match service.execute(&self.credential, &self.account, account.revision, commands) {
-                Err(Error::Conflict) => continue,
-                result => return result.map(|_| ()),
+        service.authorize(&self.credential, &self.account, mail_api::Action::Write)?;
+        let account = service.read(&self.credential, &self.account)?;
+        let current: std::collections::BTreeMap<_, _> = account
+            .messages
+            .iter()
+            .map(|m| (m.id.as_str(), m))
+            .collect();
+        let mut commands = Vec::new();
+        for pending in self.messages.iter().filter(|m| m.deleted) {
+            if let Some(current) = current
+                .get(pending.id.as_str())
+                .filter(|m| m.uid_in(account.inbox()) == Some(pending.uid))
+            {
+                let mailboxes: Vec<_> = current
+                    .mailboxes
+                    .keys()
+                    .filter(|m| m.as_str() != account.inbox())
+                    .cloned()
+                    .collect();
+                commands.push(if mailboxes.is_empty() {
+                    Command::Destroy {
+                        id: current.id.clone(),
+                    }
+                } else {
+                    Command::SetMailboxes {
+                        id: current.id.clone(),
+                        mailboxes,
+                    }
+                });
             }
         }
-        Err(Error::Conflict)
+        if commands.is_empty() {
+            return Ok(());
+        }
+        service
+            .execute(
+                &self.credential,
+                &self.account,
+                Precondition::Observed(account.revision),
+                commands,
+                budget,
+            )
+            .map(|_| ())
     }
 }
 

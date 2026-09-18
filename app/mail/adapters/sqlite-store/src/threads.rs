@@ -6,8 +6,8 @@ use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
 
 pub(super) struct References {
-    subject: Vec<u8>,
-    keys: BTreeSet<Vec<u8>>,
+    pub(super) subject: Vec<u8>,
+    pub(super) keys: BTreeSet<Vec<u8>>,
     /// Hash of the first `Message-ID`, the `(account, reference_hash)` key
     /// duplicate suppression looks up.
     pub(super) message_id: Option<Vec<u8>>,
@@ -197,6 +197,18 @@ pub(super) fn link(
         .map_err(storage)?;
     }
     Ok(outside)
+}
+
+/// Drop a record's thread keys so no later lookup can join its thread.
+pub(super) fn forget(db: &Connection, account: &str, id: &str) -> Result<(), Error> {
+    for table in ["thread_members", "thread_references"] {
+        db.execute(
+            &format!("DELETE FROM {table} WHERE account=?1 AND message=?2"),
+            params![account, id],
+        )
+        .map_err(storage)?;
+    }
+    Ok(())
 }
 
 /// Stamp re-threaded records outside the working set with the commit revision.

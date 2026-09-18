@@ -1,6 +1,6 @@
 use super::set::set;
 use mail_kernel::Error;
-use mail_service::MailService;
+use mail_service::{Budget, MailService};
 use serde_json::{Value, json};
 
 pub(super) fn error(error: Error) -> &'static str {
@@ -11,6 +11,8 @@ pub(super) fn error(error: Error) -> &'static str {
         Error::OverQuota => "overQuota",
         Error::Invalid => "invalidArguments",
         Error::Unavailable => "serverFail",
+        // Re-run by the request loop; `serverFail` once the budget is spent.
+        Error::Busy => super::retry::BUSY,
     }
 }
 
@@ -66,6 +68,7 @@ pub(super) fn method(
     args: &Value,
     response_limit: usize,
     implicit: &mut Option<Value>,
+    budget: &Budget,
 ) -> Result<Value, &'static str> {
     if name == "Core/echo" {
         return Ok(args.clone());
@@ -94,7 +97,7 @@ pub(super) fn method(
         return super::snippet::get(service, token, args, response_limit);
     }
     if name.starts_with("VacationResponse/") {
-        return super::vacation::method(service, token, name, args);
+        return super::vacation::method(service, token, name, args, budget);
     }
     if name == "Email/get" {
         return super::inspect::get(service, token, args, response_limit);
@@ -134,16 +137,16 @@ pub(super) fn method(
     })?;
     match name {
         "Identity/get" => super::identity::get(&account, args),
-        "Identity/set" => super::identity::set(service, token, &account, args),
+        "Identity/set" => super::identity::set(service, token, &account, args, budget),
         "Identity/changes" => super::identity::changes(&account, args),
         "Thread/get" => super::thread::get(&account, args),
         "Thread/changes" => super::thread::changes(service, token, &account, args),
         "Mailbox/query" => super::mailbox_query::query(&account, args),
         "Mailbox/queryChanges" => super::mailbox_query::changes(service, token, &account, args),
-        "Email/copy" => super::copy::copy(service, token, &account, args),
+        "Email/copy" => super::copy::copy(service, token, &account, args, budget),
         "Email/changes" => super::changes::changes(service, token, &account, args),
         "Email/queryChanges" => super::query::changes(service, token, &account, args),
-        "Email/import" => super::email::import(service, token, &account, args),
+        "Email/import" => super::email::import(service, token, &account, args, budget),
         "Mailbox/get" => {
             let write = super::mailbox::writable(service, token, id)?;
             get_result(
@@ -159,7 +162,7 @@ pub(super) fn method(
         }
         "Email/query" => super::query::query(service, token, &account, args),
         "Mailbox/changes" => super::changes::mailbox(service, token, &account, args),
-        "Mailbox/set" | "Email/set" => set(service, token, &account, name, args),
+        "Mailbox/set" | "Email/set" => set(service, token, &account, name, args, budget),
         _ => Err("unknownMethod"),
     }
 }

@@ -1,19 +1,29 @@
+_KERNEL = "//app/mail/core/kernel:mail-kernel"
+_API = "//app/mail/ports/api:mail-api"
+_SQL = "third-party//mail/sqlite:rusqlite"
+_JSON = "third-party//:serde_json"
+_SHA = "third-party//:sha2"
+_LIB_DEPS = [_KERNEL, _API, _SQL, _JSON, "third-party//:serde", _SHA, "third-party//mail:mail-parser", "third-party//mail:mail-builder"]
+# The `contract` cargo feature: test doubles and the legacy fixture.
+_CONTRACT = ["--cfg", "feature=\"contract\""]
+
 rust_library(
     name = "mail-sqlite-store",
     srcs = glob(["src/**/*.rs"]),
     crate = "mail_sqlite_store",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        "//app/mail/core/kernel:mail-kernel",
-        "//app/mail/ports/api:mail-api",
-        "third-party//mail/sqlite:rusqlite",
-        "third-party//:serde_json",
-        "third-party//:serde",
-        "third-party//:sha2",
-        "third-party//mail:mail-parser",
-        "third-party//mail:mail-builder",
-    ],
+    deps = _LIB_DEPS,
+)
+
+rust_library(
+    name = "mail-sqlite-store-contract",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "mail_sqlite_store",
+    crate_root = "src/lib.rs",
+    rustc_flags = _CONTRACT,
+    visibility = ["PUBLIC"],
+    deps = _LIB_DEPS,
 )
 
 rust_test(
@@ -21,136 +31,55 @@ rust_test(
     srcs = glob(["src/**/*.rs"]),
     crate = "mail_sqlite_store",
     crate_root = "src/lib.rs",
+    rustc_flags = _CONTRACT,
     visibility = ["PUBLIC"],
-    deps = [
-        "//app/mail/core/kernel:mail-kernel",
-        "//app/mail/ports/api:mail-api",
-        "third-party//mail/sqlite:rusqlite",
-        "third-party//:serde_json",
-        "third-party//:serde",
-        "third-party//:sha2",
-        "third-party//mail:mail-parser",
-        "third-party//mail:mail-builder",
-    ],
+    deps = _LIB_DEPS,
 )
 
-rust_test(
-    name = "mail-sqlite-store-durable",
-    srcs = ["tests/durable.rs"],
-    crate = "durable",
-    crate_root = "tests/durable.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        "//app/mail/core/kernel:mail-kernel",
-        "//app/mail/ports/api:mail-api",
-        "third-party//mail/sqlite:rusqlite",
-        "third-party//:serde_json",
-        "third-party//:sha2",
-        ":mail-sqlite-store",
-    ],
-)
-rust_test(
-    name = "mail-sqlite-store-mailbox",
-    srcs = ["tests/mailbox.rs"],
-    crate = "mailbox",
-    crate_root = "tests/mailbox.rs",
-    deps = [":mail-sqlite-store", "//app/mail/core/kernel:mail-kernel", "//app/mail/ports/api:mail-api", "third-party//mail/sqlite:rusqlite"],
-)
+# Integration tests against the plain library: name -> (sources, extra deps).
+_TESTS = {
+    "atomic_modseq": ([], []),
+    "content": ([], [_SQL, _JSON]),
+    "durable": ([], [_SQL]),
+    "events": ([], []),
+    "history": ([], []),
+    "mailbox": ([], [_SQL]),
+    "outbound": ([], [_SQL]),
+    "queue": (["tests/queue/failures.rs"], [_SQL]),
+    "selection": ([], [_SQL]),
+    "submission_store": ([], [_SQL]),
+    "submission_store_more": (["tests/submission_store/retention.rs"], [_SQL]),
+    "threads": ([], [_SQL]),
+    "transfer": ([], [_SQL]),
+    "vacation": ([], []),
+}
 
-rust_test(
-    name = "mail-sqlite-store-content",
-    srcs = ["tests/content.rs"],
-    crate = "content",
-    crate_root = "tests/content.rs",
-    deps = [":mail-sqlite-store", "//app/mail/core/kernel:mail-kernel", "//app/mail/ports/api:mail-api", "third-party//mail/sqlite:rusqlite", "third-party//:serde_json"],
-)
+[
+    rust_test(
+        name = "mail-sqlite-store-" + name.replace("_", "-"),
+        srcs = ["tests/" + name + ".rs"] + extra_srcs,
+        crate = name,
+        crate_root = "tests/" + name + ".rs",
+        visibility = ["PUBLIC"],
+        deps = [":mail-sqlite-store", _KERNEL, _API] + extra_deps,
+    )
+    for name, (extra_srcs, extra_deps) in _TESTS.items()
+]
 
-rust_test(
-    name = "mail-sqlite-store-queue",
-    srcs = ["tests/queue.rs", "tests/queue/failures.rs"],
-    crate = "queue",
-    crate_root = "tests/queue.rs",
-    deps = [":mail-sqlite-store", "//app/mail/core/kernel:mail-kernel", "//app/mail/ports/api:mail-api", "third-party//mail/sqlite:rusqlite"],
-)
+# Integration tests that need the `contract` feature compiled into the store.
+_CONTRACT_TESTS = {
+    "convert": (glob(["tests/convert/*.rs"]), [_SQL, _SHA]),
+    "counting": ([], []),
+}
 
-rust_test(
-    name = "mail-sqlite-store-events",
-    srcs = ["tests/events.rs"],
-    crate = "events",
-    crate_root = "tests/events.rs",
-    deps = [":mail-sqlite-store", "//app/mail/core/kernel:mail-kernel", "//app/mail/ports/api:mail-api"],
-)
-
-rust_test(
-    name = "mail-sqlite-store-threads",
-    srcs = ["tests/threads.rs"],
-    crate = "threads",
-    crate_root = "tests/threads.rs",
-    deps = [":mail-sqlite-store", "//app/mail/core/kernel:mail-kernel", "//app/mail/ports/api:mail-api", "third-party//mail/sqlite:rusqlite", "third-party//:serde_json"],
-)
-
-rust_test(
-    name = "mail-sqlite-store-selection",
-    srcs = ["tests/selection.rs"],
-    crate = "selection",
-    crate_root = "tests/selection.rs",
-    deps = [":mail-sqlite-store", "//app/mail/core/kernel:mail-kernel", "//app/mail/ports/api:mail-api", "third-party//mail/sqlite:rusqlite", "third-party//:serde_json"],
-)
-
-rust_test(
-    name = "mail-sqlite-store-outbound",
-    srcs = ["tests/outbound.rs"],
-    crate = "outbound",
-    crate_root = "tests/outbound.rs",
-    deps = [":mail-sqlite-store", "//app/mail/core/kernel:mail-kernel", "//app/mail/ports/api:mail-api", "third-party//mail/sqlite:rusqlite"],
-)
-
-rust_test(
-    name = "mail-sqlite-store-transfer",
-    srcs = ["tests/transfer.rs"],
-    crate = "transfer",
-    crate_root = "tests/transfer.rs",
-    deps = [":mail-sqlite-store", "//app/mail/core/kernel:mail-kernel", "//app/mail/ports/api:mail-api", "third-party//mail/sqlite:rusqlite", "third-party//:serde_json"],
-)
-
-
-rust_test(
-    name = "mail-sqlite-store-history-threshold",
-    srcs = ["tests/history_threshold.rs"],
-    crate = "history_threshold",
-    crate_root = "tests/history_threshold.rs",
-    deps = [":mail-sqlite-store", "//app/mail/core/kernel:mail-kernel", "//app/mail/ports/api:mail-api", "third-party//mail/sqlite:rusqlite"],
-)
-
-rust_test(
-    name = "mail-sqlite-store-atomic-modseq",
-    srcs = ["tests/atomic_modseq.rs"],
-    crate = "atomic_modseq",
-    crate_root = "tests/atomic_modseq.rs",
-    deps = [":mail-sqlite-store", "//app/mail/core/kernel:mail-kernel", "//app/mail/ports/api:mail-api"],
-)
-
-rust_test(
-    name = "mail-sqlite-store-submission-store",
-    srcs = ["tests/submission_store.rs"],
-    crate = "submission_store",
-    crate_root = "tests/submission_store.rs",
-    deps = [":mail-sqlite-store", "//app/mail/core/kernel:mail-kernel", "//app/mail/ports/api:mail-api", "third-party//mail/sqlite:rusqlite", "third-party//:serde_json"],
-)
-
-rust_test(
-    name = "mail-sqlite-store-vacation",
-    srcs = ["tests/vacation.rs"],
-    crate = "vacation",
-    crate_root = "tests/vacation.rs",
-    visibility = ["PUBLIC"],
-    deps = [":mail-sqlite-store", "//app/mail/core/kernel:mail-kernel", "//app/mail/ports/api:mail-api"],
-)
-
-rust_test(
-    name = "mail-sqlite-store-submission-store-more",
-    srcs = ["tests/submission_store_more.rs", "tests/submission_store/retention.rs"],
-    crate = "submission_store_more",
-    crate_root = "tests/submission_store_more.rs",
-    deps = [":mail-sqlite-store", "//app/mail/core/kernel:mail-kernel", "//app/mail/ports/api:mail-api", "third-party//mail/sqlite:rusqlite", "third-party//:serde_json"],
-)
+[
+    rust_test(
+        name = "mail-sqlite-store-" + name,
+        srcs = ["tests/" + name + ".rs"] + extra_srcs,
+        crate = name,
+        crate_root = "tests/" + name + ".rs",
+        visibility = ["PUBLIC"],
+        deps = [":mail-sqlite-store-contract", _KERNEL, _API] + extra_deps,
+    )
+    for name, (extra_srcs, extra_deps) in _CONTRACT_TESTS.items()
+]

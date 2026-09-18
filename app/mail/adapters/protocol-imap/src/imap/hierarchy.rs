@@ -1,7 +1,7 @@
 //! CREATE, RENAME, DELETE, SUBSCRIBE and UNSUBSCRIBE.
-use super::{folders, response::Output};
+use super::{folders, response::Output, retry::commit};
 use mail_kernel::{Account, Command};
-use mail_service::MailService;
+use mail_service::{Budget, MailService};
 
 type Completion = Result<Option<String>, &'static str>;
 
@@ -53,6 +53,7 @@ pub(super) fn create(
     token: &str,
     account: &Account,
     parts: &[String],
+    budget: &Budget,
     output: &Output,
 ) -> Completion {
     let role = special_use(&parts[3])?;
@@ -66,20 +67,19 @@ pub(super) fn create(
     {
         return Err("NO [USEATTR]");
     }
-    let (account, parent_id) = folders::ensure_parents(service, token, account, &parents)?;
+    let (account, parent_id) = folders::ensure_parents(service, token, account, &parents, budget)?;
     let mut properties = folders::leaf(name.clone(), parent_id, None);
     properties.role = role.map(str::to_owned);
-    let updated = service
-        .execute(
-            token,
-            &account.id,
-            account.revision,
-            vec![Command::SetMailbox {
-                id: None,
-                properties,
-            }],
-        )
-        .map_err(|_| "NO")?;
+    let (_, updated) = commit(
+        service,
+        token,
+        &account,
+        vec![Command::SetMailbox {
+            id: None,
+            properties,
+        }],
+        budget,
+    )?;
     parents.push(name);
     let folder = folders::find(&updated, &parents.join("/")).ok_or("NO")?;
     Ok(objectid(output, &updated, folder))
@@ -90,23 +90,24 @@ pub(super) fn rename(
     token: &str,
     account: &Account,
     parts: &[String],
+    budget: &Budget,
     output: &Output,
 ) -> Completion {
     let mailbox = folders::find(account, &parts[2]).ok_or("NO [NONEXISTENT]")?;
     let mut parents = folders::segments(&parts[3]);
     let name = parents.pop().ok_or("NO")?;
-    let (refreshed, parent_id) = folders::ensure_parents(service, token, account, &parents)?;
-    service
-        .execute(
-            token,
-            &refreshed.id,
-            refreshed.revision,
-            vec![Command::SetMailbox {
-                id: Some(mailbox.id.clone()),
-                properties: folders::leaf(name, parent_id, Some(mailbox)),
-            }],
-        )
-        .map_err(|_| "NO")?;
+    let (refreshed, parent_id) =
+        folders::ensure_parents(service, token, account, &parents, budget)?;
+    commit(
+        service,
+        token,
+        &refreshed,
+        vec![Command::SetMailbox {
+            id: Some(mailbox.id.clone()),
+            properties: folders::leaf(name, parent_id, Some(mailbox)),
+        }],
+        budget,
+    )?;
     Ok(objectid(output, account, mailbox))
 }
 
@@ -116,20 +117,20 @@ pub(super) fn delete(
     token: &str,
     account: &Account,
     parts: &[String],
+    budget: &Budget,
 ) -> Completion {
     let mailbox = folders::find(account, &parts[2]).ok_or("NO [NONEXISTENT]")?;
-    service
-        .execute(
-            token,
-            &account.id,
-            account.revision,
-            vec![Command::RemoveMailbox {
-                id: mailbox.id.clone(),
-                remove_emails: true,
-            }],
-        )
-        .map(|_| None)
-        .map_err(|_| "NO")
+    commit(
+        service,
+        token,
+        account,
+        vec![Command::RemoveMailbox {
+            id: mailbox.id.clone(),
+            remove_emails: true,
+        }],
+        budget,
+    )
+    .map(|_| None)
 }
 
 pub(super) fn subscribe(
@@ -137,6 +138,7 @@ pub(super) fn subscribe(
     token: &str,
     account: &Account,
     parts: &[String],
+    budget: &Budget,
 ) -> Completion {
     let mailbox = folders::find(account, &parts[2]).ok_or("NO [NONEXISTENT]")?;
     let subscribed = parts[1].eq_ignore_ascii_case("SUBSCRIBE");
@@ -145,16 +147,15 @@ pub(super) fn subscribe(
     }
     let mut properties = mailbox.properties();
     properties.is_subscribed = subscribed;
-    service
-        .execute(
-            token,
-            &account.id,
-            account.revision,
-            vec![Command::SetMailbox {
-                id: Some(mailbox.id.clone()),
-                properties,
-            }],
-        )
-        .map(|_| None)
-        .map_err(|_| "NO")
+    commit(
+        service,
+        token,
+        account,
+        vec![Command::SetMailbox {
+            id: Some(mailbox.id.clone()),
+            properties,
+        }],
+        budget,
+    )
+    .map(|_| None)
 }

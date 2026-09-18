@@ -1,5 +1,5 @@
 use super::support::*;
-use mail_api::{Action, DeliveryQueue, Policy, Store, SubmissionQueue, SubmissionStore};
+use mail_api::{Action, DeliveryQueue, MetadataStore, Policy, SubmissionQueue, SubmissionStore};
 use mail_kernel::Error;
 use mail_service::OwnerPolicy;
 use serde_json::{Value, json};

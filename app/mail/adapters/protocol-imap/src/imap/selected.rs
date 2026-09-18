@@ -1,7 +1,7 @@
 pub(super) use super::state::{Selection, synchronize};
 use super::syntax::sequence_set;
 use mail_kernel::{Account, Command, Message};
-use mail_service::MailService;
+use mail_service::{Budget, MailService};
 
 pub(super) fn selected_command(
     service: &MailService,
@@ -9,6 +9,7 @@ pub(super) fn selected_command(
     account: &Account,
     parts: &[String],
     selection: &mut Option<Selection>,
+    budget: &Budget,
     output: &mut super::response::Output,
 ) -> Result<Option<String>, &'static str> {
     let selected = selection.as_mut().ok_or("BAD")?;
@@ -102,20 +103,24 @@ pub(super) fn selected_command(
                 }
             })
             .collect();
-        let updated = service
-            .execute(token, &account.id, account.revision, commands)
-            .map_err(|_| "NO")?;
+        let (_, updated) = super::retry::commit(service, token, account, commands, budget)?;
         synchronize(&updated, parts, selection, output);
         return Ok(None);
     }
+    let call = super::retry::Call {
+        service,
+        token,
+        account,
+        budget,
+    };
     if matches!(operation.as_str(), "COPY" | "MOVE") {
-        return super::transfer::execute(service, token, account, parts, selection, chosen, output);
+        return super::transfer::execute(&call, parts, selection, chosen, output);
     }
     if operation == "FETCH" {
-        return super::fetch::execute(service, token, account, selected, chosen, parts, output);
+        return super::fetch::execute(&call, selected, chosen, &set, parts, output);
     }
     if operation == "STORE" {
-        return super::store::execute(service, token, account, selected, chosen, parts, output);
+        return super::store::execute(&call, selected, chosen, parts, output);
     }
     Err("BAD")
 }

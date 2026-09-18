@@ -71,6 +71,21 @@ rust_test(
 
 
 rust_test(
+    name = "mail-app-convert",
+    srcs = ["tests/convert.rs", "tests/convert/legacy.rs"],
+    crate = "convert",
+    crate_root = "tests/convert.rs",
+    env = {"MAIL_APP_BINARY": "$(location :mail-app-bin)"},
+    deps = [
+        "//app/mail/ports/api:mail-api",
+        "//app/mail/adapters/sqlite-store:mail-sqlite-store",
+        "third-party//:rcgen",
+        "third-party//mail/sqlite:rusqlite",
+        "third-party//:tempfile",
+    ],
+)
+
+rust_test(
     name = "mail-app-facade-review",
     srcs = ["tests/facade_review.rs", "tests/facade_review/config.rs", "tests/facade_review/direct.rs"],
     crate = "facade_review",

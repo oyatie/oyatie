@@ -1,4 +1,4 @@
-use mail_api::{DeliveryQueue, DeliveryTarget, Events, Store};
+use mail_api::{DeliveryQueue, DeliveryTarget, Events, MetadataStore, Precondition};
 use mail_kernel::{Account, Error};
 use mail_sqlite_store::SqliteStore;
 

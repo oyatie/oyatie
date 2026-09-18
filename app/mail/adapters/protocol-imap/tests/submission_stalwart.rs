@@ -1,5 +1,5 @@
 #![cfg(feature = "upstream-tests")]
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::{Account, Command, MailboxProperties};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -120,7 +120,7 @@ async fn unchanged_upstream_submission_suite() {
         let revision = db.account("a").unwrap().revision;
         db.execute(
             "a",
-            revision,
+            mail_api::Precondition::Observed(revision),
             vec![Command::SetMailbox {
                 id: None,
                 properties: MailboxProperties {

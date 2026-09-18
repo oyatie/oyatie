@@ -1,5 +1,5 @@
 use super::client::{ImapConnection, Outcomes};
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::{Account, Command, MailboxProperties};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -28,11 +28,15 @@ pub fn open() -> (Arc<SqliteStore>, Arc<MailService>) {
         .unwrap();
     db.provision(Account::new("j", "t", "jane", JANE).unwrap(), JANE_TOKEN)
         .unwrap();
-    db.execute("a", 0, vec![special("Deleted Items", "trash")])
-        .unwrap();
+    db.execute(
+        "a",
+        mail_api::Precondition::Observed(0),
+        vec![special("Deleted Items", "trash")],
+    )
+    .unwrap();
     db.execute(
         "j",
-        0,
+        mail_api::Precondition::Observed(0),
         vec![
             special("Deleted Items", "trash"),
             special("Drafts", "drafts"),

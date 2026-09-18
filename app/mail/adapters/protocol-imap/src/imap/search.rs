@@ -96,7 +96,7 @@ pub(super) fn execute(
         return Err("BAD [UIDREQUIRED]");
     }
     let has_modseq = criteria.has_modseq();
-    let highest_modseq = account.mail_modseq;
+    let highest_modseq = selected.highest_modseq(account);
     if has_modseq {
         selected.condstore = true;
         output.condstore = true;

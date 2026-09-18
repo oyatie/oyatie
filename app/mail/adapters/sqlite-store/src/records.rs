@@ -1,6 +1,6 @@
 //! Row ↔ kernel record mapping. Every function reads or writes exactly the
 //! rows named by its arguments; nothing here scans an account.
-use crate::storage;
+use crate::{count_row, storage};
 use mail_kernel::{Account, Error, Mailbox, Message, Scope};
 use rusqlite::{Connection, OptionalExtension, Row, params};
 use std::collections::{BTreeMap, BTreeSet};
@@ -16,6 +16,7 @@ pub(crate) fn header(db: &Connection, id: &str) -> Result<Account, Error> {
             "SELECT id,tenant,owner,address,revision,mail_modseq,history_floor,identity,identity_revision,vacation,vacation_revision,quota_bytes,used_bytes FROM accounts WHERE id=?1",
             [id],
             |r| {
+                count_row();
                 Ok(Account {
                     id: r.get(0)?,
                     tenant: r.get(1)?,
@@ -52,6 +53,7 @@ pub(crate) fn header(db: &Connection, id: &str) -> Result<Account, Error> {
 }
 
 fn mailbox(r: &Row<'_>) -> rusqlite::Result<Mailbox> {
+    count_row();
     Ok(Mailbox {
         id: r.get(0)?,
         name: r.get(1)?,
@@ -70,6 +72,7 @@ fn mailbox(r: &Row<'_>) -> rusqlite::Result<Mailbox> {
 }
 
 fn message(r: &Row<'_>) -> rusqlite::Result<Message> {
+    count_row();
     let id: String = r.get(0)?;
     let thread: String = r.get(3)?;
     let keywords: String = r.get(8)?;
@@ -99,6 +102,7 @@ fn link(db: &Connection, account: &str, messages: &mut [Message]) -> Result<(), 
     for message in messages {
         let rows = query
             .query_map(params![account, message.id], |r| {
+                count_row();
                 Ok((r.get::<_, String>(0)?, r.get::<_, u32>(1)?))
             })
             .map_err(storage)?;
@@ -243,7 +247,13 @@ pub(crate) fn upsert_header(db: &Connection, account: &Account) -> Result<(), Er
 
 pub(crate) fn upsert_mailbox(db: &Connection, account: &str, m: &Mailbox) -> Result<(), Error> {
     db.execute(
-        &format!("INSERT OR REPLACE INTO mailboxes(account,{MAILBOX_COLUMNS}) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14)"),
+        // An upsert keeps the row's rowid, so the projection's mailbox order
+        // (creation order) is stable across property and counter updates.
+        &format!("INSERT INTO mailboxes(account,{MAILBOX_COLUMNS}) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14)
+            ON CONFLICT(account,id) DO UPDATE SET name=excluded.name,role=excluded.role,parent_id=excluded.parent_id,
+            sort_order=excluded.sort_order,is_subscribed=excluded.is_subscribed,uid_next=excluded.uid_next,
+            uid_validity=excluded.uid_validity,created_revision=excluded.created_revision,highest_modseq=excluded.highest_modseq,
+            total_emails=excluded.total_emails,unread_emails=excluded.unread_emails,size_bytes=excluded.size_bytes"),
         params![account, m.id, m.name, m.role, m.parent_id, m.sort_order, m.is_subscribed, m.uid_next, m.uid_validity, m.created_revision, m.highest_modseq, m.total_emails, m.unread_emails, m.size_bytes],
     )
     .map_err(storage)?;
@@ -252,7 +262,10 @@ pub(crate) fn upsert_mailbox(db: &Connection, account: &str, m: &Mailbox) -> Res
 
 pub(crate) fn upsert_message(db: &Connection, account: &str, m: &Message) -> Result<(), Error> {
     db.execute(
-        &format!("INSERT OR REPLACE INTO messages(account,{MESSAGE_COLUMNS}) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)"),
+        &format!("INSERT INTO messages(account,{MESSAGE_COLUMNS}) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)
+            ON CONFLICT(account,id) DO UPDATE SET modseq=excluded.modseq,created_revision=excluded.created_revision,
+            thread=excluded.thread,email_identity=excluded.email_identity,thread_identity=excluded.thread_identity,
+            size=excluded.size,received_at=excluded.received_at,keywords=excluded.keywords"),
         params![account, m.id, m.modseq, m.created_revision, m.thread_id(), m.email_identity, m.thread_identity, m.size, m.received_at, m.keywords.join(" ")],
     )
     .map_err(storage)?;

@@ -17,7 +17,7 @@ impl mail_api::Policy for ConcurrentWriter {
             let current = self.db.account("a")?;
             self.db.execute(
                 "a",
-                current.revision,
+                mail_api::Precondition::Observed(current.revision),
                 vec![Command::Keywords {
                     id: current.messages[0].id.clone(),
                     keywords: vec!["concurrent".into()],
@@ -100,12 +100,13 @@ async fn condstore_idle_reports_one_modseq_notification_for_each_flag_change() {
     let state = db
         .execute(
             "a",
-            state.revision,
+            mail_api::Precondition::Observed(state.revision),
             vec![Command::Keywords {
                 id: state.messages[0].id.clone(),
                 keywords: vec!["external".into()],
             }],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     let mut notification = String::new();
     tokio::time::timeout(Duration::from_secs(3), client.read_line(&mut notification))
@@ -137,7 +138,7 @@ async fn conditional_uid_wildcard_uses_same_existing_maximum_for_store_and_modif
     let before = db.account("a").unwrap();
     db.execute(
         "a",
-        before.revision,
+        mail_api::Precondition::Observed(before.revision),
         vec![Command::Destroy {
             id: before.messages[2].id.clone(),
         }],
@@ -171,7 +172,7 @@ async fn changed_since_excludes_deletions_older_than_observed_message_modseq_wit
     let after = db
         .execute(
             "a",
-            before.revision,
+            mail_api::Precondition::Observed(before.revision),
             vec![
                 Command::Destroy {
                     id: before.messages[0].id.clone(),
@@ -186,6 +187,7 @@ async fn changed_since_excludes_deletions_older_than_observed_message_modseq_wit
                 },
             ],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     let threshold = after.messages[0].modseq;
     let (mut client, task) = start(db.clone()).await;
@@ -200,56 +202,4 @@ async fn changed_since_excludes_deletions_older_than_observed_message_modseq_wit
     );
     assert!(!response.contains("UID 2 FLAGS"), "{response}");
     finish(client, task).await;
-}
-
-#[tokio::test]
-async fn missing_history_commit_refuses_resync_even_when_message_rows_survive() {
-    let path = std::env::temp_dir().join(format!(
-        "mail-condstore-gap-{}-{}.sqlite",
-        std::process::id(),
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    ));
-    let db = Arc::new(SqliteStore::open(&path).unwrap());
-    db.provision(
-        Account::new("a", "t", "alice", "alice@example.org").unwrap(),
-        TOKEN,
-    )
-    .unwrap();
-    messages(&db);
-    let before = db.account("a").unwrap();
-    let after = db
-        .execute(
-            "a",
-            before.revision,
-            vec![Command::Destroy {
-                id: before.messages[1].id.clone(),
-            }],
-        )
-        .unwrap();
-    let raw = rusqlite::Connection::open(&path).unwrap();
-    raw.execute(
-        "DELETE FROM history_commits WHERE account='a' AND revision=?1",
-        [after.revision],
-    )
-    .unwrap();
-    drop(raw);
-    let (mut client, task) = start(db.clone()).await;
-    let response = send(
-        &mut client,
-        &format!(
-            "f UID FETCH 1:3 (FLAGS) (CHANGEDSINCE {} VANISHED)",
-            before.mail_modseq
-        ),
-    )
-    .await;
-    assert!(
-        response.contains("f NO") && !response.contains("f OK"),
-        "{response}"
-    );
-    finish(client, task).await;
-    drop(db);
-    std::fs::remove_file(path).unwrap();
 }

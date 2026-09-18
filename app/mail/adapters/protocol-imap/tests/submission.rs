@@ -1,5 +1,5 @@
 use base64::{Engine, engine::general_purpose::STANDARD};
-use mail_api::{Action, Policy, Store};
+use mail_api::{Action, MetadataStore, Policy};
 use mail_kernel::{Account, Error};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;

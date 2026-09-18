@@ -1,6 +1,7 @@
+use mail_api::Execution;
 use mail_builder::{MessageBuilder, headers::address::Address, mime::MimePart};
 use mail_kernel::{Account, Command, MAX_MESSAGE_BYTES, valid_address};
-use mail_service::MailService;
+use mail_service::{Budget, MailService};
 use serde_json::Value;
 
 fn address(value: &Value) -> Result<Address<'static>, &'static str> {
@@ -87,7 +88,9 @@ pub(super) fn create(
     token: &str,
     account: &Account,
     value: &Value,
-) -> Result<Account, &'static str> {
+    conditional: bool,
+    budget: &Budget,
+) -> Result<(Execution, Account), &'static str> {
     let object = value.as_object().ok_or("invalidProperties")?;
     if object.keys().any(|k| {
         ![
@@ -155,26 +158,27 @@ pub(super) fn create(
         .write_to(&mut buffer)
         .map_err(|_| "tooLarge")?;
     let raw = buffer.bytes;
-    service
-        .execute(
-            token,
-            &account.id,
-            account.revision,
-            vec![Command::Append {
-                mailboxes,
-                raw,
-                keywords,
-                received_at,
-            }],
-        )
-        .map_err(|e| {
-            if matches!(
-                e,
-                mail_kernel::Error::Invalid | mail_kernel::Error::NotFound
-            ) {
-                "invalidProperties"
-            } else {
-                super::method::error(e)
-            }
-        })
+    super::retry::commit(
+        service,
+        token,
+        account,
+        conditional,
+        vec![Command::Append {
+            mailboxes,
+            raw,
+            keywords,
+            received_at,
+        }],
+        budget,
+    )
+    .map_err(|e| {
+        if matches!(
+            e,
+            mail_kernel::Error::Invalid | mail_kernel::Error::NotFound
+        ) {
+            "invalidProperties"
+        } else {
+            super::method::error(e)
+        }
+    })
 }

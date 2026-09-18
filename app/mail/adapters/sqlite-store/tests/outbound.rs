@@ -152,11 +152,8 @@ fn expired_remote_mail_becomes_a_notice_and_capacity_recovers() {
     let db = SqliteStore::open(&path).unwrap();
     provision(&db);
     let sql = rusqlite::Connection::open(&path).unwrap();
-    sql.execute(
-        "UPDATE accounts SET state=json_set(state,'$.quota_bytes',?1)",
-        [RAW.len()],
-    )
-    .unwrap();
+    sql.execute("UPDATE accounts SET quota_bytes=?1", [RAW.len()])
+        .unwrap();
     let recipients = ["one@remote.org".into()];
     db.enqueue_submission("a", "alice@example.org", &recipients, RAW)
         .unwrap();
@@ -208,11 +205,8 @@ fn mixed_submission_rolls_back_local_work_if_remote_insert_fails() {
     assert!(db.claim_outbound(1).unwrap().is_empty());
     assert_eq!(sql.query_row("SELECT (SELECT count(*) FROM queued_messages)+(SELECT count(*) FROM submitted_messages)", [], |r| r.get::<_, i64>(0)).unwrap(), 0);
     sql.execute_batch("DROP TRIGGER reject_remote").unwrap();
-    sql.execute(
-        "UPDATE accounts SET state=json_set(state,'$.quota_bytes',?1)",
-        [RAW.len()],
-    )
-    .unwrap();
+    sql.execute("UPDATE accounts SET quota_bytes=?1", [RAW.len()])
+        .unwrap();
     // A local copy to the sender and a remote recipient both consume its queue budget.
     assert_eq!(
         db.enqueue_submission("a", "alice@example.org", &recipients, RAW),

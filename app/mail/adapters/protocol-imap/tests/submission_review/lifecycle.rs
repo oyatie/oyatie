@@ -1,5 +1,5 @@
 use super::support::*;
-use mail_api::{DeliveryOutcome, DeliveryQueue, Store, SubmissionQueue, SubmissionStore};
+use mail_api::{DeliveryOutcome, DeliveryQueue, MetadataStore, SubmissionQueue, SubmissionStore};
 use mail_service::OwnerPolicy;
 use serde_json::{Value, json};
 use std::sync::Arc;

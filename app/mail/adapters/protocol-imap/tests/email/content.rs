@@ -1,5 +1,5 @@
 use super::*;
-use mail_api::{AccountInfo, MailboxChange, MessageChange};
+use mail_api::{AccountInfo, Execution, HistoryPage, MailboxSelection, Precondition};
 use mail_kernel::Error;
 use std::sync::{
     Mutex,
@@ -13,9 +13,12 @@ struct ObservedStore {
     missing_body: AtomicBool,
 }
 
-impl Store for ObservedStore {
+impl MetadataStore for ObservedStore {
     fn messages(&self, account: &str, ids: &[String]) -> Result<mail_api::MessageSelection, Error> {
         self.inner.messages(account, ids)
+    }
+    fn mailbox_uids(&self, account: &str, mailbox: &str) -> Result<MailboxSelection, Error> {
+        self.inner.mailbox_uids(account, mailbox)
     }
     fn account_info(&self, id: &str) -> Result<AccountInfo, Error> {
         self.inner.account_info(id)
@@ -29,8 +32,13 @@ impl Store for ObservedStore {
     fn resolve(&self, address: &str) -> Result<String, Error> {
         self.inner.resolve(address)
     }
-    fn execute(&self, id: &str, revision: u64, commands: Vec<Command>) -> Result<Account, Error> {
-        self.inner.execute(id, revision, commands)
+    fn execute(
+        &self,
+        id: &str,
+        precondition: Precondition,
+        commands: Vec<Command>,
+    ) -> Result<Execution, Error> {
+        self.inner.execute(id, precondition, commands)
     }
     fn deliver_once(
         &self,
@@ -51,29 +59,17 @@ impl Store for ObservedStore {
         }
         self.inner.blob(account, id)
     }
-    fn message_changes(
-        &self,
-        account: &str,
-        since: u64,
-        until: u64,
-    ) -> Result<Vec<MessageChange>, Error> {
-        self.inner.message_changes(account, since, until)
+    fn history(&self, account: &str, since: u64, limit: usize) -> Result<HistoryPage, Error> {
+        self.inner.history(account, since, limit)
     }
-    fn message_changes_after(
+    fn compact_history(
         &self,
         account: &str,
-        since: u64,
-        until: u64,
-    ) -> Result<Vec<MessageChange>, Error> {
-        self.inner.message_changes_after(account, since, until)
-    }
-    fn mailbox_changes(
-        &self,
-        account: &str,
-        since: u64,
-        until: u64,
-    ) -> Result<Vec<MailboxChange>, Error> {
-        self.inner.mailbox_changes(account, since, until)
+        now: i64,
+        policy: mail_kernel::RetentionPolicy,
+        cursors: &[(mail_api::Consumer, u64)],
+    ) -> Result<mail_kernel::Retention, Error> {
+        self.inner.compact_history(account, now, policy, cursors)
     }
 }
 
@@ -148,8 +144,14 @@ async fn content_fetch_is_selective_and_authorization_never_fetches_mailbox_stat
             .is_ok()
     );
     assert_eq!(service.download(TOKEN, "a", "e1").unwrap(), raw);
-    assert_eq!(service.changes(TOKEN, "a", 0, 2).unwrap().len(), 2);
-    assert_eq!(service.mailbox_changes(TOKEN, "a", 0, 2).unwrap().len(), 2);
+    let history = service.history(TOKEN, "a", 0, 100).unwrap();
+    assert!(
+        history
+            .rows
+            .iter()
+            .any(|(_, entry)| entry.message() == Some("e1")),
+        "{history:?}"
+    );
     let blob = service.upload(TOKEN, "a", b"standalone content").unwrap();
     assert_eq!(
         service.download(TOKEN, "a", &blob).unwrap(),

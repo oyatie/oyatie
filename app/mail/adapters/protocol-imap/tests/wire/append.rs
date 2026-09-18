@@ -156,7 +156,7 @@ async fn append_discards_truncated_literal_without_mutation() {
 }
 
 #[tokio::test]
-async fn append_rechecks_revision_and_rejects_invalid_literal_terminators() {
+async fn append_reapplies_after_concurrent_commit_and_rejects_invalid_literal_terminators() {
     for conflict in [true, false] {
         let (service, db) = service();
         let (client, server) = tokio::io::duplex(4096);
@@ -175,7 +175,7 @@ async fn append_rechecks_revision_and_rejects_invalid_literal_terminators() {
         if conflict {
             db.execute(
                 "a",
-                0,
+                mail_api::Precondition::Observed(0),
                 vec![mail_kernel::Command::CreateMailbox {
                     name: "Concurrent".into(),
                 }],
@@ -193,21 +193,25 @@ async fn append_rechecks_revision_and_rejects_invalid_literal_terminators() {
             .await
             .unwrap();
         if conflict {
+            // The append observed the pre-literal revision; a concurrent
+            // commit re-applies it instead of failing the command.
             let mut result = String::new();
             client.read_to_string(&mut result).await.unwrap();
             assert!(
-                result.contains("b NO") && result.contains("c OK"),
+                result.contains("b OK [APPENDUID") && result.contains("c OK"),
                 "{result}"
             );
             task.await.unwrap().unwrap();
-            assert_eq!(db.account("a").unwrap().mailboxes.len(), 2);
+            let account = db.account("a").unwrap();
+            assert_eq!(account.mailboxes.len(), 2);
+            assert_eq!(account.messages.len(), 1);
         } else {
             assert_eq!(
                 task.await.unwrap().unwrap_err().kind(),
                 std::io::ErrorKind::InvalidData
             );
+            assert!(db.account("a").unwrap().messages.is_empty());
         }
-        assert!(db.account("a").unwrap().messages.is_empty());
     }
 }
 

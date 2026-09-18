@@ -165,7 +165,7 @@ async fn unauthenticate_resets_all_negotiated_extensions_and_refuses_stale_selec
         .store
         .execute(
             "a",
-            account.revision,
+            mail_api::Precondition::Observed(account.revision),
             vec![Command::Destroy {
                 id: account.messages[0].id.clone(),
             }],
@@ -213,7 +213,7 @@ async fn uidonly_uidsearch_parser_errors_precede_sequence_criterion_refusal() {
 }
 #[tokio::test]
 async fn uidonly_idle_rechecks_revocation_before_reporting_new_message_metadata() {
-    use mail_api::Store;
+    use mail_api::MetadataStore;
     use mail_kernel::Account;
     use mail_service::{MailService, OwnerPolicy};
     use mail_sqlite_store::SqliteStore;
@@ -235,7 +235,7 @@ async fn uidonly_idle_rechecks_revocation_before_reporting_new_message_metadata(
     let account = db.account("a").unwrap();
     db.execute(
         "a",
-        account.revision,
+        mail_api::Precondition::Observed(account.revision),
         vec![Command::Destroy {
             id: account.messages[0].id.clone(),
         }],

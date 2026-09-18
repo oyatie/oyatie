@@ -95,7 +95,7 @@ async fn oracle_missing_and_indexed_empty_subject_tie_in_descending_order() {
     ] {
         db.execute(
             "a",
-            db.account("a").unwrap().revision,
+            mail_api::Precondition::Observed(db.account("a").unwrap().revision),
             vec![Command::Append {
                 mailboxes: vec!["inbox".into()],
                 received_at,
