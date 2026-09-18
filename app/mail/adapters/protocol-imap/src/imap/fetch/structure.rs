@@ -1,6 +1,7 @@
 use super::{
     super::response::Output,
     envelope::{self, string},
+    md5,
 };
 use mail_parser::{ContentType, Message, MessagePart, MimeHeaders, PartType};
 
@@ -82,9 +83,12 @@ pub(super) fn write(message: &Message<'_>, index: usize, extended: bool, output:
         output.extend_from_slice(b" ");
         string(output, part.content_description());
         output.extend_from_slice(b" ");
+        // Only text parts default to 7bit; other parts without a
+        // Content-Transfer-Encoding header report NIL.
+        let text = kind.eq_ignore_ascii_case("text");
         string(
             output,
-            Some(part.content_transfer_encoding().unwrap_or("7BIT")),
+            part.content_transfer_encoding().or(text.then_some("7bit")),
         );
         let bytes = &message.raw_message[part.offset_body as usize..part.offset_end as usize];
         output.extend_from_slice(format!(" {}", bytes.len()).as_bytes());
@@ -94,16 +98,16 @@ pub(super) fn write(message: &Message<'_>, index: usize, extended: bool, output:
                 envelope::write(nested, output);
                 output.extend_from_slice(b" ");
                 write(nested, 0, extended, output);
-                output.extend_from_slice(format!(" {}", lines(bytes)).as_bytes());
+                // The embedded message's line count is not tracked; report 0.
+                output.extend_from_slice(b" 0");
             }
-            _ if kind.eq_ignore_ascii_case("text") => {
-                output.extend_from_slice(format!(" {}", lines(bytes)).as_bytes())
-            }
+            _ if text => output.extend_from_slice(format!(" {}", lines(bytes)).as_bytes()),
             _ => {}
         }
         if extended {
-            // Content-MD5 is optional in IMAP; absent digest is represented by NIL.
-            output.extend_from_slice(b" NIL");
+            // body-MD5 extension: digest of the part's raw (still encoded) body octets.
+            output.extend_from_slice(b" ");
+            string(output, Some(&md5::hex(bytes)));
             extensions(output, part);
         }
     }
@@ -161,10 +165,11 @@ fn extensions(output: &mut Output, part: &MessagePart<'_>) {
         output.extend_from_slice(b"NIL");
     }
     output.extend_from_slice(b" ");
+    // RFC 3501 body-fld-lang: a single language is a string, several a list.
     if let Some(languages) = part
         .content_language()
         .as_text_list()
-        .filter(|l| !l.is_empty())
+        .filter(|l| l.len() > 1)
     {
         output.extend_from_slice(b"(");
         for (i, language) in languages.iter().enumerate() {
@@ -174,7 +179,12 @@ fn extensions(output: &mut Output, part: &MessagePart<'_>) {
             string(output, Some(language));
         }
         output.extend_from_slice(b")");
-    } else if let Some(language) = part.content_language().as_text() {
+    } else if let Some(language) = part.content_language().as_text().or_else(|| {
+        part.content_language()
+            .as_text_list()?
+            .first()
+            .map(|l| l.as_ref())
+    }) {
         string(output, Some(language));
     } else {
         output.extend_from_slice(b"NIL");

@@ -42,11 +42,14 @@ pub(super) fn response(state: Jmap, token: &str) -> Result<Json<Value>, StatusCo
         .map_err(|_| StatusCode::SERVICE_UNAVAILABLE)?;
     Ok(Json(json!({
         "capabilities": { CORE: {"maxSizeUpload":26214400,"maxConcurrentUpload":1,"maxSizeRequest":MAX_REQUEST,"maxConcurrentRequests":4,"maxCallsInRequest":16,"maxObjectsInGet":256,"maxObjectsInSet":256,"collationAlgorithms":["i;ascii-casemap"]}, MAIL:{}, SUBMISSION:{}, VACATION:{} },
-        "accounts": { &account.id: { "name":account.address,"isPersonal":true,"isReadOnly":!write,"accountCapabilities": { MAIL: {"maxMailboxesPerEmail":null,"maxMailboxDepth":null,"maxSizeMailboxName":255,"maxSizeAttachmentsPerEmail":26214400,"emailQuerySortOptions":["receivedAt"],"mayCreateTopLevelMailbox":write}, SUBMISSION:{"maxDelayedSend":mail_service::MAX_DELAYED_SEND,"submissionExtensions":{"FUTURERELEASE":[]}}, VACATION:{} } } },
+        "accounts": { &account.id: { "name":account.address,"isPersonal":true,"isReadOnly":!write,"accountCapabilities": { MAIL: {"maxMailboxesPerEmail":null,"maxMailboxDepth":null,"maxSizeMailboxName":255,"maxSizeAttachmentsPerEmail":26214400,"emailQuerySortOptions":super::sort::PROPERTIES,"mayCreateTopLevelMailbox":write}, SUBMISSION:{"maxDelayedSend":mail_service::MAX_DELAYED_SEND,"submissionExtensions":{"FUTURERELEASE":[]}}, VACATION:{} } } },
         "primaryAccounts": {MAIL:account.id,SUBMISSION:account.id,VACATION:account.id}, "username":account.address,
         "apiUrl":format!("{}/jmap",state.base),
         "downloadUrl":format!("{}/download/{{accountId}}/{{blobId}}/{{name}}?type={{type}}",state.base),
         "uploadUrl":format!("{}/upload/{{accountId}}",state.base),
+        // RFC 8620 §2 makes eventSourceUrl a required Session member (the
+        // pinned core suite asserts it); no route serves it until EventSource
+        // lands. Session state is constant until the object itself changes.
         "eventSourceUrl":format!("{}/events?types={{types}}&closeafter={{closeafter}}&ping={{ping}}",state.base),
         "state":"1"
     })))

@@ -113,8 +113,8 @@ async fn condstore_idle_reports_one_modseq_notification_for_each_flag_change() {
         .unwrap()
         .unwrap();
     assert!(
-        notification.contains("UID 1 FLAGS (external)")
-            && notification.contains(&format!("MODSEQ ({})", state.messages[0].modseq)),
+        notification.contains("* 1 FETCH (FLAGS (external) MODSEQ (")
+            && notification.contains(&format!("MODSEQ ({}) UID 1)", state.messages[0].modseq)),
         "{notification}"
     );
     client.get_mut().write_all(b"DONE\r\n").await.unwrap();

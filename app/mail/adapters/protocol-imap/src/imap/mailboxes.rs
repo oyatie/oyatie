@@ -2,8 +2,9 @@ use base64::{Engine, engine::general_purpose::STANDARD_NO_PAD};
 
 pub(super) fn decode_command(parts: &mut [String], utf8: bool) -> Option<()> {
     let verb = parts.get(1)?.to_ascii_uppercase();
+    // LIST and LSUB decode their reference and patterns after tokenising.
     let positions: &[usize] = match verb.as_str() {
-        "LIST" | "LSUB" | "RENAME" => &[2, 3],
+        "RENAME" => &[2, 3],
         "CREATE" | "DELETE" | "SELECT" | "EXAMINE" | "STATUS" | "SUBSCRIBE" | "UNSUBSCRIBE"
         | "APPEND" => &[2],
         "COPY" | "MOVE" => &[3],
@@ -62,7 +63,7 @@ fn encode(value: &str) -> String {
     output
 }
 
-fn decode(mut input: &str) -> Option<String> {
+pub(super) fn decode(mut input: &str) -> Option<String> {
     if !input.is_ascii() {
         return None;
     }

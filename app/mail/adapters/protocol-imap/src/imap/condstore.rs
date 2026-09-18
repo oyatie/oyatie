@@ -20,12 +20,6 @@ pub(super) fn enable(
             _ => return Err("BAD"),
         }
     }
-    if parts[2..]
-        .iter()
-        .any(|v| v.eq_ignore_ascii_case("IMAP4rev2"))
-    {
-        return Err("NO");
-    }
     output.extend_from_slice(b"* ENABLED");
     for value in &parts[2..] {
         match value.to_ascii_uppercase().as_str() {
@@ -42,6 +36,13 @@ pub(super) fn enable(
             "UTF8=ACCEPT" => {
                 session.utf8 = true;
                 output.extend_from_slice(b" UTF8=ACCEPT");
+            }
+            // RFC 9051 §6.3.1: IMAP4rev2 sessions exchange UTF-8 mailbox names
+            // and decoded ENVELOPE strings; the rev2 command set beyond that is
+            // not advertised in CAPABILITY.
+            "IMAP4REV2" => {
+                session.utf8 = true;
+                output.extend_from_slice(b" IMAP4rev2");
             }
             "CONDSTORE" => {
                 session.condstore = true;

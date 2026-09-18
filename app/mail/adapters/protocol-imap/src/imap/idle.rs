@@ -3,21 +3,24 @@ use crate::wire::write;
 use mail_kernel::Error;
 use mail_service::MailService;
 use std::{collections::BTreeMap, io, sync::Arc, time::Duration};
-use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncWrite, BufReader};
 
 #[cfg(test)]
 mod tests;
+mod watch;
 
 struct State {
     session: Session,
     revision: Option<u64>,
     flags: BTreeMap<(String, u32), String>,
+    watch: watch::Watch,
 }
 
 impl State {
     fn refresh(&mut self, service: &MailService, output: &mut Output) -> Result<(), Error> {
         let session = &mut self.session;
         output.uidonly = session.uidonly;
+        output.utf8 = session.utf8;
         // The empty selection reads the durable revision without message bodies.
         // Authorization is rechecked even when the mailbox has not changed.
         let revision = service
@@ -26,12 +29,15 @@ impl State {
         if self.revision == Some(revision) {
             return Ok(());
         }
+        let account = service.read(&session.credential, &session.account_id)?;
+        // The first refresh only records the baseline; IDLE reports changes.
+        self.watch
+            .refresh(&account, self.revision.is_none(), output);
         if session.selected.is_none() {
-            self.revision = Some(revision);
+            self.revision = Some(account.revision);
             self.flags.clear();
             return Ok(());
         }
-        let account = service.read(&session.credential, &session.account_id)?;
         selected::synchronize(
             &account,
             &[String::new(), "IDLE".into()],
@@ -58,8 +64,15 @@ impl State {
                     value.push_str(&format!(" MODSEQ ({})", message.modseq));
                 }
                 if self.flags.get(&key) != Some(&value) {
-                    output.fetch_start(index + 1, *uid);
-                    output.extend_from_slice(format!(" {value})\r\n").as_bytes());
+                    // Unsolicited FETCH carries FLAGS first and UID last.
+                    if output.uidonly {
+                        output.fetch_start(index + 1, *uid);
+                        output.extend_from_slice(format!(" {value})\r\n").as_bytes());
+                    } else {
+                        output.extend_from_slice(
+                            format!("* {} FETCH ({value} UID {uid})\r\n", index + 1).as_bytes(),
+                        );
+                    }
                 }
                 flags.insert(key, value);
             }
@@ -70,27 +83,40 @@ impl State {
     }
 }
 
-// read_until is cancellation safe only if its destination survives cancellation.
+// fill_buf is cancellation safe: nothing is consumed until it has returned.
 // Keeping the partial line here preserves a fragmented DONE across refreshes.
 async fn continuation<S: AsyncRead + AsyncWrite + Unpin>(
     stream: &mut BufReader<S>,
     bytes: &mut Vec<u8>,
 ) -> io::Result<Option<bool>> {
-    let remaining = 8193_usize.saturating_sub(bytes.len());
-    let count = stream
-        .take(remaining as u64)
-        .read_until(b'\n', bytes)
-        .await?;
-    if count == 0 {
-        return Ok(None);
+    let invalid = || io::Error::new(io::ErrorKind::InvalidData, "invalid IDLE framing");
+    loop {
+        let buffer = stream.fill_buf().await?;
+        if buffer.is_empty() {
+            return Ok(None);
+        }
+        let end = buffer
+            .iter()
+            .position(|b| *b == b'\n')
+            .map_or(buffer.len(), |i| i + 1);
+        let take = end.min(8193 - bytes.len());
+        bytes.extend_from_slice(&buffer[..take]);
+        stream.consume(take);
+        if bytes.len() > 8192 {
+            return Err(invalid());
+        }
+        if bytes.ends_with(b"\n") {
+            if !bytes.ends_with(b"\r\n") {
+                return Err(invalid());
+            }
+            return Ok(Some(bytes.eq_ignore_ascii_case(b"DONE\r\n")));
+        }
+        // Stalwart accepts DONE without a line terminator when the client's
+        // write stops there; the read above drained everything available.
+        if bytes.eq_ignore_ascii_case(b"DONE") {
+            return Ok(Some(true));
+        }
     }
-    if bytes.len() > 8192 || !bytes.ends_with(b"\r\n") {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid IDLE framing",
-        ));
-    }
-    Ok(Some(bytes.eq_ignore_ascii_case(b"DONE\r\n")))
 }
 
 pub(super) async fn run<S: AsyncRead + AsyncWrite + Unpin>(
@@ -159,6 +185,7 @@ async fn active<S: AsyncRead + AsyncWrite + Unpin>(
         session: std::mem::take(session),
         revision: None,
         flags: BTreeMap::new(),
+        watch: watch::Watch::default(),
     };
     let mut input = Vec::new();
     let mut done = None;

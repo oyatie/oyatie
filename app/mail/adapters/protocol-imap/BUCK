@@ -17,16 +17,7 @@ _BINARY = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance
 _MUTATE = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/email/mutate.rs])"
 _MAILBOX = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/mailbox.rs])"
 _SEARCH = "$(location third-party//mail:stalwart-tests[tests/src/imap/search.rs])"
-_IMAP0 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/000.txt])"
-_IMAP1 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/001.txt])"
-_IMAP2 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/002.txt])"
-_IMAP3 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/003.txt])"
-_IMAP4 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/004.txt])"
-_IMAP5 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/005.txt])"
-_IMAP6 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/006.txt])"
-_IMAP7 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/007.txt])"
-_IMAP8 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/008.txt])"
-_IMAP9 = "$(location third-party//mail:stalwart-tests[tests/resources/imap/009.txt])"
+_IMAP_RES = {"STALWART_IMAP_00" + str(n): "$(location third-party//mail:stalwart-tests[tests/resources/imap/00" + str(n) + ".txt])" for n in range(10)}
 _CONDSTORE = "$(location third-party//mail:stalwart-tests[tests/src/imap/condstore.rs])"
 _APPEND = "$(location third-party//mail:stalwart-tests[tests/src/imap/append.rs])"
 _IMAP_THREAD = "$(location third-party//mail:stalwart-tests[tests/src/imap/thread.rs])"
@@ -37,6 +28,15 @@ _SNIPPET = "$(location third-party//mail:stalwart-tests[tests/src/jmap/complianc
 _POP = "$(location third-party//mail:stalwart-tests[tests/src/imap/pop.rs])"
 _SUBMISSION = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/submission.rs])"
 _VACATION = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/vacation.rs])"
+_BASIC = "$(location third-party//mail:stalwart-tests[tests/src/imap/basic.rs])"
+_STORE_SUITE = "$(location third-party//mail:stalwart-tests[tests/src/imap/store.rs])"
+_FETCH = "$(location third-party//mail:stalwart-tests[tests/src/imap/fetch.rs])"
+_COPY_MOVE = "$(location third-party//mail:stalwart-tests[tests/src/imap/copy_move.rs])"
+_IDLE = "$(location third-party//mail:stalwart-tests[tests/src/imap/idle.rs])"
+_IMAP_MAILBOX = "$(location third-party//mail:stalwart-tests[tests/src/imap/mailbox.rs])"
+_BODY_STRUCTURE = "$(location third-party//mail:stalwart-tests[tests/src/imap/body_structure.rs])"
+_EMAIL_QUERY = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/email/query.rs])"
+_TOKIO_JSON = ["third-party//:tokio", "third-party//:serde_json"]
 rust_library(
     name = "mail-protocol-imap",
     srcs = glob(["src/**/*.rs"]),
@@ -61,17 +61,6 @@ rust_test(
     crate_root = "tests/email.rs",
     visibility = ["PUBLIC"],
     deps = _MAIL + _HTTP + _PARSER,
-)
-
-rust_test(
-    name = "mail-protocol-stalwart",
-    srcs = ["tests/stalwart.rs", "tests/stalwart/client.rs", "tests/stalwart/mutation_client.rs", "tests/stalwart/fixtures.rs", "tests/stalwart/digests.rs"],
-    crate = "stalwart",
-    crate_root = "tests/stalwart.rs",
-    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
-    env = {"STALWART_THREAD_SOURCE": _THREAD, "STALWART_INSPECT_SOURCE": _INSPECT, "STALWART_CORE_SOURCE": _CORE, "STALWART_BINARY_SOURCE": _BINARY, "STALWART_MUTATE_SOURCE": _MUTATE, "STALWART_MAILBOX_SOURCE": _MAILBOX},
-    visibility = ["PUBLIC"],
-    deps = _MAIL + _HTTP + _SHA,
 )
 
 rust_test(
@@ -102,61 +91,6 @@ rust_test(
 )
 
 rust_test(
-    name = "mail-protocol-imap-stalwart",
-    srcs = ["tests/imap_stalwart.rs", "tests/stalwart/search.rs", "tests/stalwart/search_client.rs"],
-    crate = "imap_stalwart",
-    crate_root = "tests/imap_stalwart.rs",
-    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
-    env = {"STALWART_IMAP_SEARCH_SOURCE": _SEARCH, "STALWART_IMAP_000": _IMAP0, "STALWART_IMAP_001": _IMAP1, "STALWART_IMAP_002": _IMAP2, "STALWART_IMAP_003": _IMAP3, "STALWART_IMAP_004": _IMAP4, "STALWART_IMAP_005": _IMAP5, "STALWART_IMAP_006": _IMAP6, "STALWART_IMAP_007": _IMAP7, "STALWART_IMAP_008": _IMAP8, "STALWART_IMAP_009": _IMAP9},
-    visibility = ["PUBLIC"],
-    deps = _MAIL + _HTTP + _SHA,
-)
-
-rust_test(
-    name = "mail-protocol-imap-condstore",
-    srcs = ["tests/imap_condstore.rs", "tests/stalwart/condstore.rs", "tests/stalwart/condstore_client.rs", "tests/stalwart/condstore_result.rs"],
-    crate = "imap_condstore",
-    crate_root = "tests/imap_condstore.rs",
-    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
-    env = {"STALWART_IMAP_CONDSTORE_SOURCE": _CONDSTORE, "STALWART_IMAP_APPEND_SOURCE": _APPEND},
-    visibility = ["PUBLIC"],
-    deps = _MAIL + ["third-party//:tokio", "third-party//:serde_json"] + _SHA,
-)
-
-rust_test(
-    name = "mail-protocol-imap-thread",
-    srcs = ["tests/imap_thread.rs", "tests/stalwart/thread.rs", "tests/stalwart/condstore_client.rs", "tests/stalwart/condstore_result.rs"],
-    crate = "imap_thread",
-    crate_root = "tests/imap_thread.rs",
-    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
-    env = {"STALWART_IMAP_THREAD_SOURCE": _IMAP_THREAD, "STALWART_IMAP_APPEND_SOURCE": _APPEND},
-    visibility = ["PUBLIC"],
-    deps = _MAIL + ["third-party//:tokio", "third-party//:serde_json"] + _SHA,
-)
-
-rust_test(
-    name = "mail-protocol-imap-objectid",
-    srcs = ["tests/imap_objectid.rs", "tests/stalwart/condstore_client.rs", "tests/stalwart/condstore_result.rs"],
-    crate = "imap_objectid",
-    crate_root = "tests/imap_objectid.rs",
-    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
-    env = {"STALWART_IMAP_OBJECTID_SOURCE": _OBJECTID},
-    visibility = ["PUBLIC"],
-    deps = _MAIL + ["third-party//:tokio", "third-party//:serde_json"] + _SHA,
-)
-
-rust_test(
-    name = "mail-protocol-imap-uidonly",
-    srcs = ["tests/imap_uidonly.rs", "tests/stalwart/uidonly_client.rs", "tests/stalwart/uidonly_hardening.rs", "tests/stalwart/uidonly_runtime.rs", "tests/stalwart/uidonly_review.rs", "tests/stalwart/condstore_result.rs"],
-    crate = "imap_uidonly",
-    crate_root = "tests/imap_uidonly.rs",
-    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
-    env = {"STALWART_IMAP_UIDONLY_SOURCE": _UIDONLY},
-    visibility = ["PUBLIC"],
-    deps = _MAIL + ["third-party//:tokio", "third-party//:serde_json"] + _SHA,
-)
-
-rust_test(
     name = "mail-protocol-jmap-identity",
     srcs = ["tests/jmap_identity.rs"],
     crate = "jmap_identity",
@@ -175,32 +109,10 @@ rust_test(
 )
 
 rust_test(
-    name = "mail-protocol-jmap-profile-stalwart",
-    srcs = ["tests/jmap_profile_stalwart.rs", "tests/stalwart/profile_client.rs"],
-    crate = "jmap_profile_stalwart",
-    crate_root = "tests/jmap_profile_stalwart.rs",
-    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
-    env = {"STALWART_IDENTITY_SOURCE": _IDENTITY, "STALWART_SEARCH_SNIPPET_SOURCE": _SNIPPET},
-    visibility = ["PUBLIC"],
-    deps = _MAIL + _HTTP + _SHA,
-)
-
-rust_test(
     name = "mail-protocol-pop",
     srcs = glob(["tests/pop.rs", "tests/pop/**/*.rs"], exclude = ["tests/pop/oracle.rs"]),
     crate = "pop",
     crate_root = "tests/pop.rs",
-    visibility = ["PUBLIC"],
-    deps = _MAIL + _HTTP + _SHA + _B64,
-)
-
-rust_test(
-    name = "mail-protocol-pop-stalwart",
-    srcs = ["tests/pop_stalwart.rs", "tests/pop/oracle.rs"],
-    crate = "pop_stalwart",
-    crate_root = "tests/pop_stalwart.rs",
-    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
-    env = {"STALWART_POP_SOURCE": _POP},
     visibility = ["PUBLIC"],
     deps = _MAIL + _HTTP + _SHA + _B64,
 )
@@ -269,17 +181,6 @@ rust_test(
 )
 
 rust_test(
-    name = "mail-protocol-submission-stalwart",
-    srcs = ["tests/submission_stalwart.rs", "tests/stalwart/profile_client.rs", "tests/stalwart/submission_client.rs"],
-    crate = "submission_stalwart",
-    crate_root = "tests/submission_stalwart.rs",
-    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
-    env = {"STALWART_SUBMISSION_SOURCE": _SUBMISSION},
-    visibility = ["PUBLIC"],
-    deps = _MAIL + _HTTP + _SHA + _SQL + _PARSER,
-)
-
-rust_test(
     name = "mail-protocol-jmap-vacation",
     srcs = ["tests/jmap_vacation.rs"],
     crate = "jmap_vacation",
@@ -288,13 +189,46 @@ rust_test(
     deps = _MAIL + _HTTP + _SHA,
 )
 
+# Pinned upstream oracles: Buck supplies the unchanged Stalwart sources through
+# `$(location ...)` and turns on the `upstream-tests` cfg; cargo never runs
+# them. Each harness pins its source sha256 and prints per-predicate JSON.
+_ORACLES = [
+    ("mail-protocol-stalwart", "stalwart", ["tests/stalwart.rs", "tests/stalwart/client.rs", "tests/stalwart/mutation_client.rs", "tests/stalwart/fixtures.rs", "tests/stalwart/digests.rs"], {"STALWART_THREAD_SOURCE": _THREAD, "STALWART_INSPECT_SOURCE": _INSPECT, "STALWART_CORE_SOURCE": _CORE, "STALWART_BINARY_SOURCE": _BINARY, "STALWART_MUTATE_SOURCE": _MUTATE, "STALWART_MAILBOX_SOURCE": _MAILBOX}, _MAIL + _HTTP + _SHA),
+    ("mail-protocol-imap-stalwart", "imap_stalwart", ["tests/imap_stalwart.rs", "tests/stalwart/search.rs", "tests/stalwart/search_client.rs"], dict(_IMAP_RES, STALWART_IMAP_SEARCH_SOURCE = _SEARCH), _MAIL + _HTTP + _SHA),
+    ("mail-protocol-imap-condstore", "imap_condstore", ["tests/imap_condstore.rs", "tests/stalwart/condstore.rs", "tests/stalwart/condstore_client.rs", "tests/stalwart/condstore_result.rs"], {"STALWART_IMAP_CONDSTORE_SOURCE": _CONDSTORE, "STALWART_IMAP_APPEND_SOURCE": _APPEND}, _MAIL + _TOKIO_JSON + _SHA),
+    ("mail-protocol-imap-thread", "imap_thread", ["tests/imap_thread.rs", "tests/stalwart/thread.rs", "tests/stalwart/condstore_client.rs", "tests/stalwart/condstore_result.rs"], {"STALWART_IMAP_THREAD_SOURCE": _IMAP_THREAD, "STALWART_IMAP_APPEND_SOURCE": _APPEND}, _MAIL + _TOKIO_JSON + _SHA),
+    ("mail-protocol-imap-objectid", "imap_objectid", ["tests/imap_objectid.rs", "tests/stalwart/condstore_client.rs", "tests/stalwart/condstore_result.rs"], {"STALWART_IMAP_OBJECTID_SOURCE": _OBJECTID}, _MAIL + _TOKIO_JSON + _SHA),
+    ("mail-protocol-imap-uidonly", "imap_uidonly", ["tests/imap_uidonly.rs", "tests/stalwart/uidonly_client.rs", "tests/stalwart/uidonly_hardening.rs", "tests/stalwart/uidonly_runtime.rs", "tests/stalwart/uidonly_review.rs", "tests/stalwart/condstore_result.rs"], {"STALWART_IMAP_UIDONLY_SOURCE": _UIDONLY}, _MAIL + _TOKIO_JSON + _SHA),
+    ("mail-protocol-jmap-profile-stalwart", "jmap_profile_stalwart", ["tests/jmap_profile_stalwart.rs", "tests/stalwart/profile_client.rs"], {"STALWART_IDENTITY_SOURCE": _IDENTITY, "STALWART_SEARCH_SNIPPET_SOURCE": _SNIPPET}, _MAIL + _HTTP + _SHA),
+    ("mail-protocol-pop-stalwart", "pop_stalwart", ["tests/pop_stalwart.rs", "tests/pop/oracle.rs"], {"STALWART_POP_SOURCE": _POP}, _MAIL + _HTTP + _SHA + _B64),
+    ("mail-protocol-submission-stalwart", "submission_stalwart", ["tests/submission_stalwart.rs", "tests/stalwart/profile_client.rs", "tests/stalwart/submission_client.rs"], {"STALWART_SUBMISSION_SOURCE": _SUBMISSION}, _MAIL + _HTTP + _SHA + _SQL + _PARSER),
+    ("mail-protocol-jmap-vacation-stalwart", "jmap_vacation_stalwart", ["tests/jmap_vacation_stalwart.rs", "tests/stalwart/profile_client.rs", "tests/stalwart/submission_client.rs"], {"STALWART_VACATION_SOURCE": _VACATION}, _MAIL + _HTTP + _SHA),
+    ("mail-protocol-imap-core-stalwart", "imap_core_stalwart", ["tests/imap_core_stalwart.rs", "tests/stalwart/core_client.rs", "tests/stalwart/core_result.rs", "tests/stalwart/core_fixture.rs", "tests/stalwart/core_tests.rs"], {"STALWART_IMAP_APPEND_SOURCE": _APPEND, "STALWART_IMAP_BASIC_SOURCE": _BASIC, "STALWART_IMAP_STORE_SOURCE": _STORE_SUITE, "STALWART_IMAP_FETCH_SOURCE": _FETCH, "STALWART_IMAP_COPY_MOVE_SOURCE": _COPY_MOVE, "STALWART_IMAP_IDLE_SOURCE": _IDLE, "STALWART_IMAP_MAILBOX_SOURCE": _IMAP_MAILBOX}, _MAIL + _TOKIO_JSON + _SHA + _PARSER),
+    ("mail-protocol-imap-structure-stalwart", "imap_structure_stalwart", ["tests/imap_structure_stalwart.rs", "tests/stalwart/structure_shim.rs"], {"STALWART_IMAP_BODY_STRUCTURE_SOURCE": _BODY_STRUCTURE}, _MAIL + _TOKIO_JSON + _SHA + _PARSER),
+    ("mail-protocol-jmap-query-stalwart", "jmap_query_stalwart", ["tests/jmap_query_stalwart.rs", "tests/stalwart/client.rs", "tests/stalwart/query_seed.rs", "tests/stalwart/query_builders.rs", "tests/stalwart/query_corpus.rs", "tests/stalwart/query_corpus_tail.rs", "tests/stalwart/query_clock.rs"], {"STALWART_EMAIL_QUERY_SOURCE": _EMAIL_QUERY}, _MAIL + _HTTP + _SHA + _B64),
+]
+
+[
+    rust_test(
+        name = name,
+        srcs = srcs,
+        crate = crate,
+        crate_root = "tests/" + crate + ".rs",
+        rustc_flags = ["--cfg=feature=\"upstream-tests\""],
+        env = env,
+        visibility = ["PUBLIC"],
+        deps = deps,
+    )
+    for name, crate, srcs, env, deps in _ORACLES
+]
+
+# Cargo-visible matrix (the merge verdict runs it). Proof files are included
+# with include_str! so every row names a test function that exists.
 rust_test(
-    name = "mail-protocol-jmap-vacation-stalwart",
-    srcs = ["tests/jmap_vacation_stalwart.rs", "tests/stalwart/profile_client.rs", "tests/stalwart/submission_client.rs"],
-    crate = "jmap_vacation_stalwart",
-    crate_root = "tests/jmap_vacation_stalwart.rs",
-    rustc_flags = ["--cfg=feature=\"upstream-tests\""],
-    env = {"STALWART_VACATION_SOURCE": _VACATION},
+    name = "mail-protocol-capability-matrix",
+    srcs = ["tests/capability_matrix.rs", "tests/capability_matrix/rows.rs", "tests/capability_matrix/imap_modes.rs", "tests/capability_matrix/jmap.rs", "tests/stalwart/core_tests.rs", "tests/stalwart/condstore.rs", "tests/stalwart/thread.rs", "tests/stalwart/search.rs", "tests/stalwart/uidonly_runtime.rs", "tests/stalwart.rs", "tests/imap_uidonly.rs", "tests/imap_objectid.rs", "tests/imap_structure_stalwart.rs", "tests/jmap_query_stalwart.rs", "tests/submission_stalwart.rs", "tests/jmap_vacation_stalwart.rs", "tests/wire.rs", "tests/wire/mailbox_encoding.rs", "tests/wire/fetch_extensions.rs", "tests/wire/sort.rs", "tests/wire/idle.rs", "tests/wire/literals.rs", "tests/wire/session.rs", "tests/wire/multiappend.rs", "tests/wire/thread.rs", "tests/wire/authenticate.rs", "tests/wire/starttls.rs"],
+    crate = "capability_matrix",
+    crate_root = "tests/capability_matrix.rs",
     visibility = ["PUBLIC"],
-    deps = _MAIL + _HTTP + _SHA,
+    deps = _MAIL + _HTTP,
 )

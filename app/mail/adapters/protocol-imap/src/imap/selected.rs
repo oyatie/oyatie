@@ -16,14 +16,16 @@ pub(super) fn selected_command(
 
     let uid = verb == "UID";
     let offset = if uid { 3 } else { 2 };
-    if parts.len() <= offset {
-        return Err("BAD");
-    }
     let operation = if uid {
-        parts[2].to_ascii_uppercase()
+        parts.get(2).ok_or("BAD")?.to_ascii_uppercase()
     } else {
         verb
     };
+    // A bare `UID EXPUNGE` addresses every message, like Stalwart.
+    let bare_expunge = uid && operation == "EXPUNGE" && parts.len() == offset;
+    if parts.len() <= offset && !bare_expunge {
+        return Err("BAD");
+    }
     let mailbox = &selected.mailbox;
     let by_id: std::collections::BTreeMap<_, _> = account
         .messages
@@ -49,9 +51,11 @@ pub(super) fn selected_command(
     } else {
         selected.ids.len() as u32
     };
-    let saved = parts[offset] == "$";
+    let saved = !bare_expunge && parts[offset] == "$";
     let set = if saved {
         vec![]
+    } else if bare_expunge {
+        vec![(1, u32::MAX)]
     } else {
         sequence_set(&parts[offset], largest).ok_or("BAD")?
     };
@@ -75,7 +79,7 @@ pub(super) fn selected_command(
         })
         .collect();
     if operation == "EXPUNGE" && uid {
-        if parts.len() != offset + 1 || selected.readonly {
+        if parts.len() > offset + 1 || selected.readonly {
             return Err("NO");
         }
         let commands = chosen

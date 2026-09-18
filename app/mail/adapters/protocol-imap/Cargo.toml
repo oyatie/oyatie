@@ -29,5 +29,18 @@ mail-sqlite-store = { path = "../sqlite-store" }
 tower.workspace = true
 http-body-util.workspace = true
 
+# Pinned upstream oracles compile only when Buck supplies the sources.
+[[test]]
+name = "imap_core_stalwart"
+required-features = ["upstream-tests"]
+
+[[test]]
+name = "imap_structure_stalwart"
+required-features = ["upstream-tests"]
+
+[[test]]
+name = "jmap_query_stalwart"
+required-features = ["upstream-tests"]
+
 [lints]
 workspace = true

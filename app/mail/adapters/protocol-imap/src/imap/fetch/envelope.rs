@@ -43,7 +43,13 @@ pub(super) fn string(output: &mut Output, value: Option<&str>) {
 
 pub(super) fn write(message: &Message<'_>, output: &mut Output) {
     output.extend_from_slice(b"(");
-    let date = message.header_raw(HeaderName::Date).map(unfold);
+    // A parseable Date is re-rendered as RFC 5322 (the header's own weekday
+    // may be wrong); an unparseable one is echoed unfolded.
+    let date = message
+        .date()
+        .filter(|date| date.is_valid())
+        .map(mail_parser::DateTime::to_rfc822)
+        .or_else(|| message.header_raw(HeaderName::Date).map(unfold));
     string(output, date.as_deref());
     output.extend_from_slice(b" ");
     string(output, message.subject());
