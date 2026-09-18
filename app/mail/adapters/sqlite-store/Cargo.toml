@@ -16,5 +16,11 @@ sha2.workspace = true
 mail-parser = { version = "=0.11.9", features = ["full_encoding"] }
 mail-builder = { version = "=1.0.0", default-features = false }
 
+[features]
+contract = []
+
+[dev-dependencies]
+mail-sqlite-store = { path = ".", features = ["contract"] }
+
 [lints]
 workspace = true

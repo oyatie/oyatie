@@ -1,9 +1,9 @@
 use super::{storage, submission};
 use mail_kernel::{Account, Error};
-use rusqlite::{Transaction, params};
+use rusqlite::{Connection, params};
 
 pub(super) fn maybe_reply(
-    tx: &Transaction<'_>,
+    tx: &Connection,
     account: &Account,
     received_at: i64,
     raw: &[u8],

@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
 
-use mail_kernel::{Account, Command, Error};
+use mail_kernel::{Account, Command, Error, HistoryEntry};
 mod queue;
 mod submission;
 mod submission_store;
@@ -25,6 +25,62 @@ pub struct AccountInfo {
 pub struct MessageSelection {
     pub revision: u64,
     pub messages: Vec<mail_kernel::Message>,
+}
+
+/// One key-only range read over a mailbox: `(uid, id)` in UID order plus the
+/// mailbox record's counters and watermarks at the same snapshot.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct MailboxSelection {
+    pub revision: u64,
+    pub uid_validity: u32,
+    pub uid_next: u32,
+    pub highest_modseq: u64,
+    pub uids: Vec<(u32, String)>,
+}
+
+/// How a mutation relates to the revision its caller observed.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Precondition {
+    /// Re-apply on the current state when another writer got there first;
+    /// a re-applied removal of a record that no longer exists is a no-op.
+    Observed(u64),
+    /// Client-conditional (`UNCHANGEDSINCE`, `ifInState`): `Conflict` on mismatch.
+    Require(u64),
+}
+
+/// Result of one committed batch: the new revision, created record ids in
+/// creation order and `(mailbox, uid)` allocations in append order.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Execution {
+    pub revision: u64,
+    pub ids: Vec<String>,
+    pub allocations: Vec<(String, u32)>,
+}
+
+/// History rows in `(since, revision]`, whole revisions only. When `since`
+/// is below `floor` the rows are empty and callers fall back per protocol
+/// (RFC 7162 §3.2.5.2; JMAP `cannotCalculateChanges`).
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct HistoryPage {
+    pub since: u64,
+    pub revision: u64,
+    pub floor: u64,
+    pub has_more: bool,
+    pub rows: Vec<(u64, HistoryEntry)>,
+}
+impl HistoryPage {
+    pub fn below_floor(&self) -> bool {
+        self.since < self.floor
+    }
+}
+
+/// Before/after pair of one record inside one committed revision.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Change<T> {
+    pub revision: u64,
+    pub id: String,
+    pub before: Option<T>,
+    pub after: Option<T>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -58,19 +114,32 @@ pub trait Policy: Send + Sync {
     ) -> Result<(), Error>;
 }
 
-/// Atomic revision checking prevents concurrent protocol sessions losing writes.
-/// Each account commits independently with its event outbox.
-pub trait Store: SubmissionStore {
+/// Account, mailbox and message records with per-account revisions. The
+/// kernel owns every rule; the adapter loads the bounded working set a batch
+/// needs, persists its effects in one transaction and allocates under them.
+pub trait MetadataStore: Send + Sync {
     fn account_info(&self, id: &str) -> Result<AccountInfo, Error>;
-    /// Metadata only; message content is fetched independently through `blob`.
+    /// Full projection: account, mailbox and every message record. Bodies are
+    /// fetched independently through `blob`.
     fn account(&self, id: &str) -> Result<Account, Error>;
-    /// Read at most 256 selected message metadata records and their account
-    /// revision in one consistent snapshot. Missing IDs are omitted.
+    /// At most 256 message records and the account revision in one snapshot.
+    /// Missing ids are omitted; cost is bounded by the selection, not the account.
     fn messages(&self, account: &str, ids: &[String]) -> Result<MessageSelection, Error>;
+    /// Sequence↔UID map of one mailbox from a single key-only range read.
+    fn mailbox_uids(&self, account: &str, mailbox: &str) -> Result<MailboxSelection, Error>;
     fn resolve(&self, address: &str) -> Result<String, Error>;
-    fn execute(&self, id: &str, revision: u64, commands: Vec<Command>) -> Result<Account, Error>;
-    /// A delivery key is bound to the content and timestamp. Replaying a committed
-    /// key does not append again, even after the original email was deleted.
+    /// One atomic batch. Conflict retry is the adapter's; only `Require`
+    /// surfaces `Conflict`. `Busy` is retryable by the caller within its deadline.
+    fn execute(
+        &self,
+        id: &str,
+        precondition: Precondition,
+        commands: Vec<Command>,
+    ) -> Result<Execution, Error>;
+    /// A delivery key is bound to the content and timestamp. Replaying a
+    /// committed key does not append again, even after the email was deleted.
+    /// An exact Message-ID/References match already in the target mailbox or
+    /// Junk is suppressed as a duplicate.
     fn deliver_once(
         &self,
         account: &str,
@@ -82,40 +151,37 @@ pub trait Store: SubmissionStore {
     /// least 24 hours after upload or copy. Message blobs live with the message.
     fn put_blob(&self, account: &str, raw: &[u8]) -> Result<String, Error>;
     fn blob(&self, account: &str, id: &str) -> Result<Vec<u8>, Error>;
-    /// Returns only committed metadata changes in (since, until]. A gap or an
-    /// unrecognized state is Conflict, never a successful incomplete history.
-    fn message_changes(
+    /// History rows after `since`, at most `limit` rows without splitting a
+    /// revision. Cost is proportional to the changes since, never the account.
+    fn history(&self, account: &str, since: u64, limit: usize) -> Result<HistoryPage, Error>;
+    /// Advance `history_floor` under the policy, never above the lowest cursor
+    /// of an enabled consumer; a held account is `retention-blocked`.
+    fn compact_history(
         &self,
         account: &str,
-        since: u64,
-        until: u64,
-    ) -> Result<Vec<MessageChange>, Error>;
-    /// Committed message changes after a numeric revision threshold. Unlike
-    /// exact-state changes, the threshold may fall inside an atomic batch;
-    /// that batch is included whole. Missing retained history is Conflict.
-    fn message_changes_after(
-        &self,
-        account: &str,
-        since: u64,
-        until: u64,
-    ) -> Result<Vec<MessageChange>, Error>;
-    fn mailbox_changes(
-        &self,
-        account: &str,
-        since: u64,
-        until: u64,
-    ) -> Result<Vec<MailboxChange>, Error>;
+        now: i64,
+        policy: mail_kernel::RetentionPolicy,
+        cursors: &[(Consumer, u64)],
+    ) -> Result<mail_kernel::Retention, Error>;
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Change<T> {
-    pub revision: u64,
-    pub id: String,
-    pub before: Option<T>,
-    pub after: Option<T>,
+/// `ChangeFeed` consumers are compiled in; a cell enables a subset by
+/// configuration. An enabled consumer's cursor bounds history compaction.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Consumer {
+    FoundryRecords,
 }
-pub type MessageChange = Change<mail_kernel::MessageState>;
-pub type MailboxChange = Change<mail_kernel::MailboxState>;
+impl Consumer {
+    pub const ALL: [Consumer; 1] = [Consumer::FoundryRecords];
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::FoundryRecords => "foundry-records",
+        }
+    }
+}
+
+pub trait Store: MetadataStore + SubmissionStore {}
+impl<T: MetadataStore + SubmissionStore + ?Sized> Store for T {}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Event {

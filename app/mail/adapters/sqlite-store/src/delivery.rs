@@ -1,8 +1,29 @@
-use super::{SqliteStore, content, load, save, storage};
+use super::{SqliteStore, mutation, storage, threads};
+use mail_api::Precondition;
 use mail_kernel::{Command, Error, MAX_MESSAGE_BYTES};
-use rusqlite::{OptionalExtension, TransactionBehavior, params};
+use rusqlite::{Connection, OptionalExtension, TransactionBehavior, params};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
+
+/// Append an SMTP-sourced message to INBOX unless an exact Message-ID /
+/// References-set match is already linked to INBOX or Junk.
+fn ingest(db: &Connection, id: &str, raw: &[u8], received_at: i64) -> Result<(), Error> {
+    let commands = vec![Command::Append {
+        mailboxes: vec!["inbox".into()],
+        raw: raw.to_vec(),
+        keywords: vec![],
+        received_at,
+    }];
+    let (mut batch, _) = mutation::Batch::open(db, id, Precondition::Observed(0), &commands)?;
+    let refs = threads::references(raw)?;
+    if !threads::duplicate(db, &batch.account, "inbox", &refs)? {
+        for command in commands {
+            batch.apply(db, command)?;
+        }
+    }
+    let (_, account) = batch.commit(db)?;
+    super::vacation::maybe_reply(db, &account, received_at, raw)
+}
 
 pub(super) fn once(
     store: &SqliteStore,
@@ -40,19 +61,7 @@ pub(super) fn once(
             Err(Error::Conflict)
         };
     }
-    let mut account = load(&tx, id)?;
-    content::apply(
-        &tx,
-        &mut account,
-        Command::Append {
-            mailboxes: vec!["inbox".into()],
-            raw: raw.to_vec(),
-            keywords: vec![],
-            received_at,
-        },
-    )?;
-    save(&tx, &mut account)?;
-    super::vacation::maybe_reply(&tx, &account, received_at, raw)?;
+    ingest(&tx, id, raw, received_at)?;
     tx.execute(
         "INSERT INTO delivery_receipts(account,id,digest) VALUES(?1,?2,?3)",
         params![id, key, digest.as_slice()],
@@ -83,26 +92,14 @@ impl SqliteStore {
                 .ok_or(Error::NotFound)?;
             ids.insert(id);
         }
+        let received_at = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(|_| Error::Unavailable)?
+            .as_secs()
+            .try_into()
+            .map_err(|_| Error::Unavailable)?;
         for id in ids {
-            let mut account = load(&transaction, &id)?;
-            let received_at = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map_err(|_| Error::Unavailable)?
-                .as_secs()
-                .try_into()
-                .map_err(|_| Error::Unavailable)?;
-            content::apply(
-                &transaction,
-                &mut account,
-                Command::Append {
-                    mailboxes: vec!["inbox".into()],
-                    received_at,
-                    raw: raw.to_vec(),
-                    keywords: vec![],
-                },
-            )?;
-            save(&transaction, &mut account)?;
-            super::vacation::maybe_reply(&transaction, &account, received_at, raw)?;
+            ingest(&transaction, &id, raw, received_at)?;
         }
         transaction.commit().map_err(storage)
     }

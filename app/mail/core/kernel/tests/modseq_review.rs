@@ -1,4 +1,7 @@
-use mail_kernel::{Account, Command, MailboxProperties};
+//! Pairwise review: after any two commands, every message's MODSEQ is the
+//! revision of the batch that last changed it, counters equal a recount of the
+//! working set, and a failed command leaves the aggregate untouched.
+use mail_kernel::{Account, Command, MailboxProperties, Scope};
 use std::collections::BTreeMap;
 
 fn append() -> Command {
@@ -9,10 +12,32 @@ fn append() -> Command {
         keywords: vec![],
     }
 }
+
+fn recount(account: &Account) {
+    let mut used = 0;
+    let mut totals: BTreeMap<&str, (usize, usize, usize)> = BTreeMap::new();
+    for message in &account.messages {
+        used += message.size;
+        for mailbox in message.mailboxes.keys() {
+            let entry = totals.entry(mailbox).or_default();
+            entry.0 += 1;
+            entry.1 += usize::from(!message.seen());
+            entry.2 += message.size;
+        }
+    }
+    assert_eq!(account.used_bytes, used);
+    for mailbox in &account.mailboxes {
+        let (total, unread, size) = totals.get(mailbox.id.as_str()).copied().unwrap_or_default();
+        assert_eq!(mailbox.total_emails, total, "{}", mailbox.id);
+        assert_eq!(mailbox.unread_emails, unread, "{}", mailbox.id);
+        assert_eq!(mailbox.size_bytes, size, "{}", mailbox.id);
+    }
+}
+
 #[test]
 fn message_state_changes_and_failures_preserve_modseq_invariants() {
     let mut initial = Account::new("a", "t", "alice", "alice@example.org").unwrap();
-    initial.apply(append()).unwrap();
+    initial.execute(vec![append()]).unwrap();
     let id = initial.messages[0].id.clone();
     let commands = || {
         vec![
@@ -70,10 +95,12 @@ fn message_state_changes_and_failures_preserve_modseq_invariants() {
             let mut account = initial.clone();
             for command in [first, second] {
                 let before = account.clone();
-                if account.apply(commands().remove(command)).is_err() {
+                let Ok(effects) = account.execute(vec![commands().remove(command)]) else {
                     assert_eq!(account, before);
                     continue;
-                }
+                };
+                recount(&account);
+                assert_eq!(effects.revision, account.revision);
                 let old = before
                     .messages
                     .iter()
@@ -93,61 +120,81 @@ fn message_state_changes_and_failures_preserve_modseq_invariants() {
                     assert_eq!(
                         message.modseq,
                         if modified {
-                            account.revision + 1
+                            account.revision
                         } else {
                             prior.unwrap().modseq
                         }
                     );
                     assert!(message.modseq <= account.mail_modseq);
                 }
+                assert_eq!(changed, effects.mail_changed);
                 assert_eq!(
                     account.mail_modseq,
                     if changed {
-                        account.revision + 1
+                        account.revision
                     } else {
                         before.mail_modseq
                     }
                 );
+                for mailbox in &account.mailboxes {
+                    let touched = effects.history.iter().any(|e| match e {
+                        mail_kernel::HistoryEntry::Added { mailbox: m, .. }
+                        | mail_kernel::HistoryEntry::Removed { mailbox: m, .. } => *m == mailbox.id,
+                        mail_kernel::HistoryEntry::Flags { id }
+                        | mail_kernel::HistoryEntry::Thread { id } => account
+                            .messages
+                            .iter()
+                            .any(|m| m.id == *id && m.mailboxes.contains_key(&mailbox.id)),
+                        mail_kernel::HistoryEntry::Mailbox { .. } => false,
+                    });
+                    if touched {
+                        assert_eq!(mailbox.highest_modseq, account.revision);
+                    }
+                }
             }
         }
     }
 }
 
 #[test]
-fn legacy_missing_watermark_is_distinguished_from_malformed_present_watermark() {
-    let original = Account::new("a", "t", "alice", "alice@example.org").unwrap();
-    let mut json = serde_json::to_value(&original).unwrap();
-    json.as_object_mut().unwrap().remove("mail_modseq");
+fn scopes_name_exactly_the_records_a_command_reads() {
+    assert_eq!(append().scope(), Scope::None);
     assert_eq!(
-        serde_json::from_value::<Account>(json.clone())
-            .unwrap()
-            .mail_modseq,
-        0
+        Command::Destroy { id: "e1".into() }.scope(),
+        Scope::Message("e1")
     );
-    for invalid in [
-        serde_json::Value::Null,
-        serde_json::json!("0"),
-        serde_json::json!(-1),
-    ] {
-        json["mail_modseq"] = invalid;
-        assert!(
-            serde_json::from_value::<Account>(json.clone()).is_err(),
-            "explicit malformed watermark accepted: {json}"
-        );
-    }
+    assert_eq!(
+        Command::Expunge {
+            mailbox: "inbox".into()
+        }
+        .scope(),
+        Scope::Flagged("inbox", "$deleted")
+    );
+    assert_eq!(
+        Command::RemoveMailbox {
+            id: "m1".into(),
+            remove_emails: true
+        }
+        .scope(),
+        Scope::Mailbox("m1")
+    );
+    assert_eq!(
+        Command::RemoveMailbox {
+            id: "m1".into(),
+            remove_emails: false
+        }
+        .scope(),
+        Scope::None
+    );
 }
 
 #[test]
-fn final_commit_stamp_overflow_is_atomic_even_after_valid_message_edits() {
-    let mut before = Account::new("a", "t", "alice", "alice@example.org").unwrap();
-    before.apply(append()).unwrap();
-    let mut candidate = before.clone();
-    candidate.messages[0].keywords.push("$seen".into());
-    candidate.revision = u64::MAX;
-    let unchanged = candidate.clone();
-    assert_eq!(
-        candidate.complete_batch(&before),
-        Err(mail_kernel::Error::OverQuota)
-    );
-    assert_eq!(candidate, unchanged);
+fn commit_refuses_a_foreign_or_rewound_baseline() {
+    let mut account = Account::new("a", "t", "alice", "alice@example.org").unwrap();
+    account.execute(vec![append()]).unwrap();
+    let mut other = Account::new("b", "t", "alice", "b@example.org").unwrap();
+    assert_eq!(other.commit(&account), Err(mail_kernel::Error::Conflict));
+    let mut rewound = account.clone();
+    rewound.revision = 0;
+    assert_eq!(rewound.commit(&account), Err(mail_kernel::Error::Conflict));
 }

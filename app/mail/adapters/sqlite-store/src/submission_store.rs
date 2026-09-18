@@ -80,25 +80,24 @@ impl SubmissionStore for SqliteStore {
         if history::revision(&tx, account)? != revision {
             return Err(Error::Conflict);
         }
-        let indexed_revision = super::metadata::revision(&tx, account)?;
-        let email_revision = match indexed_revision {
-            Some(revision) => revision,
-            None => tx
-                .query_row(
-                    "SELECT json_extract(state,'$.revision') FROM accounts WHERE id=?1",
-                    [account],
-                    |r| r.get::<_, u64>(0),
-                )
-                .map_err(storage)?,
-        };
+        let email_revision: u64 = tx
+            .query_row(
+                "SELECT revision FROM accounts WHERE id=?1",
+                [account],
+                |r| r.get(0),
+            )
+            .map_err(storage)?;
         if email_revision != acceptance.email_revision {
             return Err(Error::Conflict);
         }
-        let thread: Option<String> = if indexed_revision == Some(email_revision) {
-            tx.query_row("SELECT coalesce(json_extract(state,'$.thread'),id) FROM message_metadata WHERE account=?1 AND id=?2", params![account,record.email_id], |r| r.get(0)).optional().map_err(storage)?
-        } else {
-            tx.query_row("SELECT coalesce(json_extract(value,'$.thread'),json_extract(value,'$.id')) FROM accounts,json_each(state,'$.messages') WHERE accounts.id=?1 AND json_extract(value,'$.id')=?2", params![account,record.email_id], |r| r.get(0)).optional().map_err(storage)?
-        };
+        let thread: Option<String> = tx
+            .query_row(
+                "SELECT thread FROM messages WHERE account=?1 AND id=?2",
+                params![account, record.email_id],
+                |r| r.get(0),
+            )
+            .optional()
+            .map_err(storage)?;
         record.thread_id = thread.ok_or(Error::NotFound)?;
         let current: usize = tx.query_row("SELECT count(*) FROM submission_versions WHERE account=?1 AND until_revision IS NULL AND state IS NOT NULL", [account], |r| r.get(0)).map_err(storage)?;
         if current >= 10000 {
