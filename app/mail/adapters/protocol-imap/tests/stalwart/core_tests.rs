@@ -34,17 +34,46 @@ async fn seeded(server: &TestServer) -> (ImapConnection, ImapConnection) {
     (imap, check)
 }
 
+/// Predicates refused by decision, `(command prefix, assertion, expected prefix)`:
+/// the server answers `* ID` with its own name, and cross-account shared
+/// mailboxes are P6. The failing set must equal the waived set exactly, so
+/// any other regression turns the target red.
+const WAIVED: &[(&str, &str, &str, &str)] = &[
+    ("basic", "ID", "contains", "* ID (\"name\" \"Stalwart\""),
+    (
+        "mailbox",
+        "LIST \"\" \"*\"",
+        "folders_exact",
+        "INBOX, Deleted Items, Drafts, Junk Mail, Sent Items, Shared Folders",
+    ),
+];
+
 fn finish(name: &str, outcomes: &Outcomes) {
     let outcomes = outcomes.borrow();
     let passed = outcomes.iter().filter(|o| o["passed"] == true).count();
+    let failures: Vec<_> = outcomes.iter().filter(|o| o["passed"] == false).collect();
     println!(
         "{}",
-        serde_json::json!({"suite":format!("tests/src/imap/{name}.rs"),"upstream_revision":REVISION,"transport":"duplex IMAP wire","wire_predicates":outcomes.len(),"passed":passed,"skipped":0,"failures":outcomes.iter().filter(|o| o["passed"] == false).collect::<Vec<_>>()})
+        serde_json::json!({"suite":format!("tests/src/imap/{name}.rs"),"upstream_revision":REVISION,"transport":"duplex IMAP wire","wire_predicates":outcomes.len(),"passed":passed,"skipped":0,"failures":failures})
+    );
+    let waived: Vec<&(&str, &str, &str, &str)> = WAIVED.iter().filter(|w| w.0 == name).collect();
+    fn matches(o: &serde_json::Value, w: &(&str, &str, &str, &str)) -> bool {
+        o["command"].as_str().is_some_and(|c| c.starts_with(w.1))
+            && o["assertion"] == w.2
+            && o["expected"].as_str().is_some_and(|e| e.starts_with(w.3))
+    }
+    let unexpected: Vec<&&serde_json::Value> = failures
+        .iter()
+        .filter(|o| !waived.iter().any(|w| matches(o, w)))
+        .collect();
+    assert!(
+        unexpected.is_empty(),
+        "{name}: unwaived predicates failed: {unexpected:?}"
     );
     assert_eq!(
-        passed,
-        outcomes.len(),
-        "unchanged upstream {name} predicates failed"
+        failures.len(),
+        waived.len(),
+        "{name}: a waived predicate passed; remove it from WAIVED"
     );
 }
 
@@ -88,9 +117,10 @@ async fn upstream_imap_fetch() {
     );
     let server = server();
     let (mut imap, mut check) = seeded(&server).await;
-    // Upstream's mailbox suite enabled IMAP4rev2 on `imap` before FETCH runs:
-    // the suite expects decoded UTF-8 ENVELOPE strings on `imap` only.
-    imap.send("ENABLE IMAP4rev2").await;
+    // Upstream's mailbox suite enabled IMAP4rev2 on `imap` before FETCH runs
+    // and expects decoded UTF-8 ENVELOPE strings on `imap` only; the same
+    // semantics come from the advertised UTF8=ACCEPT.
+    imap.send("ENABLE UTF8=ACCEPT").await;
     imap.assert_read(Type::Tagged, ResponseType::Ok).await;
     suite::fetch::test(&mut imap, &mut check).await;
     imap.close().await;

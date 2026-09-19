@@ -81,7 +81,7 @@ fn addresses(output: &mut Output, value: Option<&Address<'_>>) {
     output.extend_from_slice(b"(");
     match value {
         Address::List(list) => {
-            for address in list {
+            for address in list.iter().filter(|a| spec(a)) {
                 addr(output, address);
             }
         }
@@ -92,7 +92,7 @@ fn addresses(output: &mut Output, value: Option<&Address<'_>>) {
                     string(output, group.name.as_deref());
                     output.extend_from_slice(b" NIL)");
                 }
-                for address in &group.addresses {
+                for address in group.addresses.iter().filter(|a| spec(a)) {
                     addr(output, address);
                 }
                 if group.name.is_some() {
@@ -104,10 +104,20 @@ fn addresses(output: &mut Output, value: Option<&Address<'_>>) {
     output.extend_from_slice(b")");
 }
 
+/// An address with a display name and no addr-spec (a comment-only or bare
+/// phrase field) is not an address: RFC 3501 §7.4.2 reserves `NIL` mailbox
+/// and host for group markers, so such entries are skipped and a list left
+/// with nothing renders `NIL`.
+fn spec(address: &Addr<'_>) -> bool {
+    address.address.is_some()
+}
+
 fn present(address: &Address<'_>) -> bool {
     match address {
-        Address::List(list) => !list.is_empty(),
-        Address::Group(groups) => !groups.is_empty(),
+        Address::List(list) => list.iter().any(spec),
+        Address::Group(groups) => groups
+            .iter()
+            .any(|g| g.name.is_some() || g.addresses.iter().any(spec)),
     }
 }
 

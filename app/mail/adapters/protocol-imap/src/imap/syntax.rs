@@ -124,8 +124,10 @@ pub(super) fn command_parts(value: &str) -> Option<Vec<String>> {
             return Some(prefix);
         }
         // LIST keeps its whole argument list: selection options, patterns and
-        // return options are tokenised by the list module.
-        if prefix.len() == 2 && matches!(word.to_ascii_uppercase().as_str(), "LIST" | "LSUB") {
+        // return options are tokenised by the list module. ID (RFC 2971)
+        // keeps its parameter list too; the server records nothing from it.
+        if prefix.len() == 2 && matches!(word.to_ascii_uppercase().as_str(), "LIST" | "LSUB" | "ID")
+        {
             prefix.push(remaining.trim_start_matches(' ').to_owned());
             return Some(prefix);
         }
