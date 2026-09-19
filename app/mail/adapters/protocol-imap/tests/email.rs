@@ -1,6 +1,6 @@
 use axum::{Router, body::Body, http::Request};
 use http_body_util::BodyExt;
-use mail_api::Store;
+use mail_api::{MetadataStore, Precondition};
 use mail_kernel::{Account, Command};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -59,13 +59,20 @@ async fn changes_page_at_commits_and_query_delta_reconstructs_the_list() {
         raw: b"Subject: sync\r\n\r\nbody".to_vec(),
         keywords: vec![],
     };
-    db.execute("a", 0, vec![append(20)]).unwrap();
-    db.execute("a", 1, vec![append(10)]).unwrap();
+    db.execute("a", Precondition::Observed(0), vec![append(20)])
+        .unwrap();
+    db.execute("a", Precondition::Observed(1), vec![append(10)])
+        .unwrap();
     let old = call(&app, "Email/query", json!({"accountId":"a"})).await;
     assert_eq!(old["ids"], json!(["e1", "e2"]));
-    db.execute("a", 2, vec![append(30)]).unwrap();
-    db.execute("a", 3, vec![Command::Destroy { id: "e2".into() }])
+    db.execute("a", Precondition::Observed(2), vec![append(30)])
         .unwrap();
+    db.execute(
+        "a",
+        Precondition::Observed(3),
+        vec![Command::Destroy { id: "e2".into() }],
+    )
+    .unwrap();
     let first = call(
         &app,
         "Email/changes",
@@ -101,7 +108,8 @@ async fn changes_page_at_commits_and_query_delta_reconstructs_the_list() {
         mismatch["methodResponses"][0][1]["type"],
         "cannotCalculateChanges"
     );
-    db.execute("a", 4, vec![append(40), append(50)]).unwrap();
+    db.execute("a", Precondition::Observed(4), vec![append(40), append(50)])
+        .unwrap();
     let atomic = response(
         &app,
         "Email/changes",
@@ -112,9 +120,14 @@ async fn changes_page_at_commits_and_query_delta_reconstructs_the_list() {
         atomic["methodResponses"][0][1]["type"],
         "cannotCalculateChanges"
     );
-    db.execute("a", 6, vec![append(60)]).unwrap();
-    db.execute("a", 7, vec![Command::Destroy { id: "e7".into() }])
+    db.execute("a", Precondition::Observed(6), vec![append(60)])
         .unwrap();
+    db.execute(
+        "a",
+        Precondition::Observed(7),
+        vec![Command::Destroy { id: "e7".into() }],
+    )
+    .unwrap();
     let cancelled = call(
         &app,
         "Email/changes",
@@ -226,7 +239,7 @@ async fn import_and_patch_preserve_raw_content_and_mailbox_uids() {
     .unwrap();
     db.execute(
         "a",
-        0,
+        Precondition::Observed(0),
         vec![Command::CreateMailbox {
             name: "Archive".into(),
         }],

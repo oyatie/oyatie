@@ -48,7 +48,7 @@ pub(super) fn execute(
         }
     };
     let messages = super::selected::messages_in(account, &folder.id);
-    let mut earlier = Vec::new();
+    let mut earlier = condstore::Vanished::default();
     if let Some(Resync {
         validity, since, ..
     }) = &resync
@@ -56,18 +56,28 @@ pub(super) fn execute(
     {
         earlier = condstore::vanished(service, token, account, &folder.id, *since)?;
     }
+    // The seq↔UID map comes from the key-only mailbox index; the projection
+    // is the fallback when another writer committed between the two reads.
+    let ids = match service.mailbox_uids(token, &account.id, &folder.id) {
+        Ok(index) if index.revision == account.revision => {
+            index.uids.into_iter().map(|(uid, id)| (id, uid)).collect()
+        }
+        Err(mail_kernel::Error::Busy) => return Err(super::retry::BUSY),
+        _ => messages
+            .iter()
+            .map(|m| (m.id.clone(), m.uid_in(&folder.id).unwrap()))
+            .collect::<Vec<_>>(),
+    };
+    let exists = ids.len();
     *selected = Some(Selection {
         mailbox: folder.id.clone(),
         uid_validity: folder.uid_validity,
         readonly,
         condstore: enabled,
         qresync: output.qresync,
-        modseq: account.mail_modseq,
+        modseq: folder.highest_modseq,
         saved: Default::default(),
-        ids: messages
-            .iter()
-            .map(|m| (m.id.clone(), m.uid_in(&folder.id).unwrap()))
-            .collect(),
+        ids,
     });
     output.condstore = enabled;
     if output.objectid {
@@ -79,12 +89,12 @@ pub(super) fn execute(
             .as_bytes(),
         );
     }
-    output.extend_from_slice(format!("* {} EXISTS\r\n* 0 RECENT\r\n* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft)\r\n* OK [UIDVALIDITY {}] UIDs valid\r\n* OK [UIDNEXT {}] Next UID\r\n", messages.len(), folder.uid_validity, folder.uid_next).as_bytes());
+    output.extend_from_slice(format!("* {exists} EXISTS\r\n* 0 RECENT\r\n* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft)\r\n* OK [UIDVALIDITY {}] UIDs valid\r\n* OK [UIDNEXT {}] Next UID\r\n", folder.uid_validity, folder.uid_next).as_bytes());
     if enabled {
         output.extend_from_slice(
             format!(
                 "* OK [HIGHESTMODSEQ {}] Highest modification sequence\r\n",
-                account.mail_modseq
+                folder.highest_modseq
             )
             .as_bytes(),
         );
@@ -102,14 +112,32 @@ pub(super) fn execute(
                 .as_ref()
                 .is_none_or(|ranges| ranges.iter().any(|(a, b)| uid >= *a && uid <= *b))
         };
-        if !earlier.is_empty() {
+        if earlier.below_floor {
+            // RFC 7162 §3.2.5.2: no history back to `since`; every known UID
+            // that is gone has vanished and every present one is reported.
+            let present = messages
+                .iter()
+                .filter_map(|m| m.uid_in(&folder.id))
+                .collect();
+            let whole = [(1, folder.uid_next.saturating_sub(1))];
+            earlier.uids = condstore::missing(
+                known.as_deref().unwrap_or(&whole),
+                folder.uid_next,
+                &present,
+            );
+        }
+        if !earlier.uids.is_empty() {
             output.extend_from_slice(
-                format!("* VANISHED (EARLIER) {}\r\n", condstore::ranges(earlier)).as_bytes(),
+                format!(
+                    "* VANISHED (EARLIER) {}\r\n",
+                    condstore::ranges(earlier.uids)
+                )
+                .as_bytes(),
             );
         }
         for (i, m) in messages.iter().enumerate() {
             let uid = m.uid_in(&folder.id).unwrap();
-            if m.modseq > since && contains(uid) {
+            if (earlier.below_floor || m.modseq > since) && contains(uid) {
                 output.fetch_start(i + 1, uid);
                 output.extend_from_slice(
                     format!(

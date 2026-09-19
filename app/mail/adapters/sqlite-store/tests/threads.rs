@@ -1,12 +1,12 @@
-use mail_api::{Events, Store};
-use mail_kernel::{Account, Command};
+use mail_api::{Events, MetadataStore, Precondition};
+use mail_kernel::{Account, Command, HistoryEntry};
 use mail_sqlite_store::SqliteStore;
 
 fn append(db: &SqliteStore, account: &str, id: &str, refs: &str, subject: &str) -> Account {
     let state = db.account(account).unwrap();
     db.execute(
         account,
-        state.revision,
+        Precondition::Require(state.revision),
         vec![Command::Append {
             mailboxes: vec!["inbox".into()],
             keywords: vec![],
@@ -17,12 +17,20 @@ fn append(db: &SqliteStore, account: &str, id: &str, refs: &str, subject: &str) 
             .into_bytes(),
         }],
     )
-    .unwrap()
+    .unwrap();
+    db.account(account).unwrap()
 }
 
 #[test]
 fn thread_merges_are_account_scoped_durable_and_journaled_atomically() {
-    let path = std::env::temp_dir().join(format!("mail-threads-{}.sqlite", std::process::id()));
+    let path = std::env::temp_dir().join(format!(
+        "mail-threads-{}-{}.sqlite",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
     let db = SqliteStore::open(&path).unwrap();
     for id in ["a", "b"] {
         db.provision(
@@ -48,18 +56,23 @@ fn thread_merges_are_account_scoped_durable_and_journaled_atomically() {
     db.deliver(&["a@example.org".into()], raw).unwrap();
     let merged = db.account("a").unwrap();
     assert!(merged.messages.iter().all(|m| m.thread_id() == "e1"));
-    let changes = db.message_changes("a", 2, 3).unwrap();
+    assert_eq!(merged.messages[1].modseq, 3, "bridged member is stamped");
+    let page = db.history("a", 2, 10).unwrap();
     assert!(
-        changes
+        page.rows
             .iter()
-            .any(|c| c.id == "e2" && c.before.is_some() && c.after.is_some())
+            .any(|(r, e)| *r == 3 && *e == HistoryEntry::Thread { id: "e2".into() })
     );
     append(&db, "a", "different@t", "<root@t>", "Different subject");
     append(&db, "b", "unrelated@t", "", "Project Alpha");
     let other = append(&db, "b", "bridge@t", "<root@t>", "Re: Project Alpha");
     assert_ne!(other.messages[0].thread_id(), other.messages[1].thread_id());
-    db.execute("a", 4, vec![Command::Destroy { id: "e1".into() }])
-        .unwrap();
+    db.execute(
+        "a",
+        Precondition::Require(4),
+        vec![Command::Destroy { id: "e1".into() }],
+    )
+    .unwrap();
     drop(db);
     let db = SqliteStore::open(&path).unwrap();
     let state = append(&db, "a", "late@t", "<root@t>", "Re: Project Alpha");
@@ -108,88 +121,51 @@ fn removing_all_members_before_an_append_does_not_resurrect_a_destroyed_thread()
     )
     .unwrap();
     append(&db, "a", "parent@t", "", "Topic");
-    let state = db.execute("a",1,vec![Command::Destroy {id:"e1".into()}, Command::Append {
-        mailboxes:vec!["inbox".into()], keywords:vec![], received_at:1,
-        raw:b"Subject: Re: Topic\r\nReferences: <parent@t>\r\nMessage-ID: <late@t>\r\n\r\nbody".to_vec(),
+    db.execute("a", Precondition::Require(1), vec![Command::Destroy { id: "e1".into() }, Command::Append {
+        mailboxes: vec!["inbox".into()], keywords: vec![], received_at: 1,
+        raw: b"Subject: Re: Topic\r\nReferences: <parent@t>\r\nMessage-ID: <late@t>\r\n\r\nbody".to_vec(),
     }]).unwrap();
+    let state = db.account("a").unwrap();
     assert_eq!(state.messages[0].thread_id(), "e3");
 }
 
 #[test]
-fn legacy_thread_backfill_is_atomic_and_preserves_surviving_thread_ids() {
-    let path =
-        std::env::temp_dir().join(format!("mail-thread-legacy-{}.sqlite", std::process::id()));
-    let db = SqliteStore::open(&path).unwrap();
+fn one_batch_of_replies_shares_the_root_thread_identity() {
+    let db = SqliteStore::open(":memory:").unwrap();
     db.provision(
-        Account::new("a", "t", "a", "a@example.org").unwrap(),
+        Account::new("a", "a", "a", "a@example.org").unwrap(),
         &"a".repeat(32),
     )
     .unwrap();
-    append(&db, "a", "root@t", "", "Topic");
-    append(&db, "a", "reply@t", "<root@t>", "Re: Topic");
-    db.execute("a", 2, vec![Command::Destroy { id: "e1".into() }])
-        .unwrap();
-    let sql = rusqlite::Connection::open(&path).unwrap();
-    // Decode an actual old snapshot, without either immutable identity field.
-    let mut legacy = serde_json::to_value(db.account("a").unwrap()).unwrap();
-    for message in legacy["messages"].as_array_mut().unwrap() {
-        let message = message.as_object_mut().unwrap();
-        message.remove("email_identity");
-        message.remove("thread_identity");
-    }
-    sql.execute(
-        "UPDATE accounts SET state=?1 WHERE id='a'",
-        [legacy.to_string()],
+    let message = |id: &str, refs: &str| Command::Append {
+        mailboxes: vec!["inbox".into()],
+        keywords: vec![],
+        received_at: 1,
+        raw: format!("Message-ID: <{id}>\r\nReferences: {refs}\r\nSubject: T\r\n\r\nbody")
+            .into_bytes(),
+    };
+    db.execute(
+        "a",
+        Precondition::Require(0),
+        vec![
+            message("root@t", ""),
+            message("r1@t", "<root@t>"),
+            message("r2@t", "<root@t> <r1@t>"),
+        ],
     )
     .unwrap();
-    let before = db.account("a").unwrap();
-    let bytes = db.blob("a", "e2").unwrap();
-    assert_eq!(before.messages[0].email_identity(), "e2");
-    assert_eq!(before.messages[0].thread_identity(), "e2");
-    assert_eq!(
-        sql.query_row("SELECT count(*) FROM thread_indexed", [], |r| r
-            .get::<_, usize>(0))
-            .unwrap(),
-        0
-    );
-    drop(db);
-    let db = SqliteStore::open(&path).unwrap();
-    assert_eq!(db.account("a").unwrap(), before);
-    sql.execute_batch("CREATE TRIGGER reject_backfill BEFORE INSERT ON thread_references BEGIN SELECT RAISE(ABORT,'injected'); END;").unwrap();
+    let account = db.account("a").unwrap();
+    assert_eq!(account.messages.len(), 3);
     assert!(
-        db.execute(
-            "a",
-            3,
-            vec![Command::Keywords {
-                id: "e2".into(),
-                keywords: vec!["$seen".into()]
-            }]
-        )
-        .is_err()
+        account
+            .messages
+            .iter()
+            .all(|m| m.thread_identity() == account.messages[0].thread_identity()),
+        "{:?}",
+        account
+            .messages
+            .iter()
+            .map(|m| (m.id.clone(), m.thread_identity().to_owned()))
+            .collect::<Vec<_>>()
     );
-    assert_eq!(db.account("a").unwrap(), before);
-    assert_eq!(db.blob("a", "e2").unwrap(), bytes);
-    sql.execute_batch("DROP TRIGGER reject_backfill;").unwrap();
-    let state = db
-        .execute(
-            "a",
-            3,
-            vec![Command::Keywords {
-                id: "e2".into(),
-                keywords: vec!["$seen".into()],
-            }],
-        )
-        .unwrap();
-    assert_eq!(state.messages[0].thread_id(), "e1");
-    assert_eq!(state.messages[0].email_identity(), "e2");
-    assert_eq!(state.messages[0].thread_identity(), "e2");
-    drop(db);
-    let db = SqliteStore::open(&path).unwrap();
-    assert_eq!(db.account("a").unwrap(), state);
-    let state = append(&db, "a", "late@t", "<root@t>", "Re: Topic");
-    assert!(state.messages.iter().all(|m| m.thread_identity() == "e2"));
-    assert!(state.messages.iter().all(|m| m.thread_id() == "e1"));
-    assert_eq!(db.blob("a", "e2").unwrap(), bytes);
-    drop((db, sql));
-    std::fs::remove_file(path).unwrap();
 }

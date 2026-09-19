@@ -1,5 +1,5 @@
 use super::support::*;
-use mail_api::Store;
+use mail_api::MetadataStore;
 
 #[tokio::test]
 async fn deletion_is_pending_until_quit_and_rset_or_disconnect_rolls_back() {
@@ -122,11 +122,12 @@ async fn quit_preserves_other_mailbox_memberships_and_commits_pipelined_deletion
     let account = db
         .execute(
             "a",
-            account.revision,
+            mail_api::Precondition::Observed(account.revision),
             vec![Command::CreateMailbox {
                 name: "Archive".into(),
             }],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     let archive = account
         .mailboxes
@@ -137,7 +138,7 @@ async fn quit_preserves_other_mailbox_memberships_and_commits_pipelined_deletion
         .clone();
     db.execute(
         "a",
-        account.revision,
+        mail_api::Precondition::Observed(account.revision),
         vec![Command::SetMailboxes {
             id: id.clone(),
             mailboxes: vec!["inbox".into(), archive.clone()],

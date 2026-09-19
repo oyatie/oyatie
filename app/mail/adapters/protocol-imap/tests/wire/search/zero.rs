@@ -39,7 +39,7 @@ async fn oracle_zero_sequence_bounds_match_existing_messages_without_allocating_
     assert_eq!(after.mailboxes, before.mailboxes);
     db.execute(
         "a",
-        after.revision,
+        mail_api::Precondition::Observed(after.revision),
         vec![Command::Destroy { id: "e1".into() }],
     )
     .unwrap();

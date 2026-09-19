@@ -1,5 +1,5 @@
 use super::client::{ImapConnection, Outcomes};
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::{Account, Command, MailboxProperties};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -23,16 +23,20 @@ fn special(name: &str, role: &str) -> Command {
 /// Mirrors the upstream fixture: `jdoe` keeps INBOX and the Trash folder after
 /// the suite deletes Drafts/Junk Mail/Sent Items; `jane` keeps every default.
 pub fn open() -> (Arc<SqliteStore>, Arc<MailService>) {
-    let db = Arc::new(SqliteStore::open(":memory:").unwrap());
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(&[]));
     db.provision(Account::new("a", "t", "jdoe", JDOE).unwrap(), TOKEN)
         .unwrap();
     db.provision(Account::new("j", "t", "jane", JANE).unwrap(), JANE_TOKEN)
         .unwrap();
-    db.execute("a", 0, vec![special("Deleted Items", "trash")])
-        .unwrap();
+    db.execute(
+        "a",
+        mail_api::Precondition::Observed(0),
+        vec![special("Deleted Items", "trash")],
+    )
+    .unwrap();
     db.execute(
         "j",
-        0,
+        mail_api::Precondition::Observed(0),
         vec![
             special("Deleted Items", "trash"),
             special("Drafts", "drafts"),

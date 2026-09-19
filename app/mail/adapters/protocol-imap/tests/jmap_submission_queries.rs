@@ -1,6 +1,6 @@
 use axum::{Router, body::Body, http::Request};
 use http_body_util::BodyExt;
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::{Account, Command};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -47,7 +47,7 @@ async fn fixture() -> (Arc<SqliteStore>, Router, Vec<String>) {
     )
     .unwrap();
     for revision in 0..3 {
-        db.execute("a", revision, vec![Command::Append { mailboxes:vec!["inbox".into()], raw:b"From: alice@example.org\r\nTo: remote@example.net\r\nSubject: query\r\n\r\nbody\r\n".to_vec(), keywords:vec![], received_at:1 }]).unwrap();
+        db.execute("a", mail_api::Precondition::Observed(revision), vec![Command::Append { mailboxes:vec!["inbox".into()], raw:b"From: alice@example.org\r\nTo: remote@example.net\r\nSubject: query\r\n\r\nbody\r\n".to_vec(), keywords:vec![], received_at:1 }]).unwrap();
     }
     let service = Arc::new(MailService {
         outbound: Some(db.clone()),
@@ -168,7 +168,7 @@ async fn changes_use_submission_state_and_complete_revision_pages() {
     let account = db.account("a").unwrap();
     db.execute(
         "a",
-        account.revision,
+        mail_api::Precondition::Observed(account.revision),
         vec![Command::Keywords {
             id: "e1".into(),
             keywords: vec!["$seen".into()],

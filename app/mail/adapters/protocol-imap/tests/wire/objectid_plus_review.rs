@@ -41,7 +41,7 @@ async fn enabling_extensions_after_selection_updates_fetch_store_and_vanished_be
     let account = db.account("a").unwrap();
     db.execute(
         "a",
-        account.revision,
+        mail_api::Precondition::Observed(account.revision),
         vec![mail_kernel::Command::Destroy {
             id: account.messages[0].id.clone(),
         }],

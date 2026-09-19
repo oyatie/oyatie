@@ -1,8 +1,7 @@
 use super::{REVISION, TOKEN, search_client::*};
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::{Account, Command};
 use mail_service::{MailService, OwnerPolicy};
-use mail_sqlite_store::SqliteStore;
 use serde_json::json;
 use sha2::{Digest, Sha256};
 use std::{cell::RefCell, rc::Rc, sync::Arc};
@@ -20,7 +19,7 @@ async fn upstream_imap_search() {
         ),
         "3577c34f4485dba9db25c30546d71b8b710d612bb4a7130e33c21edbd7a60807"
     );
-    let db = Arc::new(SqliteStore::open(":memory:").unwrap());
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(&[]));
     db.provision(
         Account::new("a", "t", "alice", "alice@example.org").unwrap(),
         TOKEN,
@@ -57,7 +56,7 @@ async fn upstream_imap_search() {
         let account = db.account("a").unwrap();
         db.execute(
             "a",
-            account.revision,
+            mail_api::Precondition::Observed(account.revision),
             vec![Command::Append {
                 mailboxes: vec!["inbox".into()],
                 raw: raw.to_vec(),

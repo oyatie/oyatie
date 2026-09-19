@@ -1,8 +1,8 @@
 use super::{Session, folders, response::Output, state};
 use crate::wire::{line, write};
-use mail_api::Action;
-use mail_kernel::Command;
-use mail_service::MailService;
+use mail_api::{Action, Precondition};
+use mail_kernel::{Command, Error};
+use mail_service::{Budget, MailService};
 use std::{io, sync::Arc, time::Duration};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, BufReader};
 mod drain;
@@ -15,14 +15,20 @@ const BUFFER_LIMIT: usize = 50 * 1024 * 1024;
 // until an indexed bulk append operation replaces those repeated scans.
 const MESSAGE_LIMIT: usize = 1000;
 
+/// One received literal with its metadata; the batch is retained until the
+/// store commits it, so a `Busy` re-attempt never re-reads the wire.
+struct Body {
+    raw: Vec<u8>,
+    keywords: Vec<String>,
+    received_at: i64,
+}
+
 pub(super) struct Append {
     mailbox: String,
     revision: u64,
-    validity: u32,
-    uid: u32,
     remaining: usize,
     buffered: usize,
-    commands: Vec<Command>,
+    bodies: Vec<Body>,
 }
 
 impl Append {
@@ -38,25 +44,20 @@ impl Append {
         let account = service.read(token, account).map_err(|_| "NO")?;
         let mailbox = folders::find(&account, mailbox).ok_or("NO [TRYCREATE]")?;
         let remaining = account
-            .messages
-            .iter()
-            .try_fold(account.quota_bytes, |remaining, message| {
-                remaining.checked_sub(message.size)
-            })
+            .quota_bytes
+            .checked_sub(account.used_bytes)
             .ok_or("NO [OVERQUOTA]")?;
         Ok(Self {
             mailbox: mailbox.id.clone(),
             revision: account.revision,
-            validity: mailbox.uid_validity,
-            uid: mailbox.uid_next,
             remaining,
             buffered: 0,
-            commands: vec![],
+            bodies: vec![],
         })
     }
 
     fn reserve(&mut self, literal: &Literal) -> Result<(), &'static str> {
-        if self.commands.len() >= MESSAGE_LIMIT {
+        if self.bodies.len() >= MESSAGE_LIMIT {
             return Err("NO [MESSAGELIMIT 1000]");
         }
         self.remaining = self
@@ -74,46 +75,68 @@ impl Append {
             .and_then(|n| n.checked_add(metadata))
             .filter(|n| *n <= BUFFER_LIMIT)
             .ok_or("NO [TOOBIG]")?;
-        self.uid
-            .checked_add(self.commands.len() as u32)
-            .and_then(|uid| uid.checked_add(1))
-            .ok_or("NO")?;
         Ok(())
     }
 
+    fn commands(&self) -> Vec<Command> {
+        self.bodies
+            .iter()
+            .map(|body| Command::Append {
+                mailboxes: vec![self.mailbox.clone()],
+                received_at: body.received_at,
+                raw: body.raw.clone(),
+                keywords: body.keywords.clone(),
+            })
+            .collect()
+    }
+
+    /// Commit the batch; `Busy` hands the batch back for a later attempt.
     pub(super) fn respond(
         self,
         service: &MailService,
         session: &mut Session,
         parts: &[String],
+        budget: &Budget,
         output: &mut Output,
-    ) {
-        let last = self.uid + self.commands.len() as u32 - 1;
-        let result = service.execute(
+    ) -> Result<(), Self> {
+        let result = service.execute_read(
             &session.credential,
             &session.account_id,
-            self.revision,
-            self.commands,
+            Precondition::Observed(self.revision),
+            self.commands(),
+            budget,
         );
         let tag = &parts[0];
         match result {
-            Ok(account) => {
-                state::synchronize(&account, parts, &mut session.selected, output);
-                let uids = if self.uid == last {
-                    self.uid.to_string()
-                } else {
-                    format!("{}:{last}", self.uid)
-                };
-                output.extend_from_slice(
-                    format!(
-                        "{tag} OK [APPENDUID {} {uids}] APPEND completed\r\n",
-                        self.validity
-                    )
-                    .as_bytes(),
+            Ok((execution, account)) => {
+                // UIDs come from the committed allocations, never precomputed.
+                let uids = super::condstore::ranges(
+                    execution
+                        .allocations
+                        .iter()
+                        .filter(|(mailbox, _)| *mailbox == self.mailbox)
+                        .map(|(_, uid)| *uid),
                 );
+                let validity = account
+                    .mailboxes
+                    .iter()
+                    .find(|m| m.id == self.mailbox)
+                    .map(|m| m.uid_validity);
+                state::synchronize(&account, parts, &mut session.selected, output);
+                match validity {
+                    Some(validity) => output.extend_from_slice(
+                        format!("{tag} OK [APPENDUID {validity} {uids}] APPEND completed\r\n")
+                            .as_bytes(),
+                    ),
+                    None => {
+                        output.extend_from_slice(format!("{tag} NO APPEND failed\r\n").as_bytes())
+                    }
+                }
             }
+            Err(Error::Busy) => return Err(self),
             Err(_) => output.extend_from_slice(format!("{tag} NO APPEND failed\r\n").as_bytes()),
         }
+        Ok(())
     }
 }
 
@@ -204,11 +227,10 @@ async fn collect<S: AsyncRead + AsyncWrite + Unpin>(
         if !session.utf8 && !metadata::ascii_headers(&raw) {
             return refuse(stream, tag, "NO [UTF8NOTSUPPORTED]", suffix).await;
         }
-        append.commands.push(Command::Append {
-            mailboxes: vec![append.mailbox.clone()],
-            received_at: literal.received_at,
+        append.bodies.push(Body {
             raw,
             keywords: literal.keywords,
+            received_at: literal.received_at,
         });
         if suffix.is_empty() {
             return Ok(Some(append));

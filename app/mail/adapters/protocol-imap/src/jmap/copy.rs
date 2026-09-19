@@ -1,6 +1,6 @@
-use super::{email, method::error};
+use super::{email, method::error, retry};
 use mail_kernel::{Account, Command, Error};
-use mail_service::MailService;
+use mail_service::{Budget, MailService};
 use serde_json::{Value, json};
 
 pub(super) fn copy(
@@ -8,6 +8,7 @@ pub(super) fn copy(
     token: &str,
     target: &Account,
     args: &Value,
+    budget: &Budget,
 ) -> Result<Value, &'static str> {
     let source_id = args["fromAccountId"].as_str().ok_or("invalidArguments")?;
     if source_id == target.id {
@@ -41,7 +42,9 @@ pub(super) fn copy(
     if objects.len() > 256 {
         return Err("tooManyObjects");
     }
+    let conditional = args["ifInState"].is_string();
     let mut current = target.clone();
+    let mut committed = false;
     let mut result = json!({"fromAccountId":source.id,"accountId":target.id,
         "oldState":target.revision.to_string(),"created":{},"notCreated":{}});
     for (key, value) in objects {
@@ -70,32 +73,35 @@ pub(super) fn copy(
             } else {
                 email::utc_date(&value["receivedAt"])?
             };
-            service
-                .execute(
-                    token,
-                    &current.id,
-                    current.revision,
-                    vec![Command::Append {
-                        mailboxes,
-                        keywords,
-                        received_at,
-                        raw: service
-                            .download(token, source_id, &message.id)
-                            .map_err(error)?,
-                    }],
-                )
-                .map_err(|e| match e {
-                    Error::Invalid | Error::NotFound => "invalidProperties",
-                    _ => error(e),
-                })
+            retry::commit(
+                service,
+                token,
+                &current,
+                conditional,
+                vec![Command::Append {
+                    mailboxes,
+                    keywords,
+                    received_at,
+                    raw: service
+                        .download(token, source_id, &message.id)
+                        .map_err(error)?,
+                }],
+                budget,
+            )
+            .map_err(|e| match e {
+                Error::Invalid | Error::NotFound => "invalidProperties",
+                _ => error(e),
+            })
         })();
         match copied {
-            Ok(account) => {
-                result["created"][key] =
-                    email::created(account.messages.last().ok_or("serverFail")?);
+            Ok((execution, account)) => {
+                result["created"][key] = email::created(email::find(&account, &execution)?);
                 current = account;
+                committed = true;
             }
-            Err(kind) => result["notCreated"][key] = json!({"type":kind}),
+            Err(kind) => {
+                result["notCreated"][key] = json!({"type":retry::object(kind, committed)?})
+            }
         }
     }
     result["newState"] = json!(current.revision.to_string());

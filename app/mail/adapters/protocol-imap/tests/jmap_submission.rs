@@ -1,6 +1,6 @@
 use axum::{body::Body, http::Request};
 use http_body_util::BodyExt;
-use mail_api::{Store, SubmissionQueue};
+use mail_api::{MetadataStore, SubmissionQueue};
 use mail_kernel::{Account, Command};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -22,7 +22,7 @@ fn fixture() -> (Arc<SqliteStore>, axum::Router) {
         &"b".repeat(32),
     )
     .unwrap();
-    db.execute("a", 0, vec![Command::Append {
+    db.execute("a", mail_api::Precondition::Observed(0), vec![Command::Append {
         mailboxes: vec!["inbox".into()],
         raw: b"From: alice@example.org\r\nTo: recipient@remote.org\r\nBcc: blind@remote.org\r\nSubject: draft\r\n\r\nbody\r\n".to_vec(),
         keywords: vec!["$draft".into()], received_at: 1,

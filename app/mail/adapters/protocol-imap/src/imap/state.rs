@@ -21,6 +21,21 @@ impl Selection {
             .max()
             .unwrap_or_default()
     }
+    /// HIGHESTMODSEQ is per mailbox (RFC 7162 §3.1.2.1), read from its record.
+    pub fn highest_modseq(&self, account: &Account) -> u64 {
+        account
+            .mailboxes
+            .iter()
+            .find(|m| m.id == self.mailbox)
+            .map_or(account.mail_modseq, |m| m.highest_modseq)
+    }
+    pub fn uid_next(&self, account: &Account) -> u32 {
+        account
+            .mailboxes
+            .iter()
+            .find(|m| m.id == self.mailbox)
+            .map_or(1, |m| m.uid_next)
+    }
 }
 
 pub(super) fn synchronize(
@@ -119,5 +134,5 @@ pub(super) fn synchronize(
             }
         }
     }
-    selection.modseq = account.mail_modseq;
+    selection.modseq = selection.highest_modseq(account);
 }

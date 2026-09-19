@@ -1,8 +1,7 @@
 #![cfg(feature = "upstream-tests")]
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::Account;
 use mail_service::{MailService, OwnerPolicy};
-use mail_sqlite_store::SqliteStore;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{cell::RefCell, fmt::Debug, future::Future, sync::Arc};
@@ -85,7 +84,7 @@ async fn unchanged_upstream_identity_and_snippet_suites() {
             "upstream source must be the pinned unchanged file"
         );
     }
-    let db = Arc::new(SqliteStore::open(":memory:").unwrap());
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(&[]));
     db.provision(
         Account::new("a", "t", "alice", "alice@example.org").unwrap(),
         TOKEN,

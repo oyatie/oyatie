@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 pub const MAX_MESSAGE_BYTES: usize = 25 * 1024 * 1024;
 
@@ -12,6 +12,9 @@ pub enum Error {
     Conflict,
     OverQuota,
     Unavailable,
+    /// A retryable contention signal: the caller re-attempts within its own
+    /// deadline without holding a worker permit while it sleeps.
+    Busy,
 }
 
 impl std::fmt::Display for Error {
@@ -36,23 +39,40 @@ pub use submission::{
 mod mailbox;
 pub use mailbox::{Mailbox, MailboxProperties, MailboxState};
 
+mod history;
+mod membership;
 mod message;
-mod modseq;
+pub use history::{Effects, HistoryEntry, Retention, RetentionPolicy};
 pub use message::{Message, MessageState};
+mod scope;
+pub use scope::Scope;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+/// The bounded aggregate a mutation works on: the account record, every
+/// mailbox record, and only the message records the commands touch. Reads
+/// may load the full projection into the same shape.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Account {
     pub id: String,
     pub tenant: String,
     pub owner: String,
     pub address: String,
+    /// Every committed mutation advances the revision; MODSEQ is the revision
+    /// of the commit that last changed a message (RFC 7162 §3.1.2).
     pub revision: u64,
+    /// Revision of the last commit that changed any message record.
+    #[serde(default)]
     pub mail_modseq: u64,
+    /// History rows at or below this revision may have been compacted.
+    #[serde(default)]
+    pub history_floor: u64,
     pub identity: IdentitySettings,
     pub identity_revision: u64,
     pub vacation: VacationSettings,
     pub vacation_revision: u64,
     pub quota_bytes: usize,
+    /// Sum of message sizes charged to the quota, maintained by the kernel.
+    #[serde(default)]
+    pub used_bytes: usize,
     pub mailboxes: Vec<Mailbox>,
     pub messages: Vec<Message>,
 }
@@ -166,21 +186,14 @@ impl Account {
             address: address.into(),
             revision: 0,
             mail_modseq: 0,
+            history_floor: 0,
             identity: IdentitySettings::default(),
             identity_revision: 0,
             vacation: VacationSettings::default(),
             vacation_revision: 0,
             quota_bytes: 1024 * 1024 * 1024,
-            mailboxes: vec![Mailbox {
-                id: "inbox".into(),
-                name: "INBOX".into(),
-                role: Some("inbox".into()),
-                parent_id: None,
-                sort_order: 0,
-                is_subscribed: true,
-                uid_next: 1,
-                uid_validity: 1,
-            }],
+            used_bytes: 0,
+            mailboxes: vec![Mailbox::new("inbox", "INBOX", Some("inbox"), 1)],
             messages: vec![],
         })
     }
@@ -189,11 +202,24 @@ impl Account {
         "inbox"
     }
 
-    /// A failed command leaves the account unchanged. Persistent adapters commit
-    /// the resulting revision and its event in the same transaction.
+    /// Apply one batch atomically: a failed command leaves the aggregate
+    /// unchanged; success stamps MODSEQ, counters and history at the new
+    /// revision. Adapters persist the returned effects in one transaction.
+    pub fn execute(&mut self, commands: Vec<Command>) -> Result<Effects, Error> {
+        let before = self.clone();
+        for command in commands {
+            if let Err(error) = self.apply(command) {
+                *self = before;
+                return Err(error);
+            }
+        }
+        self.commit(&before)
+    }
+
+    /// A failed command leaves the account unchanged. MODSEQ and history are
+    /// stamped by `commit`, once per atomic batch.
     pub fn apply(&mut self, command: Command) -> Result<(), Error> {
         let next = self.revision.checked_add(1).ok_or(Error::OverQuota)?;
-        let change = self.prepare_modseq(&command, next)?;
         match command {
             Command::SetIdentity { settings } => self.set_identity(settings)?,
             Command::SetVacation { settings } => self.set_vacation(settings)?,
@@ -238,40 +264,16 @@ impl Account {
             Command::SetMailboxes { id, mailboxes } => {
                 self.set_mailboxes(&id, &mailboxes)?;
             }
-            Command::Keywords { id, mut keywords } => {
-                if !valid_keywords(&keywords) {
-                    return Err(Error::Invalid);
-                }
-                let message = self
-                    .messages
-                    .iter_mut()
-                    .find(|m| m.id == id)
-                    .ok_or(Error::NotFound)?;
-                keywords.sort();
-                keywords.dedup();
-                message.keywords = keywords;
+            Command::Keywords { id, keywords } => {
+                self.set_keywords(&id, keywords)?;
             }
             Command::Destroy { id } => {
-                let index = self
-                    .messages
-                    .iter()
-                    .position(|m| m.id == id)
-                    .ok_or(Error::NotFound)?;
-                self.messages.remove(index);
+                self.destroy(&id)?;
             }
             Command::Expunge { mailbox } => {
-                if !self.mailboxes.iter().any(|m| m.id == mailbox) {
-                    return Err(Error::NotFound);
-                }
-                for message in &mut self.messages {
-                    if message.keywords.iter().any(|k| k == "$deleted") {
-                        message.mailboxes.remove(&mailbox);
-                    }
-                }
-                self.messages.retain(|m| !m.mailboxes.is_empty());
+                self.expunge(&mailbox)?;
             }
         }
-        self.commit_modseq(change);
         self.revision = next;
         Ok(())
     }

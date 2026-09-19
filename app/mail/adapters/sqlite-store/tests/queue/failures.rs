@@ -50,7 +50,7 @@ fn terminal_local_failures_are_fenced_durable_and_recoverable_without_data_loss(
     let account = db.account("a").unwrap();
     db.execute(
         "a",
-        account.revision,
+        Precondition::Require(account.revision),
         vec![mail_kernel::Command::Destroy {
             id: account.messages[0].id.clone(),
         }],

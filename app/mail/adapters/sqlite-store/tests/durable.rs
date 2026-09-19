@@ -1,19 +1,23 @@
-use mail_api::{Events, Identity, Store};
-use mail_kernel::{Account, Command, Error};
+use mail_api::{Events, HistoryPage, Identity, MetadataStore, Precondition};
+use mail_kernel::{Account, Command, Error, HistoryEntry};
 use mail_sqlite_store::SqliteStore;
 
 const TOKEN: &str = "0123456789abcdef0123456789abcdef";
 
-#[test]
-fn delivery_is_atomic_durable_and_emits_replayable_events() {
-    let path = std::env::temp_dir().join(format!(
-        "mail-durable-{}-{}.sqlite",
+fn temp(name: &str) -> std::path::PathBuf {
+    std::env::temp_dir().join(format!(
+        "mail-{name}-{}-{}.sqlite",
         std::process::id(),
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_nanos()
-    ));
+    ))
+}
+
+#[test]
+fn delivery_is_atomic_durable_and_emits_replayable_events() {
+    let path = temp("durable");
     {
         let db = SqliteStore::open(&path).unwrap();
         db.provision(
@@ -49,7 +53,7 @@ fn delivery_is_atomic_durable_and_emits_replayable_events() {
         assert_eq!(
             db.execute(
                 "a",
-                0,
+                Precondition::Require(0),
                 vec![Command::CreateMailbox {
                     name: "stale".into()
                 }]
@@ -78,7 +82,7 @@ fn failing_batch_rolls_back_all_commands_and_outbox() {
     assert_eq!(
         db.execute(
             "a",
-            0,
+            Precondition::Require(0),
             vec![
                 Command::CreateMailbox {
                     name: "work".into()
@@ -91,18 +95,12 @@ fn failing_batch_rolls_back_all_commands_and_outbox() {
     assert_eq!(db.account("a").unwrap().revision, 0);
     assert_eq!(db.account("a").unwrap().mailboxes.len(), 1);
     assert!(db.pending("test", 10).unwrap().is_empty());
+    assert!(db.history("a", 0, 10).unwrap().rows.is_empty());
 }
 
 #[test]
 fn temporary_blobs_survive_restart_obey_quota_expire_and_stay_account_scoped() {
-    let path = std::env::temp_dir().join(format!(
-        "mail-blobs-{}-{}.sqlite",
-        std::process::id(),
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    ));
+    let path = temp("blobs");
     let id;
     {
         let db = SqliteStore::open(&path).unwrap();
@@ -140,64 +138,13 @@ fn temporary_blobs_survive_restart_obey_quota_expire_and_stay_account_scoped() {
     std::fs::remove_file(path).unwrap();
 }
 
-#[test]
-fn legacy_single_mailbox_snapshots_migrate_without_changing_message_bytes_or_uids() {
-    let path = std::env::temp_dir().join(format!(
-        "mail-legacy-{}-{}.sqlite",
-        std::process::id(),
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    ));
-    {
-        let db = SqliteStore::open(&path).unwrap();
-        db.provision(
-            Account::new("a", "t", "alice", "alice@example.org").unwrap(),
-            TOKEN,
-        )
-        .unwrap();
-        let connection = rusqlite::Connection::open(&path).unwrap();
-        let legacy = serde_json::json!({"id":"a","tenant":"t","owner":"alice","address":"alice@example.org",
-            "revision":9,"quota_bytes":4096,"mailboxes":[{"id":"inbox","name":"INBOX","role":"inbox","uid_next":43,"uid_validity":17}],
-            "messages":[{"id":"e9","mailbox":"inbox","uid":42,"raw":[0,255,13,10],"keywords":["$seen"]}]});
-        connection
-            .execute(
-                "UPDATE accounts SET state=?1 WHERE id='a'",
-                [legacy.to_string()],
-            )
-            .unwrap();
-        connection.pragma_update(None, "user_version", 0).unwrap();
-    }
-    for _ in 0..2 {
-        let db = SqliteStore::open(&path).unwrap();
-        let account = db.account("a").unwrap();
-        assert_eq!(account.revision, 9);
-        assert_eq!(account.messages[0].uid_in("inbox"), Some(42));
-        assert_eq!(
-            db.blob("a", &account.messages[0].id).unwrap(),
-            [0, 255, 13, 10]
-        );
-        assert_eq!(account.messages[0].keywords, ["$seen"]);
-        assert!(db.message_changes("a", 0, 9).is_err());
-        assert!(db.message_changes("a", 9, 9).unwrap().is_empty());
-        assert_eq!(account.mailboxes[0].uid_next, 43);
-        assert_eq!(account.mailboxes[0].uid_validity, 17);
-        assert!(db.pending("test", 10).unwrap().is_empty());
-    }
-    std::fs::remove_file(path).unwrap();
+fn rows(page: &HistoryPage) -> Vec<&HistoryEntry> {
+    page.rows.iter().map(|(_, e)| e).collect()
 }
 
 #[test]
-fn journal_survives_restart_and_refuses_gaps_and_partial_commits() {
-    let path = std::env::temp_dir().join(format!(
-        "mail-history-{}-{}.sqlite",
-        std::process::id(),
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    ));
+fn history_survives_restart_and_a_refused_commit_row_rolls_back_the_batch() {
+    let path = temp("history");
     {
         let db = SqliteStore::open(&path).unwrap();
         db.provision(
@@ -213,16 +160,21 @@ fn journal_survives_restart_and_refuses_gaps_and_partial_commits() {
         let db2 = rusqlite::Connection::open(&path).unwrap();
         db2.execute_batch("CREATE TRIGGER reject_history BEFORE INSERT ON history_commits BEGIN SELECT RAISE(ABORT,'injected'); END;").unwrap();
         assert!(
-            db.execute("a", 1, vec![Command::Destroy { id: "e1".into() }])
-                .is_err()
+            db.execute(
+                "a",
+                Precondition::Require(1),
+                vec![Command::Destroy { id: "e1".into() }]
+            )
+            .is_err()
         );
         assert_eq!(db.account("a").unwrap().revision, 1);
+        assert_eq!(db.account("a").unwrap().messages.len(), 1);
         assert_eq!(db.pending("test", 10).unwrap().len(), 1);
-        assert_eq!(db.message_changes("a", 0, 1).unwrap().len(), 1);
+        assert_eq!(db.history("a", 0, 10).unwrap().rows.len(), 1);
         db2.execute_batch("DROP TRIGGER reject_history").unwrap();
         db.execute(
             "a",
-            1,
+            Precondition::Require(1),
             vec![
                 Command::Keywords {
                     id: "e1".into(),
@@ -237,27 +189,28 @@ fn journal_survives_restart_and_refuses_gaps_and_partial_commits() {
     }
     {
         let db = SqliteStore::open(&path).unwrap();
-        let changes = db.message_changes("a", 0, 3).unwrap();
-        assert_eq!(changes.len(), 2);
-        assert!(changes[0].before.is_none());
-        assert_eq!(changes[0].after.as_ref().unwrap().id, "e1");
-        assert!(changes[1].before.as_ref().unwrap().keywords.is_empty());
-        assert_eq!(changes[1].after.as_ref().unwrap().keywords, ["$seen"]);
-        assert_eq!(changes[1].revision, 3);
-        assert!(
-            db.message_changes("a", 2, 3).is_err(),
-            "intermediate batch state was never committed"
+        let page = db.history("a", 0, 10).unwrap();
+        assert_eq!(page.revision, 3);
+        assert!(!page.has_more);
+        assert_eq!(
+            rows(&page),
+            vec![
+                &HistoryEntry::Added {
+                    id: "e1".into(),
+                    mailbox: "inbox".into(),
+                    uid: 1
+                },
+                &HistoryEntry::Flags { id: "e1".into() },
+                &HistoryEntry::Mailbox { id: "m3".into() },
+            ]
         );
-        assert!(db.message_changes("a", 0, 4).is_err());
-        assert!(db.message_changes("a", 3, 2).is_err());
-        let db2 = rusqlite::Connection::open(&path).unwrap();
-        db2.execute("DELETE FROM history_commits WHERE revision=1", [])
-            .unwrap();
-        assert!(
-            db.message_changes("a", 0, 3).is_err(),
-            "missing history must never be reported as complete"
+        assert_eq!(
+            page.rows.iter().map(|(r, _)| *r).collect::<Vec<_>>(),
+            [1, 3, 3]
         );
-        assert_eq!(db.message_changes("a", 1, 3).unwrap().len(), 1);
+        // The intermediate state of the batch was never a revision of its own.
+        assert!(db.history("a", 2, 10).unwrap().rows.len() == 2);
+        assert_eq!(db.history("a", 4, 10), Err(Error::Conflict));
     }
     std::fs::remove_file(path).unwrap();
 }

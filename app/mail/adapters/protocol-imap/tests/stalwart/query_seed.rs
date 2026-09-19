@@ -3,7 +3,7 @@
 use super::corpus::{self, Seed};
 use super::corpus_tail;
 use crate::{Duration, Utc};
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::{Command, MailboxProperties};
 use mail_sqlite_store::SqliteStore;
 use std::collections::BTreeMap;
@@ -30,7 +30,7 @@ pub fn seed(db: &SqliteStore, account: &str) -> Seeded {
     let state = db
         .execute(
             account,
-            state.revision,
+            mail_api::Precondition::Observed(state.revision),
             vec![
                 Command::CreateMailbox {
                     name: "Test Folder A".into(),
@@ -41,6 +41,7 @@ pub fn seed(db: &SqliteStore, account: &str) -> Seeded {
             ],
         )
         .unwrap();
+    let state = db.account(account).unwrap();
     let id = |state: &mail_kernel::Account, name: &str| {
         state
             .mailboxes
@@ -53,10 +54,11 @@ pub fn seed(db: &SqliteStore, account: &str) -> Seeded {
     let state = db
         .execute(
             account,
-            state.revision,
+            mail_api::Precondition::Observed(state.revision),
             vec![child("Child 1", &folder_a), child("Child 2", &folder_a)],
         )
         .unwrap();
+    let state = db.account(account).unwrap();
     let mailboxes = BTreeMap::from([
         ("folderA".to_owned(), folder_a),
         ("folderB".to_owned(), id(&state, "Test Folder B")),
@@ -79,7 +81,7 @@ pub fn seed(db: &SqliteStore, account: &str) -> Seeded {
         let state = db
             .execute(
                 account,
-                state.revision,
+                mail_api::Precondition::Observed(state.revision),
                 vec![Command::Append {
                     mailboxes: targets,
                     raw: seed.raw.into_bytes(),
@@ -88,10 +90,7 @@ pub fn seed(db: &SqliteStore, account: &str) -> Seeded {
                 }],
             )
             .unwrap();
-        emails.insert(
-            seed.key.to_owned(),
-            state.messages.last().unwrap().id.clone(),
-        );
+        emails.insert(seed.key.to_owned(), state.ids.last().unwrap().clone());
     }
     Seeded {
         mailboxes,

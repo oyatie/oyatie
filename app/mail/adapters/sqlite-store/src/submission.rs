@@ -87,7 +87,7 @@ impl SubmissionQueue for SqliteStore {
 }
 
 pub(super) fn enqueue_tx(
-    tx: &rusqlite::Transaction<'_>,
+    tx: &rusqlite::Connection,
     account: &str,
     sender: &str,
     recipients: &[String],

@@ -2,9 +2,9 @@ use super::{
     response::Output,
     syntax::{Token, tokens},
 };
-use mail_kernel::Account;
+use mail_kernel::{Account, HistoryEntry};
 use mail_service::MailService;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 
 pub(super) fn enable(
     session: &mut super::Session,
@@ -133,50 +133,73 @@ pub(super) fn fetch_args(input: &str) -> Result<(&str, Option<u64>, bool), &'sta
     Ok((input[..start].trim_end(), since, vanished))
 }
 
+/// What the history log says about one mailbox after MODSEQ `since`.
+#[derive(Default)]
+pub(super) struct Vanished {
+    /// UIDs whose link to the mailbox was removed (expunge, MOVE out,
+    /// mailbox-set change) in a commit newer than `since`.
+    pub uids: Vec<u32>,
+    /// `since` predates the retained history (RFC 7162 §3.2.5.2): every
+    /// requested message is reported and every unknown UID has vanished.
+    pub below_floor: bool,
+}
+
+/// History rows are read in pages of whole revisions; a window that needs
+/// more than this many pages is refused rather than scanned unboundedly.
+const PAGES: usize = 64;
+
 pub(super) fn vanished(
     service: &MailService,
     token: &str,
     account: &Account,
     mailbox: &str,
     since: u64,
-) -> Result<Vec<u32>, &'static str> {
-    if since >= account.mail_modseq {
-        return Ok(vec![]);
+) -> Result<Vanished, &'static str> {
+    let highest = account
+        .mailboxes
+        .iter()
+        .find(|m| m.id == mailbox)
+        .map_or(account.mail_modseq, |m| m.highest_modseq);
+    let mut result = Vanished::default();
+    if since >= highest {
+        return Ok(result);
     }
-    let changes = service
-        .changes_after(
-            token,
-            &account.id,
-            since.saturating_sub(1),
-            account.revision,
-        )
-        .map_err(|_| "NO")?;
-    let mut merged = BTreeMap::new();
-    let mut deleted = Vec::new();
-    for change in changes {
-        if change.before.as_ref().is_some_and(|m| {
-            m.mailboxes.iter().any(|id| id == mailbox) && !m.uids.contains_key(mailbox)
-        }) {
-            return Err("NO");
+    let mut cursor = since;
+    // A UID linked after `since` was never seen by the client, so its later
+    // removal is not reported (Stalwart cancels create+delete in the window).
+    let mut added = BTreeSet::new();
+    for _ in 0..PAGES {
+        let page = service
+            .history(token, &account.id, cursor, 10_000)
+            .map_err(super::retry::status)?;
+        result.below_floor |= page.below_floor();
+        for (_, entry) in &page.rows {
+            match entry {
+                HistoryEntry::Added {
+                    mailbox: m, uid, ..
+                } if m == mailbox => {
+                    added.insert(*uid);
+                }
+                HistoryEntry::Removed {
+                    mailbox: m, uid, ..
+                } if m == mailbox && !added.contains(uid) => result.uids.push(*uid),
+                _ => {}
+            }
         }
-        if let Some(before) = &change.before
-            && let Some(uid) = before.uids.get(mailbox)
-            && change.after.as_ref().and_then(|a| a.uids.get(mailbox)) != Some(uid)
-        {
-            deleted.push(*uid);
+        if !page.has_more {
+            return Ok(result);
         }
-        let entry = merged
-            .entry(change.id)
-            .or_insert_with(|| (change.before, None));
-        entry.1 = change.after;
+        cursor = page.revision;
     }
-    // Stalwart scans tombstones only if the merged global log contains an
-    // update or deletion. A creation followed by deletion cancels in that log.
-    if !merged
-        .values()
-        .any(|(before, after)| before.is_some() && before != after)
-    {
-        deleted.clear();
-    }
-    Ok(deleted)
+    Err("NO")
+}
+
+/// UIDs in `set` (clamped to the mailbox's allocated range) that are not
+/// `present`: the VANISHED (EARLIER) answer when history is unavailable.
+pub(super) fn missing(set: &[(u32, u32)], uid_next: u32, present: &BTreeSet<u32>) -> Vec<u32> {
+    let last = uid_next.saturating_sub(1);
+    set.iter()
+        .flat_map(|(a, b)| (*a).max(1)..=(*b).min(last))
+        .filter(|uid| !present.contains(uid))
+        .collect()
 }

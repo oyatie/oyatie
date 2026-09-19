@@ -28,12 +28,11 @@ mod utils {
     }
 }
 fn fixture() -> std::sync::Arc<mail_service::MailService> {
-    use mail_api::Store;
+    use mail_api::MetadataStore;
     use mail_kernel::{Account, Command};
     use mail_service::{MailService, OwnerPolicy};
-    use mail_sqlite_store::SqliteStore;
     use std::sync::Arc;
-    let db = Arc::new(SqliteStore::open(":memory:").unwrap());
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(&[]));
     db.provision(
         Account::new("a", "t", "alice", "alice@example.org").unwrap(),
         TOKEN,
@@ -41,7 +40,7 @@ fn fixture() -> std::sync::Arc<mail_service::MailService> {
     .unwrap();
     db.execute(
         "a",
-        0,
+        mail_api::Precondition::Observed(0),
         vec![Command::CreateMailbox {
             name: "Deleted Items".into(),
         }],

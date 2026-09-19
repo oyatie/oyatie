@@ -207,34 +207,10 @@ pub(super) fn changes(
     if !args["calculateTotal"].is_null() && !args["calculateTotal"].is_boolean() {
         return Err("invalidArguments");
     }
-    let changes = super::changes::history(service, token, account, since)?;
-    let mut old: BTreeMap<_, _> = account
-        .messages
-        .iter()
-        .map(|m| (m.id.clone(), m.state()))
-        .collect();
-    for change in changes.iter().rev() {
-        if let Some(before) = &change.before {
-            old.insert(change.id.clone(), before.clone());
-        } else {
-            old.remove(&change.id);
-        }
-    }
-    let before = query.ids(old.into_values());
+    let window = super::changes::window(service, token, account, since)?;
     let after = query.ids(account.messages.iter().map(Message::state));
-    let before_set: BTreeSet<_> = before.iter().collect();
-    let after_set: BTreeSet<_> = after.iter().collect();
-    // receivedAt and IDs are immutable, so retained items preserve relative order.
-    let removed: Vec<_> = before.iter().filter(|id| !after_set.contains(id)).collect();
-    let added: Vec<_> = after
-        .iter()
-        .enumerate()
-        .filter(|(_, id)| !before_set.contains(id))
-        .map(|(index, id)| json!({"id":id,"index":index}))
-        .collect();
-    if removed.len() + added.len() > max {
-        return Err("tooManyChanges");
-    }
+    let (ids, kind) = window.emails(account);
+    let (removed, added) = super::changes::delta(&window, &ids, &kind, &after, max)?;
     Ok(
         json!({"accountId":account.id,"oldQueryState":state,"newQueryState":query.state(account.revision),
         "removed":removed,"added":added,"total":after.len()}),

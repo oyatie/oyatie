@@ -1,5 +1,5 @@
 use super::support::*;
-use mail_api::{Store, SubmissionQueue};
+use mail_api::{MetadataStore, SubmissionQueue};
 use mail_kernel::Command;
 use mail_service::OwnerPolicy;
 use serde_json::json;
@@ -12,11 +12,12 @@ async fn successful_submission_applies_exact_mailbox_and_draft_patch_with_a_sepa
     let account =
         f.db.execute(
             "a",
-            account.revision,
+            mail_api::Precondition::Observed(account.revision),
             vec![Command::CreateMailbox {
                 name: "Sent".into(),
             }],
         )
+        .map(|_| f.db.account("a").unwrap())
         .unwrap();
     let sent = account
         .mailboxes

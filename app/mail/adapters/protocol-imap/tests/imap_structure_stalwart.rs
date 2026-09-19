@@ -32,11 +32,22 @@ pub mod chained_bytes {
     pub use crate::shim::ChainedBytes;
 }
 mod suite {
+    /// A private copy of `resources/imap`: the suite writes `*.imap_failed`
+    /// beside a mismatching golden, which must not land in the shared tree
+    /// the core suites enumerate.
     pub fn resources_dir() -> std::path::PathBuf {
-        std::path::Path::new(env!("STALWART_IMAP_BODY_STRUCTURE_SOURCE"))
+        let shared = std::path::Path::new(env!("STALWART_IMAP_BODY_STRUCTURE_SOURCE"))
             .parent()
             .unwrap()
-            .join("../../resources/imap")
+            .join("../../resources/imap");
+        let private =
+            std::env::temp_dir().join(format!("mail-body-structure-{}", std::process::id()));
+        std::fs::create_dir_all(&private).unwrap();
+        for entry in std::fs::read_dir(shared).unwrap() {
+            let entry = entry.unwrap();
+            std::fs::copy(entry.path(), private.join(entry.file_name())).unwrap();
+        }
+        private
     }
     pub mod body_structure {
         include!(env!("STALWART_IMAP_BODY_STRUCTURE_SOURCE"));
