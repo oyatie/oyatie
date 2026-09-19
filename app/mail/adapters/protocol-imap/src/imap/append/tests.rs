@@ -9,6 +9,7 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
 fn aggregate_limit_counts_body_and_zero_length_message_metadata_before_allocation() {
     let mut append = Append {
         mailbox: "inbox".into(),
+        scope: "append:test".into(),
         revision: 0,
         remaining: usize::MAX,
         buffered: 0,

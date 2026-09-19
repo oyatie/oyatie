@@ -2,11 +2,11 @@
 //! without reaching the wrapped store, so a caller's rollback and retry paths
 //! can be exercised deterministically.
 use mail_api::{
-    AccountInfo, Consumer, Execution, HistoryPage, MailboxSelection, MessageSelection,
+    AccountInfo, BlobStore, Consumer, Execution, HistoryPage, MailboxSelection, MessageSelection,
     MetadataStore, Precondition, SubmissionAcceptance, SubmissionChanges, SubmissionFailure,
     SubmissionPage, SubmissionSelection, SubmissionStore,
 };
-use mail_kernel::{Account, Command, Error, Retention, RetentionPolicy, SubmissionQuery};
+use mail_kernel::{Account, BlobRef, Command, Error, Retention, RetentionPolicy, SubmissionQuery};
 use std::sync::Mutex;
 
 struct Plan {
@@ -75,3 +75,4 @@ impl<T> Faulty<T> {
 
 metadata_store!(Faulty);
 submission_store!(Faulty);
+blob_store!(Faulty);

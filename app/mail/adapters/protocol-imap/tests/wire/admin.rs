@@ -1,4 +1,5 @@
 use super::*;
+use mail_api::BlobStore;
 use mail_kernel::{Command, Error};
 
 fn prepared() -> (Arc<MailService>, Arc<SqliteStore>) {
@@ -10,18 +11,22 @@ fn prepared() -> (Arc<MailService>, Arc<SqliteStore>) {
             Command::CreateMailbox {
                 name: "Archive".into(),
             },
-            Command::Append {
-                mailboxes: vec!["inbox".into(), "m1".into()],
-                raw: b"Subject: shared\r\n\r\nbody\r\n".to_vec(),
-                keywords: vec![],
-                received_at: 1234,
-            },
-            Command::Append {
-                mailboxes: vec!["inbox".into()],
-                raw: b"Subject: inbox\r\n\r\nbody\r\n".to_vec(),
-                keywords: vec![],
-                received_at: 1234,
-            },
+            db.append(
+                "a",
+                vec!["inbox".into(), "m1".into()],
+                &b"Subject: shared\r\n\r\nbody\r\n".to_vec(),
+                vec![],
+                1234,
+            )
+            .unwrap(),
+            db.append(
+                "a",
+                vec!["inbox".into()],
+                &b"Subject: inbox\r\n\r\nbody\r\n".to_vec(),
+                vec![],
+                1234,
+            )
+            .unwrap(),
         ],
     )
     .unwrap();
@@ -52,12 +57,16 @@ async fn delete_removes_populated_mailbox_but_preserves_other_message_copies() {
         .execute(
             "a",
             mail_api::Precondition::Observed(before.revision),
-            vec![Command::Append {
-                mailboxes: vec!["m1".into()],
-                raw: b"Subject: archive only\r\n\r\nbody\r\n".to_vec(),
-                keywords: vec![],
-                received_at: 1234,
-            }],
+            vec![
+                db.append(
+                    "a",
+                    vec!["m1".into()],
+                    &b"Subject: archive only\r\n\r\nbody\r\n".to_vec(),
+                    vec![],
+                    1234,
+                )
+                .unwrap(),
+            ],
         )
         .map(|_| db.account("a").unwrap())
         .unwrap();

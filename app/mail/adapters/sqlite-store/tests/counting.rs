@@ -1,6 +1,6 @@
 //! Cost gates: the rows a mutation, a selection and a mailbox read touch
 //! depend on the selection, not on the account. Plus the two fault doubles.
-use mail_api::{Consumer, MetadataStore, Precondition};
+use mail_api::{BlobStore, Consumer, MetadataStore, Precondition};
 use mail_kernel::{Account, Command, Error, Retention, RetentionPolicy};
 use mail_sqlite_store::SqliteStore;
 use mail_sqlite_store::contract::{Broken, Counting, Faulty};
@@ -8,13 +8,15 @@ use mail_sqlite_store::contract::{Broken, Counting, Faulty};
 const TOKEN: &str = "0123456789abcdef0123456789abcdef";
 const SMALL: usize = 256;
 
-fn append(mailbox: &str, n: usize) -> Command {
-    Command::Append {
-        mailboxes: vec![mailbox.into()],
-        raw: format!("Subject: {n}\r\n\r\nx").into_bytes(),
-        keywords: vec![],
-        received_at: n as i64,
-    }
+fn append(db: &SqliteStore, mailbox: &str, n: usize) -> Command {
+    db.append(
+        "a",
+        vec![mailbox.into()],
+        format!("Subject: {n}\r\n\r\nx").as_bytes(),
+        vec![],
+        n as i64,
+    )
+    .unwrap()
 }
 
 /// Account `a` with `inbox_messages` in INBOX and `SMALL` in mailbox `m1`.
@@ -41,7 +43,7 @@ fn fixture(inbox_messages: usize) -> Counting<SqliteStore> {
             let commands = (0..batch)
                 .map(|_| {
                     n += 1;
-                    append(mailbox, n)
+                    append(&db, mailbox, n)
                 })
                 .collect();
             db.execute("a", Precondition::Observed(0), commands)
@@ -145,14 +147,22 @@ fn faulty_store_surfaces_the_injected_error_once_and_persists_nothing() {
     );
     assert!(store.armed());
     assert_eq!(
-        store.execute("a", Precondition::Require(0), vec![append("inbox", 1)]),
+        store.execute(
+            "a",
+            Precondition::Require(0),
+            vec![append(store.inner(), "inbox", 1)]
+        ),
         Err(Error::Busy)
     );
     assert!(!store.armed());
     assert_eq!(store.inner().account("a").unwrap().revision, 0);
     assert_eq!(store.blob("a", "e1"), Err(Error::NotFound));
     store
-        .execute("a", Precondition::Require(0), vec![append("inbox", 1)])
+        .execute(
+            "a",
+            Precondition::Require(0),
+            vec![append(store.inner(), "inbox", 1)],
+        )
         .unwrap();
     assert_eq!(store.account("a").unwrap().revision, 1);
     store.fail_next(Error::Unavailable);
@@ -176,7 +186,7 @@ fn broken_store_violates_the_contract_where_the_suite_must_notice() {
         .execute(
             "a",
             Precondition::Require(0),
-            vec![append("inbox", 1), append("inbox", 2)],
+            vec![append(&inner, "inbox", 1), append(&inner, "inbox", 2)],
         )
         .unwrap();
     let store = Broken::new(inner);

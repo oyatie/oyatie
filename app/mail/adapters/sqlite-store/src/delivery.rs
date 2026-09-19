@@ -8,9 +8,23 @@ use std::collections::BTreeSet;
 /// Append an SMTP-sourced message to INBOX unless an exact Message-ID /
 /// References-set match is already linked to INBOX or Junk.
 fn ingest(db: &Connection, id: &str, raw: &[u8], received_at: i64) -> Result<(), Error> {
+    let blob = super::blob::persist_tx(
+        db,
+        id,
+        &format!(
+            "deliver:{}",
+            Sha256::digest(raw).iter().fold(String::new(), |mut s, b| {
+                s.push_str(&format!("{b:02x}"));
+                s
+            })
+        ),
+        raw,
+        // Linked by this same transaction: the reservation need not outlive it.
+        0,
+    )?;
     let commands = vec![Command::Append {
         mailboxes: vec!["inbox".into()],
-        raw: raw.to_vec(),
+        blob,
         keywords: vec![],
         received_at,
     }];

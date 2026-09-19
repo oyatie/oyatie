@@ -1,6 +1,6 @@
 use axum::{Router, body::Body, http::Request};
 use http_body_util::BodyExt;
-use mail_api::{MetadataStore, Precondition};
+use mail_api::{BlobStore, MetadataStore, Precondition};
 use mail_kernel::{Account, Command};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -53,11 +53,15 @@ async fn changes_page_at_commits_and_query_delta_reconstructs_the_list() {
         }),
         "http://localhost".into(),
     );
-    let append = |date| Command::Append {
-        mailboxes: vec!["inbox".into()],
-        received_at: date,
-        raw: b"Subject: sync\r\n\r\nbody".to_vec(),
-        keywords: vec![],
+    let append = |date| {
+        db.append(
+            "a",
+            vec!["inbox".into()],
+            &b"Subject: sync\r\n\r\nbody".to_vec(),
+            vec![],
+            date,
+        )
+        .unwrap()
     };
     db.execute("a", Precondition::Observed(0), vec![append(20)])
         .unwrap();

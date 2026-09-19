@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 use mail_api::{
-    AccountInfo, Action, Execution, HistoryPage, Identity, MailboxSelection, Policy, Precondition,
-    Principal, Store,
+    AccountInfo, Action, BlobStore, Execution, HistoryPage, Identity, MailboxSelection, Policy,
+    Precondition, Principal, Store,
 };
 use mail_kernel::{Account, Command, Error};
 use std::sync::Arc;
@@ -52,6 +52,33 @@ impl MailService {
     ) -> Result<HistoryPage, Error> {
         self.authorize(token, account, Action::Read)?;
         self.store.history(account, since, limit)
+    }
+    /// Persist one literal under the command's reservation scope; each call
+    /// renews that scope on its own key.
+    pub fn persist(
+        &self,
+        token: &str,
+        account: &str,
+        scope: &str,
+        raw: &[u8],
+    ) -> Result<mail_kernel::BlobRef, Error> {
+        self.authorize(token, account, Action::Write)?;
+        self.store
+            .persist(account, scope, raw, mail_api::COMMAND_RESERVATION_SECS)
+    }
+    /// One body, one command: persisted and referenced by the returned `Append`.
+    pub fn append(
+        &self,
+        token: &str,
+        account: &str,
+        mailboxes: Vec<String>,
+        raw: &[u8],
+        keywords: Vec<String>,
+        received_at: i64,
+    ) -> Result<Command, Error> {
+        self.authorize(token, account, Action::Write)?;
+        self.store
+            .append(account, mailboxes, raw, keywords, received_at)
     }
     pub fn upload(&self, token: &str, id: &str, raw: &[u8]) -> Result<String, Error> {
         self.authorize(token, id, Action::Write)?;

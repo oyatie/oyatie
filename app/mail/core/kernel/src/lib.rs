@@ -4,6 +4,16 @@ use serde::{Deserialize, Serialize};
 
 pub const MAX_MESSAGE_BYTES: usize = 25 * 1024 * 1024;
 
+/// A persisted body: content hash bound to the store's version of it, so a
+/// reference never resolves to bytes re-uploaded after a sweep. The kernel
+/// charges quota from `size`; the store reads the bytes under its own rules.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct BlobRef {
+    pub hash: String,
+    pub version_id: String,
+    pub size: usize,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Error {
     Invalid,
@@ -105,7 +115,7 @@ pub enum Command {
     Append {
         mailboxes: Vec<String>,
         received_at: i64,
-        raw: Vec<u8>,
+        blob: BlobRef,
         keywords: Vec<String>,
     },
     Transfer {
@@ -248,11 +258,11 @@ impl Account {
             }
             Command::Append {
                 mailboxes,
-                raw,
+                blob,
                 keywords,
                 received_at,
             } => {
-                self.append(mailboxes, raw, keywords, received_at, next)?;
+                self.append(mailboxes, blob.size, keywords, received_at, next)?;
             }
             Command::Transfer {
                 id,

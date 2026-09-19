@@ -101,20 +101,11 @@ pub(super) fn import(
                 true_keys(&value["keywords"])?
             };
             let received_at = utc_date(&value["receivedAt"])?;
-            commit(
-                service,
-                token,
-                &current,
-                conditional,
-                vec![Command::Append {
-                    mailboxes,
-                    raw,
-                    keywords,
-                    received_at,
-                }],
-                budget,
-            )
-            .map_err(|e| match e {
+            let append = service
+                .append(token, &current.id, mailboxes, &raw, keywords, received_at)
+                .map_err(error)?;
+            commit(service, token, &current, conditional, vec![append], budget).map_err(|e| match e
+            {
                 Error::Invalid | Error::NotFound => "invalidProperties",
                 _ => error(e),
             })

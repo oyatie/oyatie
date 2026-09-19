@@ -8,6 +8,7 @@ publish = false
 
 [dependencies]
 mail-kernel = { path = "../../core/kernel" }
+sha2.workspace = true
 
 [lints]
 workspace = true

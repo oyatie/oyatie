@@ -10,7 +10,7 @@
 /// Forward every `MetadataStore` method to `self.inner` after `self.before`.
 macro_rules! metadata_store {
     ($ty:ident) => {
-        impl<T: MetadataStore + SubmissionStore> MetadataStore for $ty<T> {
+        impl<T: MetadataStore + SubmissionStore + BlobStore> MetadataStore for $ty<T> {
             fn account_info(&self, id: &str) -> Result<AccountInfo, Error> {
                 self.before("account_info")?;
                 self.inner.account_info(id)
@@ -88,7 +88,7 @@ macro_rules! metadata_store {
 /// Forward every `SubmissionStore` method to `self.inner` after `self.before`.
 macro_rules! submission_store {
     ($ty:ident) => {
-        impl<T: MetadataStore + SubmissionStore> SubmissionStore for $ty<T> {
+        impl<T: MetadataStore + SubmissionStore + BlobStore> SubmissionStore for $ty<T> {
             fn submissions(
                 &self,
                 account: &str,
@@ -141,6 +141,36 @@ macro_rules! submission_store {
             ) -> Result<SubmissionChanges, Error> {
                 self.before("submission_changes")?;
                 self.inner.submission_changes(account, since, limit)
+            }
+        }
+    };
+}
+
+/// Forward every `BlobStore` method to `self.inner` after `self.before`.
+macro_rules! blob_store {
+    ($ty:ident) => {
+        impl<T: MetadataStore + SubmissionStore + BlobStore> BlobStore for $ty<T> {
+            fn persist(
+                &self,
+                account: &str,
+                scope: &str,
+                raw: &[u8],
+                ttl_secs: i64,
+            ) -> Result<BlobRef, Error> {
+                self.before("persist")?;
+                self.inner.persist(account, scope, raw, ttl_secs)
+            }
+            fn renew(&self, account: &str, scope: &str, ttl_secs: i64) -> Result<(), Error> {
+                self.before("renew")?;
+                self.inner.renew(account, scope, ttl_secs)
+            }
+            fn read(&self, account: &str, blob: &BlobRef) -> Result<Vec<u8>, Error> {
+                self.before("read")?;
+                self.inner.read(account, blob)
+            }
+            fn orphan_sweep(&self, now: i64, limit: usize) -> Result<usize, Error> {
+                self.before("orphan_sweep")?;
+                self.inner.orphan_sweep(now, limit)
             }
         }
     };

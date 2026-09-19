@@ -1,4 +1,4 @@
-use mail_api::{Events, MetadataStore, Precondition};
+use mail_api::{BlobStore, Events, MetadataStore, Precondition};
 use mail_kernel::{Account, Command, HistoryEntry};
 use mail_sqlite_store::SqliteStore;
 
@@ -7,15 +7,19 @@ fn append(db: &SqliteStore, account: &str, id: &str, refs: &str, subject: &str) 
     db.execute(
         account,
         Precondition::Require(state.revision),
-        vec![Command::Append {
-            mailboxes: vec!["inbox".into()],
-            keywords: vec![],
-            received_at: 1,
-            raw: format!(
-                "Message-ID: <{id}>\r\nReferences: {refs}\r\nSubject: {subject}\r\n\r\nbody"
+        vec![
+            db.append(
+                account,
+                vec!["inbox".into()],
+                format!(
+                    "Message-ID: <{id}>\r\nReferences: {refs}\r\nSubject: {subject}\r\n\r\nbody"
+                )
+                .as_bytes(),
+                vec![],
+                1,
             )
-            .into_bytes(),
-        }],
+            .unwrap(),
+        ],
     )
     .unwrap();
     db.account(account).unwrap()
@@ -121,10 +125,22 @@ fn removing_all_members_before_an_append_does_not_resurrect_a_destroyed_thread()
     )
     .unwrap();
     append(&db, "a", "parent@t", "", "Topic");
-    db.execute("a", Precondition::Require(1), vec![Command::Destroy { id: "e1".into() }, Command::Append {
-        mailboxes: vec!["inbox".into()], keywords: vec![], received_at: 1,
-        raw: b"Subject: Re: Topic\r\nReferences: <parent@t>\r\nMessage-ID: <late@t>\r\n\r\nbody".to_vec(),
-    }]).unwrap();
+    db.execute(
+        "a",
+        Precondition::Require(1),
+        vec![
+            Command::Destroy { id: "e1".into() },
+            db.append(
+                "a",
+                vec!["inbox".into()],
+                b"Subject: Re: Topic\r\nReferences: <parent@t>\r\nMessage-ID: <late@t>\r\n\r\nbody",
+                vec![],
+                1,
+            )
+            .unwrap(),
+        ],
+    )
+    .unwrap();
     let state = db.account("a").unwrap();
     assert_eq!(state.messages[0].thread_id(), "e3");
 }
@@ -137,12 +153,16 @@ fn one_batch_of_replies_shares_the_root_thread_identity() {
         &"a".repeat(32),
     )
     .unwrap();
-    let message = |id: &str, refs: &str| Command::Append {
-        mailboxes: vec!["inbox".into()],
-        keywords: vec![],
-        received_at: 1,
-        raw: format!("Message-ID: <{id}>\r\nReferences: {refs}\r\nSubject: T\r\n\r\nbody")
-            .into_bytes(),
+    let message = |id: &str, refs: &str| {
+        db.append(
+            "a",
+            vec!["inbox".into()],
+            format!("Message-ID: <{id}>\r\nReferences: {refs}\r\nSubject: T\r\n\r\nbody")
+                .as_bytes(),
+            vec![],
+            1,
+        )
+        .unwrap()
     };
     db.execute(
         "a",

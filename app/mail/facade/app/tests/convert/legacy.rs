@@ -70,7 +70,7 @@ pub fn mark_converting(path: &Path, backup: &str) {
     )
     .unwrap();
     db.execute(
-        "INSERT INTO schema_version(version,state,backup_path,backup_sha256) VALUES(2,'converting',?1,'00')",
+        "INSERT INTO schema_version(version,state,backup_path,backup_sha256) VALUES(3,'converting',?1,'00')",
         [backup],
     )
     .unwrap();

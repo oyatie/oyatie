@@ -1,6 +1,6 @@
 //! `history/{revision}` paging, consumer-bounded compaction, and the SMTP
 //! duplicate suppression `deliver_once` applies on the way into INBOX.
-use mail_api::{Consumer, MetadataStore, Precondition};
+use mail_api::{BlobStore, Consumer, MetadataStore, Precondition};
 use mail_kernel::{
     Account, Command, Error, HistoryEntry, MailboxProperties, Retention, RetentionPolicy,
 };
@@ -8,13 +8,15 @@ use mail_sqlite_store::SqliteStore;
 
 const TOKEN: &str = "0123456789abcdef0123456789abcdef";
 
-fn append(n: usize) -> Command {
-    Command::Append {
-        mailboxes: vec!["inbox".into()],
-        raw: format!("Subject: {n}\r\n\r\nx").into_bytes(),
-        keywords: vec![],
-        received_at: n as i64,
-    }
+fn append(db: &SqliteStore, n: usize) -> Command {
+    db.append(
+        "a",
+        vec!["inbox".into()],
+        format!("Subject: {n}\r\n\r\nx").as_bytes(),
+        vec![],
+        n as i64,
+    )
+    .unwrap()
 }
 
 /// Revisions 1..=3 append e1..e3 in one batch (three `Added` rows at 3),
@@ -27,7 +29,7 @@ fn fixture() -> SqliteStore {
     )
     .unwrap();
     let batches = [
-        vec![append(1), append(2), append(3)],
+        vec![append(&db, 1), append(&db, 2), append(&db, 3)],
         vec![Command::Keywords {
             id: "e1".into(),
             keywords: vec!["$seen".into()],

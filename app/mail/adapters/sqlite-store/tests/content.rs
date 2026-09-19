@@ -30,8 +30,8 @@ fn metadata_operations_do_not_load_or_rewrite_message_content() {
     );
     assert_eq!(db.blob("a", "e1").unwrap(), raw);
     let connection = rusqlite::Connection::open(&path).unwrap();
-    connection.execute_batch("CREATE TRIGGER immutable_content BEFORE UPDATE ON message_bodies BEGIN SELECT RAISE(ABORT,'content rewritten'); END;
-        CREATE TRIGGER no_content_insert BEFORE INSERT ON message_bodies BEGIN SELECT RAISE(ABORT,'content inserted'); END;").unwrap();
+    connection.execute_batch("CREATE TRIGGER immutable_content BEFORE UPDATE ON blob_content BEGIN SELECT RAISE(ABORT,'content rewritten'); END;
+        CREATE TRIGGER no_content_insert BEFORE INSERT ON blob_content BEGIN SELECT RAISE(ABORT,'content inserted'); END;").unwrap();
     db.execute(
         "a",
         Precondition::Require(1),
