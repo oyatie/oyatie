@@ -283,21 +283,3 @@ pub(crate) fn upsert_message(db: &Connection, account: &str, m: &Message) -> Res
     }
     Ok(())
 }
-
-pub(crate) fn delete_message(db: &Connection, account: &str, id: &str) -> Result<(), Error> {
-    for table in ["message_mailboxes", "thread_members", "thread_references"] {
-        db.execute(
-            &format!("DELETE FROM {table} WHERE account=?1 AND message=?2"),
-            params![account, id],
-        )
-        .map_err(storage)?;
-    }
-    for table in ["messages", "message_bodies"] {
-        db.execute(
-            &format!("DELETE FROM {table} WHERE account=?1 AND id=?2"),
-            params![account, id],
-        )
-        .map_err(storage)?;
-    }
-    Ok(())
-}
