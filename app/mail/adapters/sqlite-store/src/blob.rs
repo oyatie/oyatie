@@ -212,6 +212,10 @@ impl BlobStore for SqliteStore {
         read_tx(&db, account, blob)
     }
 
+    // ponytail: each sweep scans blob_content from the first key under the
+    // connection mutex; add a (hash, version_id) resume cursor when total
+    // bodies make the per-minute scan measurable. Time comes from the caller
+    // until S5's Clock; S9 reinterprets it as commit-version arithmetic.
     fn orphan_sweep(&self, now: i64, limit: usize) -> Result<usize, Error> {
         let mut db = self.connection.lock().map_err(|_| Error::Unavailable)?;
         let tx = db

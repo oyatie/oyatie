@@ -14,6 +14,9 @@ const BUFFER_LIMIT: usize = 50 * 1024 * 1024;
 // ponytail: snapshot adapters scan account metadata per command; cap batch work
 // until an indexed bulk append operation replaces those repeated scans.
 const MESSAGE_LIMIT: usize = 1000;
+/// Reservation scopes are unique per command on this node: a sequence, not
+/// the clock, which two commands can share.
+static COMMANDS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 
 /// One persisted literal with its metadata; the batch references bodies the
 /// store already holds under this command's reservation, so a `Busy`
@@ -53,11 +56,9 @@ impl Append {
         Ok(Self {
             mailbox: mailbox.id.clone(),
             scope: format!(
-                "append:{}",
-                std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .map(|d| d.as_nanos())
-                    .unwrap_or(0)
+                "append:{}:{}",
+                std::process::id(),
+                COMMANDS.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
             ),
             revision: account.revision,
             remaining,
