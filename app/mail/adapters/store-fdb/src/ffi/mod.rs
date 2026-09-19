@@ -12,9 +12,9 @@
 //!   `fdb_future_set_callback` with the task's `Waker`; [`Ready`] copies
 //!   values out. [`block_on`] is a park-based executor for tests and tools.
 //! * [`Database`] and [`Transaction`] — owned handles with the get / set /
-//!   clear / range / atomic-op / watch / commit / on_error / conflict-range
-//!   surface the store needs, plus [`Transaction::set_versionstamped_key`]
-//!   for append-only audit keys built with [`crate::key`].
+//!   clear / range / commit / read-version surface the smoke and the store
+//!   use; S9 adds watches, atomic ops, `on_error` and conflict ranges with
+//!   their callers. Keys are built with [`crate::key`].
 
 /// Linking: `#[link(name = "fdb_c")]` resolves against the `libfdb_c` the
 /// lane provides (`.github/scripts/live-fdb.sh`); `cargo clippy --features
@@ -30,12 +30,9 @@ mod transaction;
 
 pub use database::Database;
 pub use error::FdbError;
-pub use future::{FdbFuture, KeyValues, Ready, block_on};
+pub use future::{FdbFuture, KeyValues, Kind, Ready, block_on};
 pub use network::API_VERSION;
-pub use options::{
-    ConflictRangeType, ErrorPredicate, KeySelector, MutationType, RangeOptions, StreamingMode,
-    TransactionOption,
-};
+pub use options::{ErrorPredicate, KeySelector, RangeOptions, StreamingMode};
 pub use transaction::Transaction;
 
 /// Vendoring criterion, part one. A hand-written binding stays cheaper than a

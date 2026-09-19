@@ -47,7 +47,10 @@ pub fn start() -> Result<(), FdbError> {
 unsafe extern "C" fn stop_at_exit() {
     // By the time atexit handlers run, the main thread's C++ thread-locals
     // inside libfdb_c may already be destroyed; a fresh thread has its own.
-    let _ = std::thread::spawn(stop).join();
+    // A spawn failure here must not panic inside an `extern "C"` handler.
+    if let Ok(handle) = std::thread::Builder::new().spawn(stop) {
+        let _ = handle.join();
+    }
 }
 
 /// Stops the network thread and joins it. Safe to call more than once; the

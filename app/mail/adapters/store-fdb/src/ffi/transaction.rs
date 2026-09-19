@@ -9,12 +9,9 @@ use std::ffi::c_int;
 use std::ptr::NonNull;
 
 use super::error::{FdbError, check};
-use super::future::FdbFuture;
-use super::options::{
-    ConflictRangeType, KeySelector, MutationType, RangeOptions, TransactionOption,
-};
+use super::future::{FdbFuture, Kind};
+use super::options::{KeySelector, RangeOptions};
 use super::sys::{self, parts};
-use crate::key::VersionstampedKey;
 
 pub struct Transaction {
     raw: NonNull<sys::FDBTransaction>,
@@ -33,32 +30,19 @@ impl Transaction {
         self.raw.as_ptr()
     }
 
-    pub fn set_option(&self, option: TransactionOption, value: i64) -> Result<(), FdbError> {
-        let bytes = value.to_le_bytes();
-        let (p, n) = (bytes.as_ptr(), sys::INT_OPTION_LEN);
-        unsafe {
-            check(sys::fdb_transaction_set_option(
-                self.ptr(),
-                option as c_int,
-                p,
-                n,
-            ))
-        }
-    }
-
-    pub fn set_read_version(&self, version: i64) {
-        unsafe { sys::fdb_transaction_set_read_version(self.ptr(), version) }
-    }
-
     pub fn get_read_version(&self) -> FdbFuture {
-        FdbFuture::from_raw(unsafe { sys::fdb_transaction_get_read_version(self.ptr()) })
+        FdbFuture::from_raw(
+            unsafe { sys::fdb_transaction_get_read_version(self.ptr()) },
+            Kind::Int64,
+        )
     }
 
     pub fn get(&self, key: &[u8], snapshot: bool) -> FdbFuture {
         let (k, kn) = parts(key);
-        FdbFuture::from_raw(unsafe {
-            sys::fdb_transaction_get(self.ptr(), k, kn, c_int::from(snapshot))
-        })
+        FdbFuture::from_raw(
+            unsafe { sys::fdb_transaction_get(self.ptr(), k, kn, c_int::from(snapshot)) },
+            Kind::Value,
+        )
     }
 
     pub fn get_range(
@@ -70,25 +54,28 @@ impl Transaction {
         let ((b, bn), (e, en)) = (parts(begin.key), parts(end.key));
         let (beq, eeq) = (c_int::from(begin.or_equal), c_int::from(end.or_equal));
         let (snapshot, reverse) = (c_int::from(o.snapshot), c_int::from(o.reverse));
-        FdbFuture::from_raw(unsafe {
-            sys::fdb_transaction_get_range(
-                self.ptr(),
-                b,
-                bn,
-                beq,
-                begin.offset,
-                e,
-                en,
-                eeq,
-                end.offset,
-                o.limit,
-                o.target_bytes,
-                o.mode as c_int,
-                o.iteration,
-                snapshot,
-                reverse,
-            )
-        })
+        FdbFuture::from_raw(
+            unsafe {
+                sys::fdb_transaction_get_range(
+                    self.ptr(),
+                    b,
+                    bn,
+                    beq,
+                    begin.offset,
+                    e,
+                    en,
+                    eeq,
+                    end.offset,
+                    o.limit,
+                    o.target_bytes,
+                    o.mode as c_int,
+                    o.iteration,
+                    snapshot,
+                    reverse,
+                )
+            },
+            Kind::KeyValues,
+        )
     }
 
     pub fn set(&self, key: &[u8], value: &[u8]) {
@@ -106,29 +93,11 @@ impl Transaction {
         unsafe { sys::fdb_transaction_clear_range(self.ptr(), b, bn, e, en) }
     }
 
-    pub fn atomic_op(&self, key: &[u8], param: &[u8], operation: MutationType) {
-        let ((k, kn), (p, pn)) = (parts(key), parts(param));
-        unsafe { sys::fdb_transaction_atomic_op(self.ptr(), k, kn, p, pn, operation as c_int) }
-    }
-
-    /// Writes `value` under `key` with its placeholder replaced by this
-    /// transaction's versionstamp at commit.
-    pub fn set_versionstamped_key(&self, key: &VersionstampedKey, value: &[u8]) {
-        self.atomic_op(
-            key.atomic_param(),
-            value,
-            MutationType::SetVersionstampedKey,
-        );
-    }
-
-    /// Resolves when `key`'s value changes from what this transaction saw.
-    pub fn watch(&self, key: &[u8]) -> FdbFuture {
-        let (k, kn) = parts(key);
-        FdbFuture::from_raw(unsafe { sys::fdb_transaction_watch(self.ptr(), k, kn) })
-    }
-
     pub fn commit(&self) -> FdbFuture {
-        FdbFuture::from_raw(unsafe { sys::fdb_transaction_commit(self.ptr()) })
+        FdbFuture::from_raw(
+            unsafe { sys::fdb_transaction_commit(self.ptr()) },
+            Kind::Void,
+        )
     }
 
     /// Valid only after `commit` resolved successfully.
@@ -141,35 +110,6 @@ impl Transaction {
             ))?
         };
         Ok(version)
-    }
-
-    /// Backs off per the client's retry policy; resolves `Ok` when the
-    /// transaction may be retried, `Err` when the error is terminal.
-    pub fn on_error(&self, error: FdbError) -> FdbFuture {
-        FdbFuture::from_raw(unsafe { sys::fdb_transaction_on_error(self.ptr(), error.code()) })
-    }
-
-    pub fn reset(&self) {
-        unsafe { sys::fdb_transaction_reset(self.ptr()) }
-    }
-
-    pub fn add_conflict_range(
-        &self,
-        begin: &[u8],
-        end: &[u8],
-        kind: ConflictRangeType,
-    ) -> Result<(), FdbError> {
-        let ((b, bn), (e, en)) = (parts(begin), parts(end));
-        unsafe {
-            check(sys::fdb_transaction_add_conflict_range(
-                self.ptr(),
-                b,
-                bn,
-                e,
-                en,
-                kind as c_int,
-            ))
-        }
     }
 }
 
