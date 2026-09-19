@@ -1,7 +1,9 @@
 use super::*;
 use mail_api::{
-    AccountInfo, Consumer, Execution, HistoryPage, MailboxSelection, MessageSelection, Precondition,
+    AccountInfo, BlobStore, Consumer, Execution, HistoryPage, MailboxSelection, MessageSelection,
+    Precondition,
 };
+use mail_kernel::BlobRef;
 
 pub(super) struct ObservedStore {
     pub(super) inner: Arc<SqliteStore>,
@@ -40,6 +42,21 @@ impl MetadataStore for ObservedStore {
     fn blob(&self, a: &str, id: &str) -> Result<Vec<u8>, Error> { self.inner.blob(a, id) }
     fn history(&self, a: &str, s: u64, l: usize) -> Result<HistoryPage, Error> { self.observe(); self.inner.history(a, s, l) }
     fn compact_history(&self, a: &str, n: i64, p: mail_kernel::RetentionPolicy, c: &[(Consumer, u64)]) -> Result<mail_kernel::Retention, Error> { self.inner.compact_history(a, n, p, c) }
+}
+
+impl BlobStore for ObservedStore {
+    fn persist(&self, a: &str, s: &str, r: &[u8], ttl: i64) -> Result<BlobRef, Error> {
+        self.inner.persist(a, s, r, ttl)
+    }
+    fn renew(&self, a: &str, s: &str, ttl: i64) -> Result<(), Error> {
+        self.inner.renew(a, s, ttl)
+    }
+    fn read(&self, a: &str, b: &BlobRef) -> Result<Vec<u8>, Error> {
+        self.inner.read(a, b)
+    }
+    fn orphan_sweep(&self, now: i64, limit: usize) -> Result<usize, Error> {
+        self.inner.orphan_sweep(now, limit)
+    }
 }
 
 pub(super) fn observed() -> (Arc<MailService>, Arc<ObservedStore>) {

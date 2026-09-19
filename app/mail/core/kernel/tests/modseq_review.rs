@@ -1,13 +1,22 @@
 //! Pairwise review: after any two commands, every message's MODSEQ is the
 //! revision of the batch that last changed it, counters equal a recount of the
 //! working set, and a failed command leaves the aggregate untouched.
-use mail_kernel::{Account, Command, MailboxProperties, Scope};
+use mail_kernel::{Account, BlobRef, Command, MailboxProperties, Scope};
 use std::collections::BTreeMap;
+
+/// A reference the kernel charges by size; the hash is irrelevant to it.
+fn blob_of(raw: impl AsRef<[u8]>) -> BlobRef {
+    BlobRef {
+        hash: "h".into(),
+        version_id: "1".into(),
+        size: raw.as_ref().len(),
+    }
+}
 
 fn append() -> Command {
     Command::Append {
         mailboxes: vec!["inbox".into()],
-        raw: b"Subject: stable\r\n\r\nbody".to_vec(),
+        blob: blob_of(b"Subject: stable\r\n\r\nbody".to_vec()),
         received_at: 1,
         keywords: vec![],
     }

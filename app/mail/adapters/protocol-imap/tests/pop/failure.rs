@@ -1,9 +1,9 @@
 use super::support::*;
 use mail_api::{
-    AccountInfo, Execution, HistoryPage, MailboxSelection, MessageSelection, MetadataStore,
-    Precondition,
+    AccountInfo, BlobStore, Execution, HistoryPage, MailboxSelection, MessageSelection,
+    MetadataStore, Precondition,
 };
-use mail_kernel::{Account, Command, Error};
+use mail_kernel::{Account, BlobRef, Command, Error};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
 use std::sync::{
@@ -80,6 +80,21 @@ impl MetadataStore for FaultStore {
         cursors: &[(mail_api::Consumer, u64)],
     ) -> Result<mail_kernel::Retention, Error> {
         self.db.compact_history(account, now, policy, cursors)
+    }
+}
+
+impl BlobStore for FaultStore {
+    fn persist(&self, a: &str, s: &str, r: &[u8], ttl: i64) -> Result<BlobRef, Error> {
+        self.db.persist(a, s, r, ttl)
+    }
+    fn renew(&self, a: &str, s: &str, ttl: i64) -> Result<(), Error> {
+        self.db.renew(a, s, ttl)
+    }
+    fn read(&self, a: &str, b: &BlobRef) -> Result<Vec<u8>, Error> {
+        self.db.read(a, b)
+    }
+    fn orphan_sweep(&self, now: i64, limit: usize) -> Result<usize, Error> {
+        self.db.orphan_sweep(now, limit)
     }
 }
 

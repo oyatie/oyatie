@@ -3,6 +3,7 @@
 use super::corpus::{self, Seed};
 use super::corpus_tail;
 use crate::{Duration, Utc};
+use mail_api::BlobStore;
 use mail_api::MetadataStore;
 use mail_kernel::{Command, MailboxProperties};
 use mail_sqlite_store::SqliteStore;
@@ -82,12 +83,16 @@ pub fn seed(db: &SqliteStore, account: &str) -> Seeded {
             .execute(
                 account,
                 mail_api::Precondition::Observed(state.revision),
-                vec![Command::Append {
-                    mailboxes: targets,
-                    raw: seed.raw.into_bytes(),
-                    keywords: seed.keywords,
-                    received_at: (now - Duration::hours(seed.hours_ago)).timestamp(),
-                }],
+                vec![
+                    db.append(
+                        account,
+                        targets,
+                        &seed.raw.into_bytes(),
+                        seed.keywords,
+                        (now - Duration::hours(seed.hours_ago)).timestamp(),
+                    )
+                    .unwrap(),
+                ],
             )
             .unwrap();
         emails.insert(seed.key.to_owned(), state.ids.last().unwrap().clone());

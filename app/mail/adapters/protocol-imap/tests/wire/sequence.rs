@@ -1,4 +1,5 @@
 use super::*;
+use mail_api::BlobStore;
 use mail_kernel::Command;
 
 async fn command(client: &mut BufReader<tokio::io::DuplexStream>, value: &str) -> String {
@@ -140,12 +141,16 @@ async fn console_sync_fetch_returns_internaldate_without_setting_seen() {
     db.execute(
         "a",
         mail_api::Precondition::Observed(0),
-        vec![Command::Append {
-            mailboxes: vec!["inbox".into()],
-            received_at: 1_000_000_000,
-            raw: b"Subject: console\r\n\r\nbody\r\n".to_vec(),
-            keywords: vec![],
-        }],
+        vec![
+            db.append(
+                "a",
+                vec!["inbox".into()],
+                &b"Subject: console\r\n\r\nbody\r\n".to_vec(),
+                vec![],
+                1_000_000_000,
+            )
+            .unwrap(),
+        ],
     )
     .unwrap();
     let (client, server) = tokio::io::duplex(65536);

@@ -126,13 +126,23 @@ pub(super) fn convert(db: &Connection, id: &str, indexed: bool) -> Result<(), Er
         params![account.id, token],
     )
     .map_err(storage)?;
-    for (message, raw) in &bodies {
-        db.execute(
-            "INSERT OR IGNORE INTO message_bodies(account,id,content) VALUES(?1,?2,?3)",
-            params![account.id, message, raw],
-        )
+    let mut stored = db
+        .prepare("SELECT id,content FROM message_bodies WHERE account=?1")
         .map_err(storage)?;
+    let rows: Vec<(String, Vec<u8>)> = stored
+        .query_map([&account.id], |r| Ok((r.get(0)?, r.get(1)?)))
+        .map_err(storage)?
+        .collect::<Result<_, _>>()
+        .map_err(storage)?;
+    drop(stored);
+    bodies.extend(rows);
+    for (message, raw) in &bodies {
+        let blob = crate::blob::persist_tx(db, &account.id, "convert", raw, 0)?;
+        crate::blob::reference(db, &account.id, &blob, &format!("message:{message}"))?;
     }
+    db.execute("DELETE FROM message_bodies WHERE account=?1", [&account.id])
+        .map_err(storage)?;
+    uploads(db, &account.id)?;
     for message in &account.messages {
         records::upsert_message(db, &account.id, message)?;
     }
@@ -175,5 +185,43 @@ fn backfill_threads(db: &Connection, account: &mut Account) -> Result<(), Error>
         let raw = crate::content::get(db, &account.id, &id)?;
         threads::link(db, account, &id, threads::references(&raw)?)?;
     }
+    Ok(())
+}
+
+/// Legacy `blobs` rows (JMAP uploads) keep their expiry as upload reservations.
+fn uploads(db: &Connection, account: &str) -> Result<(), Error> {
+    let present: bool = db
+        .query_row(
+            "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='blobs')",
+            [],
+            |r| r.get(0),
+        )
+        .map_err(storage)?;
+    if !present {
+        return Ok(());
+    }
+    let mut query = db
+        .prepare("SELECT content,expires_at-unixepoch() FROM blobs WHERE account=?1 AND expires_at>unixepoch()")
+        .map_err(storage)?;
+    let rows: Vec<(Vec<u8>, i64)> = query
+        .query_map([account], |r| Ok((r.get(0)?, r.get(1)?)))
+        .map_err(storage)?
+        .collect::<Result<_, _>>()
+        .map_err(storage)?;
+    for (raw, ttl) in rows {
+        let blob = crate::blob::persist_tx(db, account, "legacy-upload", &raw, ttl)?;
+        db.execute(
+            "UPDATE blob_reservations SET scope='upload:'||?3 WHERE account=?1 AND scope=?2",
+            params![account, "legacy-upload", blob.hash],
+        )
+        .map_err(storage)?;
+        db.execute(
+            "UPDATE blob_reserved SET scope='upload:'||?3 WHERE account=?1 AND scope=?2",
+            params![account, "legacy-upload", blob.hash],
+        )
+        .map_err(storage)?;
+    }
+    db.execute("DELETE FROM blobs WHERE account=?1", [account])
+        .map_err(storage)?;
     Ok(())
 }

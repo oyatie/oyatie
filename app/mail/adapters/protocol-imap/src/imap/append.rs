@@ -1,7 +1,7 @@
 use super::{Session, folders, response::Output, state};
 use crate::wire::{line, write};
 use mail_api::{Action, Precondition};
-use mail_kernel::{Command, Error};
+use mail_kernel::{BlobRef, Command, Error};
 use mail_service::{Budget, MailService};
 use std::{io, sync::Arc, time::Duration};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, BufReader};
@@ -15,16 +15,19 @@ const BUFFER_LIMIT: usize = 50 * 1024 * 1024;
 // until an indexed bulk append operation replaces those repeated scans.
 const MESSAGE_LIMIT: usize = 1000;
 
-/// One received literal with its metadata; the batch is retained until the
-/// store commits it, so a `Busy` re-attempt never re-reads the wire.
+/// One persisted literal with its metadata; the batch references bodies the
+/// store already holds under this command's reservation, so a `Busy`
+/// re-attempt never re-reads the wire.
 struct Body {
-    raw: Vec<u8>,
+    blob: BlobRef,
     keywords: Vec<String>,
     received_at: i64,
 }
 
 pub(super) struct Append {
     mailbox: String,
+    /// Reservation scope every literal of this command renews on its own key.
+    scope: String,
     revision: u64,
     remaining: usize,
     buffered: usize,
@@ -49,6 +52,13 @@ impl Append {
             .ok_or("NO [OVERQUOTA]")?;
         Ok(Self {
             mailbox: mailbox.id.clone(),
+            scope: format!(
+                "append:{}",
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_nanos())
+                    .unwrap_or(0)
+            ),
             revision: account.revision,
             remaining,
             buffered: 0,
@@ -84,7 +94,7 @@ impl Append {
             .map(|body| Command::Append {
                 mailboxes: vec![self.mailbox.clone()],
                 received_at: body.received_at,
-                raw: body.raw.clone(),
+                blob: body.blob.clone(),
                 keywords: body.keywords.clone(),
             })
             .collect()
@@ -227,8 +237,25 @@ async fn collect<S: AsyncRead + AsyncWrite + Unpin>(
         if !session.utf8 && !metadata::ascii_headers(&raw) {
             return refuse(stream, tag, "NO [UTF8NOTSUPPORTED]", suffix).await;
         }
+        // Persist now, renewing the command's reservation from this literal.
+        let (token, account, scope, worker) = (
+            session.credential.clone(),
+            session.account_id.clone(),
+            append.scope.clone(),
+            service.clone(),
+        );
+        let blob = match tokio::task::spawn_blocking(move || {
+            worker.persist(&token, &account, &scope, &raw)
+        })
+        .await
+        .map_err(|_| io::Error::other("IMAP worker failed"))?
+        {
+            Ok(blob) => blob,
+            Err(Error::OverQuota) => return refuse(stream, tag, "NO [OVERQUOTA]", suffix).await,
+            Err(_) => return refuse(stream, tag, "NO [UNAVAILABLE]", suffix).await,
+        };
         append.bodies.push(Body {
-            raw,
+            blob,
             keywords: literal.keywords,
             received_at: literal.received_at,
         });

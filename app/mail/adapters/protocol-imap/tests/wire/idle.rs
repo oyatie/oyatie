@@ -1,4 +1,5 @@
 use super::*;
+use mail_api::BlobStore;
 use mail_api::Precondition;
 use mail_kernel::{Command, Error};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
@@ -233,11 +234,17 @@ async fn idle_slow_storage_does_not_block_other_socket_tasks_and_disconnect_canc
 async fn idle_backpressure_stops_more_store_snapshots_and_peer_drop_releases_session() {
     let (service, store) = observed();
     let commands = (0..200)
-        .map(|_| Command::Append {
-            mailboxes: vec!["inbox".into()],
-            raw: b"Subject: idle\r\n\r\nbody".to_vec(),
-            keywords: vec![],
-            received_at: 1,
+        .map(|_| {
+            store
+                .inner
+                .append(
+                    "a",
+                    vec!["inbox".into()],
+                    b"Subject: idle\r\n\r\nbody",
+                    vec![],
+                    1,
+                )
+                .unwrap()
         })
         .collect();
     let account = store

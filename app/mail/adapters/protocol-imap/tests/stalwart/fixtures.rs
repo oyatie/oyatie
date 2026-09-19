@@ -1,3 +1,4 @@
+use mail_api::BlobStore;
 use mail_api::MetadataStore;
 use mail_kernel::Command;
 use mail_sqlite_store::SqliteStore;
@@ -185,12 +186,16 @@ pub fn seed(db: &SqliteStore) -> BTreeMap<String, String> {
             .execute(
                 "a",
                 mail_api::Precondition::Observed(state.revision),
-                vec![Command::Append {
-                    mailboxes,
-                    raw: raw.into_bytes(),
-                    keywords: vec!["$seen".into()],
-                    received_at: 1789387200,
-                }],
+                vec![
+                    db.append(
+                        "a",
+                        mailboxes,
+                        raw.as_bytes(),
+                        vec!["$seen".into()],
+                        1789387200,
+                    )
+                    .unwrap(),
+                ],
             )
             .unwrap();
         emails.insert(key.into(), state.ids.last().unwrap().clone());

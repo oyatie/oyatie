@@ -1,17 +1,19 @@
 //! MODSEQ semantics at the store boundary: one visible stamp per committed
 //! batch equal to the new account revision; history rows describe exactly the
 //! links, flags and threads that changed; a failed batch writes nothing.
-use mail_api::{HistoryPage, MetadataStore, Precondition};
+use mail_api::{BlobStore, HistoryPage, MetadataStore, Precondition};
 use mail_kernel::{Account, Command, Error, HistoryEntry};
 use mail_sqlite_store::SqliteStore;
 
-fn append(n: u8) -> Command {
-    Command::Append {
-        mailboxes: vec!["inbox".into()],
-        raw: format!("Subject: {n}\r\n\r\nbody").into_bytes(),
-        keywords: vec![],
-        received_at: 1,
-    }
+fn append(db: &SqliteStore, n: u8) -> Command {
+    db.append(
+        "a",
+        vec!["inbox".into()],
+        format!("Subject: {n}\r\n\r\nbody").as_bytes(),
+        vec![],
+        1,
+    )
+    .unwrap()
 }
 fn fixture() -> (SqliteStore, Account) {
     let db = SqliteStore::open(":memory:").unwrap();
@@ -24,7 +26,7 @@ fn fixture() -> (SqliteStore, Account) {
         .execute(
             "a",
             Precondition::Require(0),
-            vec![append(1), append(2), append(3)],
+            vec![append(&db, 1), append(&db, 2), append(&db, 3)],
         )
         .unwrap();
     assert_eq!(execution.revision, 3);
@@ -141,7 +143,7 @@ fn unchanged_edits_and_mailbox_only_batches_do_not_stamp_messages() {
 fn conditional_batches_conflict_and_observed_batches_reapply() {
     let (db, before) = fixture();
     assert_eq!(
-        db.execute("a", Precondition::Require(1), vec![append(9)]),
+        db.execute("a", Precondition::Require(1), vec![append(&db, 9)]),
         Err(Error::Conflict)
     );
     assert_eq!(db.account("a").unwrap(), before);
@@ -188,14 +190,22 @@ fn failed_batch_consumes_no_uids_and_writes_nothing() {
         db.execute(
             "a",
             Precondition::Require(before.revision),
-            vec![append(4), append(5), Command::Destroy { id: "zz".into() }]
+            vec![
+                append(&db, 4),
+                append(&db, 5),
+                Command::Destroy { id: "zz".into() }
+            ]
         ),
         Err(Error::NotFound)
     );
     assert_eq!(db.account("a").unwrap(), before);
     assert_eq!(db.blob("a", "e4"), Err(Error::NotFound));
     let execution = db
-        .execute("a", Precondition::Require(before.revision), vec![append(4)])
+        .execute(
+            "a",
+            Precondition::Require(before.revision),
+            vec![append(&db, 4)],
+        )
         .unwrap();
     assert_eq!(execution.allocations, vec![("inbox".into(), 4)]);
 }
@@ -214,12 +224,16 @@ fn every_ingest_path_rethreads_and_stamps_bridged_messages() {
             db.execute(
                 "a",
                 Precondition::Require(old.revision),
-                vec![Command::Append {
-                    mailboxes: vec!["inbox".into()],
-                    keywords: vec![],
-                    received_at: 1,
-                    raw: format!("Message-ID: <{id}>\r\nSubject: thread\r\n\r\nbody").into_bytes(),
-                }],
+                vec![
+                    db.append(
+                        "a",
+                        vec!["inbox".into()],
+                        &format!("Message-ID: <{id}>\r\nSubject: thread\r\n\r\nbody").into_bytes(),
+                        vec![],
+                        1,
+                    )
+                    .unwrap(),
+                ],
             )
             .unwrap();
         }
@@ -235,12 +249,10 @@ fn every_ingest_path_rethreads_and_stamps_bridged_messages() {
                 db.execute(
                     "a",
                     Precondition::Require(before.revision),
-                    vec![Command::Append {
-                        mailboxes: vec!["inbox".into()],
-                        keywords: vec![],
-                        received_at: 1,
-                        raw: raw.to_vec(),
-                    }],
+                    vec![
+                        db.append("a", vec!["inbox".into()], &raw.to_vec(), vec![], 1)
+                            .unwrap(),
+                    ],
                 )
                 .unwrap();
             }

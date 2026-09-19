@@ -1,4 +1,5 @@
 use super::*;
+use mail_api::BlobStore;
 use mail_kernel::Command;
 
 #[path = "sort/collation.rs"]
@@ -62,12 +63,16 @@ async fn session() -> (
         db.execute(
             "a",
             mail_api::Precondition::Observed(db.account("a").unwrap().revision),
-            vec![Command::Append {
-                mailboxes: vec!["inbox".into()],
-                received_at,
-                raw,
-                keywords: if seen { vec!["$seen".into()] } else { vec![] },
-            }],
+            vec![
+                db.append(
+                    "a",
+                    vec!["inbox".into()],
+                    &raw,
+                    if seen { vec!["$seen".into()] } else { vec![] },
+                    received_at,
+                )
+                .unwrap(),
+            ],
         )
         .unwrap();
     }

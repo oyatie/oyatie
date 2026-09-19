@@ -1,4 +1,5 @@
 use super::*;
+use mail_api::BlobStore;
 
 #[tokio::test]
 async fn imap_copy_and_move_preserve_content_with_distinct_destination_uids() {
@@ -12,12 +13,14 @@ async fn imap_copy_and_move_preserve_content_with_distinct_destination_uids() {
                 mail_kernel::Command::CreateMailbox {
                     name: "Archive".into(),
                 },
-                mail_kernel::Command::Append {
-                    mailboxes: vec!["inbox".into()],
-                    raw: raw.to_vec(),
-                    keywords: vec!["$seen".into()],
-                    received_at: 1_000_000_000,
-                },
+                db.append(
+                    "a",
+                    vec!["inbox".into()],
+                    &raw.to_vec(),
+                    vec!["$seen".into()],
+                    1_000_000_000,
+                )
+                .unwrap(),
             ],
         )
         .map(|_| db.account("a").unwrap())
@@ -126,16 +129,20 @@ async fn uid_expunge_removes_only_selected_deleted_messages() {
         db.execute(
             "a",
             mail_api::Precondition::Observed(account.revision),
-            vec![mail_kernel::Command::Append {
-                mailboxes: vec!["inbox".into()],
-                raw: format!("Subject: {n}\r\n\r\nbody\r\n").into_bytes(),
-                keywords: if n < 3 {
-                    vec!["$deleted".into()]
-                } else {
-                    vec![]
-                },
-                received_at: 1234,
-            }],
+            vec![
+                db.append(
+                    "a",
+                    vec!["inbox".into()],
+                    format!("Subject: {n}\r\n\r\nbody\r\n").as_bytes(),
+                    if n < 3 {
+                        vec!["$deleted".into()]
+                    } else {
+                        vec![]
+                    },
+                    1234,
+                )
+                .unwrap(),
+            ],
         )
         .unwrap();
     }
