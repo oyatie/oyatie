@@ -128,3 +128,9 @@ fn live_range_read_returns_keys_in_order() {
     commit(&tx);
     assert!(read_all(db, &range).is_empty());
 }
+
+#[test]
+#[ignore]
+fn live_fdb_build_has_no_static_refusal() {
+    assert_eq!(FdbStore::refusal(), None);
+}

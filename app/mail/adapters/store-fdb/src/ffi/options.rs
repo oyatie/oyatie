@@ -20,15 +20,6 @@ impl<'a> KeySelector<'a> {
     pub const fn first_greater_or_equal(key: &'a [u8]) -> Self {
         Self::new(key, false, 1)
     }
-    pub const fn first_greater_than(key: &'a [u8]) -> Self {
-        Self::new(key, true, 1)
-    }
-    pub const fn last_less_than(key: &'a [u8]) -> Self {
-        Self::new(key, false, 0)
-    }
-    pub const fn last_less_or_equal(key: &'a [u8]) -> Self {
-        Self::new(key, true, 0)
-    }
 }
 
 #[repr(i32)]
@@ -50,36 +41,6 @@ pub struct RangeOptions {
     pub iteration: i32,
     pub snapshot: bool,
     pub reverse: bool,
-}
-
-#[repr(i32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum MutationType {
-    Add = 2,
-    Max = 12,
-    Min = 13,
-    SetVersionstampedKey = 14,
-    SetVersionstampedValue = 15,
-    ByteMin = 16,
-    ByteMax = 17,
-    CompareAndClear = 20,
-}
-
-#[repr(i32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ConflictRangeType {
-    Read = 0,
-    Write = 1,
-}
-
-/// Integer-valued transaction options.
-#[repr(i32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum TransactionOption {
-    TimeoutMillis = 500,
-    RetryLimit = 501,
-    MaxRetryDelayMillis = 502,
-    SizeLimit = 503,
 }
 
 /// `fdb_error_predicate` tests.

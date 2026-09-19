@@ -30,12 +30,9 @@ mod transaction;
 
 pub use database::Database;
 pub use error::FdbError;
-pub use future::{FdbFuture, KeyValues, Ready, block_on};
+pub use future::{FdbFuture, KeyValues, Kind, Ready, block_on};
 pub use network::API_VERSION;
-pub use options::{
-    ConflictRangeType, ErrorPredicate, KeySelector, MutationType, RangeOptions, StreamingMode,
-    TransactionOption,
-};
+pub use options::{ErrorPredicate, KeySelector, RangeOptions, StreamingMode};
 pub use transaction::Transaction;
 
 /// Vendoring criterion, part one. A hand-written binding stays cheaper than a
