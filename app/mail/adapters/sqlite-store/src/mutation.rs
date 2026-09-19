@@ -164,7 +164,7 @@ fn persist(
         records::upsert_message(db, &after.id, message)?;
     }
     for id in &effects.deleted {
-        records::delete_message(db, &after.id, id)?;
+        delete_message(db, &after.id, id)?;
     }
     super::history::record(db, &after.id, effects.revision, &effects.history)?;
     db.execute(
@@ -190,4 +190,22 @@ pub(super) fn run(
         batch.apply(db, command)?;
     }
     batch.commit(db)
+}
+
+pub(super) fn delete_message(db: &Connection, account: &str, id: &str) -> Result<(), Error> {
+    for table in ["message_mailboxes", "thread_members", "thread_references"] {
+        db.execute(
+            &format!("DELETE FROM {table} WHERE account=?1 AND message=?2"),
+            params![account, id],
+        )
+        .map_err(storage)?;
+    }
+    for table in ["messages", "message_bodies"] {
+        db.execute(
+            &format!("DELETE FROM {table} WHERE account=?1 AND id=?2"),
+            params![account, id],
+        )
+        .map_err(storage)?;
+    }
+    Ok(())
 }
