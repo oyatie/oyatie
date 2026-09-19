@@ -194,15 +194,14 @@ async fn upstream_jmap_compliance() {
         "a",
         mail_api::Precondition::Observed(1),
         vec![
-            mail_kernel::db
-                .append(
-                    "a",
-                    vec!["inbox".into()],
-                    &b"Subject: custom keywords\r\n\r\nbody\r\n".to_vec(),
-                    vec!["$seen".into(), "$forwarded".into(), "custom_label".into()],
-                    0,
-                )
-                .unwrap(),
+            db.append(
+                "a",
+                vec!["inbox".into()],
+                &b"Subject: custom keywords\r\n\r\nbody\r\n".to_vec(),
+                vec!["$seen".into(), "$forwarded".into(), "custom_label".into()],
+                0,
+            )
+            .unwrap(),
             mail_kernel::Command::CreateMailbox {
                 name: "Test Folder A".into(),
             },
