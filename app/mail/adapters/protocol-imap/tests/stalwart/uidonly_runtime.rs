@@ -64,7 +64,7 @@ async fn uidonly_idle_uses_uidfetch_and_vanished_after_uid_sequence_divergence()
 }
 
 fn tenants() -> (Arc<MailService>, Arc<SqliteStore>) {
-    let db = Arc::new(SqliteStore::open(":memory:").unwrap());
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(&[]));
     db.provision(
         Account::new("a", "t", "alice", "alice@example.org").unwrap(),
         crate::TOKEN,

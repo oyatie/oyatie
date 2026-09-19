@@ -2,7 +2,6 @@
 use mail_api::MetadataStore;
 use mail_kernel::Account;
 use mail_service::{MailService, OwnerPolicy};
-use mail_sqlite_store::SqliteStore;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{cell::RefCell, fmt::Debug, future::Future, sync::Arc};
@@ -69,7 +68,7 @@ async fn unchanged_upstream_vacation_suite() {
         "49d2e4d49be39a9bb69aa4f7b6ba39e9609319e55a462301e16b33dae06671f8",
         "upstream vacation source must remain pinned and unchanged"
     );
-    let db = Arc::new(SqliteStore::open(":memory:").unwrap());
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(&[]));
     db.provision(
         Account::new("a", "t", "alice", "alice@example.org").unwrap(),
         TOKEN,

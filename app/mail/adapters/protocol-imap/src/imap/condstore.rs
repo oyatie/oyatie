@@ -160,19 +160,27 @@ pub(super) fn vanished(
         return Ok(result);
     }
     let mut cursor = since;
+    // A UID linked after `since` was never seen by the client, so its later
+    // removal is not reported (Stalwart cancels create+delete in the window).
+    let mut added = BTreeSet::new();
     for _ in 0..PAGES {
         let page = service
             .history(token, &account.id, cursor, 10_000)
             .map_err(super::retry::status)?;
         result.below_floor |= page.below_floor();
-        result
-            .uids
-            .extend(page.rows.iter().filter_map(|(_, entry)| match entry {
+        for (_, entry) in &page.rows {
+            match entry {
+                HistoryEntry::Added {
+                    mailbox: m, uid, ..
+                } if m == mailbox => {
+                    added.insert(*uid);
+                }
                 HistoryEntry::Removed {
                     mailbox: m, uid, ..
-                } if m == mailbox => Some(*uid),
-                _ => None,
-            }));
+                } if m == mailbox && !added.contains(uid) => result.uids.push(*uid),
+                _ => {}
+            }
+        }
         if !page.has_more {
             return Ok(result);
         }

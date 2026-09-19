@@ -33,7 +33,6 @@ async fn upstream_imap_objectid() {
     use mail_api::MetadataStore;
     use mail_kernel::Account;
     use mail_service::{MailService, OwnerPolicy};
-    use mail_sqlite_store::SqliteStore;
     use sha2::{Digest, Sha256};
     use std::{cell::RefCell, rc::Rc, sync::Arc};
     assert_eq!(
@@ -43,7 +42,7 @@ async fn upstream_imap_objectid() {
         ),
         "719c6e9d41550220b16e718b43327cb66bdec95183abb9c1e4ca235fd53ec8d1"
     );
-    let db = Arc::new(SqliteStore::open(":memory:").unwrap());
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(&[]));
     db.provision(
         Account::new("a", "t", "alice", "alice@example.org").unwrap(),
         TOKEN,

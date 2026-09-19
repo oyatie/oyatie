@@ -2,7 +2,6 @@
 use mail_api::MetadataStore;
 use mail_kernel::{Account, Command, MailboxProperties};
 use mail_service::{MailService, OwnerPolicy};
-use mail_sqlite_store::SqliteStore;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
@@ -103,7 +102,7 @@ async fn unchanged_upstream_submission_suite() {
         "28b5250032ed10cbdc03c887b9297a5b1cfa8ea2b52184037151b6e60546a570",
         "upstream submission source must remain pinned and unchanged"
     );
-    let db = Arc::new(SqliteStore::open(":memory:").unwrap());
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(&[]));
     for (id, owner, address, token) in [
         ("a", "alice", "alice@example.org", TOKEN),
         (

@@ -34,6 +34,10 @@ use std::{path::Path, sync::Mutex, time::Duration};
 
 pub struct SqliteStore {
     connection: Mutex<Connection>,
+    /// Test-only: the directory of a converted fixture, removed after the
+    /// connection closes (fields drop in declaration order).
+    #[cfg(feature = "contract")]
+    scratch: Option<contract::converted::Scratch>,
 }
 
 /// Why `open` did not return a store.
@@ -67,6 +71,8 @@ impl SqliteStore {
         submission_schema::initialize(&db)?;
         Ok(Self {
             connection: Mutex::new(db),
+            #[cfg(feature = "contract")]
+            scratch: None,
         })
     }
 

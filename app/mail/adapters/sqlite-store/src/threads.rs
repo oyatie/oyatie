@@ -141,13 +141,22 @@ pub(super) fn link(
         .next()
         .map_or(previous, String::as_str)
         .to_owned();
-    let immutable_thread: String = db
-        .query_row(
-            "SELECT coalesce(thread_identity,id) FROM messages WHERE account=?1 AND thread=?2 AND id!=?3 ORDER BY CAST(substr(id,2) AS INTEGER) LIMIT 1",
-            params![account.id, thread, id],
-            |r| r.get(0),
-        )
-        .unwrap_or_else(|_| id.to_owned());
+    // A member in the working set (same batch, not yet persisted) precedes
+    // the persisted rows; both carry the thread's immutable identity.
+    let immutable_thread: String = account
+        .messages
+        .iter()
+        .find(|m| m.id != id && m.thread_id() == thread)
+        .map(|m| m.thread_identity().to_owned())
+        .or_else(|| {
+            db.query_row(
+                "SELECT coalesce(thread_identity,id) FROM messages WHERE account=?1 AND thread=?2 AND id!=?3 ORDER BY CAST(substr(id,2) AS INTEGER) LIMIT 1",
+                params![account.id, thread, id],
+                |r| r.get(0),
+            )
+            .ok()
+        })
+        .unwrap_or_else(|| id.to_owned());
     for old in threads.iter().filter(|old| **old != thread) {
         db.execute(
             "UPDATE thread_members SET thread=?3 WHERE account=?1 AND thread=?2",
