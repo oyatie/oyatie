@@ -76,8 +76,9 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "runs in the live-fdb lane"]
     #[cfg(feature = "fdb")]
-    fn fdb_build_has_no_static_refusal() {
+    fn live_fdb_build_has_no_static_refusal() {
         assert_eq!(FdbStore::refusal(), None);
     }
 }
