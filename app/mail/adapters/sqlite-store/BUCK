@@ -70,11 +70,12 @@ _TESTS = {
 _CONTRACT_TESTS = {
     "convert": (glob(["tests/convert/*.rs"]), [_SQL, _SHA]),
     "counting": ([], []),
+    "counting_thread": ([], []),
 }
 
 [
     rust_test(
-        name = "mail-sqlite-store-" + name,
+        name = "mail-sqlite-store-" + name.replace("_", "-"),
         srcs = ["tests/" + name + ".rs"] + extra_srcs,
         crate = name,
         crate_root = "tests/" + name + ".rs",

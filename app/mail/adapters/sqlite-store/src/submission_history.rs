@@ -33,6 +33,7 @@ pub(super) fn current(db: &Connection, account: &str, id: &str) -> Result<Submis
 }
 
 pub(super) fn decode(state: &str) -> Result<SubmissionRecord, Error> {
+    crate::count_row();
     serde_json::from_str(state).map_err(|_| Error::Unavailable)
 }
 
