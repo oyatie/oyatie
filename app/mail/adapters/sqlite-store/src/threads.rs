@@ -81,6 +81,7 @@ pub(super) fn duplicate(
         .collect::<Result<Vec<_>, _>>()
         .map_err(storage)?;
     for candidate in candidates {
+        crate::count_row();
         let linked: bool = db
             .query_row(
                 "SELECT EXISTS(SELECT 1 FROM message_mailboxes WHERE account=?1 AND message=?2 AND (mailbox=?3 OR mailbox=?4))",
@@ -127,6 +128,7 @@ pub(super) fn link(
             })
             .map_err(storage)?;
         for thread in found {
+            crate::count_row();
             threads.insert(thread.map_err(storage)?);
         }
     }
@@ -173,6 +175,7 @@ pub(super) fn link(
             .collect::<Result<Vec<_>, _>>()
             .map_err(storage)?;
         for member in ids {
+            crate::count_row();
             if account.messages.iter().any(|m| m.id == member) {
                 continue;
             }
