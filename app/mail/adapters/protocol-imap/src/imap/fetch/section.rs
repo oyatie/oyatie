@@ -2,13 +2,16 @@ use super::items::{Content, Section};
 use mail_parser::{Message, MessagePart, MimeHeaders, PartType};
 use std::borrow::Cow;
 
+/// Resolves a part path. The returned flag marks a `.1` hop that landed on a
+/// non-multipart, non-message part: RFC 3501 lets such a body be addressed
+/// as its own part 1 for content, but it has no separate HEADER/TEXT/MIME.
 fn locate<'a>(
     mut message: &'a Message<'a>,
     path: &[usize],
-) -> Option<(&'a Message<'a>, &'a MessagePart<'a>)> {
+) -> Option<(&'a Message<'a>, &'a MessagePart<'a>, bool)> {
     let mut part = message.parts.first()?;
+    let mut leaf_alias = false;
     for (depth, number) in path.iter().enumerate() {
-        let nested = matches!(part.body, PartType::Message(_)) && depth > 0;
         if depth > 0
             && let PartType::Message(nested) = &part.body
         {
@@ -17,13 +20,17 @@ fn locate<'a>(
         }
         part = match &part.body {
             PartType::Multipart(children) => {
+                leaf_alias = false;
                 message.parts.get(*children.get(number - 1)? as usize)?
             }
-            _ if (depth == 0 || nested) && *number == 1 => part,
+            _ if *number == 1 => {
+                leaf_alias = !matches!(part.body, PartType::Message(_));
+                part
+            }
             _ => return None,
         };
     }
-    Some((message, part))
+    Some((message, part, leaf_alias))
 }
 
 pub(super) fn read<'a>(
@@ -35,9 +42,12 @@ pub(super) fn read<'a>(
         return Ok(Some(partial(request, Cow::Borrowed(raw))));
     }
     let parsed = parsed.ok_or("NO")?;
-    let Some((mut message, mut part)) = locate(parsed, &request.path) else {
+    let Some((mut message, mut part, leaf_alias)) = locate(parsed, &request.path) else {
         return Ok(None);
     };
+    if leaf_alias && !request.binary && !matches!(request.section, Section::Content) {
+        return Ok(None);
+    }
     let value = if request.binary {
         if part.is_encoding_problem {
             return Err("NO [UNKNOWN-CTE]");
@@ -68,7 +78,10 @@ pub(super) fn read<'a>(
             _ => return Err("NO [UNKNOWN-CTE]"),
         }
     } else {
-        if !matches!(request.section, Section::Content | Section::Mime)
+        // HEADER/TEXT of a message/rfc822 *part* address the encapsulated
+        // message; on the root they address the message itself.
+        if !request.path.is_empty()
+            && !matches!(request.section, Section::Content | Section::Mime)
             && let PartType::Message(nested) = &part.body
         {
             message = nested;
@@ -139,6 +152,20 @@ fn filter_headers(raw: &[u8], section: &Section) -> Vec<u8> {
             });
         }
         if keep {
+            // HEADER.FIELDS and MIME re-serialize known field names in
+            // their registered spelling; HEADER echoes the raw octets.
+            if matches!(section, Section::Fields { .. } | Section::Mime)
+                && !line.starts_with(b" ")
+                && !line.starts_with(b"\t")
+                && let Some(colon) = line.iter().position(|b| *b == b':')
+                && let Ok(name) = std::str::from_utf8(&line[..colon])
+                && let Some(known) = mail_parser::HeaderName::parse(name)
+                && !matches!(known, mail_parser::HeaderName::Other(_))
+            {
+                result.extend_from_slice(known.as_str().as_bytes());
+                result.extend_from_slice(&line[colon..]);
+                continue;
+            }
             result.extend_from_slice(line);
         }
     }

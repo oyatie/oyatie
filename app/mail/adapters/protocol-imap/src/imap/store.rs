@@ -99,9 +99,11 @@ pub(super) fn execute(
     } else {
         String::new()
     };
-    let changes = chosen
-        .iter()
-        .map(|(_, m)| {
+    // Messages whose keyword set is already the requested outcome are neither
+    // rewritten nor reported: untagged FETCH responses only announce real changes.
+    let (chosen, changes): (Vec<_>, Vec<_>) = chosen
+        .into_iter()
+        .filter_map(|(i, m)| {
             let mut keys = if mode.starts_with(['+', '-']) {
                 m.keywords.clone()
             } else {
@@ -110,14 +112,23 @@ pub(super) fn execute(
             if mode.starts_with('-') {
                 keys.retain(|k| !requested.contains(k));
             } else {
-                keys.extend(requested.clone());
+                for key in &requested {
+                    if !keys.contains(key) {
+                        keys.push(key.clone());
+                    }
+                }
             }
-            Command::Keywords {
-                id: m.id.clone(),
-                keywords: keys,
-            }
+            let before: BTreeSet<_> = m.keywords.iter().collect();
+            let after: BTreeSet<_> = keys.iter().collect();
+            (before != after).then(|| {
+                let command = Command::Keywords {
+                    id: m.id.clone(),
+                    keywords: keys,
+                };
+                ((i, m), command)
+            })
         })
-        .collect();
+        .unzip();
     let updated = service
         .execute(token, &account.id, account.revision, changes)
         .map_err(|_| "NO")?;

@@ -24,7 +24,7 @@ async fn idle_reports_flags_changed_between_fetch_and_continuation() {
     client.get_mut().write_all(b"i IDLE\r\n").await.unwrap();
     let transition = until(&mut client, "+").await;
     assert!(
-        transition.contains("* 1 FETCH (UID 1 FLAGS (\\Seen))"),
+        transition.contains("* 1 FETCH (FLAGS (\\Seen) UID 1)"),
         "{transition}"
     );
     client

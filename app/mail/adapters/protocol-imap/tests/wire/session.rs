@@ -102,13 +102,14 @@ async fn argument_free_commands_refuse_extras_without_closing_or_mutating_select
     command(&mut client, "s SELECT INBOX").await;
     command(&mut client, "f STORE 1 +FLAGS (\\Deleted)").await;
     let before = db.account("a").unwrap();
+    // UNSELECT is absent: upstream tolerates a stray mailbox name there
+    // (tests/src/imap/mailbox.rs sends `UNSELECT "L&APg-bende opgaver"`).
     for verb in [
         "CAPABILITY",
         "NOOP",
         "CHECK",
         "CLOSE",
         "EXPUNGE",
-        "UNSELECT",
         "NAMESPACE",
         "LOGOUT",
     ] {

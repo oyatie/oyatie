@@ -1,4 +1,5 @@
 use super::{
+    condstore::ranges,
     response::Output,
     state::{Selection, synchronize},
 };
@@ -23,14 +24,17 @@ pub(super) fn execute(
         return Err("NO");
     }
     let target = super::folders::find(account, &parts[offset + 1]).ok_or("NO [TRYCREATE]")?;
+    if target.id == *mailbox {
+        return Err("NO [CANNOT]");
+    }
     if chosen.is_empty() {
         return Ok(None);
     }
-    let source = chosen
-        .iter()
-        .map(|(_, m)| m.uid_in(mailbox).unwrap_or_default().to_string())
-        .collect::<Vec<_>>()
-        .join(",");
+    let source = ranges(
+        chosen
+            .iter()
+            .map(|(_, m)| m.uid_in(mailbox).unwrap_or_default()),
+    );
     let commands = chosen
         .iter()
         .map(|(_, m)| Command::Transfer {
@@ -42,10 +46,9 @@ pub(super) fn execute(
     let updated = service
         .execute(token, &account.id, account.revision, commands)
         .map_err(|_| "NO")?;
-    let destination = (0..chosen.len())
-        .map(|i| (u64::from(target.uid_next) + i as u64).to_string())
-        .collect::<Vec<_>>()
-        .join(",");
+    let count = u32::try_from(chosen.len()).map_err(|_| "NO")?;
+    let last = target.uid_next.checked_add(count).ok_or("NO")?;
+    let destination = ranges(target.uid_next..last);
     let code = format!("[COPYUID {} {source} {destination}]", target.uid_validity);
     if operation == "MOVE" {
         output.extend_from_slice(format!("* OK {code} MOVE committed\r\n").as_bytes());

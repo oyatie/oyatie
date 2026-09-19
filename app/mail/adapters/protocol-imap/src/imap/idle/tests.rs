@@ -6,7 +6,7 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::io::{DuplexStream, ReadBuf};
+use tokio::io::{AsyncReadExt, DuplexStream, ReadBuf};
 
 struct ObservedWrite {
     stream: DuplexStream,

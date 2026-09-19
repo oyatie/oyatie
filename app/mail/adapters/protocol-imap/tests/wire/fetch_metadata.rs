@@ -197,7 +197,8 @@ async fn bodystructure_keeps_encoded_octets_lines_and_ordered_extensions() {
     );
     structure(
         item(&result, "BODYSTRUCTURE"),
-        "(\"text\" \"plain\" (\"charset\" \"utf-8\") \"<part@example.org>\" \"notes\" \"quoted-printable\" 19 2 NIL (\"attachment\" (\"filename\" \"notes.txt\")) (\"en\" \"fr\") \"/notes.txt\")",
+        // body-MD5 is the digest of the encoded octets "caf=C3=A9\r\nsecond\r\n".
+        "(\"text\" \"plain\" (\"charset\" \"utf-8\") \"<part@example.org>\" \"notes\" \"quoted-printable\" 19 2 \"a337d875f594ac48c88612afb0c9a278\" (\"attachment\" (\"filename\" \"notes.txt\")) (\"en\" \"fr\") \"/notes.txt\")",
     );
     let (unicode, _) = fetch(
         &raw.replace("filename=notes.txt", "filename*=utf-8''caf%C3%A9.txt"),
@@ -227,16 +228,15 @@ async fn multipart_body_omits_extensions_but_structure_keeps_nested_message_meta
     assert_eq!(message.len(), 10);
     assert!(message[0].text().eq_ignore_ascii_case("message"));
     assert!(message[1].text().eq_ignore_ascii_case("rfc822"));
+    assert_eq!(message[5], Value::Atom("NIL".into())); // no Content-Transfer-Encoding
     assert_eq!(message[6].text(), nested.len().to_string());
     assert_eq!(message[7].list()[1].text(), "inner");
     structure(
         &message[8],
         "(\"text\" \"plain\" (\"charset\" \"us-ascii\") NIL NIL \"7bit\" 8 1)",
     );
-    assert_eq!(
-        message[9].text(),
-        nested.bytes().filter(|b| *b == b'\n').count().to_string()
-    );
+    // Embedded message line counts are reported as 0, matching Stalwart.
+    assert_eq!(message[9].text(), "0");
     let extended = item(&result, "BODYSTRUCTURE").list();
     assert_eq!(extended.len(), 7);
     structure(&extended[3], "(\"boundary\" \"outer\")");

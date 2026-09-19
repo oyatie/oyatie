@@ -1,82 +1,97 @@
-use mail_kernel::{Account, MessageState};
+use super::filter::{Filter, MAX_SCAN_BYTES};
+use super::filter_message::{Candidate, Content, ThreadKeywords, thread_id};
+use super::sort::Sort;
+use mail_kernel::{Account, Message, MessageState};
 use mail_service::MailService;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 
 struct Query {
-    filter: super::filter::Filter,
-    ascending: bool,
+    filter: Filter,
+    sorts: Vec<Sort>,
+    collapse: bool,
     fingerprint: String,
+}
+
+struct Entry {
+    state: MessageState,
+    size: Option<usize>,
+    content: Option<Content>,
+}
+impl Entry {
+    fn candidate<'a>(&'a self, threads: Option<&'a ThreadKeywords>) -> Candidate<'a> {
+        Candidate {
+            state: &self.state,
+            size: self.size,
+            content: self.content.as_ref(),
+            threads,
+        }
+    }
 }
 
 impl Query {
     fn parse(account: &str, args: &Value) -> Result<Self, &'static str> {
-        let filter = super::filter::Filter::parse(&args["filter"])?;
-        let mut ascending = false;
-        if !args["sort"].is_null() {
-            let sort = args["sort"].as_array().ok_or("invalidArguments")?;
-            if sort.len() > 1 {
-                return Err("unsupportedSort");
-            }
-            if let Some(sort) = sort.first() {
-                let object = sort.as_object().ok_or("invalidArguments")?;
-                if sort["property"] != "receivedAt"
-                    || object
-                        .keys()
-                        .any(|k| !["property", "isAscending", "collation"].contains(&k.as_str()))
-                    || (!sort["collation"].is_null() && sort["collation"] != "")
-                {
-                    return Err("unsupportedSort");
-                }
-                ascending = if sort["isAscending"].is_null() {
-                    true
-                } else {
-                    sort["isAscending"].as_bool().ok_or("invalidArguments")?
-                };
-            }
-        }
-        if !args["collapseThreads"].is_null() && !args["collapseThreads"].is_boolean() {
-            return Err("invalidArguments");
-        }
-        if args["collapseThreads"] == true {
-            return Err("unsupportedFilter");
-        }
+        let filter = Filter::parse(&args["filter"])?;
+        let sorts = Sort::parse(&args["sort"])?;
+        let collapse = match &args["collapseThreads"] {
+            Value::Null => false,
+            Value::Bool(collapse) => *collapse,
+            _ => return Err("invalidArguments"),
+        };
         let fingerprint = format!(
             "{:x}",
-            Sha256::digest(json!([account, args["filter"], ascending]).to_string())
+            Sha256::digest(
+                json!([account, args["filter"], Sort::canonical(&sorts), collapse]).to_string()
+            )
         );
         Ok(Self {
             filter,
-            ascending,
+            sorts,
+            collapse,
             fingerprint,
         })
     }
 
-    fn ids(
-        &self,
-        states: impl IntoIterator<Item = MessageState>,
-        content: Option<&BTreeSet<String>>,
-    ) -> Vec<String> {
-        let mut messages: Vec<_> = states
-            .into_iter()
-            .filter(|m| {
-                content.map_or_else(
-                    || self.filter.matches(m, "", "", ""),
-                    |ids| ids.contains(&m.id),
-                )
-            })
-            .collect();
-        messages.sort_by(|a, b| {
-            let order = a.received_at.cmp(&b.received_at);
-            (if self.ascending {
-                order
-            } else {
-                order.reverse()
-            })
-            .then_with(|| a.id.cmp(&b.id))
+    /// True when filtering or sorting needs the message bytes.
+    fn content(&self) -> bool {
+        self.filter.content() || Sort::content(&self.sorts)
+    }
+
+    /// True when both query states can be rebuilt from stored metadata with
+    /// retained items keeping their relative order (Email/queryChanges).
+    fn stateful(&self) -> bool {
+        !self.content() && !self.filter.sized() && !self.collapse && Sort::stable(&self.sorts)
+    }
+
+    fn order(&self, mut entries: Vec<Entry>, threads: Option<&ThreadKeywords>) -> Vec<String> {
+        entries.sort_by(|a, b| {
+            Sort::compare(&self.sorts, &a.candidate(threads), &b.candidate(threads))
         });
-        messages.into_iter().map(|m| m.id).collect()
+        if self.collapse {
+            // The first message of each thread in sort order represents it.
+            let mut seen = BTreeSet::new();
+            entries.retain(|e| seen.insert(thread_id(&e.state).to_owned()));
+        }
+        entries.into_iter().map(|e| e.state.id).collect()
+    }
+
+    fn ids(&self, states: impl IntoIterator<Item = MessageState>) -> Vec<String> {
+        let states: Vec<_> = states.into_iter().collect();
+        let threads = self
+            .filter
+            .threaded()
+            .then(|| ThreadKeywords::build(&states));
+        let entries = states
+            .into_iter()
+            .map(|state| Entry {
+                state,
+                size: None,
+                content: None,
+            })
+            .filter(|e| self.filter.matches(&e.candidate(threads.as_ref())))
+            .collect();
+        self.order(entries, threads.as_ref())
     }
 
     fn state(&self, revision: u64) -> String {
@@ -91,34 +106,43 @@ pub(super) fn query(
     args: &Value,
 ) -> Result<Value, &'static str> {
     let query = Query::parse(&account.id, args)?;
-    let mut content = None;
-    if query.filter.content() {
-        let mut remaining = super::filter::MAX_SCAN_BYTES;
-        let mut matched = BTreeSet::new();
-        if account.messages.len() > 10000 {
-            return Err("limit");
+    if query.content() && account.messages.len() > 10000 {
+        return Err("limit");
+    }
+    let states: Vec<_> = account.messages.iter().map(Message::state).collect();
+    let threads = query
+        .filter
+        .threaded()
+        .then(|| ThreadKeywords::build(&states));
+    let mut remaining = MAX_SCAN_BYTES;
+    let mut entries = Vec::new();
+    for (message, state) in account.messages.iter().zip(states) {
+        let mut entry = Entry {
+            state,
+            size: Some(message.size),
+            content: None,
+        };
+        // Metadata-only filters settle membership before any body is read;
+        // content filters must scan every message within the byte budget.
+        if !query.filter.content() && !query.filter.matches(&entry.candidate(threads.as_ref())) {
+            continue;
         }
-        for message in &account.messages {
+        if query.content() {
             query.filter.charge(message.size, &mut remaining)?;
             let raw = service
                 .download(token, &account.id, &message.id)
                 .map_err(super::method::error)?;
-            let (subject, body, addresses) = super::filter::text(&raw)?;
-            if query.filter.matches(
-                &message.state(),
-                &subject.to_lowercase(),
-                &body.to_lowercase(),
-                &addresses.to_lowercase(),
-            ) {
-                matched.insert(message.id.clone());
+            entry.content = Some(Content::parse(&raw)?);
+            if query.filter.content() && !query.filter.matches(&entry.candidate(threads.as_ref())) {
+                continue;
             }
         }
-        content = Some(matched);
+        entries.push(entry);
     }
-    let ids = query.ids(account.messages.iter().map(|m| m.state()), content.as_ref());
+    let ids = query.order(entries, threads.as_ref());
     let (position, limit) = page(&ids, args)?;
     Ok(
-        json!({"accountId":account.id,"queryState":query.state(account.revision),"canCalculateChanges":!query.filter.content(),
+        json!({"accountId":account.id,"queryState":query.state(account.revision),"canCalculateChanges":query.stateful(),
         "position":position,"ids":ids.iter().skip(position).take(limit).collect::<Vec<_>>(),"total":ids.len()}),
     )
 }
@@ -167,7 +191,7 @@ pub(super) fn changes(
     args: &Value,
 ) -> Result<Value, &'static str> {
     let query = Query::parse(&account.id, args)?;
-    if query.filter.content() {
+    if !query.stateful() {
         return Err("cannotCalculateChanges");
     }
     let state = args["sinceQueryState"].as_str().ok_or("invalidArguments")?;
@@ -196,8 +220,8 @@ pub(super) fn changes(
             old.remove(&change.id);
         }
     }
-    let before = query.ids(old.into_values(), None);
-    let after = query.ids(account.messages.iter().map(|m| m.state()), None);
+    let before = query.ids(old.into_values());
+    let after = query.ids(account.messages.iter().map(Message::state));
     let before_set: BTreeSet<_> = before.iter().collect();
     let after_set: BTreeSet<_> = after.iter().collect();
     // receivedAt and IDs are immutable, so retained items preserve relative order.
