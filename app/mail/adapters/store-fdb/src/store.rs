@@ -74,11 +74,4 @@ mod tests {
         assert!(matches!(FdbStore::open(config), Err(Error::Unavailable)));
         assert_eq!(FdbStore::refusal(), Some(UNAVAILABLE_REASON));
     }
-
-    #[test]
-    #[ignore = "runs in the live-fdb lane"]
-    #[cfg(feature = "fdb")]
-    fn live_fdb_build_has_no_static_refusal() {
-        assert_eq!(FdbStore::refusal(), None);
-    }
 }

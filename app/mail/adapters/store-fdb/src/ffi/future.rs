@@ -11,10 +11,22 @@ use std::task::{Context, Poll, Waker};
 use super::error::{FdbError, check};
 use super::sys;
 
+/// What an `FDBFuture` resolves to; the C API leaves reading the wrong type
+/// undefined, so every getter checks the tag first.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Kind {
+    Void,
+    Int64,
+    Value,
+    Key,
+    KeyValues,
+}
+
 /// A pending `libfdb_c` operation. Resolves to [`Ready`] or the operation's
 /// error; dropping it before completion cancels the operation.
 pub struct FdbFuture {
     raw: NonNull<sys::FDBFuture>,
+    kind: Kind,
     slot: Option<Arc<Slot>>,
     taken: bool,
 }
@@ -24,6 +36,7 @@ struct Slot(Mutex<Option<Waker>>);
 /// A completed, successful future; values are copied out on demand.
 pub struct Ready {
     raw: NonNull<sys::FDBFuture>,
+    kind: Kind,
 }
 
 /// One page of a range read.
@@ -33,17 +46,30 @@ pub struct KeyValues {
     pub more: bool,
 }
 
-// SAFETY: the C API documents FDBFuture as safe to use from any thread.
+// SAFETY: the C API documents FDBFuture as safe to use from any thread; a
+// `Ready` only ever reads through getters that copy out under `&self`.
 unsafe impl Send for FdbFuture {}
-unsafe impl Sync for FdbFuture {}
 unsafe impl Send for Ready {}
 unsafe impl Sync for Ready {}
 
 impl FdbFuture {
-    pub(super) fn from_raw(raw: *mut sys::FDBFuture) -> Self {
+    pub(super) fn from_raw(raw: *mut sys::FDBFuture, kind: Kind) -> Self {
         let raw = NonNull::new(raw).expect("libfdb_c returned a null FDBFuture");
         let (slot, taken) = (None, false);
-        Self { raw, slot, taken }
+        Self {
+            raw,
+            kind,
+            slot,
+            taken,
+        }
+    }
+
+    fn ready(&mut self) -> Ready {
+        self.taken = true;
+        Ready {
+            raw: self.raw,
+            kind: self.kind,
+        }
     }
 
     /// Blocks the calling thread until the operation completes.
@@ -53,8 +79,7 @@ impl FdbFuture {
             check(sys::fdb_future_block_until_ready(self.raw.as_ptr()))?;
             check(sys::fdb_future_get_error(self.raw.as_ptr()))?;
         }
-        self.taken = true;
-        Ok(Ready { raw: self.raw })
+        Ok(self.ready())
     }
 }
 
@@ -62,12 +87,15 @@ impl Future for FdbFuture {
     type Output = Result<Ready, FdbError>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        // Once taken the handle belongs to a `Ready`, which may have destroyed it.
+        assert!(!self.taken, "FdbFuture polled after completion");
         let raw = self.raw.as_ptr();
         // SAFETY: raw is a live future owned by self for every call below.
         if unsafe { sys::fdb_future_is_ready(raw) } != 0 {
-            self.taken = true;
-            let outcome = unsafe { check(sys::fdb_future_get_error(raw)) };
-            return Poll::Ready(outcome.map(|()| Ready { raw: self.raw }));
+            // An errored future stays owned by self so Drop destroys it.
+            return Poll::Ready(
+                unsafe { check(sys::fdb_future_get_error(raw)) }.map(|()| self.ready()),
+            );
         }
         if let Some(slot) = &self.slot {
             *slot.0.lock().unwrap_or_else(|poison| poison.into_inner()) = Some(cx.waker().clone());
@@ -76,8 +104,8 @@ impl Future for FdbFuture {
         let slot = Arc::new(Slot(Mutex::new(Some(cx.waker().clone()))));
         let parameter = Arc::into_raw(Arc::clone(&slot)).cast_mut().cast::<c_void>();
         self.slot = Some(slot);
-        // SAFETY: the callback fires exactly once, also on cancellation, and
-        // reclaims the Arc leaked here.
+        // SAFETY: the callback fires at most once and reclaims the Arc leaked
+        // here; a future destroyed before firing leaks one `Slot`, never UB.
         match unsafe { check(sys::fdb_future_set_callback(raw, wake, parameter)) } {
             Ok(()) => Poll::Pending,
             Err(error) => {
@@ -111,12 +139,22 @@ impl Drop for FdbFuture {
     }
 }
 
-/// SAFETY, for every getter: `raw` is a live, ready future owned by `self`;
-/// out-pointers are valid for the call; returned memory lives until the
-/// future is destroyed and is copied before the getter returns.
+/// SAFETY, for every getter: `raw` is a live, ready future owned by `self`
+/// whose tag matches the getter; out-pointers are valid for the call;
+/// returned memory lives until the future is destroyed and is copied
+/// before the getter returns.
 impl Ready {
+    /// Error 2000 (`client_invalid_operation`) when the getter does not
+    /// match what the future resolves to.
+    fn expect(&self, kind: Kind) -> Result<(), FdbError> {
+        (self.kind == kind)
+            .then_some(())
+            .ok_or(FdbError::from_code(2000))
+    }
+
     /// `fdb_future_get_value`: `None` when the key is absent.
     pub fn value(&self) -> Result<Option<Vec<u8>>, FdbError> {
+        self.expect(Kind::Value)?;
         let (f, mut present, mut ptr, mut len) = (self.raw.as_ptr(), 0, std::ptr::null(), 0);
         unsafe {
             check(sys::fdb_future_get_value(
@@ -131,6 +169,7 @@ impl Ready {
 
     /// `fdb_future_get_key`.
     pub fn key(&self) -> Result<Vec<u8>, FdbError> {
+        self.expect(Kind::Key)?;
         let (f, mut ptr, mut len) = (self.raw.as_ptr(), std::ptr::null(), 0);
         unsafe {
             check(sys::fdb_future_get_key(f, &mut ptr, &mut len))?;
@@ -140,6 +179,7 @@ impl Ready {
 
     /// `fdb_future_get_int64` (read versions).
     pub fn int64(&self) -> Result<i64, FdbError> {
+        self.expect(Kind::Int64)?;
         let mut out = 0;
         unsafe { check(sys::fdb_future_get_int64(self.raw.as_ptr(), &mut out))? };
         Ok(out)
@@ -147,6 +187,7 @@ impl Ready {
 
     /// `fdb_future_get_keyvalue_array`, copied into owned pairs.
     pub fn key_values(&self) -> Result<KeyValues, FdbError> {
+        self.expect(Kind::KeyValues)?;
         let (f, mut array, mut count, mut more) = (self.raw.as_ptr(), std::ptr::null(), 0, 0);
         unsafe {
             check(sys::fdb_future_get_keyvalue_array(
@@ -165,12 +206,6 @@ impl Ready {
             let more = more != 0;
             Ok(KeyValues { pairs, more })
         }
-    }
-
-    /// Frees the value memory early while keeping the handle.
-    pub fn release_memory(&self) {
-        // SAFETY: raw is live; values already copied out stay valid.
-        unsafe { sys::fdb_future_release_memory(self.raw.as_ptr()) }
     }
 }
 
