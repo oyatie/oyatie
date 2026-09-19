@@ -1,0 +1,57 @@
+# Unique live-FoundationDB proof for the mail store adapter. Callee for
+# presubmit (path-gated) and postsubmit once pipeline wires the callers; until
+# then it runs on its own path-scoped pull_request trigger and by dispatch.
+# Runs #[ignore] live_* tests only, through .github/scripts/live-fdb.sh, which
+# owns the server container and the lane rows; empty selection is red.
+name: live-fdb
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+    branches: [dev]
+    paths:
+      - app/mail/adapters/store-fdb/**
+      - .github/workflows/live-fdb.yml
+      - .github/scripts/live-fdb.sh
+
+permissions:
+  contents: read
+
+env:
+  CARGO_PROFILE_DEV_DEBUG: "0"
+  CARGO_PROFILE_TEST_DEBUG: "0"
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  live-fdb:
+    name: mail live FoundationDB
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
+        with:
+          toolchain: "nightly-2026-09-10"
+          components: clippy
+      - uses: taiki-e/install-action@3f74d7c16a4242f1c95561e98edc25d36adb4375
+        with:
+          tool: nextest
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          shared-key: cargo-ci-x86-mail-fdb
+          cache-workspace-crates: "true"
+      - name: Lint the FoundationDB build
+        run: |
+          set -euo pipefail
+          cargo clippy --locked -p mail-store-fdb --all-targets --features fdb -- -D warnings
+      - name: Live FoundationDB tests (live_* only)
+        env:
+          OYATIE_MAIL_LIVE_FDB: "1"
+        run: |
+          set -euo pipefail
+          test "${OYATIE_MAIL_LIVE_FDB}" = "1"
+          .github/scripts/live-fdb.sh
