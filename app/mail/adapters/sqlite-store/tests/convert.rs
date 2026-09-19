@@ -3,11 +3,8 @@
 //! binary refuses what it must refuse.
 use mail_api::{DeliveryQueue, Events, Identity, MetadataStore, SubmissionStore};
 use mail_kernel::{Error, UndoStatus};
-use mail_sqlite_store::SqliteStore;
-use mail_sqlite_store::contract::legacy::{
-    LegacyAccountSpec, LegacyFixture, Shape, blob, submission_id,
-};
-use mail_sqlite_store::convert::Converter;
+use mail_sqlite_store::contract::legacy::{LegacyAccountSpec, LegacyFixture, Shape, blob};
+use mail_sqlite_store::{SqliteStore, contract::legacy::submission_id, convert::Converter};
 use sha2::{Digest, Sha256};
 use std::path::{Path, PathBuf};
 
@@ -101,8 +98,11 @@ fn every_legacy_row_round_trips_and_the_audit_row_is_complete() {
     let store = SqliteStore::open(&database).unwrap();
     for spec in &specs {
         let account = store.account(&spec.id).unwrap();
-        assert_eq!(account.revision, spec.revision + 1, "{}", spec.id);
-        assert_eq!(account.history_floor, spec.revision);
+        let r = spec.revision + 1;
+        assert_eq!(
+            (account.revision, account.history_floor, account.mail_modseq),
+            (r, r, r)
+        );
         assert_eq!(
             (&account.tenant, &account.owner, &account.address),
             (&spec.tenant, &spec.owner, &spec.address)

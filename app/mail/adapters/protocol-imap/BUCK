@@ -80,7 +80,7 @@ rust_test(
     crate = "wire",
     crate_root = "tests/wire.rs",
     visibility = ["PUBLIC"],
-    deps = _MAIL + _SQL + _B64 + _HTTP + _PARSER + _BUILDER,
+    deps = _CONVERTED + _SQL + _B64 + _HTTP + _PARSER + _BUILDER,
 )
 
 rust_test(

@@ -1,4 +1,4 @@
-//! A store that deliberately violates the `MetadataStore` contract in four
+//! A store that deliberately violates the `MetadataStore` contract in five
 //! documented ways, so the contract suite is shown to go red on each:
 //!
 //! - `execute` downgrades `Precondition::Require` to `Observed`: a stale

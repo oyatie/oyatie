@@ -37,7 +37,10 @@ impl Budget {
 /// budget is spent in a handful of attempts rather than a tight loop.
 pub fn backoff(attempt: u32) -> Duration {
     let base = 20u64 << attempt.min(6);
-    let nanos = Instant::now().elapsed().subsec_nanos() as u64 ^ (attempt as u64 * 0x9E37_79B9);
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| u64::from(d.subsec_nanos()))
+        ^ (u64::from(attempt) * 0x9E37_79B9);
     Duration::from_millis(base + nanos % base.max(1))
 }
 

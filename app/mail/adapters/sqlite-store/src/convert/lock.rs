@@ -99,15 +99,23 @@ impl Converter {
         match &state {
             schema::SchemaState::Legacy => {}
             schema::SchemaState::Converting { .. } => {
-                let recorded: String = self
+                let (recorded, recorded_digest): (String, String) = self
                     .db
                     .query_row(
-                        "SELECT coalesce(backup_path,'') FROM schema_version",
+                        "SELECT coalesce(backup_path,''),coalesce(backup_sha256,'') FROM schema_version",
                         [],
-                        |r| r.get(0),
+                        |r| Ok((r.get(0)?, r.get(1)?)),
                     )
                     .map_err(storage)?;
-                if recorded != backup.to_string_lossy() {
+                // The recorded backup, by path and by content: a resumed
+                // conversion may not be pointed at another file.
+                let same = std::fs::canonicalize(&recorded)
+                    .ok()
+                    .is_some_and(|r| std::fs::canonicalize(backup).ok() == Some(r));
+                let digest = std::fs::read(backup)
+                    .map(|bytes| format!("{:x}", Sha256::digest(bytes)))
+                    .unwrap_or_default();
+                if !same || digest != recorded_digest {
                     return Err(ConvertError::BackupMismatch { recorded });
                 }
             }
@@ -166,6 +174,7 @@ impl Converter {
         }
         ddl.push_str(
             "DROP TABLE IF EXISTS history_commits;
+             DROP INDEX IF EXISTS account_credentials;
              ALTER TABLE accounts RENAME TO legacy_accounts;
              CREATE TABLE IF NOT EXISTS thread_indexed(account TEXT PRIMARY KEY);
              ALTER TABLE thread_indexed RENAME TO legacy_thread_indexed;",

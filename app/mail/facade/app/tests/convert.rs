@@ -118,7 +118,7 @@ fn convert_with_backup_into_holds_one_lock_and_yields_a_servable_store() {
     let store = SqliteStore::open(&database).unwrap();
     let account = store.account("a").unwrap();
     assert_eq!(account.revision, 2);
-    assert_eq!(account.history_floor, 1);
+    assert_eq!(account.history_floor, 2);
     assert_eq!(account.messages.len(), 1);
     assert_eq!(account.messages[0].id, "e1");
     assert_eq!(account.messages[0].size, legacy::BODY.len());

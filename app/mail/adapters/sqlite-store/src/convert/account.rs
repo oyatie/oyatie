@@ -36,9 +36,13 @@ pub(super) fn pending(db: &Connection) -> Result<Vec<String>, Error> {
         .map_err(storage)
 }
 
-/// The conversion is itself one commit: the revision advances once so every
-/// legacy MODSEQ (at most `revision + 1`) fits under the new watermark, and
-/// the floor is the legacy revision because the legacy journal is not carried.
+/// The conversion is itself one commit: the revision advances once, and every
+/// watermark a client may compare against — the account and mailbox
+/// HIGHESTMODSEQ and the history floor — is that revision. Legacy clients
+/// cached HIGHESTMODSEQ = legacy `mail_modseq` (up to `legacy.revision + 1`)
+/// and the legacy journal is not carried, so any cached value is below the
+/// floor: IMAP resyncs FLAGS with `VANISHED (EARLIER)`, JMAP answers
+/// `cannotCalculateChanges`, once per client, in the safe direction.
 pub(super) fn convert(db: &Connection, id: &str, indexed: bool) -> Result<(), Error> {
     let (address, token, state): (String, Option<Vec<u8>>, String) = db
         .query_row(
@@ -60,8 +64,8 @@ pub(super) fn convert(db: &Connection, id: &str, indexed: bool) -> Result<(), Er
         owner: legacy.owner.clone(),
         address,
         revision,
-        mail_modseq: 0,
-        history_floor: legacy.revision,
+        mail_modseq: revision,
+        history_floor: revision,
         identity: legacy.identity.clone(),
         identity_revision: legacy.identity_revision,
         vacation: legacy.vacation.clone(),
@@ -106,19 +110,12 @@ pub(super) fn convert(db: &Connection, id: &str, indexed: bool) -> Result<(), Er
             received_at: legacy.received_at,
         };
         account.used_bytes += size;
-        account.mail_modseq = account.mail_modseq.max(modseq);
         account.messages.push(message);
         let index = account.messages.len() - 1;
         account.attach(index, links);
     }
     for mailbox in &mut account.mailboxes {
-        mailbox.highest_modseq = account
-            .messages
-            .iter()
-            .filter(|m| m.mailboxes.contains_key(&mailbox.id))
-            .map(|m| m.modseq)
-            .max()
-            .unwrap_or(0);
+        mailbox.highest_modseq = revision;
     }
     records::upsert_header(db, &account)?;
     db.execute(

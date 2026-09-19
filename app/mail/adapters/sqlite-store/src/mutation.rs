@@ -95,10 +95,13 @@ impl Batch {
         Ok(())
     }
 
-    /// A re-applied command whose record vanished is a no-op.
+    /// A re-applied `Destroy` whose record vanished is a no-op (POP re-apply);
+    /// every other command on a vanished record surfaces `NotFound`.
     pub(super) fn skips(&self, command: &Command) -> bool {
-        match command.scope() {
-            Scope::Message(id) => !self.account.messages.iter().any(|m| m.id == id),
+        match (command, command.scope()) {
+            (Command::Destroy { .. }, Scope::Message(id)) => {
+                !self.account.messages.iter().any(|m| m.id == id)
+            }
             _ => false,
         }
     }

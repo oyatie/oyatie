@@ -44,7 +44,7 @@ fn convert_rate_over_ten_accounts_and_a_thousand_messages() {
         assert_eq!(account.messages.len(), 100);
         // Legacy revision 101 (100 appends + provisioning) plus the conversion commit.
         assert_eq!(account.revision, 102);
-        assert_eq!(account.history_floor, 101);
+        assert_eq!(account.history_floor, 102);
         assert_eq!(account.mailboxes[0].total_emails, 100);
         assert_eq!(account.mailboxes[0].unread_emails, 50);
         // Threads of five, backfilled from the bodies.
