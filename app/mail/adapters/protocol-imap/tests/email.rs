@@ -53,15 +53,10 @@ async fn changes_page_at_commits_and_query_delta_reconstructs_the_list() {
         }),
         "http://localhost".into(),
     );
+    let raw = b"Subject: sync\r\n\r\nbody";
     let append = |date| {
-        db.append(
-            "a",
-            vec!["inbox".into()],
-            &b"Subject: sync\r\n\r\nbody".to_vec(),
-            vec![],
-            date,
-        )
-        .unwrap()
+        db.append("a", vec!["inbox".into()], raw, vec![], date)
+            .unwrap()
     };
     db.execute("a", Precondition::Observed(0), vec![append(20)])
         .unwrap();

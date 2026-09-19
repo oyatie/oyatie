@@ -39,6 +39,7 @@ rust_test(
 # Integration tests against the plain library: name -> (sources, extra deps).
 _TESTS = {
     "atomic_modseq": ([], []),
+    "blob": ([], []),
     "content": ([], [_SQL, _JSON]),
     "durable": ([], [_SQL]),
     "events": ([], []),

@@ -113,3 +113,31 @@ async fn message_count_boundary_accepts_one_thousand_and_rolls_back_one_thousand
         }
     }
 }
+
+#[test]
+fn message_limit_keeps_a_full_batch_of_metadata_and_history_under_ten_megabytes() {
+    // The widest record a MULTIAPPEND can create: three links, keywords at
+    // the kernel cap, plus one `Added` history row per link.
+    let mut message = mail_kernel::Message {
+        id: "e1000000".into(),
+        modseq: u64::MAX,
+        created_revision: u64::MAX,
+        thread: Some("e999999".into()),
+        email_identity: Some("e999999".into()),
+        thread_identity: Some("e999999".into()),
+        mailboxes: Default::default(),
+        size: usize::MAX,
+        keywords: (0..64).map(|n| format!("$keyword-{n:0>16}")).collect(),
+        received_at: i64::MAX,
+    };
+    for mailbox in ["inbox", "m1", "m2"] {
+        message.mailboxes.insert(mailbox.into(), u32::MAX);
+    }
+    // One `history` row per link: revision, seq, kind, id, mailbox, uid.
+    let history = 3 * (8 + 8 + "added".len() + message.id.len() + "inbox".len() + 4);
+    let bytes = serde_json::to_vec(&message).unwrap().len() + history;
+    assert!(
+        MESSAGE_LIMIT * bytes < 10 * 1024 * 1024,
+        "{MESSAGE_LIMIT} x {bytes} bytes"
+    );
+}

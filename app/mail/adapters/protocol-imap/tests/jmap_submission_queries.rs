@@ -1,7 +1,6 @@
 use axum::{Router, body::Body, http::Request};
 use http_body_util::BodyExt;
-use mail_api::BlobStore;
-use mail_api::MetadataStore;
+use mail_api::{BlobStore, MetadataStore};
 use mail_kernel::{Account, Command};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
