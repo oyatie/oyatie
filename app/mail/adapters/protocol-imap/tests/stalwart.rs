@@ -197,7 +197,7 @@ async fn upstream_jmap_compliance() {
             db.append(
                 "a",
                 vec!["inbox".into()],
-                &b"Subject: custom keywords\r\n\r\nbody\r\n".to_vec(),
+                b"Subject: custom keywords\r\n\r\nbody\r\n",
                 vec!["$seen".into(), "$forwarded".into(), "custom_label".into()],
                 0,
             )

@@ -19,7 +19,7 @@ fn append(mailboxes: &[&str]) -> Command {
     Command::Append {
         mailboxes: mailboxes.iter().map(|id| (*id).into()).collect(),
         received_at: 1,
-        blob: blob_of(b"Subject: retained\r\n\r\nbody".to_vec()),
+        blob: blob_of(b"Subject: retained\r\n\r\nbody"),
         keywords: vec![],
     }
 }

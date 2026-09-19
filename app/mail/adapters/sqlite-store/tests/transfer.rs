@@ -16,14 +16,8 @@ fn database(quota: usize) -> SqliteStore {
             Command::CreateMailbox {
                 name: "Archive".into(),
             },
-            db.append(
-                "a",
-                vec!["inbox".into()],
-                &RAW.to_vec(),
-                vec!["$seen".into()],
-                1234,
-            )
-            .unwrap(),
+            db.append("a", vec!["inbox".into()], RAW, vec!["$seen".into()], 1234)
+                .unwrap(),
         ],
     )
     .unwrap();
@@ -152,14 +146,8 @@ fn transfer_preserves_bodies_threads_and_account_isolation_across_rollback_and_r
             id,
             Precondition::Require(0),
             vec![
-                db.append(
-                    id,
-                    vec!["inbox".into()],
-                    &raw.to_vec(),
-                    vec!["$seen".into()],
-                    1234,
-                )
-                .unwrap(),
+                db.append(id, vec!["inbox".into()], raw, vec!["$seen".into()], 1234)
+                    .unwrap(),
             ],
         )
         .unwrap();
@@ -206,7 +194,7 @@ fn transfer_preserves_bodies_threads_and_account_isolation_across_rollback_and_r
     let linked = run(
         &db,
         moved.revision,
-        vec![db.append("a", vec!["inbox".into()], &b"Message-ID: <reply@example.org>\r\nReferences: <original@example.org>\r\nSubject: Re: durable\r\n\r\nreply\r\n".to_vec(), vec![], 1235).unwrap()],
+        vec![db.append("a", vec!["inbox".into()], b"Message-ID: <reply@example.org>\r\nReferences: <original@example.org>\r\nSubject: Re: durable\r\n\r\nreply\r\n", vec![], 1235).unwrap()],
     )
     .unwrap();
     assert_eq!(linked.messages.len(), 2);

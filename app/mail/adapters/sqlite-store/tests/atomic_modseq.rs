@@ -250,7 +250,7 @@ fn every_ingest_path_rethreads_and_stamps_bridged_messages() {
                     "a",
                     Precondition::Require(before.revision),
                     vec![
-                        db.append("a", vec!["inbox".into()], &raw.to_vec(), vec![], 1)
+                        db.append("a", vec!["inbox".into()], raw, vec![], 1)
                             .unwrap(),
                     ],
                 )

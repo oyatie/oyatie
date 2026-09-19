@@ -16,7 +16,7 @@ fn blob_of(raw: impl AsRef<[u8]>) -> BlobRef {
 fn append() -> Command {
     Command::Append {
         mailboxes: vec!["inbox".into()],
-        blob: blob_of(b"Subject: stable\r\n\r\nbody".to_vec()),
+        blob: blob_of(b"Subject: stable\r\n\r\nbody"),
         received_at: 1,
         keywords: vec![],
     }

@@ -145,14 +145,8 @@ async fn fetch_whole_message_does_not_require_successful_mime_parsing() {
             "a",
             mail_api::Precondition::Observed(revision),
             vec![
-                db.append(
-                    "a",
-                    vec!["inbox".into()],
-                    &raw.to_vec(),
-                    vec![],
-                    1_000_000_000,
-                )
-                .unwrap(),
+                db.append("a", vec!["inbox".into()], raw, vec![], 1_000_000_000)
+                    .unwrap(),
             ],
         )
         .unwrap();

@@ -62,7 +62,7 @@ async fn upstream_imap_search() {
                 db.append(
                     "a",
                     vec!["inbox".into()],
-                    &raw.to_vec(),
+                    raw,
                     vec![format!("Flag_{index:03}")],
                     1_789_430_400,
                 )

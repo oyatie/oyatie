@@ -14,7 +14,7 @@ fn prepared() -> (Arc<MailService>, Arc<SqliteStore>) {
             db.append(
                 "a",
                 vec!["inbox".into(), "m1".into()],
-                &b"Subject: shared\r\n\r\nbody\r\n".to_vec(),
+                b"Subject: shared\r\n\r\nbody\r\n",
                 vec![],
                 1234,
             )
@@ -22,7 +22,7 @@ fn prepared() -> (Arc<MailService>, Arc<SqliteStore>) {
             db.append(
                 "a",
                 vec!["inbox".into()],
-                &b"Subject: inbox\r\n\r\nbody\r\n".to_vec(),
+                b"Subject: inbox\r\n\r\nbody\r\n",
                 vec![],
                 1234,
             )
@@ -61,7 +61,7 @@ async fn delete_removes_populated_mailbox_but_preserves_other_message_copies() {
                 db.append(
                     "a",
                     vec!["m1".into()],
-                    &b"Subject: archive only\r\n\r\nbody\r\n".to_vec(),
+                    b"Subject: archive only\r\n\r\nbody\r\n",
                     vec![],
                     1234,
                 )

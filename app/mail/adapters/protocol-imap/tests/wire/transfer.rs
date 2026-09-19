@@ -16,7 +16,7 @@ async fn imap_copy_and_move_preserve_content_with_distinct_destination_uids() {
                 db.append(
                     "a",
                     vec!["inbox".into()],
-                    &raw.to_vec(),
+                    raw,
                     vec!["$seen".into()],
                     1_000_000_000,
                 )

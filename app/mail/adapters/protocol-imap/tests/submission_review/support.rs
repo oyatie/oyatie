@@ -37,7 +37,7 @@ impl Fixture {
                 db.append(
                     "a",
                     vec!["inbox".into()],
-                    &raw.to_vec(),
+                    raw,
                     vec!["$draft".into(), "$seen".into()],
                     1,
                 )

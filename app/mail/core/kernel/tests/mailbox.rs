@@ -100,7 +100,7 @@ fn mailbox_memberships_preserve_existing_uids_and_expunge_only_the_selected_mail
         .apply(Command::Append {
             mailboxes: vec!["inbox".into()],
             received_at: 0,
-            blob: blob_of(b"Subject: shared\r\n\r\nbody".to_vec()),
+            blob: blob_of(b"Subject: shared\r\n\r\nbody"),
             keywords: vec![],
         })
         .unwrap();

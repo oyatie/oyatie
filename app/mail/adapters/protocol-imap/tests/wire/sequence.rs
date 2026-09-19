@@ -145,7 +145,7 @@ async fn console_sync_fetch_returns_internaldate_without_setting_seen() {
             db.append(
                 "a",
                 vec!["inbox".into()],
-                &b"Subject: console\r\n\r\nbody\r\n".to_vec(),
+                b"Subject: console\r\n\r\nbody\r\n",
                 vec![],
                 1_000_000_000,
             )

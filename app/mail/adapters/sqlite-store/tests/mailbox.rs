@@ -32,14 +32,8 @@ fn mailbox_counters_commit_with_messages_and_roll_back_with_a_refused_history_ro
                 "a",
                 Precondition::Require(1),
                 vec![
-                    db.append(
-                        "a",
-                        vec!["inbox".into(), "m1".into()],
-                        &vec![0, 255],
-                        vec![],
-                        0,
-                    )
-                    .unwrap(),
+                    db.append("a", vec!["inbox".into(), "m1".into()], &[0, 255], vec![], 0)
+                        .unwrap(),
                 ],
             )
             .unwrap();
