@@ -2,7 +2,6 @@ use super::{TOKEN, client::*};
 use mail_api::MetadataStore;
 use mail_kernel::{Account, Command};
 use mail_service::{MailService, OwnerPolicy};
-use mail_sqlite_store::SqliteStore;
 use sha2::{Digest, Sha256};
 use std::{cell::RefCell, rc::Rc, sync::Arc};
 mod upstream {
@@ -22,7 +21,7 @@ async fn upstream_imap_condstore() {
     ] {
         assert_eq!(format!("{:x}", Sha256::digest(source)), expected);
     }
-    let db = Arc::new(SqliteStore::open(":memory:").unwrap());
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(&[]));
     db.provision(
         Account::new("a", "t", "alice", "alice@example.org").unwrap(),
         TOKEN,

@@ -23,7 +23,7 @@ fn special(name: &str, role: &str) -> Command {
 /// Mirrors the upstream fixture: `jdoe` keeps INBOX and the Trash folder after
 /// the suite deletes Drafts/Junk Mail/Sent Items; `jane` keeps every default.
 pub fn open() -> (Arc<SqliteStore>, Arc<MailService>) {
-    let db = Arc::new(SqliteStore::open(":memory:").unwrap());
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(&[]));
     db.provision(Account::new("a", "t", "jdoe", JDOE).unwrap(), TOKEN)
         .unwrap();
     db.provision(Account::new("j", "t", "jane", JANE).unwrap(), JANE_TOKEN)

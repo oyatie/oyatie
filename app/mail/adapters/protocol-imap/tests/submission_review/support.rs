@@ -91,12 +91,11 @@ pub fn envelope(sender: &str, recipients: &[&str]) -> Value {
     json!({"mailFrom":{"email":sender},"rcptTo":recipients.iter().map(|r| json!({"email":r})).collect::<Vec<_>>()})
 }
 pub fn db_path() -> std::path::PathBuf {
+    // Parallel tests start within one clock tick; a sequence keeps files apart.
+    static SEQUENCE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     std::env::temp_dir().join(format!(
         "mail-submission-review-{}-{}.db",
         std::process::id(),
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
+        SEQUENCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
     ))
 }

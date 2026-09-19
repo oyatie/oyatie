@@ -6,7 +6,6 @@ use axum::{Router, body::Body, http::Request};
 use mail_api::MetadataStore;
 use mail_kernel::Account;
 use mail_service::{MailService, OwnerPolicy};
-use mail_sqlite_store::SqliteStore;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{cell::RefCell, collections::BTreeMap, fmt::Debug, future::Future, sync::Arc};
@@ -111,7 +110,7 @@ async fn upstream_jmap_email_query() {
         "e7ca6011ba102f4ed4891de1cb1a0e135a3ab277d1a8edba58444d6f1cb15827",
         "upstream Email/query suite changed; review before updating the baseline"
     );
-    let db = Arc::new(SqliteStore::open(":memory:").unwrap());
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(&[]));
     db.provision(
         Account::new("a", "t", "alice", "testuser@example.com").unwrap(),
         TOKEN,

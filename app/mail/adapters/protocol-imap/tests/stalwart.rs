@@ -4,7 +4,6 @@ use http_body_util::BodyExt;
 use mail_api::MetadataStore;
 use mail_kernel::Account;
 use mail_service::MailService;
-use mail_sqlite_store::SqliteStore;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{cell::RefCell, fmt::Debug, future::Future, sync::Arc};
@@ -177,7 +176,7 @@ impl CompCtx<'_> {
 #[tokio::test]
 async fn upstream_jmap_compliance() {
     digests::verify();
-    let db = Arc::new(SqliteStore::open(":memory:").unwrap());
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(&[]));
     db.provision(
         Account::new("b", "t", "bob", "bob@example.org").unwrap(),
         &"b".repeat(32),

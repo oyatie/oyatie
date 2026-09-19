@@ -147,6 +147,7 @@ macro_rules! submission_store {
 }
 
 mod broken;
+pub mod converted;
 mod counting;
 mod faulty;
 pub mod legacy;
@@ -154,6 +155,7 @@ mod legacy_ddl;
 mod legacy_rows;
 
 pub use broken::Broken;
+pub use converted::converted_store;
 pub use counting::Counting;
 pub use faulty::Faulty;
 pub use legacy_ddl::{

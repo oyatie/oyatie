@@ -41,6 +41,7 @@ pub fn seed(db: &SqliteStore, account: &str) -> Seeded {
             ],
         )
         .unwrap();
+    let state = db.account(account).unwrap();
     let id = |state: &mail_kernel::Account, name: &str| {
         state
             .mailboxes
@@ -57,6 +58,7 @@ pub fn seed(db: &SqliteStore, account: &str) -> Seeded {
             vec![child("Child 1", &folder_a), child("Child 2", &folder_a)],
         )
         .unwrap();
+    let state = db.account(account).unwrap();
     let mailboxes = BTreeMap::from([
         ("folderA".to_owned(), folder_a),
         ("folderB".to_owned(), id(&state, "Test Folder B")),
@@ -88,10 +90,7 @@ pub fn seed(db: &SqliteStore, account: &str) -> Seeded {
                 }],
             )
             .unwrap();
-        emails.insert(
-            seed.key.to_owned(),
-            state.messages.last().unwrap().id.clone(),
-        );
+        emails.insert(seed.key.to_owned(), state.ids.last().unwrap().clone());
     }
     Seeded {
         mailboxes,

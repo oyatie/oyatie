@@ -25,7 +25,7 @@ mail-builder = { version = "=1.0.0", default-features = false }
 
 [dev-dependencies]
 rusqlite.workspace = true
-mail-sqlite-store = { path = "../sqlite-store" }
+mail-sqlite-store = { path = "../sqlite-store", features = ["contract"] }
 tower.workspace = true
 http-body-util.workspace = true
 

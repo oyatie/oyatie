@@ -193,7 +193,7 @@ pub fn seed(db: &SqliteStore) -> BTreeMap<String, String> {
                 }],
             )
             .unwrap();
-        emails.insert(key.into(), state.messages.last().unwrap().id.clone());
+        emails.insert(key.into(), state.ids.last().unwrap().clone());
     }
     emails
 }

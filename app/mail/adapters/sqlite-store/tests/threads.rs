@@ -128,3 +128,44 @@ fn removing_all_members_before_an_append_does_not_resurrect_a_destroyed_thread()
     let state = db.account("a").unwrap();
     assert_eq!(state.messages[0].thread_id(), "e3");
 }
+
+#[test]
+fn one_batch_of_replies_shares_the_root_thread_identity() {
+    let db = SqliteStore::open(":memory:").unwrap();
+    db.provision(
+        Account::new("a", "a", "a", "a@example.org").unwrap(),
+        &"a".repeat(32),
+    )
+    .unwrap();
+    let message = |id: &str, refs: &str| Command::Append {
+        mailboxes: vec!["inbox".into()],
+        keywords: vec![],
+        received_at: 1,
+        raw: format!("Message-ID: <{id}>\r\nReferences: {refs}\r\nSubject: T\r\n\r\nbody")
+            .into_bytes(),
+    };
+    db.execute(
+        "a",
+        Precondition::Require(0),
+        vec![
+            message("root@t", ""),
+            message("r1@t", "<root@t>"),
+            message("r2@t", "<root@t> <r1@t>"),
+        ],
+    )
+    .unwrap();
+    let account = db.account("a").unwrap();
+    assert_eq!(account.messages.len(), 3);
+    assert!(
+        account
+            .messages
+            .iter()
+            .all(|m| m.thread_identity() == account.messages[0].thread_identity()),
+        "{:?}",
+        account
+            .messages
+            .iter()
+            .map(|m| (m.id.clone(), m.thread_identity().to_owned()))
+            .collect::<Vec<_>>()
+    );
+}

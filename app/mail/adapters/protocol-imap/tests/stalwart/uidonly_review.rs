@@ -216,10 +216,9 @@ async fn uidonly_idle_rechecks_revocation_before_reporting_new_message_metadata(
     use mail_api::MetadataStore;
     use mail_kernel::Account;
     use mail_service::{MailService, OwnerPolicy};
-    use mail_sqlite_store::SqliteStore;
     use std::{sync::Arc, time::Duration};
     use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
-    let db = Arc::new(SqliteStore::open(":memory:").unwrap());
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(&[]));
     db.provision(
         Account::new("a", "t", "alice", "alice@example.org").unwrap(),
         super::TOKEN,

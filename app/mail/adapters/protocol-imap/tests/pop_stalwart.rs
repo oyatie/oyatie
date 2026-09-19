@@ -36,7 +36,6 @@ mod utils {
 async fn unchanged_stalwart_pop3_assertions() {
     use mail_kernel::Account;
     use mail_service::{MailService, OwnerPolicy};
-    use mail_sqlite_store::SqliteStore;
     use sha2::{Digest, Sha256};
     use std::sync::{Arc, Mutex};
     assert_eq!(
@@ -46,7 +45,7 @@ async fn unchanged_stalwart_pop3_assertions() {
         ),
         "2353449185edc636a4c810826430d243105f7796c82869c8888b8ae5857fb937"
     );
-    let db = Arc::new(SqliteStore::open(":memory:").unwrap());
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(&[]));
     db.provision(
         Account::new("a", "t", "popper", "popper@example.com").unwrap(),
         oracle::TOKEN,
