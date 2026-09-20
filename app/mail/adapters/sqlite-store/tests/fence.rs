@@ -116,6 +116,22 @@ fn a_superseded_outbound_epoch_cannot_renew_or_settle_and_a_bounded_attempt_coun
     );
     db.finish_outbound(&second, DeliveryOutcome::Temporary(451))
         .unwrap();
+    // Outbound: the attempt bound is terminal — a notice, no job left.
+    rusqlite::Connection::open(&path)
+        .unwrap()
+        .execute(
+            "UPDATE outbound_jobs SET attempt=?1,next_attempt=0",
+            [retry::MAX_ATTEMPTS - 1],
+        )
+        .unwrap();
+    let last = db.claim_outbound(1).unwrap().pop().unwrap();
+    assert_eq!(last.attempt, retry::MAX_ATTEMPTS);
+    db.finish_outbound(&last, DeliveryOutcome::Temporary(451))
+        .unwrap();
+    assert!(db.claim_outbound(10).unwrap().is_empty());
+    let notice = db.claim(1).unwrap().pop().expect("the queued notice");
+    assert_eq!(notice.account, "a");
+    db.finish(&notice, Ok(())).unwrap();
     // Delivery: the attempt bound is terminal even before the queue lifetime.
     let targets = [DeliveryTarget {
         account: "a".into(),
