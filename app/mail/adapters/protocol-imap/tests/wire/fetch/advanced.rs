@@ -204,3 +204,34 @@ async fn fetch_embedded_message_sections_resolve_nested_singlepart_message() {
     command(&mut client, "z LOGOUT").await;
     task.await.unwrap().unwrap();
 }
+
+#[tokio::test]
+async fn envelope_renders_name_only_fields_as_nil_not_as_group_markers() {
+    // RFC 3501 §7.4.2: NIL mailbox and host mean a group boundary, so a
+    // header with a phrase but no addr-spec has no address to report.
+    let (service, db) = service();
+    db.deliver(
+        &["alice@example.org".into()],
+        b"From: (comment only)\r\nTo: just a phrase\r\nCc: Real <real@example.net>, nobody\r\nSubject: env\r\n\r\nbody\r\n",
+    )
+    .unwrap();
+    let (client, server) = tokio::io::duplex(65536);
+    let task = tokio::spawn(mail_protocol_imap::imap_session(server, service, true));
+    let mut client = BufReader::new(client);
+    select(&mut client, false).await;
+    client
+        .get_mut()
+        .write_all(b"c FETCH 1 (ENVELOPE)\r\nnext FETCH 1 (UID)\r\n")
+        .await
+        .unwrap();
+    let result = read_response(&mut client, "next").await;
+    let text = String::from_utf8_lossy(&result);
+    assert!(
+        text.contains(
+            "\"env\" NIL NIL NIL NIL ((\"Real\" NIL \"real\" \"example.net\")) NIL NIL NIL)"
+        ),
+        "{text}"
+    );
+    command(&mut client, "z LOGOUT").await;
+    task.await.unwrap().unwrap();
+}

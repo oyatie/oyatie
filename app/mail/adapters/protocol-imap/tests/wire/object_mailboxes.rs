@@ -62,3 +62,73 @@ async fn object_id_search_matches_current_mailbox_and_rejects_bad_ids() {
     assert!(result.contains("* SEARCH\r\nf OK"), "{result}");
     assert!(result.contains("g BAD"), "{result}");
 }
+
+async fn script(script: &str) -> String {
+    let (service, _) = service();
+    let (mut client, server) = tokio::io::duplex(65536);
+    let task = tokio::spawn(mail_protocol_imap::imap_session(server, service, true));
+    client
+        .write_all(format!("a LOGIN alice@example.org {TOKEN}\r\n{script}z LOGOUT\r\n").as_bytes())
+        .await
+        .unwrap();
+    let mut result = String::new();
+    client.read_to_string(&mut result).await.unwrap();
+    task.await.unwrap().unwrap();
+    result
+}
+
+#[tokio::test]
+async fn id_answers_with_the_server_name_and_accepts_a_client_id() {
+    let result = script("b ID NIL\r\nc ID (\"name\" \"client\" \"version\" \"1\")\r\n").await;
+    assert!(
+        result.contains("* ID (\"name\" \"Oyatie mail\")"),
+        "{result}"
+    );
+    assert!(
+        result.contains("b OK") && result.contains("c OK"),
+        "{result}"
+    );
+}
+
+#[tokio::test]
+async fn list_return_options_report_subscribed_children_special_use_and_status() {
+    let result = script(
+        "b CREATE Parent/Child\r\nc SUBSCRIBE Parent\r\nd CREATE Drafts (USE (\\Drafts))\r\ne LIST \"\" \"*\" RETURN (SUBSCRIBED CHILDREN SPECIAL-USE STATUS (MESSAGES))\r\nf LIST (SPECIAL-USE) \"\" \"*\"\r\n",
+    )
+    .await;
+    for tag in ["b", "c", "d", "e", "f"] {
+        assert!(result.contains(&format!("{tag} OK")), "{result}");
+    }
+    assert!(
+        result.contains("\\HasChildren") && result.contains("\\Subscribed"),
+        "{result}"
+    );
+    assert!(
+        result.contains("\\HasNoChildren) \"/\" \"Parent/Child\""),
+        "{result}"
+    );
+    assert!(result.contains("\\Drafts) \"/\" \"Drafts\""), "{result}");
+    assert!(
+        result.contains("* STATUS \"Parent/Child\" (MESSAGES 0)"),
+        "{result}"
+    );
+    let after_f = result.split("e OK").nth(1).unwrap();
+    assert!(
+        after_f.contains("\"Drafts\"") && !after_f.contains("\"Parent\""),
+        "{result}"
+    );
+}
+
+#[tokio::test]
+async fn create_special_use_assigns_a_role_once_and_refuses_a_second_holder() {
+    let result = script(
+        "b CREATE Archive (USE (\\Archive))\r\nc CREATE Other (USE (\\Archive))\r\nd CREATE Bad (USE (\\Nope))\r\ne LIST \"\" Archive\r\n",
+    )
+    .await;
+    assert!(result.contains("b OK"), "{result}");
+    assert!(
+        result.contains("c NO [USEATTR]") && result.contains("d NO [USEATTR]"),
+        "{result}"
+    );
+    assert!(result.contains("\\Archive) \"/\" \"Archive\""), "{result}");
+}

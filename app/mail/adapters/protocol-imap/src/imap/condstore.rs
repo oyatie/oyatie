@@ -37,13 +37,8 @@ pub(super) fn enable(
                 session.utf8 = true;
                 output.extend_from_slice(b" UTF8=ACCEPT");
             }
-            // RFC 9051 §6.3.1: IMAP4rev2 sessions exchange UTF-8 mailbox names
-            // and decoded ENVELOPE strings; the rev2 command set beyond that is
-            // not advertised in CAPABILITY.
-            "IMAP4REV2" => {
-                session.utf8 = true;
-                output.extend_from_slice(b" IMAP4rev2");
-            }
+            // IMAP4rev2 is not advertised, so it is not enabled either
+            // (RFC 5161 §3.1: unknown capabilities are ignored, OK stays).
             "CONDSTORE" => {
                 session.condstore = true;
                 output.extend_from_slice(b" CONDSTORE");

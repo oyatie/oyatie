@@ -17,7 +17,7 @@ macro_rules! proof {
         Proof {
             file: $file,
             source: include_str!(concat!("../", $file)),
-            needle: concat!("fn ", $needle),
+            needle: concat!("fn ", $needle, "("),
         }
     };
 }
@@ -38,7 +38,13 @@ pub const IMAP_ALWAYS: &[Row] = &[
             ("stalwart/core_tests.rs", "upstream_imap_store")
         ]
     ),
-    row!("ID", [("stalwart/core_tests.rs", "upstream_imap_basic")]),
+    row!(
+        "ID",
+        [(
+            "wire/object_mailboxes.rs",
+            "id_answers_with_the_server_name_and_accepts_a_client_id"
+        )]
+    ),
     row!(
         "UIDPLUS",
         [
@@ -220,7 +226,13 @@ pub const IMAP_ALWAYS: &[Row] = &[
     ),
     row!(
         "LIST-EXTENDED",
-        [("stalwart/core_tests.rs", "upstream_imap_mailbox")]
+        [
+            (
+                "wire/object_mailboxes.rs",
+                "list_return_options_report_subscribed_children_special_use_and_status"
+            ),
+            ("stalwart/core_tests.rs", "upstream_imap_mailbox")
+        ]
     ),
     row!(
         "LIST-STATUS",
@@ -228,15 +240,33 @@ pub const IMAP_ALWAYS: &[Row] = &[
     ),
     row!(
         "CHILDREN",
-        [("stalwart/core_tests.rs", "upstream_imap_mailbox")]
+        [
+            (
+                "wire/object_mailboxes.rs",
+                "list_return_options_report_subscribed_children_special_use_and_status"
+            ),
+            (
+                "wire.rs",
+                "imap_hierarchy_uses_the_same_mailboxes_and_preserves_uids_on_move"
+            )
+        ]
     ),
     row!(
         "SPECIAL-USE",
-        [("stalwart/core_tests.rs", "upstream_imap_mailbox")]
+        [
+            (
+                "wire/object_mailboxes.rs",
+                "list_return_options_report_subscribed_children_special_use_and_status"
+            ),
+            ("stalwart/core_tests.rs", "upstream_imap_mailbox")
+        ]
     ),
     row!(
         "CREATE-SPECIAL-USE",
-        [("stalwart/core_tests.rs", "upstream_imap_mailbox")]
+        [(
+            "wire/object_mailboxes.rs",
+            "create_special_use_assigns_a_role_once_and_refuses_a_second_holder"
+        )]
     ),
 ];
 
