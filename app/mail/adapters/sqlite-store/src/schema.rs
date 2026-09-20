@@ -5,7 +5,7 @@ use rusqlite::{Connection, OptionalExtension};
 /// Schema version this binary reads and writes. `serve` refuses a database
 /// below it; a `converting` marker refuses every binary until `convert`
 /// finishes.
-pub const SCHEMA_VERSION: u64 = 3;
+pub const SCHEMA_VERSION: u64 = 4;
 
 /// Relational metadata: account, mailbox, message and link records, history
 /// rows keyed by revision, plus the unchanged content, queue and submission
@@ -56,7 +56,7 @@ pub(crate) const DDL: &str = "
     CREATE TABLE IF NOT EXISTS delivery_jobs (
         message TEXT NOT NULL,account TEXT NOT NULL,address TEXT NOT NULL,
         next_attempt INTEGER NOT NULL,lease_until INTEGER NOT NULL DEFAULT 0,
-        token TEXT,attempt INTEGER NOT NULL DEFAULT 0,last_error TEXT,PRIMARY KEY(message,account));
+        epoch INTEGER NOT NULL DEFAULT 0,attempt INTEGER NOT NULL DEFAULT 0,last_error TEXT,PRIMARY KEY(message,account));
     CREATE INDEX IF NOT EXISTS delivery_due ON delivery_jobs(next_attempt,lease_until);
     CREATE INDEX IF NOT EXISTS delivery_account ON delivery_jobs(account,message);
     CREATE TABLE IF NOT EXISTS delivery_receipts (
@@ -68,14 +68,14 @@ pub(crate) const DDL: &str = "
     CREATE TABLE IF NOT EXISTS failed_delivery_messages (
         id TEXT PRIMARY KEY,sender TEXT NOT NULL,content BLOB NOT NULL,size INTEGER NOT NULL,received_at INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS failed_delivery_jobs (
-        message TEXT NOT NULL,account TEXT NOT NULL,address TEXT NOT NULL,failed_at INTEGER NOT NULL,reason TEXT NOT NULL,PRIMARY KEY(message,account));
+        message TEXT NOT NULL,account TEXT NOT NULL,address TEXT NOT NULL,failed_at INTEGER NOT NULL,reason TEXT NOT NULL,epoch INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(message,account));
     CREATE INDEX IF NOT EXISTS failed_deliveries_account ON failed_delivery_jobs(account,failed_at,message);
     CREATE TABLE IF NOT EXISTS submitted_messages (
         id TEXT PRIMARY KEY,account TEXT NOT NULL,sender TEXT NOT NULL,content BLOB NOT NULL,size INTEGER NOT NULL,received_at INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS outbound_jobs (
         message TEXT NOT NULL,account TEXT NOT NULL,recipient TEXT NOT NULL,
         next_attempt INTEGER NOT NULL,lease_until INTEGER NOT NULL DEFAULT 0,
-        token TEXT,attempt INTEGER NOT NULL DEFAULT 0,last_code INTEGER,PRIMARY KEY(message,recipient));
+        epoch INTEGER NOT NULL DEFAULT 0,attempt INTEGER NOT NULL DEFAULT 0,last_code INTEGER,PRIMARY KEY(message,recipient));
     CREATE INDEX IF NOT EXISTS outbound_due ON outbound_jobs(next_attempt,lease_until);
     CREATE INDEX IF NOT EXISTS outbound_account ON outbound_jobs(account,message);
     CREATE TABLE IF NOT EXISTS vacation_sent(account TEXT NOT NULL, sender TEXT NOT NULL, PRIMARY KEY(account,sender));";
@@ -147,8 +147,12 @@ impl std::fmt::Display for Refusal {
                 "database schema version {found} is below this binary's {SCHEMA_VERSION}; run `mail-app convert DATABASE --backup-verified PATH` first (estimated {} for {accounts} accounts, {messages} messages)",
                 crate::convert::estimate(*accounts, *messages)
             ),
-            // Only legacy (version 1) files convert; an intermediate version
-            // never reached a release, so there is no path from it.
+            // A released version steps forward in seconds; an intermediate
+            // version never reached a release, so there is no path from it.
+            Self::BelowVersion { found, .. } if crate::convert::has_step(*found) => write!(
+                f,
+                "database schema version {found} is below this binary's {SCHEMA_VERSION}; run `mail-app convert DATABASE --backup-verified PATH` first (a versioned step, seconds)"
+            ),
             Self::BelowVersion { found, .. } => write!(
                 f,
                 "no conversion path from schema version {found} to {SCHEMA_VERSION}; recreate the database (only legacy version-1 files convert with `mail-app convert`)"

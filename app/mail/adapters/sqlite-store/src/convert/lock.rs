@@ -20,6 +20,10 @@ pub enum ConvertError {
     BackupMismatch {
         recorded: String,
     },
+    /// A `converting` marker left by a binary of another schema version.
+    ForeignMarker {
+        version: u64,
+    },
     Storage(Error),
 }
 impl std::fmt::Display for ConvertError {
@@ -28,7 +32,7 @@ impl std::fmt::Display for ConvertError {
             Self::Busy => write!(f, "database is in use (SQLITE_BUSY): stop `serve` first"),
             Self::Backup(check) => write!(f, "backup refused: {check}"),
             Self::NotLegacy(schema::SchemaState::Complete { version })
-                if *version < schema::SCHEMA_VERSION =>
+                if *version < schema::SCHEMA_VERSION && !super::has_step(*version) =>
             {
                 write!(
                     f,
@@ -43,6 +47,11 @@ impl std::fmt::Display for ConvertError {
                     "conversion in progress was started with backup {recorded}"
                 )
             }
+            Self::ForeignMarker { version } => write!(
+                f,
+                "conversion to schema version {version} was started by another binary (this one writes {}); restore the verified backup and convert with this binary",
+                schema::SCHEMA_VERSION
+            ),
             Self::Storage(error) => error.fmt(f),
         }
     }
@@ -60,7 +69,9 @@ impl From<Error> for ConvertError {
 /// Audited outcome of a conversion.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Conversion {
+    /// Accounts rewritten; a versioned step rewrites none.
     pub accounts: u64,
+    pub stepped: bool,
     pub elapsed: Duration,
     pub backup_path: PathBuf,
     pub backup_sha256: String,
@@ -107,7 +118,11 @@ impl Converter {
         let state = schema::inspect(&self.db)?;
         match &state {
             schema::SchemaState::Legacy => {}
-            schema::SchemaState::Converting { .. } => {
+            schema::SchemaState::Converting { version } => {
+                // Only the binary that wrote the marker knows its tables.
+                if *version != schema::SCHEMA_VERSION {
+                    return Err(ConvertError::ForeignMarker { version: *version });
+                }
                 let (recorded, recorded_digest): (String, String) = self
                     .db
                     .query_row(
@@ -128,6 +143,7 @@ impl Converter {
                     return Err(ConvertError::BackupMismatch { recorded });
                 }
             }
+            schema::SchemaState::Complete { version } if super::has_step(*version) => {}
             complete => return Err(ConvertError::NotLegacy(complete.clone())),
         }
         verify::backup(&self.db, &self.database, backup)?.map_err(ConvertError::Backup)?;
@@ -135,6 +151,25 @@ impl Converter {
             "{:x}",
             Sha256::digest(std::fs::read(backup).map_err(|_| Error::Unavailable)?)
         );
+        if let schema::SchemaState::Complete { version } = state {
+            super::step::advance(
+                &self.db,
+                version,
+                &backup.to_string_lossy(),
+                &digest,
+                operator,
+            )?;
+            self.db
+                .execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")
+                .map_err(storage)?;
+            return Ok(Conversion {
+                accounts: 0,
+                stepped: true,
+                elapsed: started.elapsed(),
+                backup_path: backup.to_path_buf(),
+                backup_sha256: digest,
+            });
+        }
         if state == schema::SchemaState::Legacy {
             self.begin(backup, &digest)?;
         }
@@ -167,6 +202,7 @@ impl Converter {
             .map_err(storage)?;
         Ok(Conversion {
             accounts,
+            stepped: false,
             elapsed: started.elapsed(),
             backup_path: backup.to_path_buf(),
             backup_sha256: digest,
@@ -193,6 +229,7 @@ impl Converter {
         ddl.push_str(crate::feed::DDL);
         let tx = self.db.unchecked_transaction().map_err(storage)?;
         tx.execute_batch(&ddl).map_err(storage)?;
+        super::step::add_epoch_columns(&tx)?;
         tx.execute(
             "INSERT INTO schema_version(version,state,backup_path,backup_sha256) VALUES(?1,'converting',?2,?3)",
             params![schema::SCHEMA_VERSION, backup.to_string_lossy(), digest],

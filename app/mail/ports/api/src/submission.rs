@@ -7,7 +7,8 @@ pub struct OutboundLease {
     pub message: String,
     pub account: String,
     pub recipient: String,
-    pub token: String,
+    /// The owner epoch this claim took; every read and settlement names it.
+    pub epoch: crate::Epoch,
     pub attempt: u32,
 }
 
@@ -31,7 +32,7 @@ pub trait SubmissionQueue: Send + Sync {
     ) -> Result<String, Error>;
     fn claim_outbound(&self, limit: usize) -> Result<Vec<OutboundLease>, Error>;
     fn outbound_message(&self, lease: &OutboundLease) -> Result<QueuedMessage, Error>;
-    /// Extend a still-owned lease. Expired or superseded tokens cannot renew.
+    /// Extend a still-owned lease. An expired or superseded epoch cannot renew.
     fn renew_outbound(&self, lease: &OutboundLease) -> Result<(), Error>;
     /// Fenced completion: retry temporary failures; atomically enqueue a local
     /// delivery-status notice for permanent failures or five-day queue expiry.

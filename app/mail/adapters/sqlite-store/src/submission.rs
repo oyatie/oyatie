@@ -41,8 +41,8 @@ impl SubmissionQueue for SqliteStore {
         drop(query);
         let mut leases = vec![];
         for (message, account, recipient) in jobs {
-            let (token,attempt) = tx.query_row("UPDATE outbound_jobs SET token=lower(hex(randomblob(16))),lease_until=unixepoch()+120,next_attempt=unixepoch()+120,attempt=attempt+1 WHERE message=?1 AND recipient=?2 RETURNING token,attempt",
-                params![message,recipient], |r| Ok((r.get(0)?,r.get(1)?))).map_err(storage)?;
+            let (epoch,attempt) = tx.query_row("UPDATE outbound_jobs SET epoch=epoch+1,lease_until=unixepoch()+?3,next_attempt=unixepoch()+?3,attempt=attempt+1 WHERE message=?1 AND recipient=?2 RETURNING epoch,attempt",
+                params![message,recipient,mail_api::QUEUE_LEASE_SECS], |r| Ok((r.get(0)?,r.get(1)?))).map_err(storage)?;
             tx.execute(
                 "UPDATE submission_schedule SET claimed=1 WHERE message=?1",
                 [&message],
@@ -52,7 +52,7 @@ impl SubmissionQueue for SqliteStore {
                 message,
                 account,
                 recipient,
-                token,
+                epoch,
                 attempt,
             });
         }
@@ -62,14 +62,14 @@ impl SubmissionQueue for SqliteStore {
 
     fn outbound_message(&self, lease: &OutboundLease) -> Result<QueuedMessage, Error> {
         let db = self.connection.lock().map_err(|_| Error::Unavailable)?;
-        db.query_row("SELECT m.sender,m.content,m.received_at,coalesce((SELECT send_at FROM submission_schedule WHERE message=m.id),m.received_at) FROM submitted_messages m JOIN outbound_jobs j ON j.message=m.id AND j.account=m.account WHERE j.message=?1 AND j.account=?2 AND j.recipient=?3 AND j.token=?4 AND j.lease_until>unixepoch()",
-            params![lease.message,lease.account,lease.recipient,lease.token], |r| Ok(QueuedMessage { sender:r.get(0)?,raw:r.get(1)?,received_at:r.get(2)?,retry_at:r.get(3)? }))
+        db.query_row("SELECT m.sender,m.content,m.received_at,coalesce((SELECT send_at FROM submission_schedule WHERE message=m.id),m.received_at) FROM submitted_messages m JOIN outbound_jobs j ON j.message=m.id AND j.account=m.account WHERE j.message=?1 AND j.account=?2 AND j.recipient=?3 AND j.epoch=?4 AND j.lease_until>unixepoch()",
+            params![lease.message,lease.account,lease.recipient,lease.epoch], |r| Ok(QueuedMessage { sender:r.get(0)?,raw:r.get(1)?,received_at:r.get(2)?,retry_at:r.get(3)? }))
             .optional().map_err(storage)?.ok_or(Error::Conflict)
     }
 
     fn renew_outbound(&self, lease: &OutboundLease) -> Result<(), Error> {
         let db = self.connection.lock().map_err(|_| Error::Unavailable)?;
-        let changed = db.execute("UPDATE outbound_jobs SET lease_until=unixepoch()+120,next_attempt=unixepoch()+120 WHERE message=?1 AND account=?2 AND recipient=?3 AND token=?4 AND lease_until>unixepoch()", params![lease.message, lease.account, lease.recipient, lease.token]).map_err(storage)?;
+        let changed = db.execute("UPDATE outbound_jobs SET lease_until=unixepoch()+?5,next_attempt=unixepoch()+?5 WHERE message=?1 AND account=?2 AND recipient=?3 AND epoch=?4 AND lease_until>unixepoch()", params![lease.message, lease.account, lease.recipient, lease.epoch, mail_api::QUEUE_LEASE_SECS]).map_err(storage)?;
         if changed == 1 {
             Ok(())
         } else {

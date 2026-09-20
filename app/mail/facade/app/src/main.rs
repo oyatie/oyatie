@@ -4,6 +4,7 @@ mod convert;
 mod delivery;
 mod feed;
 mod https;
+mod lease;
 mod outbound;
 mod outbound_config;
 mod session;
@@ -51,6 +52,7 @@ async fn serve(
     );
     let tls = TlsAcceptor::from(tls);
     let relay = outbound_config::configured()?;
+    lease::take(&db)?;
     let service = Arc::new(MailService {
         outbound: relay
             .as_ref()
@@ -104,6 +106,8 @@ async fn serve(
     let mut sweep_task = tokio::spawn(sweep::run(service.clone(), sweep_stopped));
     let (compact_stop, compact_stopped) = tokio::sync::oneshot::channel();
     let mut compact_task = tokio::spawn(compact::run(db.clone(), compact_stopped));
+    let (lease_stop, lease_stopped) = tokio::sync::oneshot::channel();
+    let mut lease_task = tokio::spawn(lease::run(db.clone(), lease_stopped));
     let (outbound_stop, outbound_stopped) = tokio::sync::watch::channel(false);
     let mut outbound_workers = tokio::task::JoinSet::new();
     if let (Some(queue), Some(transport)) = (&service.outbound, relay) {
@@ -136,6 +140,7 @@ async fn serve(
             result = &mut delivery_task => { result?; return Err("Delivery worker stopped unexpectedly".into()); }
             result = &mut sweep_task => { result?; return Err("Blob sweep stopped unexpectedly".into()); }
             result = &mut compact_task => { result?; return Err("History compaction stopped unexpectedly".into()); }
+            result = &mut lease_task => { result?; return Err("Node lease renewal stopped unexpectedly".into()); }
             Some(result) = outbound_workers.join_next(), if !outbound_workers.is_empty() => {
                 result?; return Err("Outbound worker stopped unexpectedly".into());
             }
@@ -186,6 +191,7 @@ async fn serve(
     let _ = delivery_stop.send(());
     let _ = sweep_stop.send(());
     let _ = compact_stop.send(());
+    let _ = lease_stop.send(());
     if tokio::time::timeout_at(drain, async {
         while outbound_workers.join_next().await.is_some() {}
     })

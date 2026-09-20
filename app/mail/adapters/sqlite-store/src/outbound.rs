@@ -22,11 +22,12 @@ pub(super) fn finish(
         .transaction_with_behavior(TransactionBehavior::Immediate)
         .map_err(storage)?;
     let (expired,attempt): (bool,u32) = tx.query_row(
-        "SELECT coalesce((SELECT send_at FROM submission_schedule WHERE message=m.id),m.received_at)<=unixepoch()-432000,j.attempt FROM submitted_messages m JOIN outbound_jobs j ON j.message=m.id AND j.account=m.account WHERE j.message=?1 AND j.account=?2 AND j.recipient=?3 AND j.token=?4 AND j.lease_until>unixepoch()",
-        params![lease.message,lease.account,lease.recipient,lease.token], |r| Ok((r.get(0)?,r.get(1)?)))
+        "SELECT coalesce((SELECT send_at FROM submission_schedule WHERE message=m.id),m.received_at)<=unixepoch()-432000,j.attempt FROM submitted_messages m JOIN outbound_jobs j ON j.message=m.id AND j.account=m.account WHERE j.message=?1 AND j.account=?2 AND j.recipient=?3 AND j.epoch=?4 AND j.lease_until>unixepoch()",
+        params![lease.message,lease.account,lease.recipient,lease.epoch], |r| Ok((r.get(0)?,r.get(1)?)))
         .optional().map_err(storage)?.ok_or(Error::Conflict)?;
     let failed = matches!(outcome, DeliveryOutcome::Permanent(_))
-        || expired && outcome != DeliveryOutcome::Delivered;
+        || (expired || attempt >= mail_api::retry::MAX_ATTEMPTS)
+            && outcome != DeliveryOutcome::Delivered;
     if failed {
         let code = match outcome {
             DeliveryOutcome::Permanent(code) => code,
@@ -35,16 +36,25 @@ pub(super) fn finish(
         notice(&tx, lease, code, expired)?;
     }
     if failed || outcome == DeliveryOutcome::Delivered {
-        tx.execute(
-            "DELETE FROM outbound_jobs WHERE message=?1 AND recipient=?2",
-            params![lease.message, lease.recipient],
-        )
-        .map_err(storage)?;
+        // Every settlement names the epoch: a claim between the read above
+        // and this write belongs to another owner and is left alone.
+        let changed = tx
+            .execute(
+                "DELETE FROM outbound_jobs WHERE message=?1 AND recipient=?2 AND epoch=?3",
+                params![lease.message, lease.recipient, lease.epoch],
+            )
+            .map_err(storage)?;
+        if changed != 1 {
+            return Err(Error::Conflict);
+        }
         tx.execute("DELETE FROM submitted_messages WHERE id=?1 AND NOT EXISTS(SELECT 1 FROM outbound_jobs WHERE message=?1)",[&lease.message]).map_err(storage)?;
     } else if let DeliveryOutcome::Temporary(code) = outcome {
-        let delay = (60_u64 << attempt.saturating_sub(1).min(9)).min(21600);
-        tx.execute("UPDATE outbound_jobs SET token=NULL,lease_until=0,next_attempt=unixepoch()+?3,last_code=?4 WHERE message=?1 AND recipient=?2",
-            params![lease.message,lease.recipient,delay,code]).map_err(storage)?;
+        let delay = mail_api::retry::delay_secs(attempt, entropy(&lease.message, attempt));
+        let changed = tx.execute("UPDATE outbound_jobs SET lease_until=0,next_attempt=unixepoch()+?3,last_code=?4 WHERE message=?1 AND recipient=?2 AND epoch=?5",
+            params![lease.message,lease.recipient,delay,code,lease.epoch]).map_err(storage)?;
+        if changed != 1 {
+            return Err(Error::Conflict);
+        }
     }
     let (delivered, reply) = match outcome {
         DeliveryOutcome::Delivered => (mail_kernel::SubmissionDelivered::Yes, "250".to_owned()),
@@ -92,4 +102,13 @@ fn notice(
     )
     .map_err(storage)?;
     Ok(())
+}
+
+/// Jitter source for a retry delay: stable per job and attempt, so two
+/// workers that settle the same attempt agree, and spread across jobs.
+pub(super) fn entropy(message: &str, attempt: u32) -> u64 {
+    message.bytes().fold(
+        u64::from(attempt).wrapping_mul(0x9E37_79B9_7F4A_7C15),
+        |h, b| (h ^ u64::from(b)).wrapping_mul(0x0100_0000_01B3),
+    )
 }

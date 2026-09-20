@@ -125,7 +125,7 @@ fn leases_recover_after_crashes_and_mailbox_delivery_is_idempotent() {
     )
     .unwrap();
     let reclaimed = other.claim(1).unwrap().pop().unwrap();
-    assert_ne!(reclaimed.token, first.token);
+    assert_eq!((first.epoch, reclaimed.epoch), (1, 2));
     assert_eq!(reclaimed.delivery_id(), first.delivery_id());
     assert_eq!(db.finish(&first, Ok(())), Err(Error::Conflict));
     other

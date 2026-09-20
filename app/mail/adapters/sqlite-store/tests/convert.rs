@@ -14,6 +14,8 @@ mod rate;
 mod refusals;
 #[path = "convert/replay.rs"]
 mod replay;
+#[path = "convert/step.rs"]
+mod step;
 
 /// A unique scratch directory removed on drop.
 pub struct Temp(PathBuf);
@@ -242,7 +244,10 @@ fn every_legacy_row_round_trips_and_the_audit_row_is_complete() {
             |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?, r.get(5)?)),
         )
         .unwrap();
-    assert_eq!((version, state.as_str()), (3, "complete"));
+    assert_eq!(
+        (version, state.as_str()),
+        (mail_sqlite_store::SCHEMA_VERSION, "complete")
+    );
     assert_eq!(path, backup.to_string_lossy());
     assert_eq!(digest, sha256_of(&backup));
     assert_eq!(digest, conversion.backup_sha256);

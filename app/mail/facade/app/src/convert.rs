@@ -24,6 +24,7 @@ pub(super) fn run(
     println!(
         "{}",
         audit(
+            conversion.stepped,
             conversion.accounts,
             conversion.elapsed,
             &conversion.backup_path,
@@ -36,9 +37,24 @@ pub(super) fn run(
 
 /// One line the operator can file: what changed, how long, and the backup
 /// that restores it.
-fn audit(accounts: u64, elapsed: Duration, backup: &Path, sha256: &str, operator: &str) -> String {
+fn audit(
+    stepped: bool,
+    accounts: u64,
+    elapsed: Duration,
+    backup: &Path,
+    sha256: &str,
+    operator: &str,
+) -> String {
+    let what = if stepped {
+        format!(
+            "advanced schema to version {}",
+            mail_sqlite_store::SCHEMA_VERSION
+        )
+    } else {
+        format!("converted {accounts} accounts")
+    };
     format!(
-        "mail-app: converted {accounts} accounts in {:.3} s; backup {} sha256 {sha256}; operator {operator}",
+        "mail-app: {what} in {:.3} s; backup {} sha256 {sha256}; operator {operator}",
         elapsed.as_secs_f64(),
         backup.display(),
     )
@@ -75,6 +91,7 @@ mod tests {
     #[test]
     fn audit_line_names_accounts_elapsed_backup_and_digest() {
         let line = audit(
+            false,
             3,
             Duration::from_millis(1500),
             Path::new("/var/backups/mail.sqlite"),

@@ -43,8 +43,10 @@ fn submission_accepts_local_and_remote_recipients_atomically_and_isolates_jobs()
     for lease in &leases {
         assert_eq!(db.outbound_message(lease).unwrap().raw, RAW);
     }
+    // The fence is ownership in time: a lease from before this claim (epoch
+    // 0, never claimed) can neither read nor settle the job.
     let mut forged = leases[0].clone();
-    forged.recipient = leases[1].recipient.clone();
+    forged.epoch = 0;
     assert!(matches!(db.outbound_message(&forged), Err(Error::Conflict)));
     assert_eq!(
         db.finish_outbound(&forged, DeliveryOutcome::Delivered),
@@ -75,7 +77,7 @@ fn outbound_leases_retry_survive_restart_and_create_one_durable_failure_notice()
     drop(db);
     let db = SqliteStore::open(&path).unwrap();
     let second = db.claim_outbound(1).unwrap().pop().unwrap();
-    assert_ne!(first.token, second.token);
+    assert_eq!((first.epoch, second.epoch), (1, 2));
     assert_eq!(second.attempt, 2);
     assert_eq!(db.renew_outbound(&first), Err(Error::Conflict));
     let shortened: i64 = sql

@@ -14,6 +14,8 @@ struct Plan {
     /// `None` fails whichever trait method is called next.
     method: Option<&'static str>,
     error: Error,
+    /// Calls left to fail before the plan is spent.
+    remaining: u32,
 }
 
 pub struct Faulty<T> {
@@ -35,13 +37,19 @@ impl<T> Faulty<T> {
 
     /// The next call of any trait method fails with `error`.
     pub fn fail_next(&self, error: Error) {
-        self.arm(None, error);
+        self.arm(None, error, 1);
     }
 
     /// The next call of the named trait method (`"execute"`, `"history"`,
     /// ...) fails with `error`; other methods pass through untouched.
     pub fn fail_at(&self, method: &'static str, error: Error) {
-        self.arm(Some(method), error);
+        self.arm(Some(method), error, 1);
+    }
+
+    /// The next `times` calls of the named method fail with `error`: a
+    /// lease holder that keeps answering `Busy` until it commits.
+    pub fn fail_times(&self, method: &'static str, error: Error, times: u32) {
+        self.arm(Some(method), error, times.max(1));
     }
 
     /// Whether a planned failure is still waiting for its call.
@@ -56,9 +64,13 @@ impl<T> Faulty<T> {
         }
     }
 
-    fn arm(&self, method: Option<&'static str>, error: Error) {
+    fn arm(&self, method: Option<&'static str>, error: Error, remaining: u32) {
         if let Ok(mut plan) = self.plan.lock() {
-            *plan = Some(Plan { method, error });
+            *plan = Some(Plan {
+                method,
+                error,
+                remaining,
+            });
         }
     }
 
@@ -67,7 +79,12 @@ impl<T> Faulty<T> {
         let fires = plan
             .as_ref()
             .is_some_and(|p| p.method.is_none_or(|m| m == method));
-        if fires && let Some(Plan { error, .. }) = plan.take() {
+        if fires && let Some(armed) = plan.as_mut() {
+            let error = armed.error;
+            armed.remaining -= 1;
+            if armed.remaining == 0 {
+                *plan = None;
+            }
             return Err(error);
         }
         Ok(())
