@@ -9,21 +9,27 @@
 //!   the requested ids and the 256-id cap: cost proportional to the account.
 //! - `mailbox_uids` likewise derives the UID map from the full projection.
 //! - `compact_history` ignores consumer cursors: never `Retention::Blocked`.
+//! - `deliver_once` ignores receipts: a replayed delivery lands twice.
+//! - `dirty` ignores the resume position; `orphan_sweep` sweeps nothing
+//!   (`broken_ports.rs`).
 use mail_api::{
-    AccountInfo, AuditRow, BlobStore, ChangeFeed, Consumer, Dirty, Execution, FeedRead,
-    HistoryPage, MailboxSelection, MessageSelection, MetadataStore, Precondition, Resume,
-    SubmissionAcceptance, SubmissionChanges, SubmissionFailure, SubmissionPage,
-    SubmissionSelection, SubmissionStore,
+    AccountInfo, BlobStore, ChangeFeed, Consumer, Execution, HistoryPage, MailboxSelection,
+    MessageSelection, MetadataStore, Precondition, SubmissionAcceptance, SubmissionChanges,
+    SubmissionFailure, SubmissionPage, SubmissionSelection, SubmissionStore,
 };
-use mail_kernel::{Account, BlobRef, Command, Error, Retention, RetentionPolicy, SubmissionQuery};
+use mail_kernel::{Account, Command, Error, Retention, RetentionPolicy, SubmissionQuery};
 
 pub struct Broken<T> {
-    inner: T,
+    pub(super) inner: T,
+    replays: std::sync::atomic::AtomicU64,
 }
 
 impl<T> Broken<T> {
     pub fn new(inner: T) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            replays: std::sync::atomic::AtomicU64::new(0),
+        }
     }
 
     pub fn inner(&self) -> &T {
@@ -92,7 +98,13 @@ impl<T: MetadataStore + SubmissionStore + BlobStore + ChangeFeed> MetadataStore 
         raw: &[u8],
         received_at: i64,
     ) -> Result<(), Error> {
-        self.inner.deliver_once(account, key, raw, received_at)
+        // A fresh key every time: the receipt never matches, so a replay
+        // delivers the message again.
+        let n = self
+            .replays
+            .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        self.inner
+            .deliver_once(account, &format!("{key}#{n}"), raw, received_at)
     }
     fn put_blob(&self, account: &str, raw: &[u8]) -> Result<String, Error> {
         self.inner.put_blob(account, raw)
@@ -117,5 +129,5 @@ impl<T: MetadataStore + SubmissionStore + BlobStore + ChangeFeed> MetadataStore 
 }
 
 submission_store!(Broken);
-blob_store!(Broken);
-change_feed!(Broken);
+delivery_queue!(Broken);
+submission_queue!(Broken);

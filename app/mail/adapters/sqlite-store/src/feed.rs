@@ -81,13 +81,16 @@ impl ChangeFeed for SqliteStore {
         limit: usize,
     ) -> Result<Vec<Dirty>, Error> {
         let db = self.connection.lock().map_err(|_| Error::Unavailable)?;
-        // Tenants in round-robin order from the resume position, wrapping.
+        // Tenants in round-robin order from the resume position, wrapping;
+        // within a tenant, the least recently deferred key first, then the
+        // oldest — a key re-marked after a tail ack rejoins at the back.
         let mut tenants = db
             .prepare("SELECT DISTINCT tenant FROM feed_dirty WHERE consumer=?1 AND poison IS NULL AND not_before<=?2 ORDER BY tenant")
             .map_err(storage)?;
         let all: Vec<String> = tenants
             .query_map(params![consumer.name(), now], |r| r.get(0))
             .map_err(storage)?
+            .inspect(|_| crate::count_row())
             .collect::<Result<_, _>>()
             .map_err(storage)?;
         let start = resume
@@ -96,7 +99,7 @@ impl ChangeFeed for SqliteStore {
             .map_or(0, |t| all.iter().position(|x| x > t).unwrap_or(0));
         let mut out = Vec::new();
         let mut accounts = db
-            .prepare("SELECT account,not_before FROM feed_dirty WHERE consumer=?1 AND tenant=?2 AND poison IS NULL AND not_before<=?3 ORDER BY account LIMIT ?4")
+            .prepare("SELECT account,not_before FROM feed_dirty WHERE consumer=?1 AND tenant=?2 AND poison IS NULL AND not_before<=?3 ORDER BY not_before,rowid LIMIT ?4")
             .map_err(storage)?;
         for i in 0..all.len() {
             if out.len() >= limit {
@@ -117,6 +120,7 @@ impl ChangeFeed for SqliteStore {
                 .collect::<Result<Vec<_>, _>>()
                 .map_err(storage)?;
             for (account, not_before) in rows {
+                crate::count_row();
                 out.push(Dirty {
                     tenant: tenant.clone(),
                     account,

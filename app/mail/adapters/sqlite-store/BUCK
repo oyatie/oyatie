@@ -72,8 +72,8 @@ _TESTS = {
 # Integration tests that need the `contract` feature compiled into the store.
 _CONTRACT_TESTS = {
     "convert": (glob(["tests/convert/*.rs"]), [_SQL, _SHA]),
-    "counting": ([], []),
-    "counting_thread": ([], []),
+    "doubles": ([], []),
+    "suite": ([], []),
 }
 
 [
