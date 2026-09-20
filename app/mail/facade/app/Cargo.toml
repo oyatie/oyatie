@@ -13,6 +13,9 @@ mail-kernel = { path = "../../core/kernel" }
 mail-service = { path = "../../core/service" }
 mail-sqlite-store = { path = "../../adapters/sqlite-store" }
 mail-protocol-imap = { path = "../../adapters/protocol-imap" }
+mail-auth = { version = "=0.13.3", default-features = false, features = [
+    "aws-lc-rs",
+] }
 axum.workspace = true
 tokio.workspace = true
 rustls = { version = "=0.23.45", default-features = false, features = ["aws-lc-rs", "prefer-post-quantum", "std", "logging"] }
