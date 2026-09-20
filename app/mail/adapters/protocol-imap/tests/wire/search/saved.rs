@@ -81,11 +81,12 @@ async fn saved_results_do_not_resurrect_messages_reentering_under_a_new_uid() {
     let created = db
         .execute(
             "a",
-            db.account("a").unwrap().revision,
+            mail_api::Precondition::Observed(db.account("a").unwrap().revision),
             vec![Command::CreateMailbox {
                 name: "Archive".into(),
             }],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     let archive = created
         .mailboxes
@@ -97,16 +98,17 @@ async fn saved_results_do_not_resurrect_messages_reentering_under_a_new_uid() {
     let moved = db
         .execute(
             "a",
-            created.revision,
+            mail_api::Precondition::Observed(created.revision),
             vec![Command::SetMailboxes {
                 id: "e2".into(),
                 mailboxes: vec![archive],
             }],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     db.execute(
         "a",
-        moved.revision,
+        mail_api::Precondition::Observed(moved.revision),
         vec![Command::SetMailboxes {
             id: "e2".into(),
             mailboxes: vec!["inbox".into()],

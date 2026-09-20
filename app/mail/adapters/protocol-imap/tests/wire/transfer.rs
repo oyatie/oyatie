@@ -7,7 +7,7 @@ async fn imap_copy_and_move_preserve_content_with_distinct_destination_uids() {
     let account = db
         .execute(
             "a",
-            0,
+            mail_api::Precondition::Observed(0),
             vec![
                 mail_kernel::Command::CreateMailbox {
                     name: "Archive".into(),
@@ -20,6 +20,7 @@ async fn imap_copy_and_move_preserve_content_with_distinct_destination_uids() {
                 },
             ],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     let original = &account.messages[0];
     let (mut client, server) = tokio::io::duplex(65536);
@@ -58,7 +59,7 @@ async fn imap_sequence_copy_preserves_tombstones_until_selection_is_safe() {
     let (service, db) = service();
     db.execute(
         "a",
-        0,
+        mail_api::Precondition::Observed(0),
         vec![mail_kernel::Command::CreateMailbox {
             name: "Archive".into(),
         }],
@@ -89,7 +90,7 @@ async fn imap_sequence_copy_preserves_tombstones_until_selection_is_safe() {
     let account = db.account("a").unwrap();
     db.execute(
         "a",
-        account.revision,
+        mail_api::Precondition::Observed(account.revision),
         vec![mail_kernel::Command::Destroy {
             id: account.messages[0].id.clone(),
         }],
@@ -124,7 +125,7 @@ async fn uid_expunge_removes_only_selected_deleted_messages() {
         let account = db.account("a").unwrap();
         db.execute(
             "a",
-            account.revision,
+            mail_api::Precondition::Observed(account.revision),
             vec![mail_kernel::Command::Append {
                 mailboxes: vec!["inbox".into()],
                 raw: format!("Subject: {n}\r\n\r\nbody\r\n").into_bytes(),

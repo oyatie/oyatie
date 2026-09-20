@@ -138,3 +138,51 @@ async fn condstore_optional_search_entries_and_qresync_sequence_hints_follow_ora
     command(&mut client, "z LOGOUT").await;
     task.await.unwrap().unwrap();
 }
+
+#[tokio::test]
+async fn a_legacy_client_resyncs_after_conversion_instead_of_missing_an_expunge() {
+    use mail_sqlite_store::contract::legacy::{LegacyAccountSpec, Shape};
+    // Legacy account: e1..e3 in INBOX, then uid 2 expunged (its uid is a
+    // gap) at the last legacy commit. A client that synced before that commit
+    // cached HIGHESTMODSEQ = legacy mail_modseq; after conversion that value
+    // must be below the floor, so it resyncs FLAGS and learns of the expunge.
+    let mut spec = LegacyAccountSpec::generated("gap", Shape::Newer, 3);
+    let cached = spec.mail_modseq.unwrap();
+    spec.messages.remove(1);
+    spec.mail_modseq = Some(cached + 1);
+    spec.revision += 1;
+    let db = Arc::new(mail_sqlite_store::contract::converted_store(
+        &[spec.clone()],
+    ));
+    let service = Arc::new(MailService {
+        outbound: None,
+        queue: db.clone(),
+        store: db.clone(),
+        identity: db.clone(),
+        policy: Arc::new(OwnerPolicy),
+    });
+    let (client, server) = tokio::io::duplex(65536);
+    let task = tokio::spawn(mail_protocol_imap::imap_session(server, service, true));
+    let mut client = BufReader::new(client);
+    command(
+        &mut client,
+        &format!(
+            "a LOGIN {} {}",
+            spec.address,
+            spec.token.as_deref().unwrap()
+        ),
+    )
+    .await;
+    command(&mut client, "e ENABLE CONDSTORE QRESYNC").await;
+    let selected = command(&mut client, "s SELECT INBOX (CONDSTORE)").await;
+    assert!(number(&selected, "HIGHESTMODSEQ ") > cached, "{selected}");
+    let sync = command(
+        &mut client,
+        &format!("f UID FETCH 1:* (FLAGS) (CHANGEDSINCE {cached} VANISHED)"),
+    )
+    .await;
+    assert!(sync.contains("* VANISHED (EARLIER) 2"), "{sync}");
+    assert_eq!(sync.matches("FETCH (").count(), 2, "{sync}");
+    command(&mut client, "z LOGOUT").await;
+    task.await.unwrap().unwrap();
+}

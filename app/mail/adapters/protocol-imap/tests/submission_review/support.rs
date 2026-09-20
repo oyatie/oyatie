@@ -1,6 +1,6 @@
 use axum::{Router, body::Body, http::Request};
 use http_body_util::BodyExt;
-use mail_api::{Policy, Store};
+use mail_api::{MetadataStore, Policy};
 use mail_kernel::{Account, Command};
 use mail_service::MailService;
 use mail_sqlite_store::SqliteStore;
@@ -32,7 +32,7 @@ impl Fixture {
         }
         db.execute(
             "a",
-            0,
+            mail_api::Precondition::Observed(0),
             vec![Command::Append {
                 mailboxes: vec!["inbox".into()],
                 raw: raw.to_vec(),
@@ -91,12 +91,11 @@ pub fn envelope(sender: &str, recipients: &[&str]) -> Value {
     json!({"mailFrom":{"email":sender},"rcptTo":recipients.iter().map(|r| json!({"email":r})).collect::<Vec<_>>()})
 }
 pub fn db_path() -> std::path::PathBuf {
+    // Parallel tests start within one clock tick; a sequence keeps files apart.
+    static SEQUENCE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     std::env::temp_dir().join(format!(
         "mail-submission-review-{}-{}.db",
         std::process::id(),
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
+        SEQUENCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
     ))
 }

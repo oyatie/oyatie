@@ -119,153 +119,19 @@ async fn run<S: AsyncRead + AsyncWrite + Unpin>(
         } else {
             None
         };
-        let (send, mut receive) = tokio::sync::mpsc::channel(2);
-        let service = service.clone();
-        let worker = tokio::task::spawn_blocking(move || -> io::Result<_> {
-            let mut output = response::Output::new(send);
-            let logout =
-                session.respond(&service, &parts, encrypted, starttls, append, &mut output);
-            output.finish()?;
-            Ok((session, logout))
-        });
-        while let Some(bytes) = receive.recv().await {
-            write(stream.get_mut(), &bytes).await?;
-        }
-        let (next, logout) = worker
-            .await
-            .map_err(|_| io::Error::other("IMAP worker failed"))??;
+        // The command budget starts here: after the literal, before the worker.
+        let transport = Transport {
+            encrypted,
+            starttls,
+        };
+        let (next, logout) =
+            retry::dispatch(&mut stream, &service, session, parts, append, transport).await?;
         session = next;
         if logout {
             return Ok(None);
         }
     }
     Ok(None)
-}
-
-#[derive(Default)]
-struct Session {
-    utf8: bool,
-    condstore: bool,
-    qresync: bool,
-    objectid: bool,
-    uidonly: bool,
-    credential: String,
-    account_id: String,
-    selected: Option<selected::Selection>,
-}
-impl Session {
-    fn respond(
-        &mut self,
-        service: &MailService,
-        parts: &[String],
-        encrypted: bool,
-        starttls: bool,
-        append: Option<append::Append>,
-        output: &mut response::Output,
-    ) -> bool {
-        output.utf8 = self.utf8;
-        output.condstore = self.condstore;
-        output.qresync = self.qresync;
-        output.objectid = self.objectid;
-        output.uidonly = self.uidonly;
-        if let Some(append) = append {
-            append.respond(service, self, parts, output);
-            return false;
-        }
-        let tag = &parts[0];
-        let verb = parts[1].to_ascii_uppercase();
-        if matches!(
-            verb.as_str(),
-            "CAPABILITY"
-                | "LOGOUT"
-                | "NOOP"
-                | "CHECK"
-                | "CLOSE"
-                | "EXPUNGE"
-                | "UNAUTHENTICATE"
-                | "NAMESPACE"
-        ) && parts.len() != 2
-        {
-            output
-                .extend_from_slice(format!("{tag} BAD Command takes no arguments\r\n").as_bytes());
-            return false;
-        }
-        let mut status = "OK";
-        let mut code = None;
-        match verb.as_str() {
-            "CAPABILITY" => uidonly::capabilities(self, encrypted, starttls, output),
-            "ID" => uidonly::id(output),
-            "UNAUTHENTICATE" => {
-                if let Err(kind) = uidonly::unauthenticate(self, output) {
-                    status = kind;
-                }
-            }
-            "ENABLE" => {
-                if parts.len() < 3 || self.credential.is_empty() {
-                    status = "BAD";
-                } else if service.read(&self.credential, &self.account_id).is_err() {
-                    status = "NO";
-                } else if let Err(kind) = condstore::enable(self, parts, output) {
-                    status = kind;
-                }
-            }
-            "LOGOUT" => {
-                output.extend_from_slice(
-                    format!("* BYE Closing\r\n{tag} OK LOGOUT completed\r\n").as_bytes(),
-                );
-                return true;
-            }
-            "LOGIN" => {
-                if !encrypted || !self.credential.is_empty() || parts.len() != 4 {
-                    status = "NO";
-                } else {
-                    match auth::login(service, &parts[2], &parts[3]) {
-                        Ok(account) => {
-                            self.credential.clone_from(&parts[3]);
-                            self.account_id = account;
-                        }
-                        Err(_) => status = "NO",
-                    }
-                }
-            }
-            "NOOP" if self.credential.is_empty() => {}
-            _ => match service.read(&self.credential, &self.account_id) {
-                Err(_) => status = "NO",
-                Ok(account) => {
-                    selected::synchronize(&account, parts, &mut self.selected, output);
-                    let result = command(
-                        service,
-                        &self.credential,
-                        &account,
-                        parts,
-                        &mut self.selected,
-                        output,
-                    );
-                    match result {
-                        Ok(completion) => code = completion,
-                        Err(kind) => status = kind,
-                    }
-                }
-            },
-        }
-
-        self.condstore = output.condstore;
-        self.objectid = output.objectid;
-        let mode = if status == "OK" && matches!(verb.as_str(), "SELECT" | "EXAMINE") {
-            if self.selected.as_ref().is_some_and(|s| s.readonly) {
-                " [READ-ONLY]"
-            } else {
-                " [READ-WRITE]"
-            }
-        } else {
-            ""
-        };
-        let code = code.map(|s| format!(" {s}")).unwrap_or_default();
-        output.extend_from_slice(
-            format!("{tag} {status}{code}{mode} {verb} completed\r\n").as_bytes(),
-        );
-        false
-    }
 }
 
 mod append;
@@ -281,16 +147,18 @@ mod literal;
 mod mailboxes;
 mod objectid;
 mod response;
+mod retry;
 mod search;
 mod select;
 mod selected;
+mod session;
 mod state;
 mod status;
 mod store;
 mod syntax;
 mod transfer;
 mod uidonly;
-use commands::command;
 pub use fetch::render;
 pub use folders::matches as list_matches;
 use objectid::object_id;
+use session::{Session, Transport};

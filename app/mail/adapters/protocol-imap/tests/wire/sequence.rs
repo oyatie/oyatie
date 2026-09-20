@@ -43,8 +43,12 @@ async fn concurrent_expunge_never_retargets_a_session_sequence_number() {
             .await
             .contains("3 EXISTS")
     );
-    db.execute("a", 3, vec![Command::Destroy { id: "e1".into() }])
-        .unwrap();
+    db.execute(
+        "a",
+        mail_api::Precondition::Observed(3),
+        vec![Command::Destroy { id: "e1".into() }],
+    )
+    .unwrap();
     let store = command(&mut client, "c STORE 2 +FLAGS (\\Deleted)").await;
     assert!(store.contains("c OK"), "{store}");
     assert!(
@@ -80,11 +84,12 @@ async fn concurrent_expunge_never_retargets_a_session_sequence_number() {
     let account = db
         .execute(
             "a",
-            revision,
+            mail_api::Precondition::Observed(revision),
             vec![Command::CreateMailbox {
                 name: "Archive".into(),
             }],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     let archive = account
         .mailboxes
@@ -96,16 +101,17 @@ async fn concurrent_expunge_never_retargets_a_session_sequence_number() {
     let account = db
         .execute(
             "a",
-            account.revision,
+            mail_api::Precondition::Observed(account.revision),
             vec![Command::SetMailboxes {
                 id: "e2".into(),
                 mailboxes: vec![archive],
             }],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     db.execute(
         "a",
-        account.revision,
+        mail_api::Precondition::Observed(account.revision),
         vec![Command::SetMailboxes {
             id: "e2".into(),
             mailboxes: vec!["inbox".into()],
@@ -133,7 +139,7 @@ async fn console_sync_fetch_returns_internaldate_without_setting_seen() {
     let (service, db) = service();
     db.execute(
         "a",
-        0,
+        mail_api::Precondition::Observed(0),
         vec![Command::Append {
             mailboxes: vec!["inbox".into()],
             received_at: 1_000_000_000,

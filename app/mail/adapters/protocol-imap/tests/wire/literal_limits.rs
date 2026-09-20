@@ -79,7 +79,7 @@ async fn append_handoff_preserves_large_binary_body_after_quote_bearing_mailbox_
         let mailbox = "Folder \"quoted\" {curly}";
         db.execute(
             "a",
-            0,
+            mail_api::Precondition::Observed(0),
             vec![mail_kernel::Command::CreateMailbox {
                 name: mailbox.into(),
             }],

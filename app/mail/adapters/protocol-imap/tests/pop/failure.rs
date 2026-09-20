@@ -1,5 +1,8 @@
 use super::support::*;
-use mail_api::{AccountInfo, MailboxChange, MessageChange, MessageSelection, Store};
+use mail_api::{
+    AccountInfo, Execution, HistoryPage, MailboxSelection, MessageSelection, MetadataStore,
+    Precondition,
+};
 use mail_kernel::{Account, Command, Error};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -10,11 +13,11 @@ use std::sync::{
 
 struct FaultStore {
     db: Arc<SqliteStore>,
-    conflicts: AtomicUsize,
+    busy: AtomicUsize,
     reject_batch: bool,
     batches: Mutex<Vec<usize>>,
 }
-impl Store for FaultStore {
+impl MetadataStore for FaultStore {
     fn account_info(&self, id: &str) -> Result<AccountInfo, Error> {
         self.db.account_info(id)
     }
@@ -24,29 +27,32 @@ impl Store for FaultStore {
     fn messages(&self, account: &str, ids: &[String]) -> Result<MessageSelection, Error> {
         self.db.messages(account, ids)
     }
+    fn mailbox_uids(&self, account: &str, mailbox: &str) -> Result<MailboxSelection, Error> {
+        self.db.mailbox_uids(account, mailbox)
+    }
     fn resolve(&self, address: &str) -> Result<String, Error> {
         self.db.resolve(address)
     }
     fn execute(
         &self,
         id: &str,
-        revision: u64,
+        precondition: Precondition,
         mut commands: Vec<Command>,
-    ) -> Result<Account, Error> {
+    ) -> Result<Execution, Error> {
         self.batches.lock().unwrap().push(commands.len());
         if self
-            .conflicts
+            .busy
             .try_update(Ordering::SeqCst, Ordering::SeqCst, |n| n.checked_sub(1))
             .is_ok()
         {
-            return Err(Error::Conflict);
+            return Err(Error::Busy);
         }
         if self.reject_batch {
             commands.push(Command::Destroy {
                 id: "missing".into(),
             });
         }
-        self.db.execute(id, revision, commands)
+        self.db.execute(id, precondition, commands)
     }
     fn deliver_once(
         &self,
@@ -63,42 +69,33 @@ impl Store for FaultStore {
     fn blob(&self, account: &str, id: &str) -> Result<Vec<u8>, Error> {
         self.db.blob(account, id)
     }
-    fn message_changes(
-        &self,
-        account: &str,
-        since: u64,
-        until: u64,
-    ) -> Result<Vec<MessageChange>, Error> {
-        self.db.message_changes(account, since, until)
+    fn history(&self, account: &str, since: u64, limit: usize) -> Result<HistoryPage, Error> {
+        self.db.history(account, since, limit)
     }
-    fn message_changes_after(
+    fn compact_history(
         &self,
         account: &str,
-        since: u64,
-        until: u64,
-    ) -> Result<Vec<MessageChange>, Error> {
-        self.db.message_changes_after(account, since, until)
-    }
-    fn mailbox_changes(
-        &self,
-        account: &str,
-        since: u64,
-        until: u64,
-    ) -> Result<Vec<MailboxChange>, Error> {
-        self.db.mailbox_changes(account, since, until)
+        now: i64,
+        policy: mail_kernel::RetentionPolicy,
+        cursors: &[(mail_api::Consumer, u64)],
+    ) -> Result<mail_kernel::Retention, Error> {
+        self.db.compact_history(account, now, policy, cursors)
     }
 }
 
+/// QUIT commits one observed batch: a busy store is retried by the socket
+/// task with the same whole batch, and a batch the store refuses commits
+/// nothing.
 #[tokio::test]
-async fn quit_retries_whole_batches_on_conflict_and_never_commits_a_failed_batch() {
-    for (conflicts, reject_batch) in [(2, false), (3, false), (0, true)] {
+async fn quit_retries_whole_batches_while_busy_and_never_commits_a_failed_batch() {
+    for (busy, reject_batch) in [(1, false), (2, false), (0, true)] {
         let (_, db) = service();
         deliver(&db, b"Subject: one\r\n\r\none\r\n");
         deliver(&db, b"Subject: two\r\n\r\ntwo\r\n");
         let before = db.account("a").unwrap();
         let store = Arc::new(FaultStore {
             db: db.clone(),
-            conflicts: AtomicUsize::new(conflicts),
+            busy: AtomicUsize::new(busy),
             reject_batch,
             batches: Mutex::new(vec![]),
         });
@@ -114,10 +111,7 @@ async fn quit_retries_whole_batches_on_conflict_and_never_commits_a_failed_batch
         client.ok("DELE 1").await;
         client.ok("DELE 2").await;
         assert_eq!(db.account("a").unwrap(), before);
-        if conflicts == 2 {
-            client.close(task).await;
-            assert!(db.account("a").unwrap().messages.is_empty());
-        } else {
+        if reject_batch {
             client.error("QUIT").await;
             task.await.unwrap().unwrap();
             assert_eq!(db.account("a").unwrap(), before);
@@ -129,11 +123,11 @@ async fn quit_retries_whole_batches_on_conflict_and_never_commits_a_failed_batch
                 db.blob("a", &before.messages[1].id).unwrap(),
                 b"Subject: two\r\n\r\ntwo\r\n"
             );
+        } else {
+            client.close(task).await;
+            assert!(db.account("a").unwrap().messages.is_empty());
         }
-        assert_eq!(
-            *store.batches.lock().unwrap(),
-            vec![2; if reject_batch { 1 } else { 3 }]
-        );
+        assert_eq!(*store.batches.lock().unwrap(), vec![2; busy + 1]);
     }
 }
 

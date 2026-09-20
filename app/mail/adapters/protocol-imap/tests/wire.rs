@@ -1,4 +1,4 @@
-use mail_api::Store;
+use mail_api::MetadataStore;
 use mail_kernel::Account;
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -81,7 +81,7 @@ async fn imap_hierarchy_uses_the_same_mailboxes_and_preserves_uids_on_move() {
     let (service, db) = service();
     db.execute(
         "a",
-        0,
+        mail_api::Precondition::Observed(0),
         vec![mail_kernel::Command::CreateMailbox {
             name: "Projects".into(),
         }],

@@ -1,5 +1,5 @@
 use crate::wire::{line, write};
-use mail_service::MailService;
+use mail_service::{Budget, MailService, backoff};
 use std::{io, sync::Arc};
 use tokio::io::{AsyncRead, AsyncWrite, BufReader};
 
@@ -79,22 +79,10 @@ async fn run<S: AsyncRead + AsyncWrite + Unpin>(
             )
             .await?;
         } else {
-            let service = service.clone();
-            let (send, mut receive) = tokio::sync::mpsc::channel(2);
-            let worker = tokio::task::spawn_blocking(move || {
-                let mut output = output::Output::new(send);
-                let close = session.respond(&service, &parts, encrypted, starttls, &mut output);
-                output.finish()?;
-                Ok::<_, io::Error>((session, close))
-            });
-            while let Some(bytes) = receive.recv().await {
-                write(stream.get_mut(), &bytes).await?;
-            }
-            let (next, close) = worker
-                .await
-                .map_err(|_| io::Error::other("POP3 worker failed"))??;
+            let (next, outcome) =
+                dispatch(&mut stream, &service, session, parts, encrypted, starttls).await?;
             session = next;
-            if close {
+            if outcome == Outcome::Close {
                 return Ok(None);
             }
         }
@@ -108,6 +96,56 @@ async fn run<S: AsyncRead + AsyncWrite + Unpin>(
         }
     }
     Ok(None)
+}
+
+#[derive(PartialEq, Eq)]
+enum Outcome {
+    Continue,
+    Close,
+    /// The store is busy; re-dispatch the same command while budget remains.
+    Busy,
+}
+
+/// Run one command to completion: the blocking worker never sleeps, the
+/// socket task backs off between attempts and answers when the budget ends.
+async fn dispatch<S: AsyncRead + AsyncWrite + Unpin>(
+    stream: &mut BufReader<S>,
+    service: &Arc<MailService>,
+    mut session: Session,
+    mut parts: Vec<String>,
+    encrypted: bool,
+    starttls: bool,
+) -> io::Result<(Session, Outcome)> {
+    let budget = Budget::fixed();
+    let mut attempt = 0;
+    loop {
+        let service = service.clone();
+        let (send, mut receive) = tokio::sync::mpsc::channel(2);
+        let worker = tokio::task::spawn_blocking(move || {
+            let mut output = output::Output::new(send);
+            let outcome =
+                session.respond(&service, &parts, encrypted, starttls, &budget, &mut output);
+            output.finish()?;
+            Ok::<_, io::Error>((session, parts, outcome))
+        });
+        while let Some(bytes) = receive.recv().await {
+            write(stream.get_mut(), &bytes).await?;
+        }
+        let (next, same, outcome) = worker
+            .await
+            .map_err(|_| io::Error::other("POP3 worker failed"))??;
+        session = next;
+        parts = same;
+        if outcome != Outcome::Busy {
+            return Ok((session, outcome));
+        }
+        tokio::time::sleep(backoff(attempt).min(budget.remaining())).await;
+        attempt += 1;
+        if budget.expired() {
+            write(stream.get_mut(), error(mail_kernel::Error::Busy).as_bytes()).await?;
+            return Ok((session, Outcome::Continue));
+        }
+    }
 }
 
 #[derive(Default)]
@@ -136,6 +174,7 @@ fn error(error: mail_kernel::Error) -> &'static str {
         Error::Unavailable => "-ERR [SYS/TEMP] Service unavailable\r\n",
         Error::Forbidden => "-ERR [AUTH] Access denied\r\n",
         Error::Conflict => "-ERR [SYS/TEMP] Maildrop changed\r\n",
+        Error::Busy => "-ERR [SYS/TEMP] Maildrop busy\r\n",
         Error::OverQuota => "-ERR [SYS/PERM] Maildrop limit exceeded\r\n",
         Error::NotFound => "-ERR No such message\r\n",
         Error::Invalid => "-ERR Invalid command\r\n",

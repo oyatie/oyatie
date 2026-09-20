@@ -1,6 +1,6 @@
 use super::hierarchy;
 use mail_kernel::{Account, Command};
-use mail_service::MailService;
+use mail_service::{Budget, MailService};
 
 pub(super) fn command(
     service: &MailService,
@@ -8,6 +8,7 @@ pub(super) fn command(
     account: &Account,
     parts: &[String],
     selected: &mut Option<super::selected::Selection>,
+    budget: &Budget,
     output: &mut super::response::Output,
 ) -> Result<Option<String>, &'static str> {
     let verb = parts[1].to_ascii_uppercase();
@@ -28,11 +29,15 @@ pub(super) fn command(
         "SELECT" | "EXAMINE" => {
             super::select::execute(service, token, account, parts, selected, output)
         }
-        "CREATE" if parts.len() == 4 => hierarchy::create(service, token, account, parts, output),
-        "RENAME" if parts.len() == 4 => hierarchy::rename(service, token, account, parts, output),
-        "DELETE" if parts.len() == 3 => hierarchy::delete(service, token, account, parts),
+        "CREATE" if parts.len() == 4 => {
+            hierarchy::create(service, token, account, parts, budget, output)
+        }
+        "RENAME" if parts.len() == 4 => {
+            hierarchy::rename(service, token, account, parts, budget, output)
+        }
+        "DELETE" if parts.len() == 3 => hierarchy::delete(service, token, account, parts, budget),
         "SUBSCRIBE" | "UNSUBSCRIBE" if parts.len() == 3 => {
-            hierarchy::subscribe(service, token, account, parts)
+            hierarchy::subscribe(service, token, account, parts, budget)
         }
         "CLOSE" | "EXPUNGE" => {
             let selection = selected.as_ref().ok_or("BAD")?;
@@ -44,16 +49,15 @@ pub(super) fn command(
                 }
                 return Err("NO");
             }
-            let updated = service
-                .execute(
-                    token,
-                    &account.id,
-                    account.revision,
-                    vec![Command::Expunge {
-                        mailbox: mailbox.clone(),
-                    }],
-                )
-                .map_err(|_| "NO")?;
+            let (_, updated) = super::retry::commit(
+                service,
+                token,
+                account,
+                vec![Command::Expunge {
+                    mailbox: mailbox.clone(),
+                }],
+                budget,
+            )?;
             if verb == "EXPUNGE" {
                 super::selected::synchronize(&updated, parts, selected, output);
             } else {
@@ -62,7 +66,9 @@ pub(super) fn command(
             Ok(None)
         }
         "UID" | "FETCH" | "STORE" | "SEARCH" | "SORT" | "THREAD" | "COPY" | "MOVE" => {
-            super::selected::selected_command(service, token, account, parts, selected, output)
+            super::selected::selected_command(
+                service, token, account, parts, selected, budget, output,
+            )
         }
         _ => Err("BAD"),
     }

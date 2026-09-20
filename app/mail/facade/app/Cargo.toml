@@ -25,5 +25,6 @@ workspace = true
 base64 = "=0.22.1"
 rcgen = { version = "0.14", default-features = false, features = ["aws_lc_rs", "pem"] }
 reqwest.workspace = true
+rusqlite.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true

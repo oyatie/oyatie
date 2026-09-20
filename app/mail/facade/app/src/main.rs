@@ -1,4 +1,5 @@
 #![forbid(unsafe_code)]
+mod convert;
 mod delivery;
 mod https;
 mod outbound;
@@ -21,6 +22,9 @@ async fn serve(
     certificate: &str,
     private_key: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    // The schema refusal (below-version, converting, above-version) is decided
+    // before any TLS material is read or any listener is bound.
+    let db = Arc::new(SqliteStore::open(database)?);
     let certificates =
         CertificateDer::pem_file_iter(certificate)?.collect::<Result<Vec<_>, _>>()?;
     let key = PrivateKeyDer::from_pem_file(private_key)?;
@@ -30,7 +34,6 @@ async fn serve(
             .with_single_cert(certificates, key)?,
     );
     let tls = TlsAcceptor::from(tls);
-    let db = Arc::new(SqliteStore::open(database)?);
     let relay = outbound_config::configured()?;
     let service = Arc::new(MailService {
         outbound: relay
@@ -206,7 +209,15 @@ async fn shutdown() -> std::io::Result<()> {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() {
+    // Refusals reach the operator as their Display text, not a Debug dump.
+    if let Err(error) = run().await {
+        eprintln!("mail-app: {error}");
+        std::process::exit(1);
+    }
+}
+
+async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<_> = std::env::args().collect();
     match args.get(1).map(String::as_str) {
         Some("provision") if args.len()==7 => {
@@ -225,6 +236,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         }
         Some("serve") if args.len()==5 => serve(&args[2],&args[3],&args[4]).await,
-        _ => Err("usage: mail-app failed DATABASE ACCOUNT; mail-app retry DATABASE ACCOUNT MESSAGE; mail-app provision DATABASE TENANT ACCOUNT OWNER ADDRESS (MAIL_TOKEN env); mail-app serve DATABASE CERTIFICATE_PEM PRIVATE_KEY_PEM (optional MAIL_SMTP_LISTEN, MAIL_SUBMISSION_LISTEN, MAIL_SUBMISSION_STARTTLS_LISTEN, MAIL_IMAP_LISTEN, MAIL_IMAP_STARTTLS_LISTEN, MAIL_HTTP_LISTEN, MAIL_POP_LISTEN, MAIL_POP_STARTTLS_LISTEN, MAIL_PUBLIC_URL; outbound MAIL_RELAY_HOST, MAIL_RELAY_PORT, MAIL_RELAY_HELO, MAIL_RELAY_STARTTLS, MAIL_RELAY_CA, MAIL_RELAY_USERNAME, MAIL_RELAY_PASSWORD; direct delivery MAIL_MX_DNS_SERVERS, MAIL_MX_HELO, MAIL_MX_PORT, MAIL_MX_CA, MAIL_MX_REQUIRE_TLS env)".into()),
+        Some("convert") if args.len()==5 => convert::run(&args[2],&args[3],&args[4]),
+        _ => Err("usage: mail-app failed DATABASE ACCOUNT; mail-app retry DATABASE ACCOUNT MESSAGE; mail-app provision DATABASE TENANT ACCOUNT OWNER ADDRESS (MAIL_TOKEN env); mail-app convert DATABASE --backup-verified BACKUP_PATH | --backup-into BACKUP_PATH (stop `serve` first; a database below this binary's schema version is refused by every other command until converted); mail-app serve DATABASE CERTIFICATE_PEM PRIVATE_KEY_PEM (optional MAIL_SMTP_LISTEN, MAIL_SUBMISSION_LISTEN, MAIL_SUBMISSION_STARTTLS_LISTEN, MAIL_IMAP_LISTEN, MAIL_IMAP_STARTTLS_LISTEN, MAIL_HTTP_LISTEN, MAIL_POP_LISTEN, MAIL_POP_STARTTLS_LISTEN, MAIL_PUBLIC_URL; outbound MAIL_RELAY_HOST, MAIL_RELAY_PORT, MAIL_RELAY_HELO, MAIL_RELAY_STARTTLS, MAIL_RELAY_CA, MAIL_RELAY_USERNAME, MAIL_RELAY_PASSWORD; direct delivery MAIL_MX_DNS_SERVERS, MAIL_MX_HELO, MAIL_MX_PORT, MAIL_MX_CA, MAIL_MX_REQUIRE_TLS env)".into()),
     }
 }

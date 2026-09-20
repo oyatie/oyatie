@@ -1,5 +1,5 @@
-use mail_api::Change;
-use mail_kernel::{Account, MessageState};
+use super::changes::Kind;
+use mail_kernel::{Account, HistoryEntry, MessageState};
 use mail_service::MailService;
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
@@ -46,73 +46,56 @@ pub(super) fn get(account: &Account, args: &Value) -> Result<Value, &'static str
     }).collect())
 }
 
+/// A thread changes when its membership does: a message created in it, a
+/// member gone or re-threaded. Flag changes leave the `Thread` object alone.
 pub(super) fn changes(
     service: &MailService,
     token: &str,
     account: &Account,
     args: &Value,
 ) -> Result<Value, &'static str> {
-    let since = args["sinceState"]
-        .as_str()
-        .ok_or("invalidArguments")?
-        .parse()
-        .map_err(|_| "cannotCalculateChanges")?;
-    let changes = super::changes::history(service, token, account, since)?;
-    let mut old: BTreeMap<_, _> = account
+    let since = super::changes::since(args, "sinceState")?;
+    let window = super::changes::window(service, token, account, since)?;
+    let messages: BTreeMap<_, _> = account
         .messages
         .iter()
-        .map(|m| (m.id.clone(), m.state()))
+        .map(|m| (m.id.as_str(), m))
         .collect();
-    for change in changes.iter().rev() {
-        if let Some(before) = &change.before {
-            old.insert(change.id.clone(), before.clone());
-        } else {
-            old.remove(&change.id);
+    let thread_of = |id: &str| messages.get(id).map(|m| m.thread_id().to_owned());
+    let ids = |entry: &HistoryEntry| match entry {
+        HistoryEntry::Added { id, .. } => messages
+            .get(id.as_str())
+            .filter(|m| m.created_revision > since)
+            .map(|m| vec![m.thread_id().to_owned()])
+            .unwrap_or_default(),
+        // The row does not name the thread the message left. A thread is
+        // identified by its first message, so the message's own id is the
+        // candidate for a thread that emptied when it was re-threaded.
+        HistoryEntry::Thread { id } => {
+            let mut ids = vec![id.clone()];
+            ids.extend(thread_of(id));
+            ids
         }
-    }
-    let mut threads = Threads::new();
-    for message in old.values() {
-        insert(&mut threads, message);
-    }
-    let mut result = vec![];
-    // Update only groups touched by each atomic commit; do not reconstruct
-    // every mailbox or read message bodies for each historical revision.
-    for batch in changes.chunk_by(|a, b| a.revision == b.revision) {
-        let affected: BTreeSet<_> = batch
-            .iter()
-            .flat_map(|c| [&c.before, &c.after])
-            .flatten()
-            .map(|m| thread_id(m).to_owned())
-            .collect();
-        let before: BTreeMap<_, _> = affected
-            .iter()
-            .map(|id| (id.clone(), threads.get(id).cloned()))
-            .collect();
-        for change in batch {
-            if let Some(old) = &change.before {
-                let id = thread_id(old);
-                if let Some(members) = threads.get_mut(id) {
-                    members.remove(&(old.received_at, old.id.clone()));
-                    if members.is_empty() {
-                        threads.remove(id);
-                    }
-                }
-            }
-            if let Some(new) = &change.after {
-                insert(&mut threads, new);
+        HistoryEntry::Removed { id, thread, .. } => {
+            if thread_of(id).is_some_and(|current| current == *thread) {
+                vec![]
+            } else {
+                vec![thread.clone()]
             }
         }
-        for (id, before) in before {
-            let after = threads.get(&id).cloned();
-            if before != after {
-                result.push(Change {
-                    revision: batch[0].revision,
-                    id,
-                    before,
-                    after,
-                });
-            }
-        }
+        HistoryEntry::Flags { .. } | HistoryEntry::Mailbox { .. } => vec![],
+    };
+    // Members per thread: (all, created after `since`).
+    let mut members: BTreeMap<&str, (usize, usize)> = BTreeMap::new();
+    for message in &account.messages {
+        let entry = members.entry(message.thread_id()).or_default();
+        entry.0 += 1;
+        entry.1 += usize::from(message.created_revision > since);
     }
-    super::changes::response(account, args, &result)
+    let kind = |id: &str| match members.get(id) {
+        None => Some(Kind::Destroyed),
+        Some((all, new)) if all == new => Some(Kind::Created),
+        Some(_) => Some(Kind::Updated),
+    };
+    window.response(account, args, &ids, &kind)
 }

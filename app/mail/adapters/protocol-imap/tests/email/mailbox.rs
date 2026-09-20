@@ -125,7 +125,7 @@ async fn mailbox_thread_counts_distinguish_messages_and_unread_threads() {
             let revision = db.account("a").unwrap().revision;
             db.execute(
                 "a",
-                revision,
+                mail_api::Precondition::Observed(revision),
                 vec![Command::Keywords {
                     id: id.into(),
                     keywords: vec!["$seen".into()],

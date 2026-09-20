@@ -200,7 +200,7 @@ async fn thread_changes_preserve_atomic_merges_and_page_at_real_commits() {
     );
     db.execute(
         "a",
-        3,
+        mail_api::Precondition::Observed(3),
         vec![Command::Keywords {
             id: "e1".into(),
             keywords: vec!["$seen".into()],
@@ -214,11 +214,15 @@ async fn thread_changes_preserve_atomic_merges_and_page_at_real_commits() {
     )
     .await;
     assert_eq!(flags["updated"], json!([]));
-    db.execute("a", 4, vec![Command::Destroy { id: "e3".into() }])
-        .unwrap();
     db.execute(
         "a",
-        5,
+        mail_api::Precondition::Observed(4),
+        vec![Command::Destroy { id: "e3".into() }],
+    )
+    .unwrap();
+    db.execute(
+        "a",
+        mail_api::Precondition::Observed(5),
         vec![
             Command::Destroy { id: "e1".into() },
             Command::Destroy { id: "e2".into() },

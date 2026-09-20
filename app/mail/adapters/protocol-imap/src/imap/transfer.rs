@@ -3,18 +3,16 @@ use super::{
     response::Output,
     state::{Selection, synchronize},
 };
-use mail_kernel::{Account, Command, Message};
-use mail_service::MailService;
+use mail_kernel::{Command, Message};
 
 pub(super) fn execute(
-    service: &MailService,
-    token: &str,
-    account: &Account,
+    call: &super::retry::Call<'_>,
     parts: &[String],
     selection: &mut Option<Selection>,
     chosen: Vec<(usize, &Message)>,
     output: &mut Output,
 ) -> Result<Option<String>, &'static str> {
+    let account = call.account;
     let selected = selection.as_ref().ok_or("NO")?;
     let mailbox = &selected.mailbox;
     let uid = parts[1].eq_ignore_ascii_case("UID");
@@ -43,12 +41,16 @@ pub(super) fn execute(
             remove_from: (operation == "MOVE").then(|| mailbox.clone()),
         })
         .collect();
-    let updated = service
-        .execute(token, &account.id, account.revision, commands)
-        .map_err(|_| "NO")?;
-    let count = u32::try_from(chosen.len()).map_err(|_| "NO")?;
-    let last = target.uid_next.checked_add(count).ok_or("NO")?;
-    let destination = ranges(target.uid_next..last);
+    let (execution, updated) = call.commit(commands)?;
+    // The store allocated the destination UIDs in command order, which is
+    // ascending source UID order, so both sets correspond position by position.
+    let destination = ranges(
+        execution
+            .allocations
+            .iter()
+            .filter(|(id, _)| *id == target.id)
+            .map(|(_, uid)| *uid),
+    );
     let code = format!("[COPYUID {} {source} {destination}]", target.uid_validity);
     if operation == "MOVE" {
         output.extend_from_slice(format!("* OK {code} MOVE committed\r\n").as_bytes());

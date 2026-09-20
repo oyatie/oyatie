@@ -1,4 +1,7 @@
 use super::*;
+use mail_api::{
+    AccountInfo, Consumer, Execution, HistoryPage, MailboxSelection, MessageSelection, Precondition,
+};
 
 pub(super) struct ObservedStore {
     pub(super) inner: Arc<SqliteStore>,
@@ -22,21 +25,21 @@ impl ObservedStore {
     }
 }
 #[rustfmt::skip]
-impl Store for ObservedStore {
+impl MetadataStore for ObservedStore {
     fn account_info(&self, id: &str) -> Result<AccountInfo, Error> { self.inner.account_info(id) }
     fn account(&self, id: &str) -> Result<Account, Error> {
         self.observe();
         self.inner.account(id)
     }
     fn messages(&self, a: &str, ids: &[String]) -> Result<MessageSelection, Error> { self.observe(); self.inner.messages(a, ids) }
+    fn mailbox_uids(&self, a: &str, m: &str) -> Result<MailboxSelection, Error> { self.observe(); self.inner.mailbox_uids(a, m) }
     fn resolve(&self, a: &str) -> Result<String, Error> { self.inner.resolve(a) }
-    fn execute(&self, a: &str, r: u64, c: Vec<Command>) -> Result<Account, Error> { self.inner.execute(a, r, c) }
+    fn execute(&self, a: &str, p: Precondition, c: Vec<Command>) -> Result<Execution, Error> { self.inner.execute(a, p, c) }
     fn deliver_once(&self, a: &str, k: &str, r: &[u8], t: i64) -> Result<(), Error> { self.inner.deliver_once(a, k, r, t) }
     fn put_blob(&self, a: &str, r: &[u8]) -> Result<String, Error> { self.inner.put_blob(a, r) }
     fn blob(&self, a: &str, id: &str) -> Result<Vec<u8>, Error> { self.inner.blob(a, id) }
-    fn message_changes(&self, a: &str, s: u64, u: u64) -> Result<Vec<MessageChange>, Error> { self.inner.message_changes(a, s, u) }
-    fn message_changes_after(&self, account: &str, since: u64, until: u64) -> Result<Vec<MessageChange>, Error> { self.inner.message_changes_after(account, since, until) }
-    fn mailbox_changes(&self, a: &str, s: u64, u: u64) -> Result<Vec<MailboxChange>, Error> { self.inner.mailbox_changes(a, s, u) }
+    fn history(&self, a: &str, s: u64, l: usize) -> Result<HistoryPage, Error> { self.observe(); self.inner.history(a, s, l) }
+    fn compact_history(&self, a: &str, n: i64, p: mail_kernel::RetentionPolicy, c: &[(Consumer, u64)]) -> Result<mail_kernel::Retention, Error> { self.inner.compact_history(a, n, p, c) }
 }
 
 pub(super) fn observed() -> (Arc<MailService>, Arc<ObservedStore>) {

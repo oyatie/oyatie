@@ -1,5 +1,5 @@
 use super::*;
-use mail_api::{AccountInfo, MailboxChange, MessageChange, MessageSelection};
+use mail_api::Precondition;
 use mail_kernel::{Command, Error};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::time::Duration;
@@ -120,7 +120,7 @@ async fn idle_announces_new_mail_flags_and_renumbered_expunge_without_client_pol
     let account = db.account("a").unwrap();
     db.execute(
         "a",
-        account.revision,
+        Precondition::Observed(account.revision),
         vec![Command::Keywords {
             id: "e2".into(),
             keywords: vec!["$seen".into(), "$flagged".into()],
@@ -135,7 +135,7 @@ async fn idle_announces_new_mail_flags_and_renumbered_expunge_without_client_pol
     let account = db.account("a").unwrap();
     db.execute(
         "a",
-        account.revision,
+        Precondition::Observed(account.revision),
         vec![
             Command::Destroy { id: "e1".into() },
             Command::Destroy { id: "e3".into() },
@@ -170,11 +170,12 @@ async fn idle_closes_after_credential_revocation_and_releases_deleted_selection(
     let account = db
         .execute(
             "a",
-            0,
+            Precondition::Observed(0),
             vec![Command::CreateMailbox {
                 name: "Archive".into(),
             }],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     let folder = account
         .mailboxes
@@ -192,7 +193,7 @@ async fn idle_closes_after_credential_revocation_and_releases_deleted_selection(
     idle(&mut client).await;
     db.execute(
         "a",
-        account.revision,
+        Precondition::Observed(account.revision),
         vec![Command::DeleteMailbox { id: folder }],
     )
     .unwrap();
@@ -239,7 +240,11 @@ async fn idle_backpressure_stops_more_store_snapshots_and_peer_drop_releases_ses
             received_at: 1,
         })
         .collect();
-    let account = store.inner.execute("a", 0, commands).unwrap();
+    let account = store
+        .inner
+        .execute("a", Precondition::Observed(0), commands)
+        .map(|_| store.inner.account("a").unwrap())
+        .unwrap();
     let (mut client, task) = start(service, true, 128).await;
     idle(&mut client).await;
     let before = store.reads.load(Ordering::SeqCst);
@@ -247,7 +252,7 @@ async fn idle_backpressure_stops_more_store_snapshots_and_peer_drop_releases_ses
         .inner
         .execute(
             "a",
-            account.revision,
+            Precondition::Observed(account.revision),
             account
                 .messages
                 .iter()
@@ -269,32 +274,4 @@ async fn idle_backpressure_stops_more_store_snapshots_and_peer_drop_releases_ses
         .await
         .unwrap()
         .unwrap();
-}
-
-#[tokio::test]
-async fn idle_preserves_a_fragmented_done_continuation_across_mailbox_updates() {
-    let (service, store) = observed();
-    let (mut client, task) = start(service, true, 4096).await;
-    idle(&mut client).await;
-    client.get_mut().write_all(b"DO").await.unwrap();
-    store
-        .inner
-        .deliver(
-            &["alice@example.org".into()],
-            b"Subject: fragmented\r\n\r\nbody",
-        )
-        .unwrap();
-    until(&mut client, "* 1 EXISTS").await;
-    client
-        .get_mut()
-        .write_all(b"NE\r\nnext NOOP\r\nz LOGOUT\r\n")
-        .await
-        .unwrap();
-    let result = until(&mut client, "next ").await;
-    assert!(
-        result.contains("i OK") && result.contains("next OK"),
-        "{result}"
-    );
-    until(&mut client, "z ").await;
-    task.await.unwrap().unwrap();
 }

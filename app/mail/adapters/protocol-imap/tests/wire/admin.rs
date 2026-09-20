@@ -5,7 +5,7 @@ fn prepared() -> (Arc<MailService>, Arc<SqliteStore>) {
     let (service, db) = service();
     db.execute(
         "a",
-        0,
+        mail_api::Precondition::Observed(0),
         vec![
             Command::CreateMailbox {
                 name: "Archive".into(),
@@ -51,7 +51,7 @@ async fn delete_removes_populated_mailbox_but_preserves_other_message_copies() {
     let state = db
         .execute(
             "a",
-            before.revision,
+            mail_api::Precondition::Observed(before.revision),
             vec![Command::Append {
                 mailboxes: vec!["m1".into()],
                 raw: b"Subject: archive only\r\n\r\nbody\r\n".to_vec(),
@@ -59,6 +59,7 @@ async fn delete_removes_populated_mailbox_but_preserves_other_message_copies() {
                 received_at: 1234,
             }],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     let removed = state.messages.last().unwrap().id.clone();
     let result = transcript(

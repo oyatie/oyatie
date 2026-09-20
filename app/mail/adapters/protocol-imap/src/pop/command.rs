@@ -1,6 +1,6 @@
-use super::{Session, auth, output::Output};
+use super::{Outcome, Session, auth, output::Output};
 use mail_kernel::Error;
-use mail_service::MailService;
+use mail_service::{Budget, MailService};
 
 pub(super) fn parse(bytes: &[u8]) -> Option<Vec<String>> {
     let text = std::str::from_utf8(bytes).ok()?;
@@ -30,9 +30,14 @@ impl Session {
         parts: &[String],
         encrypted: bool,
         starttls: bool,
+        budget: &Budget,
         output: &mut Output,
-    ) -> bool {
-        let close = parts[0] == "QUIT" && parts.len() == 1;
+    ) -> Outcome {
+        let close = if parts[0] == "QUIT" && parts.len() == 1 {
+            Outcome::Close
+        } else {
+            Outcome::Continue
+        };
         if let Some(maildrop) = &self.maildrop
             && let Err(error) = service.authorize(
                 &maildrop.credential,
@@ -43,10 +48,15 @@ impl Session {
             output.text(super::error(error));
             return close;
         }
-        if let Err(error) = self.command(service, parts, encrypted, starttls, output) {
-            output.text(super::error(error));
+        match self.command(service, parts, encrypted, starttls, budget, output) {
+            // The socket task backs off and re-dispatches within the budget.
+            Err(Error::Busy) => Outcome::Busy,
+            Err(error) => {
+                output.text(super::error(error));
+                close
+            }
+            Ok(()) => close,
         }
-        close
     }
 
     fn command(
@@ -55,6 +65,7 @@ impl Session {
         parts: &[String],
         encrypted: bool,
         starttls: bool,
+        budget: &Budget,
         output: &mut Output,
     ) -> Result<(), Error> {
         let verb = parts[0].as_str();
@@ -73,7 +84,7 @@ impl Session {
             "NOOP" | "UTF8" if args.is_empty() => output.text("+OK\r\n"),
             "QUIT" if args.is_empty() => {
                 if let Some(maildrop) = &self.maildrop {
-                    maildrop.commit(service)?;
+                    maildrop.commit(service, budget)?;
                 }
                 output.text("+OK Goodbye\r\n");
             }

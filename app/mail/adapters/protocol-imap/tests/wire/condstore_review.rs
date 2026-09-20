@@ -51,7 +51,7 @@ async fn conditional_saved_sequence_store_reports_only_failed_sequence_numbers()
     let state = db.account("a").unwrap();
     db.execute(
         "a",
-        state.revision,
+        mail_api::Precondition::Observed(state.revision),
         vec![Command::Destroy {
             id: state.messages[0].id.clone(),
         }],
@@ -86,7 +86,7 @@ async fn vanished_matches_oracle_mailbox_tombstones_even_outside_fetch_uid_set()
     let state = db.account("a").unwrap();
     db.execute(
         "a",
-        state.revision,
+        mail_api::Precondition::Observed(state.revision),
         vec![Command::Destroy {
             id: state.messages[1].id.clone(),
         }],
@@ -112,11 +112,14 @@ async fn arbitrary_modseq_inside_committed_batch_can_read_vanished_history() {
     let (_, db) = service();
     messages(&db);
     let state = db.account("a").unwrap();
-    let threshold = state.revision + 2;
+    // A two-command batch advances the revision twice and stamps both
+    // messages with the final revision, so the first one is a MODSEQ value
+    // inside the committed batch that no record carries.
+    let threshold = state.revision + 1;
     let state = db
         .execute(
             "a",
-            state.revision,
+            mail_api::Precondition::Observed(state.revision),
             vec![
                 Command::Keywords {
                     id: state.messages[0].id.clone(),
@@ -128,10 +131,11 @@ async fn arbitrary_modseq_inside_committed_batch_can_read_vanished_history() {
                 },
             ],
         )
+        .map(|_| db.account("a").unwrap())
         .unwrap();
     db.execute(
         "a",
-        state.revision,
+        mail_api::Precondition::Observed(state.revision),
         vec![Command::Destroy {
             id: state.messages[2].id.clone(),
         }],
@@ -155,7 +159,7 @@ async fn arbitrary_modseq_inside_committed_batch_can_read_vanished_history() {
 }
 
 #[tokio::test]
-async fn unknown_legacy_uid_history_refuses_resync_instead_of_returning_incomplete_success() {
+async fn corrupt_removed_history_row_refuses_resync_instead_of_returning_incomplete_success() {
     let name = format!(
         "mail-condstore-review-{}-{}.sqlite",
         std::process::id(),
@@ -175,14 +179,18 @@ async fn unknown_legacy_uid_history_refuses_resync_instead_of_returning_incomple
     let state = db.account("a").unwrap();
     db.execute(
         "a",
-        state.revision,
+        mail_api::Precondition::Observed(state.revision),
         vec![Command::Destroy {
             id: state.messages[1].id.clone(),
         }],
     )
     .unwrap();
     let raw = rusqlite::Connection::open(&path).unwrap();
-    raw.execute("UPDATE message_changes SET before_state=json_remove(before_state,'$.uids') WHERE account='a' AND after_state IS NULL", []).unwrap();
+    raw.execute(
+        "UPDATE history SET uid=NULL WHERE account='a' AND kind='removed'",
+        [],
+    )
+    .unwrap();
     drop(raw);
     let (mut client, task) = start(db.clone()).await;
     let response = send(

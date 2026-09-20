@@ -58,7 +58,7 @@ async fn session() -> (
     ] {
         db.execute(
             "a",
-            db.account("a").unwrap().revision,
+            mail_api::Precondition::Observed(db.account("a").unwrap().revision),
             vec![Command::Append {
                 mailboxes: vec!["inbox".into()],
                 received_at,
@@ -188,7 +188,7 @@ async fn saved_search_keeps_message_identities_across_expunge_and_empty_replacem
     );
     db.execute(
         "a",
-        db.account("a").unwrap().revision,
+        mail_api::Precondition::Observed(db.account("a").unwrap().revision),
         vec![Command::Destroy { id: "e1".into() }],
     )
     .unwrap();

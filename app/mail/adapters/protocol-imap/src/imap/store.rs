@@ -4,19 +4,18 @@ use super::{
     state::Selection,
     syntax::{flags, keyword, sequence_set},
 };
-use mail_kernel::{Account, Command, Message};
-use mail_service::MailService;
+use mail_api::Precondition;
+use mail_kernel::{Command, Message};
 use std::collections::BTreeSet;
 
 pub(super) fn execute(
-    service: &MailService,
-    token: &str,
-    account: &Account,
+    call: &super::retry::Call<'_>,
     selected: &mut Selection,
     chosen: Vec<(usize, &Message)>,
     parts: &[String],
     output: &mut Output,
 ) -> Result<Option<String>, &'static str> {
+    let account = call.account;
     if selected.readonly {
         return Err("NO");
     }
@@ -129,16 +128,27 @@ pub(super) fn execute(
             })
         })
         .unzip();
-    let updated = service
-        .execute(token, &account.id, account.revision, changes)
-        .map_err(|_| "NO")?;
+    // Only the client-conditional form may answer NO on a concurrent write;
+    // an unconditional STORE is re-applied by the store on the current state.
+    let precondition = if since.is_some() {
+        Precondition::Require(account.revision)
+    } else {
+        Precondition::Observed(account.revision)
+    };
+    let (_, updated) = call
+        .service
+        .execute_read(call.token, &account.id, precondition, changes, call.budget)
+        .map_err(super::retry::status)?;
     if since.is_some() {
         selected.condstore = true;
         output.condstore = true;
     }
     if !mode.ends_with(".SILENT") || selected.condstore {
         for (i, m) in chosen {
-            let current = updated.messages.iter().find(|e| e.id == m.id).ok_or("NO")?;
+            // A message another session expunged meanwhile has no FETCH line.
+            let Some(current) = updated.messages.iter().find(|e| e.id == m.id) else {
+                continue;
+            };
             output.fetch_start(i + 1, m.uid_in(&selected.mailbox).ok_or("NO")?);
             if selected.condstore {
                 output.extend_from_slice(format!(" MODSEQ ({})", current.modseq).as_bytes());
@@ -149,7 +159,7 @@ pub(super) fn execute(
             output.extend_from_slice(b")\r\n");
         }
     }
-    selected.modseq = updated.mail_modseq;
+    selected.modseq = selected.highest_modseq(&updated);
     Ok((!modified.is_empty()).then(|| format!("[MODIFIED {modified}]")))
 }
 

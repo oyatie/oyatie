@@ -1,6 +1,9 @@
-use super::method::error;
+use super::{
+    method::error,
+    retry::{commit, object},
+};
 use mail_kernel::{Account, Command};
-use mail_service::MailService;
+use mail_service::{Budget, MailService};
 use serde_json::{Value, json};
 
 pub(super) fn set(
@@ -9,10 +12,14 @@ pub(super) fn set(
     original: &Account,
     name: &str,
     args: &Value,
+    budget: &Budget,
 ) -> Result<Value, &'static str> {
     if !args["ifInState"].is_null() && !args["ifInState"].is_string() {
         return Err("invalidArguments");
     }
+    // Only a client-conditional set may fail with stateMismatch; every
+    // other set is re-applied by the store over concurrent commits.
+    let conditional = args["ifInState"].is_string();
     if args["ifInState"]
         .as_str()
         .is_some_and(|s| s != original.revision.to_string())
@@ -47,6 +54,9 @@ pub(super) fn set(
     let mut account = original.clone();
     let mut created_ids = std::collections::BTreeMap::new();
     let mut result = json!({"accountId":original.id,"oldState":original.revision.to_string(),"created":{},"updated":{},"destroyed":[],"notCreated":{},"notUpdated":{},"notDestroyed":{}});
+    // Busy before the first commit re-runs the whole method; afterwards the
+    // partial result must be reported, so later objects fail individually.
+    let mut committed = false;
     for (operation, success, failure) in [
         ("create", "created", "notCreated"),
         ("update", "updated", "notUpdated"),
@@ -61,52 +71,47 @@ pub(super) fn set(
                 let mut resolved = value.clone();
                 super::references::created(&mut resolved, &created_ids);
                 let value = &resolved;
-                if name == "Email/set" && operation == "create" {
-                    match super::compose::create(service, token, &account, value) {
-                        Ok(new) => {
-                            result[success][key] =
-                                super::email::created(new.messages.last().ok_or("serverFail")?);
-                            account = new;
-                        }
-                        Err(kind) => result[failure][key] = json!({"type":kind}),
-                    }
-                    continue;
-                }
-                if name == "Email/set" && operation == "update" {
-                    match super::email::update(service, token, &account, key, value) {
-                        Ok(new) => {
-                            result[success][key] = Value::Null;
-                            account = new;
-                        }
-                        Err(kind) => result[failure][key] = json!({"type":kind}),
-                    }
-                    continue;
-                }
-                let command = super::mailbox::command(
-                    &account,
-                    if operation == "create" {
-                        None
-                    } else {
-                        Some(key)
-                    },
-                    value,
-                );
-                match command.and_then(|c| {
-                    service
-                        .execute(token, &account.id, account.revision, vec![c])
-                        .map_err(super::mailbox::error)
-                }) {
-                    Ok(new) => {
-                        result[success][key] = if operation == "create" {
-                            created_ids.insert(key.clone(), format!("m{}", new.revision));
-                            json!({"id":format!("m{}",new.revision)})
-                        } else {
-                            Value::Null
-                        };
+                let outcome = if name == "Email/set" && operation == "create" {
+                    super::compose::create(service, token, &account, value, conditional, budget)
+                        .map(|(execution, new)| {
+                            let message = super::email::find(&new, &execution).ok();
+                            (message.map(super::email::created), new)
+                        })
+                } else if name == "Email/set" && operation == "update" {
+                    super::email::update(service, token, &account, key, value, conditional, budget)
+                        .map(|new| (Some(Value::Null), new))
+                } else {
+                    let id = (operation == "update").then_some(key.as_str());
+                    super::mailbox::command(&account, id, value).and_then(|c| {
+                        commit(service, token, &account, conditional, vec![c], budget)
+                            .map_err(super::mailbox::error)
+                            .map(|(_, new)| {
+                                // `Execution.ids` lists messages only; the new
+                                // mailbox is the one the projection gained.
+                                let value = if operation == "create" {
+                                    let id = new
+                                        .mailboxes
+                                        .iter()
+                                        .find(|m| !account.mailboxes.iter().any(|o| o.id == m.id))
+                                        .map(|m| m.id.clone())
+                                        .unwrap_or_default();
+                                    created_ids.insert(key.clone(), id.clone());
+                                    json!({ "id": id })
+                                } else {
+                                    Value::Null
+                                };
+                                (Some(value), new)
+                            })
+                    })
+                };
+                match outcome {
+                    Ok((value, new)) => {
+                        result[success][key] = value.ok_or("serverFail")?;
                         account = new;
+                        committed = true;
                     }
-                    Err(e) => {
-                        result[failure][key] = json!({"type":e});
+                    Err(kind) => {
+                        result[failure][key] = json!({"type":object(kind, committed)?});
                     }
                 }
             }
@@ -135,19 +140,18 @@ pub(super) fn set(
                 Ok(Command::Destroy { id: id.into() })
             };
             match command.and_then(|command| {
-                service
-                    .execute(token, &account.id, account.revision, vec![command])
-                    .map_err(error)
+                commit(service, token, &account, conditional, vec![command], budget).map_err(error)
             }) {
-                Ok(new) => {
+                Ok((_, new)) => {
                     result["destroyed"]
                         .as_array_mut()
                         .ok_or("serverFail")?
                         .push(json!(id));
                     account = new;
+                    committed = true;
                 }
-                Err(e) => {
-                    result["notDestroyed"][id] = json!({"type":e});
+                Err(kind) => {
+                    result["notDestroyed"][id] = json!({"type":object(kind, committed)?});
                 }
             }
         }
