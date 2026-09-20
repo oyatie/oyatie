@@ -31,6 +31,7 @@ fn version_three(database: &Path) {
             "ALTER TABLE delivery_jobs DROP COLUMN epoch; ALTER TABLE delivery_jobs ADD COLUMN token TEXT;
              ALTER TABLE outbound_jobs DROP COLUMN epoch; ALTER TABLE outbound_jobs ADD COLUMN token TEXT;
              ALTER TABLE failed_delivery_jobs DROP COLUMN epoch;
+             UPDATE delivery_jobs SET token='0123456789abcdef0123456789abcdef';
              UPDATE schema_version SET version=3;",
         )
         .unwrap();
@@ -72,7 +73,8 @@ fn a_version_three_file_is_refused_until_the_audited_step_adds_the_epoch_and_rel
             (4, "complete".to_owned(), OPERATOR.to_owned())
         ]
     );
-    // The live lease from the S3 binary is released; its token is ignored.
+    // The live lease from the S3 binary is released; its token is left as
+    // it was and never consulted again.
     let (lease_until, epoch, token): (i64, u64, Option<String>) = sql
         .query_row(
             "SELECT lease_until,epoch,token FROM delivery_jobs",
@@ -81,7 +83,7 @@ fn a_version_three_file_is_refused_until_the_audited_step_adds_the_epoch_and_rel
         )
         .unwrap();
     assert_eq!((lease_until, epoch), (0, 0));
-    assert!(token.is_none());
+    assert_eq!(token.as_deref(), Some("0123456789abcdef0123456789abcdef"));
     drop(sql);
     let db = SqliteStore::open(&database).unwrap();
     let lease = db.claim(1).unwrap().pop().unwrap();
@@ -94,5 +96,37 @@ fn a_version_three_file_is_refused_until_the_audited_step_adds_the_epoch_and_rel
             .unwrap()
             .convert(&backup, OPERATOR),
         Err(ConvertError::NotLegacy(_))
+    ));
+}
+
+#[test]
+fn a_converting_marker_from_another_binary_is_refused_not_resumed() {
+    // An S3 binary crashed after `begin` (marker `converting@3`); this binary
+    // must not finish that conversion with its own table shapes.
+    let temp = Temp::new("foreign");
+    let database = temp.path("mail.sqlite");
+    version_three(&database);
+    let backup = temp.path("backup.sqlite");
+    std::fs::copy(&database, &backup).unwrap();
+    rusqlite::Connection::open(&database)
+        .unwrap()
+        .execute(
+            "UPDATE schema_version SET state='converting',backup_path=?1,backup_sha256=?2",
+            rusqlite::params![backup.to_string_lossy(), sha256_of(&backup)],
+        )
+        .unwrap();
+    let error = Converter::open(&database)
+        .unwrap()
+        .convert(&backup, OPERATOR)
+        .unwrap_err();
+    assert!(matches!(error, ConvertError::ForeignMarker { version: 3 }));
+    let text = error.to_string();
+    assert!(
+        text.contains("started by another binary") && text.contains("restore the verified backup"),
+        "{text}"
+    );
+    assert!(matches!(
+        SqliteStore::open(&database),
+        Err(OpenError::Refused(Refusal::Converting { version: 3 }))
     ));
 }

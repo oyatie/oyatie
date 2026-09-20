@@ -26,7 +26,8 @@ pub(super) fn finish(
         params![lease.message,lease.account,lease.recipient,lease.epoch], |r| Ok((r.get(0)?,r.get(1)?)))
         .optional().map_err(storage)?.ok_or(Error::Conflict)?;
     let failed = matches!(outcome, DeliveryOutcome::Permanent(_))
-        || expired && outcome != DeliveryOutcome::Delivered;
+        || (expired || attempt >= mail_api::retry::MAX_ATTEMPTS)
+            && outcome != DeliveryOutcome::Delivered;
     if failed {
         let code = match outcome {
             DeliveryOutcome::Permanent(code) => code,

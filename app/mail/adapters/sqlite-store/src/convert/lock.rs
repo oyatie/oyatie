@@ -20,6 +20,10 @@ pub enum ConvertError {
     BackupMismatch {
         recorded: String,
     },
+    /// A `converting` marker left by a binary of another schema version.
+    ForeignMarker {
+        version: u64,
+    },
     Storage(Error),
 }
 impl std::fmt::Display for ConvertError {
@@ -43,6 +47,11 @@ impl std::fmt::Display for ConvertError {
                     "conversion in progress was started with backup {recorded}"
                 )
             }
+            Self::ForeignMarker { version } => write!(
+                f,
+                "conversion to schema version {version} was started by another binary (this one writes {}); restore the verified backup and convert with this binary",
+                schema::SCHEMA_VERSION
+            ),
             Self::Storage(error) => error.fmt(f),
         }
     }
@@ -60,7 +69,9 @@ impl From<Error> for ConvertError {
 /// Audited outcome of a conversion.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Conversion {
+    /// Accounts rewritten; a versioned step rewrites none.
     pub accounts: u64,
+    pub stepped: bool,
     pub elapsed: Duration,
     pub backup_path: PathBuf,
     pub backup_sha256: String,
@@ -107,7 +118,11 @@ impl Converter {
         let state = schema::inspect(&self.db)?;
         match &state {
             schema::SchemaState::Legacy => {}
-            schema::SchemaState::Converting { .. } => {
+            schema::SchemaState::Converting { version } => {
+                // Only the binary that wrote the marker knows its tables.
+                if *version != schema::SCHEMA_VERSION {
+                    return Err(ConvertError::ForeignMarker { version: *version });
+                }
                 let (recorded, recorded_digest): (String, String) = self
                     .db
                     .query_row(
@@ -144,8 +159,12 @@ impl Converter {
                 &digest,
                 operator,
             )?;
+            self.db
+                .execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")
+                .map_err(storage)?;
             return Ok(Conversion {
                 accounts: 0,
+                stepped: true,
                 elapsed: started.elapsed(),
                 backup_path: backup.to_path_buf(),
                 backup_sha256: digest,
@@ -183,6 +202,7 @@ impl Converter {
             .map_err(storage)?;
         Ok(Conversion {
             accounts,
+            stepped: false,
             elapsed: started.elapsed(),
             backup_path: backup.to_path_buf(),
             backup_sha256: digest,

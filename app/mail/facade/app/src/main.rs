@@ -52,6 +52,7 @@ async fn serve(
     );
     let tls = TlsAcceptor::from(tls);
     let relay = outbound_config::configured()?;
+    lease::take(&db)?;
     let service = Arc::new(MailService {
         outbound: relay
             .as_ref()

@@ -43,18 +43,24 @@ fn every_binary_refuses_a_file_carrying_the_converting_marker() {
     let database = temp.path("mail.sqlite");
     LegacyFixture::create(&database, &specs()).unwrap();
     let db = rusqlite::Connection::open(&database).unwrap();
-    db.execute_batch(
+    db.execute_batch(&format!(
         "CREATE TABLE schema_version (version INTEGER PRIMARY KEY, state TEXT NOT NULL,
             backup_path TEXT, backup_sha256 TEXT, converted_at_utc TEXT, operator TEXT);
-         INSERT INTO schema_version(version,state,backup_path) VALUES(3,'converting','/nowhere/backup.sqlite');",
-    )
+         INSERT INTO schema_version(version,state,backup_path) VALUES({},'converting','/nowhere/backup.sqlite');",
+        mail_sqlite_store::SCHEMA_VERSION
+    ))
     .unwrap();
     drop(db);
     let error = match SqliteStore::open(&database) {
         Err(OpenError::Refused(refusal)) => refusal,
         other => panic!("expected refusal, got {:?}", other.map(|_| ())),
     };
-    assert_eq!(error, Refusal::Converting { version: 3 });
+    assert_eq!(
+        error,
+        Refusal::Converting {
+            version: mail_sqlite_store::SCHEMA_VERSION
+        }
+    );
     assert!(error.to_string().contains("`converting` marker present"));
     // A resumed conversion must name the recorded backup.
     assert!(matches!(

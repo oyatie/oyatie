@@ -6,7 +6,8 @@ use mail_kernel::Error;
 /// A job's owner epoch: the claimant increments it in the claim transaction
 /// and every later read or settlement of that job names it in the same
 /// statement, so a worker whose lease expired and was re-claimed can neither
-/// read the content nor settle the job. "Ever claimed" ⇔ epoch ≥ 1.
+/// read the content nor settle the job. "Ever claimed" ⇔ epoch ≥ 1 once
+/// claimed under this schema (a lease released by the version step is 0).
 pub type Epoch = u64;
 
 /// Seconds a queue lease lasts before another claimant may take the job.
