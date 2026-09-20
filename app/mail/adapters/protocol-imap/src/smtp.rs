@@ -60,7 +60,7 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
     let mut esmtp = false;
     // The identity SPF checks the reverse path against, kept from EHLO.
     let mut helo = String::new();
-    let mut budget = budget::Budget::new();
+    let mut budget = budget::Budget::new(params.verification_budget);
     let mut sender = None;
     let mut recipients = vec![];
     loop {
@@ -256,7 +256,13 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                     })
                     .await;
                     match accepted.unwrap_or(Err(Error::Unavailable)) {
-                        Ok(_) => "250 2.0.0 Queued\r\n",
+                        Ok(_) => {
+                            // The reverse path became a message, so it was not
+                            // churn: the next one on this connection starts
+                            // from a clear budget.
+                            budget.delivered();
+                            "250 2.0.0 Queued\r\n"
+                        }
                         Err(Error::Forbidden) if submission => {
                             "535 5.7.8 Submission no longer authorized\r\n"
                         }

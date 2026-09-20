@@ -17,7 +17,10 @@ pub enum Verify {
     /// Not evaluated at all: no lookup, no verdict.
     #[default]
     Disabled,
-    /// Evaluated and recorded; the session continues whatever the answer.
+    /// Evaluated and recorded; no answer of the domain's refuses the session.
+    /// The verification budget still applies — `Relaxed` performs the same
+    /// lookups as `Strict`, so it carries the same cost — and a session that
+    /// exhausts it is closed whichever policy asked for the work.
     Relaxed,
     /// A `Fail` is answered with a refusal.
     Strict,

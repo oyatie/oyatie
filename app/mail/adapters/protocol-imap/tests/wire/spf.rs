@@ -205,3 +205,55 @@ async fn the_verification_budget_does_not_bind_a_session_that_verifies_nothing()
     assert_eq!(result.matches("250 8BITMIME").count(), 9, "{result}");
     assert!(!result.contains("421 "), "{result}");
 }
+
+/// A connection carries as many messages as the client has to send. Bounding
+/// verification by counting reverse paths, without noticing that each became a
+/// message, cuts off a sender the domain explicitly authorizes.
+#[tokio::test]
+async fn a_connection_may_deliver_more_messages_than_its_verification_budget() {
+    use mail_auth::common::parse::TxtRecordParser;
+    let dns = std::sync::Arc::new(mail_protocol_imap::MailDns::sealed());
+    dns.txt_add(
+        "example.net",
+        mail_auth::spf::Spf::parse(b"v=spf1 ip4:10.0.0.1 -all").unwrap(),
+    );
+    let (service, _db) = service();
+    let params = mail_protocol_imap::SmtpParams {
+        // The peer the record authorizes, so every verdict is a Pass.
+        peer: std::net::IpAddr::from([10, 0, 0, 1]),
+        verification_budget: 4,
+        authentication: mail_protocol_imap::Authentication {
+            verifier: Some(mail_protocol_imap::Verifier(std::sync::Arc::new(
+                mail_auth::MessageAuthenticator::new(nowhere(), refuse_fast()).unwrap(),
+            ))),
+            dns: Some(dns),
+            spf_mail_from: mail_protocol_imap::Verify::Strict,
+            ..Default::default()
+        },
+        ..mail_protocol_imap::SmtpParams::default()
+    };
+    let (mut client, server) = tokio::io::duplex(262144);
+    let task = tokio::spawn(async move {
+        mail_protocol_imap::smtp_session_with(server, service, &params).await
+    });
+    // Ten messages over one connection, against a budget of four.
+    let transactions: String = (0..10)
+        .map(|n| {
+            format!(
+                "MAIL FROM:<s@example.net>\r\nRCPT TO:<alice@example.org>\r\nDATA\r\nSubject: m{n}\r\n\r\nbody\r\n.\r\n"
+            )
+        })
+        .collect();
+    client
+        .write_all(format!("EHLO mx1.example.net\r\n{transactions}QUIT\r\n").as_bytes())
+        .await
+        .unwrap();
+    let mut result = String::new();
+    client.read_to_string(&mut result).await.unwrap();
+    task.await.unwrap().unwrap();
+    assert_eq!(result.matches("250 2.0.0 Queued").count(), 10, "{result}");
+    assert!(
+        !result.contains("421 "),
+        "a delivering connection must not exhaust the budget: {result}"
+    );
+}

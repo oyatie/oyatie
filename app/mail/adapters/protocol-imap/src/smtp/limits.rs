@@ -44,6 +44,10 @@ pub struct SmtpParams {
     /// message the store then refuses, so the store's ceiling has to move
     /// with it.
     pub max_message_size: usize,
+    /// How many reverse paths this session may offer without ever delivering
+    /// the message. A delivered message clears the count, so this bounds
+    /// abandoned transactions and not throughput.
+    pub verification_budget: u8,
     /// What this session checks about its peer, and how far a failure goes.
     /// Default is every check disabled, so a deployment turns them on
     /// deliberately rather than discovering them by losing mail.
@@ -58,6 +62,7 @@ impl Default for SmtpParams {
             max_duration: Duration::from_secs(60 * 60),
             transfer_bytes: 256 * 1024 * 1024,
             max_message_size: mail_kernel::MAX_MESSAGE_BYTES,
+            verification_budget: 16,
             authentication: super::verify::Authentication::default(),
         }
     }
@@ -151,6 +156,7 @@ pub(super) async fn line<R: AsyncBufRead + Unpin>(
 }
 
 /// What to send instead of a command, and whether the session ends.
+#[derive(Debug)]
 pub(super) struct Refusal {
     pub reply: String,
     pub close: bool,
