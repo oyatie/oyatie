@@ -57,6 +57,11 @@ fn a_commit_marks_every_enabled_consumer_and_an_ack_clears_only_at_the_tail() {
     );
 
     let db = store(&[FOUNDRY]);
+    // SMTP ingest marks too, in its own transaction.
+    db.deliver(&["b1@example.org".into()], b"Subject: in\r\n\r\nx")
+        .unwrap();
+    assert_eq!(dirty(&db, &mut Resume::default()), ["b1"]);
+    db.retire_cursor(FOUNDRY, Some("tb"), OP, "reset").unwrap();
     let r1 = touch(&db, "a1");
     let r2 = touch(&db, "a1");
     assert_eq!(dirty(&db, &mut Resume::default()), ["a1"]);
@@ -164,6 +169,9 @@ fn a_cursor_below_the_floor_is_refused_until_retired_and_retirement_releases_the
     assert!(
         matches!(db.changes(FOUNDRY, "a1", 100).unwrap(), FeedRead::BelowFloor { cursor, floor: f } if cursor.0 == r1 && f == floor)
     );
+    // The read poisoned the key: it no longer occupies a tenant slot.
+    assert_eq!(db.poisoned(FOUNDRY).unwrap()[0].1, "cursor-below-floor");
+    assert!(dirty(&db, &mut Resume::default()).is_empty());
     assert_eq!(
         db.acknowledge(FOUNDRY, "a1", r1, 0, 0),
         Err(Error::Conflict)
@@ -221,15 +229,31 @@ fn scheduling_is_round_robin_over_tenants_with_a_per_tenant_cap_and_a_resume_pos
 
 #[test]
 fn reconcile_re_marks_accounts_whose_cursor_is_behind_their_tail() {
-    let db = store(&[FOUNDRY]);
+    // Two handles on one file: the enabled one acks at the tail; a commit
+    // through the unconfigured one writes no dirty key — the lost-key state.
+    let path = std::env::temp_dir().join(format!(
+        "mail-feed-{}-{}.sqlite",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    let db = SqliteStore::open(&path).unwrap().with_consumers(&[FOUNDRY]);
+    db.provision(
+        Account::new("a1", "ta", "a1", "a1@example.org").unwrap(),
+        &"a1".repeat(16),
+    )
+    .unwrap();
+    let silent = SqliteStore::open(&path).unwrap();
     let r = touch(&db, "a1");
     db.acknowledge(FOUNDRY, "a1", r, 0, 0).unwrap();
-    touch(&db, "a1");
-    // Simulate a lost dirty key: clear it without an ack.
-    db.retire_cursor(FOUNDRY, Some("tb"), OP, "unrelated tenant")
-        .unwrap();
-    let re_marked = db.reconcile(FOUNDRY, OP, "after a crash").unwrap();
-    assert!(re_marked <= 1);
+    touch(&silent, "a1");
+    assert!(dirty(&db, &mut Resume::default()).is_empty(), "key lost");
+    assert_eq!(db.reconcile(FOUNDRY, OP, "after a crash").unwrap(), 1);
     assert_eq!(dirty(&db, &mut Resume::default()), ["a1"]);
+    assert_eq!(db.reconcile(FOUNDRY, OP, "again").unwrap(), 0);
     assert_eq!(db.audit(1).unwrap()[0].kind, "reconcile");
+    drop((db, silent));
+    let _ = std::fs::remove_file(&path);
 }

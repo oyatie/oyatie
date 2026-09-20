@@ -130,10 +130,17 @@ impl ChangeFeed for SqliteStore {
 
     fn changes(&self, consumer: Consumer, account: &str, limit: usize) -> Result<FeedRead, Error> {
         let db = self.connection.lock().map_err(|_| Error::Unavailable)?;
-        let (_, revision, floor) = tail(&db, account)?;
+        let (tenant, revision, floor) = tail(&db, account)?;
         // Absent cursor ⇒ start at the tail.
         let since = cursor(&db, consumer, account)?.unwrap_or(revision);
         if since < floor {
+            // Poisoned here, in the store: no scheduler can forget to, and
+            // the key stops occupying a tenant slot. Released by retirement.
+            db.execute(
+                "INSERT INTO feed_dirty(consumer,tenant,account,poison) VALUES(?1,?2,?3,'cursor-below-floor') ON CONFLICT(consumer,account) DO UPDATE SET poison=coalesce(poison,excluded.poison)",
+                params![consumer.name(), tenant, account],
+            )
+            .map_err(storage)?;
             return Ok(FeedRead::BelowFloor {
                 cursor: Cursor(since),
                 floor,

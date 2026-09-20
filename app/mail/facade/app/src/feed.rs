@@ -19,7 +19,10 @@ fn consumer(name: &str) -> Result<Consumer, Box<dyn Error>> {
     Consumer::ALL
         .into_iter()
         .find(|c| c.name() == name)
-        .ok_or_else(|| format!("unknown consumer {name:?}; known: foundry-records").into())
+        .ok_or_else(|| {
+            let known: Vec<_> = Consumer::ALL.iter().map(|c| c.name()).collect();
+            format!("unknown consumer {name:?}; known: {}", known.join(", ")).into()
+        })
 }
 
 pub(super) const USAGE: &str = "mail-app reconcile DATABASE CONSUMER REASON; mail-app dead-letter DATABASE list CONSUMER | DATABASE CONSUMER TENANT ACCOUNT REVISION REASON; mail-app cursor retire DATABASE CONSUMER [TENANT] REASON; mail-app audit DATABASE [LIMIT]";
@@ -84,7 +87,10 @@ pub(super) fn run(args: &[String]) -> Result<bool, Box<dyn Error>> {
             );
         }
         ["audit", database, rest @ ..] if rest.len() <= 1 => {
-            let limit = rest.first().map_or(Ok(100), |n| n.parse())?;
+            let limit = rest
+                .first()
+                .map_or(Ok(100), |n| n.parse())
+                .map_err(|_| "LIMIT must be a whole number")?;
             for row in SqliteStore::open(database)?.audit(limit)? {
                 println!(
                     "{} {} {} {} {} {}",

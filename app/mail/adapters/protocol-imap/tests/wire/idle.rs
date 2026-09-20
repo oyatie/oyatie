@@ -110,7 +110,7 @@ async fn idle_announces_new_mail_flags_and_renumbered_expunge_without_client_pol
         db.deliver(&["alice@example.org".into()], b"Subject: idle\r\n\r\nbody")
             .unwrap();
     }
-    let (mut client, task) = start(service, true, 4096).await;
+    let (mut client, task) = start(service.clone(), true, 4096).await;
     idle(&mut client).await;
     // A commit the hint misses is seen within the polling floor (≤ 1.5 s).
     let started = std::time::Instant::now();
@@ -121,19 +121,21 @@ async fn idle_announces_new_mail_flags_and_renumbered_expunge_without_client_pol
     .unwrap();
     until(&mut client, "* 4 EXISTS").await;
     assert!(started.elapsed() <= Duration::from_millis(1500));
-    // A signalled commit is seen well inside the floor.
+    // A commit through the service signals: seen well inside the floor.
     let started = std::time::Instant::now();
     let account = db.account("a").unwrap();
-    db.execute(
-        "a",
-        Precondition::Observed(account.revision),
-        vec![Command::Keywords {
-            id: "e2".into(),
-            keywords: vec!["$seen".into(), "$flagged".into()],
-        }],
-    )
-    .unwrap();
-    mail_service::notify::signal("a");
+    service
+        .execute(
+            TOKEN,
+            "a",
+            Precondition::Observed(account.revision),
+            vec![Command::Keywords {
+                id: "e2".into(),
+                keywords: vec!["$seen".into(), "$flagged".into()],
+            }],
+            &mail_service::Budget::fixed(),
+        )
+        .unwrap();
     let changed = until(&mut client, "* 2 FETCH").await;
     assert!(started.elapsed() < Duration::from_millis(500));
     assert!(

@@ -29,8 +29,9 @@ pub enum FeedRead {
         page: HistoryPage,
     },
     /// The cursor is below the account's `history_floor`: the consumer was
-    /// disabled, compaction advanced, and it was re-enabled. Never acked;
-    /// released only by `retire_cursor`.
+    /// disabled, compaction advanced, and it was re-enabled. The read marks
+    /// the key poison (`cursor-below-floor`); never acked; released only by
+    /// `retire_cursor`.
     BelowFloor {
         cursor: Cursor,
         floor: u64,

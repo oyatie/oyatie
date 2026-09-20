@@ -3,7 +3,7 @@ use super::feed::{audited, tail};
 use super::{SqliteStore, storage};
 use mail_api::{AuditRow, Consumer};
 use mail_kernel::Error;
-use rusqlite::{TransactionBehavior, params};
+use rusqlite::{OptionalExtension, TransactionBehavior, params};
 
 impl SqliteStore {
     /// Every provisioned account id, for the cell's compaction pass.
@@ -57,8 +57,21 @@ pub(super) fn dead_letter(
     let tx = db
         .transaction_with_behavior(TransactionBehavior::Immediate)
         .map_err(storage)?;
-    let (tenant, tail, _) = tail(&tx, account)?;
-    if revision > tail {
+    let (tenant, tail, floor) = tail(&tx, account)?;
+    if revision > tail || revision < floor {
+        return Err(Error::Conflict);
+    }
+    // Only a poisoned change is dead-lettered; a live key is the consumer's.
+    let poisoned: Option<String> = tx
+        .query_row(
+            "SELECT poison FROM feed_dirty WHERE consumer=?1 AND account=?2",
+            params![consumer.name(), account],
+            |r| r.get(0),
+        )
+        .optional()
+        .map_err(storage)?
+        .flatten();
+    if poisoned.is_none() {
         return Err(Error::Conflict);
     }
     tx.execute(
