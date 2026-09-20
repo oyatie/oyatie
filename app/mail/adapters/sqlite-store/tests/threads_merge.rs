@@ -1,7 +1,7 @@
 //! Inline thread merges are bounded per commit: the largest thread survives
 //! and at most `MERGE_LIMIT` members are re-threaded across all appends of
 //! one batch, so a commit's history stays pageable.
-use mail_api::{MetadataStore, Precondition};
+use mail_api::{BlobStore, MetadataStore, Precondition};
 use mail_kernel::{Account, Command};
 use mail_sqlite_store::SqliteStore;
 
@@ -13,22 +13,37 @@ fn a_merge_keeps_the_larger_thread_and_leaves_a_side_beyond_the_limit_separate()
         &"a".repeat(32),
     )
     .unwrap();
-    let message = |id: &str, refs: &str| Command::Append {
-        mailboxes: vec!["inbox".into()],
-        keywords: vec![],
-        received_at: 1,
-        raw: format!("Message-ID: <{id}>\r\nReferences: {refs}\r\nSubject: T\r\n\r\nbody")
-            .into_bytes(),
+    let message = |id: &str, refs: &str| {
+        db.append(
+            "a",
+            vec!["inbox".into()],
+            format!("Message-ID: <{id}>\r\nReferences: {refs}\r\nSubject: T\r\n\r\nbody")
+                .as_bytes(),
+            vec![],
+            1,
+        )
+        .unwrap()
     };
     // Thread A: 1001 members; thread B: 1001 members; thread C: one member.
-    let mut commands = vec![];
+    // Batches stay under the per-account bound on unlinked reservations.
     for root in ["a", "b"] {
-        commands.push(message(&format!("{root}0@t"), ""));
-        commands
-            .extend((1..=1000).map(|n| message(&format!("{root}{n}@t"), &format!("<{root}0@t>"))));
+        for (from, to) in [(0, 500), (501, 1000)] {
+            let commands = (from..=to)
+                .map(|n| {
+                    let refs = if n == 0 {
+                        String::new()
+                    } else {
+                        format!("<{root}0@t>")
+                    };
+                    message(&format!("{root}{n}@t"), &refs)
+                })
+                .collect();
+            db.execute("a", Precondition::Observed(0), commands)
+                .unwrap();
+        }
     }
-    commands.push(message("c0@t", ""));
-    db.execute("a", Precondition::Require(0), commands).unwrap();
+    db.execute("a", Precondition::Observed(0), vec![message("c0@t", "")])
+        .unwrap();
     let before = db.account("a").unwrap();
     let thread_of = |acct: &Account, id: &str| {
         acct.messages
@@ -76,12 +91,16 @@ fn the_merge_budget_spans_the_whole_commit_not_each_append() {
         &"a".repeat(32),
     )
     .unwrap();
-    let message = |id: &str, refs: &str| Command::Append {
-        mailboxes: vec!["inbox".into()],
-        keywords: vec![],
-        received_at: 1,
-        raw: format!("Message-ID: <{id}>\r\nReferences: {refs}\r\nSubject: T\r\n\r\nbody")
-            .into_bytes(),
+    let message = |id: &str, refs: &str| {
+        db.append(
+            "a",
+            vec!["inbox".into()],
+            format!("Message-ID: <{id}>\r\nReferences: {refs}\r\nSubject: T\r\n\r\nbody")
+                .as_bytes(),
+            vec![],
+            1,
+        )
+        .unwrap()
     };
     // Survivor B: 601 members; sides A1 and A2: 600 each. Two bridges in one
     // batch may merge only one side within the 1000-member commit budget.
