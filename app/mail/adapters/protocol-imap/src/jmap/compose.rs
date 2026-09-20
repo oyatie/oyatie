@@ -160,7 +160,7 @@ pub(super) fn create(
     let raw = buffer.bytes;
     let append = service
         .append(token, &account.id, mailboxes, &raw, keywords, received_at)
-        .map_err(|_| "serverUnavailable")?;
+        .map_err(super::method::error)?;
     super::retry::commit(service, token, account, conditional, vec![append], budget).map_err(|e| {
         if matches!(
             e,

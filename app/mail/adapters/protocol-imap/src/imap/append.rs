@@ -9,7 +9,8 @@ mod drain;
 mod metadata;
 use metadata::Literal;
 
-// Bound retained bodies AND metadata, including zero-byte literal batches.
+// Batch total-bytes cap: literal bytes plus per-message metadata, including
+// zero-byte literal batches; bodies themselves live in the store.
 const BUFFER_LIMIT: usize = 50 * 1024 * 1024;
 // ponytail: snapshot adapters scan account metadata per command; cap batch work
 // until an indexed bulk append operation replaces those repeated scans.

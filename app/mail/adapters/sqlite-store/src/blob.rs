@@ -37,10 +37,17 @@ pub(super) fn persist_tx(
     let owner = access::load(tx, account)?;
     let hash = format!("{:x}", Sha256::digest(raw));
     let now = now(tx)?;
-    let (count, bytes): (u64, u64) = tx.query_row(
+    // A same-transaction persist (ttl 0) is linked or rolled back by its own
+    // commit and charged by the kernel; the orphan bound is for reservations
+    // that outlive a transaction.
+    let (count, bytes): (u64, u64) = if ttl_secs == 0 {
+        (0, 0)
+    } else {
+        tx.query_row(
         "SELECT count(*),coalesce(sum(c.size),0) FROM (SELECT DISTINCT r.hash,r.version_id FROM blob_reserved r JOIN blob_reservations s ON s.account=r.account AND s.scope=r.scope WHERE r.account=?1 AND s.expires_at>?2 AND r.hash!=?3 AND NOT EXISTS(SELECT 1 FROM blob_links l WHERE l.account=r.account AND l.hash=r.hash AND l.version_id=r.version_id)) x JOIN blob_content c ON c.hash=x.hash AND c.version_id=x.version_id",
         params![account, now, hash], |r| Ok((r.get(0)?, r.get(1)?))
-    ).map_err(storage)?;
+    ).map_err(storage)?
+    };
     if count >= 1000
         || bytes
             .checked_add(raw.len() as u64)

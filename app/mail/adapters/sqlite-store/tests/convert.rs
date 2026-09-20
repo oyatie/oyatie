@@ -56,7 +56,6 @@ pub fn specs() -> Vec<LegacyAccountSpec> {
 }
 
 pub const OPERATOR: &str = "ops@example.org";
-
 /// Build the legacy database, back it up under the lock and convert it.
 pub fn convert_all(
     temp: &Temp,

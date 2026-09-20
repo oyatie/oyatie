@@ -148,10 +148,16 @@ impl std::fmt::Display for Refusal {
                 found,
                 accounts,
                 messages,
-            } => write!(
+            } if *found == 1 => write!(
                 f,
                 "database schema version {found} is below this binary's {SCHEMA_VERSION}; run `mail-app convert DATABASE --backup-verified PATH` first (estimated {} for {accounts} accounts, {messages} messages)",
                 crate::convert::estimate(*accounts, *messages)
+            ),
+            // Only legacy (version 1) files convert; an intermediate version
+            // never reached a release, so there is no path from it.
+            Self::BelowVersion { found, .. } => write!(
+                f,
+                "no conversion path from schema version {found} to {SCHEMA_VERSION}; recreate the database (only legacy version-1 files convert with `mail-app convert`)"
             ),
             Self::Converting { version } => write!(
                 f,

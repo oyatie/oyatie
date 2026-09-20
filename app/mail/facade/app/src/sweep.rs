@@ -17,7 +17,12 @@ pub(super) async fn run(service: Arc<MailService>, mut stop: oneshot::Receiver<(
         })
         .await;
         let delay = match result {
-            Ok(Ok(n)) if n > 0 => continue,
+            Ok(Ok(n)) if n > 0 => {
+                if !matches!(stop.try_recv(), Err(oneshot::error::TryRecvError::Empty)) {
+                    return;
+                }
+                continue;
+            }
             Ok(Ok(_)) => Duration::from_secs(60),
             error => {
                 eprintln!("mail-app: blob sweep unavailable: {error:?}");
