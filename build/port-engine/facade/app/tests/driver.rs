@@ -25,7 +25,7 @@ fn driver_wiring_is_ready() {
     let tc = smoke_toolchain_digest();
     assert_eq!(
         tc.0,
-        "sha256:21fa7a4116e8a0cf9b3714b3fa5d173ad535eba6610d9b30a1b7f74dbfb74c0d"
+        "sha256:2bc260378420915e0b598b769a7e5b68325d6db59bedecfb5f249a53cdbc3cd9"
     );
     let regions = smoke_transform().expect("transform must succeed");
     assert_eq!(regions, 3);
