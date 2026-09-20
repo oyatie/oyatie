@@ -15,6 +15,7 @@ pinned_crate(
     version = "2.8.3",
     sha256 = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98",
     features = ["std", "alloc"],
+    visibility = ["//mail/auth/..."],
 )
 
 pinned_crate(
@@ -43,8 +44,8 @@ pinned_crate(
     version = "0.11.9",
     sha256 = "4ec00bda90c6e645a54506c630c2820cd6b1890cfd2b0a169b50f74b2b8c7c86",
     edition = "2024",
-    features = ["default", "full_encoding", "encoding_rs"],
-    deps = [":hashify", ":encoding_rs"],
+    features = ["base64_slice", "default", "full_encoding", "encoding_rs"],
+    deps = [":hashify", ":encoding_rs", ":memchr"],
     visibility = ["PUBLIC"],
 )
 
@@ -78,6 +79,7 @@ pinned_crate(
         ":quote",
         ":syn",
     ],
+    visibility = ["//mail/auth/..."],
 )
 
 pinned_crate(
