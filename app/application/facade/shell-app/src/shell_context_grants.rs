@@ -30,6 +30,7 @@ pub(crate) const CONTEXT_ACTION_GRANTS: &[ContextActionGrant] = &[
         context: OperatorContext::CorporateOffice,
         actions: &[
             "workspace.use",
+            "mail.use",
             "accounting.close",
             "hr.operate",
             "approvals.review",

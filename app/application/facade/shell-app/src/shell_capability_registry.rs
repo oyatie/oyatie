@@ -232,6 +232,50 @@ mod tests {
     }
 
     #[test]
+    fn mail_is_a_daily_card_for_the_office_context_and_denied_elsewhere() {
+        // The mail product surfaces as its own module, not as part of the
+        // Work Home aggregate: the office context holds `mail.use` and sees
+        // the card; contexts without that grant see nothing, as deny-by-
+        // default requires.
+        let office: Vec<_> = permitted_module_cards(OperatorContext::CorporateOffice)
+            .into_iter()
+            .map(|card| card.name)
+            .collect();
+        assert!(office.iter().any(|name| name == "Mail"), "{office:?}");
+        // Every other context, derived from ALL so a context added later
+        // cannot escape the deny side.
+        for context in OperatorContext::ALL
+            .iter()
+            .filter(|context| **context != OperatorContext::CorporateOffice)
+        {
+            let names: Vec<_> = permitted_module_cards(*context)
+                .into_iter()
+                .map(|card| card.name)
+                .collect();
+            assert!(
+                !names.iter().any(|name| name == "Mail"),
+                "{context:?} holds no mail.use grant and must not see the Mail card"
+            );
+        }
+        // One registry row, one route, owned by the mail module.
+        let (entries, routes) = capability_registry();
+        assert_eq!(
+            entries
+                .iter()
+                .filter(|entry| entry.capability_id == "mail")
+                .count(),
+            1
+        );
+        let route = routes
+            .iter()
+            .find(|route| route.module_id == "mail")
+            .expect("mail route");
+        assert_eq!(route.route_prefix, "/mail");
+        assert_eq!(route.upstream_service, "mail");
+        assert_eq!(route.capability_ids, vec!["mail".to_owned()]);
+    }
+
+    #[test]
     fn workflow_studio_copy_is_contextual_but_single_registry_row() {
         let (entries, _) = capability_registry();
         assert_eq!(

@@ -84,6 +84,17 @@ pub(crate) const PRODUCTION_MODULES: &[RegisteredModule] = &[
         action_label: "Open home",
     },
     RegisteredModule {
+        capability_id: "mail",
+        display_name: "Mail",
+        module_id: "mail",
+        required_action: "mail.use",
+        route_prefix: "/mail",
+        upstream_service: "mail",
+        group: "Daily",
+        description: "Mailboxes, threads, and submission over IMAP and JMAP",
+        action_label: "Open mail",
+    },
+    RegisteredModule {
         capability_id: "accounting",
         display_name: "Accounting",
         module_id: "accounting",
