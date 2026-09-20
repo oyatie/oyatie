@@ -64,7 +64,14 @@ pub(super) fn run(args: &[String]) -> Result<bool, Box<dyn Error>> {
             }
             let revision: u64 = revision.parse()?;
             let operator = operator();
-            store.dead_letter(consumer, account, revision, &operator, reason)?;
+            store
+                .dead_letter(consumer, account, revision, &operator, reason)
+                .map_err(|error| match error {
+                    mail_kernel::Error::Conflict => {
+                        "only a poisoned key is dead-lettered, at a revision between the account's history floor and its tail".to_owned()
+                    }
+                    other => other.to_string(),
+                })?;
             eprintln!(
                 "mail-app: event=dead-letter consumer={consumer_name} tenant={tenant} account={account} revision={revision} operator={operator}"
             );

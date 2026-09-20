@@ -255,5 +255,7 @@ fn reconcile_re_marks_accounts_whose_cursor_is_behind_their_tail() {
     assert_eq!(db.reconcile(FOUNDRY, OP, "again").unwrap(), 0);
     assert_eq!(db.audit(1).unwrap()[0].kind, "reconcile");
     drop((db, silent));
-    let _ = std::fs::remove_file(&path);
+    for suffix in ["", "-wal", "-shm"] {
+        let _ = std::fs::remove_file(path.with_extension(format!("sqlite{suffix}")));
+    }
 }
