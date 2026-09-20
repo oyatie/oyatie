@@ -274,10 +274,10 @@ fn upstream_sources_are_pinned() {
     );
 }
 
-/// Runs last under Buck's single process: the recorded predicates, and the
-/// waived set matched exactly.
+/// The recorded predicates and the waived set, checked once every suite has
+/// run (libtest orders by name, and this one sorts after them).
 #[test]
-fn zz_summary() {
+fn waived_set_fired_exactly_and_totals_are_printed() {
     let outcomes = OUTCOMES.lock().unwrap();
     let passed = outcomes.iter().filter(|o| o["passed"] == true).count();
     let waived: Vec<_> = outcomes.iter().filter(|o| o["waived"] == true).collect();

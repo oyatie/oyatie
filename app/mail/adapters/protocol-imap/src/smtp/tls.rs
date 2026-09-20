@@ -1,4 +1,4 @@
-use super::{Mode, SmtpParams};
+use super::{Mode, SmtpParams, limits::Meter};
 use mail_service::MailService;
 use std::{io, sync::Arc, time::Duration};
 use tokio::io::{AsyncRead, AsyncWrite};
@@ -39,7 +39,11 @@ where
         tls: false,
         greeting: true,
     };
-    if let Some(stream) = super::session(stream, service.clone(), plain, params).await? {
+    // One meter for the connection: RFC 3207 discards session state, not
+    // the bytes the peer has already sent or the time it has been open.
+    let mut meter = Meter::new(params);
+    if let Some(stream) = super::session(stream, service.clone(), plain, params, &mut meter).await?
+    {
         let stream = tokio::time::timeout(Duration::from_secs(10), upgrade(stream))
             .await
             .map_err(|_| io::Error::new(io::ErrorKind::TimedOut, "SMTP TLS handshake stalled"))??;
@@ -51,7 +55,7 @@ where
             tls: true,
             greeting: false,
         };
-        super::session(stream, service, secured, params).await?;
+        super::session(stream, service, secured, params, &mut meter).await?;
     }
     Ok(())
 }

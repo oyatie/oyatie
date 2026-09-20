@@ -5,7 +5,8 @@
 //! lifetime or idle past its timeout is closed with the reference's codes.
 //!
 //! "Stalled" is decided by whether more bytes are already waiting when the
-//! buffer fills — the reference's per-read semantics, and what its `limits`
+//! buffer is reached (`>= MAX_LINE_BYTES` without a CRLF, as the reference
+//! receiver decides it) — the reference's per-read semantics, and what its `limits`
 //! oracle pins by sending the same 4097-byte line both ways. On a socket
 //! that makes the outcome depend on segmentation, as it does there.
 use std::{
@@ -37,7 +38,7 @@ pub struct SmtpParams {
 impl Default for SmtpParams {
     fn default() -> Self {
         Self {
-            peer: IpAddr::V4(Ipv4Addr::LOCALHOST),
+            peer: IpAddr::V4(Ipv4Addr::UNSPECIFIED),
             hostname: "localhost".into(),
             idle_timeout: Duration::from_secs(30 * 60),
             max_duration: Duration::from_secs(60 * 60),
@@ -106,7 +107,9 @@ pub(super) async fn line<R: AsyncBufRead + Unpin>(
         if let Some(stop) = meter.charge(n) {
             return Ok(stop);
         }
-        if bytes.ends_with(b"\n") {
+        if bytes.len() > HARD_LINE_BYTES {
+            discarding = true;
+        } else if bytes.ends_with(b"\n") {
             if discarding {
                 return Ok(Read::TooLong);
             }
@@ -114,12 +117,11 @@ pub(super) async fn line<R: AsyncBufRead + Unpin>(
             bytes.truncate(bytes.len() - end);
             return Ok(Read::Line(bytes));
         }
-        // Past the buffer without a CRLF: too long only if the peer has
+        // At the buffer without a CRLF: too long only if the peer has
         // stalled; data already waiting is the rest of this line.
-        if bytes.len() > MAX_LINE_BYTES && !discarding {
+        if bytes.len() >= MAX_LINE_BYTES && !discarding {
             let pending = tokio::time::timeout(Duration::ZERO, reader.fill_buf()).await;
-            if !matches!(pending, Ok(Ok(more)) if !more.is_empty()) || bytes.len() > HARD_LINE_BYTES
-            {
+            if !matches!(pending, Ok(Ok(more)) if !more.is_empty()) {
                 discarding = true;
             }
         }

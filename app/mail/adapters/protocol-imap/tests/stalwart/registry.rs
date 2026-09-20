@@ -30,10 +30,14 @@ impl Expression {
             .0
             .iter()
             .find(|m| {
-                m.if_
+                let named = m
+                    .if_
                     .strip_prefix("remote_ip = '")
                     .and_then(|r| r.strip_suffix('\''))
-                    == Some(remote_ip)
+                    // A wider expression would silently run on the defaults:
+                    // refuse it so the suite that needs it is not fooled.
+                    .unwrap_or_else(|| panic!("expression the shim cannot evaluate: {}", m.if_));
+                named == remote_ip
             })
             .map_or(self.else_.as_str(), |m| m.then.as_str())
     }

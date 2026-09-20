@@ -1,10 +1,15 @@
 mod auth;
 mod data;
+mod entry;
 mod envelope;
 mod limits;
 mod tls;
 use crate::wire::write;
-pub use limits::{MAX_LINE_BYTES, SmtpParams};
+pub use entry::{
+    smtp_session, smtp_session_with, smtp_tls_session_with, submission_session,
+    submission_session_with,
+};
+pub use limits::SmtpParams;
 use limits::{Meter, Read};
 use mail_kernel::{Error, MAX_MESSAGE_BYTES};
 use mail_service::MailService;
@@ -22,69 +27,12 @@ struct Mode {
     greeting: bool,
 }
 
-pub async fn smtp_session<S: AsyncRead + AsyncWrite + Unpin>(
-    stream: S,
-    service: Arc<MailService>,
-) -> io::Result<()> {
-    smtp_session_with(stream, service, &SmtpParams::default()).await
-}
-
-pub async fn smtp_session_with<S: AsyncRead + AsyncWrite + Unpin>(
-    stream: S,
-    service: Arc<MailService>,
-    params: &SmtpParams,
-) -> io::Result<()> {
-    let mode = Mode {
-        submission: false,
-        starttls: false,
-        tls: false,
-        greeting: true,
-    };
-    session(stream, service, mode, params).await.map(|_| ())
-}
-
-/// An inbound session on an already-encrypted connection: no STARTTLS is
-/// offered and one sent is refused as already in TLS mode.
-pub async fn smtp_tls_session_with<S: AsyncRead + AsyncWrite + Unpin>(
-    stream: S,
-    service: Arc<MailService>,
-    params: &SmtpParams,
-) -> io::Result<()> {
-    let mode = Mode {
-        submission: false,
-        starttls: false,
-        tls: true,
-        greeting: true,
-    };
-    session(stream, service, mode, params).await.map(|_| ())
-}
-
-/// The caller must establish TLS before setting `protected`. The facade supplies
-/// only a completed TLS stream; plaintext invocations fail before a greeting.
-pub async fn submission_session<S: AsyncRead + AsyncWrite + Unpin>(
-    mut stream: S,
-    service: Arc<MailService>,
-    protected: bool,
-) -> io::Result<()> {
-    if !protected {
-        return write(&mut stream, b"554 5.7.0 TLS required\r\n").await;
-    }
-    let mode = Mode {
-        submission: true,
-        starttls: false,
-        tls: true,
-        greeting: true,
-    };
-    session(stream, service, mode, &SmtpParams::default())
-        .await
-        .map(|_| ())
-}
-
 async fn session<S: AsyncRead + AsyncWrite + Unpin>(
     stream: S,
     service: Arc<MailService>,
     mode: Mode,
     params: &SmtpParams,
+    meter: &mut Meter,
 ) -> io::Result<Option<S>> {
     let Mode {
         submission,
@@ -95,7 +43,6 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
     let host = params.hostname.as_str();
     let mut auth = (submission && !starttls).then(auth::Submission::default);
     let mut stream = BufReader::new(stream);
-    let mut meter = Meter::new(params);
     if greeting {
         write(
             stream.get_mut(),
@@ -108,7 +55,7 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
     let mut sender = None;
     let mut recipients = vec![];
     loop {
-        let bytes = match limits::command(&mut stream, &mut meter, host).await? {
+        let bytes = match limits::command(&mut stream, meter, host).await? {
             Ok(bytes) => bytes,
             // A refusal that ends the session, or the line-too-long notice.
             Err(limits::Refusal { reply, close }) => {
@@ -217,7 +164,7 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                     "503 5.5.1 Send RCPT first\r\n"
                 } else {
                     write(stream.get_mut(), b"354 End with <CRLF>.<CRLF>\r\n").await?;
-                    let raw = match data::read(&mut stream, &mut meter).await {
+                    let raw = match data::read(&mut stream, meter).await {
                         Ok(raw) => raw,
                         Err(error) => {
                             let quota =

@@ -51,3 +51,47 @@ async fn smtp_is_byte_preserving_rejects_relay_and_commits_before_ack() {
         b"Subject: wire\r\n\r\n.dot\r\n\xff\r\n"
     );
 }
+
+/// RFC 3207 §4.2 discards session state at the upgrade, not the bytes the
+/// peer has already spent: one quota and one lifetime per connection.
+#[tokio::test]
+async fn the_transfer_quota_is_not_replenished_by_a_starttls_upgrade() {
+    let (service, _db) = service();
+    let params = mail_protocol_imap::SmtpParams {
+        transfer_bytes: 60,
+        ..mail_protocol_imap::SmtpParams::default()
+    };
+    let (mut client, server) = tokio::io::duplex(65536);
+    let task = tokio::spawn(async move {
+        mail_protocol_imap::smtp_starttls_session_with(
+            server,
+            service,
+            false,
+            |s| async move { Ok(s) },
+            &params,
+        )
+        .await
+    });
+    // 34 bytes before the upgrade, more after: the quota covers both
+    // halves. Each command is sent on its own (pipelined STARTTLS is
+    // refused) and its reply drained before the next.
+    let mut buf = [0u8; 4096];
+    let mut result = String::new();
+    for command in [
+        "EHLO client.example.net\r\n",
+        "STARTTLS\r\n",
+        "EHLO client.example.net\r\n",
+        "NOOP\r\n",
+    ] {
+        client.write_all(command.as_bytes()).await.unwrap();
+        if let Ok(Ok(n)) =
+            tokio::time::timeout(std::time::Duration::from_millis(200), client.read(&mut buf)).await
+        {
+            result.push_str(&String::from_utf8_lossy(&buf[..n]));
+        }
+    }
+    drop(client);
+    task.await.unwrap().unwrap();
+    assert!(result.contains("220 2.0.0 Ready to start TLS."), "{result}");
+    assert!(result.contains("452 4.7.28"), "{result}");
+}
