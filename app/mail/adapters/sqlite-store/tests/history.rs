@@ -286,4 +286,7 @@ fn deliver_once_suppresses_a_duplicate_only_in_inbox_or_junk() {
             Err(Error::Conflict)
         );
     }
+    drop(sql);
+    drop(db);
+    std::fs::remove_file(&path).unwrap();
 }
