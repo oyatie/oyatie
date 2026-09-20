@@ -1,0 +1,13 @@
+# The spine's policy suites and the ontology facade's PEP read these through
+# `include_str!`, and buck2 runs them in a hermetic sandbox where the checkout
+# tree is unreachable. Exporting them gives that mapping a target to name, so
+# one include-relative literal satisfies both build systems.
+export_file(
+    name = "foundry.cedarschema",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "foundry-policies.cedar",
+    visibility = ["PUBLIC"],
+)

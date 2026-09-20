@@ -58,8 +58,6 @@ SPINE_TESTS = [
     ("writer-durability", "writer_durability", [], SPINE_TEST_DEPS + ["//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft"]),
     ("history", "history_views", [], SPINE_TEST_DEPS),
     ("denials", "denial_trail", [], SPINE_TEST_DEPS),
-    ("cedar", "cedar_policy_gate", [], SPINE_TEST_DEPS + ["third-party//:cedar-policy"]),
-    ("cedar-seed", "cedar_seed", [], ["third-party//:cedar-policy"]),
     ("audit-emission", "audit_emission", [], SPINE_TEST_DEPS + ["//app/foundry/ports/draft/audit:foundry-audit-draft"]),
     ("revision-pinning", "revision_pinning", [], PROJECTION_TEST_DEPS),
     ("migration-cycles", "migration_cycles", [], KERNEL_TEST_DEPS),
@@ -89,4 +87,33 @@ SPINE_TESTS = [
         deps = deps,
     )
     for suffix, stem, support, deps in SPINE_TESTS
+]
+
+SPINE_ROOT = "app/foundry/core/spine"
+
+# `include_str!("../../../cedar/...")` in these two suites resolves to the
+# capability's own `cedar/`, which is outside this package. Mapping every src
+# to its repository path makes the sandbox mirror the tree, so the one literal
+# resolves under buck2 and under cargo alike. Without the mapping the exported
+# file is present in the repository but unreadable by rustc under buck2.
+CEDAR_SUITES = [
+    ("cedar", "cedar_policy_gate", SPINE_TEST_DEPS + ["third-party//:cedar-policy"]),
+    ("cedar-seed", "cedar_seed", ["third-party//:cedar-policy"]),
+]
+
+[
+    rust_test(
+        name = "foundry-spine-" + suffix,
+        srcs = [],
+        crate = stem,
+        crate_root = SPINE_ROOT + "/tests/" + stem + ".rs",
+        mapped_srcs = {
+            "tests/" + stem + ".rs": SPINE_ROOT + "/tests/" + stem + ".rs",
+            "//app/foundry/cedar:foundry.cedarschema": "app/foundry/cedar/foundry.cedarschema",
+            "//app/foundry/cedar:foundry-policies.cedar": "app/foundry/cedar/foundry-policies.cedar",
+        },
+        visibility = ["PUBLIC"],
+        deps = deps,
+    )
+    for suffix, stem, deps in CEDAR_SUITES
 ]

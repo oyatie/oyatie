@@ -20,11 +20,22 @@ MIGRATION_TEST_DEPS = FACADE_TEST_DEPS + [
 
 TEST_SRCS = glob(["tests/**/*.rs"])
 
+FACADE_ROOT = "app/foundry/facade/ontology-app"
+
+# `pdp.rs` reads the capability's own `cedar/` through `include_str!`, and that
+# directory is outside this package. Mapping every src to its repository path
+# makes the sandbox mirror the tree, so the one include-relative literal
+# resolves under buck2 and under cargo alike.
+LIBRARY_MAPPED_SRCS = {src: FACADE_ROOT + "/" + src for src in glob(["src/**/*.rs"])}
+LIBRARY_MAPPED_SRCS["//app/foundry/cedar:foundry.cedarschema"] = "app/foundry/cedar/foundry.cedarschema"
+LIBRARY_MAPPED_SRCS["//app/foundry/cedar:foundry-policies.cedar"] = "app/foundry/cedar/foundry-policies.cedar"
+
 rust_library(
     name = "foundry-ontology-app",
-    srcs = glob(["src/**/*.rs"]),
+    srcs = [],
     crate = "foundry_ontology_app",
-    crate_root = "src/lib.rs",
+    crate_root = FACADE_ROOT + "/src/lib.rs",
+    mapped_srcs = LIBRARY_MAPPED_SRCS,
     visibility = ["PUBLIC"],
     deps = [
         "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
