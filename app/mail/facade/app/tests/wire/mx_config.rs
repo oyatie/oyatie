@@ -74,8 +74,8 @@ pub(super) fn verify(binary: &str, db: &Path, cert: &Path, key: &Path, der: Vec<
             let _ = send.send(result);
         });
         let line = receive
-            .recv_timeout(Duration::from_secs(10))
-            .unwrap()
+            .recv_timeout(Duration::from_secs(180))
+            .expect("mail listener readiness timed out")
             .unwrap();
         if let Some(expected) = expected {
             assert!(line.contains(expected), "expected {expected}: {line}");

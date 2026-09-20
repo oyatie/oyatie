@@ -5,9 +5,10 @@
 //! lifetime or idle past its timeout is closed with the reference's codes.
 //!
 //! "Stalled" is decided by whether more bytes are already waiting when the
-//! buffer is reached without a CRLF, as the reference receiver decides it — the reference's per-read semantics, and what its `limits`
-//! oracle pins by sending the same 4097-byte line both ways. On a socket
-//! that makes the outcome depend on segmentation, as it does there.
+//! buffer fills without a CRLF, which is the reference receiver's own
+//! per-read semantics. On a socket that makes the outcome depend on
+//! segmentation, as it does there; the `limits` oracle pins the behaviour by
+//! sending the same 4097-byte line both ways.
 use std::{
     io,
     net::{IpAddr, Ipv4Addr},
