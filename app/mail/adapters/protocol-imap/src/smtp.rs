@@ -1,66 +1,83 @@
 mod auth;
 mod data;
+mod entry;
+mod envelope;
+mod limits;
 mod tls;
-use crate::wire::{line, write};
-use mail_kernel::{Error, MAX_MESSAGE_BYTES, valid_address};
+use crate::wire::write;
+pub use entry::{
+    smtp_session, smtp_session_with, smtp_tls_session_with, submission_session,
+    submission_session_with,
+};
+pub use limits::SmtpParams;
+use limits::{Meter, Read};
+use mail_kernel::{Error, MAX_MESSAGE_BYTES};
 use mail_service::MailService;
 use std::{io, sync::Arc};
-pub use tls::smtp_starttls_session;
+pub use tls::{smtp_starttls_session, smtp_starttls_session_with};
 use tokio::io::{AsyncRead, AsyncWrite, BufReader};
 
-pub async fn smtp_session<S: AsyncRead + AsyncWrite + Unpin>(
-    stream: S,
-    service: Arc<MailService>,
-) -> io::Result<()> {
-    session(stream, service, false, false, true)
-        .await
-        .map(|_| ())
-}
-
-/// The caller must establish TLS before setting `protected`. The facade supplies
-/// only a completed TLS stream; plaintext invocations fail before a greeting.
-pub async fn submission_session<S: AsyncRead + AsyncWrite + Unpin>(
-    mut stream: S,
-    service: Arc<MailService>,
-    protected: bool,
-) -> io::Result<()> {
-    if !protected {
-        return write(&mut stream, b"554 5.7.0 TLS required\r\n").await;
-    }
-    session(stream, service, true, false, true)
-        .await
-        .map(|_| ())
+/// How one session runs: the port it serves, whether STARTTLS is offered,
+/// whether TLS is already established, whether to greet.
+#[derive(Clone, Copy)]
+struct Mode {
+    submission: bool,
+    starttls: bool,
+    tls: bool,
+    greeting: bool,
 }
 
 async fn session<S: AsyncRead + AsyncWrite + Unpin>(
     stream: S,
     service: Arc<MailService>,
-    submission: bool,
-    starttls: bool,
-    greeting: bool,
+    mode: Mode,
+    params: &SmtpParams,
+    meter: &mut Meter,
 ) -> io::Result<Option<S>> {
+    let Mode {
+        submission,
+        starttls,
+        tls,
+        greeting,
+    } = mode;
+    let host = params.hostname.as_str();
     let mut auth = (submission && !starttls).then(auth::Submission::default);
     let mut stream = BufReader::new(stream);
     if greeting {
-        write(stream.get_mut(), b"220 localhost ESMTP Oyatie\r\n").await?;
+        write(
+            stream.get_mut(),
+            format!("220 {host} ESMTP Oyatie\r\n").as_bytes(),
+        )
+        .await?;
     }
     let mut greeted = false;
     let mut esmtp = false;
     let mut sender = None;
     let mut recipients = vec![];
-    while let Some(bytes) = line(&mut stream, if submission { 12288 } else { 512 }).await? {
+    loop {
+        let bytes = match limits::command(&mut stream, meter, host).await? {
+            Ok(bytes) => bytes,
+            // A refusal that ends the session, or the line-too-long notice.
+            Err(limits::Refusal { reply, close }) => {
+                write(stream.get_mut(), reply.as_bytes()).await?;
+                if close {
+                    return Ok(None);
+                }
+                continue;
+            }
+        };
         let Ok(command) = std::str::from_utf8(&bytes) else {
-            write(stream.get_mut(), b"500 5.5.2 Invalid command\r\n").await?;
+            write(stream.get_mut(), b"500 5.5.1 Invalid command.\r\n").await?;
             continue;
         };
         let (verb, arg) = command.split_once(' ').unwrap_or((command, ""));
-        if bytes.len() > 510 && !verb.eq_ignore_ascii_case("AUTH") {
-            write(stream.get_mut(), b"500 5.5.2 Command too long\r\n").await?;
-            continue;
-        }
         let reply = match verb.to_ascii_uppercase().as_str() {
             "STARTTLS" => {
-                if !starttls || !esmtp || sender.is_some() {
+                if tls {
+                    "504 5.7.4 Already in TLS mode.\r\n"
+                } else if !starttls {
+                    "502 5.7.0 TLS not available.\r\n"
+                } else if !esmtp || sender.is_some() {
                     "503 5.5.1 STARTTLS out of sequence\r\n"
                 } else if !arg.is_empty() {
                     "501 5.5.2 STARTTLS takes no parameters\r\n"
@@ -73,7 +90,7 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                         .await?;
                         return Ok(None);
                     }
-                    write(stream.get_mut(), b"220 2.0.0 Begin TLS negotiation\r\n").await?;
+                    write(stream.get_mut(), b"220 2.0.0 Ready to start TLS.\r\n").await?;
                     return Ok(Some(stream.into_inner()));
                 }
             }
@@ -94,20 +111,25 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                 esmtp = verb.eq_ignore_ascii_case("EHLO");
                 sender = None;
                 recipients.clear();
-                if verb.eq_ignore_ascii_case("EHLO") {
-                    if starttls {
-                        "250-localhost\r\n250-SIZE 26214400\r\n250-STARTTLS\r\n250 8BITMIME\r\n"
-                    } else if auth
-                        .as_ref()
-                        .is_some_and(|state| state.credentials.is_none())
-                    {
-                        "250-localhost\r\n250-SIZE 26214400\r\n250-AUTH PLAIN\r\n250 8BITMIME\r\n"
-                    } else {
-                        "250-localhost\r\n250-SIZE 26214400\r\n250 8BITMIME\r\n"
-                    }
+                let extensions = if starttls {
+                    "250-STARTTLS\r\n"
+                } else if auth
+                    .as_ref()
+                    .is_some_and(|state| state.credentials.is_none())
+                {
+                    "250-AUTH PLAIN\r\n"
                 } else {
-                    "250 localhost\r\n"
-                }
+                    ""
+                };
+                let banner = if esmtp {
+                    format!(
+                        "250-{host}\r\n250-SIZE {MAX_MESSAGE_BYTES}\r\n{extensions}250 8BITMIME\r\n"
+                    )
+                } else {
+                    format!("250 {host}\r\n")
+                };
+                write(stream.get_mut(), banner.as_bytes()).await?;
+                continue;
             }
             "MAIL" => {
                 sender = None;
@@ -116,38 +138,12 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                     "503 5.5.1 Send EHLO first\r\n"
                 } else if submission && starttls {
                     "530 5.7.0 TLS required for submission\r\n"
-                } else if let Some((address, params)) = path(arg, "FROM:") {
-                    if !address.is_empty() && !valid_address(address) {
-                        "501 5.1.7 Invalid sender\r\n"
-                    } else if params.split_ascii_whitespace().any(|p| {
-                        !p.eq_ignore_ascii_case("BODY=8BITMIME")
-                            && !p.eq_ignore_ascii_case("BODY=7BIT")
-                            && !p.to_ascii_uppercase().starts_with("SIZE=")
-                    }) {
-                        "555 5.5.4 Unsupported parameter\r\n"
-                    } else if params
-                        .split_ascii_whitespace()
-                        .filter_map(|p| {
-                            p.get(..5)
-                                .filter(|p| p.eq_ignore_ascii_case("SIZE="))
-                                .map(|_| &p[5..])
-                        })
-                        .any(|n| n.parse::<usize>().map_or(true, |n| n > MAX_MESSAGE_BYTES))
-                    {
-                        "552 5.3.4 Message too large\r\n"
-                    } else {
-                        let reply = if let Some(state) = &auth {
-                            state.sender(service.clone(), address).await
-                        } else {
-                            "250 2.1.0 Sender accepted\r\n"
-                        };
-                        if reply.starts_with("250") {
-                            sender = Some(address.to_owned());
-                        }
-                        reply
-                    }
                 } else {
-                    "501 5.5.2 Invalid reverse path\r\n"
+                    let reply = envelope::sender(arg, auth.as_ref(), &service).await;
+                    if let Ok(address) = &reply {
+                        sender = Some(address.clone());
+                    }
+                    reply.map_or_else(|reply| reply, |_| "250 2.1.0 Sender accepted\r\n")
                 }
             }
             "RCPT" => {
@@ -155,35 +151,12 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                     "503 5.5.1 Send MAIL first\r\n"
                 } else if recipients.len() >= 100 {
                     "452 4.5.3 Recipient limit\r\n"
-                } else if let Some((address, params)) = path(arg, "TO:") {
-                    if !params.is_empty() || !valid_address(address) {
-                        "501 5.1.3 Invalid recipient\r\n"
-                    } else {
-                        let lookup = service.clone();
-                        let recipient = address.to_owned();
-                        match tokio::task::spawn_blocking(move || lookup.store.resolve(&recipient))
-                            .await
-                            .unwrap_or(Err(Error::Unavailable))
-                        {
-                            Ok(_) => {
-                                recipients.push(address.to_owned());
-                                "250 2.1.5 Recipient accepted\r\n"
-                            }
-                            Err(Error::NotFound)
-                                if service.outbound.is_some()
-                                    && auth.as_ref().is_some_and(|s| s.credentials.is_some()) =>
-                            {
-                                recipients.push(address.to_owned());
-                                "250 2.1.5 Recipient accepted\r\n"
-                            }
-                            Err(Error::NotFound) => {
-                                "550 5.7.1 Unknown recipient or relay denied\r\n"
-                            }
-                            Err(_) => "451 4.3.0 Directory unavailable\r\n",
-                        }
-                    }
                 } else {
-                    "501 5.5.2 Invalid forward path\r\n"
+                    let reply = envelope::recipient(arg, auth.as_ref(), &service).await;
+                    if let Ok(address) = &reply {
+                        recipients.push(address.clone());
+                    }
+                    reply.map_or_else(|reply| reply, |_| "250 2.1.5 Recipient accepted\r\n")
                 }
             }
             "DATA" if arg.is_empty() => {
@@ -191,13 +164,16 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                     "503 5.5.1 Send RCPT first\r\n"
                 } else {
                     write(stream.get_mut(), b"354 End with <CRLF>.<CRLF>\r\n").await?;
-                    let raw = match data::read(&mut stream).await {
+                    let raw = match data::read(&mut stream, meter).await {
                         Ok(raw) => raw,
                         Err(error) => {
+                            let quota =
+                                format!("452 4.7.28 {host} Session exceeded transfer quota.\r\n");
                             let reply = match error.kind() {
                                 io::ErrorKind::FileTooLarge => {
                                     b"552 5.3.4 Message too large\r\n".as_slice()
                                 }
+                                io::ErrorKind::QuotaExceeded => quota.as_bytes(),
                                 io::ErrorKind::InvalidData => {
                                     b"554 5.6.0 Invalid message framing\r\n"
                                 }
@@ -240,11 +216,13 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                 "250 2.0.0 Reset\r\n"
             }
             "NOOP" => "250 2.0.0 OK\r\n",
+            "HELP" => "250 2.0.0 Help: RFC 5321\r\n",
+            "LHLO" => "502 5.5.1 Invalid command: EHLO expected.\r\n",
             "QUIT" if arg.is_empty() => {
-                write(stream.get_mut(), b"221 2.0.0 Bye\r\n").await?;
+                write(stream.get_mut(), b"221 2.0.0 Bye.\r\n").await?;
                 return Ok(None);
             }
-            _ => "500 5.5.2 Command not supported\r\n",
+            _ => "500 5.5.1 Invalid command.\r\n",
         };
         write(stream.get_mut(), reply.as_bytes()).await?;
         if auth.as_ref().is_some_and(|state| state.failures >= 3) {
@@ -256,17 +234,4 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
             return Ok(None);
         }
     }
-    Ok(None)
-}
-
-fn path<'a>(input: &'a str, prefix: &str) -> Option<(&'a str, &'a str)> {
-    if !input.get(..prefix.len())?.eq_ignore_ascii_case(prefix) {
-        return None;
-    }
-    let rest = input.get(prefix.len()..)?.trim_start().strip_prefix('<')?;
-    let (address, params) = rest.split_once('>')?;
-    if !params.is_empty() && !params.starts_with(' ') {
-        return None;
-    }
-    Some((address, params.trim()))
 }

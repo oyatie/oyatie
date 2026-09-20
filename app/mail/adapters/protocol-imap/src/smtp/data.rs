@@ -1,15 +1,20 @@
+use super::limits::{Meter, Read};
 use crate::wire::line;
 use mail_kernel::MAX_MESSAGE_BYTES;
 use std::{io, time::Duration};
 use tokio::{io::AsyncBufRead, time::Instant};
 
-pub(super) async fn read<R: AsyncBufRead + Unpin>(reader: &mut R) -> io::Result<Vec<u8>> {
-    bounded(reader, Instant::now() + Duration::from_secs(300)).await
+pub(super) async fn read<R: AsyncBufRead + Unpin>(
+    reader: &mut R,
+    meter: &mut Meter,
+) -> io::Result<Vec<u8>> {
+    bounded(reader, Instant::now() + Duration::from_secs(300), meter).await
 }
 
 async fn bounded<R: AsyncBufRead + Unpin>(
     reader: &mut R,
     deadline: Instant,
+    meter: &mut Meter,
 ) -> io::Result<Vec<u8>> {
     tokio::time::timeout_at(deadline, async {
         let mut raw = Vec::new();
@@ -18,6 +23,22 @@ async fn bounded<R: AsyncBufRead + Unpin>(
             let data = line(reader, 1001).await?.ok_or_else(|| {
                 io::Error::new(io::ErrorKind::UnexpectedEof, "incomplete SMTP DATA")
             })?;
+            // The session's transfer quota and lifetime cover the body too.
+            match meter.charge(data.len() + 2) {
+                Some(Read::Quota) => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::QuotaExceeded,
+                        "SMTP session transfer quota",
+                    ));
+                }
+                Some(_) => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::TimedOut,
+                        "SMTP session lifetime",
+                    ));
+                }
+                None => {}
+            }
             if data == b"." {
                 return Ok(raw);
             }
@@ -58,9 +79,11 @@ mod tests {
                 tokio::time::sleep(Duration::from_millis(1)).await;
             }
         });
+        let mut meter = Meter::new(&super::super::SmtpParams::default());
         let result = bounded(
             &mut BufReader::new(reader),
             Instant::now() + Duration::from_millis(20),
+            &mut meter,
         )
         .await;
         assert_eq!(result.unwrap_err().kind(), io::ErrorKind::TimedOut);

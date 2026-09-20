@@ -103,8 +103,9 @@ pub(super) fn smtp(address: &str, config: Arc<ClientConfig>, token: &str, submis
     smtp_reply(&mut stream, "503");
     stream.get_mut().write_all(b"EHLO console\r\n").unwrap();
     smtp_reply(&mut stream, "250");
+    // Already in TLS: RFC 3207 §4 — the reference server answers 504 5.7.4.
     stream.get_mut().write_all(b"STARTTLS\r\n").unwrap();
-    smtp_reply(&mut stream, "503");
+    smtp_reply(&mut stream, "504 5.7.4");
     if submission {
         let credential = STANDARD.encode(format!("\0alice@example.org\0{token}"));
         stream

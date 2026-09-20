@@ -30,11 +30,13 @@ pub(super) fn spawn(
         let _permit = permit;
         match protocol {
             Protocol::Smtp | Protocol::SubmissionStartTls => {
-                let _ = mail_protocol_imap::smtp_starttls_session(
+                let params = smtp_params(&stream);
+                let _ = mail_protocol_imap::smtp_starttls_session_with(
                     stream,
                     service,
                     matches!(protocol, Protocol::SubmissionStartTls),
                     |stream| tls.accept(stream),
+                    &params,
                 )
                 .await;
             }
@@ -51,6 +53,7 @@ pub(super) fn spawn(
                 .await;
             }
             Protocol::Imap | Protocol::Submission | Protocol::Pop => {
+                let params = smtp_params(&stream);
                 if let Ok(Ok(stream)) =
                     tokio::time::timeout(Duration::from_secs(10), tls.accept(stream)).await
                 {
@@ -59,7 +62,10 @@ pub(super) fn spawn(
                             mail_protocol_imap::imap_session(stream, service, true).await
                         }
                         Protocol::Submission => {
-                            mail_protocol_imap::submission_session(stream, service, true).await
+                            mail_protocol_imap::submission_session_with(
+                                stream, service, true, &params,
+                            )
+                            .await
                         }
                         Protocol::Pop => {
                             mail_protocol_imap::pop_session(stream, service, true).await
@@ -70,4 +76,15 @@ pub(super) fn spawn(
             }
         }
     });
+}
+
+/// The peer address is the session's identity for policy; an unknown one
+/// matches nothing.
+fn smtp_params(stream: &TcpStream) -> mail_protocol_imap::SmtpParams {
+    mail_protocol_imap::SmtpParams {
+        peer: stream
+            .peer_addr()
+            .map_or(std::net::Ipv4Addr::UNSPECIFIED.into(), |a| a.ip()),
+        ..mail_protocol_imap::SmtpParams::default()
+    }
 }
