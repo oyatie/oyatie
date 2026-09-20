@@ -168,9 +168,12 @@ fn backfill_threads(db: &Connection, account: &mut Account) -> Result<(), Error>
         .map_err(storage)?;
     }
     let ids: Vec<_> = account.messages.iter().map(|m| m.id.clone()).collect();
+    // The backfill is one conversion commit that carries no history rows, so
+    // the merge budget that keeps a serving commit pageable does not apply.
+    let mut unbounded = usize::MAX;
     for id in ids {
         let raw = crate::content::get(db, &account.id, &id)?;
-        threads::link(db, account, &id, threads::references(&raw)?)?;
+        threads::link(db, account, &id, threads::references(&raw)?, &mut unbounded)?;
     }
     Ok(())
 }
