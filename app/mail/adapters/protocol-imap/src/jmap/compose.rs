@@ -158,20 +158,10 @@ pub(super) fn create(
         .write_to(&mut buffer)
         .map_err(|_| "tooLarge")?;
     let raw = buffer.bytes;
-    super::retry::commit(
-        service,
-        token,
-        account,
-        conditional,
-        vec![Command::Append {
-            mailboxes,
-            raw,
-            keywords,
-            received_at,
-        }],
-        budget,
-    )
-    .map_err(|e| {
+    let append = service
+        .append(token, &account.id, mailboxes, &raw, keywords, received_at)
+        .map_err(super::method::error)?;
+    super::retry::commit(service, token, account, conditional, vec![append], budget).map_err(|e| {
         if matches!(
             e,
             mail_kernel::Error::Invalid | mail_kernel::Error::NotFound

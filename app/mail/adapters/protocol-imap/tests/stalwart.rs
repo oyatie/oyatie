@@ -1,6 +1,7 @@
 #![cfg(feature = "upstream-tests")]
 use axum::{Router, body::Body, http::Request};
 use http_body_util::BodyExt;
+use mail_api::BlobStore;
 use mail_api::MetadataStore;
 use mail_kernel::Account;
 use mail_service::MailService;
@@ -193,12 +194,14 @@ async fn upstream_jmap_compliance() {
         "a",
         mail_api::Precondition::Observed(1),
         vec![
-            mail_kernel::Command::Append {
-                mailboxes: vec!["inbox".into()],
-                raw: b"Subject: custom keywords\r\n\r\nbody\r\n".to_vec(),
-                keywords: vec!["$seen".into(), "$forwarded".into(), "custom_label".into()],
-                received_at: 0,
-            },
+            db.append(
+                "a",
+                vec!["inbox".into()],
+                b"Subject: custom keywords\r\n\r\nbody\r\n",
+                vec!["$seen".into(), "$forwarded".into(), "custom_label".into()],
+                0,
+            )
+            .unwrap(),
             mail_kernel::Command::CreateMailbox {
                 name: "Test Folder A".into(),
             },

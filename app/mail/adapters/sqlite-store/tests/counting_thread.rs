@@ -2,7 +2,7 @@
 //! 500-message thread, CHANGEDSINCE after ten changes, a read below the
 //! floor, and submission accept/cancel map rows bounded by the operation,
 //! not by the account (10 000 messages cost ≤ 1.5× what 100 cost).
-use mail_api::{MetadataStore, Precondition, SubmissionAcceptance, SubmissionStore};
+use mail_api::{BlobStore, MetadataStore, Precondition, SubmissionAcceptance, SubmissionStore};
 use mail_kernel::{
     Account, Command, EnvelopeAddress, RetentionPolicy, SubmissionEnvelope, SubmissionRecord,
     UndoStatus,
@@ -16,14 +16,16 @@ const THREAD: usize = 500;
 const RAW: &[u8] =
     b"From: alice@example.org\r\nTo: remote@example.net\r\nSubject: queued\r\n\r\nbody\r\n";
 
-fn message(n: usize, refs: &str, subject: &str) -> Command {
-    Command::Append {
-        mailboxes: vec!["inbox".into()],
-        raw: format!("Message-ID: <{n}@t>\r\nReferences: {refs}\r\nSubject: {subject}\r\n\r\nx")
-            .into_bytes(),
-        keywords: vec![],
-        received_at: n as i64,
-    }
+fn message(db: &impl BlobStore, n: usize, refs: &str, subject: &str) -> Command {
+    db.append(
+        "a",
+        vec!["inbox".into()],
+        format!("Message-ID: <{n}@t>\r\nReferences: {refs}\r\nSubject: {subject}\r\n\r\nx")
+            .as_bytes(),
+        vec![],
+        n as i64,
+    )
+    .unwrap()
 }
 
 /// One `THREAD`-message thread rooted at `<1@t>`, then `noise` singletons.
@@ -35,8 +37,8 @@ fn fixture(noise: usize) -> Counting<SqliteStore> {
     )
     .unwrap();
     db.deliver(&["alice@example.org".into()], RAW).unwrap();
-    let mut commands = vec![message(1, "", "T")];
-    commands.extend((2..=THREAD).map(|n| message(n, "<1@t>", "T")));
+    let mut commands = vec![message(&db, 1, "", "T")];
+    commands.extend((2..=THREAD).map(|n| message(&db, n, "<1@t>", "T")));
     db.execute("a", Precondition::Observed(0), commands)
         .unwrap();
     let mut n = THREAD;
@@ -46,7 +48,7 @@ fn fixture(noise: usize) -> Counting<SqliteStore> {
         let commands = (0..batch)
             .map(|_| {
                 n += 1;
-                message(n, "", &format!("N{n}"))
+                message(&db, n, "", &format!("N{n}"))
             })
             .collect();
         db.execute("a", Precondition::Observed(0), commands)
@@ -79,7 +81,7 @@ fn reply_into_thread(store: &Counting<SqliteStore>) -> u64 {
         .execute(
             "a",
             Precondition::Observed(revision),
-            vec![message(99_999, "<1@t>", "T")],
+            vec![message(store.inner(), 99_999, "<1@t>", "T")],
         )
         .unwrap();
     let joined = store.messages("a", &execution.ids).unwrap();

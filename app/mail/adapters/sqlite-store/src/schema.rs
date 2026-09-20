@@ -5,7 +5,7 @@ use rusqlite::{Connection, OptionalExtension};
 /// Schema version this binary reads and writes. `serve` refuses a database
 /// below it; a `converting` marker refuses every binary until `convert`
 /// finishes.
-pub const SCHEMA_VERSION: u64 = 2;
+pub const SCHEMA_VERSION: u64 = 3;
 
 /// Relational metadata: account, mailbox, message and link records, history
 /// rows keyed by revision, plus the unchanged content, queue and submission
@@ -57,13 +57,6 @@ pub(crate) const DDL: &str = "
         delivered INTEGER NOT NULL DEFAULT 0, observed_at_ms INTEGER NOT NULL DEFAULT 0,
         UNIQUE(account, revision));
     CREATE TABLE IF NOT EXISTS event_cursors(consumer TEXT PRIMARY KEY,sequence INTEGER NOT NULL CHECK(sequence>=0));
-    CREATE TABLE IF NOT EXISTS blobs (
-        account TEXT NOT NULL, id TEXT NOT NULL, content BLOB NOT NULL,
-        expires_at INTEGER NOT NULL, PRIMARY KEY(account,id));
-    CREATE INDEX IF NOT EXISTS blobs_expiry ON blobs(expires_at);
-    CREATE TABLE IF NOT EXISTS message_bodies (
-        account TEXT NOT NULL, id TEXT NOT NULL, content BLOB NOT NULL,
-        PRIMARY KEY(account,id));
     CREATE TABLE IF NOT EXISTS queued_messages (
         id TEXT PRIMARY KEY,sender TEXT NOT NULL,content BLOB NOT NULL,size INTEGER NOT NULL,received_at INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS delivery_jobs (
@@ -155,10 +148,16 @@ impl std::fmt::Display for Refusal {
                 found,
                 accounts,
                 messages,
-            } => write!(
+            } if *found == 1 => write!(
                 f,
                 "database schema version {found} is below this binary's {SCHEMA_VERSION}; run `mail-app convert DATABASE --backup-verified PATH` first (estimated {} for {accounts} accounts, {messages} messages)",
                 crate::convert::estimate(*accounts, *messages)
+            ),
+            // Only legacy (version 1) files convert; an intermediate version
+            // never reached a release, so there is no path from it.
+            Self::BelowVersion { found, .. } => write!(
+                f,
+                "no conversion path from schema version {found} to {SCHEMA_VERSION}; recreate the database (only legacy version-1 files convert with `mail-app convert`)"
             ),
             Self::Converting { version } => write!(
                 f,
@@ -195,9 +194,10 @@ pub(super) fn initialize(db: &Connection) -> Result<Result<(), Refusal>, Error> 
                 }));
             }
             db.execute_batch(&format!(
-                "BEGIN IMMEDIATE; {DDL}
+                "BEGIN IMMEDIATE; {DDL} {}
                  INSERT INTO schema_version(version,state,converted_at_utc) VALUES({SCHEMA_VERSION},'complete',strftime('%Y-%m-%dT%H:%M:%SZ','now'));
-                 COMMIT"
+                 COMMIT",
+                super::blob::DDL
             ))
             .map_err(storage)?;
             Ok(Ok(()))
@@ -207,14 +207,15 @@ pub(super) fn initialize(db: &Connection) -> Result<Result<(), Refusal>, Error> 
             Ok(Err(Refusal::BelowVersion {
                 found: version,
                 accounts: count(db, "SELECT count(*) FROM accounts")?,
-                messages: count(db, "SELECT count(*) FROM message_bodies")?,
+                messages: count(db, "SELECT count(*) FROM messages")?,
             }))
         }
         SchemaState::Complete { version } if version > SCHEMA_VERSION => {
             Ok(Err(Refusal::AboveVersion { found: version }))
         }
         SchemaState::Complete { .. } => {
-            db.execute_batch(DDL).map_err(storage)?;
+            db.execute_batch(&format!("{DDL}{}", super::blob::DDL))
+                .map_err(storage)?;
             Ok(Ok(()))
         }
     }

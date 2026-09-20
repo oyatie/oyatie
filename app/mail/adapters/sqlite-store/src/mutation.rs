@@ -3,7 +3,7 @@
 //! `Require` precondition surfaces `Conflict`.
 use super::{records, storage, threads};
 use mail_api::{Execution, Precondition};
-use mail_kernel::{Account, Command, Effects, Error, MAX_MESSAGE_BYTES, Scope};
+use mail_kernel::{Account, Command, Effects, Error, Scope};
 use rusqlite::{Connection, params};
 
 pub(super) struct Batch {
@@ -49,16 +49,13 @@ impl Batch {
     /// kernel mutates the working set.
     pub(super) fn apply(&mut self, db: &Connection, command: Command) -> Result<(), Error> {
         let (body, next) = match &command {
-            Command::Append { raw, .. } => {
-                if raw.len() > MAX_MESSAGE_BYTES {
-                    return Err(Error::OverQuota);
-                }
+            Command::Append { blob, .. } => {
                 let next = self
                     .account
                     .revision
                     .checked_add(1)
                     .ok_or(Error::OverQuota)?;
-                (Some(raw.clone()), next)
+                (Some(blob.clone()), next)
             }
             _ => (None, 0),
         };
@@ -68,13 +65,10 @@ impl Batch {
         };
         let held: Vec<String> = self.account.messages.iter().map(|m| m.id.clone()).collect();
         self.account.apply(command)?;
-        if let Some(raw) = body {
+        if let Some(blob) = body {
             let id = format!("e{next}");
-            db.execute(
-                "INSERT INTO message_bodies(account,id,content) VALUES(?1,?2,?3)",
-                params![self.account.id, id, raw],
-            )
-            .map_err(storage)?;
+            let raw =
+                super::blob::reference(db, &self.account.id, &blob, &format!("message:{id}"))?;
             let refs = threads::references(&raw)?;
             self.outside.extend(threads::link(
                 db,
@@ -211,12 +205,15 @@ pub(super) fn delete_message(db: &Connection, account: &str, id: &str) -> Result
         )
         .map_err(storage)?;
     }
-    for table in ["messages", "message_bodies"] {
-        db.execute(
-            &format!("DELETE FROM {table} WHERE account=?1 AND id=?2"),
-            params![account, id],
-        )
-        .map_err(storage)?;
-    }
+    db.execute(
+        "DELETE FROM messages WHERE account=?1 AND id=?2",
+        params![account, id],
+    )
+    .map_err(storage)?;
+    db.execute(
+        "DELETE FROM blob_links WHERE account=?1 AND owner=?2",
+        params![account, format!("message:{id}")],
+    )
+    .map_err(storage)?;
     Ok(())
 }

@@ -1,4 +1,13 @@
-use mail_kernel::{Account, Command, Error, MailboxProperties};
+use mail_kernel::{Account, BlobRef, Command, Error, MailboxProperties};
+
+/// A reference the kernel charges by size; the hash is irrelevant to it.
+fn blob_of(raw: impl AsRef<[u8]>) -> BlobRef {
+    BlobRef {
+        hash: "h".into(),
+        version_id: "1".into(),
+        size: raw.as_ref().len(),
+    }
+}
 
 #[test]
 fn hierarchy_refuses_cycles_and_preserves_messages_on_rejected_deletion() {
@@ -39,7 +48,7 @@ fn hierarchy_refuses_cycles_and_preserves_messages_on_rejected_deletion() {
         .apply(Command::Append {
             mailboxes: vec!["m1".into()],
             received_at: 0,
-            raw: vec![255],
+            blob: blob_of(vec![255]),
             keywords: vec![],
         })
         .unwrap();
@@ -47,7 +56,7 @@ fn hierarchy_refuses_cycles_and_preserves_messages_on_rejected_deletion() {
         .apply(Command::Append {
             mailboxes: vec!["inbox".into(), "m2".into()],
             received_at: 0,
-            raw: vec![0, 1],
+            blob: blob_of(vec![0, 1]),
             keywords: vec![],
         })
         .unwrap();
@@ -91,7 +100,7 @@ fn mailbox_memberships_preserve_existing_uids_and_expunge_only_the_selected_mail
         .apply(Command::Append {
             mailboxes: vec!["inbox".into()],
             received_at: 0,
-            raw: b"Subject: shared\r\n\r\nbody".to_vec(),
+            blob: blob_of(b"Subject: shared\r\n\r\nbody"),
             keywords: vec![],
         })
         .unwrap();
@@ -146,7 +155,7 @@ fn mailbox_lifecycle_preserves_uids_state_and_message_size() {
         .apply(Command::Append {
             mailboxes: vec![inbox.clone()],
             received_at: 0,
-            raw: raw.clone(),
+            blob: blob_of(raw.clone()),
             keywords: vec![],
         })
         .unwrap();
@@ -169,7 +178,7 @@ fn mailbox_lifecycle_preserves_uids_state_and_message_size() {
         .apply(Command::Append {
             mailboxes: vec![inbox],
             received_at: 0,
-            raw,
+            blob: blob_of(&raw),
             keywords: vec![],
         })
         .unwrap();
@@ -193,7 +202,7 @@ fn failed_command_does_not_change_state_and_inbox_cannot_be_destroyed() {
         account.apply(Command::Append {
             mailboxes: vec!["missing".into()],
             received_at: 0,
-            raw: vec![1],
+            blob: blob_of(vec![1]),
             keywords: vec![]
         }),
         Err(Error::NotFound)
@@ -218,7 +227,7 @@ fn mailbox_names_and_quota_are_checked_before_mutation() {
         account.apply(Command::Append {
             mailboxes: vec![account.inbox().into()],
             received_at: 0,
-            raw: vec![0; 4],
+            blob: blob_of(vec![0; 4]),
             keywords: vec![]
         }),
         Err(Error::OverQuota)
@@ -246,7 +255,7 @@ fn repeated_existing_memberships_are_invalid_and_leave_the_account_unchanged() {
         .apply(Command::Append {
             mailboxes: vec!["inbox".into()],
             received_at: 0,
-            raw: vec![],
+            blob: blob_of(vec![]),
             keywords: vec![],
         })
         .unwrap();

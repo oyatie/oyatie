@@ -5960,6 +5960,7 @@ name = "mail-api"
 version = "0.1.0"
 dependencies = [
  "mail-kernel",
+ "sha2",
 ]
 
 [[package]]

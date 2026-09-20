@@ -1,4 +1,4 @@
-use mail_api::{Events, MetadataStore, Precondition};
+use mail_api::{BlobStore, Events, MetadataStore, Precondition};
 use mail_kernel::{Account, Command, HistoryEntry};
 use mail_sqlite_store::SqliteStore;
 
@@ -31,12 +31,10 @@ fn mailbox_counters_commit_with_messages_and_roll_back_with_a_refused_history_ro
             .execute(
                 "a",
                 Precondition::Require(1),
-                vec![Command::Append {
-                    mailboxes: vec!["inbox".into(), "m1".into()],
-                    received_at: 0,
-                    raw: vec![0, 255],
-                    keywords: vec![],
-                }],
+                vec![
+                    db.append("a", vec!["inbox".into(), "m1".into()], &[0, 255], vec![], 0)
+                        .unwrap(),
+                ],
             )
             .unwrap();
         assert_eq!(

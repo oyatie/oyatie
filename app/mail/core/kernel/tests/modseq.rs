@@ -1,7 +1,16 @@
 //! MODSEQ is the account revision of the committing batch (RFC 7162 §3.1.2).
 //! Every changed message and every mailbox it was linked to or unlinked from
 //! takes that revision; mailbox-only commits leave the watermarks alone.
-use mail_kernel::{Account, Command, Error, HistoryEntry};
+use mail_kernel::{Account, BlobRef, Command, Error, HistoryEntry};
+
+/// A reference the kernel charges by size; the hash is irrelevant to it.
+fn blob_of(raw: impl AsRef<[u8]>) -> BlobRef {
+    BlobRef {
+        hash: "h".into(),
+        version_id: "1".into(),
+        size: raw.as_ref().len(),
+    }
+}
 
 fn account() -> Account {
     Account::new("a", "t", "alice", "alice@example.org").unwrap()
@@ -10,7 +19,7 @@ fn append(mailboxes: &[&str]) -> Command {
     Command::Append {
         mailboxes: mailboxes.iter().map(|id| (*id).into()).collect(),
         received_at: 1,
-        raw: b"Subject: retained\r\n\r\nbody".to_vec(),
+        blob: blob_of(b"Subject: retained\r\n\r\nbody"),
         keywords: vec![],
     }
 }

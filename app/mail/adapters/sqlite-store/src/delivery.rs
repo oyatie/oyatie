@@ -8,18 +8,27 @@ use std::collections::BTreeSet;
 /// Append an SMTP-sourced message to INBOX unless an exact Message-ID /
 /// References-set match is already linked to INBOX or Junk.
 fn ingest(db: &Connection, id: &str, raw: &[u8], received_at: i64) -> Result<(), Error> {
-    let commands = vec![Command::Append {
-        mailboxes: vec!["inbox".into()],
-        raw: raw.to_vec(),
-        keywords: vec![],
-        received_at,
-    }];
-    let (mut batch, _) = mutation::Batch::open(db, id, Precondition::Observed(0), &commands)?;
+    let (mut batch, _) = mutation::Batch::open(db, id, Precondition::Observed(0), &[])?;
     let refs = threads::references(raw)?;
+    // A duplicate writes nothing: the body is persisted only once it is known
+    // to be linked by this same transaction, so a ttl of 0 is enough.
     if !threads::duplicate(db, &batch.account, "inbox", &refs)? {
-        for command in commands {
-            batch.apply(db, command)?;
-        }
+        let blob = super::blob::persist_tx(
+            db,
+            id,
+            &format!("deliver:{:x}", Sha256::digest(raw)),
+            raw,
+            0,
+        )?;
+        batch.apply(
+            db,
+            Command::Append {
+                mailboxes: vec!["inbox".into()],
+                blob,
+                keywords: vec![],
+                received_at,
+            },
+        )?;
     }
     let (_, account) = batch.commit(db)?;
     super::vacation::maybe_reply(db, &account, received_at, raw)

@@ -1,6 +1,6 @@
 use axum::{Router, body::Body, http::Request};
 use http_body_util::BodyExt;
-use mail_api::MetadataStore;
+use mail_api::{BlobStore, MetadataStore};
 use mail_kernel::{Account, Command};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
@@ -47,7 +47,7 @@ async fn fixture() -> (Arc<SqliteStore>, Router, Vec<String>) {
     )
     .unwrap();
     for revision in 0..3 {
-        db.execute("a", mail_api::Precondition::Observed(revision), vec![Command::Append { mailboxes:vec!["inbox".into()], raw:b"From: alice@example.org\r\nTo: remote@example.net\r\nSubject: query\r\n\r\nbody\r\n".to_vec(), keywords:vec![], received_at:1 }]).unwrap();
+        db.execute("a", mail_api::Precondition::Observed(revision), vec![db.append("a", vec!["inbox".into()], b"From: alice@example.org\r\nTo: remote@example.net\r\nSubject: query\r\n\r\nbody\r\n", vec![], 1).unwrap()]).unwrap();
     }
     let service = Arc::new(MailService {
         outbound: Some(db.clone()),

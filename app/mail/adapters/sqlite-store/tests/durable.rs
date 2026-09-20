@@ -126,7 +126,7 @@ fn temporary_blobs_survive_restart_obey_quota_expire_and_stay_account_scoped() {
         let connection = rusqlite::Connection::open(&path).unwrap();
         connection
             .execute(
-                "UPDATE blobs SET expires_at=unixepoch()-1 WHERE account='a'",
+                "UPDATE blob_reservations SET expires_at=unixepoch()-1 WHERE account='a'",
                 [],
             )
             .unwrap();

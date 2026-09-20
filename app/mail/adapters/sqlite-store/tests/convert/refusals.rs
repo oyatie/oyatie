@@ -46,7 +46,7 @@ fn every_binary_refuses_a_file_carrying_the_converting_marker() {
     db.execute_batch(
         "CREATE TABLE schema_version (version INTEGER PRIMARY KEY, state TEXT NOT NULL,
             backup_path TEXT, backup_sha256 TEXT, converted_at_utc TEXT, operator TEXT);
-         INSERT INTO schema_version(version,state,backup_path) VALUES(2,'converting','/nowhere/backup.sqlite');",
+         INSERT INTO schema_version(version,state,backup_path) VALUES(3,'converting','/nowhere/backup.sqlite');",
     )
     .unwrap();
     drop(db);
@@ -54,7 +54,7 @@ fn every_binary_refuses_a_file_carrying_the_converting_marker() {
         Err(OpenError::Refused(refusal)) => refusal,
         other => panic!("expected refusal, got {:?}", other.map(|_| ())),
     };
-    assert_eq!(error, Refusal::Converting { version: 2 });
+    assert_eq!(error, Refusal::Converting { version: 3 });
     assert!(error.to_string().contains("`converting` marker present"));
     // A resumed conversion must name the recorded backup.
     assert!(matches!(
@@ -147,4 +147,33 @@ fn convert_is_busy_while_another_connection_has_touched_the_database() {
     let conversion = converter.convert(&backup, OPERATOR).unwrap();
     assert_eq!(conversion.accounts, 4);
     assert!(SqliteStore::open(&database).is_ok());
+}
+
+#[test]
+fn a_versioned_file_below_this_binary_is_told_to_recreate_not_convert() {
+    // Only legacy (version 1) files have a conversion; an intermediate version
+    // never reached a release, so the refusal must not point at `convert`.
+    let temp = Temp::new("intermediate");
+    let database = temp.path("mail.sqlite");
+    drop(SqliteStore::open(&database).unwrap());
+    rusqlite::Connection::open(&database)
+        .unwrap()
+        .execute_batch("UPDATE schema_version SET version=2")
+        .unwrap();
+    let error = match SqliteStore::open(&database) {
+        Err(OpenError::Refused(refusal)) => refusal,
+        other => panic!("expected refusal, got {:?}", other.map(|_| ())),
+    };
+    let text = error.to_string();
+    assert!(
+        text.contains("no conversion path from schema version 2"),
+        "{text}"
+    );
+    assert!(!text.contains("--backup-verified"), "{text}");
+    assert!(matches!(
+        Converter::open(&database)
+            .unwrap()
+            .convert(&temp.path("b.sqlite"), OPERATOR),
+        Err(ConvertError::NotLegacy(_))
+    ));
 }

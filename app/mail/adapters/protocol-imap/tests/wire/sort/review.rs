@@ -1,4 +1,5 @@
 use super::*;
+use mail_api::BlobStore;
 
 #[tokio::test]
 async fn sort_invalid_numeric_timezone_uses_utc_instead_of_wrapping_its_digits() {
@@ -96,12 +97,16 @@ async fn oracle_missing_and_indexed_empty_subject_tie_in_descending_order() {
         db.execute(
             "a",
             mail_api::Precondition::Observed(db.account("a").unwrap().revision),
-            vec![Command::Append {
-                mailboxes: vec!["inbox".into()],
-                received_at,
-                raw: format!("{header}\r\n\r\nbody").into_bytes(),
-                keywords: vec![],
-            }],
+            vec![
+                db.append(
+                    "a",
+                    vec!["inbox".into()],
+                    format!("{header}\r\n\r\nbody").as_bytes(),
+                    vec![],
+                    received_at,
+                )
+                .unwrap(),
+            ],
         )
         .unwrap();
     }

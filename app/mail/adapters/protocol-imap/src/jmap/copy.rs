@@ -73,25 +73,18 @@ pub(super) fn copy(
             } else {
                 email::utc_date(&value["receivedAt"])?
             };
-            retry::commit(
-                service,
-                token,
-                &current,
-                conditional,
-                vec![Command::Append {
-                    mailboxes,
-                    keywords,
-                    received_at,
-                    raw: service
-                        .download(token, source_id, &message.id)
-                        .map_err(error)?,
-                }],
-                budget,
+            let raw = service
+                .download(token, source_id, &message.id)
+                .map_err(error)?;
+            let append = service
+                .append(token, &current.id, mailboxes, &raw, keywords, received_at)
+                .map_err(error)?;
+            retry::commit(service, token, &current, conditional, vec![append], budget).map_err(
+                |e| match e {
+                    Error::Invalid | Error::NotFound => "invalidProperties",
+                    _ => error(e),
+                },
             )
-            .map_err(|e| match e {
-                Error::Invalid | Error::NotFound => "invalidProperties",
-                _ => error(e),
-            })
         })();
         match copied {
             Ok((execution, account)) => {

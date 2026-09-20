@@ -233,7 +233,8 @@ impl MetadataStore for SqliteStore {
         blob::put(self, account, raw)
     }
     fn blob(&self, account: &str, id: &str) -> Result<Vec<u8>, Error> {
-        blob::get(self, account, id)
+        let db = self.connection.lock().map_err(|_| Error::Unavailable)?;
+        blob::get(&db, account, id)
     }
     fn account(&self, id: &str) -> Result<Account, Error> {
         let mut db = self.connection.lock().map_err(|_| Error::Unavailable)?;

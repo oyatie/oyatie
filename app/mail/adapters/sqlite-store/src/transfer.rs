@@ -11,7 +11,7 @@ pub(super) fn copy(
     target: &str,
 ) -> Result<(), Error> {
     let copied = db.execute(
-        "INSERT INTO message_bodies(account,id,content) SELECT account,?3,content FROM message_bodies WHERE account=?1 AND id=?2",
+        "INSERT INTO blob_links(account,owner,hash,version_id) SELECT account,'message:'||?3,hash,version_id FROM blob_links WHERE account=?1 AND owner='message:'||?2",
         params![account, source, target],
     ).map_err(storage)?;
     if copied != 1 {

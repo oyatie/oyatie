@@ -1,4 +1,5 @@
 use super::*;
+use mail_api::BlobStore;
 
 #[tokio::test]
 async fn fetch_header_field_names_accept_quoted_astrings() {
@@ -143,12 +144,10 @@ async fn fetch_whole_message_does_not_require_successful_mime_parsing() {
         db.execute(
             "a",
             mail_api::Precondition::Observed(revision),
-            vec![mail_kernel::Command::Append {
-                mailboxes: vec!["inbox".into()],
-                received_at: 1_000_000_000,
-                raw: raw.to_vec(),
-                keywords: vec![],
-            }],
+            vec![
+                db.append("a", vec!["inbox".into()], raw, vec![], 1_000_000_000)
+                    .unwrap(),
+            ],
         )
         .unwrap();
     }

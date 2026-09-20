@@ -1,6 +1,6 @@
 use axum::{Router, body::Body, http::Request};
 use http_body_util::BodyExt;
-use mail_api::{MetadataStore, Policy};
+use mail_api::{BlobStore, MetadataStore, Policy};
 use mail_kernel::{Account, Command};
 use mail_service::MailService;
 use mail_sqlite_store::SqliteStore;
@@ -33,12 +33,16 @@ impl Fixture {
         db.execute(
             "a",
             mail_api::Precondition::Observed(0),
-            vec![Command::Append {
-                mailboxes: vec!["inbox".into()],
-                raw: raw.to_vec(),
-                keywords: vec!["$draft".into(), "$seen".into()],
-                received_at: 1,
-            }],
+            vec![
+                db.append(
+                    "a",
+                    vec!["inbox".into()],
+                    raw,
+                    vec!["$draft".into(), "$seen".into()],
+                    1,
+                )
+                .unwrap(),
+            ],
         )
         .unwrap();
         let service = Arc::new(MailService {

@@ -1,4 +1,5 @@
 use super::*;
+use mail_api::BlobStore;
 use mail_kernel::Command;
 
 #[path = "search/literals.rs"]
@@ -59,12 +60,16 @@ async fn session() -> (
         db.execute(
             "a",
             mail_api::Precondition::Observed(db.account("a").unwrap().revision),
-            vec![Command::Append {
-                mailboxes: vec!["inbox".into()],
-                received_at,
-                raw: raw.as_bytes().to_vec(),
-                keywords: keywords.into_iter().map(str::to_owned).collect(),
-            }],
+            vec![
+                db.append(
+                    "a",
+                    vec!["inbox".into()],
+                    raw.as_bytes(),
+                    keywords.into_iter().map(str::to_owned).collect(),
+                    received_at,
+                )
+                .unwrap(),
+            ],
         )
         .unwrap();
     }

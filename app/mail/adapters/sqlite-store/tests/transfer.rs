@@ -1,4 +1,4 @@
-use mail_api::{Events, MetadataStore, Precondition};
+use mail_api::{BlobStore, Events, MetadataStore, Precondition};
 use mail_kernel::{Account, Command, Error};
 use mail_sqlite_store::SqliteStore;
 
@@ -16,12 +16,8 @@ fn database(quota: usize) -> SqliteStore {
             Command::CreateMailbox {
                 name: "Archive".into(),
             },
-            Command::Append {
-                mailboxes: vec!["inbox".into()],
-                raw: RAW.to_vec(),
-                keywords: vec!["$seen".into()],
-                received_at: 1234,
-            },
+            db.append("a", vec!["inbox".into()], RAW, vec!["$seen".into()], 1234)
+                .unwrap(),
         ],
     )
     .unwrap();
@@ -149,12 +145,10 @@ fn transfer_preserves_bodies_threads_and_account_isolation_across_rollback_and_r
         db.execute(
             id,
             Precondition::Require(0),
-            vec![Command::Append {
-                mailboxes: vec!["inbox".into()],
-                raw: raw.to_vec(),
-                keywords: vec!["$seen".into()],
-                received_at: 1234,
-            }],
+            vec![
+                db.append(id, vec!["inbox".into()], raw, vec!["$seen".into()], 1234)
+                    .unwrap(),
+            ],
         )
         .unwrap();
     }
@@ -169,9 +163,12 @@ fn transfer_preserves_bodies_threads_and_account_isolation_across_rollback_and_r
     assert_eq!(db.blob("a", "e1").unwrap(), RAW);
     assert_eq!(db.blob("a", "e2"), Err(Error::NotFound));
     assert_eq!(
-        sql.query_row("SELECT count(*) FROM message_bodies", [], |r| r
-            .get::<_, usize>(0))
-            .unwrap(),
+        sql.query_row(
+            "SELECT count(*) FROM blob_links WHERE owner LIKE 'message:%'",
+            [],
+            |r| r.get::<_, usize>(0)
+        )
+        .unwrap(),
         2
     );
     sql.execute_batch("DROP TRIGGER reject_transfer").unwrap();
@@ -197,12 +194,7 @@ fn transfer_preserves_bodies_threads_and_account_isolation_across_rollback_and_r
     let linked = run(
         &db,
         moved.revision,
-        vec![Command::Append {
-            mailboxes: vec!["inbox".into()],
-            raw: b"Message-ID: <reply@example.org>\r\nReferences: <original@example.org>\r\nSubject: Re: durable\r\n\r\nreply\r\n".to_vec(),
-            keywords: vec![],
-            received_at: 1235,
-        }],
+        vec![db.append("a", vec!["inbox".into()], b"Message-ID: <reply@example.org>\r\nReferences: <original@example.org>\r\nSubject: Re: durable\r\n\r\nreply\r\n", vec![], 1235).unwrap()],
     )
     .unwrap();
     assert_eq!(linked.messages.len(), 2);

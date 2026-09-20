@@ -1,4 +1,5 @@
 use super::{REVISION, TOKEN, search_client::*};
+use mail_api::BlobStore;
 use mail_api::MetadataStore;
 use mail_kernel::{Account, Command};
 use mail_service::{MailService, OwnerPolicy};
@@ -57,12 +58,16 @@ async fn upstream_imap_search() {
         db.execute(
             "a",
             mail_api::Precondition::Observed(account.revision),
-            vec![Command::Append {
-                mailboxes: vec!["inbox".into()],
-                raw: raw.to_vec(),
-                keywords: vec![format!("Flag_{index:03}")],
-                received_at: 1_789_430_400,
-            }],
+            vec![
+                db.append(
+                    "a",
+                    vec!["inbox".into()],
+                    raw,
+                    vec![format!("Flag_{index:03}")],
+                    1_789_430_400,
+                )
+                .unwrap(),
+            ],
         )
         .unwrap();
     }

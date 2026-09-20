@@ -1,6 +1,6 @@
 //! `history/{revision}` paging, consumer-bounded compaction, and the SMTP
 //! duplicate suppression `deliver_once` applies on the way into INBOX.
-use mail_api::{Consumer, MetadataStore, Precondition};
+use mail_api::{BlobStore, Consumer, MetadataStore, Precondition};
 use mail_kernel::{
     Account, Command, Error, HistoryEntry, MailboxProperties, Retention, RetentionPolicy,
 };
@@ -8,13 +8,15 @@ use mail_sqlite_store::SqliteStore;
 
 const TOKEN: &str = "0123456789abcdef0123456789abcdef";
 
-fn append(n: usize) -> Command {
-    Command::Append {
-        mailboxes: vec!["inbox".into()],
-        raw: format!("Subject: {n}\r\n\r\nx").into_bytes(),
-        keywords: vec![],
-        received_at: n as i64,
-    }
+fn append(db: &SqliteStore, n: usize) -> Command {
+    db.append(
+        "a",
+        vec!["inbox".into()],
+        format!("Subject: {n}\r\n\r\nx").as_bytes(),
+        vec![],
+        n as i64,
+    )
+    .unwrap()
 }
 
 /// Revisions 1..=3 append e1..e3 in one batch (three `Added` rows at 3),
@@ -27,7 +29,7 @@ fn fixture() -> SqliteStore {
     )
     .unwrap();
     let batches = [
-        vec![append(1), append(2), append(3)],
+        vec![append(&db, 1), append(&db, 2), append(&db, 3)],
         vec![Command::Keywords {
             id: "e1".into(),
             keywords: vec!["$seen".into()],
@@ -193,7 +195,10 @@ fn set_mailbox(db: &SqliteStore, message: &str, mailbox: &str) {
 
 #[test]
 fn deliver_once_suppresses_a_duplicate_only_in_inbox_or_junk() {
-    let db = SqliteStore::open(":memory:").unwrap();
+    let path = std::env::temp_dir().join(format!("mail-dedup-{}.sqlite", std::process::id()));
+    let _ = std::fs::remove_file(&path);
+    let db = SqliteStore::open(&path).unwrap();
+    let sql = rusqlite::Connection::open(&path).unwrap();
     db.provision(
         Account::new("a", "t", "alice", "alice@example.org").unwrap(),
         TOKEN,
@@ -233,9 +238,25 @@ fn deliver_once_suppresses_a_duplicate_only_in_inbox_or_junk() {
     db.deliver_once("a", "k1", RAW, 1).unwrap();
     assert_eq!(count(), 1);
     assert_eq!(mailbox_of(&db, "e3"), ["inbox"]);
-    // Same Message-ID linked to INBOX: suppressed, receipt still recorded.
-    db.deliver_once("a", "k2", RAW, 1).unwrap();
+    // Same Message-ID linked to INBOX: suppressed, receipt still recorded,
+    // and no body or reservation is written for the suppressed copy.
+    let bodies = || -> (u64, u64) {
+        let n = |t: &str| -> u64 {
+            sql.query_row(&format!("SELECT count(*) FROM {t}"), [], |r| r.get(0))
+                .unwrap()
+        };
+        (n("blob_content"), n("blob_reserved"))
+    };
+    let before = bodies();
+    db.deliver_once(
+        "a",
+        "k2",
+        b"Message-ID: <one@example.org>\r\nSubject: dup\r\n\r\nother",
+        1,
+    )
+    .unwrap();
     assert_eq!(count(), 1);
+    assert_eq!(bodies(), before, "a suppressed duplicate leaves no body");
     assert_eq!(
         db.deliver_once("a", "k2", b"other", 1),
         Err(Error::Conflict)
@@ -265,4 +286,7 @@ fn deliver_once_suppresses_a_duplicate_only_in_inbox_or_junk() {
             Err(Error::Conflict)
         );
     }
+    drop(sql);
+    drop(db);
+    std::fs::remove_file(&path).unwrap();
 }

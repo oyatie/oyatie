@@ -1,9 +1,11 @@
 #![forbid(unsafe_code)]
 
 use mail_kernel::{Account, Command, Error, HistoryEntry};
+mod blob_store;
 mod queue;
 mod submission;
 mod submission_store;
+pub use blob_store::{BlobStore, COMMAND_RESERVATION_SECS, UPLOAD_RESERVATION_SECS};
 pub use queue::{DeliveryFailure, DeliveryLease, DeliveryQueue, DeliveryTarget, QueuedMessage};
 pub use submission::{DeliveryOutcome, MailTransport, OutboundLease, SubmissionQueue};
 pub use submission_store::{
@@ -147,8 +149,9 @@ pub trait MetadataStore: Send + Sync {
         raw: &[u8],
         received_at: i64,
     ) -> Result<(), Error>;
-    /// Temporary blobs are account-scoped, quota-limited, and retained for at
-    /// least 24 hours after upload or copy. Message blobs live with the message.
+    /// JMAP upload: the body persists under a 24 h upload reservation and is
+    /// addressed as `b<hash>`; `blob` resolves that id or a message id to the
+    /// version this account links or holds.
     fn put_blob(&self, account: &str, raw: &[u8]) -> Result<String, Error>;
     fn blob(&self, account: &str, id: &str) -> Result<Vec<u8>, Error>;
     /// History rows after `since`, at most `limit` rows without splitting a
@@ -180,8 +183,8 @@ impl Consumer {
     }
 }
 
-pub trait Store: MetadataStore + SubmissionStore {}
-impl<T: MetadataStore + SubmissionStore + ?Sized> Store for T {}
+pub trait Store: MetadataStore + SubmissionStore + BlobStore {}
+impl<T: MetadataStore + SubmissionStore + BlobStore + ?Sized> Store for T {}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Event {

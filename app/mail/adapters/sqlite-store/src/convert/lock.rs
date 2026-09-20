@@ -27,6 +27,15 @@ impl std::fmt::Display for ConvertError {
         match self {
             Self::Busy => write!(f, "database is in use (SQLITE_BUSY): stop `serve` first"),
             Self::Backup(check) => write!(f, "backup refused: {check}"),
+            Self::NotLegacy(schema::SchemaState::Complete { version })
+                if *version < schema::SCHEMA_VERSION =>
+            {
+                write!(
+                    f,
+                    "no conversion path from schema version {version} to {}; recreate the database (only legacy version-1 files convert)",
+                    schema::SCHEMA_VERSION
+                )
+            }
             Self::NotLegacy(state) => write!(f, "nothing to convert: {state:?}"),
             Self::BackupMismatch { recorded } => {
                 write!(
@@ -145,7 +154,7 @@ impl Converter {
             tx.commit().map_err(storage)?;
         }
         let tx = self.db.unchecked_transaction().map_err(storage)?;
-        tx.execute_batch("DROP TABLE legacy_accounts; DROP TABLE legacy_thread_indexed;")
+        tx.execute_batch("DROP TABLE legacy_accounts; DROP TABLE legacy_thread_indexed; DROP TABLE IF EXISTS message_bodies; DROP TABLE IF EXISTS blobs;")
             .map_err(storage)?;
         tx.execute(
             "UPDATE schema_version SET state='complete',converted_at_utc=strftime('%Y-%m-%dT%H:%M:%SZ','now'),operator=?1 WHERE version=?2",
@@ -180,6 +189,7 @@ impl Converter {
              ALTER TABLE thread_indexed RENAME TO legacy_thread_indexed;",
         );
         ddl.push_str(schema::DDL);
+        ddl.push_str(crate::blob::DDL);
         let tx = self.db.unchecked_transaction().map_err(storage)?;
         tx.execute_batch(&ddl).map_err(storage)?;
         tx.execute(

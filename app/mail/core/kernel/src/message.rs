@@ -188,7 +188,7 @@ impl Account {
     pub(super) fn append(
         &mut self,
         mailboxes: Vec<String>,
-        raw: Vec<u8>,
+        size: usize,
         mut keywords: Vec<String>,
         received_at: i64,
         revision: u64,
@@ -196,14 +196,14 @@ impl Account {
         if mailboxes.is_empty() || !valid_keywords(&keywords) {
             return Err(Error::Invalid);
         }
-        if raw.len() > MAX_MESSAGE_BYTES {
+        if size > MAX_MESSAGE_BYTES {
             return Err(Error::OverQuota);
         }
-        self.charge(raw.len())?;
+        self.charge(size)?;
         let links = self.allocate_uids(&mailboxes)?;
         keywords.sort();
         keywords.dedup();
-        self.used_bytes += raw.len();
+        self.used_bytes += size;
         self.messages.push(Message {
             id: format!("e{revision}"),
             modseq: 0,
@@ -212,7 +212,7 @@ impl Account {
             email_identity: None,
             thread_identity: None,
             mailboxes: BTreeMap::new(),
-            size: raw.len(),
+            size,
             keywords,
             received_at,
         });

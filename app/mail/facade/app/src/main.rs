@@ -5,6 +5,7 @@ mod https;
 mod outbound;
 mod outbound_config;
 mod session;
+mod sweep;
 use mail_api::DeliveryQueue;
 use mail_kernel::Account;
 use mail_service::{MailService, OwnerPolicy};
@@ -84,6 +85,8 @@ async fn serve(
     let (stop, stopped) = tokio::sync::oneshot::channel();
     let (delivery_stop, delivery_stopped) = tokio::sync::oneshot::channel();
     let mut delivery_task = tokio::spawn(delivery::run(service.clone(), delivery_stopped));
+    let (sweep_stop, sweep_stopped) = tokio::sync::oneshot::channel();
+    let mut sweep_task = tokio::spawn(sweep::run(service.clone(), sweep_stopped));
     let (outbound_stop, outbound_stopped) = tokio::sync::watch::channel(false);
     let mut outbound_workers = tokio::task::JoinSet::new();
     if let (Some(queue), Some(transport)) = (&service.outbound, relay) {
@@ -114,6 +117,7 @@ async fn serve(
             signal = &mut shutdown => { signal?; break; }
             result = &mut http_task => { result??; return Err("HTTP listener stopped unexpectedly".into()); }
             result = &mut delivery_task => { result?; return Err("Delivery worker stopped unexpectedly".into()); }
+            result = &mut sweep_task => { result?; return Err("Blob sweep stopped unexpectedly".into()); }
             Some(result) = outbound_workers.join_next(), if !outbound_workers.is_empty() => {
                 result?; return Err("Outbound worker stopped unexpectedly".into());
             }
@@ -162,6 +166,7 @@ async fn serve(
         let _ = http_task.await;
     }
     let _ = delivery_stop.send(());
+    let _ = sweep_stop.send(());
     if tokio::time::timeout_at(drain, async {
         while outbound_workers.join_next().await.is_some() {}
     })

@@ -1,9 +1,9 @@
 use axum::{Router, body::Body, http::Request};
 use mail_api::{
-    AccountInfo, Execution, HistoryPage, Identity, MailboxSelection, MessageSelection,
+    AccountInfo, BlobStore, Execution, HistoryPage, Identity, MailboxSelection, MessageSelection,
     MetadataStore, Precondition, Principal,
 };
-use mail_kernel::{Account, Command, Error};
+use mail_kernel::{Account, BlobRef, Command, Error};
 use mail_service::{MailService, OwnerPolicy};
 use mail_sqlite_store::SqliteStore;
 use std::sync::{
@@ -135,6 +135,21 @@ impl MetadataStore for Adapter {
         cursors: &[(mail_api::Consumer, u64)],
     ) -> Result<mail_kernel::Retention, Error> {
         self.db.compact_history(account, now, policy, cursors)
+    }
+}
+
+impl BlobStore for Adapter {
+    fn persist(&self, a: &str, s: &str, r: &[u8], ttl: i64) -> Result<BlobRef, Error> {
+        self.db.persist(a, s, r, ttl)
+    }
+    fn renew(&self, a: &str, s: &str, ttl: i64) -> Result<(), Error> {
+        self.db.renew(a, s, ttl)
+    }
+    fn read(&self, a: &str, b: &BlobRef) -> Result<Vec<u8>, Error> {
+        self.db.read(a, b)
+    }
+    fn orphan_sweep(&self, now: i64, limit: usize) -> Result<usize, Error> {
+        self.db.orphan_sweep(now, limit)
     }
 }
 
