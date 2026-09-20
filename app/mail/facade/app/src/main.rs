@@ -252,7 +252,14 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
     match args.get(1).map(String::as_str) {
         Some("provision") if args.len()==7 => {
             let token=std::env::var("MAIL_TOKEN").map_err(|_| "MAIL_TOKEN is required (at least 32 bytes)")?;
-            SqliteStore::open(&args[2])?.provision(Account::new(&args[4],&args[3],&args[5],&args[6])?,&token)?;
+            SqliteStore::open(&args[2])?.provision(Account::new(&args[4],&args[3],&args[5],&args[6])?,&token)
+                // The store answers both causes with `Conflict`; name them,
+                // because an operator reusing one token across accounts reads
+                // the bare word as "the account already exists".
+                .map_err(|error| match error {
+                    mail_kernel::Error::Conflict => "refused: the account id or address is already provisioned, or MAIL_TOKEN is already in use by another account (every account needs its own token)".to_owned(),
+                    other => other.to_string(),
+                })?;
             Ok(())
         }
         Some("failed") if args.len()==4 => {
