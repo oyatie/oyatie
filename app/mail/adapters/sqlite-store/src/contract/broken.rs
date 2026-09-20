@@ -10,9 +10,10 @@
 //! - `mailbox_uids` likewise derives the UID map from the full projection.
 //! - `compact_history` ignores consumer cursors: never `Retention::Blocked`.
 use mail_api::{
-    AccountInfo, BlobStore, Consumer, Execution, HistoryPage, MailboxSelection, MessageSelection,
-    MetadataStore, Precondition, SubmissionAcceptance, SubmissionChanges, SubmissionFailure,
-    SubmissionPage, SubmissionSelection, SubmissionStore,
+    AccountInfo, AuditRow, BlobStore, ChangeFeed, Consumer, Dirty, Execution, FeedRead,
+    HistoryPage, MailboxSelection, MessageSelection, MetadataStore, Precondition, Resume,
+    SubmissionAcceptance, SubmissionChanges, SubmissionFailure, SubmissionPage,
+    SubmissionSelection, SubmissionStore,
 };
 use mail_kernel::{Account, BlobRef, Command, Error, Retention, RetentionPolicy, SubmissionQuery};
 
@@ -34,7 +35,7 @@ impl<T> Broken<T> {
     }
 }
 
-impl<T: MetadataStore + SubmissionStore + BlobStore> MetadataStore for Broken<T> {
+impl<T: MetadataStore + SubmissionStore + BlobStore + ChangeFeed> MetadataStore for Broken<T> {
     fn account_info(&self, id: &str) -> Result<AccountInfo, Error> {
         self.inner.account_info(id)
     }
@@ -117,3 +118,4 @@ impl<T: MetadataStore + SubmissionStore + BlobStore> MetadataStore for Broken<T>
 
 submission_store!(Broken);
 blob_store!(Broken);
+change_feed!(Broken);

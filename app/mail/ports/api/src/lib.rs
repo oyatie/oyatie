@@ -2,10 +2,12 @@
 
 use mail_kernel::{Account, Command, Error, HistoryEntry};
 mod blob_store;
+mod change_feed;
 mod queue;
 mod submission;
 mod submission_store;
 pub use blob_store::{BlobStore, COMMAND_RESERVATION_SECS, UPLOAD_RESERVATION_SECS};
+pub use change_feed::{AuditRow, ChangeFeed, Cursor, Dirty, FeedRead, Resume};
 pub use queue::{DeliveryFailure, DeliveryLease, DeliveryQueue, DeliveryTarget, QueuedMessage};
 pub use submission::{DeliveryOutcome, MailTransport, OutboundLease, SubmissionQueue};
 pub use submission_store::{
@@ -183,23 +185,5 @@ impl Consumer {
     }
 }
 
-pub trait Store: MetadataStore + SubmissionStore + BlobStore {}
-impl<T: MetadataStore + SubmissionStore + BlobStore + ?Sized> Store for T {}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Event {
-    pub sequence: u64,
-    pub tenant: String,
-    pub account: String,
-    pub revision: u64,
-    pub observed_at_ms: u64,
-}
-
-/// An adapter publishes durable events with (account, revision) as the stable
-/// deduplication key. No message content or credential belongs in this event.
-pub trait Events: Send + Sync {
-    fn pending(&self, consumer: &str, limit: usize) -> Result<Vec<Event>, Error>;
-    /// Advance only across the next event. Repeated acknowledgements are safe;
-    /// a consumer cannot skip an event or change another consumer's position.
-    fn acknowledge(&self, consumer: &str, sequence: u64) -> Result<(), Error>;
-}
+pub trait Store: MetadataStore + SubmissionStore + BlobStore + ChangeFeed {}
+impl<T: MetadataStore + SubmissionStore + BlobStore + ChangeFeed + ?Sized> Store for T {}

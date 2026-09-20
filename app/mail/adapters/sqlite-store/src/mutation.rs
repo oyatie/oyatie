@@ -2,7 +2,7 @@
 //! effects, persist exactly those rows. Conflict re-apply lives here; only a
 //! `Require` precondition surfaces `Conflict`.
 use super::{records, storage, threads};
-use mail_api::{Execution, Precondition};
+use mail_api::{Consumer, Execution, Precondition};
 use mail_kernel::{Account, Command, Effects, Error, Scope};
 use rusqlite::{Connection, params};
 
@@ -12,6 +12,8 @@ pub(super) struct Batch {
     outside: Vec<String>,
     /// Members this commit may still re-thread by merging (`MERGE_LIMIT`).
     merge_budget: usize,
+    /// Consumers whose dirty key this commit writes.
+    enabled: Vec<Consumer>,
 }
 
 impl Batch {
@@ -23,6 +25,7 @@ impl Batch {
         id: &str,
         precondition: Precondition,
         commands: &[Command],
+        enabled: &[Consumer],
     ) -> Result<(Self, bool), Error> {
         let mut account = records::header(db, id)?;
         let reapply = match precondition {
@@ -40,6 +43,7 @@ impl Batch {
                 account,
                 outside: vec![],
                 merge_budget: threads::MERGE_LIMIT,
+                enabled: enabled.to_vec(),
             },
             reapply,
         ))
@@ -128,7 +132,7 @@ impl Batch {
             effects.revision,
             &mut effects.history,
         )?;
-        persist(db, &self.before, &self.account, &effects)?;
+        persist(db, &self.before, &self.account, &effects, &self.enabled)?;
         Ok((
             Execution {
                 revision: effects.revision,
@@ -145,6 +149,7 @@ fn persist(
     before: &Account,
     after: &Account,
     effects: &Effects,
+    enabled: &[Consumer],
 ) -> Result<(), Error> {
     records::upsert_header(db, after)?;
     for mailbox in &after.mailboxes {
@@ -172,11 +177,7 @@ fn persist(
         delete_message(db, &after.id, id)?;
     }
     super::history::record(db, &after.id, effects.revision, &effects.history)?;
-    db.execute(
-        "INSERT INTO events(tenant,account,revision,observed_at_ms) VALUES(?1,?2,?3,unixepoch()*1000)",
-        params![after.tenant, after.id, after.revision],
-    )
-    .map_err(storage)?;
+    super::feed::mark(db, enabled, &after.tenant, &after.id)?;
     Ok(())
 }
 
@@ -186,8 +187,9 @@ pub(super) fn run(
     id: &str,
     precondition: Precondition,
     commands: Vec<Command>,
+    enabled: &[Consumer],
 ) -> Result<(Execution, Account), Error> {
-    let (mut batch, reapply) = Batch::open(db, id, precondition, &commands)?;
+    let (mut batch, reapply) = Batch::open(db, id, precondition, &commands, enabled)?;
     for command in commands {
         if reapply && batch.skips(&command) {
             continue;

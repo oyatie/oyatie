@@ -3,9 +3,10 @@
 //! the account.
 use super::{reset_rows, rows_read};
 use mail_api::{
-    AccountInfo, BlobStore, Consumer, Execution, HistoryPage, MailboxSelection, MessageSelection,
-    MetadataStore, Precondition, SubmissionAcceptance, SubmissionChanges, SubmissionFailure,
-    SubmissionPage, SubmissionSelection, SubmissionStore,
+    AccountInfo, AuditRow, BlobStore, ChangeFeed, Consumer, Dirty, Execution, FeedRead,
+    HistoryPage, MailboxSelection, MessageSelection, MetadataStore, Precondition, Resume,
+    SubmissionAcceptance, SubmissionChanges, SubmissionFailure, SubmissionPage,
+    SubmissionSelection, SubmissionStore,
 };
 use mail_kernel::{Account, BlobRef, Command, Error, Retention, RetentionPolicy, SubmissionQuery};
 use std::collections::BTreeMap;
@@ -76,3 +77,4 @@ impl<T> Counting<T> {
 metadata_store!(Counting);
 submission_store!(Counting);
 blob_store!(Counting);
+change_feed!(Counting);

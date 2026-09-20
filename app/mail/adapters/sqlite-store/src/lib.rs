@@ -6,8 +6,9 @@ mod content;
 pub mod contract;
 pub mod convert;
 mod delivery;
-mod events;
 mod failures;
+mod feed;
+mod feed_ops;
 mod history;
 mod mutation;
 mod outbound;
@@ -34,6 +35,9 @@ use std::{path::Path, sync::Mutex, time::Duration};
 
 pub struct SqliteStore {
     connection: Mutex<Connection>,
+    /// `ChangeFeed` consumers enabled in this cell: each commit writes their
+    /// dirty key and compaction never passes their cursors.
+    enabled: Vec<mail_api::Consumer>,
     /// Test-only: the directory of a converted fixture, removed after the
     /// connection closes (fields drop in declaration order).
     #[cfg(feature = "contract")]
@@ -71,9 +75,19 @@ impl SqliteStore {
         submission_schema::initialize(&db)?;
         Ok(Self {
             connection: Mutex::new(db),
+            enabled: vec![],
             #[cfg(feature = "contract")]
             scratch: None,
         })
+    }
+
+    /// Enable `ChangeFeed` consumers for this cell (configuration, not state).
+    pub fn with_consumers(mut self, consumers: &[mail_api::Consumer]) -> Self {
+        self.enabled = consumers.to_vec();
+        self
+    }
+    pub fn consumers(&self) -> &[mail_api::Consumer] {
+        &self.enabled
     }
 
     /// Local administration API; listeners do not expose provisioning or raw tokens.
@@ -264,7 +278,7 @@ impl MetadataStore for SqliteStore {
         let tx = db
             .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(storage)?;
-        let (execution, _) = mutation::run(&tx, id, precondition, commands)?;
+        let (execution, _) = mutation::run(&tx, id, precondition, commands, &self.enabled)?;
         tx.commit().map_err(storage)?;
         Ok(execution)
     }

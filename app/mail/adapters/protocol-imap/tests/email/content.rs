@@ -1,5 +1,8 @@
 use super::*;
-use mail_api::{AccountInfo, BlobStore, Execution, HistoryPage, MailboxSelection, Precondition};
+use mail_api::{
+    AccountInfo, AuditRow, BlobStore, ChangeFeed, Consumer, Dirty, Execution, FeedRead,
+    HistoryPage, MailboxSelection, Precondition, Resume,
+};
 use mail_kernel::{BlobRef, Error};
 use std::sync::{
     Mutex,
@@ -70,21 +73,6 @@ impl MetadataStore for ObservedStore {
         cursors: &[(mail_api::Consumer, u64)],
     ) -> Result<mail_kernel::Retention, Error> {
         self.inner.compact_history(account, now, policy, cursors)
-    }
-}
-
-impl BlobStore for ObservedStore {
-    fn persist(&self, a: &str, s: &str, r: &[u8], ttl: i64) -> Result<BlobRef, Error> {
-        self.inner.persist(a, s, r, ttl)
-    }
-    fn renew(&self, a: &str, s: &str, ttl: i64) -> Result<(), Error> {
-        self.inner.renew(a, s, ttl)
-    }
-    fn read(&self, a: &str, b: &BlobRef) -> Result<Vec<u8>, Error> {
-        self.inner.read(a, b)
-    }
-    fn orphan_sweep(&self, now: i64, limit: usize) -> Result<usize, Error> {
-        self.inner.orphan_sweep(now, limit)
     }
 }
 
@@ -271,3 +259,6 @@ impl mail_api::SubmissionStore for ObservedStore {
         self.inner.submission_changes(a, r, l)
     }
 }
+
+#[path = "content_feed.rs"]
+mod content_feed;

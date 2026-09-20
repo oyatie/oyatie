@@ -1,4 +1,4 @@
-use mail_api::{Events, MetadataStore, Precondition};
+use mail_api::{MetadataStore, Precondition};
 use mail_kernel::{Account, Command, Error};
 use mail_sqlite_store::SqliteStore;
 
@@ -59,7 +59,6 @@ fn selected_records_update_incrementally_and_roll_back_with_mail_and_events() {
     assert_eq!(db.account("a").unwrap().revision, 2);
     assert_eq!(db.messages("a", &["e1".into()]).unwrap().revision, 2);
     assert_eq!(db.blob("a", "e3"), Err(Error::NotFound));
-    assert_eq!(db.pending("test", 10).unwrap().len(), 2);
     assert_eq!(db.mailbox_uids("a", "inbox").unwrap().uid_next, 3);
     sql.execute_batch("DROP TRIGGER reject_record;").unwrap();
     db.execute(

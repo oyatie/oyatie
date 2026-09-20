@@ -154,7 +154,7 @@ impl Converter {
             tx.commit().map_err(storage)?;
         }
         let tx = self.db.unchecked_transaction().map_err(storage)?;
-        tx.execute_batch("DROP TABLE legacy_accounts; DROP TABLE legacy_thread_indexed; DROP TABLE IF EXISTS message_bodies; DROP TABLE IF EXISTS blobs;")
+        tx.execute_batch("DROP TABLE legacy_accounts; DROP TABLE legacy_thread_indexed; DROP TABLE IF EXISTS message_bodies; DROP TABLE IF EXISTS blobs; DROP TABLE IF EXISTS events; DROP TABLE IF EXISTS event_cursors;")
             .map_err(storage)?;
         tx.execute(
             "UPDATE schema_version SET state='complete',converted_at_utc=strftime('%Y-%m-%dT%H:%M:%SZ','now'),operator=?1 WHERE version=?2",
@@ -190,6 +190,7 @@ impl Converter {
         );
         ddl.push_str(schema::DDL);
         ddl.push_str(crate::blob::DDL);
+        ddl.push_str(crate::feed::DDL);
         let tx = self.db.unchecked_transaction().map_err(storage)?;
         tx.execute_batch(&ddl).map_err(storage)?;
         tx.execute(
