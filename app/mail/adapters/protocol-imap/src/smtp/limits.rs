@@ -5,8 +5,7 @@
 //! lifetime or idle past its timeout is closed with the reference's codes.
 //!
 //! "Stalled" is decided by whether more bytes are already waiting when the
-//! buffer is reached (`>= MAX_LINE_BYTES` without a CRLF, as the reference
-//! receiver decides it) — the reference's per-read semantics, and what its `limits`
+//! buffer is reached without a CRLF, as the reference receiver decides it — the reference's per-read semantics, and what its `limits`
 //! oracle pins by sending the same 4097-byte line both ways. On a socket
 //! that makes the outcome depend on segmentation, as it does there.
 use std::{
@@ -107,15 +106,18 @@ pub(super) async fn line<R: AsyncBufRead + Unpin>(
         if let Some(stop) = meter.charge(n) {
             return Ok(stop);
         }
-        if bytes.len() > HARD_LINE_BYTES {
-            discarding = true;
-        } else if bytes.ends_with(b"\n") {
-            if discarding {
+        // The newline ends this line either way: refusing it here keeps the
+        // next command in lockstep, as the reference's receiver does.
+        if bytes.ends_with(b"\n") {
+            if discarding || bytes.len() > HARD_LINE_BYTES {
                 return Ok(Read::TooLong);
             }
             let end = if bytes.ends_with(b"\r\n") { 2 } else { 1 };
             bytes.truncate(bytes.len() - end);
             return Ok(Read::Line(bytes));
+        }
+        if bytes.len() > HARD_LINE_BYTES {
+            discarding = true;
         }
         // At the buffer without a CRLF: too long only if the peer has
         // stalled; data already waiting is the rest of this line.

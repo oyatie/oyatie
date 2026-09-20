@@ -72,7 +72,7 @@ async fn the_transfer_quota_is_not_replenished_by_a_starttls_upgrade() {
         )
         .await
     });
-    // 34 bytes before the upgrade, more after: the quota covers both
+    // 35 bytes before the upgrade, more after: the quota covers both
     // halves. Each command is sent on its own (pipelined STARTTLS is
     // refused) and its reply drained before the next.
     let mut buf = [0u8; 4096];
@@ -94,4 +94,24 @@ async fn the_transfer_quota_is_not_replenished_by_a_starttls_upgrade() {
     task.await.unwrap().unwrap();
     assert!(result.contains("220 2.0.0 Ready to start TLS."), "{result}");
     assert!(result.contains("452 4.7.28"), "{result}");
+}
+
+/// An over-long command line is refused once, and the command after it is
+/// still answered: the reply lockstep survives a peer's bad line.
+#[tokio::test]
+async fn an_over_long_command_line_is_refused_without_swallowing_the_next_command() {
+    let (service, _db) = service();
+    let (mut client, server) = tokio::io::duplex(1024 * 1024);
+    let task = tokio::spawn(mail_protocol_imap::smtp_session(server, service));
+    // Sized so the read that crosses the 64 KiB bound is also the one
+    // carrying the newline — the case that can swallow the next command.
+    let mut command = vec![b'A'; 65540];
+    command.extend_from_slice(b"\r\nNOOP\r\nQUIT\r\n");
+    client.write_all(&command).await.unwrap();
+    let mut result = String::new();
+    client.read_to_string(&mut result).await.unwrap();
+    task.await.unwrap().unwrap();
+    assert_eq!(result.matches("554 5.3.4").count(), 1, "{result}");
+    assert!(result.contains("250 2.0.0 OK"), "NOOP unanswered: {result}");
+    assert!(result.contains("221 2.0.0 Bye."), "{result}");
 }
