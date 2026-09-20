@@ -93,6 +93,7 @@ fn malformed_or_ambiguous_job_graph_is_refused() {
 fn cadence_test_modules_fit_native_file_budget() {
     for path in [
         "pipeline/core/admission/tests/cadence_graph.rs",
+        "pipeline/core/admission/tests/cadence_graph/graph_honesty.rs",
         "pipeline/core/admission/tests/cadence_graph/workflow_calls.rs",
     ] {
         let violations =

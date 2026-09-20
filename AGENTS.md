@@ -230,7 +230,7 @@ context distinct.
 
 | Command | Role |
 |---|---|
-| `buck2 build //...` | canonical build graph |
+| `buck2 build //...` | canonical build graph; advisory on every push to `dev` |
 | `cargo fmt --all --check` | formatting gate, until buck2 owns formatting |
 | `cargo nextest run --locked --workspace --profile ci` | the required `presubmit` context today; withdrawn when the buck2 wave swaps in |
 | `cargo clippy --workspace --all-targets -- -D warnings` | local lint; being withdrawn |
@@ -276,6 +276,16 @@ commentary on it:
 
 Until that wave lands, cargo still produces the merge verdict, and code and
 configuration asserting so are correct rather than stale.
+
+**The buck2 graph is built on every push to `dev`, advisory.** Founder
+decision, 2026-09-20; it replaces the weekly cadence that carried this lane.
+Advisory is load-bearing, not a hedge: the lane gates nothing, is not a
+required context, and nothing waits on it, so it is never a leg of the merge
+proof and the dual-proof prohibition above is untouched. What per push buys is
+attribution -- a weekly red implicates a week of commits and is therefore
+unactionable, which is how the graph was allowed to rot to three broken
+targets unnoticed. This is the shadow half of the changeover: the graph runs
+non-required until it is honest, and the swap is still one wave.
 
 The cache substrate exists. A NativeLink CAS serves
 `grpcs://cache.oyatie.dev:50051`, and has been called from a GitHub-hosted
@@ -346,8 +356,8 @@ reveal it.
 What is recorded above is authority, not present readiness. At the time of
 writing the buck2 graph does not build cleanly, a cold build measures around
 fourteen minutes, and no cache hit has been demonstrated by any client.
-`GetCapabilities` answering is not a cache hit, and neither is a green weekly
-smoke; treat "the CAS is live" and "buck2 builds are warm" as separate claims
+`GetCapabilities` answering is not a cache hit, and neither is a green
+advisory graph build; treat "the CAS is live" and "buck2 builds are warm" as separate claims
 until a build writes to the cache and a later build on a clean tree reads from
 it.
 

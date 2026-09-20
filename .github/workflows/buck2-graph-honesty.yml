@@ -1,10 +1,13 @@
-# Weekly non-blocking honesty check for the buck2 graph, and the only lane that
-# reads the shared NativeLink cache. It never writes.
+# Advisory honesty check for the buck2 graph, run on every push to `dev`, and
+# the only lane that reads the shared NativeLink cache. It never writes.
 #
-# Not part of the merge path. Red means BUCK/reindeer wiring rotted, or the
-# cache lane below reported something worth reading -- never that a change is
-# refused. AGENTS.md:208 is explicit that a live CAS alone does not overturn
-# ADR-0716.
+# Advisory means it is never a leg of the merge proof: it gates nothing, it is
+# not a required context, and no other job waits on it. Red means BUCK wiring
+# rotted, or the cache lane below reported something worth reading -- never
+# that a change is refused. buck2 is the canonical build graph and cargo still
+# produces the merge verdict (AGENTS.md), and running buck2 beside cargo as a
+# second required proof is the state that ruling forbids. Per push rather than
+# weekly so a red graph implicates one commit instead of a week of them.
 #
 # This lane reads and never writes. An earlier draft argued it should be the
 # single writer, because ephemeral identical runners stand in for the sandbox a
@@ -13,23 +16,21 @@
 # MAPPING -- the right to decide what every later build receives instead of
 # compiling -- and no amount of the first buys the second.
 #
-# Authority: docs/decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md
-#            AGENTS.md:181-191. The buck2/NativeLink record it describes is not
-#            in docs/decisions/: the repository layout gate refused it
-#            (PR #2424), so AGENTS.md carries it.
-name: buck2-weekly-smoke
+# The buck2/NativeLink record this implements is not in docs/decisions/: the
+# repository layout gate refused it (PR #2424), so AGENTS.md carries it.
+name: buck2-graph-honesty
 
 on:
-  schedule:
-    - cron: "17 3 * * 1"
+  push:
+    branches: [dev]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  buck2-weekly-smoke:
-    name: buck2-weekly-smoke (hermetic graph honesty)
+  buck2-graph-honesty:
+    name: buck2 graph honesty (advisory)
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:

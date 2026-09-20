@@ -171,7 +171,7 @@ def _hermetic_rust_toolchain_impl(ctx: AnalysisContext) -> list[Provider]:
 # delta between this rule and the one it replaces stays reviewable. Not a drop-in swap:
 # `distribution` is unknown to `system_rust_toolchain`, and `rustc_target_triple` defaults to
 # RUST_TARGET_TRIPLE above rather than the prelude's host matrix. The remaining defaults match
-# `system_rust_toolchain` in the buck2 pinned at .github/workflows/buck2-weekly-smoke.yml —
+# `system_rust_toolchain` in the buck2 pinned at .github/workflows/buck2-graph-honesty.yml —
 # `.buckconfig` takes the prelude bundled, so that pin is the only statement of which prelude
 # runs. Re-check when it moves: `nightly_features` already defaults the other way in a later
 # prelude.

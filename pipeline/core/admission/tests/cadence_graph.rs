@@ -5,6 +5,8 @@ use std::path::{Path, PathBuf};
 
 #[path = "cadence_graph/cache_qualification.rs"]
 mod cache_qualification;
+#[path = "cadence_graph/graph_honesty.rs"]
+mod graph_honesty;
 #[path = "cadence_graph/live_postgres.rs"]
 mod live_postgres;
 #[path = "cadence_graph/qualification_closure.rs"]
