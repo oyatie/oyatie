@@ -215,6 +215,27 @@ async fn jmap_session_equals_the_matrix() {
         .map(|v| v.as_str().unwrap().to_owned())
         .collect();
     assert_eq!(sorts, tokens(&[rows::JMAP_QUERY_SORTS]));
-    // RFC 8620 §2: the Session state changes only when the object changes.
-    assert_eq!(session["state"], "1");
+    // RFC 8620 §2: the Session state changes exactly when the object does.
+    let again = session_state(service(), "https://mail.example").await;
+    assert_eq!(session["state"], again);
+    assert_ne!(
+        again,
+        session_state(service(), "https://other.example").await
+    );
+}
+
+async fn session_state(service: Arc<MailService>, base: &str) -> Value {
+    let router = mail_protocol_imap::jmap_router(service, base.into());
+    let response = router
+        .oneshot(
+            Request::get("/.well-known/jmap")
+                .header("authorization", format!("Bearer {TOKEN}"))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    let session: Value =
+        serde_json::from_slice(&response.into_body().collect().await.unwrap().to_bytes()).unwrap();
+    session["state"].clone()
 }

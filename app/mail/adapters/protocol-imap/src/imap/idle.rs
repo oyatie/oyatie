@@ -190,7 +190,12 @@ async fn active<S: AsyncRead + AsyncWrite + Unpin>(
     let mut input = Vec::new();
     let mut done = None;
     let mut started = false;
+    let hint = mail_service::notify::subscribe(&state.session.account_id);
     loop {
+        // Armed before the refresh: a commit during it wakes the next wait.
+        let woken = hint.notified();
+        tokio::pin!(woken);
+        woken.as_mut().enable();
         let (send, mut receive) = tokio::sync::mpsc::channel(2);
         let service = service.clone();
         let worker = tokio::task::spawn_blocking(move || -> io::Result<_> {
@@ -246,7 +251,9 @@ async fn active<S: AsyncRead + AsyncWrite + Unpin>(
                     let Some(valid) = line? else { return Ok(true) };
                     done = Some(valid);
                 }
-                _ = tokio::time::sleep(Duration::from_millis(250)) => {}
+                // Woken by a commit on this account, else at the polling floor.
+                _ = &mut woken => {}
+                _ = tokio::time::sleep(mail_service::notify::floor()) => {}
             }
         }
         if let Some(valid) = done {

@@ -5,6 +5,20 @@ use mail_api::{AuditRow, Consumer};
 use mail_kernel::Error;
 use rusqlite::{TransactionBehavior, params};
 
+impl SqliteStore {
+    /// Every provisioned account id, for the cell's compaction pass.
+    pub fn account_ids(&self) -> Result<Vec<String>, Error> {
+        let db = self.connection.lock().map_err(|_| Error::Unavailable)?;
+        let mut ids = db
+            .prepare("SELECT id FROM accounts ORDER BY id")
+            .map_err(storage)?;
+        ids.query_map([], |r| r.get(0))
+            .map_err(storage)?
+            .collect::<Result<_, _>>()
+            .map_err(storage)
+    }
+}
+
 pub(super) fn reconcile(
     store: &SqliteStore,
     consumer: Consumer,

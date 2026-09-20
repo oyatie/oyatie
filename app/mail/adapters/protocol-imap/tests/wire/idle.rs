@@ -112,12 +112,17 @@ async fn idle_announces_new_mail_flags_and_renumbered_expunge_without_client_pol
     }
     let (mut client, task) = start(service, true, 4096).await;
     idle(&mut client).await;
+    // A commit the hint misses is seen within the polling floor (≤ 1.5 s).
+    let started = std::time::Instant::now();
     db.deliver(
         &["alice@example.org".into()],
         b"Subject: arrival\r\n\r\nbody",
     )
     .unwrap();
     until(&mut client, "* 4 EXISTS").await;
+    assert!(started.elapsed() <= Duration::from_millis(1500));
+    // A signalled commit is seen well inside the floor.
+    let started = std::time::Instant::now();
     let account = db.account("a").unwrap();
     db.execute(
         "a",
@@ -128,7 +133,9 @@ async fn idle_announces_new_mail_flags_and_renumbered_expunge_without_client_pol
         }],
     )
     .unwrap();
+    mail_service::notify::signal("a");
     let changed = until(&mut client, "* 2 FETCH").await;
+    assert!(started.elapsed() < Duration::from_millis(500));
     assert!(
         changed.contains("FLAGS (") && changed.contains("\\Seen") && changed.contains("\\Flagged"),
         "{changed}"
@@ -270,8 +277,13 @@ async fn idle_backpressure_stops_more_store_snapshots_and_peer_drop_releases_ses
                 .collect(),
         )
         .unwrap();
+    mail_service::notify::signal("a");
     wait_for(|| store.reads.load(Ordering::SeqCst) > before).await;
-    tokio::time::sleep(Duration::from_millis(300)).await;
+    // Hints keep arriving while the client stalls; none may start a refresh.
+    for _ in 0..3 {
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        mail_service::notify::signal("a");
+    }
     assert!(
         store.reads.load(Ordering::SeqCst) <= before + 2,
         "a stalled reader must prevent accumulating snapshots"

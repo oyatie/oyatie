@@ -6049,6 +6049,7 @@ dependencies = [
  "mail-builder",
  "mail-kernel",
  "mail-parser",
+ "tokio",
 ]
 
 [[package]]

@@ -123,6 +123,11 @@ fn poison_is_kept_and_never_acked_until_dead_lettered_or_retired() {
         .unwrap();
     assert!(db.poisoned(FOUNDRY).unwrap().is_empty());
     assert_eq!(db.cursors("a1", &[FOUNDRY]).unwrap(), [(FOUNDRY, r)]);
+    // Released: the account is schedulable again and a tail ack clears it.
+    let r2 = touch(&db, "a1");
+    assert_eq!(dirty(&db, &mut Resume::default()), ["a1"]);
+    db.acknowledge(FOUNDRY, "a1", r2, 0, 0).unwrap();
+    assert!(dirty(&db, &mut Resume::default()).is_empty());
     let audit = db.audit(10).unwrap();
     assert_eq!(audit[0].kind, "dead-letter");
     assert!(
