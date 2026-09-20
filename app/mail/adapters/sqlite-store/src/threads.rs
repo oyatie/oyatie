@@ -5,6 +5,11 @@ use rusqlite::{Connection, params};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
 
+// ponytail: merges re-thread inline, at most this many members per commit;
+// a larger side keeps its own thread until merges become follow-up jobs
+// (S9 measures whether that is needed under the FDB envelope).
+const MERGE_LIMIT: usize = 1000;
+
 pub(super) struct References {
     pub(super) subject: Vec<u8>,
     pub(super) keys: BTreeSet<Vec<u8>>,
@@ -81,6 +86,7 @@ pub(super) fn duplicate(
         .collect::<Result<Vec<_>, _>>()
         .map_err(storage)?;
     for candidate in candidates {
+        crate::count_row();
         let linked: bool = db
             .query_row(
                 "SELECT EXISTS(SELECT 1 FROM message_mailboxes WHERE account=?1 AND message=?2 AND (mailbox=?3 OR mailbox=?4))",
@@ -97,6 +103,7 @@ pub(super) fn duplicate(
         let keys = query
             .query_map(params![account.id, candidate], |r| r.get::<_, Vec<u8>>(0))
             .map_err(storage)?
+            .inspect(|_| crate::count_row())
             .collect::<Result<BTreeSet<_>, _>>()
             .map_err(storage)?;
         if keys == refs.keys {
@@ -127,6 +134,7 @@ pub(super) fn link(
             })
             .map_err(storage)?;
         for thread in found {
+            crate::count_row();
             threads.insert(thread.map_err(storage)?);
         }
     }
@@ -136,11 +144,33 @@ pub(super) fn link(
         .find(|m| m.id == id)
         .ok_or(Error::Unavailable)?
         .thread_id();
-    let thread = threads
-        .iter()
-        .next()
-        .map_or(previous, String::as_str)
+    // The largest matching thread survives so the walk covers the smaller
+    // sides; a side beyond MERGE_LIMIT stays a separate thread, keeping this
+    // commit's history rows pageable (the page clamp is 10 000).
+    let mut sized: Vec<(usize, String)> = Vec::new();
+    for candidate in &threads {
+        let members: usize = db
+            .query_row(
+                "SELECT count(*) FROM thread_members WHERE account=?1 AND thread=?2",
+                params![account.id, candidate],
+                |r| r.get(0),
+            )
+            .map_err(storage)?;
+        sized.push((members, candidate.clone()));
+    }
+    // Largest first; ties keep the previous rule (smallest id survives).
+    sized.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+    let thread = sized
+        .first()
+        .map_or(previous, |(_, t)| t.as_str())
         .to_owned();
+    let mut budget = MERGE_LIMIT;
+    let merged: Vec<String> = sized
+        .iter()
+        .filter(|(_, t)| *t != thread)
+        .filter(|(n, _)| budget.checked_sub(*n).map(|left| budget = left).is_some())
+        .map(|(_, t)| t.clone())
+        .collect();
     // A member in the working set (same batch, not yet persisted) precedes
     // the persisted rows; both carry the thread's immutable identity.
     let immutable_thread: String = account
@@ -157,7 +187,7 @@ pub(super) fn link(
             .ok()
         })
         .unwrap_or_else(|| id.to_owned());
-    for old in threads.iter().filter(|old| **old != thread) {
+    for old in &merged {
         db.execute(
             "UPDATE thread_members SET thread=?3 WHERE account=?1 AND thread=?2",
             params![account.id, old, thread],
@@ -173,6 +203,7 @@ pub(super) fn link(
             .collect::<Result<Vec<_>, _>>()
             .map_err(storage)?;
         for member in ids {
+            crate::count_row();
             if account.messages.iter().any(|m| m.id == member) {
                 continue;
             }
@@ -188,7 +219,7 @@ pub(super) fn link(
         if message.id == id && message.thread_identity.is_none() {
             message.thread_identity = Some(immutable_thread.clone());
         }
-        if message.id == id || threads.contains(message.thread_id()) {
+        if message.id == id || merged.iter().any(|t| t == message.thread_id()) {
             // The original singleton ID remains the backwards-compatible value.
             message.thread = (thread != message.id).then(|| thread.clone());
         }
@@ -240,6 +271,7 @@ pub(super) fn stamp(
         let mailboxes = links
             .query_map(params![account.id, id], |r| r.get::<_, String>(0))
             .map_err(storage)?
+            .inspect(|_| crate::count_row())
             .collect::<Result<Vec<_>, _>>()
             .map_err(storage)?;
         for mailbox in account
