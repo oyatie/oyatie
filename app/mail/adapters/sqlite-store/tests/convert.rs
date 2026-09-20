@@ -1,7 +1,7 @@
 //! Conversion of a `41ce37e61` database built at test time from the embedded
 //! legacy DDL: every row round-trips, the audit row is written, and the
 //! binary refuses what it must refuse.
-use mail_api::{DeliveryQueue, Events, Identity, MetadataStore, SubmissionStore};
+use mail_api::{DeliveryQueue, Identity, MetadataStore, SubmissionStore};
 use mail_kernel::{Error, UndoStatus};
 use mail_sqlite_store::contract::legacy::{LegacyAccountSpec, LegacyFixture, Shape, blob};
 use mail_sqlite_store::{SqliteStore, contract::legacy::submission_id, convert::Converter};
@@ -222,11 +222,6 @@ fn every_legacy_row_round_trips_and_the_audit_row_is_complete() {
         assert_eq!(submissions.records[0].undo_status, UndoStatus::Pending);
         assert_eq!(store.resolve(&spec.address).unwrap(), spec.id);
     }
-    assert_eq!(store.pending("fresh", 100).unwrap().len(), specs.len());
-    assert_eq!(
-        store.pending("foundry", 100).unwrap().len(),
-        specs.len() - 1
-    );
     let lease = store.claim(10).unwrap();
     assert_eq!(lease.len(), 1);
     assert_eq!(lease[0].account, "alpha");

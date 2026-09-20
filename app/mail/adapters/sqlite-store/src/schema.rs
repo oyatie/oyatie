@@ -51,12 +51,6 @@ pub(crate) const DDL: &str = "
         kind TEXT NOT NULL CHECK(kind IN ('added','removed','flags','thread','mailbox')),
         id TEXT NOT NULL, mailbox TEXT, uid INTEGER, thread TEXT,
         PRIMARY KEY(account,revision,seq));
-    CREATE TABLE IF NOT EXISTS events (
-        sequence INTEGER PRIMARY KEY AUTOINCREMENT,
-        tenant TEXT NOT NULL, account TEXT NOT NULL, revision INTEGER NOT NULL,
-        delivered INTEGER NOT NULL DEFAULT 0, observed_at_ms INTEGER NOT NULL DEFAULT 0,
-        UNIQUE(account, revision));
-    CREATE TABLE IF NOT EXISTS event_cursors(consumer TEXT PRIMARY KEY,sequence INTEGER NOT NULL CHECK(sequence>=0));
     CREATE TABLE IF NOT EXISTS queued_messages (
         id TEXT PRIMARY KEY,sender TEXT NOT NULL,content BLOB NOT NULL,size INTEGER NOT NULL,received_at INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS delivery_jobs (
@@ -194,10 +188,11 @@ pub(super) fn initialize(db: &Connection) -> Result<Result<(), Refusal>, Error> 
                 }));
             }
             db.execute_batch(&format!(
-                "BEGIN IMMEDIATE; {DDL} {}
+                "BEGIN IMMEDIATE; {DDL} {} {}
                  INSERT INTO schema_version(version,state,converted_at_utc) VALUES({SCHEMA_VERSION},'complete',strftime('%Y-%m-%dT%H:%M:%SZ','now'));
                  COMMIT",
-                super::blob::DDL
+                super::blob::DDL,
+                super::feed::DDL
             ))
             .map_err(storage)?;
             Ok(Ok(()))
@@ -214,7 +209,7 @@ pub(super) fn initialize(db: &Connection) -> Result<Result<(), Refusal>, Error> 
             Ok(Err(Refusal::AboveVersion { found: version }))
         }
         SchemaState::Complete { .. } => {
-            db.execute_batch(&format!("{DDL}{}", super::blob::DDL))
+            db.execute_batch(&format!("{DDL}{}{}", super::blob::DDL, super::feed::DDL))
                 .map_err(storage)?;
             Ok(Ok(()))
         }

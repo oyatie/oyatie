@@ -46,7 +46,7 @@ fn audit(accounts: u64, elapsed: Duration, backup: &Path, sha256: &str, operator
 
 /// `user@host` recorded in `schema_version.operator`; std only, so the host
 /// comes from the environment, `/etc/hostname`, or the `hostname` tool.
-fn operator() -> String {
+pub(super) fn operator() -> String {
     let user = std::env::var("USER")
         .or_else(|_| std::env::var("LOGNAME"))
         .ok()

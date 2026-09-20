@@ -139,7 +139,7 @@ rust_test(
 
 rust_test(
     name = "mail-protocol-jmap-runtime-review",
-    srcs = ["tests/jmap_runtime_review.rs", "tests/runtime_review/support.rs"],
+    srcs = ["tests/jmap_runtime_review.rs", "tests/runtime_review/support.rs", "tests/runtime_review/support_feed.rs"],
     crate = "jmap_runtime_review",
     crate_root = "tests/jmap_runtime_review.rs",
     visibility = ["PUBLIC"],

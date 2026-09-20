@@ -7,8 +7,14 @@ use std::collections::BTreeSet;
 
 /// Append an SMTP-sourced message to INBOX unless an exact Message-ID /
 /// References-set match is already linked to INBOX or Junk.
-fn ingest(db: &Connection, id: &str, raw: &[u8], received_at: i64) -> Result<(), Error> {
-    let (mut batch, _) = mutation::Batch::open(db, id, Precondition::Observed(0), &[])?;
+fn ingest(
+    db: &Connection,
+    enabled: &[mail_api::Consumer],
+    id: &str,
+    raw: &[u8],
+    received_at: i64,
+) -> Result<(), Error> {
+    let (mut batch, _) = mutation::Batch::open(db, id, Precondition::Observed(0), &[], enabled)?;
     let refs = threads::references(raw)?;
     // A duplicate writes nothing: the body is persisted only once it is known
     // to be linked by this same transaction, so a ttl of 0 is enough.
@@ -70,7 +76,7 @@ pub(super) fn once(
             Err(Error::Conflict)
         };
     }
-    ingest(&tx, id, raw, received_at)?;
+    ingest(&tx, &store.enabled, id, raw, received_at)?;
     tx.execute(
         "INSERT INTO delivery_receipts(account,id,digest) VALUES(?1,?2,?3)",
         params![id, key, digest.as_slice()],
@@ -108,7 +114,7 @@ impl SqliteStore {
             .try_into()
             .map_err(|_| Error::Unavailable)?;
         for id in ids {
-            ingest(&transaction, &id, raw, received_at)?;
+            ingest(&transaction, &self.enabled, &id, raw, received_at)?;
         }
         transaction.commit().map_err(storage)
     }

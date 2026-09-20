@@ -10,7 +10,7 @@
 /// Forward every `MetadataStore` method to `self.inner` after `self.before`.
 macro_rules! metadata_store {
     ($ty:ident) => {
-        impl<T: MetadataStore + SubmissionStore + BlobStore> MetadataStore for $ty<T> {
+        impl<T: MetadataStore + SubmissionStore + BlobStore + ChangeFeed> MetadataStore for $ty<T> {
             fn account_info(&self, id: &str) -> Result<AccountInfo, Error> {
                 self.before("account_info")?;
                 self.inner.account_info(id)
@@ -88,7 +88,9 @@ macro_rules! metadata_store {
 /// Forward every `SubmissionStore` method to `self.inner` after `self.before`.
 macro_rules! submission_store {
     ($ty:ident) => {
-        impl<T: MetadataStore + SubmissionStore + BlobStore> SubmissionStore for $ty<T> {
+        impl<T: MetadataStore + SubmissionStore + BlobStore + ChangeFeed> SubmissionStore
+            for $ty<T>
+        {
             fn submissions(
                 &self,
                 account: &str,
@@ -149,7 +151,7 @@ macro_rules! submission_store {
 /// Forward every `BlobStore` method to `self.inner` after `self.before`.
 macro_rules! blob_store {
     ($ty:ident) => {
-        impl<T: MetadataStore + SubmissionStore + BlobStore> BlobStore for $ty<T> {
+        impl<T: MetadataStore + SubmissionStore + BlobStore + ChangeFeed> BlobStore for $ty<T> {
             fn persist(
                 &self,
                 account: &str,
@@ -171,6 +173,81 @@ macro_rules! blob_store {
             fn orphan_sweep(&self, now: i64, limit: usize) -> Result<usize, Error> {
                 self.before("orphan_sweep")?;
                 self.inner.orphan_sweep(now, limit)
+            }
+        }
+    };
+}
+
+/// Forward every `ChangeFeed` method to `self.inner` after `self.before`.
+macro_rules! change_feed {
+    ($ty:ident) => {
+        impl<T: MetadataStore + SubmissionStore + BlobStore + ChangeFeed> ChangeFeed for $ty<T> {
+            fn dirty(
+                &self,
+                c: Consumer,
+                r: &mut Resume,
+                now: i64,
+                per: usize,
+                limit: usize,
+            ) -> Result<Vec<Dirty>, Error> {
+                self.before("dirty")?;
+                self.inner.dirty(c, r, now, per, limit)
+            }
+            fn changes(&self, c: Consumer, a: &str, limit: usize) -> Result<FeedRead, Error> {
+                self.before("changes")?;
+                self.inner.changes(c, a, limit)
+            }
+            fn acknowledge(
+                &self,
+                c: Consumer,
+                a: &str,
+                rev: u64,
+                now: i64,
+                delay: i64,
+            ) -> Result<(), Error> {
+                self.before("acknowledge")?;
+                self.inner.acknowledge(c, a, rev, now, delay)
+            }
+            fn poison(&self, c: Consumer, a: &str, reason: &str) -> Result<(), Error> {
+                self.before("poison")?;
+                self.inner.poison(c, a, reason)
+            }
+            fn poisoned(&self, c: Consumer) -> Result<Vec<(Dirty, String)>, Error> {
+                self.before("poisoned")?;
+                self.inner.poisoned(c)
+            }
+            fn cursors(&self, a: &str, e: &[Consumer]) -> Result<Vec<(Consumer, u64)>, Error> {
+                self.before("cursors")?;
+                self.inner.cursors(a, e)
+            }
+            fn reconcile(&self, c: Consumer, op: &str, reason: &str) -> Result<u64, Error> {
+                self.before("reconcile")?;
+                self.inner.reconcile(c, op, reason)
+            }
+            fn dead_letter(
+                &self,
+                c: Consumer,
+                a: &str,
+                rev: u64,
+                op: &str,
+                reason: &str,
+            ) -> Result<(), Error> {
+                self.before("dead_letter")?;
+                self.inner.dead_letter(c, a, rev, op, reason)
+            }
+            fn retire_cursor(
+                &self,
+                c: Consumer,
+                t: Option<&str>,
+                op: &str,
+                reason: &str,
+            ) -> Result<u64, Error> {
+                self.before("retire_cursor")?;
+                self.inner.retire_cursor(c, t, op, reason)
+            }
+            fn audit(&self, limit: usize) -> Result<Vec<AuditRow>, Error> {
+                self.before("audit")?;
+                self.inner.audit(limit)
             }
         }
     };

@@ -1,7 +1,8 @@
 use axum::{Router, body::Body, http::Request};
 use mail_api::{
-    AccountInfo, BlobStore, Execution, HistoryPage, Identity, MailboxSelection, MessageSelection,
-    MetadataStore, Precondition, Principal,
+    AccountInfo, AuditRow, BlobStore, ChangeFeed, Consumer, Dirty, Execution, FeedRead,
+    HistoryPage, Identity, MailboxSelection, MessageSelection, MetadataStore, Precondition,
+    Principal, Resume,
 };
 use mail_kernel::{Account, BlobRef, Command, Error};
 use mail_service::{MailService, OwnerPolicy};
@@ -138,21 +139,6 @@ impl MetadataStore for Adapter {
     }
 }
 
-impl BlobStore for Adapter {
-    fn persist(&self, a: &str, s: &str, r: &[u8], ttl: i64) -> Result<BlobRef, Error> {
-        self.db.persist(a, s, r, ttl)
-    }
-    fn renew(&self, a: &str, s: &str, ttl: i64) -> Result<(), Error> {
-        self.db.renew(a, s, ttl)
-    }
-    fn read(&self, a: &str, b: &BlobRef) -> Result<Vec<u8>, Error> {
-        self.db.read(a, b)
-    }
-    fn orphan_sweep(&self, now: i64, limit: usize) -> Result<usize, Error> {
-        self.db.orphan_sweep(now, limit)
-    }
-}
-
 pub struct Fixture {
     pub app: Router,
     pub gate: Arc<Gate>,
@@ -258,3 +244,6 @@ impl mail_api::SubmissionStore for Adapter {
         self.db.submission_changes(a, r, l)
     }
 }
+
+#[path = "support_feed.rs"]
+mod support_feed;

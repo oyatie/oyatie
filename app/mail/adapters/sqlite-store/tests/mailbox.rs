@@ -1,4 +1,4 @@
-use mail_api::{BlobStore, Events, MetadataStore, Precondition};
+use mail_api::{BlobStore, MetadataStore, Precondition};
 use mail_kernel::{Account, Command, HistoryEntry};
 use mail_sqlite_store::SqliteStore;
 
@@ -83,7 +83,6 @@ fn mailbox_counters_commit_with_messages_and_roll_back_with_a_refused_history_ro
             .is_err()
         );
         assert_eq!(db.account("a").unwrap(), account);
-        assert_eq!(db.pending("test", 10).unwrap().len(), 2);
         assert_eq!(db.history("a", 0, 10).unwrap().rows.len(), 3);
         connection
             .execute_batch("DROP TRIGGER reject_history")

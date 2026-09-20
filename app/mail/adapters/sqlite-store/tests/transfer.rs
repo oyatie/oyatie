@@ -1,4 +1,4 @@
-use mail_api::{BlobStore, Events, MetadataStore, Precondition};
+use mail_api::{BlobStore, MetadataStore, Precondition};
 use mail_kernel::{Account, Command, Error};
 use mail_sqlite_store::SqliteStore;
 
@@ -70,7 +70,6 @@ fn move_works_at_full_quota_but_copy_cannot_exceed_it() {
 fn transfer_batch_rolls_back_bodies_metadata_uids_and_events_together() {
     let db = database(1000000);
     let before = db.account("a").unwrap();
-    let events = db.pending("review", 100).unwrap();
     assert_eq!(
         run(
             &db,
@@ -83,7 +82,6 @@ fn transfer_batch_rolls_back_bodies_metadata_uids_and_events_together() {
         Err(Error::NotFound)
     );
     assert_eq!(db.account("a").unwrap(), before);
-    assert_eq!(db.pending("review", 100).unwrap(), events);
     assert_eq!(db.blob("a", &before.messages[0].id).unwrap(), RAW);
     assert_eq!(
         db.blob("a", &format!("e{}", before.revision + 1)),

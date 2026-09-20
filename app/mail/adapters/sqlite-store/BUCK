@@ -42,7 +42,7 @@ _TESTS = {
     "blob": ([], []),
     "content": ([], [_SQL, _JSON]),
     "durable": ([], [_SQL]),
-    "events": ([], []),
+    "feed": ([], []),
     "history": ([], [_SQL]),
     "mailbox": ([], [_SQL]),
     "outbound": ([], [_SQL]),

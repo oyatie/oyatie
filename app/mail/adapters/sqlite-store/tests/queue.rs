@@ -1,4 +1,4 @@
-use mail_api::{DeliveryQueue, DeliveryTarget, Events, MetadataStore, Precondition};
+use mail_api::{DeliveryQueue, DeliveryTarget, MetadataStore, Precondition};
 use mail_kernel::{Account, Error};
 use mail_sqlite_store::SqliteStore;
 
@@ -137,7 +137,6 @@ fn leases_recover_after_crashes_and_mailbox_delivery_is_idempotent() {
         )
         .unwrap();
     assert_eq!(db.account(&first.account).unwrap().messages.len(), 1);
-    assert_eq!(db.pending("test", 10).unwrap().len(), 1);
     assert_eq!(
         db.deliver_once(
             &first.account,
@@ -168,7 +167,6 @@ fn leases_recover_after_crashes_and_mailbox_delivery_is_idempotent() {
     .unwrap();
     db.finish(&retry, Ok(())).unwrap();
     assert!(db.claim(10).unwrap().is_empty());
-    assert_eq!(db.pending("test", 10).unwrap().len(), 2);
     assert_eq!(
         sql.query_row("SELECT count(*) FROM queued_messages", [], |r| r
             .get::<_, usize>(0))
@@ -219,7 +217,6 @@ fn queue_and_delivery_receipts_rollback_with_their_transactions() {
         .is_err()
     );
     assert!(db.account("a").unwrap().messages.is_empty());
-    assert!(db.pending("test", 10).unwrap().is_empty());
     sql.execute_batch("DROP TRIGGER reject_receipt").unwrap();
     db.deliver_once(
         &job.account,

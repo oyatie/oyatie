@@ -224,7 +224,27 @@ pub(super) fn mailbox(
     let window = window(service, token, account, since(args, "sinceState")?)?;
     let (ids, kind) = window.mailboxes(account);
     let mut value = window.response(account, args, &ids, &kind)?;
-    value["updatedProperties"] = Value::Null;
+    // Only counters moved on every updated mailbox ⇒ name them so a client
+    // re-fetches nothing else; a property change of one ⇒ null (Stalwart:
+    // `UpdateContainer` sets `items_changed`; inserts and deletes do not).
+    let state: u64 = value["newState"]
+        .as_str()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(0);
+    let updated = value["updated"].as_array().cloned().unwrap_or_default();
+    let properties = window.rows.iter().any(|(r, e)| {
+        *r <= state && matches!(e, HistoryEntry::Mailbox { id } if updated.iter().any(|u| u == id))
+    });
+    value["updatedProperties"] = if properties || updated.is_empty() {
+        Value::Null
+    } else {
+        json!([
+            "totalEmails",
+            "unreadEmails",
+            "totalThreads",
+            "unreadThreads"
+        ])
+    };
     Ok(value)
 }
 

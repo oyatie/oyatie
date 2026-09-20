@@ -1,4 +1,4 @@
-use mail_api::{BlobStore, Events, MetadataStore, Precondition};
+use mail_api::{BlobStore, MetadataStore, Precondition};
 use mail_kernel::{Account, Command, HistoryEntry};
 use mail_sqlite_store::SqliteStore;
 
@@ -54,7 +54,6 @@ fn thread_merges_are_account_scoped_durable_and_journaled_atomically() {
     let raw = b"Message-ID: <bridge@t>\r\nReferences: <root@t> <separate@t>\r\nSubject: Re: Project Alpha\r\n\r\nbody";
     assert!(db.deliver(&["a@example.org".into()], raw).is_err());
     assert_eq!(db.account("a").unwrap(), before);
-    assert_eq!(db.pending("foundry", 10).unwrap().len(), 2);
     sql.execute_batch("DROP TRIGGER reject_thread_commit")
         .unwrap();
     db.deliver(&["a@example.org".into()], raw).unwrap();

@@ -1,7 +1,7 @@
 use super::support::*;
 use mail_api::{
-    AccountInfo, BlobStore, Execution, HistoryPage, MailboxSelection, MessageSelection,
-    MetadataStore, Precondition,
+    AccountInfo, AuditRow, BlobStore, ChangeFeed, Consumer, Dirty, Execution, FeedRead,
+    HistoryPage, MailboxSelection, MessageSelection, MetadataStore, Precondition, Resume,
 };
 use mail_kernel::{Account, BlobRef, Command, Error};
 use mail_service::{MailService, OwnerPolicy};
@@ -95,6 +95,66 @@ impl BlobStore for FaultStore {
     }
     fn orphan_sweep(&self, now: i64, limit: usize) -> Result<usize, Error> {
         self.db.orphan_sweep(now, limit)
+    }
+}
+
+impl ChangeFeed for FaultStore {
+    fn dirty(
+        &self,
+        c: Consumer,
+        r: &mut Resume,
+        now: i64,
+        per: usize,
+        limit: usize,
+    ) -> Result<Vec<Dirty>, Error> {
+        self.db.dirty(c, r, now, per, limit)
+    }
+    fn changes(&self, c: Consumer, a: &str, limit: usize) -> Result<FeedRead, Error> {
+        self.db.changes(c, a, limit)
+    }
+    fn acknowledge(
+        &self,
+        c: Consumer,
+        a: &str,
+        rev: u64,
+        now: i64,
+        delay: i64,
+    ) -> Result<(), Error> {
+        self.db.acknowledge(c, a, rev, now, delay)
+    }
+    fn poison(&self, c: Consumer, a: &str, reason: &str) -> Result<(), Error> {
+        self.db.poison(c, a, reason)
+    }
+    fn poisoned(&self, c: Consumer) -> Result<Vec<(Dirty, String)>, Error> {
+        self.db.poisoned(c)
+    }
+    fn cursors(&self, a: &str, enabled: &[Consumer]) -> Result<Vec<(Consumer, u64)>, Error> {
+        self.db.cursors(a, enabled)
+    }
+    fn reconcile(&self, c: Consumer, op: &str, reason: &str) -> Result<u64, Error> {
+        self.db.reconcile(c, op, reason)
+    }
+    fn dead_letter(
+        &self,
+        c: Consumer,
+        a: &str,
+        rev: u64,
+        op: &str,
+        reason: &str,
+    ) -> Result<(), Error> {
+        self.db.dead_letter(c, a, rev, op, reason)
+    }
+    fn retire_cursor(
+        &self,
+        c: Consumer,
+        t: Option<&str>,
+        op: &str,
+        reason: &str,
+    ) -> Result<u64, Error> {
+        self.db.retire_cursor(c, t, op, reason)
+    }
+    fn audit(&self, limit: usize) -> Result<Vec<AuditRow>, Error> {
+        self.db.audit(limit)
     }
 }
 

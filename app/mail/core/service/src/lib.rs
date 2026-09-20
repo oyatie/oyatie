@@ -8,6 +8,7 @@ use std::sync::Arc;
 mod admission;
 mod delivery;
 mod email_submission;
+pub mod notify;
 mod submission;
 mod submission_schedule;
 pub use admission::{Budget, MUTATION_DEADLINE, PER_ACCOUNT_MUTATIONS, backoff};
@@ -122,7 +123,9 @@ impl MailService {
         if budget.expired() {
             return Err(Error::Busy);
         }
-        self.store.execute(id, precondition, commands)
+        let execution = self.store.execute(id, precondition, commands)?;
+        notify::signal(id);
+        Ok(execution)
     }
 
     /// Execute, then read the projection the protocol layer synchronizes from.

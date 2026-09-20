@@ -118,6 +118,36 @@ async fn mailbox_thread_counts_distinguish_messages_and_unread_threads() {
         }),
         "https://localhost".into(),
     );
+    // Deliveries only move counters: updatedProperties names them, and a
+    // created mailbox in the span does not change that; a rename of an
+    // updated mailbox is a property change: null.
+    let since = db.account("a").unwrap().revision - 2;
+    let changes = |since: u64| {
+        call(
+            &app,
+            "Mailbox/changes",
+            json!({"accountId":"a","sinceState":since.to_string()}),
+        )
+    };
+    let counters = changes(since).await;
+    assert_eq!(counters["updated"], json!(["inbox"]));
+    let four = json!([
+        "totalEmails",
+        "unreadEmails",
+        "totalThreads",
+        "unreadThreads"
+    ]);
+    assert_eq!(counters["updatedProperties"], four);
+    let set = call(
+        &app,
+        "Mailbox/set",
+        json!({"accountId":"a","create":{"m":{"name":"Made"}}}),
+    )
+    .await;
+    let made = set["created"]["m"]["id"].as_str().unwrap();
+    let created = changes(since).await;
+    assert_eq!(created["created"], json!([made]));
+    assert_eq!(created["updatedProperties"], four);
     for (seen, unread_emails, unread_threads) in
         [(None, 2, 1), (Some("e1"), 1, 1), (Some("e2"), 0, 0)]
     {
@@ -145,4 +175,26 @@ async fn mailbox_thread_counts_distinguish_messages_and_unread_threads() {
         assert_eq!(inbox["unreadEmails"], unread_emails);
         assert_eq!(inbox["unreadThreads"], unread_threads);
     }
+    let mid = db.account("a").unwrap().revision;
+    call(
+        &app,
+        "Mailbox/set",
+        json!({"accountId":"a","update":{made:{"name":"Renamed"}}}),
+    )
+    .await;
+    db.deliver(&["alice@example.org".into()], b"Subject: third\r\n\r\nx")
+        .unwrap();
+    let renamed = changes(mid).await;
+    let mut updated = renamed["updated"].clone();
+    updated
+        .as_array_mut()
+        .unwrap()
+        .sort_by_key(|v| v.to_string());
+    let mut expected = json!(["inbox", made]);
+    expected
+        .as_array_mut()
+        .unwrap()
+        .sort_by_key(|v| v.to_string());
+    assert_eq!(updated, expected);
+    assert_eq!(renamed["updatedProperties"], Value::Null);
 }

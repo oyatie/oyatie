@@ -2,6 +2,7 @@ use super::Jmap;
 use axum::Json;
 use axum::http::StatusCode;
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 
 pub(super) const CORE: &str = "urn:ietf:params:jmap:core";
 pub(super) const MAIL: &str = "urn:ietf:params:jmap:mail";
@@ -40,7 +41,7 @@ pub(super) fn response(state: Jmap, token: &str) -> Result<Json<Value>, StatusCo
         .map_err(|_| StatusCode::FORBIDDEN)?;
     let write = super::mailbox::writable(&state.service, token, &account.id)
         .map_err(|_| StatusCode::SERVICE_UNAVAILABLE)?;
-    Ok(Json(json!({
+    let mut session = json!({
         "capabilities": { CORE: {"maxSizeUpload":26214400,"maxConcurrentUpload":1,"maxSizeRequest":MAX_REQUEST,"maxConcurrentRequests":4,"maxCallsInRequest":16,"maxObjectsInGet":256,"maxObjectsInSet":256,"collationAlgorithms":["i;ascii-casemap"]}, MAIL:{}, SUBMISSION:{}, VACATION:{} },
         "accounts": { &account.id: { "name":account.address,"isPersonal":true,"isReadOnly":!write,"accountCapabilities": { MAIL: {"maxMailboxesPerEmail":null,"maxMailboxDepth":null,"maxSizeMailboxName":255,"maxSizeAttachmentsPerEmail":26214400,"emailQuerySortOptions":super::sort::PROPERTIES,"mayCreateTopLevelMailbox":write}, SUBMISSION:{"maxDelayedSend":mail_service::MAX_DELAYED_SEND,"submissionExtensions":{"FUTURERELEASE":[]}}, VACATION:{} } } },
         "primaryAccounts": {MAIL:account.id,SUBMISSION:account.id,VACATION:account.id}, "username":account.address,
@@ -49,8 +50,12 @@ pub(super) fn response(state: Jmap, token: &str) -> Result<Json<Value>, StatusCo
         "uploadUrl":format!("{}/upload/{{accountId}}",state.base),
         // RFC 8620 §2 makes eventSourceUrl a required Session member (the
         // pinned core suite asserts it); no route serves it until EventSource
-        // lands. Session state is constant until the object itself changes.
-        "eventSourceUrl":format!("{}/events?types={{types}}&closeafter={{closeafter}}&ping={{ping}}",state.base),
-        "state":"1"
-    })))
+        // lands.
+        "eventSourceUrl":format!("{}/events?types={{types}}&closeafter={{closeafter}}&ping={{ping}}",state.base)
+    });
+    // §2: the state changes exactly when the object does — accounts,
+    // capabilities or URLs — so it is a digest of everything above.
+    let digest = Sha256::digest(session.to_string());
+    session["state"] = Value::String(format!("{digest:x}")[..16].to_owned());
+    Ok(Json(session))
 }

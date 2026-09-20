@@ -110,25 +110,34 @@ async fn idle_announces_new_mail_flags_and_renumbered_expunge_without_client_pol
         db.deliver(&["alice@example.org".into()], b"Subject: idle\r\n\r\nbody")
             .unwrap();
     }
-    let (mut client, task) = start(service, true, 4096).await;
+    let (mut client, task) = start(service.clone(), true, 4096).await;
     idle(&mut client).await;
+    // Unsignalled: seen within the polling floor (≤ 1.5 s).
+    let started = std::time::Instant::now();
     db.deliver(
         &["alice@example.org".into()],
         b"Subject: arrival\r\n\r\nbody",
     )
     .unwrap();
     until(&mut client, "* 4 EXISTS").await;
+    assert!(started.elapsed() <= Duration::from_millis(1500));
+    // Through the service (signalled): well inside the floor.
+    let started = std::time::Instant::now();
     let account = db.account("a").unwrap();
-    db.execute(
-        "a",
-        Precondition::Observed(account.revision),
-        vec![Command::Keywords {
-            id: "e2".into(),
-            keywords: vec!["$seen".into(), "$flagged".into()],
-        }],
-    )
-    .unwrap();
+    service
+        .execute(
+            TOKEN,
+            "a",
+            Precondition::Observed(account.revision),
+            vec![Command::Keywords {
+                id: "e2".into(),
+                keywords: vec!["$seen".into(), "$flagged".into()],
+            }],
+            &mail_service::Budget::fixed(),
+        )
+        .unwrap();
     let changed = until(&mut client, "* 2 FETCH").await;
+    assert!(started.elapsed() < Duration::from_millis(500));
     assert!(
         changed.contains("FLAGS (") && changed.contains("\\Seen") && changed.contains("\\Flagged"),
         "{changed}"
@@ -270,12 +279,18 @@ async fn idle_backpressure_stops_more_store_snapshots_and_peer_drop_releases_ses
                 .collect(),
         )
         .unwrap();
-    wait_for(|| store.reads.load(Ordering::SeqCst) > before).await;
-    tokio::time::sleep(Duration::from_millis(300)).await;
-    assert!(
-        store.reads.load(Ordering::SeqCst) <= before + 2,
-        "a stalled reader must prevent accumulating snapshots"
-    );
+    mail_service::notify::signal("a");
+    // The refresh reads twice, then stalls on the 128-byte client; the bound
+    // is that stalled state (a floor poll before it may add a read).
+    wait_for(|| store.reads.load(Ordering::SeqCst) >= before + 2).await;
+    tokio::time::sleep(Duration::from_millis(150)).await;
+    let stalled = store.reads.load(Ordering::SeqCst);
+    for _ in 0..3 {
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        mail_service::notify::signal("a");
+    }
+    let reads = store.reads.load(Ordering::SeqCst);
+    assert_eq!(reads, stalled, "a stalled reader must prevent snapshots");
     drop(client);
     let _ = tokio::time::timeout(Duration::from_secs(2), task)
         .await

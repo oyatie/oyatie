@@ -1,4 +1,4 @@
-use mail_api::{Events, HistoryPage, Identity, MetadataStore, Precondition};
+use mail_api::{HistoryPage, Identity, MetadataStore, Precondition};
 use mail_kernel::{Account, Command, Error, HistoryEntry};
 use mail_sqlite_store::SqliteStore;
 
@@ -35,7 +35,6 @@ fn delivery_is_atomic_durable_and_emits_replayable_events() {
             Err(Error::NotFound)
         );
         assert!(db.account("a").unwrap().messages.is_empty());
-        assert!(db.pending("test", 10).unwrap().is_empty());
         db.deliver(
             &["alice@example.org".into(), "alice@example.org".into()],
             b"Subject: preserved\r\n\r\n\xff",
@@ -60,11 +59,7 @@ fn delivery_is_atomic_durable_and_emits_replayable_events() {
             ),
             Err(Error::Conflict)
         );
-        let events = db.pending("test", 10).unwrap();
-        assert_eq!(events.len(), 1);
-        assert_eq!(events[0].revision, 1);
-        db.acknowledge("test", events[0].sequence).unwrap();
-        assert!(db.pending("test", 10).unwrap().is_empty());
+        assert_eq!(db.account("a").unwrap().revision, 1);
         db.revoke("a").unwrap();
         assert_eq!(db.authenticate(TOKEN), Err(Error::Forbidden));
     }
@@ -94,7 +89,6 @@ fn failing_batch_rolls_back_all_commands_and_outbox() {
     );
     assert_eq!(db.account("a").unwrap().revision, 0);
     assert_eq!(db.account("a").unwrap().mailboxes.len(), 1);
-    assert!(db.pending("test", 10).unwrap().is_empty());
     assert!(db.history("a", 0, 10).unwrap().rows.is_empty());
 }
 
@@ -118,7 +112,6 @@ fn temporary_blobs_survive_restart_obey_quota_expire_and_stay_account_scoped() {
         assert_eq!(db.blob("b", &id), Err(Error::NotFound));
         assert_eq!(db.put_blob("missing", b"x"), Err(Error::NotFound));
         assert_eq!(db.account("a").unwrap().revision, 0);
-        assert!(db.pending("test", 10).unwrap().is_empty());
     }
     {
         let db = SqliteStore::open(&path).unwrap();
@@ -169,7 +162,6 @@ fn history_survives_restart_and_a_refused_commit_row_rolls_back_the_batch() {
         );
         assert_eq!(db.account("a").unwrap().revision, 1);
         assert_eq!(db.account("a").unwrap().messages.len(), 1);
-        assert_eq!(db.pending("test", 10).unwrap().len(), 1);
         assert_eq!(db.history("a", 0, 10).unwrap().rows.len(), 1);
         db2.execute_batch("DROP TRIGGER reject_history").unwrap();
         db.execute(

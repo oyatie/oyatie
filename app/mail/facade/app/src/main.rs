@@ -1,6 +1,8 @@
 #![forbid(unsafe_code)]
+mod compact;
 mod convert;
 mod delivery;
+mod feed;
 mod https;
 mod outbound;
 mod outbound_config;
@@ -25,7 +27,20 @@ async fn serve(
 ) -> Result<(), Box<dyn std::error::Error>> {
     // The schema refusal (below-version, converting, above-version) is decided
     // before any TLS material is read or any listener is bound.
-    let db = Arc::new(SqliteStore::open(database)?);
+    let db = Arc::new(SqliteStore::open(database)?.with_consumers(&feed::consumers()?));
+    if let Ok(ms) = std::env::var("MAIL_IDLE_FLOOR_MS") {
+        let requested = Duration::from_millis(
+            ms.parse()
+                .map_err(|_| "MAIL_IDLE_FLOOR_MS must be whole milliseconds (250..=30000)")?,
+        );
+        let floor = mail_service::notify::set_floor(requested);
+        if floor != requested {
+            eprintln!(
+                "mail-app: MAIL_IDLE_FLOOR_MS {ms} clamped to {} ms",
+                floor.as_millis()
+            );
+        }
+    }
     let certificates =
         CertificateDer::pem_file_iter(certificate)?.collect::<Result<Vec<_>, _>>()?;
     let key = PrivateKeyDer::from_pem_file(private_key)?;
@@ -42,7 +57,7 @@ async fn serve(
             .map(|_| db.clone() as Arc<dyn mail_api::SubmissionQueue>),
         queue: db.clone(),
         store: db.clone(),
-        identity: db,
+        identity: db.clone(),
         policy: Arc::new(OwnerPolicy),
     });
     let smtp = bind("MAIL_SMTP_LISTEN", "127.0.0.1:2525").await?;
@@ -87,6 +102,8 @@ async fn serve(
     let mut delivery_task = tokio::spawn(delivery::run(service.clone(), delivery_stopped));
     let (sweep_stop, sweep_stopped) = tokio::sync::oneshot::channel();
     let mut sweep_task = tokio::spawn(sweep::run(service.clone(), sweep_stopped));
+    let (compact_stop, compact_stopped) = tokio::sync::oneshot::channel();
+    let mut compact_task = tokio::spawn(compact::run(db.clone(), compact_stopped));
     let (outbound_stop, outbound_stopped) = tokio::sync::watch::channel(false);
     let mut outbound_workers = tokio::task::JoinSet::new();
     if let (Some(queue), Some(transport)) = (&service.outbound, relay) {
@@ -118,6 +135,7 @@ async fn serve(
             result = &mut http_task => { result??; return Err("HTTP listener stopped unexpectedly".into()); }
             result = &mut delivery_task => { result?; return Err("Delivery worker stopped unexpectedly".into()); }
             result = &mut sweep_task => { result?; return Err("Blob sweep stopped unexpectedly".into()); }
+            result = &mut compact_task => { result?; return Err("History compaction stopped unexpectedly".into()); }
             Some(result) = outbound_workers.join_next(), if !outbound_workers.is_empty() => {
                 result?; return Err("Outbound worker stopped unexpectedly".into());
             }
@@ -167,6 +185,7 @@ async fn serve(
     }
     let _ = delivery_stop.send(());
     let _ = sweep_stop.send(());
+    let _ = compact_stop.send(());
     if tokio::time::timeout_at(drain, async {
         while outbound_workers.join_next().await.is_some() {}
     })
@@ -242,6 +261,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         }
         Some("serve") if args.len()==5 => serve(&args[2],&args[3],&args[4]).await,
         Some("convert") if args.len()==5 => convert::run(&args[2],&args[3],&args[4]),
-        _ => Err("usage: mail-app failed DATABASE ACCOUNT; mail-app retry DATABASE ACCOUNT MESSAGE; mail-app provision DATABASE TENANT ACCOUNT OWNER ADDRESS (MAIL_TOKEN env); mail-app convert DATABASE --backup-verified BACKUP_PATH | --backup-into BACKUP_PATH (stop `serve` first; a database below this binary's schema version is refused by every other command until converted); mail-app serve DATABASE CERTIFICATE_PEM PRIVATE_KEY_PEM (optional MAIL_SMTP_LISTEN, MAIL_SUBMISSION_LISTEN, MAIL_SUBMISSION_STARTTLS_LISTEN, MAIL_IMAP_LISTEN, MAIL_IMAP_STARTTLS_LISTEN, MAIL_HTTP_LISTEN, MAIL_POP_LISTEN, MAIL_POP_STARTTLS_LISTEN, MAIL_PUBLIC_URL; outbound MAIL_RELAY_HOST, MAIL_RELAY_PORT, MAIL_RELAY_HELO, MAIL_RELAY_STARTTLS, MAIL_RELAY_CA, MAIL_RELAY_USERNAME, MAIL_RELAY_PASSWORD; direct delivery MAIL_MX_DNS_SERVERS, MAIL_MX_HELO, MAIL_MX_PORT, MAIL_MX_CA, MAIL_MX_REQUIRE_TLS env)".into()),
+        _ if feed::run(&args[1..])? => Ok(()),
+        _ => Err(format!("usage: mail-app failed DATABASE ACCOUNT; mail-app retry DATABASE ACCOUNT MESSAGE; mail-app provision DATABASE TENANT ACCOUNT OWNER ADDRESS (MAIL_TOKEN env); mail-app convert DATABASE --backup-verified BACKUP_PATH | --backup-into BACKUP_PATH (stop `serve` first; a database below this binary's schema version is refused by every other command until converted); mail-app serve DATABASE CERTIFICATE_PEM PRIVATE_KEY_PEM (optional MAIL_SMTP_LISTEN, MAIL_SUBMISSION_LISTEN, MAIL_SUBMISSION_STARTTLS_LISTEN, MAIL_IMAP_LISTEN, MAIL_IMAP_STARTTLS_LISTEN, MAIL_HTTP_LISTEN, MAIL_POP_LISTEN, MAIL_POP_STARTTLS_LISTEN, MAIL_PUBLIC_URL; outbound MAIL_RELAY_HOST, MAIL_RELAY_PORT, MAIL_RELAY_HELO, MAIL_RELAY_STARTTLS, MAIL_RELAY_CA, MAIL_RELAY_USERNAME, MAIL_RELAY_PASSWORD; direct delivery MAIL_MX_DNS_SERVERS, MAIL_MX_HELO, MAIL_MX_PORT, MAIL_MX_CA, MAIL_MX_REQUIRE_TLS env; feed MAIL_CONSUMERS, MAIL_IDLE_FLOOR_MS); {}", feed::USAGE).into()),
     }
 }
