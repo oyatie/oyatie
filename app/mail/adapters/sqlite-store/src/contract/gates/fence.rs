@@ -2,10 +2,11 @@
 //! each boundary is answered by a replacement that completes; a commit
 //! carrying a stale `Require` is refused; two writers' unconditional
 //! updates never fail; conditional writers retry within three attempts at
-//! a 20 msg/s trickle (ten times the charter's rate). The protocol rows
-//! (two-writer STORE over IMAP, 100 sessions, the 1000-message MULTIAPPEND
-//! re-attempting `Busy`) are `protocol-imap/tests/wire/{runtime,sequence,
-//! multiappend_review}.rs`.
+//! a 20 msg/s trickle (ten times the charter's rate). Written protocol
+//! rows: the 1000-message MULTIAPPEND re-attempting `Busy`
+//! (`protocol-imap/tests/wire/multiappend_review.rs`) and a session's STORE
+//! racing a concurrent expunge (`wire/sequence.rs`). The 20 msg/s and
+//! 100-session stress rows are not written (recorded in the S6 PR).
 use super::{append, at, open};
 use crate::contract::Faulty;
 use crate::contract::suite::{Fixture, Gate, GateFailure};
@@ -140,15 +141,18 @@ pub fn run<F: Fixture>(fixture: &F, gate: &mut Gate) -> Result<(), GateFailure> 
                 })
             })
             .collect();
-        writers
+        // Join every writer before judging, so a second panic cannot escape
+        // the scope as a test panic.
+        let joined: Vec<_> = writers.into_iter().map(|w| w.join()).collect();
+        joined
             .into_iter()
-            .map(|w| w.join().map_err(|_| Error::Unavailable)?)
+            .map(|w| w.map_err(|_| Error::Unavailable)?)
             .collect::<Result<Vec<_>, _>>()
     });
     let outcome = at(gate, "two writers", outcome)?;
     let failures: u32 = outcome.iter().map(|o| o.0).sum();
     let worst = outcome.iter().map(|o| o.1).max().unwrap_or(0);
-    gate.measure("conditional attempts p99", u64::from(worst));
+    gate.measure("conditional attempts, worst of 40", u64::from(worst));
     gate.check(
         "two writers",
         failures == 0,

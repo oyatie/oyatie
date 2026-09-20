@@ -5,8 +5,8 @@
 //!   client-conditional batch is re-applied instead of returning `Conflict`.
 //! - `history` reports `floor: 0`, so a page below the real floor looks
 //!   complete instead of telling the caller to fall back.
-//! - `messages` loads the whole account and returns every record, ignoring
-//!   the requested ids and the 256-id cap: cost proportional to the account.
+//! - `messages` loads the whole account to answer a selection: the right
+//!   records, at a cost proportional to the account.
 //! - `mailbox_uids` likewise derives the UID map from the full projection.
 //! - `compact_history` ignores consumer cursors: never `Retention::Blocked`.
 //! - `deliver_once` ignores receipts: a replayed delivery lands twice.
@@ -48,11 +48,14 @@ impl<T: MetadataStore + SubmissionStore + BlobStore + ChangeFeed> MetadataStore 
     fn account(&self, id: &str) -> Result<Account, Error> {
         self.inner.account(id)
     }
-    fn messages(&self, account: &str, _ids: &[String]) -> Result<MessageSelection, Error> {
+    fn messages(&self, account: &str, ids: &[String]) -> Result<MessageSelection, Error> {
+        // The whole account is read (and counted); the right ids come back.
         let account = self.inner.account(account)?;
+        let mut messages = account.messages;
+        messages.retain(|m| ids.contains(&m.id));
         Ok(MessageSelection {
             revision: account.revision,
-            messages: account.messages,
+            messages,
         })
     }
     fn mailbox_uids(&self, account: &str, mailbox: &str) -> Result<MailboxSelection, Error> {

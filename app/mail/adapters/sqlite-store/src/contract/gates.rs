@@ -1,7 +1,8 @@
 //! Gate 1 is the suite itself green with the oracles unchanged; Gates 2–6
-//! are the modules here. Protocol-level rows (two-writer STORE, 20 msg/s,
-//! 100 sessions, admission release under cancel, slow readers) live in
-//! `protocol-imap/tests` and are cited by the suite's acceptance notes.
+//! are the modules here, at the store. Protocol-level rows (admission
+//! release under cancel, slow readers, cancel racing a claim) live in
+//! `protocol-imap/tests`; the 20 msg/s and 100-session stress rows are
+//! not written yet (recorded in the S6 PR).
 use super::suite::{AccountSpec, Fixture, Gate, GateFailure};
 use mail_api::{BlobStore, Consumer};
 use mail_kernel::Command;

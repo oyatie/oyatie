@@ -76,10 +76,13 @@ impl Gate {
     }
     /// A store error inside a gate is that gate's failure, never a panic.
     pub fn store(&self, case: &'static str, error: mail_kernel::Error) -> GateFailure {
+        self.fail(case, format!("store error {error:?}"))
+    }
+    pub fn fail(&self, case: &'static str, detail: String) -> GateFailure {
         GateFailure {
             gate: self.number,
             case,
-            detail: format!("store error {error:?}"),
+            detail,
         }
     }
     pub fn measure(&mut self, case: &'static str, value: u64) {

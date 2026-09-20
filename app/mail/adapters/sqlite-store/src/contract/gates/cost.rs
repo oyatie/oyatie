@@ -1,6 +1,6 @@
 //! Gate 2 — the rows an operation maps depend on the operation, not on the
-//! account: every probe at 10 000 messages costs ≤ 1.5× what it costs at
-//! 100, and stays under an absolute ceiling. No whole-account key.
+//! account: every probe at 100 messages stays under an absolute ceiling and
+//! at 10 000 messages costs ≤ 1.5× that. No whole-account key.
 use super::{append, at, open};
 use crate::contract::Counting;
 use crate::contract::suite::{Fixture, Gate, GateFailure};
@@ -15,7 +15,21 @@ use std::collections::BTreeMap;
 
 const SMALL: usize = 256;
 const THREAD: usize = 500;
-type Probe<S> = fn(&Counting<S>) -> Result<u64, Error>;
+/// A probe's failure is either the store's error or a result of the wrong
+/// shape, each described so a gate report says which.
+type Probe<S> = fn(&Counting<S>) -> Result<u64, String>;
+
+fn store<T>(result: Result<T, Error>) -> Result<T, String> {
+    result.map_err(|error| format!("store error {error:?}"))
+}
+
+fn shape(ok: bool, expected: &str) -> Result<(), String> {
+    if ok {
+        Ok(())
+    } else {
+        Err(format!("wrong shape: expected {expected}"))
+    }
+}
 
 /// Account `a`: a `THREAD`-message thread rooted at `<1@t>` plus `noise`
 /// singletons in INBOX, and `SMALL` messages in a second mailbox.
@@ -47,109 +61,115 @@ fn fixture<F: Fixture>(fixture: &F, noise: usize) -> Result<Counting<F::Store>, 
             remaining -= batch;
         }
     }
+    let account = db.account("a")?;
+    if account.messages.len() != THREAD + noise + SMALL {
+        return Err(Error::Invalid);
+    }
     Ok(Counting::new(db))
 }
 
-fn revision<S: Store>(store: &Counting<S>) -> Result<u64, Error> {
-    Ok(store.inner().account("a")?.revision)
+fn revision<S: Store>(store: &Counting<S>) -> Result<u64, String> {
+    Ok(self::store(store.inner().account("a"))?.revision)
 }
 
-fn flag_mutation<S: Store>(store: &Counting<S>) -> Result<u64, Error> {
+fn flag_mutation<S: Store>(store: &Counting<S>) -> Result<u64, String> {
     let revision = revision(store)?;
     store.reset();
-    store.execute(
+    self::store(store.execute(
         "a",
         Precondition::Observed(revision),
         vec![Command::Keywords {
             id: "e2".into(),
             keywords: vec!["$seen".into()],
         }],
-    )?;
-    if store.calls("execute") != 1 {
-        return Err(Error::Invalid);
-    }
+    ))?;
+    shape(store.calls("execute") == 1, "one execute call")?;
     Ok(store.reads())
 }
 
-fn selection<S: Store>(store: &Counting<S>) -> Result<u64, Error> {
+fn selection<S: Store>(store: &Counting<S>) -> Result<u64, String> {
     store.reset();
     let ids: Vec<String> = (2..2 + SMALL).map(|n| format!("e{n}")).collect();
-    let selected = store.messages("a", &ids)?;
-    if selected.messages.len() != SMALL {
-        return Err(Error::Invalid);
-    }
+    let selected = self::store(store.messages("a", &ids))?;
+    shape(
+        selected.messages.len() == SMALL,
+        &format!("{} records for {SMALL} ids", selected.messages.len()),
+    )?;
     Ok(store.reads())
 }
 
-fn small_mailbox<S: Store>(store: &Counting<S>) -> Result<u64, Error> {
+fn small_mailbox<S: Store>(store: &Counting<S>) -> Result<u64, String> {
     store.reset();
-    let selected = store.mailbox_uids("a", "m1")?;
+    let selected = self::store(store.mailbox_uids("a", "m1"))?;
+    shape(selected.uids.len() == SMALL, "the mailbox's own uids")?;
     // One call of the selection's own method and nothing else.
-    if selected.uids.len() != SMALL || store.total_calls() != 1 || store.calls("messages") != 0 {
-        return Err(Error::Invalid);
-    }
+    shape(
+        store.total_calls() == 1 && store.calls("messages") == 0,
+        "one mailbox_uids call and no messages call",
+    )?;
     Ok(store.reads())
 }
 
-fn reply_into_thread<S: Store>(store: &Counting<S>) -> Result<u64, Error> {
+fn reply_into_thread<S: Store>(store: &Counting<S>) -> Result<u64, String> {
     let revision = revision(store)?;
-    let reply = append(store.inner(), "inbox", 99_999, "<1@t>", "T")?;
+    let reply = self::store(append(store.inner(), "inbox", 99_999, "<1@t>", "T"))?;
     store.reset();
-    let execution = store.execute("a", Precondition::Observed(revision), vec![reply])?;
-    let joined = store.messages("a", &execution.ids)?;
+    let execution = self::store(store.execute("a", Precondition::Observed(revision), vec![reply]))?;
+    let joined = self::store(store.messages("a", &execution.ids))?;
     // Ids are one sequence: the second mailbox took 1, the root is e2.
-    let root = store.messages("a", &["e2".into()])?;
+    let root = self::store(store.messages("a", &["e2".into()]))?;
     let (joined, root) = (
-        joined.messages.first().ok_or(Error::NotFound)?,
-        root.messages.first().ok_or(Error::NotFound)?,
+        joined.messages.first().ok_or("the reply was not created")?,
+        root.messages.first().ok_or("the root e2 is missing")?,
     );
-    if joined.thread_identity() != root.thread_identity() {
-        return Err(Error::Invalid);
-    }
+    shape(
+        joined.thread_identity() == root.thread_identity(),
+        "the reply joined the root's thread",
+    )?;
     Ok(store.reads())
 }
 
-fn changes_after_ten<S: Store>(store: &Counting<S>) -> Result<u64, Error> {
+fn changes_after_ten<S: Store>(store: &Counting<S>) -> Result<u64, String> {
     let since = revision(store)?;
     for n in 0..10 {
         let revision = revision(store)?;
-        store.execute(
+        self::store(store.execute(
             "a",
             Precondition::Observed(revision),
             vec![Command::Keywords {
                 id: format!("e{}", 3 + n),
                 keywords: vec!["$seen".into()],
             }],
-        )?;
+        ))?;
     }
     store.reset();
-    let page = store.history("a", since, 100)?;
-    if page.rows.len() != 10 || page.has_more {
-        return Err(Error::Invalid);
-    }
+    let page = self::store(store.history("a", since, 100))?;
+    shape(
+        page.rows.len() == 10 && !page.has_more,
+        &format!("{} rows, has_more {}", page.rows.len(), page.has_more),
+    )?;
     Ok(store.reads())
 }
 
 /// A second link (JMAP copy into a second mailbox), unlink-one-of-two, and
 /// the last unlink: three rows, each classified from the history alone.
-fn link_classification<S: Store>(store: &Counting<S>) -> Result<u64, Error> {
+fn link_classification<S: Store>(store: &Counting<S>) -> Result<u64, String> {
     let since = revision(store)?;
     store.reset();
     let copy = Command::SetMailboxes {
         id: "e3".into(),
         mailboxes: vec!["inbox".into(), "m1".into()],
     };
-    store.execute("a", Precondition::Observed(since), vec![copy])?;
+    self::store(store.execute("a", Precondition::Observed(since), vec![copy]))?;
     let one_of_two = Command::SetMailboxes {
         id: "e3".into(),
         mailboxes: vec!["m1".into()],
     };
-    store.execute("a", Precondition::Observed(since + 1), vec![one_of_two])?;
+    self::store(store.execute("a", Precondition::Observed(since + 1), vec![one_of_two]))?;
     let last = Command::Destroy { id: "e3".into() };
-    store.execute("a", Precondition::Observed(since + 2), vec![last])?;
+    self::store(store.execute("a", Precondition::Observed(since + 2), vec![last]))?;
     let reads = store.reads();
-    let kinds: Vec<&str> = store
-        .history("a", since, 100)?
+    let kinds: Vec<&str> = self::store(store.history("a", since, 100))?
         .rows
         .iter()
         .filter_map(|(_, entry)| match entry {
@@ -160,18 +180,19 @@ fn link_classification<S: Store>(store: &Counting<S>) -> Result<u64, Error> {
             _ => None,
         })
         .collect();
-    if kinds != ["copied", "unlinked", "destroyed"] {
-        return Err(Error::Invalid);
-    }
+    shape(
+        kinds == ["copied", "unlinked", "destroyed"],
+        &format!("history classified as {kinds:?}"),
+    )?;
     Ok(reads)
 }
 
-fn submission_accept_cancel<S: Store>(store: &Counting<S>) -> Result<u64, Error> {
+fn submission_accept_cancel<S: Store>(store: &Counting<S>) -> Result<u64, String> {
     let address = |email: &str| EnvelopeAddress {
         email: email.into(),
         parameters: BTreeMap::new(),
     };
-    let head = store.submissions("a", None)?.revision;
+    let head = self::store(store.submissions("a", None))?.revision;
     let acceptance = SubmissionAcceptance {
         record: SubmissionRecord {
             id: String::new(),
@@ -193,26 +214,32 @@ fn submission_accept_cancel<S: Store>(store: &Counting<S>) -> Result<u64, Error>
     store.reset();
     let accepted = store
         .accept_submission("a", head, acceptance)
-        .map_err(|_| Error::Invalid)?;
-    let id = accepted.records.first().ok_or(Error::NotFound)?.id.clone();
+        .map_err(|failure| format!("accept refused: {failure:?}"))?;
+    let id = accepted
+        .records
+        .first()
+        .ok_or("no record accepted")?
+        .id
+        .clone();
     store
         .cancel_submission("a", accepted.revision, &id)
-        .map_err(|_| Error::Invalid)?;
+        .map_err(|failure| format!("cancel refused: {failure:?}"))?;
     Ok(store.reads())
 }
 
 /// Runs last: it compacts the account.
-fn below_floor<S: Store>(store: &Counting<S>) -> Result<u64, Error> {
+fn below_floor<S: Store>(store: &Counting<S>) -> Result<u64, String> {
     let policy = RetentionPolicy {
         max_age_secs: 0,
         max_rows: 1,
     };
-    store.compact_history("a", i64::MAX / 2, policy, &[])?;
+    self::store(store.compact_history("a", i64::MAX / 2, policy, &[]))?;
     store.reset();
-    let page = store.history("a", 0, 100)?;
-    if !page.below_floor() || !page.rows.is_empty() {
-        return Err(Error::Invalid);
-    }
+    let page = self::store(store.history("a", 0, 100))?;
+    shape(
+        page.below_floor() && page.rows.is_empty(),
+        "an empty page marked below the floor",
+    )?;
     Ok(store.reads())
 }
 
@@ -234,8 +261,8 @@ pub fn run<F: Fixture>(fixture: &F, gate: &mut Gate) -> Result<(), GateFailure> 
         ("since below the floor", below_floor, 1),
     ];
     for (case, probe, ceiling) in probes {
-        let at_100 = at(gate, case, probe(&small))?;
-        let at_10k = at(gate, case, probe(&large))?;
+        let at_100 = probe(&small).map_err(|detail| gate.fail(case, detail))?;
+        let at_10k = probe(&large).map_err(|detail| gate.fail(case, detail))?;
         gate.measure(case, at_10k);
         gate.check(
             case,

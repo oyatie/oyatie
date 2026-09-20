@@ -172,6 +172,8 @@ fn reads_and_rotation<F: Fixture>(fixture: &F, gate: &mut Gate) -> Result<(), Ga
     gate.measure("dirty() rows at 9 dirty accounts, limit 3", at_nine);
     gate.check(
         "reads follow the served set",
+        // Rows are the tenants listed plus the accounts served: one more
+        // tenant here, the same three accounts.
         at_nine <= at_three + 1,
         format!("{at_nine} rows with 9 dirty accounts vs {at_three} with 3"),
     )?;

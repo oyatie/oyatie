@@ -4,10 +4,9 @@
 use mail_api::{BlobStore, Consumer, MetadataStore, Precondition};
 use mail_kernel::{Account, Command, Error, Retention, RetentionPolicy};
 use mail_sqlite_store::SqliteStore;
-use mail_sqlite_store::contract::{Broken, Counting, Faulty};
+use mail_sqlite_store::contract::{Broken, Faulty};
 
 const TOKEN: &str = "0123456789abcdef0123456789abcdef";
-const SMALL: usize = 256;
 
 fn append(db: &SqliteStore, mailbox: &str, n: usize) -> Command {
     db.append(
@@ -98,11 +97,15 @@ fn broken_store_violates_the_contract_where_the_suite_must_notice() {
         )
         .unwrap();
     assert_eq!(execution.revision, 3);
-    // A one-id selection returns the whole account.
+    // A one-id selection returns the right record from a whole-account
+    // read: more rows mapped than the real store's selection.
+    mail_sqlite_store::contract::reset_rows();
     assert_eq!(
         store.messages("a", &["e1".into()]).unwrap().messages.len(),
-        2
+        1
     );
+    let broken_rows = mail_sqlite_store::contract::rows_read();
+    mail_sqlite_store::contract::reset_rows();
     assert_eq!(
         store
             .inner()
@@ -112,6 +115,7 @@ fn broken_store_violates_the_contract_where_the_suite_must_notice() {
             .len(),
         1
     );
+    assert!(broken_rows > mail_sqlite_store::contract::rows_read());
     // The mailbox map comes from the full projection but matches.
     assert_eq!(
         store.mailbox_uids("a", "inbox").unwrap(),
