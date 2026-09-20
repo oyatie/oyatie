@@ -5,9 +5,10 @@
 //! lifetime or idle past its timeout is closed with the reference's codes.
 //!
 //! "Stalled" is decided by whether more bytes are already waiting when the
-//! buffer is reached without a CRLF, as the reference receiver decides it — the reference's per-read semantics, and what its `limits`
-//! oracle pins by sending the same 4097-byte line both ways. On a socket
-//! that makes the outcome depend on segmentation, as it does there.
+//! buffer fills without a CRLF, which is the reference receiver's own
+//! per-read semantics. On a socket that makes the outcome depend on
+//! segmentation, as it does there; the `limits` oracle pins the behaviour by
+//! sending the same 4097-byte line both ways.
 use std::{
     io,
     net::{IpAddr, Ipv4Addr},
@@ -33,6 +34,24 @@ pub struct SmtpParams {
     pub max_duration: Duration,
     /// Close with `452 4.7.28` once the client has sent this many bytes.
     pub transfer_bytes: usize,
+    /// The largest message this session accepts: advertised as `SIZE`, and
+    /// enforced in both places that can refuse an oversized message — the
+    /// `SIZE=` parameter on MAIL FROM, and the DATA reader.
+    ///
+    /// The store keeps its own ceiling at `MAX_MESSAGE_BYTES`. Nothing
+    /// diverges while this defaults to that constant and no setting raises
+    /// it; the moment one does, a session could advertise and accept a
+    /// message the store then refuses, so the store's ceiling has to move
+    /// with it.
+    pub max_message_size: usize,
+    /// How many reverse paths this session may offer without ever delivering
+    /// the message. A delivered message clears the count, so this bounds
+    /// abandoned transactions and not throughput.
+    pub verification_budget: u8,
+    /// What this session checks about its peer, and how far a failure goes.
+    /// Default is every check disabled, so a deployment turns them on
+    /// deliberately rather than discovering them by losing mail.
+    pub authentication: super::verify::Authentication,
 }
 impl Default for SmtpParams {
     fn default() -> Self {
@@ -42,6 +61,9 @@ impl Default for SmtpParams {
             idle_timeout: Duration::from_secs(30 * 60),
             max_duration: Duration::from_secs(60 * 60),
             transfer_bytes: 256 * 1024 * 1024,
+            max_message_size: mail_kernel::MAX_MESSAGE_BYTES,
+            verification_budget: 16,
+            authentication: super::verify::Authentication::default(),
         }
     }
 }
@@ -134,6 +156,7 @@ pub(super) async fn line<R: AsyncBufRead + Unpin>(
 }
 
 /// What to send instead of a command, and whether the session ends.
+#[derive(Debug)]
 pub(super) struct Refusal {
     pub reply: String,
     pub close: bool,

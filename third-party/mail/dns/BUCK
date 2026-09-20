@@ -25,6 +25,7 @@ pinned_crate(
     version = "1.0.4",
     sha256 = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801",
     edition = "2018",
+    visibility = ["//mail/auth/..."],
 )
 
 pinned_crate(
@@ -188,8 +189,8 @@ pinned_crate(
     version = "0.26.3",
     sha256 = "c480823ed7c2c5d0f09c41020cb6b7c28029ce60ec42dc942158dcf22f8e0a4d",
     edition = "2021",
-    features = ["tokio"],
-    deps = [":async-trait", ":cfg-if", ":data-encoding", ":futures-channel", ":futures-io", ":futures-util", ":hickory-proto", ":idna", ":ipnet", ":rand", "//:thiserror", ":tinyvec", "//:tokio", "//:tracing", ":url"],
+    features = ["__tls", "tls-aws-lc-rs", "tokio"],
+    deps = [":async-trait", ":cfg-if", ":data-encoding", ":futures-channel", ":futures-io", ":futures-util", ":hickory-proto", ":idna", ":ipnet", ":rand", "//:thiserror", ":tinyvec", "//:tokio", "//:tracing", ":url", "//:bytes", "//mail/tls:rustls", "//mail/tls:tokio-rustls"],
 )
 
 pinned_crate(
@@ -206,8 +207,11 @@ pinned_crate(
     version = "0.26.3",
     sha256 = "3f3da5255c95d5a716857d54b5b8f4e8d67c3484d3beaaaae2ce25063b3ba981",
     edition = "2021",
-    features = ["tokio"],
-    deps = [":cfg-if", ":futures-util", ":hickory-net", ":hickory-proto", ":ipnet", ":moka", ":once_cell", ":parking_lot", ":rand", ":smallvec", "//:thiserror", "//:tokio", "//:tracing"],
+    features = ["__tls", "system-config", "tokio"],
+    deps = [":cfg-if", ":futures-util", ":hickory-net", ":hickory-proto", ":ipnet", ":moka", ":once_cell", ":parking_lot", ":rand", ":smallvec", "//:thiserror", "//:tokio", "//:tracing", "//mail/tls:rustls", "//mail/tls:tokio-rustls"] + select({
+        "config//os:macos": [":system-configuration"],
+        "DEFAULT": [":resolv-conf"],
+    }),
     visibility = ["PUBLIC"],
 )
 
@@ -278,6 +282,7 @@ pinned_crate(
     edition = "2018",
     features = ["alloc", "compiled_data", "std"],
     deps = [":idna_adapter", ":smallvec", ":utf8_iter"],
+    visibility = ["//mail/auth/..."],
 )
 
 pinned_crate(
@@ -638,4 +643,60 @@ pinned_crate(
     sha256 = "8b2a41393f66f16b0823bb79094d54ac5fbd34ab292ddafb9a0456ac9f87d201",
     edition = "2024",
     deps = ["//:libc"],
+)
+
+# `system-config` on hickory-resolver resolves the host's nameservers, and
+# mail-auth imports that entry point unconditionally. The backing crate is
+# platform-specific: Apple reads SystemConfiguration, everything else parses
+# /etc/resolv.conf. Both are declared so `buck2 build //...` is green on the
+# Linux smoke runner and on a macOS workstation.
+
+# MIT OR Apache-2.0.
+pinned_crate(
+    name = "resolv-conf",
+    version = "0.7.6",
+    sha256 = "1e061d1b48cb8d38042de4ae0a7a6401009d6143dc80d2e2d6f31f0bdd6470c7",
+)
+
+# MIT OR Apache-2.0.
+pinned_crate(
+    name = "system-configuration",
+    version = "0.7.0",
+    sha256 = "a13f3d0daba03132c0aa9767f98351b3488edc2c100cda2d2ec2b04f3d8d3c8b",
+    deps = [":bitflags", ":core-foundation", ":system-configuration-sys"],
+)
+
+# MIT OR Apache-2.0.
+pinned_crate(
+    name = "system-configuration-sys",
+    version = "0.6.0",
+    sha256 = "8e1d1b10ced5ca923a1fcb8d03e96b8d3268065d724548c0211415ff6ac6bac4",
+    deps = [":core-foundation-sys", "//:libc"],
+)
+
+# MIT OR Apache-2.0. 0.9 is what system-configuration pins; the workspace
+# keeps 0.10 elsewhere, and deny.toml carries the skip row for the pair.
+pinned_crate(
+    name = "core-foundation",
+    version = "0.9.4",
+    sha256 = "91e195e091a93c46f7102ec7818a2aa394e1e1771c3ab4825963fa03e45afb8f",
+    edition = "2018",
+    features = ["default", "link"],
+    deps = [":core-foundation-sys", "//:libc"],
+)
+
+# MIT OR Apache-2.0.
+pinned_crate(
+    name = "core-foundation-sys",
+    version = "0.8.7",
+    sha256 = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b",
+    edition = "2018",
+    features = ["default", "link"],
+)
+
+# MIT OR Apache-2.0.
+pinned_crate(
+    name = "bitflags",
+    version = "2.13.1",
+    sha256 = "b588b76d00fde79687d7646a9b5bdf3cc0f655e0bbd080335a95d7e96f3587da",
 )

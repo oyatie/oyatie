@@ -1,21 +1,27 @@
 mod auth;
+mod budget;
 mod data;
+mod dns;
 mod entry;
 mod envelope;
 mod limits;
 mod tls;
+mod verify;
 use crate::wire::write;
+pub use dns::MailDns;
 pub use entry::{
     smtp_session, smtp_session_with, smtp_tls_session_with, submission_session,
     submission_session_with,
 };
 pub use limits::SmtpParams;
 use limits::{Meter, Read};
-use mail_kernel::{Error, MAX_MESSAGE_BYTES};
+use mail_kernel::Error;
+
 use mail_service::MailService;
 use std::{io, sync::Arc};
 pub use tls::{smtp_starttls_session, smtp_starttls_session_with};
 use tokio::io::{AsyncRead, AsyncWrite, BufReader};
+pub use verify::{Authentication, Verifier, Verify};
 
 /// How one session runs: the port it serves, whether STARTTLS is offered,
 /// whether TLS is already established, whether to greet.
@@ -52,6 +58,9 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
     }
     let mut greeted = false;
     let mut esmtp = false;
+    // The identity SPF checks the reverse path against, kept from EHLO.
+    let mut helo = String::new();
+    let mut budget = budget::Budget::new(params.verification_budget);
     let mut sender = None;
     let mut recipients = vec![];
     loop {
@@ -107,8 +116,23 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                 }
             },
             "EHLO" | "HELO" if !arg.is_empty() && arg.bytes().all(|b| b.is_ascii_graphic()) => {
+                // SPF authorizes hosts for a domain, so it would refuse every
+                // authenticated laptop and phone. Inbound only; the guard is
+                // the mode because EHLO precedes any AUTH.
+                if !submission
+                    && let Err(refusal) = budget
+                        .ehlo(&params.authentication, params.peer, arg, &params.hostname)
+                        .await
+                {
+                    write(stream.get_mut(), refusal.reply.as_bytes()).await?;
+                    if refusal.close {
+                        return Ok(None);
+                    }
+                    continue;
+                }
                 greeted = true;
                 esmtp = verb.eq_ignore_ascii_case("EHLO");
+                helo = arg.to_owned();
                 sender = None;
                 recipients.clear();
                 let extensions = if starttls {
@@ -123,7 +147,8 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                 };
                 let banner = if esmtp {
                     format!(
-                        "250-{host}\r\n250-SIZE {MAX_MESSAGE_BYTES}\r\n{extensions}250 8BITMIME\r\n"
+                        "250-{host}\r\n250-SIZE {size}\r\n{extensions}250 8BITMIME\r\n",
+                        size = params.max_message_size
                     )
                 } else {
                     format!("250 {host}\r\n")
@@ -139,11 +164,42 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                 } else if submission && starttls {
                     "530 5.7.0 TLS required for submission\r\n"
                 } else {
-                    let reply = envelope::sender(arg, auth.as_ref(), &service).await;
-                    if let Ok(address) = &reply {
-                        sender = Some(address.clone());
+                    let reply =
+                        envelope::sender(arg, auth.as_ref(), &service, params.max_message_size)
+                            .await;
+                    match reply {
+                        Err(reply) => reply,
+                        Ok(address) => {
+                            // SPF answers about the reverse path, so it can
+                            // only run once the path has parsed.
+                            let verdict = if submission {
+                                Ok(())
+                            } else {
+                                budget
+                                    .mail_from(
+                                        &params.authentication,
+                                        params.peer,
+                                        &helo,
+                                        &params.hostname,
+                                        &address,
+                                    )
+                                    .await
+                            };
+                            match verdict {
+                                Err(refusal) => {
+                                    write(stream.get_mut(), refusal.reply.as_bytes()).await?;
+                                    if refusal.close {
+                                        return Ok(None);
+                                    }
+                                    continue;
+                                }
+                                Ok(()) => {
+                                    sender = Some(address);
+                                    "250 2.1.0 Sender accepted\r\n"
+                                }
+                            }
+                        }
                     }
-                    reply.map_or_else(|reply| reply, |_| "250 2.1.0 Sender accepted\r\n")
                 }
             }
             "RCPT" => {
@@ -164,7 +220,7 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                     "503 5.5.1 Send RCPT first\r\n"
                 } else {
                     write(stream.get_mut(), b"354 End with <CRLF>.<CRLF>\r\n").await?;
-                    let raw = match data::read(&mut stream, meter).await {
+                    let raw = match data::read(&mut stream, meter, params.max_message_size).await {
                         Ok(raw) => raw,
                         Err(error) => {
                             let quota =
@@ -200,7 +256,13 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                     })
                     .await;
                     match accepted.unwrap_or(Err(Error::Unavailable)) {
-                        Ok(_) => "250 2.0.0 Queued\r\n",
+                        Ok(_) => {
+                            // The reverse path became a message, so it was not
+                            // churn: the next one on this connection starts
+                            // from a clear budget.
+                            budget.delivered();
+                            "250 2.0.0 Queued\r\n"
+                        }
                         Err(Error::Forbidden) if submission => {
                             "535 5.7.8 Submission no longer authorized\r\n"
                         }

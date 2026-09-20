@@ -27,13 +27,14 @@ pinned_crate(
     sha256 = "2f4925028c7eb5d1fcdaf196971378ed9d2c1c4efc7dc5d011256f76c99c0a96",
     features = ["alloc", "default", "std"],
     deps = ["//:zeroize"],
+    visibility = ["//mail/auth/..."],
 )
 
 pinned_crate(
     name = "tokio-rustls",
     version = "0.26.4",
     sha256 = "1729aa945f29d91ba541258c8df89027d5792d85a8841fb65e8bf0f4ede4ef61",
-    features = ["aws-lc-rs", "aws_lc_rs", "logging", "tls12"],
+    features = ["aws-lc-rs", "aws_lc_rs", "early-data", "logging", "tls12"],
     deps = [":rustls", "//:tokio"],
     visibility = ["PUBLIC"],
 )
@@ -51,6 +52,7 @@ pinned_crate(
         "DEP_AWS_LC_0_44_0_LIBCRYPTO": "aws_lc_0_44_0_crypto",
         "CARGO_FEATURE_AWS_LC_SYS": "1",
     },
+    visibility = ["//mail/auth/..."],
 )
 
 # Preserve the native AWS-LC builder and C-link propagation used by the workspace.

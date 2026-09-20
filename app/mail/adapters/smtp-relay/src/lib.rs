@@ -4,6 +4,7 @@ mod transaction;
 mod wire;
 use attempt::Failure;
 mod mx;
+pub use hickory_resolver::TokioResolver;
 use mail_api::{DeliveryOutcome, MailTransport, QueuedMessage};
 use mail_kernel::{Error, valid_address};
 pub use mx::{MxConfig, MxTransport};

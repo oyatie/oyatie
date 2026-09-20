@@ -51,10 +51,11 @@ async fn serve(
             .with_single_cert(certificates, key)?,
     );
     let tls = TlsAcceptor::from(tls);
-    let relay = outbound_config::configured()?;
+    let outbound = outbound_config::configured()?;
     lease::take(&db)?;
     let service = Arc::new(MailService {
-        outbound: relay
+        outbound: outbound
+            .transport
             .as_ref()
             .map(|_| db.clone() as Arc<dyn mail_api::SubmissionQueue>),
         queue: db.clone(),
@@ -110,7 +111,7 @@ async fn serve(
     let mut lease_task = tokio::spawn(lease::run(db.clone(), lease_stopped));
     let (outbound_stop, outbound_stopped) = tokio::sync::watch::channel(false);
     let mut outbound_workers = tokio::task::JoinSet::new();
-    if let (Some(queue), Some(transport)) = (&service.outbound, relay) {
+    if let (Some(queue), Some(transport)) = (&service.outbound, outbound.transport.clone()) {
         for _ in 0..8 {
             outbound_workers.spawn(outbound::run(
                 queue.clone(),
@@ -145,25 +146,25 @@ async fn serve(
                 result?; return Err("Outbound worker stopped unexpectedly".into());
             }
             connection = smtp.accept() => {
-                session::spawn(&mut sessions, connection?.0, &service, &tls, &capacity, session::Protocol::Smtp);
+                session::spawn(&mut sessions, connection?.0, &service, &tls, &capacity, session::Protocol::Smtp, &outbound.authentication);
             }
             connection = imap.accept() => {
-                session::spawn(&mut sessions, connection?.0, &service, &tls, &capacity, session::Protocol::Imap);
+                session::spawn(&mut sessions, connection?.0, &service, &tls, &capacity, session::Protocol::Imap, &outbound.authentication);
             }
             connection = submission.accept() => {
-                session::spawn(&mut sessions, connection?.0, &service, &tls, &capacity, session::Protocol::Submission);
+                session::spawn(&mut sessions, connection?.0, &service, &tls, &capacity, session::Protocol::Submission, &outbound.authentication);
             }
             connection = imap_starttls.accept() => {
-                session::spawn(&mut sessions, connection?.0, &service, &tls, &capacity, session::Protocol::ImapStartTls);
+                session::spawn(&mut sessions, connection?.0, &service, &tls, &capacity, session::Protocol::ImapStartTls, &outbound.authentication);
             }
             connection = submission_starttls.accept() => {
-                session::spawn(&mut sessions, connection?.0, &service, &tls, &capacity, session::Protocol::SubmissionStartTls);
+                session::spawn(&mut sessions, connection?.0, &service, &tls, &capacity, session::Protocol::SubmissionStartTls, &outbound.authentication);
             }
             connection = pop.accept() => {
-                session::spawn(&mut sessions, connection?.0, &service, &tls, &capacity, session::Protocol::Pop);
+                session::spawn(&mut sessions, connection?.0, &service, &tls, &capacity, session::Protocol::Pop, &outbound.authentication);
             }
             connection = pop_starttls.accept() => {
-                session::spawn(&mut sessions, connection?.0, &service, &tls, &capacity, session::Protocol::PopStartTls);
+                session::spawn(&mut sessions, connection?.0, &service, &tls, &capacity, session::Protocol::PopStartTls, &outbound.authentication);
             }
             Some(_) = sessions.join_next(), if !sessions.is_empty() => {}
         }

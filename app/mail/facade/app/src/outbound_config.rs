@@ -6,7 +6,15 @@ use rustls::{
 };
 use std::sync::Arc;
 
-pub(super) fn configured() -> Result<Option<Arc<dyn MailTransport>>, Box<dyn std::error::Error>> {
+/// The outbound transport, and what inbound sessions check about their peer.
+/// Both are returned together because message authentication resolves against
+/// the same servers direct delivery does, from the same resolver.
+pub(super) struct Outbound {
+    pub(super) transport: Option<Arc<dyn MailTransport>>,
+    pub(super) authentication: mail_protocol_imap::Authentication,
+}
+
+pub(super) fn configured() -> Result<Outbound, Box<dyn std::error::Error>> {
     if [
         "MAIL_MX_DNS_SERVERS",
         "MAIL_MX_HELO",
@@ -45,7 +53,7 @@ pub(super) fn configured() -> Result<Option<Arc<dyn MailTransport>>, Box<dyn std
             "false" => false,
             _ => return Err("MAIL_MX_REQUIRE_TLS must be true or false".into()),
         };
-        return Ok(Some(Arc::new(MxTransport::new(
+        let transport = MxTransport::new(
             MxConfig {
                 helo,
                 dns_servers,
@@ -53,7 +61,12 @@ pub(super) fn configured() -> Result<Option<Arc<dyn MailTransport>>, Box<dyn std
                 port: super::setting("MAIL_MX_PORT", "25")?.parse()?,
             },
             trust("MAIL_MX_CA")?,
-        )?)));
+        )?;
+        let authentication = authentication(Some(transport.resolver()))?;
+        return Ok(Outbound {
+            transport: Some(Arc::new(transport)),
+            authentication,
+        });
     }
     let host = match std::env::var("MAIL_RELAY_HOST") {
         Ok(host) => host,
@@ -71,7 +84,10 @@ pub(super) fn configured() -> Result<Option<Arc<dyn MailTransport>>, Box<dyn std
             {
                 return Err("MAIL_RELAY_HOST is required when relay settings are supplied".into());
             }
-            return Ok(None);
+            return Ok(Outbound {
+                transport: None,
+                authentication: authentication(None)?,
+            });
         }
         Err(error) => return Err(error.into()),
     };
@@ -94,16 +110,56 @@ pub(super) fn configured() -> Result<Option<Arc<dyn MailTransport>>, Box<dyn std
         }
     };
     let trust = trust("MAIL_RELAY_CA")?;
-    Ok(Some(Arc::new(Relay::new(
-        RelayConfig {
-            host,
-            port,
-            helo,
-            implicit_tls,
-            credentials,
-        },
-        trust,
-    )?)))
+    Ok(Outbound {
+        transport: Some(Arc::new(Relay::new(
+            RelayConfig {
+                host,
+                port,
+                helo,
+                implicit_tls,
+                credentials,
+            },
+            trust,
+        )?)),
+        authentication: authentication(None)?,
+    })
+}
+
+/// What inbound sessions check about their peer.
+///
+/// Every check is off unless an operator names a policy. A policy needs a
+/// resolver, and the only one this process builds belongs to direct delivery,
+/// so enabling a check without `MAIL_MX_DNS_SERVERS` is refused here rather
+/// than silently passing every message.
+fn authentication(
+    resolver: Option<mail_smtp_relay::TokioResolver>,
+) -> Result<mail_protocol_imap::Authentication, Box<dyn std::error::Error>> {
+    let resolvable = resolver.is_some();
+    let policy = |name: &str| -> Result<mail_protocol_imap::Verify, Box<dyn std::error::Error>> {
+        let value = super::setting(name, "disable")?;
+        let policy = mail_protocol_imap::Verify::parse(&value)
+            .ok_or_else(|| format!("{name} must be disable, relaxed or strict"))?;
+        if policy != mail_protocol_imap::Verify::Disabled && !resolvable {
+            return Err(format!(
+                "{name} needs a resolver, and only direct delivery builds one; \
+                 relay delivery cannot verify SPF. Either unset {name} or move \
+                 to direct delivery (MAIL_MX_DNS_SERVERS, MAIL_MX_HELO), which \
+                 is mutually exclusive with the MAIL_RELAY_* settings"
+            )
+            .into());
+        }
+        Ok(policy)
+    };
+    Ok(mail_protocol_imap::Authentication {
+        verifier: resolver.map(|resolver| {
+            mail_protocol_imap::Verifier(Arc::new(mail_auth::MessageAuthenticator(resolver)))
+        }),
+        // Open: a miss falls through to the resolver. Only a conformance run
+        // seals the table.
+        dns: Some(Arc::new(mail_protocol_imap::MailDns::default())),
+        spf_ehlo: policy("MAIL_SPF_EHLO")?,
+        spf_mail_from: policy("MAIL_SPF_MAIL_FROM")?,
+    })
 }
 
 fn trust(name: &str) -> Result<Arc<ClientConfig>, Box<dyn std::error::Error>> {

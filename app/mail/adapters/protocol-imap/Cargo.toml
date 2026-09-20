@@ -19,12 +19,18 @@ tokio = { workspace = true, features = ["io-util"] }
 serde_json.workspace = true
 sha2.workspace = true
 mail-parser = { version = "=0.11.9", features = ["full_encoding"] }
+mail-auth = { version = "=0.13.3", default-features = false, features = [
+    "aws-lc-rs",
+] }
 unicode-normalization = "=0.1.25"
 unicode-case-mapping = "=1.0.0"
 mail-builder = { version = "=1.0.0", default-features = false }
 
 [dev-dependencies]
 rusqlite.workspace = true
+mail-auth = { version = "=0.13.3", default-features = false, features = [
+    "aws-lc-rs",
+] }
 mail-sqlite-store = { path = "../sqlite-store", features = ["contract"] }
 tower.workspace = true
 http-body-util.workspace = true

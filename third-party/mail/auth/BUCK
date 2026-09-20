@@ -1,0 +1,85 @@
+load("//:pinned.bzl", "pinned_crate")
+
+# Stalwart Labs mail-auth 0.13.3: Apache-2.0 OR MIT. SPF, DKIM, DMARC and ARC
+# evaluation for the inbound SMTP path. Archive checksums match Cargo.lock.
+#
+# Neither feature here is discretionary. The crate refuses to build without a
+# DNS backend (`compile_error!` in src/lib.rs) and does not compile without a
+# crypto backend either, so `dns-hickory` and a provider are both mandatory.
+# `aws-lc-rs` is the provider rustls already uses in //mail/tls, and it and
+# `ring` cost the same in the Cargo graph, so it adds no new crate here.
+#
+# Under Cargo, mail-auth's `aws-lc-rs` feature forwards tls, dnssec and
+# rustls-platform-verifier on to hickory-resolver; Buck has no such
+# forwarding, so this links the existing //mail/dns:hickory-resolver built
+# with ["tokio"] and none of that tree is pulled in.
+pinned_crate(
+    name = "mail-auth",
+    version = "0.13.3",
+    sha256 = "8505122ba86e1f4adeb664196c1e787c3f29bb6e7c128e4a366d47d209911440",
+    edition = "2024",
+    features = ["aws-lc-rs", "dns-hickory"],
+    deps = [
+        ":flate2",
+        ":similar",
+        "//:serde",
+        "//:serde_json",
+        "//mail:hashify",
+        "//mail:mail-builder",
+        "//mail:mail-parser",
+        "//mail:memchr",
+        "//mail/dns:hickory-resolver",
+        "//mail/dns:idna",
+        "//mail/tls:aws-lc-rs",
+        "//mail/tls:rustls-pki-types",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# MIT OR Apache-2.0. mail-auth takes flate2 unconditionally. Only the pure
+# Rust backend is declared: `runtime_detection` reaches for zlib-rs, which
+# nothing here needs.
+pinned_crate(
+    name = "flate2",
+    version = "1.1.10",
+    sha256 = "6e634e2e0ebac1ee034020da1ca582e17ffe4e0f5e985823721e168928136dcb",
+    edition = "2018",
+    features = ["any_impl", "miniz_oxide", "rust_backend"],
+    deps = [":crc32fast", ":miniz_oxide"],
+)
+
+# MIT OR Apache-2.0.
+pinned_crate(
+    name = "crc32fast",
+    version = "1.5.2",
+    sha256 = "01a7799fd6b852db0e61728dde9a204c423b44d689dbd432522543614b490e78",
+    features = ["default", "std"],
+    deps = ["//mail/dns:cfg-if"],
+    build_script = True,
+)
+
+# MIT OR Apache-2.0 OR Zlib.
+pinned_crate(
+    name = "miniz_oxide",
+    version = "0.9.1",
+    sha256 = "b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c",
+    features = ["default", "with-alloc"],
+    deps = [":adler2"],
+)
+
+# 0BSD OR MIT OR Apache-2.0.
+pinned_crate(
+    name = "adler2",
+    version = "2.0.1",
+    sha256 = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa",
+)
+
+# Apache-2.0. mail-auth uses it for DMARC failure-report diffing; `bstr` and
+# the unicode segmentation extras stay off.
+pinned_crate(
+    name = "similar",
+    version = "3.2.0",
+    sha256 = "4f66ca1f7aca2474dc10c942eb22feffc897735f54cd1db90138c2fddb490987",
+    edition = "2024",
+    features = ["default", "std", "text"],
+)

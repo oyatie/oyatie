@@ -1,7 +1,7 @@
 //! MAIL FROM and RCPT TO: the path grammar, the parameters this server
 //! accepts, and the authorization each address needs.
 use super::auth::Submission;
-use mail_kernel::{Error, MAX_MESSAGE_BYTES, valid_address};
+use mail_kernel::{Error, valid_address};
 use mail_service::MailService;
 use std::sync::Arc;
 
@@ -10,6 +10,7 @@ pub(super) async fn sender(
     arg: &str,
     auth: Option<&Submission>,
     service: &Arc<MailService>,
+    ceiling: usize,
 ) -> Result<String, &'static str> {
     let Some((address, params)) = path(arg, "FROM:") else {
         return Err("501 5.5.2 Invalid reverse path\r\n");
@@ -31,7 +32,7 @@ pub(super) async fn sender(
                 .filter(|p| p.eq_ignore_ascii_case("SIZE="))
                 .map(|_| &p[5..])
         })
-        .any(|n| n.parse::<usize>().map_or(true, |n| n > MAX_MESSAGE_BYTES))
+        .any(|n| n.parse::<usize>().map_or(true, |n| n > ceiling))
     {
         return Err("552 5.3.4 Message too large\r\n");
     }

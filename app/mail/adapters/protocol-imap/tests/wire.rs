@@ -272,6 +272,8 @@ mod session;
 mod smtp;
 #[path = "wire/sort.rs"]
 mod sort;
+#[path = "wire/spf.rs"]
+mod spf;
 #[path = "wire/starttls.rs"]
 mod starttls;
 #[path = "wire/thread.rs"]

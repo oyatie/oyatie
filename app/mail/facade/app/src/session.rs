@@ -20,17 +20,19 @@ pub(super) fn spawn(
     tls: &TlsAcceptor,
     capacity: &Arc<Semaphore>,
     protocol: Protocol,
+    authentication: &mail_protocol_imap::Authentication,
 ) {
     let Ok(permit) = capacity.clone().try_acquire_owned() else {
         return;
     };
     let service = service.clone();
     let tls = tls.clone();
+    let authentication = authentication.clone();
     sessions.spawn(async move {
         let _permit = permit;
         match protocol {
             Protocol::Smtp | Protocol::SubmissionStartTls => {
-                let params = smtp_params(&stream);
+                let params = smtp_params(&stream, &authentication);
                 let _ = mail_protocol_imap::smtp_starttls_session_with(
                     stream,
                     service,
@@ -53,7 +55,7 @@ pub(super) fn spawn(
                 .await;
             }
             Protocol::Imap | Protocol::Submission | Protocol::Pop => {
-                let params = smtp_params(&stream);
+                let params = smtp_params(&stream, &authentication);
                 if let Ok(Ok(stream)) =
                     tokio::time::timeout(Duration::from_secs(10), tls.accept(stream)).await
                 {
@@ -80,11 +82,15 @@ pub(super) fn spawn(
 
 /// The peer address is the session's identity for policy; an unknown one
 /// matches nothing.
-fn smtp_params(stream: &TcpStream) -> mail_protocol_imap::SmtpParams {
+fn smtp_params(
+    stream: &TcpStream,
+    authentication: &mail_protocol_imap::Authentication,
+) -> mail_protocol_imap::SmtpParams {
     mail_protocol_imap::SmtpParams {
         peer: stream
             .peer_addr()
             .map_or(std::net::Ipv4Addr::UNSPECIFIED.into(), |a| a.ip()),
+        authentication: authentication.clone(),
         ..mail_protocol_imap::SmtpParams::default()
     }
 }

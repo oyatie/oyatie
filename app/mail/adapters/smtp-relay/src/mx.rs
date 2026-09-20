@@ -67,6 +67,15 @@ impl MxTransport {
         })
     }
 
+    /// The resolver this transport already validated and built.
+    ///
+    /// Message authentication resolves the same names against the same
+    /// servers, and a second resolver would be a second DNS configuration to
+    /// keep in step. Cloning is cheap: the pool is shared behind an `Arc`.
+    pub fn resolver(&self) -> TokioResolver {
+        self.resolver.clone()
+    }
+
     async fn hosts(&self, domain: &str) -> Result<Vec<String>, DeliveryOutcome> {
         let answer = match self.resolver.mx_lookup(format!("{domain}.")).await {
             Ok(answer) => answer,
