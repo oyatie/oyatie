@@ -3,9 +3,11 @@
 mod account;
 mod legacy;
 mod lock;
+mod step;
 mod verify;
 pub use legacy::{LegacyAccount, LegacyMessage};
 pub use lock::{Conversion, ConvertError, Converter};
+pub use step::has_step;
 pub use verify::BackupCheck;
 
 /// Rough duration printed by `serve` when it refuses a below-version file:

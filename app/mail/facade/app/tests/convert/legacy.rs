@@ -70,8 +70,8 @@ pub fn mark_converting(path: &Path, backup: &str) {
     )
     .unwrap();
     db.execute(
-        "INSERT INTO schema_version(version,state,backup_path,backup_sha256) VALUES(3,'converting',?1,'00')",
-        [backup],
+        "INSERT INTO schema_version(version,state,backup_path,backup_sha256) VALUES(?1,'converting',?2,'00')",
+        rusqlite::params![mail_sqlite_store::SCHEMA_VERSION, backup],
     )
     .unwrap();
 }

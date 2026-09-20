@@ -3,11 +3,17 @@
 use mail_kernel::{Account, Command, Error, HistoryEntry};
 mod blob_store;
 mod change_feed;
+mod lease;
 mod queue;
+pub mod retry;
 mod submission;
 mod submission_store;
 pub use blob_store::{BlobStore, COMMAND_RESERVATION_SECS, UPLOAD_RESERVATION_SECS};
 pub use change_feed::{AuditRow, ChangeFeed, Cursor, Dirty, FeedRead, Resume};
+pub use lease::{
+    BATCH_LEASE_MESSAGES, BATCH_LEASE_SECS, Clock, Epoch, NODE_LEASE_SECS, NodeLease,
+    QUEUE_LEASE_SECS,
+};
 pub use queue::{DeliveryFailure, DeliveryLease, DeliveryQueue, DeliveryTarget, QueuedMessage};
 pub use submission::{DeliveryOutcome, MailTransport, OutboundLease, SubmissionQueue};
 pub use submission_store::{

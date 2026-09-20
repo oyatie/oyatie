@@ -5,12 +5,7 @@ pub const MAX_DELAYED_SEND: u64 = u32::MAX as u64;
 
 pub(super) fn release(envelope: &SubmissionEnvelope) -> Result<i64, SubmitEmailError> {
     use SubmitEmailError::InvalidEnvelope;
-    let now: i64 = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_err(|_| Error::Unavailable)?
-        .as_secs()
-        .try_into()
-        .map_err(|_| Error::Unavailable)?;
+    let now = mail_api::Clock.now_secs();
     let parameters = &envelope.mail_from.parameters;
     if parameters
         .keys()

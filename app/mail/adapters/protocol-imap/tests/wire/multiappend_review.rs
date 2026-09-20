@@ -218,3 +218,70 @@ async fn message_count_refusal_precedes_sync_continuation_and_preserves_next_com
     assert!(db.blob("a", "e1").is_err());
     finish(client, task).await;
 }
+
+/// The writer's side of the batch-lease contract: a store answering `Busy`
+/// (a live lease on the hosted tier; SQLite never does) is re-attempted off
+/// the worker inside the command's deadline, and the client sees one `OK`.
+#[tokio::test]
+async fn a_batch_above_the_lease_size_reattempts_busy_off_the_worker_until_commit() {
+    use mail_sqlite_store::contract::Faulty;
+    // The wrapper owns its handle; identity and queue use a second one.
+    let path = std::env::temp_dir().join(format!(
+        "mail-lease-{}-{}.sqlite",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    let plain = Arc::new(SqliteStore::open(&path).unwrap());
+    plain
+        .provision(
+            Account::new("a", "t", "alice", "alice@example.org").unwrap(),
+            TOKEN,
+        )
+        .unwrap();
+    let db = Arc::new(Faulty::new(SqliteStore::open(&path).unwrap()));
+    let service = Arc::new(MailService {
+        outbound: None,
+        queue: plain.clone(),
+        store: db.clone(),
+        identity: plain.clone(),
+        policy: Arc::new(OwnerPolicy),
+    });
+    let (client, server) = tokio::io::duplex(65536);
+    let task = tokio::spawn(mail_protocol_imap::imap_session(server, service, true));
+    let mut client = BufReader::new(client);
+    client
+        .get_mut()
+        .write_all(format!("a LOGIN alice@example.org {TOKEN}\r\n").as_bytes())
+        .await
+        .unwrap();
+    until(&mut client, "a ").await;
+    db.fail_times("execute", mail_kernel::Error::Busy, 3);
+    let raw = b"Subject: leased\r\n\r\nbody";
+    let mut batch = b"b APPEND INBOX".to_vec();
+    for _ in 0..(mail_api::BATCH_LEASE_MESSAGES + 1) {
+        batch.extend_from_slice(format!(" {{{}+}}\r\n", raw.len()).as_bytes());
+        batch.extend_from_slice(raw);
+    }
+    batch.extend_from_slice(b"\r\n");
+    let started = std::time::Instant::now();
+    client.get_mut().write_all(&batch).await.unwrap();
+    let response = until_with_timeout(&mut client, "b ", BULK_RESPONSE_TIMEOUT).await;
+    assert!(response.contains("b OK [APPENDUID"), "{response}");
+    assert!(started.elapsed() < mail_service::MUTATION_DEADLINE);
+    assert!(
+        !db.armed(),
+        "every planned Busy was answered by a re-attempt"
+    );
+    assert_eq!(
+        plain.account("a").unwrap().messages.len(),
+        mail_api::BATCH_LEASE_MESSAGES + 1
+    );
+    finish(client, task).await;
+    drop((db, plain));
+    for suffix in ["", "-wal", "-shm"] {
+        let _ = std::fs::remove_file(path.with_extension(format!("sqlite{suffix}")));
+    }
+}

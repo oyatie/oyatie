@@ -17,10 +17,7 @@ pub(super) async fn run(store: Arc<SqliteStore>, mut stop: oneshot::Receiver<()>
 }
 
 fn pass(store: &SqliteStore) {
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs() as i64)
-        .unwrap_or(0);
+    let now = mail_api::Clock.now_secs();
     let enabled = store.consumers();
     let accounts = match store.account_ids() {
         Ok(accounts) => accounts,

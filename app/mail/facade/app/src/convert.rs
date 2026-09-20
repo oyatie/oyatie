@@ -37,8 +37,16 @@ pub(super) fn run(
 /// One line the operator can file: what changed, how long, and the backup
 /// that restores it.
 fn audit(accounts: u64, elapsed: Duration, backup: &Path, sha256: &str, operator: &str) -> String {
+    let what = if accounts == 0 {
+        format!(
+            "advanced schema to version {}",
+            mail_sqlite_store::SCHEMA_VERSION
+        )
+    } else {
+        format!("converted {accounts} accounts")
+    };
     format!(
-        "mail-app: converted {accounts} accounts in {:.3} s; backup {} sha256 {sha256}; operator {operator}",
+        "mail-app: {what} in {:.3} s; backup {} sha256 {sha256}; operator {operator}",
         elapsed.as_secs_f64(),
         backup.display(),
     )

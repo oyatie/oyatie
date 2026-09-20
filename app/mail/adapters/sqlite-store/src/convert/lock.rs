@@ -28,7 +28,7 @@ impl std::fmt::Display for ConvertError {
             Self::Busy => write!(f, "database is in use (SQLITE_BUSY): stop `serve` first"),
             Self::Backup(check) => write!(f, "backup refused: {check}"),
             Self::NotLegacy(schema::SchemaState::Complete { version })
-                if *version < schema::SCHEMA_VERSION =>
+                if *version < schema::SCHEMA_VERSION && !super::has_step(*version) =>
             {
                 write!(
                     f,
@@ -128,6 +128,7 @@ impl Converter {
                     return Err(ConvertError::BackupMismatch { recorded });
                 }
             }
+            schema::SchemaState::Complete { version } if super::has_step(*version) => {}
             complete => return Err(ConvertError::NotLegacy(complete.clone())),
         }
         verify::backup(&self.db, &self.database, backup)?.map_err(ConvertError::Backup)?;
@@ -135,6 +136,21 @@ impl Converter {
             "{:x}",
             Sha256::digest(std::fs::read(backup).map_err(|_| Error::Unavailable)?)
         );
+        if let schema::SchemaState::Complete { version } = state {
+            super::step::advance(
+                &self.db,
+                version,
+                &backup.to_string_lossy(),
+                &digest,
+                operator,
+            )?;
+            return Ok(Conversion {
+                accounts: 0,
+                elapsed: started.elapsed(),
+                backup_path: backup.to_path_buf(),
+                backup_sha256: digest,
+            });
+        }
         if state == schema::SchemaState::Legacy {
             self.begin(backup, &digest)?;
         }
@@ -193,6 +209,7 @@ impl Converter {
         ddl.push_str(crate::feed::DDL);
         let tx = self.db.unchecked_transaction().map_err(storage)?;
         tx.execute_batch(&ddl).map_err(storage)?;
+        super::step::add_epoch_columns(&tx)?;
         tx.execute(
             "INSERT INTO schema_version(version,state,backup_path,backup_sha256) VALUES(?1,'converting',?2,?3)",
             params![schema::SCHEMA_VERSION, backup.to_string_lossy(), digest],

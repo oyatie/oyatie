@@ -1,8 +1,5 @@
 use mail_api::{DeliveryOutcome, MailTransport, SubmissionQueue};
-use std::{
-    sync::Arc,
-    time::{Duration, SystemTime, UNIX_EPOCH},
-};
+use std::{sync::Arc, time::Duration};
 
 pub(super) async fn run(
     queue: Arc<dyn SubmissionQueue>,
@@ -27,33 +24,26 @@ pub(super) async fn run(
         .await;
         let delay = match result {
             Ok(Ok(Some((lease, message)))) => {
-                let now = SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .map(|t| t.as_secs())
-                    .unwrap_or(0);
-                let outcome = if i64::try_from(now)
-                    .unwrap_or(i64::MAX)
-                    .saturating_sub(message.retry_at)
-                    >= 432000
-                {
-                    DeliveryOutcome::Temporary(451)
-                } else {
-                    match send_owned(
-                        queue.clone(),
-                        transport.as_ref(),
-                        &lease,
-                        &message,
-                        Duration::from_secs(30),
-                    )
-                    .await
-                    {
-                        Ok(outcome) => outcome,
-                        Err(error) => {
-                            eprintln!("mail-app: outbound ownership lost: {error:?}");
-                            continue;
+                let outcome =
+                    if mail_api::Clock.now_secs().saturating_sub(message.retry_at) >= 432000 {
+                        DeliveryOutcome::Temporary(451)
+                    } else {
+                        match send_owned(
+                            queue.clone(),
+                            transport.as_ref(),
+                            &lease,
+                            &message,
+                            Duration::from_secs(30),
+                        )
+                        .await
+                        {
+                            Ok(outcome) => outcome,
+                            Err(error) => {
+                                eprintln!("mail-app: outbound ownership lost: {error:?}");
+                                continue;
+                            }
                         }
-                    }
-                };
+                    };
                 let complete = queue.clone();
                 if let Err(error) =
                     tokio::task::spawn_blocking(move || complete.finish_outbound(&lease, outcome))
@@ -169,7 +159,7 @@ mod tests {
         );
         assert!(db.outbound_message(&lease).is_ok());
         let mut stale = lease.clone();
-        stale.token = "superseded".into();
+        stale.epoch += 1;
         let transport = Immediate(std::sync::atomic::AtomicUsize::new(0));
         let result = send_owned(
             db.clone(),

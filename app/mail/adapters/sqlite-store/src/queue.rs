@@ -47,8 +47,8 @@ impl DeliveryQueue for SqliteStore {
         drop(query);
         let mut leases = vec![];
         for (message, account) in jobs {
-            let (token, attempt) = tx.query_row("UPDATE delivery_jobs SET token=lower(hex(randomblob(16))),lease_until=unixepoch()+120,next_attempt=unixepoch()+120,attempt=attempt+1 WHERE message=?1 AND account=?2 RETURNING token,attempt",
-                params![message,account], |r| Ok((r.get(0)?,r.get(1)?))).map_err(storage)?;
+            let (epoch, attempt) = tx.query_row("UPDATE delivery_jobs SET epoch=epoch+1,lease_until=unixepoch()+?3,next_attempt=unixepoch()+?3,attempt=attempt+1 WHERE message=?1 AND account=?2 RETURNING epoch,attempt",
+                params![message,account,mail_api::QUEUE_LEASE_SECS], |r| Ok((r.get(0)?,r.get(1)?))).map_err(storage)?;
             tx.execute(
                 "UPDATE submission_schedule SET claimed=1 WHERE message=?1",
                 [&message],
@@ -57,7 +57,7 @@ impl DeliveryQueue for SqliteStore {
             leases.push(DeliveryLease {
                 message,
                 account,
-                token,
+                epoch,
                 attempt,
             });
         }
@@ -67,8 +67,8 @@ impl DeliveryQueue for SqliteStore {
 
     fn queued_message(&self, lease: &DeliveryLease) -> Result<QueuedMessage, Error> {
         let db = self.connection.lock().map_err(|_| Error::Unavailable)?;
-        db.query_row("SELECT m.sender,m.content,m.received_at,coalesce((SELECT send_at FROM submission_schedule WHERE message=m.id),m.received_at) FROM queued_messages m JOIN delivery_jobs j ON j.message=m.id WHERE j.message=?1 AND j.account=?2 AND j.token=?3 AND j.lease_until>unixepoch()",
-            params![lease.message,lease.account,lease.token], |r| Ok(QueuedMessage { sender:r.get(0)?,raw:r.get(1)?,received_at:r.get(2)?,retry_at:r.get(3)? }))
+        db.query_row("SELECT m.sender,m.content,m.received_at,coalesce((SELECT send_at FROM submission_schedule WHERE message=m.id),m.received_at) FROM queued_messages m JOIN delivery_jobs j ON j.message=m.id WHERE j.message=?1 AND j.account=?2 AND j.epoch=?3 AND j.lease_until>unixepoch()",
+            params![lease.message,lease.account,lease.epoch], |r| Ok(QueuedMessage { sender:r.get(0)?,raw:r.get(1)?,received_at:r.get(2)?,retry_at:r.get(3)? }))
             .optional().map_err(storage)?.ok_or(Error::Conflict)
     }
 
@@ -77,20 +77,22 @@ impl DeliveryQueue for SqliteStore {
         let tx = db
             .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(storage)?;
-        let (attempt, expired, recipient): (u32, bool, String) = tx.query_row("SELECT j.attempt,coalesce((SELECT send_at FROM submission_schedule WHERE message=m.id),m.received_at)<=unixepoch()-432000,j.address FROM delivery_jobs j JOIN queued_messages m ON m.id=j.message WHERE j.message=?1 AND j.account=?2 AND j.token=?3 AND j.lease_until>unixepoch()", params![lease.message,lease.account,lease.token], |r| Ok((r.get(0)?,r.get(1)?,r.get(2)?))).optional().map_err(storage)?.ok_or(Error::Conflict)?;
-        let terminal = outcome.is_err()
-            && (expired
-                || matches!(
-                    outcome,
-                    Err(Error::Invalid | Error::NotFound | Error::Forbidden)
-                ));
+        let (attempt, expired, recipient): (u32, bool, String) = tx.query_row("SELECT j.attempt,coalesce((SELECT send_at FROM submission_schedule WHERE message=m.id),m.received_at)<=unixepoch()-432000,j.address FROM delivery_jobs j JOIN queued_messages m ON m.id=j.message WHERE j.message=?1 AND j.account=?2 AND j.epoch=?3 AND j.lease_until>unixepoch()", params![lease.message,lease.account,lease.epoch], |r| Ok((r.get(0)?,r.get(1)?,r.get(2)?))).optional().map_err(storage)?.ok_or(Error::Conflict)?;
+        let terminal = match outcome {
+            Err(error) => {
+                expired
+                    || attempt >= mail_api::retry::MAX_ATTEMPTS
+                    || mail_api::retry::classify(error) == mail_api::retry::Class::Terminal
+            }
+            Ok(()) => false,
+        };
         if terminal && let Err(error) = outcome {
             super::failures::retain(&tx, lease, error)?;
         }
         let changed = match outcome {
-            Err(error) if !terminal => tx.execute("UPDATE delivery_jobs SET token=NULL,lease_until=0,next_attempt=unixepoch()+?4,last_error=?5 WHERE message=?1 AND account=?2 AND token=?3 AND lease_until>unixepoch()",
-                params![lease.message,lease.account,lease.token, (60_u64 << attempt.saturating_sub(1).min(9)).min(21600),format!("{error:?}")]),
-            _ => tx.execute("DELETE FROM delivery_jobs WHERE message=?1 AND account=?2 AND token=?3 AND lease_until>unixepoch()", params![lease.message,lease.account,lease.token]),
+            Err(error) if !terminal => tx.execute("UPDATE delivery_jobs SET lease_until=0,next_attempt=unixepoch()+?4,last_error=?5 WHERE message=?1 AND account=?2 AND epoch=?3 AND lease_until>unixepoch()",
+                params![lease.message,lease.account,lease.epoch, mail_api::retry::delay_secs(attempt, super::outbound::entropy(&lease.message, attempt)),format!("{error:?}")]),
+            _ => tx.execute("DELETE FROM delivery_jobs WHERE message=?1 AND account=?2 AND epoch=?3 AND lease_until>unixepoch()", params![lease.message,lease.account,lease.epoch]),
         }.map_err(storage)?;
         if changed != 1 {
             return Err(Error::Conflict);
@@ -200,4 +202,13 @@ pub(super) fn admit(
         return Err(Error::OverQuota);
     }
     Ok(())
+}
+
+/// The SQLite tier is one process on one file: its connection mutex and
+/// `IMMEDIATE` transactions are the fence, so node and batch leases are
+/// no-ops here. The hosted tier holds real rows.
+impl mail_api::NodeLease for SqliteStore {
+    fn heartbeat(&self, _: &str, _: u64, _: i64) -> Result<(), Error> {
+        Ok(())
+    }
 }

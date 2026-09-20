@@ -60,7 +60,7 @@ fn terminal_local_failures_are_fenced_durable_and_recoverable_without_data_loss(
     assert!(db.failed_deliveries("a", 10).unwrap().is_empty());
     let retry = db.claim(1).unwrap().pop().unwrap();
     assert_eq!(retry.message, lease.message);
-    assert_ne!(retry.token, lease.token);
+    assert!(retry.epoch > lease.epoch);
     let message = db.queued_message(&retry).unwrap();
     assert_eq!(message.raw, raw);
     db.deliver_once("a", &retry.delivery_id(), &message.raw, message.received_at)

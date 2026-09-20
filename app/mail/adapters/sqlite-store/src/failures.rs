@@ -14,7 +14,8 @@ pub(super) fn retain(
         [&lease.message],
     )
     .map_err(storage)?;
-    tx.execute("INSERT INTO failed_delivery_jobs SELECT message,account,address,unixepoch(),?3 FROM delivery_jobs WHERE message=?1 AND account=?2", params![lease.message,lease.account,format!("{reason:?}")]).map_err(storage)?;
+    // The epoch is retained: a retry continues the job's owner sequence.
+    tx.execute("INSERT INTO failed_delivery_jobs(message,account,address,failed_at,reason,epoch) SELECT message,account,address,unixepoch(),?3,epoch FROM delivery_jobs WHERE message=?1 AND account=?2", params![lease.message,lease.account,format!("{reason:?}")]).map_err(storage)?;
     Ok(())
 }
 
@@ -44,7 +45,7 @@ pub(super) fn retry(store: &SqliteStore, account: &str, message: &str) -> Result
     let tx = db
         .transaction_with_behavior(TransactionBehavior::Immediate)
         .map_err(storage)?;
-    let (address, size): (String, usize) = tx.query_row("SELECT j.address,m.size FROM failed_delivery_jobs j JOIN failed_delivery_messages m ON m.id=j.message WHERE j.message=?1 AND j.account=?2", params![message,account], |r| Ok((r.get(0)?,r.get(1)?))).optional().map_err(storage)?.ok_or(Error::NotFound)?;
+    let (address, size, epoch): (String, usize, u64) = tx.query_row("SELECT j.address,m.size,j.epoch FROM failed_delivery_jobs j JOIN failed_delivery_messages m ON m.id=j.message WHERE j.message=?1 AND j.account=?2", params![message,account], |r| Ok((r.get(0)?,r.get(1)?,r.get(2)?))).optional().map_err(storage)?.ok_or(Error::NotFound)?;
     tx.execute(
         "DELETE FROM failed_delivery_jobs WHERE message=?1 AND account=?2",
         params![message, account],
@@ -60,7 +61,7 @@ pub(super) fn retry(store: &SqliteStore, account: &str, message: &str) -> Result
         [message],
     )
     .map_err(storage)?;
-    tx.execute("INSERT INTO delivery_jobs(message,account,address,next_attempt) VALUES(?1,?2,?3,unixepoch())", params![message,account,address]).map_err(storage)?;
+    tx.execute("INSERT INTO delivery_jobs(message,account,address,next_attempt,epoch) VALUES(?1,?2,?3,unixepoch(),?4)", params![message,account,address,epoch]).map_err(storage)?;
     tx.execute("DELETE FROM failed_delivery_messages WHERE id=?1 AND NOT EXISTS(SELECT 1 FROM failed_delivery_jobs WHERE message=?1)", [message]).map_err(storage)?;
     tx.commit().map_err(storage)
 }

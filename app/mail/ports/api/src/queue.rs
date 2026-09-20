@@ -10,7 +10,8 @@ pub struct DeliveryTarget {
 pub struct DeliveryLease {
     pub message: String,
     pub account: String,
-    pub token: String,
+    /// The owner epoch this claim took; every read and settlement names it.
+    pub epoch: crate::Epoch,
     pub attempt: u32,
 }
 impl DeliveryLease {
@@ -52,7 +53,9 @@ pub trait DeliveryQueue: Send + Sync {
     -> Result<Vec<DeliveryFailure>, Error>;
     /// Retry preserves the original delivery key, content and receipt semantics.
     fn retry_failed_delivery(&self, account: &str, message: &str) -> Result<(), Error>;
-    /// Only the active lease can settle a job. Temporary failure retries for five
-    /// days; permanent/expired failures retain their content for operator recovery.
+    /// Only the active epoch can settle a job (`Conflict` otherwise). A
+    /// retryable failure (`retry::classify`) retries for five days on the
+    /// `retry::delay_secs` schedule; a terminal or expired failure retains
+    /// its content for operator recovery.
     fn finish(&self, lease: &DeliveryLease, outcome: Result<(), Error>) -> Result<(), Error>;
 }

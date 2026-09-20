@@ -43,6 +43,7 @@ _TESTS = {
     "content": ([], [_SQL, _JSON]),
     "durable": ([], [_SQL]),
     "feed": ([], []),
+    "fence": ([], [_SQL]),
     "history": ([], [_SQL]),
     "mailbox": ([], [_SQL]),
     "outbound": ([], [_SQL]),
