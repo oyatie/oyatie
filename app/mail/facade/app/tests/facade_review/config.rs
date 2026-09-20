@@ -98,3 +98,49 @@ fn invalid_outbound_configuration_fails_closed_without_credentials_in_diagnostic
         assert!(!diagnostic.contains("mail-app: SMTP"));
     }
 }
+
+/// A refused `provision` must name the cause. The store answers both an
+/// existing account and a token already in use with `Conflict`; an operator
+/// reusing one token across accounts reads the bare word as "the account
+/// already exists" and edits the wrong thing.
+#[test]
+fn provision_refusal_names_both_causes_of_a_conflict() {
+    let root = tempfile::tempdir().unwrap();
+    let db = root.path().join("mail.db");
+    let provision = |account: &str, address: &str, token: &str| {
+        let binary = option_env!("MAIL_APP_BINARY")
+            .or(option_env!("CARGO_BIN_EXE_mail-app"))
+            .expect("the build must provide the mail-app executable");
+        std::process::Command::new(binary)
+            .arg("provision")
+            .arg(&db)
+            .args(["acme", account, account, address])
+            .env("MAIL_TOKEN", token)
+            .output()
+            .unwrap()
+    };
+    let alice = "alice-token-0123456789abcdef0123456789";
+    let first = provision("alice", "alice@example.org", alice);
+    assert!(
+        first.status.success(),
+        "{}",
+        String::from_utf8_lossy(&first.stderr)
+    );
+
+    // Same token, different account: the UNIQUE token constraint.
+    let reused = provision("bob", "bob@example.org", alice);
+    assert!(!reused.status.success());
+    let text = String::from_utf8_lossy(&reused.stderr).into_owned();
+    assert!(text.contains("MAIL_TOKEN is already in use"), "{text}");
+    assert!(text.contains("already provisioned"), "{text}");
+
+    // Same account again, fresh token: the id/address check.
+    let repeat = provision(
+        "alice",
+        "alice@example.org",
+        "another-token-0123456789abcdef01234",
+    );
+    assert!(!repeat.status.success());
+    let text = String::from_utf8_lossy(&repeat.stderr).into_owned();
+    assert!(text.contains("already provisioned"), "{text}");
+}
