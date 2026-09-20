@@ -30,11 +30,19 @@ pub(super) fn spawn(
         let _permit = permit;
         match protocol {
             Protocol::Smtp | Protocol::SubmissionStartTls => {
-                let _ = mail_protocol_imap::smtp_starttls_session(
+                // The peer address is the session's identity for policy.
+                let params = mail_protocol_imap::SmtpParams {
+                    peer: stream
+                        .peer_addr()
+                        .map_or(std::net::Ipv4Addr::UNSPECIFIED.into(), |a| a.ip()),
+                    ..mail_protocol_imap::SmtpParams::default()
+                };
+                let _ = mail_protocol_imap::smtp_starttls_session_with(
                     stream,
                     service,
                     matches!(protocol, Protocol::SubmissionStartTls),
                     |stream| tls.accept(stream),
+                    &params,
                 )
                 .await;
             }

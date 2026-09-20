@@ -35,6 +35,8 @@ _STORE_SUITE = "$(location third-party//mail:stalwart-tests[tests/src/imap/store
 _FETCH = "$(location third-party//mail:stalwart-tests[tests/src/imap/fetch.rs])"
 _COPY_MOVE = "$(location third-party//mail:stalwart-tests[tests/src/imap/copy_move.rs])"
 _IDLE = "$(location third-party//mail:stalwart-tests[tests/src/imap/idle.rs])"
+_SMTP_BASIC = "$(location third-party//mail:stalwart-tests[tests/src/smtp/inbound/basic.rs])"
+_SMTP_LIMITS = "$(location third-party//mail:stalwart-tests[tests/src/smtp/inbound/limits.rs])"
 _IMAP_MAILBOX = "$(location third-party//mail:stalwart-tests[tests/src/imap/mailbox.rs])"
 _BODY_STRUCTURE = "$(location third-party//mail:stalwart-tests[tests/src/imap/body_structure.rs])"
 _EMAIL_QUERY = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/email/query.rs])"
@@ -205,6 +207,7 @@ _ORACLES = [
     ("mail-protocol-pop-stalwart", "pop_stalwart", ["tests/pop_stalwart.rs", "tests/pop/oracle.rs"], {"STALWART_POP_SOURCE": _POP}, _CONVERTED + _HTTP + _SHA + _B64),
     ("mail-protocol-submission-stalwart", "submission_stalwart", ["tests/submission_stalwart.rs", "tests/stalwart/profile_client.rs", "tests/stalwart/submission_client.rs"], {"STALWART_SUBMISSION_SOURCE": _SUBMISSION}, _CONVERTED + _HTTP + _SHA + _SQL + _PARSER),
     ("mail-protocol-jmap-vacation-stalwart", "jmap_vacation_stalwart", ["tests/jmap_vacation_stalwart.rs", "tests/stalwart/profile_client.rs", "tests/stalwart/submission_client.rs"], {"STALWART_VACATION_SOURCE": _VACATION}, _CONVERTED + _HTTP + _SHA),
+    ("mail-protocol-smtp-inbound-stalwart", "smtp_inbound_stalwart", ["tests/smtp_inbound_stalwart.rs", "tests/stalwart/smtp_shim.rs", "tests/stalwart/registry.rs"], {"STALWART_SMTP_BASIC_SOURCE": _SMTP_BASIC, "STALWART_SMTP_LIMITS_SOURCE": _SMTP_LIMITS}, _CONVERTED + _TOKIO_JSON + _SHA),
     ("mail-protocol-imap-core-stalwart", "imap_core_stalwart", ["tests/imap_core_stalwart.rs", "tests/stalwart/core_client.rs", "tests/stalwart/core_result.rs", "tests/stalwart/core_fixture.rs", "tests/stalwart/core_tests.rs"], {"STALWART_IMAP_APPEND_SOURCE": _APPEND, "STALWART_IMAP_BASIC_SOURCE": _BASIC, "STALWART_IMAP_STORE_SOURCE": _STORE_SUITE, "STALWART_IMAP_FETCH_SOURCE": _FETCH, "STALWART_IMAP_COPY_MOVE_SOURCE": _COPY_MOVE, "STALWART_IMAP_IDLE_SOURCE": _IDLE, "STALWART_IMAP_MAILBOX_SOURCE": _IMAP_MAILBOX}, _CONVERTED + _TOKIO_JSON + _SHA + _PARSER),
     ("mail-protocol-imap-structure-stalwart", "imap_structure_stalwart", ["tests/imap_structure_stalwart.rs", "tests/stalwart/structure_shim.rs"], {"STALWART_IMAP_BODY_STRUCTURE_SOURCE": _BODY_STRUCTURE}, _CONVERTED + _TOKIO_JSON + _SHA + _PARSER),
     ("mail-protocol-jmap-query-stalwart", "jmap_query_stalwart", ["tests/jmap_query_stalwart.rs", "tests/stalwart/client.rs", "tests/stalwart/query_seed.rs", "tests/stalwart/query_builders.rs", "tests/stalwart/query_corpus.rs", "tests/stalwart/query_corpus_tail.rs", "tests/stalwart/query_clock.rs"], {"STALWART_EMAIL_QUERY_SOURCE": _EMAIL_QUERY}, _CONVERTED + _HTTP + _SHA + _B64),
