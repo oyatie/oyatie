@@ -27,6 +27,15 @@ impl std::fmt::Display for ConvertError {
         match self {
             Self::Busy => write!(f, "database is in use (SQLITE_BUSY): stop `serve` first"),
             Self::Backup(check) => write!(f, "backup refused: {check}"),
+            Self::NotLegacy(schema::SchemaState::Complete { version })
+                if *version < schema::SCHEMA_VERSION =>
+            {
+                write!(
+                    f,
+                    "no conversion path from schema version {version} to {}; recreate the database (only legacy version-1 files convert)",
+                    schema::SCHEMA_VERSION
+                )
+            }
             Self::NotLegacy(state) => write!(f, "nothing to convert: {state:?}"),
             Self::BackupMismatch { recorded } => {
                 write!(

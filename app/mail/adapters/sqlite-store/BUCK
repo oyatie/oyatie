@@ -43,7 +43,7 @@ _TESTS = {
     "content": ([], [_SQL, _JSON]),
     "durable": ([], [_SQL]),
     "events": ([], []),
-    "history": ([], []),
+    "history": ([], [_SQL]),
     "mailbox": ([], [_SQL]),
     "outbound": ([], [_SQL]),
     "queue": (["tests/queue/failures.rs"], [_SQL]),

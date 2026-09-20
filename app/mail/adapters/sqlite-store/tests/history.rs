@@ -195,7 +195,10 @@ fn set_mailbox(db: &SqliteStore, message: &str, mailbox: &str) {
 
 #[test]
 fn deliver_once_suppresses_a_duplicate_only_in_inbox_or_junk() {
-    let db = SqliteStore::open(":memory:").unwrap();
+    let path = std::env::temp_dir().join(format!("mail-dedup-{}.sqlite", std::process::id()));
+    let _ = std::fs::remove_file(&path);
+    let db = SqliteStore::open(&path).unwrap();
+    let sql = rusqlite::Connection::open(&path).unwrap();
     db.provision(
         Account::new("a", "t", "alice", "alice@example.org").unwrap(),
         TOKEN,
@@ -235,9 +238,25 @@ fn deliver_once_suppresses_a_duplicate_only_in_inbox_or_junk() {
     db.deliver_once("a", "k1", RAW, 1).unwrap();
     assert_eq!(count(), 1);
     assert_eq!(mailbox_of(&db, "e3"), ["inbox"]);
-    // Same Message-ID linked to INBOX: suppressed, receipt still recorded.
-    db.deliver_once("a", "k2", RAW, 1).unwrap();
+    // Same Message-ID linked to INBOX: suppressed, receipt still recorded,
+    // and no body or reservation is written for the suppressed copy.
+    let bodies = || -> (u64, u64) {
+        let n = |t: &str| -> u64 {
+            sql.query_row(&format!("SELECT count(*) FROM {t}"), [], |r| r.get(0))
+                .unwrap()
+        };
+        (n("blob_content"), n("blob_reserved"))
+    };
+    let before = bodies();
+    db.deliver_once(
+        "a",
+        "k2",
+        b"Message-ID: <one@example.org>\r\nSubject: dup\r\n\r\nother",
+        1,
+    )
+    .unwrap();
     assert_eq!(count(), 1);
+    assert_eq!(bodies(), before, "a suppressed duplicate leaves no body");
     assert_eq!(
         db.deliver_once("a", "k2", b"other", 1),
         Err(Error::Conflict)
