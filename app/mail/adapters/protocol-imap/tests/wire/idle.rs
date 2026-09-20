@@ -112,7 +112,7 @@ async fn idle_announces_new_mail_flags_and_renumbered_expunge_without_client_pol
     }
     let (mut client, task) = start(service.clone(), true, 4096).await;
     idle(&mut client).await;
-    // A commit the hint misses is seen within the polling floor (≤ 1.5 s).
+    // Unsignalled: seen within the polling floor (≤ 1.5 s).
     let started = std::time::Instant::now();
     db.deliver(
         &["alice@example.org".into()],
@@ -121,7 +121,7 @@ async fn idle_announces_new_mail_flags_and_renumbered_expunge_without_client_pol
     .unwrap();
     until(&mut client, "* 4 EXISTS").await;
     assert!(started.elapsed() <= Duration::from_millis(1500));
-    // A commit through the service signals: seen well inside the floor.
+    // Through the service (signalled): well inside the floor.
     let started = std::time::Instant::now();
     let account = db.account("a").unwrap();
     service
@@ -280,16 +280,17 @@ async fn idle_backpressure_stops_more_store_snapshots_and_peer_drop_releases_ses
         )
         .unwrap();
     mail_service::notify::signal("a");
-    wait_for(|| store.reads.load(Ordering::SeqCst) > before).await;
-    // Hints keep arriving while the client stalls; none may start a refresh.
+    // The refresh reads twice, then stalls on the 128-byte client; the bound
+    // is that stalled state (a floor poll before it may add a read).
+    wait_for(|| store.reads.load(Ordering::SeqCst) >= before + 2).await;
+    tokio::time::sleep(Duration::from_millis(150)).await;
+    let stalled = store.reads.load(Ordering::SeqCst);
     for _ in 0..3 {
         tokio::time::sleep(Duration::from_millis(100)).await;
         mail_service::notify::signal("a");
     }
-    assert!(
-        store.reads.load(Ordering::SeqCst) <= before + 2,
-        "a stalled reader must prevent accumulating snapshots"
-    );
+    let reads = store.reads.load(Ordering::SeqCst);
+    assert_eq!(reads, stalled, "a stalled reader must prevent snapshots");
     drop(client);
     let _ = tokio::time::timeout(Duration::from_secs(2), task)
         .await
