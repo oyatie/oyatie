@@ -34,9 +34,15 @@ pub struct SmtpParams {
     pub max_duration: Duration,
     /// Close with `452 4.7.28` once the client has sent this many bytes.
     pub transfer_bytes: usize,
-    /// The largest message this session accepts. Advertised as `SIZE`, and
-    /// enforced in all three places that can refuse an oversized message:
-    /// the `SIZE=` parameter on MAIL FROM, and the DATA reader.
+    /// The largest message this session accepts: advertised as `SIZE`, and
+    /// enforced in both places that can refuse an oversized message — the
+    /// `SIZE=` parameter on MAIL FROM, and the DATA reader.
+    ///
+    /// The store keeps its own ceiling at `MAX_MESSAGE_BYTES`. Nothing
+    /// diverges while this defaults to that constant and no setting raises
+    /// it; the moment one does, a session could advertise and accept a
+    /// message the store then refuses, so the store's ceiling has to move
+    /// with it.
     pub max_message_size: usize,
     /// What this session checks about its peer, and how far a failure goes.
     /// Default is every check disabled, so a deployment turns them on

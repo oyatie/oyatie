@@ -141,7 +141,10 @@ fn authentication(
             .ok_or_else(|| format!("{name} must be disable, relaxed or strict"))?;
         if policy != mail_protocol_imap::Verify::Disabled && !resolvable {
             return Err(format!(
-                "{name} needs a resolver: set MAIL_MX_DNS_SERVERS, which relay delivery does not use"
+                "{name} needs a resolver, and only direct delivery builds one; \
+                 relay delivery cannot verify SPF. Either unset {name} or move \
+                 to direct delivery (MAIL_MX_DNS_SERVERS, MAIL_MX_HELO), which \
+                 is mutually exclusive with the MAIL_RELAY_* settings"
             )
             .into());
         }
@@ -156,8 +159,6 @@ fn authentication(
         dns: Some(Arc::new(mail_protocol_imap::MailDns::default())),
         spf_ehlo: policy("MAIL_SPF_EHLO")?,
         spf_mail_from: policy("MAIL_SPF_MAIL_FROM")?,
-        iprev: policy("MAIL_IPREV")?,
-        log: None,
     })
 }
 

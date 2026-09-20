@@ -40,26 +40,6 @@ impl Verify {
     }
 }
 
-/// The identity a verdict was reached about.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Stage {
-    /// The domain the peer gave in EHLO.
-    Ehlo,
-    /// The domain of the reverse path in MAIL FROM.
-    MailFrom,
-}
-
-/// Where a session's authentication verdicts go.
-///
-/// A receiver records what it decided: an operator reads it to explain a
-/// refusal, and P4-3 reads the same verdicts to write the
-/// `Authentication-Results` header onto the delivered message. Without a sink
-/// the checks still run and still refuse; only the record is dropped.
-pub trait AuthenticationLog: Send + Sync {
-    fn spf(&self, stage: Stage, output: &SpfOutput);
-    fn iprev(&self, output: &IprevOutput);
-}
-
 /// The resolver these checks verify against.
 ///
 /// `MessageAuthenticator` owns a live resolver and has no `Debug`, so this
@@ -77,14 +57,11 @@ impl std::fmt::Debug for Verifier {
 #[derive(Clone, Default)]
 pub struct Authentication {
     pub verifier: Option<Verifier>,
-    /// Where verdicts are recorded. `None` still checks and still refuses.
-    pub log: Option<Arc<dyn AuthenticationLog>>,
     /// Answers consulted before the resolver. Sealed, it answers every miss
     /// itself, which is what keeps a conformance run off the network.
     pub dns: Option<Arc<MailDns>>,
     pub spf_ehlo: Verify,
     pub spf_mail_from: Verify,
-    pub iprev: Verify,
 }
 
 impl std::fmt::Debug for Authentication {
@@ -92,7 +69,6 @@ impl std::fmt::Debug for Authentication {
         f.debug_struct("Authentication")
             .field("spf_ehlo", &self.spf_ehlo)
             .field("spf_mail_from", &self.spf_mail_from)
-            .field("iprev", &self.iprev)
             .finish_non_exhaustive()
     }
 }
@@ -127,9 +103,6 @@ impl Authentication {
                     .with_ptr_cache(dns),
             )
             .await;
-        if let Some(log) = &self.log {
-            log.spf(Stage::Ehlo, &output);
-        }
         refuse(self.spf_ehlo, output.result(), EHLO_REFUSED)
     }
 
@@ -157,48 +130,33 @@ impl Authentication {
                     .with_ptr_cache(dns),
             )
             .await;
-        if let Some(log) = &self.log {
-            log.spf(Stage::MailFrom, &output);
-        }
         refuse(self.spf_mail_from, output.result(), MAIL_FROM_REFUSED)
-    }
-
-    /// The reverse lookup never refuses: it is evidence for a later decision,
-    /// and a missing PTR is too common to reject on by itself.
-    pub(super) async fn verify_iprev(&self, peer: IpAddr) {
-        if !self.iprev.evaluates() {
-            return;
-        }
-        let Some((authenticator, dns)) = self.resolver() else {
-            return;
-        };
-        let output = authenticator
-            .verify_iprev(
-                Parameters::new(peer)
-                    .with_txt_cache(dns)
-                    .with_ipv4_cache(dns)
-                    .with_ipv6_cache(dns)
-                    .with_mx_cache(dns)
-                    .with_ptr_cache(dns),
-            )
-            .await;
-        if let Some(log) = &self.log {
-            log.iprev(&output);
-        }
     }
 }
 
 const EHLO_REFUSED: &str = "550 5.7.23 SPF does not authorize this host for that domain\r\n";
 const MAIL_FROM_REFUSED: &str = "550 5.7.23 SPF does not authorize this host for that sender\r\n";
+const UNDECIDED: &str = "451 4.4.3 SPF could not be evaluated; try again later\r\n";
 
-/// Only an outright `Fail` refuses. `SoftFail`, `Neutral`, `None` and the two
-/// error results are deliberately not refusals: they mean the domain did not
-/// say no, and treating "could not tell" as "no" loses mail on a DNS outage.
+/// `Fail` is the domain saying no, and `Strict` answers it. `TempError` is
+/// the domain saying nothing yet, and `Strict` answers *that* with a
+/// temporary refusal rather than a decision: 451 is not "no", the client
+/// retries, and "could not tell" stays distinct from "said yes". Accepting on
+/// TempError would decide permissively on absent evidence, which is how a
+/// resolver outage becomes an open door.
+///
+/// `SoftFail`, `Neutral`, `None` and `PermError` are not refusals: the domain
+/// either declined to assert anything or published something unusable, and
+/// neither is a statement that this host is forged.
 fn refuse(policy: Verify, result: SpfResult, reply: &'static str) -> Result<(), &'static str> {
-    if policy == Verify::Strict && result == SpfResult::Fail {
-        return Err(reply);
+    if policy != Verify::Strict {
+        return Ok(());
     }
-    Ok(())
+    match result {
+        SpfResult::Fail => Err(reply),
+        SpfResult::TempError => Err(UNDECIDED),
+        _ => Ok(()),
+    }
 }
 
 #[cfg(test)]
@@ -206,7 +164,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn only_an_explicit_fail_refuses_and_only_under_strict() {
+    fn strict_refuses_a_fail_and_defers_a_temperror_and_relaxed_never_answers() {
         for result in [
             SpfResult::Fail,
             SpfResult::SoftFail,
@@ -221,9 +179,14 @@ mod tests {
                 "relaxed must never refuse: {result:?}"
             );
             assert_eq!(
-                refuse(Verify::Strict, result, EHLO_REFUSED).is_err(),
-                result == SpfResult::Fail,
-                "strict refuses exactly Fail, not {result:?}"
+                refuse(Verify::Strict, result, EHLO_REFUSED).err(),
+                match result {
+                    SpfResult::Fail => Some(EHLO_REFUSED),
+                    // Absent evidence gets a retry, not a verdict.
+                    SpfResult::TempError => Some(UNDECIDED),
+                    _ => None,
+                },
+                "strict answers Fail and TempError, nothing else: {result:?}"
             );
         }
     }
@@ -238,13 +201,29 @@ mod tests {
     }
 
     #[test]
-    fn a_verifier_without_its_cache_does_not_evaluate() {
-        // Half-configured must not fall through to the real internet.
-        let half = Authentication {
+    fn either_half_missing_disables_evaluation() {
+        // Half-configured must not fall through to the real internet, and it
+        // is half-configured in both directions.
+        let cache_only = Authentication {
             dns: Some(Arc::new(MailDns::sealed())),
             spf_ehlo: Verify::Strict,
             ..Authentication::default()
         };
-        assert!(half.resolver().is_none());
+        assert!(
+            cache_only.resolver().is_none(),
+            "a cache without a verifier"
+        );
+        let verifier_only = Authentication {
+            verifier: Verifier(Arc::new(
+                mail_auth::MessageAuthenticator::new_cloudflare().unwrap(),
+            ))
+            .into(),
+            spf_ehlo: Verify::Strict,
+            ..Authentication::default()
+        };
+        assert!(
+            verifier_only.resolver().is_none(),
+            "a verifier without its cache"
+        );
     }
 }

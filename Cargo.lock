@@ -6060,6 +6060,7 @@ dependencies = [
  "axum",
  "base64",
  "mail-api",
+ "mail-auth",
  "mail-kernel",
  "mail-protocol-imap",
  "mail-service",

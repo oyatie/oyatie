@@ -65,7 +65,6 @@ fn invalid_outbound_configuration_fails_closed_without_credentials_in_diagnostic
         // A check with nothing to verify against must be refused at startup,
         // not silently pass every message.
         (vec![("MAIL_SPF_EHLO", "strict")], "needs a resolver"),
-        (vec![("MAIL_IPREV", "relaxed")], "needs a resolver"),
         (
             vec![("MAIL_SPF_MAIL_FROM", "Strict")],
             "must be disable, relaxed or strict",
