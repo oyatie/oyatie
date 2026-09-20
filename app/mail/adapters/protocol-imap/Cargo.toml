@@ -28,6 +28,9 @@ mail-builder = { version = "=1.0.0", default-features = false }
 
 [dev-dependencies]
 rusqlite.workspace = true
+mail-auth = { version = "=0.13.3", default-features = false, features = [
+    "aws-lc-rs",
+] }
 mail-sqlite-store = { path = "../sqlite-store", features = ["contract"] }
 tower.workspace = true
 http-body-util.workspace = true

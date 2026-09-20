@@ -1,10 +1,13 @@
 mod auth;
 mod data;
+mod dns;
 mod entry;
 mod envelope;
 mod limits;
 mod tls;
+mod verify;
 use crate::wire::write;
+pub use dns::MailDns;
 pub use entry::{
     smtp_session, smtp_session_with, smtp_tls_session_with, submission_session,
     submission_session_with,
@@ -16,6 +19,7 @@ use mail_service::MailService;
 use std::{io, sync::Arc};
 pub use tls::{smtp_starttls_session, smtp_starttls_session_with};
 use tokio::io::{AsyncRead, AsyncWrite, BufReader};
+pub use verify::{Authentication, AuthenticationLog, Stage, Verifier, Verify};
 
 /// How one session runs: the port it serves, whether STARTTLS is offered,
 /// whether TLS is already established, whether to greet.
@@ -52,6 +56,8 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
     }
     let mut greeted = false;
     let mut esmtp = false;
+    // The identity SPF checks the reverse path against, kept from EHLO.
+    let mut helo = String::new();
     let mut sender = None;
     let mut recipients = vec![];
     loop {
@@ -107,8 +113,18 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                 }
             },
             "EHLO" | "HELO" if !arg.is_empty() && arg.bytes().all(|b| b.is_ascii_graphic()) => {
+                let authentication = &params.authentication;
+                if let Err(refusal) = authentication
+                    .verify_ehlo(params.peer, arg, &params.hostname)
+                    .await
+                {
+                    write(stream.get_mut(), refusal.as_bytes()).await?;
+                    continue;
+                }
+                authentication.verify_iprev(params.peer).await;
                 greeted = true;
                 esmtp = verb.eq_ignore_ascii_case("EHLO");
+                helo = arg.to_owned();
                 sender = None;
                 recipients.clear();
                 let extensions = if starttls {
@@ -143,10 +159,24 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                     let reply =
                         envelope::sender(arg, auth.as_ref(), &service, params.max_message_size)
                             .await;
-                    if let Ok(address) = &reply {
-                        sender = Some(address.clone());
+                    match reply {
+                        Err(reply) => reply,
+                        Ok(address) => {
+                            // SPF answers about the reverse path, so it can
+                            // only run once the path has parsed.
+                            match params
+                                .authentication
+                                .verify_mail_from(params.peer, &helo, &params.hostname, &address)
+                                .await
+                            {
+                                Err(refusal) => refusal,
+                                Ok(()) => {
+                                    sender = Some(address);
+                                    "250 2.1.0 Sender accepted\r\n"
+                                }
+                            }
+                        }
                     }
-                    reply.map_or_else(|reply| reply, |_| "250 2.1.0 Sender accepted\r\n")
                 }
             }
             "RCPT" => {

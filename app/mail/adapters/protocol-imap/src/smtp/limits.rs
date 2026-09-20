@@ -38,6 +38,10 @@ pub struct SmtpParams {
     /// enforced in all three places that can refuse an oversized message:
     /// the `SIZE=` parameter on MAIL FROM, and the DATA reader.
     pub max_message_size: usize,
+    /// What this session checks about its peer, and how far a failure goes.
+    /// Default is every check disabled, so a deployment turns them on
+    /// deliberately rather than discovering them by losing mail.
+    pub authentication: super::verify::Authentication,
 }
 impl Default for SmtpParams {
     fn default() -> Self {
@@ -48,6 +52,7 @@ impl Default for SmtpParams {
             max_duration: Duration::from_secs(60 * 60),
             transfer_bytes: 256 * 1024 * 1024,
             max_message_size: mail_kernel::MAX_MESSAGE_BYTES,
+            authentication: super::verify::Authentication::default(),
         }
     }
 }

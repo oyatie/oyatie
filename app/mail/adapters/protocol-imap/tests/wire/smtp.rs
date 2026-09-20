@@ -167,3 +167,56 @@ async fn the_advertised_size_is_the_ceiling_the_session_actually_enforces() {
     assert!(!undeclared.contains("250 2.0.0 Queued"), "{undeclared}");
     assert!(db.account("a").unwrap().messages.is_empty());
 }
+
+/// SPF is decided about the address the peer actually connected from, and
+/// `strict` answers only the domain's own `-all` refusal. The table is sealed,
+/// so a name nobody seeded is an authoritative "no record" and no lookup can
+/// leave the process.
+#[tokio::test]
+async fn spf_strict_refuses_only_the_host_the_domain_disowns() {
+    use mail_auth::{MessageAuthenticator, common::parse::TxtRecordParser, spf::Spf};
+    let dns = std::sync::Arc::new(mail_protocol_imap::MailDns::sealed());
+    dns.txt_add(
+        "mx1.example.org",
+        Spf::parse(b"v=spf1 ip4:10.0.0.1 -all").unwrap(),
+    );
+    let authentication = mail_protocol_imap::Authentication {
+        verifier: Some(mail_protocol_imap::Verifier(std::sync::Arc::new(
+            MessageAuthenticator::new_cloudflare().unwrap(),
+        ))),
+        dns: Some(dns),
+        spf_ehlo: mail_protocol_imap::Verify::Strict,
+        ..Default::default()
+    };
+    // .1 is the one address the record authorizes; .2 is covered by `-all`;
+    // the unseeded domain has no record at all, which is not a refusal.
+    for (peer, domain, expected, refused) in [
+        ([10, 0, 0, 1], "mx1.example.org", "250-", false),
+        ([10, 0, 0, 2], "mx1.example.org", "550 5.7.23", true),
+        ([10, 0, 0, 2], "unseeded.example.org", "250-", false),
+    ] {
+        let (service, _db) = service();
+        let params = mail_protocol_imap::SmtpParams {
+            peer: std::net::IpAddr::from(peer),
+            authentication: authentication.clone(),
+            ..mail_protocol_imap::SmtpParams::default()
+        };
+        let (mut client, server) = tokio::io::duplex(65536);
+        let task = tokio::spawn(async move {
+            mail_protocol_imap::smtp_session_with(server, service, &params).await
+        });
+        client
+            .write_all(format!("EHLO {domain}\r\nQUIT\r\n").as_bytes())
+            .await
+            .unwrap();
+        let mut result = String::new();
+        client.read_to_string(&mut result).await.unwrap();
+        task.await.unwrap().unwrap();
+        assert!(result.contains(expected), "{peer:?} {domain}: {result}");
+        assert_eq!(
+            result.contains("550 5.7.23"),
+            refused,
+            "{peer:?} {domain}: {result}"
+        );
+    }
+}

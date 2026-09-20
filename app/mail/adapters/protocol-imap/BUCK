@@ -10,6 +10,7 @@ _HTTP = ["third-party//:axum", "third-party//:tokio", "third-party//:tower", "th
 _SHA = ["third-party//:sha2"]
 _B64 = ["third-party//:base64"]
 _PARSER = ["third-party//mail:mail-parser"]
+_AUTH = ["third-party//mail/auth:mail-auth"]
 _BUILDER = ["third-party//mail:mail-builder"]
 _SQL = ["third-party//mail/sqlite:rusqlite"]
 _THREAD = "$(location third-party//mail:stalwart-tests[tests/src/jmap/compliance/thread.rs])"
@@ -47,7 +48,7 @@ rust_library(
     crate = "mail_protocol_imap",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [_KERNEL, _SERVICE, _API, "third-party//:base64", "third-party//:axum", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//mail:mail-parser", "third-party//mail:mail-builder", "third-party//mail:unicode-normalization", "third-party//mail:unicode-case-mapping"],
+    deps = [_KERNEL, _SERVICE, _API, "third-party//:base64", "third-party//:axum", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//mail:mail-parser", "third-party//mail:mail-builder", "third-party//mail/auth:mail-auth", "third-party//mail:unicode-normalization", "third-party//mail:unicode-case-mapping"],
 )
 rust_test(
     name = "mail-protocol-unittest",
@@ -55,7 +56,7 @@ rust_test(
     crate = "mail_protocol_imap",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [_KERNEL, _SERVICE, _API, _STORE, "third-party//:base64", "third-party//:axum", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//mail:mail-parser", "third-party//mail:mail-builder", "third-party//mail:unicode-normalization", "third-party//mail:unicode-case-mapping", "third-party//:tower", "third-party//:http-body-util"],
+    deps = [_KERNEL, _SERVICE, _API, _STORE, "third-party//:base64", "third-party//:axum", "third-party//:tokio", "third-party//:serde_json", "third-party//:sha2", "third-party//mail:mail-parser", "third-party//mail:mail-builder", "third-party//mail/auth:mail-auth", "third-party//mail:unicode-normalization", "third-party//mail:unicode-case-mapping", "third-party//:tower", "third-party//:http-body-util"],
 )
 
 rust_test(
@@ -82,7 +83,7 @@ rust_test(
     crate = "wire",
     crate_root = "tests/wire.rs",
     visibility = ["PUBLIC"],
-    deps = _CONVERTED + _SQL + _B64 + _HTTP + _PARSER + _BUILDER,
+    deps = _CONVERTED + _SQL + _B64 + _HTTP + _PARSER + _BUILDER + _AUTH,
 )
 
 rust_test(
