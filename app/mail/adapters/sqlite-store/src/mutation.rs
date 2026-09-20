@@ -10,6 +10,8 @@ pub(super) struct Batch {
     pub(super) account: Account,
     before: Account,
     outside: Vec<String>,
+    /// Members this commit may still re-thread by merging (`MERGE_LIMIT`).
+    merge_budget: usize,
 }
 
 impl Batch {
@@ -37,6 +39,7 @@ impl Batch {
                 before: account.clone(),
                 account,
                 outside: vec![],
+                merge_budget: threads::MERGE_LIMIT,
             },
             reapply,
         ))
@@ -73,8 +76,13 @@ impl Batch {
             )
             .map_err(storage)?;
             let refs = threads::references(&raw)?;
-            self.outside
-                .extend(threads::link(db, &mut self.account, &id, refs)?);
+            self.outside.extend(threads::link(
+                db,
+                &mut self.account,
+                &id,
+                refs,
+                &mut self.merge_budget,
+            )?);
         }
         if let Some(source) = transfer {
             super::transfer::copy(

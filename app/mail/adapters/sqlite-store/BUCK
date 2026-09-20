@@ -50,6 +50,7 @@ _TESTS = {
     "submission_store": ([], [_SQL]),
     "submission_store_more": (["tests/submission_store/retention.rs"], [_SQL]),
     "threads": ([], [_SQL]),
+    "threads_merge": ([], []),
     "transfer": ([], [_SQL]),
     "vacation": ([], []),
 }
