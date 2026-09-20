@@ -1,4 +1,5 @@
 mod auth;
+mod budget;
 mod data;
 mod dns;
 mod entry;
@@ -16,8 +17,6 @@ pub use limits::SmtpParams;
 use limits::{Meter, Read};
 use mail_kernel::Error;
 
-/// A greeting is repeated legitimately across a STARTTLS upgrade, not endlessly.
-const MAX_SPF_EVALUATIONS: u8 = 4;
 use mail_service::MailService;
 use std::{io, sync::Arc};
 pub use tls::{smtp_starttls_session, smtp_starttls_session_with};
@@ -61,10 +60,7 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
     let mut esmtp = false;
     // The identity SPF checks the reverse path against, kept from EHLO.
     let mut helo = String::new();
-    // An EHLO is eight bytes and a verification is a chain of lookups, so a
-    // re-greeting session is otherwise a DNS amplifier aimed at our resolver.
-    let mut checked: Option<String> = None;
-    let mut evaluations = 0u8;
+    let mut budget = budget::Budget::new();
     let mut sender = None;
     let mut recipients = vec![];
     loop {
@@ -123,21 +119,16 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                 // SPF authorizes hosts for a domain, so it would refuse every
                 // authenticated laptop and phone. Inbound only; the guard is
                 // the mode because EHLO precedes any AUTH.
-                if !submission && checked.as_deref() != Some(arg) {
-                    evaluations += 1;
-                    if evaluations > MAX_SPF_EVALUATIONS {
-                        write(stream.get_mut(), b"421 4.7.0 Too many greetings\r\n").await?;
+                if !submission
+                    && let Err(refusal) = budget
+                        .ehlo(&params.authentication, params.peer, arg, &params.hostname)
+                        .await
+                {
+                    write(stream.get_mut(), refusal.reply.as_bytes()).await?;
+                    if refusal.close {
                         return Ok(None);
                     }
-                    checked = Some(arg.to_owned());
-                    if let Err(refusal) = params
-                        .authentication
-                        .verify_ehlo(params.peer, arg, &params.hostname)
-                        .await
-                    {
-                        write(stream.get_mut(), refusal.as_bytes()).await?;
-                        continue;
-                    }
+                    continue;
                 }
                 greeted = true;
                 esmtp = verb.eq_ignore_ascii_case("EHLO");
@@ -184,9 +175,9 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                             let verdict = if submission {
                                 Ok(())
                             } else {
-                                params
-                                    .authentication
-                                    .verify_mail_from(
+                                budget
+                                    .mail_from(
+                                        &params.authentication,
                                         params.peer,
                                         &helo,
                                         &params.hostname,
@@ -195,7 +186,13 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                                     .await
                             };
                             match verdict {
-                                Err(refusal) => refusal,
+                                Err(refusal) => {
+                                    write(stream.get_mut(), refusal.reply.as_bytes()).await?;
+                                    if refusal.close {
+                                        return Ok(None);
+                                    }
+                                    continue;
+                                }
                                 Ok(()) => {
                                     sender = Some(address);
                                     "250 2.1.0 Sender accepted\r\n"

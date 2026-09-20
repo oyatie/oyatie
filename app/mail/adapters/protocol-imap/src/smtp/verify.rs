@@ -35,7 +35,7 @@ impl Verify {
         }
     }
 
-    fn evaluates(self) -> bool {
+    pub(super) fn evaluates(self) -> bool {
         self != Self::Disabled
     }
 }
@@ -57,8 +57,9 @@ impl std::fmt::Debug for Verifier {
 #[derive(Clone, Default)]
 pub struct Authentication {
     pub verifier: Option<Verifier>,
-    /// Answers consulted before the resolver. Sealed, it answers every miss
-    /// itself, which is what keeps a conformance run off the network.
+    /// Answers consulted before the resolver. A sealed table answers what it
+    /// can and declines the rest, so it only bounds a run when the resolver
+    /// behind it is pointed somewhere that cannot answer either.
     pub dns: Option<Arc<MailDns>>,
     pub spf_ehlo: Verify,
     pub spf_mail_from: Verify,
@@ -138,6 +139,12 @@ const EHLO_REFUSED: &str = "550 5.7.23 SPF does not authorize this host for that
 const MAIL_FROM_REFUSED: &str = "550 5.7.23 SPF does not authorize this host for that sender\r\n";
 const UNDECIDED: &str = "451 4.4.3 SPF could not be evaluated; try again later\r\n";
 
+/// Under `Strict` this couples inbound acceptance to our own resolver: if it
+/// is unreachable every message is deferred until it returns. That is the
+/// right posture — a temporary refusal, not a decision — but it is why a
+/// deployment should sit on `Relaxed` long enough to see its own verdicts
+/// before it answers on them.
+///
 /// `Fail` is the domain saying no, and `Strict` answers it. `TempError` is
 /// the domain saying nothing yet, and `Strict` answers *that* with a
 /// temporary refusal rather than a decision: 451 is not "no", the client

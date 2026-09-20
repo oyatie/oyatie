@@ -3,17 +3,12 @@
 use super::*;
 
 /// SPF is decided about the address the peer actually connected from, and
-/// `strict` answers only the domain's own `-all` refusal. The table is sealed,
-/// so a name nobody seeded is an authoritative "no record" and no lookup can
-/// leave the process.
+/// `strict` answers only the domain's own `-all` refusal. The table is sealed
+/// and its resolver points nowhere, so an unseeded name is decided here or
+/// not at all — the seal alone does not bound a run.
 #[tokio::test]
 async fn spf_strict_refuses_only_the_host_the_domain_disowns() {
-    use mail_auth::{
-        MessageAuthenticator,
-        common::parse::TxtRecordParser,
-        hickory_resolver::config::{NameServerConfig, ResolverConfig, ResolverOpts},
-        spf::Spf,
-    };
+    use mail_auth::{MessageAuthenticator, common::parse::TxtRecordParser, spf::Spf};
     let dns = std::sync::Arc::new(mail_protocol_imap::MailDns::sealed());
     dns.txt_add(
         "mx1.example.org",
@@ -78,7 +73,6 @@ async fn spf_strict_refuses_only_the_host_the_domain_disowns() {
 
 /// A resolver aimed at a closed loopback port: every lookup it is asked to
 /// make fails at once, and nothing leaves the host.
-#[cfg(test)]
 fn nowhere() -> mail_auth::hickory_resolver::config::ResolverConfig {
     use mail_auth::hickory_resolver::config::{NameServerConfig, ResolverConfig};
     let mut server = NameServerConfig::udp_and_tcp(std::net::Ipv4Addr::LOCALHOST.into());
@@ -88,7 +82,6 @@ fn nowhere() -> mail_auth::hickory_resolver::config::ResolverConfig {
     ResolverConfig::from_name_servers(vec![server])
 }
 
-#[cfg(test)]
 fn refuse_fast() -> mail_auth::hickory_resolver::config::ResolverOpts {
     let mut options = mail_auth::hickory_resolver::config::ResolverOpts::default();
     options.attempts = 0;
@@ -143,4 +136,72 @@ async fn repeated_greetings_do_not_multiply_dns_work() {
         "{result}"
     );
     assert!(result.contains("421 4.7.0"), "{result}");
+}
+
+/// A refusal is a decision about the peer, not an event that happens once.
+/// Repeating the greeting must reach the same answer: remembering only that a
+/// domain had been decided, without remembering what was decided, lets a host
+/// the domain disowns in by asking twice.
+#[tokio::test]
+async fn a_refused_greeting_is_still_refused_when_it_is_repeated() {
+    use mail_auth::common::parse::TxtRecordParser;
+    let dns = std::sync::Arc::new(mail_protocol_imap::MailDns::sealed());
+    dns.txt_add(
+        "mx1.example.org",
+        mail_auth::spf::Spf::parse(b"v=spf1 ip4:10.0.0.1 -all").unwrap(),
+    );
+    let (service, db) = service();
+    let params = mail_protocol_imap::SmtpParams {
+        peer: std::net::IpAddr::from([10, 0, 0, 2]),
+        authentication: mail_protocol_imap::Authentication {
+            verifier: Some(mail_protocol_imap::Verifier(std::sync::Arc::new(
+                mail_auth::MessageAuthenticator::new(nowhere(), refuse_fast()).unwrap(),
+            ))),
+            dns: Some(dns),
+            spf_ehlo: mail_protocol_imap::Verify::Strict,
+            ..Default::default()
+        },
+        ..mail_protocol_imap::SmtpParams::default()
+    };
+    let (mut client, server) = tokio::io::duplex(65536);
+    let task = tokio::spawn(async move {
+        mail_protocol_imap::smtp_session_with(server, service, &params).await
+    });
+    client
+        .write_all(
+            b"EHLO mx1.example.org\r\nEHLO mx1.example.org\r\nEHLO MX1.Example.ORG\r\nMAIL FROM:<s@example.net>\r\nQUIT\r\n",
+        )
+        .await
+        .unwrap();
+    let mut result = String::new();
+    client.read_to_string(&mut result).await.unwrap();
+    task.await.unwrap().unwrap();
+    assert_eq!(result.matches("550 5.7.23").count(), 3, "{result}");
+    assert!(!result.contains("250 8BITMIME"), "never greeted: {result}");
+    assert!(!result.contains("Sender accepted"), "{result}");
+    assert!(db.account("a").unwrap().messages.is_empty());
+}
+
+/// The verification budget belongs to verification. A deployment that has not
+/// turned any check on must not acquire a new reason to close sessions.
+#[tokio::test]
+async fn the_verification_budget_does_not_bind_a_session_that_verifies_nothing() {
+    let (service, _db) = service();
+    let params = mail_protocol_imap::SmtpParams::default();
+    let (mut client, server) = tokio::io::duplex(65536);
+    let task = tokio::spawn(async move {
+        mail_protocol_imap::smtp_session_with(server, service, &params).await
+    });
+    let greetings: String = (0..9)
+        .map(|n| format!("EHLO other{n}.example.org\r\n"))
+        .collect();
+    client
+        .write_all(format!("{greetings}QUIT\r\n").as_bytes())
+        .await
+        .unwrap();
+    let mut result = String::new();
+    client.read_to_string(&mut result).await.unwrap();
+    task.await.unwrap().unwrap();
+    assert_eq!(result.matches("250 8BITMIME").count(), 9, "{result}");
+    assert!(!result.contains("421 "), "{result}");
 }
