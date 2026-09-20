@@ -5,25 +5,31 @@
 //!   client-conditional batch is re-applied instead of returning `Conflict`.
 //! - `history` reports `floor: 0`, so a page below the real floor looks
 //!   complete instead of telling the caller to fall back.
-//! - `messages` loads the whole account and returns every record, ignoring
-//!   the requested ids and the 256-id cap: cost proportional to the account.
+//! - `messages` loads the whole account to answer a selection: the right
+//!   records, at a cost proportional to the account.
 //! - `mailbox_uids` likewise derives the UID map from the full projection.
 //! - `compact_history` ignores consumer cursors: never `Retention::Blocked`.
+//! - `deliver_once` ignores receipts: a replayed delivery lands twice.
+//! - `dirty` ignores the resume position; `orphan_sweep` sweeps nothing
+//!   (`broken_ports.rs`).
 use mail_api::{
-    AccountInfo, AuditRow, BlobStore, ChangeFeed, Consumer, Dirty, Execution, FeedRead,
-    HistoryPage, MailboxSelection, MessageSelection, MetadataStore, Precondition, Resume,
-    SubmissionAcceptance, SubmissionChanges, SubmissionFailure, SubmissionPage,
-    SubmissionSelection, SubmissionStore,
+    AccountInfo, BlobStore, ChangeFeed, Consumer, Execution, HistoryPage, MailboxSelection,
+    MessageSelection, MetadataStore, Precondition, SubmissionAcceptance, SubmissionChanges,
+    SubmissionFailure, SubmissionPage, SubmissionSelection, SubmissionStore,
 };
-use mail_kernel::{Account, BlobRef, Command, Error, Retention, RetentionPolicy, SubmissionQuery};
+use mail_kernel::{Account, Command, Error, Retention, RetentionPolicy, SubmissionQuery};
 
 pub struct Broken<T> {
-    inner: T,
+    pub(super) inner: T,
+    replays: std::sync::atomic::AtomicU64,
 }
 
 impl<T> Broken<T> {
     pub fn new(inner: T) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            replays: std::sync::atomic::AtomicU64::new(0),
+        }
     }
 
     pub fn inner(&self) -> &T {
@@ -42,11 +48,14 @@ impl<T: MetadataStore + SubmissionStore + BlobStore + ChangeFeed> MetadataStore 
     fn account(&self, id: &str) -> Result<Account, Error> {
         self.inner.account(id)
     }
-    fn messages(&self, account: &str, _ids: &[String]) -> Result<MessageSelection, Error> {
+    fn messages(&self, account: &str, ids: &[String]) -> Result<MessageSelection, Error> {
+        // The whole account is read (and counted); the right ids come back.
         let account = self.inner.account(account)?;
+        let mut messages = account.messages;
+        messages.retain(|m| ids.contains(&m.id));
         Ok(MessageSelection {
             revision: account.revision,
-            messages: account.messages,
+            messages,
         })
     }
     fn mailbox_uids(&self, account: &str, mailbox: &str) -> Result<MailboxSelection, Error> {
@@ -92,7 +101,13 @@ impl<T: MetadataStore + SubmissionStore + BlobStore + ChangeFeed> MetadataStore 
         raw: &[u8],
         received_at: i64,
     ) -> Result<(), Error> {
-        self.inner.deliver_once(account, key, raw, received_at)
+        // A fresh key every time: the receipt never matches, so a replay
+        // delivers the message again.
+        let n = self
+            .replays
+            .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        self.inner
+            .deliver_once(account, &format!("{key}#{n}"), raw, received_at)
     }
     fn put_blob(&self, account: &str, raw: &[u8]) -> Result<String, Error> {
         self.inner.put_blob(account, raw)
@@ -117,5 +132,5 @@ impl<T: MetadataStore + SubmissionStore + BlobStore + ChangeFeed> MetadataStore 
 }
 
 submission_store!(Broken);
-blob_store!(Broken);
-change_feed!(Broken);
+delivery_queue!(Broken);
+submission_queue!(Broken);

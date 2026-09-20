@@ -253,13 +253,18 @@ macro_rules! change_feed {
     };
 }
 
+#[macro_use]
+mod queues;
 mod broken;
+mod broken_ports;
 pub mod converted;
 mod counting;
 mod faulty;
+pub mod gates;
 pub mod legacy;
 mod legacy_ddl;
 mod legacy_rows;
+pub mod suite;
 
 pub use broken::Broken;
 pub use converted::converted_store;
@@ -269,6 +274,7 @@ pub use legacy_ddl::{
     LEGACY_ACCESS, LEGACY_DDL, LEGACY_EVENT_CURSORS, LEGACY_EVENTS_COLUMN, LEGACY_QUEUE,
     LEGACY_SUBMISSION, LEGACY_THREADS,
 };
+pub use suite::{AccountSpec, Fixture, GateFailure, Measure, Report, run_suite};
 
 use std::cell::Cell;
 
@@ -276,7 +282,9 @@ thread_local! {
     static ROWS: Cell<u64> = const { Cell::new(0) };
 }
 
-pub(crate) fn count_row() {
+/// Called for every record row a store maps; another store implementation
+/// running the suite calls it so Gate 2 measures its rows too.
+pub fn count_row() {
     ROWS.with(|rows| rows.set(rows.get() + 1));
 }
 
