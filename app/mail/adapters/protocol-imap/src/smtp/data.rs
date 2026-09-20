@@ -1,20 +1,27 @@
 use super::limits::{Meter, Read};
 use crate::wire::line;
-use mail_kernel::MAX_MESSAGE_BYTES;
 use std::{io, time::Duration};
 use tokio::{io::AsyncBufRead, time::Instant};
 
 pub(super) async fn read<R: AsyncBufRead + Unpin>(
     reader: &mut R,
     meter: &mut Meter,
+    ceiling: usize,
 ) -> io::Result<Vec<u8>> {
-    bounded(reader, Instant::now() + Duration::from_secs(300), meter).await
+    bounded(
+        reader,
+        Instant::now() + Duration::from_secs(300),
+        meter,
+        ceiling,
+    )
+    .await
 }
 
 async fn bounded<R: AsyncBufRead + Unpin>(
     reader: &mut R,
     deadline: Instant,
     meter: &mut Meter,
+    ceiling: usize,
 ) -> io::Result<Vec<u8>> {
     tokio::time::timeout_at(deadline, async {
         let mut raw = Vec::new();
@@ -49,7 +56,7 @@ async fn bounded<R: AsyncBufRead + Unpin>(
                     "SMTP data line too long",
                 ));
             }
-            if raw.len().saturating_add(data.len()).saturating_add(2) > MAX_MESSAGE_BYTES {
+            if raw.len().saturating_add(data.len()).saturating_add(2) > ceiling {
                 return Err(io::Error::new(
                     io::ErrorKind::FileTooLarge,
                     "SMTP message too large",
@@ -84,6 +91,7 @@ mod tests {
             &mut BufReader::new(reader),
             Instant::now() + Duration::from_millis(20),
             &mut meter,
+            mail_kernel::MAX_MESSAGE_BYTES,
         )
         .await;
         assert_eq!(result.unwrap_err().kind(), io::ErrorKind::TimedOut);

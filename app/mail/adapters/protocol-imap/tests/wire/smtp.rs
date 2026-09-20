@@ -115,3 +115,55 @@ async fn an_over_long_command_line_is_refused_without_swallowing_the_next_comman
     assert!(result.contains("250 2.0.0 OK"), "NOOP unanswered: {result}");
     assert!(result.contains("221 2.0.0 Bye."), "{result}");
 }
+
+/// The advertised `SIZE` is the session's own ceiling, and it binds every
+/// place that can refuse an oversized message: a client that believes the
+/// banner must not be accepted at `MAIL FROM` and then refused at the dot,
+/// and a client that declares nothing must still be stopped by the reader.
+#[tokio::test]
+async fn the_advertised_size_is_the_ceiling_the_session_actually_enforces() {
+    let params = mail_protocol_imap::SmtpParams {
+        max_message_size: 512,
+        ..mail_protocol_imap::SmtpParams::default()
+    };
+    let session = |script: String| {
+        let (service, db) = service();
+        let params = params.clone();
+        async move {
+            let (mut client, server) = tokio::io::duplex(65536);
+            let task = tokio::spawn(async move {
+                mail_protocol_imap::smtp_session_with(server, service, &params).await
+            });
+            client.write_all(script.as_bytes()).await.unwrap();
+            let mut result = String::new();
+            client.read_to_string(&mut result).await.unwrap();
+            task.await.unwrap().unwrap();
+            (result, db)
+        }
+    };
+
+    // The banner advertises this session's ceiling, not the build's constant.
+    let (advertised, _) = session("EHLO client.example\r\nQUIT\r\n".to_owned()).await;
+    assert!(advertised.contains("250-SIZE 512\r\n"), "{advertised}");
+    assert!(
+        !advertised.contains(&format!("SIZE {}", mail_kernel::MAX_MESSAGE_BYTES)),
+        "{advertised}"
+    );
+
+    // A declared size over the ceiling is refused before the body is sent.
+    let (declared, db) =
+        session("EHLO client.example\r\nMAIL FROM:<s@example.net> SIZE=513\r\nQUIT\r\n".to_owned())
+            .await;
+    assert!(declared.contains("552 5.3.4"), "{declared}");
+    assert!(db.account("a").unwrap().messages.is_empty());
+
+    // An undeclared body over the ceiling is refused by the reader.
+    let body = "x".repeat(600);
+    let (undeclared, db) = session(format!(
+        "EHLO client.example\r\nMAIL FROM:<s@example.net>\r\nRCPT TO:<alice@example.org>\r\nDATA\r\n{body}\r\n.\r\nQUIT\r\n"
+    ))
+    .await;
+    assert!(undeclared.contains("552 5.3.4"), "{undeclared}");
+    assert!(!undeclared.contains("250 2.0.0 Queued"), "{undeclared}");
+    assert!(db.account("a").unwrap().messages.is_empty());
+}

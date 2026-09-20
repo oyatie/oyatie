@@ -11,7 +11,7 @@ pub use entry::{
 };
 pub use limits::SmtpParams;
 use limits::{Meter, Read};
-use mail_kernel::{Error, MAX_MESSAGE_BYTES};
+use mail_kernel::Error;
 use mail_service::MailService;
 use std::{io, sync::Arc};
 pub use tls::{smtp_starttls_session, smtp_starttls_session_with};
@@ -123,7 +123,8 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                 };
                 let banner = if esmtp {
                     format!(
-                        "250-{host}\r\n250-SIZE {MAX_MESSAGE_BYTES}\r\n{extensions}250 8BITMIME\r\n"
+                        "250-{host}\r\n250-SIZE {size}\r\n{extensions}250 8BITMIME\r\n",
+                        size = params.max_message_size
                     )
                 } else {
                     format!("250 {host}\r\n")
@@ -139,7 +140,9 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                 } else if submission && starttls {
                     "530 5.7.0 TLS required for submission\r\n"
                 } else {
-                    let reply = envelope::sender(arg, auth.as_ref(), &service).await;
+                    let reply =
+                        envelope::sender(arg, auth.as_ref(), &service, params.max_message_size)
+                            .await;
                     if let Ok(address) = &reply {
                         sender = Some(address.clone());
                     }
@@ -164,7 +167,7 @@ async fn session<S: AsyncRead + AsyncWrite + Unpin>(
                     "503 5.5.1 Send RCPT first\r\n"
                 } else {
                     write(stream.get_mut(), b"354 End with <CRLF>.<CRLF>\r\n").await?;
-                    let raw = match data::read(&mut stream, meter).await {
+                    let raw = match data::read(&mut stream, meter, params.max_message_size).await {
                         Ok(raw) => raw,
                         Err(error) => {
                             let quota =

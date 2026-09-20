@@ -34,6 +34,10 @@ pub struct SmtpParams {
     pub max_duration: Duration,
     /// Close with `452 4.7.28` once the client has sent this many bytes.
     pub transfer_bytes: usize,
+    /// The largest message this session accepts. Advertised as `SIZE`, and
+    /// enforced in all three places that can refuse an oversized message:
+    /// the `SIZE=` parameter on MAIL FROM, and the DATA reader.
+    pub max_message_size: usize,
 }
 impl Default for SmtpParams {
     fn default() -> Self {
@@ -43,6 +47,7 @@ impl Default for SmtpParams {
             idle_timeout: Duration::from_secs(30 * 60),
             max_duration: Duration::from_secs(60 * 60),
             transfer_bytes: 256 * 1024 * 1024,
+            max_message_size: mail_kernel::MAX_MESSAGE_BYTES,
         }
     }
 }
