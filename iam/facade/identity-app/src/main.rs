@@ -5,8 +5,8 @@
 //! lifecycle). Panic-free start-up path: every failure is a structured log
 //! line + non-zero exit (ADR-0083 Tier 3).
 
-use iam_identity_service::config::Config;
-use iam_identity_service::{observability, server};
+use iam_identity_app::config::Config;
+use iam_identity_app::{observability, server};
 use tracing::{error, info};
 
 /// Resolve on SIGTERM (K8s pod termination) or ctrl-c (local runs).

@@ -1,15 +1,11 @@
 [package]
-name = "iam-identity-service"
+name = "iam-identity-app"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
-description = "iam-identity-service runnable service binary: composes the workload-identity use-case core behind axum REST + tonic gRPC with fail-closed PEP semantics, env-driven config, static JWKS, Cedar policies, and graceful K8s-native shutdown (G005 / ADR-0536 IdP domain)."
-
-[[bin]]
-name = "iam-identity-service"
-path = "src/main.rs"
+description = "iam-identity-app runnable service binary: composes the workload-identity use-case core behind axum REST + tonic gRPC with fail-closed PEP semantics, env-driven config, static JWKS, Cedar policies, and graceful K8s-native shutdown (G005 / ADR-0536 IdP domain)."
 
 [lib]
 path = "src/lib.rs"

@@ -51,7 +51,7 @@ fn backbone_postgres_prefixes_are_the_exact_local_dependency_closure() {
         [
             "tenancy/adapters/tenant-lifecycle-store-postgres/",
             "iam/adapters/identity-scim-store-postgres/",
-            "iam/facade/identity-service/",
+            "iam/facade/identity-app/",
             "tenancy/facade/tenant-lifecycle-app/",
         ],
     );

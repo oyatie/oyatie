@@ -27,7 +27,7 @@ pub const BACKBONE_LIVE_POSTGRES_PATH_PREFIXES: &[&str] = &[
     "iam/core/identity-workload-domain/",
     "iam/core/platform-contracts-kernel/",
     "iam/core/scim-server-kernel/",
-    "iam/facade/identity-service/",
+    "iam/facade/identity-app/",
     "iam/facade/identity-workload-app/",
     "iam/facade/identity-workload-rest/",
     "iam/ports/identity-workload-api/",

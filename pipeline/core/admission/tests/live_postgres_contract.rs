@@ -14,7 +14,7 @@ const LIVE_CRATE_DIRS: &[&str] = &[
     "compute/adapters/k8s-lifecycle-repository-postgres",
     "tenancy/adapters/tenant-lifecycle-store-postgres",
     "iam/adapters/identity-scim-store-postgres",
-    "iam/facade/identity-service",
+    "iam/facade/identity-app",
     "tenancy/facade/tenant-lifecycle-app",
 ];
 
@@ -154,7 +154,7 @@ fn live_crates_have_fail_closed_helpers() {
         );
     }
     let facades = [
-        "iam/facade/identity-service/tests/e2e_service.rs",
+        "iam/facade/identity-app/tests/live_durability.rs",
         "tenancy/facade/tenant-lifecycle-app/tests/acceptance.rs",
     ];
     for rel in facades {
