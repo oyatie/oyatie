@@ -1826,13 +1826,13 @@ dependencies = [
 [[package]]
 name = "data-boundary-kernel"
 version = "0.1.0"
+dependencies = [
+ "data-classification",
+]
 
 [[package]]
 name = "data-classification"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "data-encoding"

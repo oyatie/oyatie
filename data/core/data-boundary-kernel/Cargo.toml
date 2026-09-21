@@ -6,9 +6,10 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
+[dependencies]
+data-classification = { path = "../../ports/classification" }
+
 [lib]
-name = "data_boundary_kernel"
-path = "src/lib.rs"
 doctest = false
 
 [lints]

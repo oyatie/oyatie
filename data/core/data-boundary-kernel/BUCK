@@ -1,9 +1,78 @@
+load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
+
+rust_binary(
+    name = "data-boundary-kernel-build-script",
+    srcs = ["build.rs"],
+    crate = "build_script_build",
+    crate_root = "build.rs",
+    visibility = [],
+)
+
+rust_test(
+    name = "data-boundary-kernel-build-script-test",
+    srcs = ["build.rs"],
+    crate = "data_boundary_kernel_build_script_test",
+    crate_root = "build.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(name = "build.rs", visibility = [])
+
+_STREAMS = [
+    "items",
+    "test_items",
+    "policy_gate_items",
+    "policy_gate_test_items",
+    "retention_policy_items",
+    "retention_policy_test_items",
+]
+
+[
+    genrule(
+        name = "data-boundary-kernel-" + stream.replace("_", "-"),
+        srcs = glob(["src/" + stream + "/*.rs"]),
+        out = stream,
+        cmd = "mkdir -p $OUT && if [ -n \"$SRCS\" ]; then cp $SRCS $OUT/; fi",
+    )
+    for stream in _STREAMS
+]
+
+genrule(
+    name = "data-boundary-kernel-manifest-dir",
+    srcs = [":build.rs"] + [":data-boundary-kernel-" + stream.replace("_", "-") for stream in _STREAMS],
+    out = "manifest_dir",
+    cmd = " && ".join(
+        ["mkdir -p " + " ".join(["$OUT/src/" + stream for stream in _STREAMS])] +
+        ["cp $(location :build.rs) $OUT/"] +
+        [
+            "cp -R $(location :data-boundary-kernel-" + stream.replace("_", "-") + ")/. $OUT/src/" + stream + "/"
+            for stream in _STREAMS
+        ],
+    ),
+)
+
+buildscript_run(
+    name = "data-boundary-kernel-build-script-run",
+    buildscript_rule = ":data-boundary-kernel-build-script",
+    package_name = "data-boundary-kernel",
+    version = "0.1.0",
+    manifest_dir = ":data-boundary-kernel-manifest-dir",
+)
+
+_BUILD_ENV = {"OUT_DIR": "$(location :data-boundary-kernel-build-script-run[out_dir])"}
+
+_DEPS = [
+    "//data/ports/classification:data-classification",
+]
+
 rust_library(
     name = "data-boundary-kernel",
     srcs = glob(["src/**/*.rs"]),
     crate = "data_boundary_kernel",
     crate_root = "src/lib.rs",
+    env = _BUILD_ENV,
     visibility = ["PUBLIC"],
+    deps = _DEPS,
 )
 
 rust_test(
@@ -11,5 +80,7 @@ rust_test(
     srcs = glob(["src/**/*.rs"]),
     crate = "data_boundary_kernel",
     crate_root = "src/lib.rs",
+    env = _BUILD_ENV,
     visibility = ["PUBLIC"],
+    deps = _DEPS,
 )
