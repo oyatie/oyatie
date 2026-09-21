@@ -1,0 +1,66 @@
+rust_library(
+    name = "iac-registry-rest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "iac_registry_rest",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//iac/core/api:iac-api",
+        "//iac/core/domain:iac-domain",
+        "//iac/ports/rest:iac-rest",
+        "//gateway/core/http-middleware-kernel:http-middleware-kernel",
+        "//gateway/core/http-router-kernel:http-router-kernel",
+        "//gateway/adapters/http-runtime-hyper:http-runtime-hyper-adapter",
+    ],
+)
+
+rust_test(
+    name = "iac-registry-rest-runtime-dispatch",
+    srcs = ["tests/runtime_dispatch.rs", "tests/registry_support/mod.rs"],
+    crate = "runtime_dispatch",
+    crate_root = "tests/runtime_dispatch.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":iac-registry-rest",
+        "//iac/core/api:iac-api",
+        "//iac/core/domain:iac-domain",
+        "//iac/ports/rest:iac-rest",
+        "//gateway/core/http-middleware-kernel:http-middleware-kernel",
+        "//gateway/core/http-router-kernel:http-router-kernel",
+        "//gateway/adapters/http-runtime-hyper:http-runtime-hyper-adapter",
+    ],
+)
+
+rust_test(
+    name = "iac-registry-rest-http-handler",
+    srcs = ["tests/http_handler.rs", "tests/registry_support/mod.rs"],
+    crate = "http_handler",
+    crate_root = "tests/http_handler.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":iac-registry-rest",
+        "//iac/core/api:iac-api",
+        "//iac/core/domain:iac-domain",
+        "//iac/ports/rest:iac-rest",
+        "//gateway/core/http-middleware-kernel:http-middleware-kernel",
+        "//gateway/core/http-router-kernel:http-router-kernel",
+        "//gateway/adapters/http-runtime-hyper:http-runtime-hyper-adapter",
+    ],
+)
+
+rust_test(
+    name = "iac-registry-rest-service-assembly",
+    srcs = ["tests/service_assembly.rs", "tests/registry_support/mod.rs"],
+    crate = "service_assembly",
+    crate_root = "tests/service_assembly.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":iac-registry-rest",
+        "//iac/core/api:iac-api",
+        "//iac/core/domain:iac-domain",
+        "//iac/ports/rest:iac-rest",
+        "//gateway/core/http-middleware-kernel:http-middleware-kernel",
+        "//gateway/core/http-router-kernel:http-router-kernel",
+        "//gateway/adapters/http-runtime-hyper:http-runtime-hyper-adapter",
+    ],
+)
