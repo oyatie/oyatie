@@ -4,6 +4,7 @@ use std::{sync::Arc, time::Duration};
 pub(super) async fn run(
     queue: Arc<dyn SubmissionQueue>,
     transport: Arc<dyn MailTransport>,
+    signer: Option<Arc<super::signing::Signer>>,
     mut stop: tokio::sync::watch::Receiver<bool>,
 ) {
     loop {
@@ -23,7 +24,15 @@ pub(super) async fn run(
         })
         .await;
         let delay = match result {
-            Ok(Ok(Some((lease, message)))) => {
+            Ok(Ok(Some((lease, mut message)))) => {
+                // Sign here rather than at the wire: this is above both
+                // transports and above the validation every outbound message
+                // is held to, so the signed bytes are the checked bytes.
+                if let Some(signer) = &signer
+                    && let Err(error) = signer.signed(&message.raw).map(|raw| message.raw = raw)
+                {
+                    eprintln!("mail-app: outbound signing failed: {error}");
+                }
                 let outcome =
                     if mail_api::Clock.now_secs().saturating_sub(message.retry_at) >= 432000 {
                         DeliveryOutcome::Temporary(451)

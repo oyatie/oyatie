@@ -8,6 +8,7 @@ mod lease;
 mod outbound;
 mod outbound_config;
 mod session;
+mod signing;
 mod sweep;
 use mail_api::DeliveryQueue;
 use mail_kernel::Account;
@@ -111,11 +112,15 @@ async fn serve(
     let mut lease_task = tokio::spawn(lease::run(db.clone(), lease_stopped));
     let (outbound_stop, outbound_stopped) = tokio::sync::watch::channel(false);
     let mut outbound_workers = tokio::task::JoinSet::new();
+    // Built once: a bad key must stop the server at startup, not surface as
+    // eight workers each discovering it on their first message.
+    let signer = signing::Signer::configured()?.map(Arc::new);
     if let (Some(queue), Some(transport)) = (&service.outbound, outbound.transport.clone()) {
         for _ in 0..8 {
             outbound_workers.spawn(outbound::run(
                 queue.clone(),
                 transport.clone(),
+                signer.clone(),
                 outbound_stopped.clone(),
             ));
         }
