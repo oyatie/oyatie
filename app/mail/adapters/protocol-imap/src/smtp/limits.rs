@@ -1,14 +1,9 @@
-//! Per-session parameters and the metered reader: a command line that
-//! stalls past the buffer is discarded to its CRLF and refused, every byte
-//! read (command lines here, the body through `data::read`) is charged
-//! against the session's transfer quota, and a session open past its
-//! lifetime or idle past its timeout is closed with the reference's codes.
+//! Per-session parameters and the metered reader.
 //!
 //! "Stalled" is decided by whether more bytes are already waiting when the
-//! buffer fills without a CRLF, which is the reference receiver's own
-//! per-read semantics. On a socket that makes the outcome depend on
-//! segmentation, as it does there; the `limits` oracle pins the behaviour by
-//! sending the same 4097-byte line both ways.
+//! buffer fills without a CRLF — the reference receiver's own per-read
+//! semantics, which makes the outcome depend on socket segmentation. The
+//! `limits` oracle pins it by sending the same 4097-byte line both ways.
 use std::{
     io,
     net::{IpAddr, Ipv4Addr},
@@ -34,19 +29,14 @@ pub struct SmtpParams {
     pub max_duration: Duration,
     /// Close with `452 4.7.28` once the client has sent this many bytes.
     pub transfer_bytes: usize,
-    /// The largest message this session accepts: advertised as `SIZE`, and
-    /// enforced in both places that can refuse an oversized message — the
-    /// `SIZE=` parameter on MAIL FROM, and the DATA reader.
-    ///
-    /// The store keeps its own ceiling at `MAX_MESSAGE_BYTES`. Nothing
-    /// diverges while this defaults to that constant and no setting raises
-    /// it; the moment one does, a session could advertise and accept a
-    /// message the store then refuses, so the store's ceiling has to move
-    /// with it.
+    /// Advertised as `SIZE` and enforced in both places that can refuse an
+    /// oversized message: the `SIZE=` parameter on MAIL FROM, and the DATA
+    /// reader. Lowering it below the store's own `MAX_MESSAGE_BYTES` is safe
+    /// and submission does; raising it above would accept a message the store
+    /// then refuses, so the store's ceiling would have to move with it.
     pub max_message_size: usize,
     /// How many reverse paths this session may offer without ever delivering
-    /// the message. A delivered message clears the count, so this bounds
-    /// abandoned transactions and not throughput.
+    /// the message.
     pub verification_budget: u8,
     /// What this session checks about its peer, and how far a failure goes.
     /// Default is every check disabled, so a deployment turns them on
