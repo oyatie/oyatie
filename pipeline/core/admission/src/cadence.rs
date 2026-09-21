@@ -7,7 +7,7 @@ pub const LIVE_POSTGRES_CRATES: &[&str] = &[
     "compute-k8s-lifecycle-repository-postgres",
     "tenancy-tenant-lifecycle-store-postgres",
     "identity-scim-store-postgres",
-    "iam-identity-service",
+    "iam-identity-app",
     "tenancy-tenant-lifecycle-app",
 ];
 

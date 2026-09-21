@@ -24,7 +24,7 @@ const BACKBONE_LIVE_STEP: &str = r#"      - name: Live Postgres tests (live_* on
           test -n "${OYATIE_BACKBONE_POSTGRES_APP_URL}"
           cargo nextest run --locked --profile live --run-ignored only --no-tests=error -p tenancy-tenant-lifecycle-store-postgres
           cargo nextest run --locked --profile live --run-ignored only --no-tests=error -p identity-scim-store-postgres
-          cargo nextest run --locked --profile live --run-ignored only --no-tests=error -p iam-identity-service
+          cargo nextest run --locked --profile live --run-ignored only --no-tests=error -p iam-identity-app
           cargo nextest run --locked --profile live --run-ignored only --no-tests=error -p tenancy-tenant-lifecycle-app"#;
 
 const COMPUTE_LIVE_STEP: &str = r#"      - name: Compute lifecycle live Postgres tests
@@ -261,7 +261,7 @@ fn live_postgres_crate_inventory_is_exact() {
             "compute-k8s-lifecycle-repository-postgres",
             "tenancy-tenant-lifecycle-store-postgres",
             "identity-scim-store-postgres",
-            "iam-identity-service",
+            "iam-identity-app",
             "tenancy-tenant-lifecycle-app",
         ]
     );
