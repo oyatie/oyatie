@@ -30,7 +30,7 @@ pub const RUNBOOKS: &[RunbookEntry] = &[
         runbook: Runbook {
             symptom: "foundry_projection_fresh is 0: a tenant the process could read has its durable projection store behind its log head, a tenant's log head or store could not be read, or no tenant could be observed at all.",
             first_check: "GET /statusz: projection_lag is a store behind its log, unreadable_tenants is a log head or store that could not be read, and contended_tenants is a request in flight rather than a fault.",
-            mitigation: "Lag is repaired only by a catch-up, which runs at boot and after a migration run and never in the background, so restart the process; a restart that refuses to boot with CatchUpRefused or ProjectionStoreUnopenable has named the storage fault. A poisoned entry advances the fold and is not this objective's event.",
+            mitigation: "Lag is repaired only by a catch-up, which runs at boot and after a migration run and never in the background, so restart the process; a restart that logs boot refused naming the projection store or its catch-up has named the storage fault. A poisoned entry advances the fold and is not this objective's event.",
             escalation: "foundry, with projection_lag, unreadable_tenants and contended_tenants from /statusz and whether foundry_projection_contended stayed non-zero across scrapes.",
         },
     },
@@ -39,7 +39,7 @@ pub const RUNBOOKS: &[RunbookEntry] = &[
         runbook: Runbook {
             symptom: "foundry_action_submit_refused_total is rising against foundry_action_submit_served_total: the single-Action and migration run surfaces are answering, but refusing.",
             first_check: "The refusal body's gate and HTTP status. A 503 with gate log is the action log refusing to be written. A 403 with gate authorization for every caller at once is the policy decision point failing every decision, since any error it returns is a denial; the runtime guard's circuit, open after five consecutive runtime faults such as a decision past its 250 ms deadline or a crash, is one such error. A 403 with gate parameters or admission is the writer refusing one submission, which is the denial-trail objective's event; a 401, 400, 409 or a 403 for one caller is that request's credential, body, idempotency key or grant.",
-            mitigation: "A refusal at one caller is that caller's request to fix. The policy engine is compiled into this binary, so a universal authorization refusal has no authorizer to reconnect; the circuit retries the engine after a 30 s cooldown. A restart reloads the compiled-in bundle and re-opens the log, and refuses to boot with PolicyRejected or ActionLogUnopenable if either is the fault.",
+            mitigation: "A refusal at one caller is that caller's request to fix. The policy engine is compiled into this binary, so a universal authorization refusal has no authorizer to reconnect; the circuit retries the engine after a 30 s cooldown. A restart reloads the compiled-in bundle and re-opens the log, and logs boot refused naming the policy seed or the action log if either is the fault.",
             escalation: "foundry, with the gate and HTTP status of the refusals and whether every caller received them.",
         },
     },
@@ -56,7 +56,7 @@ pub const RUNBOOKS: &[RunbookEntry] = &[
         objective: "ontology-invocation-latency",
         runbook: Runbook {
             symptom: "foundry_action_invocation_answered_within_250ms_total is falling behind foundry_action_invocation_answered_total: accepted single-Action submissions are answering, but past 250 ms. Only accepted submissions on that surface are timed; migration runs are not.",
-            first_check: "contended_tenants on /statusz, read as whether a migration run was in flight: the clock starts at handler entry and includes the policy decision, waiting for the tenant lock, the log append and the durable SQLite mirror into the projection store, and a migration run holds that lock across its whole fixpoint and catch-up, so a submit that arrives during one waits with the clock running.",
+            first_check: "contended_tenants on /statusz, read as which request held the tenant lock: the clock starts at handler entry and includes the policy decision, waiting for the tenant lock, the log append and the durable SQLite mirror into the projection store; a migration run holds that lock across its whole fixpoint and catch-up and a history or audit read holds it across a full log replay, so a submit that arrives behind either waits with the clock running.",
             mitigation: "Do not run a migration while latency matters: one run holds the tenant lock for its whole duration. The fold itself is in memory; the durable mirror is a SQLite write inside the budget, and the policy decision's own deadline equals the whole budget. The shared tenant lock is what couples this objective to freshness, and foundry_projection_contended measures it.",
             escalation: "foundry, with whether a migration run was in flight and whether foundry_projection_contended was non-zero over the window.",
         },
