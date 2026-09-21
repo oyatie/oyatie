@@ -11,10 +11,10 @@ metadata:
     plane: app
     owner_team: foundry
   annotations:
-    runbook.symptom: "The surface answers correctly but too slowly; callers may time out before it does."
-    runbook.first-check: "Compare read latency against projection freshness. A slow read with a healthy fold is query shape; a slow read with a growing gap is the fold competing for the same store."
-    runbook.mitigation: "Query shape is addressed by the caller's filter or page size, not by the service. Fold contention is addressed by letting catch-up finish before restoring full read load."
-    runbook.escalation: "foundry, with the slow operation and whether the freshness gap moved with it."
+    runbook.symptom: "Accepted single-Action invocations are answering, but outside the 250 ms budget. This is the WRITE path: credential, policy decision, tenant lock, append and fold."
+    runbook.first-check: "Only accepted invocations are timed, so a rise here is not refusals getting slower. Compare against projection freshness: the fold is inside this budget, so a tenant whose store is behind or contended pays for it in this objective."
+    runbook.mitigation: "Contention on a tenant lock is relieved by letting an in-flight write finish rather than by retrying into the same lock. A slow fold is the projection store's problem and shows up in freshness first. Migration runs are deliberately not timed against this budget, so a run in progress is not the cause."
+    runbook.escalation: "foundry, with whether projection freshness moved with the latency."
 spec:
   service: foundry-ontology
   description: |

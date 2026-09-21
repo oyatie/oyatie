@@ -11,9 +11,9 @@ metadata:
     plane: app
     owner_team: foundry
   annotations:
-    runbook.symptom: "Authorization decisions are being made without a matching trail entry, so a denial cannot later be explained."
-    runbook.first-check: "This is an evidence failure, not a serving failure: the surface is healthy and refusing correctly. Confirm whether the trail sink is unreachable or is accepting and dropping."
-    runbook.mitigation: "Do not disable the trail to restore throughput. A denial that is not recorded is indistinguishable from one that never happened, and the trail is what makes a refusal auditable."
+    runbook.symptom: "The WRITER refused an Action the policy decision point had already allowed, and the denial trail did not hold the record. The caller saw a denial the audit did not."
+    runbook.first-check: "This is an evidence failure, not a serving failure. Refusals before the writer are not denials and count against availability instead, so confirm the events are writer refusals before treating this as a trail fault. A submission too malformed to describe is also recorded as not held, with a healthy sink."
+    runbook.mitigation: "Do not disable the trail to restore throughput. Under an occurrence budget at 99.99%, a window with fewer than ten thousand writer refusals is breached by a single lost record, which is the intended posture for an audit control rather than a signal to loosen it."
     runbook.escalation: "foundry and trust-and-safety together, since the gap is a compliance surface rather than an availability one."
 spec:
   service: foundry-ontology

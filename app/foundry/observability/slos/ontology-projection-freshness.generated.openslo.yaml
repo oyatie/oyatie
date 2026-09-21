@@ -11,10 +11,10 @@ metadata:
     plane: app
     owner_team: foundry
   annotations:
-    runbook.symptom: "Reads return entities that are correct but stale: a write acknowledged by submit is not yet visible to a read."
-    runbook.first-check: "GET /statusz and compare the log head against the applied ordinal. A gap that is growing is a stalled fold; a gap that is constant and small is normal catch-up."
-    runbook.mitigation: "A stalled fold is usually a poisoned entry the fold will not pass. /statusz names the ordinal an operator starts from; rebuild the projection from the durable log rather than editing the entry."
-    runbook.escalation: "foundry, with the ordinal from /statusz and whether the gap grew, held, or closed while observed."
+    runbook.symptom: "A tenant's durable projection store is behind its log head, so a write the writer accepted is not yet readable."
+    runbook.first-check: "Read foundry_projection_lag and foundry_projection_unreadable. The objective scores a tenant zero when its log head or store could not be READ, which is a different fault from one that is merely behind, and only the second is catch-up."
+    runbook.mitigation: "A store that is behind is repaired by letting catch-up finish; readiness refuses until it does, so the refusal is the mechanism working. An unreadable store is a storage fault and catch-up will not fix it. Do not chase a poisoned entry here: a poison advances the fold and is excluded from this objective by design."
+    runbook.escalation: "foundry, naming which of lag or unreadability the first check found, and whether foundry_projection_contended was sustained."
 spec:
   service: foundry-ontology
   description: |

@@ -12,9 +12,9 @@ metadata:
     owner_team: foundry
   annotations:
     runbook.symptom: "Reads are refused. A surface refusing everything still answers, so this is not reachability."
-    runbook.first-check: "An absent credential, a policy denial and an unusable revision pin are all counted here. Check whether refusals share one caller, one pin, or all callers."
-    runbook.mitigation: "A single bad revision pin is the caller's to correct. Refusals across all callers point at the authorizer or at a projection the process could not read; prefer restoring the projection over serving unauthorized reads."
-    runbook.escalation: "foundry, with whether refusals were caller-scoped or global."
+    runbook.first-check: "Four refusal classes count here: an absent credential, a policy denial, an unusable revision pin, and a log the process could not read. Check whether refusals share one caller, one pin, or all callers."
+    runbook.mitigation: "A bad revision pin is the caller's to correct. Refusals across all callers point at a log or projection the process cannot read. Note that /statusz is an authorized read and counts against this ratio, so polling it during an incident makes the number worse rather than better."
+    runbook.escalation: "foundry, with whether refusals were caller-scoped, pin-scoped, or global."
 spec:
   service: foundry-ontology
   description: |

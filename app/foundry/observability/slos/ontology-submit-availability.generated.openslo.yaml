@@ -11,10 +11,10 @@ metadata:
     plane: app
     owner_team: foundry
   annotations:
-    runbook.symptom: "Writes are refused. Callers see a refusal rather than a timeout, so the surface is answering."
-    runbook.first-check: "Separate authorization from storage: a policy denial refuses every caller identically, while a storage fault refuses regardless of identity and is not a conflict."
-    runbook.mitigation: "If the authorizer is unreachable the surface denies by default and that is intended; restore the authorizer rather than bypassing it. If the log is unwritable, restore write access to it before retrying."
-    runbook.escalation: "foundry, naming which of the two the first check ruled out."
+    runbook.symptom: "Submissions are refused. The surface is answering, so this is not reachability."
+    runbook.first-check: "A policy refusal counts here deliberately, so separate it from a writer fault by scope: policy is identity-dependent and refuses one caller or one tenant, since every grant is scoped to a role and to principal.tenant == resource.tenant. A writer fault refuses regardless of who asks."
+    runbook.mitigation: "An identity-scoped refusal is usually a correct denial; confirm the caller's grant before treating it as an outage. A refusal that ignores identity points at the writer or the log it appends to. The policy engine is compiled into this binary, so there is no authorizer to reconnect: a policy bundle rejected at boot fails the process rather than degrading it."
+    runbook.escalation: "foundry, with whether refusals were identity-scoped or universal."
 spec:
   service: foundry-ontology
   description: |
