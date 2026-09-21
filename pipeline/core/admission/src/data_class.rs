@@ -1,9 +1,10 @@
 //! Where a data classification is allowed to live, and where one is required.
 //!
 //! Provenance: ADR-0709 carries ADR-0006 forward verbatim — every entity
-//! carries a `data_class` per declared property. The vocabulary for that
-//! lives only in the homes `known::CANONICAL_CRATES` names; these two
-//! touched-file rules keep it there and keep it answerable.
+//! carries a `data_class` per declared property. New declarations of that
+//! vocabulary are admitted only in the homes `known::CANONICAL_CRATES` names,
+//! beside a closed grandfathered set; these two touched-file rules keep it
+//! there and keep it answerable.
 
 mod known;
 

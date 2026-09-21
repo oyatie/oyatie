@@ -3,10 +3,9 @@
 //! Both are keyed by declaration site, so relocating an entry drops its
 //! grandfather and goes red rather than laundering it into a fresh path.
 
-/// Where the vocabulary may be declared. Two homes for the duration of the
-/// ownership inversion: the enums move to the port while `DataClassMatcher`
-/// stays in the kernel. The set narrows back to the port once it owns the
-/// enums and the kernel re-exports them.
+/// Where the vocabulary may be declared. Two homes: the classification
+/// enums move to the port under the ownership inversion, while the kernel
+/// keeps `DataClassMatcher`, which this rule's substring match also covers.
 pub(super) const CANONICAL_CRATES: &[&str] = &[
     "data/core/data-boundary-kernel/",
     "data/ports/classification/",
