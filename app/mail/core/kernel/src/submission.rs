@@ -44,6 +44,9 @@ pub struct SubmissionRecord {
     pub send_at: i64,
     pub undo_status: UndoStatus,
     pub delivery_status: BTreeMap<String, SubmissionDeliveryStatus>,
+    /// Absent from every state row written before this field existed.
+    #[serde(default)]
+    pub dsn_blob_ids: Vec<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

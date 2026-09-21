@@ -52,7 +52,8 @@ pub(super) fn value(record: &SubmissionRecord) -> Value {
         "envelope":{"mailFrom":address(&record.envelope.mail_from),"rcptTo":record.envelope.rcpt_to.iter().map(address).collect::<Vec<_>>()},
         "sendAt":mail_parser::DateTime::from_timestamp(record.send_at).to_rfc3339(),
         "undoStatus":match record.undo_status { UndoStatus::Pending=>"pending",UndoStatus::Final=>"final",UndoStatus::Canceled=>"canceled" },
-        "deliveryStatus":delivery,"dsnBlobIds":[],"mdnBlobIds":[]
+        // Nothing in the tree produces an MDN, so mdnBlobIds has no source.
+        "deliveryStatus":delivery,"dsnBlobIds":record.dsn_blob_ids,"mdnBlobIds":[]
     })
 }
 

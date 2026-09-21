@@ -55,6 +55,7 @@ impl Fixture {
                 send_at: now + if scheduled { 864000 } else { 0 },
                 undo_status: UndoStatus::Pending,
                 delivery_status: BTreeMap::new(),
+                dsn_blob_ids: Vec::new(),
             },
             email_revision: 1,
             raw: RAW.into(),
