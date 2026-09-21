@@ -2,10 +2,9 @@ use super::*;
 
 mod verify;
 
-/// 2048 bits, because aws-lc-rs refuses anything smaller and a shorter key
-/// would fail only at signing time. Fixed rather than generated: a keygen
-/// dependency costs about thirty crates to produce a value that never
-/// varies. Test-only; it signs nothing that leaves here.
+/// 2048 bits, because aws-lc-rs refuses anything smaller. Fixed rather than
+/// generated: a keygen dependency costs about thirty crates for a value that
+/// never varies. Test-only; it signs nothing that leaves here.
 const TEST_KEY: &str = "-----BEGIN PRIVATE KEY-----
 MIIEuwIBADANBgkqhkiG9w0BAQEFAASCBKUwggShAgEAAoIBAQDWJonSt4EOCvf7
 1QbnWZ2Wa3umpCda/Ydha+uuvQ3wY4hJwBKbtctGwqTR+nM7h9VoKFTHftbQVsTm
@@ -35,10 +34,8 @@ GULFnT1mkgy2BI04XYufq3OXwnslTSCno7HyOy5f3vr42sQ36aF+gCi7wMD3CrZb
 uOv74OKArzXsO86qqdfO
 -----END PRIVATE KEY-----";
 
-/// The public half of `TEST_KEY`, base64 SPKI, exactly as a receiver reads it
-/// out of the `p=` tag. Pasted beside the key rather than derived at runtime
-/// for the same reason the key is fixed: deriving it costs a dependency to
-/// produce a value that never varies.
+/// The public half of `TEST_KEY`, base64 SPKI as a receiver reads it out of
+/// the `p=` tag. Pasted rather than derived, for the reason the key is fixed.
 const TEST_PUBLIC_KEY: &str = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1iaJ0reBDgr3+9UG51mdlmt7pqQnWv2HYWvrrr0N8GOIScASm7XLRsKk0fpzO4fVaChUx37W0FbE5oq0NzG7MmEYi9S/ahmAVUwRm4J1wWluAPC8nin1KaQzo+KXWjnrjFzgfQ9ltoDYzu5hCvCtcjHjCfo/QAoKdgqgCNPfDqdyDlRjq8F8LoyloSCq6m/BCPNqDiAmzQCBJXj5T+yTsAxzjI8T/SAidZtrhtFsf3c8ttynHB5Dyeo8LMiXzFnVzBVaRuQmD/JN/808yDb2MeW+Z+QnRd7NQK4sqsvXcGSadMYp1dPtsJ7spmQqk1FUqkQMSKYhk1b6b5jc9kUfgQIDAQAB";
 
 const NAMED: [&str; 3] = ["MAIL_DKIM_KEY", "MAIL_DKIM_DOMAIN", "MAIL_DKIM_SELECTOR"];
@@ -49,10 +46,8 @@ fn key_file(name: &str) -> std::path::PathBuf {
     path
 }
 
-/// The longest value `sub_domain` permits, built from the longest labels it
-/// permits. One validator covers both settings, so this is the selector's
-/// maximum as well as the domain's -- the worst case the signature's first
-/// line can carry, and so the case the allowance has to cover.
+/// One validator covers both settings, so this is the selector's maximum as
+/// well as the domain's: the worst case the signature's first line can carry.
 pub(super) fn longest_sub_domain() -> String {
     let domain =
         ["a", "b", "c"].map(|label| label.repeat(63)).join(".") + &format!(".{}", "d".repeat(61));
@@ -63,13 +58,10 @@ pub(super) fn longest_sub_domain() -> String {
 
 #[test]
 fn a_half_configured_signer_is_refused_rather_than_sending_unsigned() {
-    // Believing mail is signed when it is not is worse than knowing it is
-    // not, so naming one setting demands all three -- and the refusal says
-    // which one is missing.
-    let refusal = complete(NAMED, [Some("/key.pem".to_owned()), None, None])
+    let refusal = all_or_none(NAMED, [Some("/key.pem".to_owned()), None, None])
         .expect_err("a key without a domain is not a signer");
     assert!(refusal.contains("MAIL_DKIM_DOMAIN"), "{refusal}");
-    let refusal = complete(
+    let refusal = all_or_none(
         NAMED,
         [
             Some("/key.pem".to_owned()),
@@ -83,13 +75,9 @@ fn a_half_configured_signer_is_refused_rather_than_sending_unsigned() {
 
 #[test]
 fn nothing_configured_signs_nothing() {
-    assert_eq!(complete(NAMED, [None, None, None]), Ok(None));
+    assert_eq!(all_or_none(NAMED, [None, None, None]), Ok(None));
 }
 
-/// A selector or domain goes verbatim into the signature's first line, which
-/// nothing folds. One long or malformed value would push every outbound
-/// message past the 1000-byte line limit -- not one message, all of them --
-/// so these are refused at startup rather than on the wire.
 #[test]
 fn a_selector_or_domain_that_would_overrun_the_signature_line_is_refused() {
     for bad in [
@@ -115,14 +103,10 @@ fn a_selector_or_domain_that_would_overrun_the_signature_line_is_refused() {
     }
 }
 
-/// `MAX_SUBMISSION_BYTES` is what submission accepts; `MAX_MESSAGE_BYTES` is
-/// what outbound wire validation allows. Signing happens between them, so a
-/// message accepted at the ceiling must still fit once signed -- otherwise the
-/// transports answer `554`, the queue writes a DSN and deletes the job, and a
-/// maximum-size message that used to deliver becomes a permanent bounce.
-///
-/// Signed here with the longest selector and domain the configuration permits,
-/// because that is the largest signature an operator can provoke.
+/// Signing happens between what submission accepts and what outbound wire
+/// validation allows, so a message at the ceiling must still fit once signed.
+/// With the longest selector and domain configuration permits: the largest
+/// signature an operator can provoke.
 #[test]
 fn a_message_at_the_submission_ceiling_still_fits_once_signed() {
     let file = key_file("ceiling");
@@ -142,8 +126,7 @@ fn a_message_at_the_submission_ceiling_still_fits_once_signed() {
     );
 }
 
-/// Every signed header present with a realistic value, padded to exactly the
-/// size submission accepts.
+/// Every signed header present, padded to exactly the size submission accepts.
 fn at_the_ceiling() -> Vec<u8> {
     let mut raw = Vec::with_capacity(mail_kernel::MAX_SUBMISSION_BYTES);
     for header in HEADERS {
@@ -172,9 +155,8 @@ pub(super) const HEADERS: &[&str] = &[
     "Content-Transfer-Encoding: 8bit",
 ];
 
-/// PEM that parses as a container and holds nothing usable, and a key that is
-/// valid PEM but not RSA. Both reach a refusal with contents to leak, which
-/// the file this replaced -- a path that does not exist -- never could.
+/// Both reach the refusal with contents to leak; a path that does not exist
+/// never could.
 const MALFORMED: &str = "-----BEGIN PRIVATE KEY-----
 SENTINEL-NOT-A-KEY
 -----END PRIVATE KEY-----";

@@ -18,13 +18,11 @@ pub(super) async fn run(
             lease
                 .map(|lease| {
                     claim.outbound_message(&lease).map(|mut message| {
-                        // Sign here rather than at the wire: this is above both
-                        // transports and above the validation every outbound
-                        // message is held to, so the signed bytes are the
-                        // checked bytes. On the blocking pool with the rest of
-                        // this closure, because SHA-256 over 25 MB and the copy
-                        // it makes have no business on the runtime that is also
-                        // serving SMTP, IMAP and HTTP.
+                        // Above both transports and above outbound wire
+                        // validation, so the signed bytes are the checked
+                        // bytes. On the blocking pool because SHA-256 over
+                        // 25 MB and its copy have no business on the runtime
+                        // also serving SMTP, IMAP and HTTP.
                         let signed = signing.as_ref().map_or(Ok(()), |signer| {
                             signer.signed(&message.raw).map(|raw| message.raw = raw)
                         });
@@ -37,9 +35,7 @@ pub(super) async fn run(
         let delay = match result {
             Ok(Ok(Some((lease, message, signed)))) => {
                 let outcome = if let Err(error) = signed {
-                    // Believing your mail is signed when it is not is worse
-                    // than knowing it is not, so a signing failure retries
-                    // rather than leaving unsigned.
+                    // Retry rather than deliver unsigned.
                     eprintln!("mail-app: outbound signing failed: {error}");
                     DeliveryOutcome::Temporary(451)
                 } else if mail_api::Clock.now_secs().saturating_sub(message.retry_at) >= 432000 {

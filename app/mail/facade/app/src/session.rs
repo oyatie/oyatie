@@ -97,14 +97,10 @@ fn smtp_params(
     }
 }
 
-/// Advertised `SIZE`, the `MAIL FROM SIZE=` check and the DATA reader all
-/// read one number, so it has to be the number the whole path honours.
-/// Submission is normalized on the way in and signed on the way out, so it
-/// advertises `MAX_DATA_BYTES`, which is the deliverable ceiling less both:
-/// what is advertised is then what is accepted, with nothing read in full and
-/// refused afterwards. Inbound shares this builder but signs nothing and
-/// normalizes nothing, so it keeps the full ceiling -- lowering it there
-/// would only refuse mail this server took before, for no gain.
+/// Advertised `SIZE`, the `MAIL FROM SIZE=` check and the DATA reader read
+/// this one number. Submission is normalized on the way in and signed on the
+/// way out, so it advertises the deliverable ceiling less both; inbound shares
+/// this builder, does neither, and keeps the full one.
 fn max_message_size(protocol: &Protocol) -> usize {
     match protocol {
         Protocol::Submission | Protocol::SubmissionStartTls => mail_kernel::MAX_DATA_BYTES,
@@ -116,9 +112,8 @@ fn max_message_size(protocol: &Protocol) -> usize {
 mod tests {
     use super::{Protocol, max_message_size};
 
-    /// One builder serves port 25 and the submission ports. Reserving room
-    /// for the signature on the inbound one would refuse inbound mail this
-    /// server accepted before, on a path that is never signed.
+    /// Reserving room for the signature on the inbound path would refuse mail
+    /// this server accepted before, on a path that is never signed.
     #[test]
     fn only_submission_gives_up_room_for_the_signature() {
         for inbound in [Protocol::Smtp, Protocol::Imap, Protocol::Pop] {
@@ -131,6 +126,6 @@ mod tests {
         for submission in [Protocol::Submission, Protocol::SubmissionStartTls] {
             assert_eq!(max_message_size(&submission), mail_kernel::MAX_DATA_BYTES);
         }
-        assert!(mail_kernel::MAX_DATA_BYTES < mail_kernel::MAX_MESSAGE_BYTES);
+        const { assert!(mail_kernel::MAX_DATA_BYTES < mail_kernel::MAX_MESSAGE_BYTES) };
     }
 }

@@ -47,17 +47,12 @@ pub(super) fn normalize(raw: &[u8], address: &str) -> Result<Vec<u8>, Error> {
             output.extend_from_slice(b"\r\n");
         }
     }
-    // `mail-auth` writes one `h=` entry per occurrence of a signed name it
-    // finds (0.13.3 `dkim/canonicalize.rs`), so a message repeating one grows
-    // its own signature without bound and a message accepted at the ceiling
-    // stops fitting once signed -- a `554` and a permanent bounce for mail
-    // this server promised to deliver. Refused here, which is RFC-conformant:
-    // RFC 5322 section 3.6 permits at most one `To`, `Cc`, `Subject` or
-    // `Message-ID` and exactly one `From` and `Date`; RFC 2045 permits one
-    // `MIME-Version` (section 4), one `Content-Type` (section 5) and one
-    // `Content-Transfer-Encoding` (section 6) per entity. With the repeat
-    // refused, `h=` is at most `SIGNED_HEADERS` twice over for every message
-    // that reaches the signer, which is what `SIGNATURE_ALLOWANCE` measures.
+    // A repeated signed header is refused, which is what bounds `h=` and so
+    // `SIGNATURE_ALLOWANCE` -- see `SIGNED_HEADERS`. Conformant, not a local
+    // restriction: RFC 5322 section 3.6 permits at most one `To`, `Cc`,
+    // `Subject` or `Message-ID` and exactly one `From` and `Date`; RFC 2045
+    // permits one `MIME-Version`, one `Content-Type` and one
+    // `Content-Transfer-Encoding` per entity (sections 4, 5 and 6).
     let mut signed = [false; mail_kernel::SIGNED_HEADERS.len()];
     let mut blind = false;
     let mut first = true;
@@ -105,10 +100,8 @@ pub(super) fn normalize(raw: &[u8], address: &str) -> Result<Vec<u8>, Error> {
     }) {
         return Err(Error::Invalid);
     }
-    // Both submitters normalize here -- SMTP `submit` and JMAP `submit_email`,
-    // which takes any stored blob and so covers IMAP APPEND too -- so this is
-    // the one place that decides what may reach the outbound queue. A message
-    // that only fits before it is signed is one the outbound path bounces.
+    // The one gate both submitters pass -- SMTP `submit` and JMAP
+    // `submit_email`, which takes any stored blob and so covers IMAP APPEND.
     if output.len() > MAX_SUBMISSION_BYTES {
         return Err(Error::OverQuota);
     }
@@ -176,8 +169,8 @@ mod tests {
         }
         raw.extend_from_slice(b"\r\n");
         let line = b"padding to the ceiling, sixty-four bytes of body per line...\r\n";
-        // Room for the short final line kept back, so the fill never truncates
-        // one and leaves a bare `\r` that would be refused for its own reason.
+        // Room kept for the short final line, so the fill never truncates one
+        // into a bare `\r` that would be refused for its own reason.
         while raw.len() + line.len() + 2 <= size {
             raw.extend_from_slice(line);
         }
@@ -186,14 +179,8 @@ mod tests {
         raw
     }
 
-    /// `mail-auth` writes one `h=` entry per occurrence of a signed name it
-    /// finds, in the message's own spelling, so a message that repeats one
-    /// grows its own signature without bound. At the ceiling, a hundred extra
-    /// `Content-Transfer-Encoding` lines put the signed bytes past what
-    /// outbound wire validation allows: both transports answer `554`, the
-    /// queue writes a DSN and deletes the job, and the sender's own mail
-    /// bounces. Refused here, where the same message without the repeats is
-    /// still accepted -- so it is the repetition that is refused, not the size.
+    /// The same message without the repeats is still accepted, so it is the
+    /// repetition that is refused and not the size.
     #[test]
     fn a_ceiling_message_that_repeats_a_signed_header_is_refused() {
         let repeated = "Content-Transfer-Encoding: 8bit";
@@ -205,12 +192,7 @@ mod tests {
         );
     }
 
-    /// The refusal covers every name the facade signs, not only the one that
-    /// measurably overruns. RFC 5322 section 3.6 permits at most one `To`,
-    /// `Cc`, `Subject` or `Message-ID` and exactly one `From` and `Date`; RFC
-    /// 2045 permits one `MIME-Version` (section 4), one `Content-Type`
-    /// (section 5) and one `Content-Transfer-Encoding` (section 6) per
-    /// entity. Refusing the second is conformant, not a local restriction.
+    /// Every name the facade signs, not only the one that measurably overruns.
     #[test]
     fn every_signed_header_is_refused_a_second_time() {
         for name in SIGNED_HEADERS {

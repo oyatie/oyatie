@@ -1,10 +1,7 @@
-//! What a receiver makes of these bytes, rather than what they look like. A
-//! signature with correct syntax over the wrong hash passes every shape
-//! assertion and is rejected on arrival, so the key that signed the message is
-//! published to a sealed table and `mail-auth`'s own verifier is asked.
-//!
-//! The resolver behind the table points at a closed loopback port: every TXT
-//! lookup is answered from the table, and nothing else can leave the host.
+//! What a receiver makes of these bytes, rather than what they look like: a
+//! correct-syntax signature over the wrong hash passes every shape assertion,
+//! so `mail-auth`'s own verifier is asked instead. The resolver behind the
+//! sealed table points at a closed loopback port, so nothing leaves the host.
 use super::*;
 use mail_auth::{
     AuthenticatedMessage, DkimResult, MessageAuthenticator, Parameters,
@@ -34,13 +31,9 @@ fn the_signature_names_this_domain_and_leaves_the_message_unaltered() {
     ] {
         assert!(text.contains(field), "missing {field}: {text}");
     }
-    // The header is prepended, so the bytes a receiver verifies are the
-    // bytes that were signed.
     assert!(signed.ends_with(raw), "{text}");
-    // Folding included, every line ends CRLF and stays inside the
-    // 1000-byte limit the outbound path enforces -- with the longest
-    // selector and domain the configuration permits, too, since those two
-    // are the only part of that first line nothing folds.
+    // The longest selector and domain too: they are the only part of the
+    // first line nothing folds, so they are what can overrun 1000 bytes.
     let file = key_file("longest");
     let longest = Signer::from_key_file(
         &file.display().to_string(),
@@ -79,9 +72,8 @@ async fn a_signed_message_verifies_and_one_altered_byte_of_body_stops_it() {
         DkimResult::Pass
     );
 
-    // One letter of the body -- not whitespace, which relaxed canonicalization
-    // is meant to absorb. Without this half the test cannot tell a real
-    // verification from one that always says yes.
+    // A letter, not whitespace, which relaxed canonicalization absorbs by
+    // design. Without this half, a verifier that always says yes would pass.
     let mut tampered = signed.clone();
     let at = tampered.len() - 6;
     assert_eq!(tampered[at], b'b', "the byte to alter is the body's first");
@@ -96,18 +88,9 @@ async fn a_signed_message_verifies_and_one_altered_byte_of_body_stops_it() {
     );
 }
 
-/// RFC 6376 section 8.15: a relay may *add* a header the sender never wrote,
-/// and a verifier that reads each name once from the bottom of the message
-/// still finds the original underneath it -- the signature passes while the
-/// recipient is shown the addition. Naming each header twice signs one absent
-/// instance as empty, so a second `Cc` is a header the signature did not
-/// cover, and verification stops.
-///
-/// A `Cc` added where there was none is already refused without the second
-/// listing, because `mail-auth` writes every configured name into `h=` whether
-/// or not the message carries it. The second instance is the case that the
-/// repetition, and only the repetition, catches -- so that is what is asserted
-/// here, with the absent-header case kept beside it as the weaker half.
+/// The second listing in `signed_headers` is what catches a relay adding a
+/// *second* `Cc`; a `Cc` added where there was none is caught by the first
+/// listing alone, and is kept here beside it as the weaker half.
 #[tokio::test]
 async fn a_header_a_relay_adds_after_signing_no_longer_verifies() {
     let file = key_file("oversign");
@@ -128,7 +111,7 @@ async fn a_header_a_relay_adds_after_signing_no_longer_verifies() {
             DkimResult::Pass
         );
         // Where a relay puts one: above everything the sender wrote, so a
-        // verifier reading from the bottom would still find the original.
+        // verifier reading from the bottom still finds the original.
         let at = signed
             .windows(6)
             .position(|window| window == b"From: ")
@@ -144,9 +127,8 @@ async fn a_header_a_relay_adds_after_signing_no_longer_verifies() {
     }
 }
 
-/// The one verdict `mail-auth` reaches about these bytes. A message carrying
-/// no verdict at all would satisfy `all(Pass)` vacuously, so the count is
-/// asserted rather than the iterator.
+/// A message carrying no verdict at all would satisfy `all(Pass)` vacuously,
+/// so the count is asserted rather than the iterator.
 async fn verdict(
     authenticator: &MessageAuthenticator,
     dns: &mail_protocol_imap::MailDns,
@@ -160,10 +142,8 @@ async fn verdict(
     output[0].result().clone()
 }
 
-/// A receiver that has the published key and no way to ask for anything else:
-/// `mail-auth` looks the key up at `<selector>._domainkey.<domain>`, the
-/// sealed table answers that, and a lookup it declines fails here rather than
-/// on the wire.
+/// A receiver holding the published key and no way to ask for anything else:
+/// a lookup the sealed table declines fails here rather than on the wire.
 fn receiver() -> (MessageAuthenticator, mail_protocol_imap::MailDns) {
     use mail_auth::hickory_resolver::config::{NameServerConfig, ResolverConfig, ResolverOpts};
     let dns = mail_protocol_imap::MailDns::sealed();

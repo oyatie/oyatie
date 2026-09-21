@@ -69,8 +69,6 @@ fn invalid_outbound_configuration_fails_closed_without_credentials_in_diagnostic
             vec![("MAIL_SPF_MAIL_FROM", "Strict")],
             "must be disable, relaxed or strict",
         ),
-        // Signing half-configured would send unsigned mail while the operator
-        // believed otherwise; the refusal names the setting that is missing.
         (
             vec![("MAIL_DKIM_DOMAIN", "example.org")],
             "MAIL_DKIM_KEY is required",
@@ -90,9 +88,6 @@ fn invalid_outbound_configuration_fails_closed_without_credentials_in_diagnostic
             ],
             "not a readable PEM private key",
         ),
-        // Both go verbatim into the signature's first line, which nothing
-        // folds: a value that overruns it refuses every outbound message, not
-        // one, so it is refused before anything binds.
         (
             vec![
                 ("MAIL_DKIM_KEY", "/nonexistent/private-review-key.pem"),

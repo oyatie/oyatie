@@ -53,9 +53,8 @@ async fn serve(
     );
     let tls = TlsAcceptor::from(tls);
     let outbound = outbound_config::configured()?;
-    // Built before anything binds: a key the server cannot sign with must stop
-    // it here, not surface as eight workers each discovering it on their first
-    // message, and not after the listeners have announced themselves.
+    // Before anything binds: a key the server cannot sign with must stop it
+    // here, not in eight workers each discovering it on their first message.
     let signer = signing::Signer::configured()?.map(Arc::new);
     lease::take(&db)?;
     let service = Arc::new(MailService {

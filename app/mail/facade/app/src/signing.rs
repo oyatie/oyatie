@@ -1,10 +1,7 @@
 //! The signature this server puts on the mail it sends.
 //!
-//! Receivers at the large providers treat an unsigned message from an unknown
-//! host as suspect, so mail that leaves here unsigned is mail that arrives in
-//! a spam folder. Signing happens once, on the way out of the queue, so both
-//! transports carry it and the bytes still pass the wire validation every
-//! outbound message is held to.
+//! Signing happens once, on the way out of the queue, so both transports carry
+//! it and the signed bytes are the bytes outbound wire validation checks.
 use mail_auth::{
     common::{
         crypto::{RsaKey, Sha256},
@@ -14,26 +11,21 @@ use mail_auth::{
 };
 use rustls::pki_types::{PrivateKeyDer, pem::PemObject};
 
-/// Each name in `mail_kernel::SIGNED_HEADERS` twice, as RFC 6376 section 8.15
-/// recommends. `mail-auth` already writes a name into `h=` whether or not the
-/// message carries it, so a header added where there was none is caught by the
-/// first listing; the second is what catches a relay adding a *second* `Cc` or
-/// `Subject` above the one the sender wrote, which a verifier reading each name
-/// once from the bottom would otherwise accept while showing the addition.
-/// Naming a header here still does not force it to exist -- and submission
-/// refuses a message that already repeats one, which is what keeps this list,
-/// and so the signature, a fixed size.
+/// Each name twice, as RFC 6376 section 8.15 recommends. `mail-auth` writes a
+/// name into `h=` whether or not the message carries it, so the first listing
+/// covers a header added where there was none; the second covers a relay
+/// adding a *second* `Cc` or `Subject` above the sender's, which a verifier
+/// reading each name once from the bottom would otherwise accept.
 fn signed_headers() -> impl Iterator<Item = &'static str> {
     mail_kernel::SIGNED_HEADERS
         .iter()
         .flat_map(|name| [*name, *name])
 }
 
-/// The selector and the domain are written verbatim into the signature's first
-/// line, which `mail-auth` never folds. A value long or strange enough pushes
-/// that line past the 1000-byte limit every outbound message is held to, and
-/// then *all* mail is refused `554` -- so both are bounded here, at startup,
-/// to the sub-domain syntax RFC 6376 gives them.
+/// The selector and the domain go verbatim into the signature's first line,
+/// which `mail-auth` never folds: a value long enough to push that line past
+/// the 1000-byte outbound limit refuses *all* mail, not one message. Bounded
+/// at startup to RFC 6376's sub-domain syntax.
 fn sub_domain(name: &str, value: &str) -> Result<(), String> {
     let refuse = || {
         format!(
@@ -57,10 +49,12 @@ fn sub_domain(name: &str, value: &str) -> Result<(), String> {
         .ok_or_else(refuse)
 }
 
-/// All three settings, or none. `Err` names the one that is missing, so an
-/// operator who configured two of three is told which, rather than finding
-/// out from a receiver that their mail arrived unsigned.
-fn complete(named: [&str; 3], given: [Option<String>; 3]) -> Result<Option<[String; 3]>, String> {
+/// `Err` names the setting that is missing, so an operator who configured two
+/// of three is told which, rather than hearing it from a receiver.
+fn all_or_none(
+    named: [&str; 3],
+    given: [Option<String>; 3],
+) -> Result<Option<[String; 3]>, String> {
     if given.iter().all(Option::is_none) {
         return Ok(None);
     }
@@ -78,8 +72,8 @@ fn complete(named: [&str; 3], given: [Option<String>; 3]) -> Result<Option<[Stri
 
 pub(super) struct Signer(DkimSigner<RsaKey<Sha256>, Done>);
 
-// Written by hand rather than derived: this holds a private key, and a
-// derived Debug would put it wherever a diagnostic goes.
+// Hand-written: this holds a private key, and a derived `Debug` would put it
+// wherever a diagnostic goes.
 impl std::fmt::Debug for Signer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("Signer")
@@ -87,18 +81,16 @@ impl std::fmt::Debug for Signer {
 }
 
 impl Signer {
-    /// `None` when the operator has configured no key. Naming any one of the
-    /// three settings requires all three: a half-configured signer would send
-    /// unsigned mail while the operator believed otherwise, and believing
-    /// your mail is signed when it is not is worse than knowing it is not.
+    /// `None` when nothing is configured. Naming one of the three settings
+    /// requires all three: believing your mail is signed when it is not is
+    /// worse than knowing it is not.
     pub(super) fn configured() -> Result<Option<Self>, Box<dyn std::error::Error>> {
         let named = ["MAIL_DKIM_KEY", "MAIL_DKIM_DOMAIN", "MAIL_DKIM_SELECTOR"];
         let given = named.map(|name| std::env::var(name).ok());
-        let Some([key, domain, selector]) = complete(named, given)? else {
+        let Some([key, domain, selector]) = all_or_none(named, given)? else {
             return Ok(None);
         };
-        // Before the file is read: the cheap refusals first, and a bad
-        // selector must not be reported as a bad key.
+        // Before the file is read, so a bad selector is not reported as a bad key.
         sub_domain("MAIL_DKIM_DOMAIN", &domain)?;
         sub_domain("MAIL_DKIM_SELECTOR", &selector)?;
         Ok(Some(Self::from_key_file(&key, domain, selector)?))
@@ -109,8 +101,7 @@ impl Signer {
         domain: String,
         selector: String,
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        // The key never appears in a diagnostic: a failure names the file, not
-        // what was read out of it.
+        // A failure names the file, never what was read out of it.
         let material = PrivateKeyDer::from_pem_file(key)
             .map_err(|_| format!("MAIL_DKIM_KEY is not a readable PEM private key: {key}"))?;
         let signing = RsaKey::<Sha256>::from_key_der(material).map_err(|_| {
@@ -123,17 +114,16 @@ impl Signer {
                 .domain(domain)
                 .selector(selector)
                 .headers(signed_headers())
-                // `simple` over the headers keeps the signature verifiable
-                // when a relay reflows nothing; `relaxed` over the body
-                // survives the whitespace changes transport still makes.
+                // `simple` headers stay verifiable when a relay reflows
+                // nothing; `relaxed` body survives the whitespace that
+                // transport still changes.
                 .header_canonicalization(Canonicalization::Simple)
                 .body_canonicalization(Canonicalization::Relaxed),
         ))
     }
 
-    /// The message with its signature, or the reason it could not be signed.
-    /// The header is prepended, so it covers the message as stored and as
-    /// transmitted — those are the same bytes on this path.
+    /// Prepended, so the signature covers the message as stored and as
+    /// transmitted — the same bytes on this path.
     pub(super) fn signed(&self, raw: &[u8]) -> Result<Vec<u8>, mail_auth::Error> {
         let signature = self.0.sign(raw)?;
         let mut signed = signature.to_header().into_bytes();
