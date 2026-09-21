@@ -189,9 +189,9 @@ mod tests {
 
     /// A `members` glob must become the crates it selects, never a literal node.
     ///
-    /// Regression: `*/core/*` was emitted verbatim, so the map held 41 nodes (15 of them globs)
-    /// instead of the workspace, and nothing noticed: this emitter has no consumer to disagree
-    /// with it.
+    /// Regression: `*/core/*` was emitted verbatim, so the map held the `members` array instead
+    /// of the workspace it selects, and nothing noticed: this emitter has no consumer to
+    /// disagree with it.
     ///
     /// The workspace under test is built here rather than read from the checkout: reaching it
     /// through `env!("CARGO_MANIFEST_DIR")` does not compile under buck2, which defines that

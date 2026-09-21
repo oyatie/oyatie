@@ -146,7 +146,7 @@ pub(crate) fn json_field(line: &str, key: &str) -> Option<String> {
     read_json_string(after_key.trim_start())
 }
 
-/// Read a JSON string starting at the leading `"`, up to the closing `"`.
+/// Read a JSON string starting at the leading `"`, up to the next `"`.
 pub(crate) fn read_json_string(input: &str) -> Option<String> {
     let after_quote = input.strip_prefix('"')?;
     let close = after_quote.find('"')?;
