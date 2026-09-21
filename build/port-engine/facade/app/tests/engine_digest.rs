@@ -108,10 +108,16 @@ fn engine_crates_are_sorted_by_crate_name() {
 }
 
 fn engine_root() -> Option<PathBuf> {
-    let manifest = option_env!("CARGO_MANIFEST_DIR")?;
-    // .../build/port-engine/facade/app → .../build/port-engine
-    let root = Path::new(manifest).parent()?.parent()?;
-    root.is_dir().then(|| root.to_path_buf())
+    let candidates = [
+        // .../build/port-engine/facade/app → .../build/port-engine
+        option_env!("CARGO_MANIFEST_DIR")
+            .and_then(|dir| Path::new(dir).parent()?.parent().map(Path::to_path_buf)),
+        // The engine's REPO-RELATIVE path. buck2 runs a test from the project root with no cargo
+        // environment, so the candidate above does not resolve there — and this fence guards a
+        // property of that build too.
+        Some(Path::new("build/port-engine").to_path_buf()),
+    ];
+    candidates.into_iter().flatten().find(|path| path.is_dir())
 }
 
 /// Every production `.rs` under the engine, keyed the way the manifests key them:

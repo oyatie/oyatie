@@ -13,6 +13,7 @@ rust_library(
         "//build/port-engine/adapters/snapshot:port-engine-snapshot",
         "//build/port-engine/adapters/source-pin:port-engine-source-pin",
         "//build/port-engine/adapters/toolchain:port-engine-toolchain",
+        "//build/port-engine/core/analysis:port-engine-analysis",
         "//build/port-engine/core/kernel:port-engine-kernel",
         "//build/port-engine/core/rust-ir:port-engine-rust-ir",
         "//build/port-engine/core/transform:port-engine-transform",
@@ -38,6 +39,7 @@ rust_test(
     crate_root = "tests/cli.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//build/port-engine/adapters/emit:port-engine-emit",
         ":port-engine-app",
     ],
 )
@@ -49,6 +51,8 @@ rust_test(
     crate_root = "tests/driver.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//build/port-engine/adapters/emit:port-engine-emit",
+        "//build/port-engine/core/kernel:port-engine-kernel",
         ":port-engine-app",
     ],
 )
