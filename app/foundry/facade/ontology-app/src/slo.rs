@@ -187,6 +187,8 @@ pub static SLOS: &[SloSpec] = &[
 ];
 
 pub fn render_openslo(spec: &SloSpec) -> String {
+    let runbook = crate::runbook::runbook_for(spec.name)
+        .expect("a declared objective carries the response an operator acts on");
     format!(
         "# Generated from `app/foundry/facade/ontology-app/src/slo.rs`. Do not hand-edit:\n\
          # the suite compares this file byte-for-byte against the renderer.\n\
@@ -199,7 +201,12 @@ pub fn render_openslo(spec: &SloSpec) -> String {
              microservice: {service}\n    \
              sli_class: {sli_class}\n    \
              plane: app\n    \
-             owner_team: foundry\n\
+             owner_team: foundry\n  \
+           annotations:\n    \
+             runbook.symptom: \"{symptom}\"\n    \
+             runbook.first-check: \"{first_check}\"\n    \
+             runbook.mitigation: \"{mitigation}\"\n    \
+             runbook.escalation: \"{escalation}\"\n\
          spec:\n  \
            service: {service}\n  \
            description: |\n{description}\n  \
@@ -231,6 +238,10 @@ pub fn render_openslo(spec: &SloSpec) -> String {
         service = SERVICE,
         sli_class = spec.sli_class,
         description = wrap_block(spec.description),
+        symptom = runbook.symptom,
+        first_check = runbook.first_check,
+        mitigation = runbook.mitigation,
+        escalation = runbook.escalation,
         counter = spec.counter,
         good = spec.good_query,
         total = spec.total_query,

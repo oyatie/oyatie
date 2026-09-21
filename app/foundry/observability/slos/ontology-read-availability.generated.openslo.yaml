@@ -10,6 +10,11 @@ metadata:
     sli_class: availability
     plane: app
     owner_team: foundry
+  annotations:
+    runbook.symptom: "foundry_read_refused_total is rising against foundry_read_served_total. A served /statusz poll counts as a good read, so polling dilutes this ratio; only a refused poll counts against it."
+    runbook.first-check: "The refusal body's gate and HTTP status. A 401 credential, a 400 surface for a missing revision pin, a 404 surface for an object the durable projection does not hold and a 409 surface for an unretained revision are the caller's request; a 403 authorization for every caller at once splits on its cause, an unserved tenant being the roster and the operator list disagreeing and the policy decision point being the circuit or a policy deny for every caller, as on submit; a 503 with gate store or log is storage this process cannot read."
+    runbook.mitigation: "Caller-side refusals are the caller's to correct, and a client probing references that do not exist breaches this objective through the 404 path. A universal authorization refusal splits as on submit: an unserved tenant is configuration to fix, which a restart on the same configuration reproduces, and the policy decision point is compiled in. A 503 is storage: a restart re-opens the log and store and refuses to boot if it cannot."
+    runbook.escalation: "foundry, with the gate and HTTP status of the refusals and whether every caller received them."
 spec:
   service: foundry-ontology
   description: |

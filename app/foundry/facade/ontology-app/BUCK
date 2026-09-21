@@ -100,6 +100,7 @@ FACADE_TESTS = [
     ("metrics-set-reads", "metrics_count_set_reads", FACADE_TEST_DEPS),
     ("cross-tenant", "cross_tenant_isolation", FACADE_TEST_DEPS),
     ("slo-render", "slo_render_is_the_source", FACADE_TEST_DEPS),
+    ("runbook", "runbook_is_bound_to_its_objective", FACADE_TEST_DEPS),
     ("metrics-counts", "metrics_count_what_happened", FACADE_TEST_DEPS + [
         "//app/foundry/ports/draft/projection:foundry-projection-draft",
     ]),

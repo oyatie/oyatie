@@ -141,7 +141,8 @@ same-change replacement, never by silent drift.
   names another capability's `core/` or `adapters/` target no manifest of that
   product names on `dev`; Served is claimed only with presubmit green on the
   facade, a module card that renders deny-by-default,
-  `app/foundry/observability/slos/*.generated.openslo.yaml`, and fault tests
+  `app/foundry/observability/slos/*.generated.openslo.yaml` each carrying its
+  runbook as `metadata.annotations` rendered from the same IR, and fault tests
   in the spine and the facade.
 - **overturn_when:** the wedge is Served, or a recorded challenge shows a
   paying tenant requires a different product first.

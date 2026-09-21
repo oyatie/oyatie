@@ -5,6 +5,7 @@
 #[path = "facade_support/mod.rs"]
 mod support;
 
+use foundry_ontology_app::runbook::{RUNBOOKS, runbook_for};
 use foundry_ontology_app::slo::{SLOS, SloSpec, render_openslo};
 use std::collections::BTreeSet;
 use support::Fixture;

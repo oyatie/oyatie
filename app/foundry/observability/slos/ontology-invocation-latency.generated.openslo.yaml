@@ -10,6 +10,11 @@ metadata:
     sli_class: latency
     plane: app
     owner_team: foundry
+  annotations:
+    runbook.symptom: "foundry_action_invocation_answered_within_250ms_total is falling behind foundry_action_invocation_answered_total: accepted single-Action submissions are answering, but past 250 ms. Only accepted submissions on that surface are timed; migration runs are not."
+    runbook.first-check: "contended_tenants on /statusz, read as which request held the tenant lock: the clock starts at handler entry and includes the policy decision, waiting for the tenant lock, the log append and the durable SQLite mirror into the projection store; a migration run holds that lock across its whole fixpoint and catch-up and a history or audit read holds it across a full log replay, so a submit that arrives behind either waits with the clock running."
+    runbook.mitigation: "Do not run a migration while latency matters: one run holds the tenant lock for its whole duration. The fold itself is in memory; the durable mirror is a SQLite write inside the budget, and the policy decision's own deadline equals the whole budget. The shared tenant lock is what couples this objective to freshness, and foundry_projection_contended measures it."
+    runbook.escalation: "foundry, with whether a migration run was in flight and whether foundry_projection_contended was non-zero over the window."
 spec:
   service: foundry-ontology
   description: |
