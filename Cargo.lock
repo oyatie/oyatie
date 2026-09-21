@@ -632,6 +632,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "billing-app"
+version = "0.1.0"
+dependencies = [
+ "billing-domain",
+ "billing-metering",
+ "data-boundary-kernel",
+ "tokio",
+]
+
+[[package]]
 name = "billing-cost-service"
 version = "0.1.0"
 dependencies = [
@@ -694,16 +704,6 @@ dependencies = [
 [[package]]
 name = "billing-metering-pipeline-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "billing-service"
-version = "0.1.0"
-dependencies = [
- "billing-domain",
- "billing-metering",
- "data-boundary-kernel",
- "tokio",
-]
 
 [[package]]
 name = "billing-tax-api"

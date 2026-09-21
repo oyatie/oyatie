@@ -1,5 +1,5 @@
 #[cfg(not(test))]
-use billing_service::{config, observability};
+use billing_app::{config, observability};
 
 #[cfg(not(test))]
 #[tokio::main]
@@ -12,14 +12,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 #[cfg(test)]
 mod integration_tests {
+    use billing_app::invoicing::{
+        GenerateInvoiceRequest, InMemoryInvoiceService, InvoiceApplicationError,
+    };
     use billing_domain::{
         BillingAccount, BillingAccountCreate, BillingAccountState, BillingPeriod,
         CloudBillingError, InvoiceGenerate, InvoiceLineItemCreate, Money, TaxInvoiceFormat,
     };
     use billing_metering::{MeterUnit, MeterUnitKind};
-    use billing_service::invoicing::{
-        GenerateInvoiceRequest, InMemoryInvoiceService, InvoiceApplicationError,
-    };
     use data_boundary_kernel::DataClass;
 
     fn request() -> GenerateInvoiceRequest {
