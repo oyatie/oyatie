@@ -17,9 +17,9 @@ build = "build.rs"
 [dependencies]
 iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
 iam-identity-workload-api = { path = "../../ports/identity-workload-api" }
-iam-identity-workload-app = { path = "../identity-workload-app" }
-iam-identity-workload-oidc = { path = "../../adapters/identity-workload-oidc" }
-iam-identity-workload-authz-cedar = { path = "../../adapters/identity-workload-authz-cedar" }
+iam-identity-workload-app = { path = "../../facade/identity-workload-app" }
+iam-identity-workload-oidc = { path = "../identity-workload-oidc" }
+iam-identity-workload-authz-cedar = { path = "../identity-workload-authz-cedar" }
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "net", "macros", "sync"] }
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 tower = { version = "0.5", default-features = false, features = ["util"] }
@@ -53,7 +53,6 @@ base64 = "0.22.1"
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "net", "macros"] }
 
 [lib]
-name = "iam_identity_workload_rest"
 path = "src/lib.rs"
 doctest = false
 

@@ -7,14 +7,13 @@ syntax = "proto3";
 // Authority: ADR-0002 tenant+identity kernel, ADR-0183 Cedar app-authz,
 // RFC 8725 JWT BCP. Internal-only proto3 for the workload-identity (machine-to-
 // machine) authorize + token-validation surface, consumed by trusted PEPs
-// (Envoy ext_authz at the waypoint, sidecars, the api-gateway). The external
-// HTTP surface is OpenAPI 3.2 in ../openapi/workload.yaml.
+// (Envoy ext_authz at the waypoint, sidecars, the api-gateway).
 //
 // Fail-closed contract: a deny is a DECISION_EFFECT_DENY response, never an
 // RPC error; a token-validation failure carries a typed error; the engine is
 // never consulted on a rejected token.
 
-package oya.identity.workload.v1;
+package iam.workload.v1;
 
 // =============================================================================
 // WorkloadAuthorizer — PARC authorization (Cedar PDP: deny-by-default,
