@@ -9,7 +9,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use audit_chain_domain::{
     AuditAppendInput, AuditChain, Ed25519SigningKey, Ed25519VerificationKeySet, Plane,
 };
-use audit_file_adapter::{FileAuditLedger, FileAuditLedgerError};
+use audit_ledger_file::{FileAuditLedger, FileAuditLedgerError};
 use data_boundary_kernel::{DataClass, Purpose};
 
 #[test]

@@ -14,7 +14,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//audit/adapters/file:audit-file-adapter",
+        "//audit/adapters/ledger-file:audit-ledger-file",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//policy/core/pdp-kernel:policy-pdp-kernel",
@@ -33,7 +33,7 @@ rust_test(
     visibility = ["PUBLIC"],
     named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        "//audit/adapters/file:audit-file-adapter",
+        "//audit/adapters/ledger-file:audit-ledger-file",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//policy/core/pdp-kernel:policy-pdp-kernel",
@@ -51,7 +51,7 @@ rust_test(
     visibility = ["PUBLIC"],
     named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        "//audit/adapters/file:audit-file-adapter",
+        "//audit/adapters/ledger-file:audit-ledger-file",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//policy/core/pdp-kernel:policy-pdp-kernel",
@@ -69,7 +69,7 @@ rust_test(
     visibility = ["PUBLIC"],
     named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        "//audit/adapters/file:audit-file-adapter",
+        "//audit/adapters/ledger-file:audit-ledger-file",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//policy/core/pdp-kernel:policy-pdp-kernel",
@@ -87,7 +87,7 @@ rust_test(
     visibility = ["PUBLIC"],
     named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        "//audit/adapters/file:audit-file-adapter",
+        "//audit/adapters/ledger-file:audit-ledger-file",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//policy/core/pdp-kernel:policy-pdp-kernel",
@@ -105,7 +105,7 @@ rust_test(
     visibility = ["PUBLIC"],
     named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        "//audit/adapters/file:audit-file-adapter",
+        "//audit/adapters/ledger-file:audit-ledger-file",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//policy/core/pdp-kernel:policy-pdp-kernel",
@@ -123,7 +123,7 @@ rust_test(
     visibility = ["PUBLIC"],
     named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        "//audit/adapters/file:audit-file-adapter",
+        "//audit/adapters/ledger-file:audit-ledger-file",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//policy/core/pdp-kernel:policy-pdp-kernel",
@@ -141,7 +141,7 @@ rust_test(
     visibility = ["PUBLIC"],
     named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        "//audit/adapters/file:audit-file-adapter",
+        "//audit/adapters/ledger-file:audit-ledger-file",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//policy/core/pdp-kernel:policy-pdp-kernel",
@@ -159,7 +159,7 @@ rust_test(
     visibility = ["PUBLIC"],
     named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
     deps = [
-        "//audit/adapters/file:audit-file-adapter",
+        "//audit/adapters/ledger-file:audit-ledger-file",
         "//audit/core/chain-domain:audit-chain-domain",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//policy/core/pdp-kernel:policy-pdp-kernel",

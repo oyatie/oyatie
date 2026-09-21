@@ -14,7 +14,7 @@ shared-platform-contracts-kernel = { path = "../../../iam/core/platform-contract
 data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 cedar-policy = { workspace = true }
 audit-chain-domain = { path = "../../../audit/core/chain-domain" }
-audit-file-adapter = { path = "../../../audit/adapters/file" }
+audit-ledger-file = { path = "../../../audit/adapters/ledger-file" }
 
 serde_json = { workspace = true }
 

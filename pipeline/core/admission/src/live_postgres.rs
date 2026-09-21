@@ -13,7 +13,7 @@ const LIVE_POSTGRES_OTHER_EXACT_PATHS: &[&str] = &[
 ];
 
 pub const BACKBONE_LIVE_POSTGRES_PATH_PREFIXES: &[&str] = &[
-    "audit/adapters/file/",
+    "audit/adapters/ledger-file/",
     "audit/core/chain-domain/",
     "compute/core/resource-provider-contract-kernel/",
     "data/adapters/postgres-command-sqlx/",
