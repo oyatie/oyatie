@@ -6,8 +6,8 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use bus_outbox_file::{FileOutboxStore, FileOutboxStoreError};
 use messaging_domain::Outbox;
-use messaging_file_adapter::{FileOutboxStore, FileOutboxStoreError};
 
 #[test]
 fn file_outbox_store_replays_records_and_appends_only_new_suffix() {
