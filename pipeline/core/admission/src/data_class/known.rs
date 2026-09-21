@@ -3,10 +3,17 @@
 //! Both are keyed by declaration site, so relocating an entry drops its
 //! grandfather and goes red rather than laundering it into a fresh path.
 
-pub(super) const CANONICAL_CRATE: &str = "data/core/data-boundary-kernel/";
+/// Where the vocabulary may be declared. Two homes for the duration of the
+/// ownership inversion: the enums move to the port while `DataClassMatcher`
+/// stays in the kernel. The set narrows back to the port once it owns the
+/// enums and the kernel re-exports them.
+pub(super) const CANONICAL_CRATES: &[&str] = &[
+    "data/core/data-boundary-kernel/",
+    "data/ports/classification/",
+];
 
 /// Every `DataClass`-shaped enum that already stood outside the canonical
-/// crate when this rule landed. The set is closed and keyed by declaration
+/// homes when this rule landed. The set is closed and keyed by declaration
 /// site, so relocating one of these drops its grandfather and goes red rather
 /// than laundering the declaration into a fresh path.
 pub(super) const GRANDFATHERED: &[(&str, &str)] = &[

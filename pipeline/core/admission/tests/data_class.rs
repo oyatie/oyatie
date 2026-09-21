@@ -1,10 +1,13 @@
-//! The data-class vocabulary stays in one crate, and a classified struct
-//! answers for every field it holds.
+//! The data-class vocabulary stays in its declared homes, and a classified
+//! struct answers for every field it holds.
 
 use pipeline_admission::{data_class_home_violations, unclassified_field_violations};
 
 const OUTSIDE: &str = "network/core/route/src/lib.rs";
-const CANONICAL: &str = "data/core/data-boundary-kernel/src/lib.rs";
+const HOMES: [&str; 2] = [
+    "data/core/data-boundary-kernel/",
+    "data/ports/classification/",
+];
 
 fn home(path: &str, text: &str) -> Vec<String> {
     data_class_home_violations(path, text.as_bytes())
@@ -15,22 +18,24 @@ fn holes(text: &str) -> Vec<String> {
 }
 
 #[test]
-fn a_new_parallel_definition_is_refused_outside_the_canonical_crate() {
-    let refusals = home(OUTSIDE, "pub enum RouteDataClass {\n    Public,\n}\n");
-    assert_eq!(refusals.len(), 1, "{refusals:?}");
-    let refusal = &refusals[0];
-    assert!(
-        refusal.contains(&format!("{OUTSIDE}:1:")) && refusal.contains("enum RouteDataClass"),
-        "{refusal}"
-    );
+fn a_new_parallel_definition_is_refused_outside_the_homes_and_told_where_they_are() {
+    for path in [OUTSIDE, "app/payroll/core/run-domain/src/x.rs"] {
+        let refusals = home(path, "pub enum RouteDataClass {\n    Public,\n}\n");
+        assert_eq!(refusals.len(), 1, "{refusals:?}");
+        let refusal = &refusals[0];
+        let site = format!("{path}:1: `enum RouteDataClass`");
+        assert!(refusal.contains(&site), "{refusal}");
+        let names_every_home = HOMES.iter().all(|prefix| refusal.contains(prefix));
+        assert!(names_every_home, "{refusal}");
+    }
 }
 
 #[test]
-fn the_canonical_crate_owns_the_vocabulary() {
-    assert!(
-        home(CANONICAL, "pub enum DataClass {\n    Public,\n}\n").is_empty(),
-        "the canonical crate must be free to declare its own vocabulary"
-    );
+fn both_homes_are_free_to_declare_the_vocabulary() {
+    for path in HOMES.map(|prefix| format!("{prefix}src/items/a_data_class.rs")) {
+        let admitted = home(&path, "pub enum DataClass {\n    Public,\n}\n");
+        assert!(admitted.is_empty(), "{path}: {admitted:?}");
+    }
 }
 
 #[test]
