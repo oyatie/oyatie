@@ -5093,7 +5093,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "intelligence-worker"
+name = "intelligence-worker-app"
 version = "0.1.0"
 dependencies = [
  "serde",
