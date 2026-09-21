@@ -22,7 +22,7 @@ use iac_api::{
     ConfiguredBearerPrincipalVerifier, ConfiguredSurfaceAuthorizer,
 };
 use iac_domain::{CloudIacError, ModuleRegistry, OpenTofuModuleRelease};
-use iac_infrastructure::{
+use iac_registry_rest::{
     CloudIacModuleRegistryHttpHandler, CloudIacModuleRegistryServiceAssemblyError,
     assemble_module_registry_http_service,
 };

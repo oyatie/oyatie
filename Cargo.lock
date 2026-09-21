@@ -3218,25 +3218,13 @@ dependencies = [
  "http-runtime-hyper-adapter",
  "iac-api",
  "iac-domain",
- "iac-infrastructure",
+ "iac-registry-rest",
  "sha2",
 ]
 
 [[package]]
 name = "iac-domain"
 version = "0.1.0"
-
-[[package]]
-name = "iac-infrastructure"
-version = "0.1.0"
-dependencies = [
- "http-middleware-kernel",
- "http-router-kernel",
- "http-runtime-hyper-adapter",
- "iac-api",
- "iac-domain",
- "iac-rest",
-]
 
 [[package]]
 name = "iac-operator-access-app"
@@ -3251,6 +3239,18 @@ dependencies = [
  "sha2",
  "x509-parser",
  "zeroize",
+]
+
+[[package]]
+name = "iac-registry-rest"
+version = "0.1.0"
+dependencies = [
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "http-runtime-hyper-adapter",
+ "iac-api",
+ "iac-domain",
+ "iac-rest",
 ]
 
 [[package]]

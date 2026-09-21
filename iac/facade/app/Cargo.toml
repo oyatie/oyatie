@@ -12,20 +12,15 @@ http-router-kernel = { path = "../../../gateway/core/http-router-kernel" }
 http-middleware-kernel = { path = "../../../gateway/core/http-middleware-kernel" }
 iac-api = { path = "../../core/api" }
 iac-domain = { path = "../../core/domain" }
-iac-infrastructure = { path = "../../adapters/infrastructure" }
+iac-registry-rest = { path = "../../adapters/registry-rest" }
 
 
 
 sha2 = { version = "0.10", default-features = false }
 
 [lib]
-name = "iac_app"
 path = "src/lib.rs"
 doctest = false
-
-[[bin]]
-name = "iac-app"
-path = "src/main.rs"
 
 [lints]
 workspace = true

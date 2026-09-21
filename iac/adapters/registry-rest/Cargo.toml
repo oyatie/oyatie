@@ -1,5 +1,5 @@
 [package]
-name = "iac-infrastructure"
+name = "iac-registry-rest"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -18,7 +18,6 @@ iac-rest = { path = "../../ports/rest" }
 
 
 [lib]
-name = "iac_infrastructure"
 path = "src/lib.rs"
 doctest = false
 
