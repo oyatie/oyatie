@@ -40,9 +40,9 @@ rust_test(
     # Buck and the Cargo merge path (ADR-0716) reading the same bytes.
     env = {
         "OYATIE_INTELLIGENCE_APP_SOURCE": "$(location :intelligence-app-source)",
-        "OYATIE_INTELLIGENCE_HELM_DEPLOYMENT": "$(location //intelligence/iac/k8s/helm/templates:deployment.yaml)",
-        "OYATIE_INTELLIGENCE_HELM_EXTERNALSECRET": "$(location //intelligence/iac/k8s/helm/templates:externalsecret.yaml)",
-        "OYATIE_INTELLIGENCE_OPENAPI_CONTRACT": "$(location //intelligence/contracts:intelligence-app.openapi.yaml)",
+        "OYATIE_INTELLIGENCE_HELM_DEPLOYMENT": "$(location //intelligence:helm-deployment)",
+        "OYATIE_INTELLIGENCE_HELM_EXTERNALSECRET": "$(location //intelligence:helm-externalsecret)",
+        "OYATIE_INTELLIGENCE_OPENAPI_CONTRACT": "$(location //intelligence:openapi-contract)",
         "OYATIE_INTELLIGENCE_REST_SOURCE": "$(location //intelligence/adapters/rest-proxy:intelligence-rest-proxy-source)",
     },
     visibility = ["PUBLIC"],

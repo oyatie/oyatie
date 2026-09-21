@@ -1,0 +1,21 @@
+# Committed fixtures the intelligence conformance tests read as DECLARED resources. They live in
+# directories the owner grammar keeps package-less (`contracts/`, `iac/k8s/helm/`), so the
+# capability root is the nearest package that may export them. Each name is bound to the same
+# path under `.cargo/config.toml [env]`, so Buck and Cargo read identical bytes.
+export_file(
+    name = "openapi-contract",
+    src = "contracts/cloud-intelligence.openapi.yaml",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "helm-deployment",
+    src = "iac/k8s/helm/templates/deployment.yaml",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "helm-externalsecret",
+    src = "iac/k8s/helm/templates/externalsecret.yaml",
+    visibility = ["PUBLIC"],
+)
