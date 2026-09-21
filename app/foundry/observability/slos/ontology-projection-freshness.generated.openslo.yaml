@@ -11,10 +11,10 @@ metadata:
     plane: app
     owner_team: foundry
   annotations:
-    runbook.symptom: "A tenant's durable projection store is behind its log head, so a write the writer accepted is not yet readable."
-    runbook.first-check: "Read foundry_projection_lag and foundry_projection_unreadable. The objective scores a tenant zero when its log head or store could not be READ, which is a different fault from one that is merely behind, and only the second is catch-up."
-    runbook.mitigation: "A store that is behind is repaired by letting catch-up finish; readiness refuses until it does, so the refusal is the mechanism working. An unreadable store is a storage fault and catch-up will not fix it. Do not chase a poisoned entry here: a poison advances the fold and is excluded from this objective by design."
-    runbook.escalation: "foundry, naming which of lag or unreadability the first check found, and whether foundry_projection_contended was sustained."
+    runbook.symptom: "foundry_projection_fresh is 0: a tenant the process could read has its durable projection store behind its log head, a tenant's log head or store could not be read, or no tenant could be observed at all."
+    runbook.first-check: "GET /statusz: projection_lag is a store behind its log, unreadable_tenants is a log head or store that could not be read, and contended_tenants is a request in flight rather than a fault."
+    runbook.mitigation: "Lag is repaired only by a catch-up, which runs at boot and after a migration run and never in the background, so restart the process; a restart that refuses to boot with CatchUpRefused or ProjectionStoreUnopenable has named the storage fault. A poisoned entry advances the fold and is not this objective's event."
+    runbook.escalation: "foundry, with projection_lag, unreadable_tenants and contended_tenants from /statusz and whether foundry_projection_contended stayed non-zero across scrapes."
 spec:
   service: foundry-ontology
   description: |

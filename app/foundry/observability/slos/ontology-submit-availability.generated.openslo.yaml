@@ -11,10 +11,10 @@ metadata:
     plane: app
     owner_team: foundry
   annotations:
-    runbook.symptom: "Submissions are refused. The surface is answering, so this is not reachability."
-    runbook.first-check: "A policy refusal counts here deliberately, so separate it from a writer fault by scope: policy is identity-dependent and refuses one caller or one tenant, since every grant is scoped to a role and to principal.tenant == resource.tenant. A writer fault refuses regardless of who asks."
-    runbook.mitigation: "An identity-scoped refusal is usually a correct denial; confirm the caller's grant before treating it as an outage. A refusal that ignores identity points at the writer or the log it appends to. The policy engine is compiled into this binary, so there is no authorizer to reconnect: a policy bundle rejected at boot fails the process rather than degrading it."
-    runbook.escalation: "foundry, with whether refusals were identity-scoped or universal."
+    runbook.symptom: "foundry_action_submit_refused_total is rising against foundry_action_submit_served_total: the single-Action and migration run surfaces are answering, but refusing."
+    runbook.first-check: "The refusal body's gate and HTTP status. A 503 with gate log is the action log refusing to be written. A 403 with gate authorization for every caller at once is the policy decision point failing every decision, since any error it returns is a denial; the runtime guard's circuit, open after five consecutive runtime faults such as a decision past its 250 ms deadline or a crash, is one such error. A 403 with gate parameters or admission is the writer refusing one submission, which is the denial-trail objective's event; a 401, 400, 409 or a 403 for one caller is that request's credential, body, idempotency key or grant."
+    runbook.mitigation: "A refusal at one caller is that caller's request to fix. The policy engine is compiled into this binary, so a universal authorization refusal has no authorizer to reconnect; the circuit retries the engine after a 30 s cooldown. A restart reloads the compiled-in bundle and re-opens the log, and refuses to boot with PolicyRejected or ActionLogUnopenable if either is the fault."
+    runbook.escalation: "foundry, with the gate and HTTP status of the refusals and whether every caller received them."
 spec:
   service: foundry-ontology
   description: |

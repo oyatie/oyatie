@@ -1,9 +1,13 @@
 //! The response an operator acts on, and its binding to the objective it
 //! answers.
 
+#[path = "facade_support/mod.rs"]
+mod support;
+
 use foundry_ontology_app::runbook::{RUNBOOKS, runbook_for};
 use foundry_ontology_app::slo::{SLOS, render_openslo};
 use std::collections::BTreeSet;
+use support::Fixture;
 
 /// An objective an operator cannot act on is an alert that wakes someone with
 /// nothing to do. Every objective therefore carries its response, and the
@@ -105,4 +109,44 @@ fn every_rendered_payload_is_parseable_yaml_carrying_its_runbook() {
             );
         }
     }
+}
+
+/// A runbook that names a series the process does not export sends the
+/// operator to read a number that is not there. The truth set is the
+/// exposition itself, so a renamed or removed metric fails here rather than
+/// at 3am.
+#[tokio::test]
+async fn every_metric_a_runbook_names_is_one_the_process_exports() {
+    let fixture = Fixture::new("runbook-metrics");
+    let state = fixture.state();
+    let exported: BTreeSet<&str> = foundry_ontology_app::metrics::samples(&state)
+        .into_iter()
+        .map(|sample| sample.name)
+        .collect();
+    let mut named = 0;
+    for entry in RUNBOOKS {
+        for (field, value) in [
+            ("symptom", entry.runbook.symptom),
+            ("first_check", entry.runbook.first_check),
+            ("mitigation", entry.runbook.mitigation),
+            ("escalation", entry.runbook.escalation),
+        ] {
+            for token in value
+                .split(|character: char| !(character.is_ascii_alphanumeric() || character == '_'))
+                .filter(|token| token.starts_with("foundry_"))
+            {
+                named += 1;
+                assert!(
+                    exported.contains(token),
+                    "{}: runbook field `{field}` names `{token}`, which this process does not \
+                     export; exported are {exported:?}",
+                    entry.objective
+                );
+            }
+        }
+    }
+    assert!(
+        named > 0,
+        "no runbook names a metric, so this test checked nothing"
+    );
 }

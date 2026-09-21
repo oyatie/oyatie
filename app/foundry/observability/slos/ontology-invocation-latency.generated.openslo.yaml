@@ -11,10 +11,10 @@ metadata:
     plane: app
     owner_team: foundry
   annotations:
-    runbook.symptom: "Accepted single-Action invocations are answering, but outside the 250 ms budget. This is the WRITE path: credential, policy decision, tenant lock, append and fold."
-    runbook.first-check: "Only accepted invocations are timed, so a rise here is not refusals getting slower. Compare against projection freshness: the fold is inside this budget, so a tenant whose store is behind or contended pays for it in this objective."
-    runbook.mitigation: "Contention on a tenant lock is relieved by letting an in-flight write finish rather than by retrying into the same lock. A slow fold is the projection store's problem and shows up in freshness first. Migration runs are deliberately not timed against this budget, so a run in progress is not the cause."
-    runbook.escalation: "foundry, with whether projection freshness moved with the latency."
+    runbook.symptom: "foundry_action_invocation_answered_within_250ms_total is falling behind foundry_action_invocation_answered_total: accepted single-Action submissions are answering, but past 250 ms. Only accepted submissions on that surface are timed; migration runs are not."
+    runbook.first-check: "contended_tenants on /statusz, read as whether a migration run was in flight: the clock starts at handler entry and includes the policy decision, waiting for the tenant lock, the log append and the durable SQLite mirror into the projection store, and a migration run holds that lock across its whole fixpoint and catch-up, so a submit that arrives during one waits with the clock running."
+    runbook.mitigation: "Do not run a migration while latency matters: one run holds the tenant lock for its whole duration. The fold itself is in memory; the durable mirror is a SQLite write inside the budget, and the policy decision's own deadline equals the whole budget. The shared tenant lock is what couples this objective to freshness, and foundry_projection_contended measures it."
+    runbook.escalation: "foundry, with whether a migration run was in flight and whether foundry_projection_contended was non-zero over the window."
 spec:
   service: foundry-ontology
   description: |

@@ -11,10 +11,10 @@ metadata:
     plane: app
     owner_team: foundry
   annotations:
-    runbook.symptom: "Reads are refused. A surface refusing everything still answers, so this is not reachability."
-    runbook.first-check: "Four refusal classes count here: an absent credential, a policy denial, an unusable revision pin, and a log the process could not read. Check whether refusals share one caller, one pin, or all callers."
-    runbook.mitigation: "A bad revision pin is the caller's to correct. Refusals across all callers point at a log or projection the process cannot read. Note that /statusz is an authorized read and counts against this ratio, so polling it during an incident makes the number worse rather than better."
-    runbook.escalation: "foundry, with whether refusals were caller-scoped, pin-scoped, or global."
+    runbook.symptom: "foundry_read_refused_total is rising against foundry_read_served_total. A served /statusz poll counts as a good read, so polling dilutes this ratio; only a refused poll counts against it."
+    runbook.first-check: "The refusal body's gate and HTTP status. A 401 credential, a 400 surface for a missing revision pin, a 404 surface for an object the durable projection does not hold and a 409 surface for an unretained revision are the caller's request; a 403 authorization for every caller at once is the policy decision point failing every decision; a 503 with gate store or log is storage this process cannot read."
+    runbook.mitigation: "Caller-side refusals are the caller's to correct, and a client probing references that do not exist breaches this objective through the 404 path. A universal authorization refusal is the same compiled-in policy decision point as on submit. A 503 is storage: a restart re-opens the log and store and refuses to boot if it cannot."
+    runbook.escalation: "foundry, with the gate and HTTP status of the refusals and whether every caller received them."
 spec:
   service: foundry-ontology
   description: |
