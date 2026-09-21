@@ -14,35 +14,20 @@ use mail_auth::{
 };
 use rustls::pki_types::{PrivateKeyDer, pem::PemObject};
 
-/// The headers covered by the signature. `From` is required by RFC 6376; the
-/// rest are the ones a receiver weighs and a relay must not be free to alter.
-/// Each name appears twice, as RFC 6376 section 8.15 recommends. `mail-auth`
-/// already writes a name into `h=` whether or not the message carries it, so a
-/// header added where there was none is caught by the list alone; the second
-/// listing is what catches a relay adding a *second* `Cc` or `Subject` above
-/// the one the sender wrote, which a verifier reading each name once from the
-/// bottom would otherwise accept while showing the addition. Naming a header
-/// here still does not force it to exist.
-const SIGNED: &[&str] = &[
-    "From",
-    "From",
-    "To",
-    "To",
-    "Cc",
-    "Cc",
-    "Subject",
-    "Subject",
-    "Date",
-    "Date",
-    "Message-ID",
-    "Message-ID",
-    "MIME-Version",
-    "MIME-Version",
-    "Content-Type",
-    "Content-Type",
-    "Content-Transfer-Encoding",
-    "Content-Transfer-Encoding",
-];
+/// Each name in `mail_kernel::SIGNED_HEADERS` twice, as RFC 6376 section 8.15
+/// recommends. `mail-auth` already writes a name into `h=` whether or not the
+/// message carries it, so a header added where there was none is caught by the
+/// first listing; the second is what catches a relay adding a *second* `Cc` or
+/// `Subject` above the one the sender wrote, which a verifier reading each name
+/// once from the bottom would otherwise accept while showing the addition.
+/// Naming a header here still does not force it to exist -- and submission
+/// refuses a message that already repeats one, which is what keeps this list,
+/// and so the signature, a fixed size.
+fn signed_headers() -> impl Iterator<Item = &'static str> {
+    mail_kernel::SIGNED_HEADERS
+        .iter()
+        .flat_map(|name| [*name, *name])
+}
 
 /// The selector and the domain are written verbatim into the signature's first
 /// line, which `mail-auth` never folds. A value long or strange enough pushes
@@ -137,7 +122,7 @@ impl Signer {
             DkimSigner::from_key(signing)
                 .domain(domain)
                 .selector(selector)
-                .headers(SIGNED.iter().copied())
+                .headers(signed_headers())
                 // `simple` over the headers keeps the signature verifiable
                 // when a relay reflows nothing; `relaxed` over the body
                 // survives the whitespace changes transport still makes.

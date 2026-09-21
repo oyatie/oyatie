@@ -32,7 +32,7 @@ pub(super) fn spawn(
         let _permit = permit;
         match protocol {
             Protocol::Smtp | Protocol::SubmissionStartTls => {
-                let params = smtp_params(&stream, &authentication);
+                let params = smtp_params(&stream, &authentication, &protocol);
                 let _ = mail_protocol_imap::smtp_starttls_session_with(
                     stream,
                     service,
@@ -55,7 +55,7 @@ pub(super) fn spawn(
                 .await;
             }
             Protocol::Imap | Protocol::Submission | Protocol::Pop => {
-                let params = smtp_params(&stream, &authentication);
+                let params = smtp_params(&stream, &authentication, &protocol);
                 if let Ok(Ok(stream)) =
                     tokio::time::timeout(Duration::from_secs(10), tls.accept(stream)).await
                 {
@@ -85,16 +85,52 @@ pub(super) fn spawn(
 fn smtp_params(
     stream: &TcpStream,
     authentication: &mail_protocol_imap::Authentication,
+    protocol: &Protocol,
 ) -> mail_protocol_imap::SmtpParams {
     mail_protocol_imap::SmtpParams {
         peer: stream
             .peer_addr()
             .map_or(std::net::Ipv4Addr::UNSPECIFIED.into(), |a| a.ip()),
         authentication: authentication.clone(),
-        // Advertised `SIZE`, the `MAIL FROM SIZE=` check and the DATA reader
-        // all read this, so lowering it keeps what is advertised, what is
-        // accepted and what survives signing the same number.
-        max_message_size: mail_kernel::MAX_SUBMISSION_BYTES,
+        max_message_size: max_message_size(protocol),
         ..mail_protocol_imap::SmtpParams::default()
+    }
+}
+
+/// Advertised `SIZE`, the `MAIL FROM SIZE=` check and the DATA reader all
+/// read one number, so it has to be the number the whole path honours.
+/// Submission is normalized on the way in and signed on the way out, so it
+/// advertises `MAX_DATA_BYTES`, which is the deliverable ceiling less both:
+/// what is advertised is then what is accepted, with nothing read in full and
+/// refused afterwards. Inbound shares this builder but signs nothing and
+/// normalizes nothing, so it keeps the full ceiling -- lowering it there
+/// would only refuse mail this server took before, for no gain.
+fn max_message_size(protocol: &Protocol) -> usize {
+    match protocol {
+        Protocol::Submission | Protocol::SubmissionStartTls => mail_kernel::MAX_DATA_BYTES,
+        _ => mail_kernel::MAX_MESSAGE_BYTES,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Protocol, max_message_size};
+
+    /// One builder serves port 25 and the submission ports. Reserving room
+    /// for the signature on the inbound one would refuse inbound mail this
+    /// server accepted before, on a path that is never signed.
+    #[test]
+    fn only_submission_gives_up_room_for_the_signature() {
+        for inbound in [Protocol::Smtp, Protocol::Imap, Protocol::Pop] {
+            assert_eq!(
+                max_message_size(&inbound),
+                mail_kernel::MAX_MESSAGE_BYTES,
+                "inbound must still advertise the full size"
+            );
+        }
+        for submission in [Protocol::Submission, Protocol::SubmissionStartTls] {
+            assert_eq!(max_message_size(&submission), mail_kernel::MAX_DATA_BYTES);
+        }
+        assert!(mail_kernel::MAX_DATA_BYTES < mail_kernel::MAX_MESSAGE_BYTES);
     }
 }

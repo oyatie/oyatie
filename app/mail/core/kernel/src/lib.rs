@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 mod limits;
-pub use limits::{MAX_MESSAGE_BYTES, MAX_SUBMISSION_BYTES, SIGNATURE_ALLOWANCE};
+pub use limits::{MAX_DATA_BYTES, MAX_MESSAGE_BYTES, MAX_SUBMISSION_BYTES, SIGNED_HEADERS};
 
 /// A persisted body: content hash bound to the store's version of it, so a
 /// reference never resolves to bytes re-uploaded after a sweep. The kernel

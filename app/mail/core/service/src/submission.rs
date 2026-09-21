@@ -47,6 +47,18 @@ pub(super) fn normalize(raw: &[u8], address: &str) -> Result<Vec<u8>, Error> {
             output.extend_from_slice(b"\r\n");
         }
     }
+    // `mail-auth` writes one `h=` entry per occurrence of a signed name it
+    // finds (0.13.3 `dkim/canonicalize.rs`), so a message repeating one grows
+    // its own signature without bound and a message accepted at the ceiling
+    // stops fitting once signed -- a `554` and a permanent bounce for mail
+    // this server promised to deliver. Refused here, which is RFC-conformant:
+    // RFC 5322 section 3.6 permits at most one `To`, `Cc`, `Subject` or
+    // `Message-ID` and exactly one `From` and `Date`; RFC 2045 permits one
+    // `MIME-Version` (section 4), one `Content-Type` (section 5) and one
+    // `Content-Transfer-Encoding` (section 6) per entity. With the repeat
+    // refused, `h=` is at most `SIGNED_HEADERS` twice over for every message
+    // that reaches the signer, which is what `SIGNATURE_ALLOWANCE` measures.
+    let mut signed = [false; mail_kernel::SIGNED_HEADERS.len()];
     let mut blind = false;
     let mut first = true;
     for line in raw[..end].split_inclusive(|b| *b == b'\n') {
@@ -68,6 +80,13 @@ pub(super) fn normalize(raw: &[u8], address: &str) -> Result<Vec<u8>, Error> {
                 return Err(Error::Invalid);
             }
             blind = name.eq_ignore_ascii_case(b"Bcc") || name.eq_ignore_ascii_case(b"Resent-Bcc");
+            if let Some(at) = mail_kernel::SIGNED_HEADERS
+                .iter()
+                .position(|covered| name.eq_ignore_ascii_case(covered.as_bytes()))
+                && std::mem::replace(&mut signed[at], true)
+            {
+                return Err(Error::Invalid);
+            }
         }
         if !blind {
             output.extend_from_slice(line);
@@ -124,4 +143,83 @@ fn validate_author(raw: &[u8], address: &str) -> Result<(), Error> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::normalize;
+    use mail_kernel::{Error, MAX_DATA_BYTES, SIGNED_HEADERS};
+
+    const ADDRESS: &str = "alice@example.org";
+
+    /// Every signed header once, `repeats` copies of `extra` after them, and
+    /// a body padded until the whole message is `size`.
+    fn submittable(extra: &str, repeats: usize, size: usize) -> Vec<u8> {
+        let mut raw = Vec::with_capacity(size);
+        for header in [
+            "From: <alice@example.org>",
+            "To: <bob@example.net>",
+            "Cc: <carol@example.net>",
+            "Subject: a realistic subject line about the reporting deadline",
+            "Date: Mon, 21 Sep 2026 12:34:56 +0000",
+            "Message-ID: <0123456789abcdef0123456789abcdef@example.org>",
+            "MIME-Version: 1.0",
+            "Content-Type: text/plain; charset=utf-8",
+            "Content-Transfer-Encoding: 8bit",
+        ] {
+            raw.extend_from_slice(header.as_bytes());
+            raw.extend_from_slice(b"\r\n");
+        }
+        for _ in 0..repeats {
+            raw.extend_from_slice(extra.as_bytes());
+            raw.extend_from_slice(b"\r\n");
+        }
+        raw.extend_from_slice(b"\r\n");
+        let line = b"padding to the ceiling, sixty-four bytes of body per line...\r\n";
+        // Room for the short final line kept back, so the fill never truncates
+        // one and leaves a bare `\r` that would be refused for its own reason.
+        while raw.len() + line.len() + 2 <= size {
+            raw.extend_from_slice(line);
+        }
+        raw.resize(size - 2, b'x');
+        raw.extend_from_slice(b"\r\n");
+        raw
+    }
+
+    /// `mail-auth` writes one `h=` entry per occurrence of a signed name it
+    /// finds, in the message's own spelling, so a message that repeats one
+    /// grows its own signature without bound. At the ceiling, a hundred extra
+    /// `Content-Transfer-Encoding` lines put the signed bytes past what
+    /// outbound wire validation allows: both transports answer `554`, the
+    /// queue writes a DSN and deletes the job, and the sender's own mail
+    /// bounces. Refused here, where the same message without the repeats is
+    /// still accepted -- so it is the repetition that is refused, not the size.
+    #[test]
+    fn a_ceiling_message_that_repeats_a_signed_header_is_refused() {
+        let repeated = "Content-Transfer-Encoding: 8bit";
+        normalize(&submittable(repeated, 0, MAX_DATA_BYTES), ADDRESS)
+            .expect("a message at the ceiling is submittable");
+        assert_eq!(
+            normalize(&submittable(repeated, 100, MAX_DATA_BYTES), ADDRESS).err(),
+            Some(Error::Invalid)
+        );
+    }
+
+    /// The refusal covers every name the facade signs, not only the one that
+    /// measurably overruns. RFC 5322 section 3.6 permits at most one `To`,
+    /// `Cc`, `Subject` or `Message-ID` and exactly one `From` and `Date`; RFC
+    /// 2045 permits one `MIME-Version` (section 4), one `Content-Type`
+    /// (section 5) and one `Content-Transfer-Encoding` (section 6) per
+    /// entity. Refusing the second is conformant, not a local restriction.
+    #[test]
+    fn every_signed_header_is_refused_a_second_time() {
+        for name in SIGNED_HEADERS {
+            let raw = submittable(&format!("{name}: repeated"), 1, 4096);
+            assert_eq!(
+                normalize(&raw, ADDRESS).err(),
+                Some(Error::Invalid),
+                "{name}"
+            );
+        }
+    }
 }
