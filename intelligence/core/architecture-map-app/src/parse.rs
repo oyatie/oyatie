@@ -2,7 +2,6 @@
 //! into the map's inputs.
 
 use crate::MapBuildError;
-use crate::render::{json_field, read_json_string};
 use std::fs;
 use std::path::Path;
 
@@ -139,9 +138,37 @@ pub(crate) fn parse_fragment_consumed_pairs(text: &str) -> Vec<(String, Vec<Stri
     out
 }
 
+/// Return the string value of `"key": "value"` on this trimmed line, if it
+/// matches.
+pub(crate) fn json_field(line: &str, key: &str) -> Option<String> {
+    let needle = format!("\"{key}\"");
+    let after_key = line.strip_prefix(&needle)?.trim_start().strip_prefix(':')?;
+    read_json_string(after_key.trim_start())
+}
+
+/// Read a JSON string starting at the leading `"`. Strips trailing `,` if any.
+pub(crate) fn read_json_string(input: &str) -> Option<String> {
+    let after_quote = input.strip_prefix('"')?;
+    let close = after_quote.find('"')?;
+    Some(after_quote[..close].to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn json_field_extracts_string_value() {
+        assert_eq!(
+            json_field(r#""foo": "bar","#, "foo"),
+            Some("bar".to_string())
+        );
+        assert_eq!(
+            json_field(r#""foo": "bar""#, "foo"),
+            Some("bar".to_string())
+        );
+        assert!(json_field(r#""other": "bar""#, "foo").is_none());
+    }
 
     #[test]
     fn parse_cargo_members_basic() {

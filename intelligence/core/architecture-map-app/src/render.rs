@@ -1,5 +1,5 @@
-//! The map's JSON face: rendering it, and the field reader the freshness gate
-//! uses to compare a committed map against a fresh one.
+//! The map's JSON face: turning an `ArchitectureMap` into the committed
+//! document, and escaping the strings that go into it.
 
 use intelligence_architecture_map_kernel::{
     ArchitectureMap, Edge, EdgeKind, Node, NodeId, NodeKind,
@@ -41,21 +41,6 @@ pub(crate) fn render_json(map: &ArchitectureMap) -> String {
     out.push_str("  ]\n");
     out.push_str("}\n");
     out
-}
-
-/// Return the string value of `"key": "value"` on this trimmed line, if it
-/// matches.
-pub(crate) fn json_field(line: &str, key: &str) -> Option<String> {
-    let needle = format!("\"{key}\"");
-    let after_key = line.strip_prefix(&needle)?.trim_start().strip_prefix(':')?;
-    read_json_string(after_key.trim_start())
-}
-
-/// Read a JSON string starting at the leading `"`. Strips trailing `,` if any.
-pub(crate) fn read_json_string(input: &str) -> Option<String> {
-    let after_quote = input.strip_prefix('"')?;
-    let close = after_quote.find('"')?;
-    Some(after_quote[..close].to_string())
 }
 
 pub(crate) fn escape_json(value: &str) -> String {
@@ -102,18 +87,5 @@ mod tests {
         assert!(body.contains("\"source\": \"a\""));
         assert!(body.contains("\"target\": \"a/b\""));
         assert!(body.contains("\"kind\": \"contains\""));
-    }
-
-    #[test]
-    fn json_field_extracts_string_value() {
-        assert_eq!(
-            json_field(r#""foo": "bar","#, "foo"),
-            Some("bar".to_string())
-        );
-        assert_eq!(
-            json_field(r#""foo": "bar""#, "foo"),
-            Some("bar".to_string())
-        );
-        assert!(json_field(r#""other": "bar""#, "foo").is_none());
     }
 }

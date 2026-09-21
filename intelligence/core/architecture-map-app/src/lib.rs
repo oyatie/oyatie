@@ -194,14 +194,14 @@ mod tests {
     /// instead of the workspace, and the freshness gate could not see it because it diffs the
     /// committed map against this same emitter.
     ///
-    /// The workspace under test is built here rather than read from the checkout. A test that
-    /// walks out of its own inputs to find the repository root cannot state what it read, and
-    /// buck2, which gives a target only the srcs it declares, refuses to compile it at all.
+    /// The workspace under test is built here rather than read from the checkout: reaching it
+    /// through `env!("CARGO_MANIFEST_DIR")` does not compile under buck2, which defines no such
+    /// variable, and a test that walks out of its own inputs cannot state what it read.
     #[test]
     fn build_map_expands_member_globs_into_real_crates() {
         let root = std::env::temp_dir().join(format!("arch-map-test-globs-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
-        for member in ["alpha/core/one", "beta/core/two"] {
+        for member in ["alpha/core/one", "beta/core/two", "gamma/other/three"] {
             fs::create_dir_all(root.join(member).join("src")).unwrap();
             fs::write(
                 root.join(member).join("Cargo.toml"),
@@ -228,7 +228,7 @@ mod tests {
         assert_eq!(
             crates,
             ["alpha/core/one", "beta/core/two"],
-            "the glob must expand to the crates it selects, not serialize as a node"
+            "the glob selects its matches, expanded; `gamma/other/three` is not one of them"
         );
         let _ = fs::remove_dir_all(&root);
     }
