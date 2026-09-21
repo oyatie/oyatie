@@ -72,7 +72,12 @@ impl DeliveryQueue for SqliteStore {
             .optional().map_err(storage)?.ok_or(Error::Conflict)
     }
 
-    fn finish(&self, lease: &DeliveryLease, outcome: Result<(), Error>) -> Result<(), Error> {
+    fn finish(
+        &self,
+        lease: &DeliveryLease,
+        outcome: Result<Option<String>, Error>,
+    ) -> Result<(), Error> {
+        let outcome = outcome.map(|_| ());
         let mut db = self.connection.lock().map_err(|_| Error::Unavailable)?;
         let tx = db
             .transaction_with_behavior(TransactionBehavior::Immediate)

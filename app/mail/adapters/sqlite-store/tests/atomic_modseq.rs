@@ -256,7 +256,9 @@ fn every_ingest_path_rethreads_and_stamps_bridged_messages() {
                 )
                 .unwrap();
             }
-            1 => db.deliver_once("a", "commit-key", raw, 1).unwrap(),
+            1 => {
+                db.deliver_once("a", "commit-key", raw, 1).unwrap();
+            }
             _ => db.deliver(&["alice@example.org".into()], raw).unwrap(),
         }
         let after = db.account("a").unwrap();

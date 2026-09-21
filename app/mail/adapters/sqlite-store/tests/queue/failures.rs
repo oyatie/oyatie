@@ -26,10 +26,10 @@ fn terminal_local_failures_are_fenced_durable_and_recoverable_without_data_loss(
     let outcome = db.deliver_once("a", &lease.delivery_id(), &message.raw, message.received_at);
     assert_eq!(outcome, Err(Error::OverQuota));
     sql.execute_batch("CREATE TRIGGER reject_terminal BEFORE INSERT ON failed_delivery_jobs BEGIN SELECT RAISE(ABORT,'injected'); END;").unwrap();
-    assert_eq!(db.finish(&lease, outcome), Err(Error::Conflict));
+    assert_eq!(db.finish(&lease, outcome.clone()), Err(Error::Conflict));
     assert_eq!(db.queued_message(&lease).unwrap().raw, raw);
     sql.execute_batch("DROP TRIGGER reject_terminal").unwrap();
-    db.finish(&lease, outcome).unwrap();
+    db.finish(&lease, outcome.clone()).unwrap();
     assert!(db.claim(10).unwrap().is_empty());
     assert_eq!(db.finish(&lease, outcome), Err(Error::Conflict));
     drop(db);
@@ -65,7 +65,7 @@ fn terminal_local_failures_are_fenced_durable_and_recoverable_without_data_loss(
     assert_eq!(message.raw, raw);
     db.deliver_once("a", &retry.delivery_id(), &message.raw, message.received_at)
         .unwrap();
-    db.finish(&retry, Ok(())).unwrap();
+    db.finish(&retry, Ok(None)).unwrap();
     assert_eq!(db.account("a").unwrap().messages.len(), 1);
     drop(db);
     drop(sql);

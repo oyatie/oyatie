@@ -100,7 +100,7 @@ impl<T: MetadataStore + SubmissionStore + BlobStore + ChangeFeed> MetadataStore 
         key: &str,
         raw: &[u8],
         received_at: i64,
-    ) -> Result<(), Error> {
+    ) -> Result<Option<String>, Error> {
         // A fresh key every time: the receipt never matches, so a replay
         // delivers the message again.
         let n = self

@@ -57,5 +57,9 @@ pub trait DeliveryQueue: Send + Sync {
     /// retryable failure (`retry::classify`) retries for five days on the
     /// `retry::delay_secs` schedule; a terminal or expired failure retains
     /// its content for operator recovery.
-    fn finish(&self, lease: &DeliveryLease, outcome: Result<(), Error>) -> Result<(), Error>;
+    fn finish(
+        &self,
+        lease: &DeliveryLease,
+        outcome: Result<Option<String>, Error>,
+    ) -> Result<(), Error>;
 }

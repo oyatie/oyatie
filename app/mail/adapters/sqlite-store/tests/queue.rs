@@ -65,13 +65,13 @@ fn queue_capacity_bounds_bytes_and_empty_jobs_and_recovers_after_completion() {
     db.enqueue("", &targets, b"body").unwrap();
     assert_eq!(db.enqueue("", &targets, b"x"), Err(Error::OverQuota));
     let lease = db.claim(1).unwrap().pop().unwrap();
-    db.finish(&lease, Ok(())).unwrap();
+    db.finish(&lease, Ok(None)).unwrap();
     for _ in 0..1000 {
         db.enqueue("", &targets, b"").unwrap();
     }
     assert_eq!(db.enqueue("", &targets, b""), Err(Error::OverQuota));
     let lease = db.claim(1).unwrap().pop().unwrap();
-    db.finish(&lease, Ok(())).unwrap();
+    db.finish(&lease, Ok(None)).unwrap();
     db.enqueue("", &targets, b"body").unwrap();
     assert_eq!(db.enqueue("", &targets, b""), Err(Error::OverQuota));
 }
@@ -127,7 +127,7 @@ fn leases_recover_after_crashes_and_mailbox_delivery_is_idempotent() {
     let reclaimed = other.claim(1).unwrap().pop().unwrap();
     assert_eq!((first.epoch, reclaimed.epoch), (1, 2));
     assert_eq!(reclaimed.delivery_id(), first.delivery_id());
-    assert_eq!(db.finish(&first, Ok(())), Err(Error::Conflict));
+    assert_eq!(db.finish(&first, Ok(None)), Err(Error::Conflict));
     other
         .deliver_once(
             &reclaimed.account,
@@ -146,7 +146,7 @@ fn leases_recover_after_crashes_and_mailbox_delivery_is_idempotent() {
         ),
         Err(Error::Conflict)
     );
-    other.finish(&reclaimed, Ok(())).unwrap();
+    other.finish(&reclaimed, Ok(None)).unwrap();
     db.finish(&second, Err(Error::OverQuota)).unwrap();
     assert!(
         db.claim(10).unwrap().is_empty(),
@@ -165,7 +165,7 @@ fn leases_recover_after_crashes_and_mailbox_delivery_is_idempotent() {
         message.received_at,
     )
     .unwrap();
-    db.finish(&retry, Ok(())).unwrap();
+    db.finish(&retry, Ok(None)).unwrap();
     assert!(db.claim(10).unwrap().is_empty());
     assert_eq!(
         sql.query_row("SELECT count(*) FROM queued_messages", [], |r| r

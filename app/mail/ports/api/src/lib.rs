@@ -149,14 +149,15 @@ pub trait MetadataStore: Send + Sync {
     /// A delivery key is bound to the content and timestamp. Replaying a
     /// committed key does not append again, even after the email was deleted.
     /// An exact Message-ID/References match already in the target mailbox or
-    /// Junk is suppressed as a duplicate.
+    /// Junk is suppressed as a duplicate. `Some` is the appended message id;
+    /// a replay or a suppressed duplicate yields `None`, not an error.
     fn deliver_once(
         &self,
         account: &str,
         key: &str,
         raw: &[u8],
         received_at: i64,
-    ) -> Result<(), Error>;
+    ) -> Result<Option<String>, Error>;
     /// JMAP upload: the body persists under a 24 h upload reservation and is
     /// addressed as `b<hash>`; `blob` resolves that id or a message id to the
     /// version this account links or holds.

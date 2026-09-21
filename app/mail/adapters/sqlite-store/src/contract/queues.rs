@@ -33,7 +33,7 @@ macro_rules! delivery_queue {
             fn finish(
                 &self,
                 lease: &mail_api::DeliveryLease,
-                outcome: Result<(), Error>,
+                outcome: Result<Option<String>, Error>,
             ) -> Result<(), Error> {
                 self.inner.finish(lease, outcome)
             }

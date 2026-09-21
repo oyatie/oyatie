@@ -78,7 +78,7 @@ fn vacation_delivers_locally_once_and_ignores_mailer_daemon() {
         queued.received_at,
     )
     .unwrap();
-    db.finish(&leases[0], Ok(())).unwrap();
+    db.finish(&leases[0], Ok(None)).unwrap();
     let bob = db.account("b").unwrap();
     assert!(
         bob.messages.iter().any(|m| db

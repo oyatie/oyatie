@@ -13,7 +13,7 @@ fn ingest(
     id: &str,
     raw: &[u8],
     received_at: i64,
-) -> Result<(), Error> {
+) -> Result<Option<String>, Error> {
     let (mut batch, _) = mutation::Batch::open(db, id, Precondition::Observed(0), &[], enabled)?;
     let refs = threads::references(raw)?;
     // A duplicate writes nothing: the body is persisted only once it is known
@@ -36,8 +36,9 @@ fn ingest(
             },
         )?;
     }
-    let (_, account) = batch.commit(db)?;
-    super::vacation::maybe_reply(db, &account, received_at, raw)
+    let (execution, account) = batch.commit(db)?;
+    super::vacation::maybe_reply(db, &account, received_at, raw)?;
+    Ok(execution.ids.into_iter().next())
 }
 
 pub(super) fn once(
@@ -46,7 +47,7 @@ pub(super) fn once(
     key: &str,
     raw: &[u8],
     received_at: i64,
-) -> Result<(), Error> {
+) -> Result<Option<String>, Error> {
     if key.is_empty() || key.len() > 512 || key.chars().any(char::is_control) {
         return Err(Error::Invalid);
     }
@@ -71,18 +72,19 @@ pub(super) fn once(
         .map_err(storage)?;
     if let Some(previous) = previous {
         return if previous == digest.as_slice() {
-            Ok(())
+            Ok(None)
         } else {
             Err(Error::Conflict)
         };
     }
-    ingest(&tx, &store.enabled, id, raw, received_at)?;
+    let minted = ingest(&tx, &store.enabled, id, raw, received_at)?;
     tx.execute(
         "INSERT INTO delivery_receipts(account,id,digest) VALUES(?1,?2,?3)",
         params![id, key, digest.as_slice()],
     )
     .map_err(storage)?;
-    tx.commit().map_err(storage)
+    tx.commit().map_err(storage)?;
+    Ok(minted)
 }
 
 impl SqliteStore {

@@ -288,7 +288,7 @@ impl MetadataStore for SqliteStore {
         key: &str,
         raw: &[u8],
         received_at: i64,
-    ) -> Result<(), Error> {
+    ) -> Result<Option<String>, Error> {
         delivery::once(self, account, key, raw, received_at)
     }
 }

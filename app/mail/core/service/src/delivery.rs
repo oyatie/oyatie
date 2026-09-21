@@ -80,11 +80,12 @@ impl MailService {
                     message.received_at,
                 )
             });
-            if result.is_ok() {
+            let ok = result.is_ok();
+            if ok {
                 super::notify::signal(&lease.account);
             }
             match self.queue.finish(&lease, result) {
-                Ok(()) if result.is_ok() => delivered += 1,
+                Ok(()) if ok => delivered += 1,
                 Ok(()) | Err(Error::Conflict) => {}
                 Err(error) => return Err(error),
             }

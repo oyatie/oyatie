@@ -235,9 +235,14 @@ fn deliver_once_suppresses_a_duplicate_only_in_inbox_or_junk() {
         .id;
     let count = || db.account("a").unwrap().messages.len();
 
-    db.deliver_once("a", "k1", RAW, 1).unwrap();
+    assert_eq!(
+        db.deliver_once("a", "k1", RAW, 1).unwrap().as_deref(),
+        Some("e3")
+    );
     assert_eq!(count(), 1);
     assert_eq!(mailbox_of(&db, "e3"), ["inbox"]);
+    // Receipt replay: nothing minted.
+    assert_eq!(db.deliver_once("a", "k1", RAW, 1).unwrap(), None);
     // Same Message-ID linked to INBOX: suppressed, receipt still recorded,
     // and no body or reservation is written for the suppressed copy.
     let bodies = || -> (u64, u64) {
@@ -248,13 +253,8 @@ fn deliver_once_suppresses_a_duplicate_only_in_inbox_or_junk() {
         (n("blob_content"), n("blob_reserved"))
     };
     let before = bodies();
-    db.deliver_once(
-        "a",
-        "k2",
-        b"Message-ID: <one@example.org>\r\nSubject: dup\r\n\r\nother",
-        1,
-    )
-    .unwrap();
+    let dup = b"Message-ID: <one@example.org>\r\nSubject: dup\r\n\r\nother";
+    assert_eq!(db.deliver_once("a", "k2", dup, 1).unwrap(), None);
     assert_eq!(count(), 1);
     assert_eq!(bodies(), before, "a suppressed duplicate leaves no body");
     assert_eq!(

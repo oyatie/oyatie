@@ -184,7 +184,7 @@ fn submission_lifecycle_rolls_back_queue_and_history_together() {
     let local = db.claim(1).unwrap().pop().unwrap();
     let remote = db.claim_outbound(1).unwrap().pop().unwrap();
     sql.execute_batch("CREATE TRIGGER reject_history BEFORE INSERT ON submission_versions BEGIN SELECT RAISE(ABORT,'injected'); END;").unwrap();
-    assert!(db.finish(&local, Ok(())).is_err());
+    assert!(db.finish(&local, Ok(None)).is_err());
     assert_eq!(db.queued_message(&local).unwrap().raw, RAW);
     assert!(
         db.finish_outbound(&remote, DeliveryOutcome::Delivered)
@@ -193,7 +193,7 @@ fn submission_lifecycle_rolls_back_queue_and_history_together() {
     assert_eq!(db.outbound_message(&remote).unwrap().raw, RAW);
     assert_eq!(db.submissions("a", Some(&[])).unwrap().revision, 1);
     sql.execute_batch("DROP TRIGGER reject_history;").unwrap();
-    db.finish(&local, Ok(())).unwrap();
+    db.finish(&local, Ok(None)).unwrap();
     db.finish_outbound(&remote, DeliveryOutcome::Delivered)
         .unwrap();
     assert_eq!(

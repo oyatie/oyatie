@@ -60,7 +60,7 @@ impl MetadataStore for FaultStore {
         key: &str,
         raw: &[u8],
         received_at: i64,
-    ) -> Result<(), Error> {
+    ) -> Result<Option<String>, Error> {
         self.db.deliver_once(account, key, raw, received_at)
     }
     fn put_blob(&self, account: &str, raw: &[u8]) -> Result<String, Error> {

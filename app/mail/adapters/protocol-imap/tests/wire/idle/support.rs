@@ -37,7 +37,7 @@ impl MetadataStore for ObservedStore {
     fn mailbox_uids(&self, a: &str, m: &str) -> Result<MailboxSelection, Error> { self.observe(); self.inner.mailbox_uids(a, m) }
     fn resolve(&self, a: &str) -> Result<String, Error> { self.inner.resolve(a) }
     fn execute(&self, a: &str, p: Precondition, c: Vec<Command>) -> Result<Execution, Error> { self.inner.execute(a, p, c) }
-    fn deliver_once(&self, a: &str, k: &str, r: &[u8], t: i64) -> Result<(), Error> { self.inner.deliver_once(a, k, r, t) }
+    fn deliver_once(&self, a: &str, k: &str, r: &[u8], t: i64) -> Result<Option<String>, Error> { self.inner.deliver_once(a, k, r, t) }
     fn put_blob(&self, a: &str, r: &[u8]) -> Result<String, Error> { self.inner.put_blob(a, r) }
     fn blob(&self, a: &str, id: &str) -> Result<Vec<u8>, Error> { self.inner.blob(a, id) }
     fn history(&self, a: &str, s: u64, l: usize) -> Result<HistoryPage, Error> { self.observe(); self.inner.history(a, s, l) }

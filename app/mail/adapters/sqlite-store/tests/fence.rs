@@ -63,7 +63,7 @@ fn a_superseded_delivery_epoch_can_neither_read_nor_settle_and_the_epoch_survive
         .unwrap();
     assert!((60..76).contains(&(next - before)), "{}", next - before);
     assert_eq!(
-        db.finish(&first, Ok(())),
+        db.finish(&first, Ok(None)),
         Err(Error::Conflict),
         "settled once"
     );
@@ -72,7 +72,7 @@ fn a_superseded_delivery_epoch_can_neither_read_nor_settle_and_the_epoch_survive
     assert_eq!(second.epoch, 2);
     // The expired owner comes back: nothing it does touches the job.
     assert!(matches!(db.queued_message(&first), Err(Error::Conflict)));
-    assert_eq!(db.finish(&first, Ok(())), Err(Error::Conflict));
+    assert_eq!(db.finish(&first, Ok(None)), Err(Error::Conflict));
     assert_eq!(
         db.finish(&first, Err(Error::Unavailable)),
         Err(Error::Conflict)
@@ -83,11 +83,11 @@ fn a_superseded_delivery_epoch_can_neither_read_nor_settle_and_the_epoch_survive
     db.retry_failed_delivery("a", &second.message).unwrap();
     let third = db.claim(1).unwrap().pop().unwrap();
     assert_eq!(third.epoch, 3);
-    assert_eq!(db.finish(&second, Ok(())), Err(Error::Conflict));
+    assert_eq!(db.finish(&second, Ok(None)), Err(Error::Conflict));
     let message = db.queued_message(&third).unwrap();
     db.deliver_once("a", &third.delivery_id(), &message.raw, message.received_at)
         .unwrap();
-    db.finish(&third, Ok(())).unwrap();
+    db.finish(&third, Ok(None)).unwrap();
     assert_eq!(db.account("a").unwrap().messages.len(), 1);
     drop(db);
     cleanup(&path);
@@ -131,7 +131,7 @@ fn a_superseded_outbound_epoch_cannot_renew_or_settle_and_a_bounded_attempt_coun
     assert!(db.claim_outbound(10).unwrap().is_empty());
     let notice = db.claim(1).unwrap().pop().expect("the queued notice");
     assert_eq!(notice.account, "a");
-    db.finish(&notice, Ok(())).unwrap();
+    db.finish(&notice, Ok(None)).unwrap();
     // Delivery: the attempt bound is terminal even before the queue lifetime.
     let targets = [DeliveryTarget {
         account: "a".into(),

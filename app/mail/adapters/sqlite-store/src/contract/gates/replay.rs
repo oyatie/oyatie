@@ -41,9 +41,9 @@ pub fn run<F: Fixture>(fixture: &F, gate: &mut Gate) -> Result<(), GateFailure> 
         format!("{count} messages after a replayed delivery"),
     )?;
     // The job is settled by whoever holds the live epoch, once.
-    let settled = store.finish(&first, Ok(()));
+    let settled = store.finish(&first, Ok(None));
     gate.check("settle once", settled.is_ok(), format!("{settled:?}"))?;
-    let again = store.finish(&first, Ok(()));
+    let again = store.finish(&first, Ok(None));
     gate.check(
         "settle once",
         again == Err(Error::Conflict),

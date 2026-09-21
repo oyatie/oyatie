@@ -31,7 +31,7 @@ fn submission_accepts_local_and_remote_recipients_atomically_and_isolates_jobs()
         .unwrap();
     let local = db.claim(10).unwrap();
     assert_eq!(local.len(), 1);
-    db.finish(&local[0], Ok(())).unwrap();
+    db.finish(&local[0], Ok(None)).unwrap();
     let leases = db.claim_outbound(10).unwrap();
     assert_eq!(leases.len(), 3);
     assert!(
@@ -183,7 +183,7 @@ fn expired_remote_mail_becomes_a_notice_and_capacity_recovers() {
         db.enqueue_submission("a", "alice@example.org", &recipients, RAW),
         Err(Error::OverQuota)
     );
-    db.finish(&notice, Ok(())).unwrap();
+    db.finish(&notice, Ok(None)).unwrap();
     db.enqueue_submission("a", "alice@example.org", &recipients, RAW)
         .unwrap();
     drop(db);

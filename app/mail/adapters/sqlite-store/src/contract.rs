@@ -50,7 +50,7 @@ macro_rules! metadata_store {
                 key: &str,
                 raw: &[u8],
                 received_at: i64,
-            ) -> Result<(), Error> {
+            ) -> Result<Option<String>, Error> {
                 self.before("deliver_once")?;
                 self.inner.deliver_once(account, key, raw, received_at)
             }

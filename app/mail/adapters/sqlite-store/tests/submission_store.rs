@@ -131,7 +131,7 @@ fn claimed_submission_cannot_cancel_even_after_lease_expiry_or_recipient_complet
     let accepted = f.db.accept_submission("a", 0, f.request(false)).unwrap();
     let id = &accepted.records[0].id;
     let local = f.db.claim(1).unwrap().pop().unwrap();
-    f.db.finish(&local, Ok(())).unwrap();
+    f.db.finish(&local, Ok(None)).unwrap();
     let remote = f.db.claim_outbound(1).unwrap().pop().unwrap();
     f.sql()
         .execute("UPDATE outbound_jobs SET lease_until=0,next_attempt=0", [])
