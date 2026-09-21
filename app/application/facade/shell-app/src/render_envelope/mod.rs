@@ -7,6 +7,8 @@ mod healthcare_clinician;
 #[cfg(any(feature = "ssr", test))]
 mod product_activity;
 #[cfg(any(feature = "ssr", test))]
+pub mod source;
+#[cfg(any(feature = "ssr", test))]
 mod tenant_admin;
 mod types;
 
@@ -19,13 +21,11 @@ use self::{
 };
 
 /// Composition root for every served envelope: the Ontology card's source is
-/// chosen here and nowhere else.
+/// chosen here and nowhere else, from [`source::STATUS_URL_VAR`] and
+/// [`source::STATUS_TOKEN_VAR`]; unconfigured, the card says so.
 #[cfg(any(feature = "ssr", test))]
 pub fn server_derived_envelope(context: OperatorContext) -> TenantRenderEnvelope {
-    permitted_envelope_snapshot(
-        context,
-        &application_ontology_card_fake::FixtureOntologyCardSource,
-    )
+    permitted_envelope_snapshot(context, &*source::configured_source())
 }
 
 /// Only the context that holds the Ontology grant consults `ontology`.
@@ -146,11 +146,18 @@ mod tests {
     }
 
     #[test]
-    fn the_served_envelope_is_wired_to_the_fixture_fake() {
+    fn the_served_envelope_without_configuration_says_unavailable_and_never_shows_the_fixture() {
         let envelope = server_derived_envelope(OperatorContext::TenantAdmin);
         let card = ontology_card(&envelope).expect("tenant admin sees the Ontology card");
         assert!(
             card.description
+                .contains("unavailable: ontology status source not configured"),
+            "{}",
+            card.description
+        );
+        assert!(
+            !card
+                .description
                 .contains(FixtureOntologyCardSource::POLICY_VERSION),
             "{}",
             card.description

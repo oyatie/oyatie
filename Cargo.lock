@@ -156,12 +156,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "application-ontology-card-http"
+version = "0.1.0"
+dependencies = [
+ "application-ontology-card",
+ "axum",
+ "foundry-ontology-app",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "application-shell-app"
 version = "0.1.0"
 dependencies = [
  "any_spawner",
  "application-ontology-card",
  "application-ontology-card-fake",
+ "application-ontology-card-http",
  "application-shell-app",
  "axum",
  "leptos",

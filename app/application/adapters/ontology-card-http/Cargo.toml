@@ -1,0 +1,27 @@
+[package]
+name = "application-ontology-card-http"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Reads the console's Ontology card from the wedge product's facade: GET /statusz on app/foundry/facade/ontology-app, the four card fields only."
+
+[dependencies]
+application-ontology-card = { path = "../../ports/ontology-card" }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+# The wedge-serving proof boots the real facade in-process and reads it.
+axum = { workspace = true }
+foundry-ontology-app = { path = "../../../foundry/facade/ontology-app" }
+tokio = { workspace = true }
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
