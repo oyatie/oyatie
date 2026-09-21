@@ -5,7 +5,7 @@ use audit_chain_domain::{
     AuditAppendInput, AuditChain, AuditChainError, AuditEvent, Ed25519SigningKey,
     Ed25519VerificationKeySet, Plane,
 };
-use audit_file_adapter::{FileAuditLedger, FileAuditLedgerError};
+use audit_ledger_file::{FileAuditLedger, FileAuditLedgerError};
 use data_boundary_kernel::{DataClass, Purpose};
 use shared_pdp_kernel::{
     DecisionAuditRecord, EntitySlice, PdpError, PdpOutcome, PolicyBundle, PolicyDecisionPoint,

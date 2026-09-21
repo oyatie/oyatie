@@ -2,7 +2,7 @@ pub use audit_chain_domain::{
     AuditAppendInput, AuditChain, AuditChainError, Ed25519SigningKey, Ed25519VerificationKeySet,
     Plane, append as audit_append,
 };
-pub use audit_file_adapter::FileAuditLedger;
+pub use audit_ledger_file::FileAuditLedger;
 pub use data_boundary_kernel::{DataClass, Purpose};
 pub use policy_pdp_cedar::{
     AuditChainCedarPdp, CedarPdp, PDP_DECISION_AUDIT_SURFACE, PdpAuditChainError,

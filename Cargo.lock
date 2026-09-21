@@ -383,7 +383,7 @@ name = "audit-emission-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "audit-file-adapter"
+name = "audit-ledger-file"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
@@ -7184,7 +7184,7 @@ name = "policy-pdp-cedar"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
- "audit-file-adapter",
+ "audit-ledger-file",
  "cedar-policy",
  "data-boundary-kernel",
  "policy-pdp-kernel",
