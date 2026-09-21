@@ -1,5 +1,5 @@
 [package]
-name = "messaging-file-adapter"
+name = "bus-outbox-file"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -12,7 +12,7 @@ data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 messaging-domain = { path = "../../core/domain" }
 
 [lib]
-name = "messaging_file_adapter"
+name = "bus_outbox_file"
 path = "src/lib.rs"
 doctest = false
 
