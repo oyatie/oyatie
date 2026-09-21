@@ -1,16 +1,9 @@
 //! How much verification one session may ask for, and what it already knows.
 //!
-//! Splitting this from the checks themselves keeps the session loop free of
-//! bookkeeping: it asks for a verdict and is handed one, or a refusal to send.
-//!
-//! A greeting and a reverse path are not reissued at the same rate, so they do
-//! not share a ceiling. A client greets about twice — once before STARTTLS and
-//! once after — while a connection carries as many reverse paths as it carries
-//! messages, and delivering dozens over one connection is ordinary SMTP. What
-//! is *not* ordinary is offering reverse paths without ever sending the
-//! message, and that is the only thing bounded here: a delivered message
-//! clears the reverse-path count, so the budget follows abandoned transactions
-//! rather than successful ones.
+//! A greeting and a reverse path are not reissued at the same rate, so they
+//! do not share a ceiling: a client greets about twice, while a connection
+//! legitimately carries as many reverse paths as it carries messages. Only
+//! reverse paths that never became a message are bounded.
 use super::{limits::Refusal, verify::Authentication};
 use std::net::IpAddr;
 
@@ -18,34 +11,31 @@ use std::net::IpAddr;
 /// endlessly.
 const MAX_GREETINGS: u8 = 4;
 
-/// What a session has already decided, and how much more deciding it may ask
-/// for. An EHLO is eight bytes and a verification is a chain of lookups, so
-/// without a budget a session is a DNS amplifier aimed at our own resolver.
+/// An EHLO is eight bytes and a verification is a chain of lookups, so without
+/// a budget a session is a DNS amplifier aimed at our own resolver.
 pub(super) struct Budget {
-    /// The domain last decided and the verdict reached. The verdict is kept,
-    /// not merely the fact of it: remembering only that a domain had been
-    /// decided would skip the check on a repeat and let a refused host in by
+    /// The verdict is kept, not merely the fact that the domain was decided:
+    /// otherwise a repeat would skip the check and let a refused host in by
     /// asking twice.
     decided: Option<(String, Result<(), &'static str>)>,
     greetings: u8,
     /// Reverse paths offered since the last message this session delivered.
     abandoned: u8,
-    ceiling: u8,
+    max_abandoned: u8,
 }
 
 impl Budget {
-    pub(super) fn new(ceiling: u8) -> Self {
+    pub(super) fn new(max_abandoned: u8) -> Self {
         Self {
             decided: None,
             greetings: 0,
             abandoned: 0,
-            ceiling,
+            max_abandoned,
         }
     }
 
-    /// A message reached the queue, so the reverse path that carried it was
-    /// not churn. Without this a connection could deliver only as many
-    /// messages as its ceiling allowed verifications.
+    /// Without this, a connection could deliver only as many messages as its
+    /// ceiling allowed verifications.
     pub(super) fn delivered(&mut self) {
         self.abandoned = 0;
     }
@@ -97,7 +87,7 @@ impl Budget {
         if !authentication.spf_mail_from.evaluates() {
             return Ok(());
         }
-        Self::charge(&mut self.abandoned, self.ceiling)?;
+        Self::charge(&mut self.abandoned, self.max_abandoned)?;
         authentication
             .verify_mail_from(peer, helo, host, sender)
             .await
@@ -118,8 +108,7 @@ mod tests {
     use crate::smtp::verify::Verify;
 
     fn watching() -> Authentication {
-        // No verifier, so no lookup happens: these cover the accounting, which
-        // is what the wire tests express only indirectly.
+        // No verifier, so no lookup happens: these cover the accounting only.
         Authentication {
             spf_ehlo: Verify::Relaxed,
             spf_mail_from: Verify::Relaxed,
@@ -167,8 +156,6 @@ mod tests {
 
     #[tokio::test]
     async fn a_delivered_message_does_not_spend_the_next_one() {
-        // A connection carries as many messages as it likes; only reverse
-        // paths that never became a message are bounded.
         let mut budget = Budget::new(4);
         for _ in 0..50 {
             budget

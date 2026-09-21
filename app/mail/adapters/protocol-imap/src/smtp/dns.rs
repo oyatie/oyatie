@@ -1,11 +1,8 @@
 //! The DNS answers message authentication is allowed to see.
 //!
 //! `mail-auth` consults a `ResolverCache` *before* its own resolver, so this
-//! one type is the whole seam: in production it answers `None` and the
-//! resolver behind it does the work; sealed, it answers what it can and
-//! declines the rest, so a conformance run is hermetic without a second code
-//! path through the protocol. Declining matters — see the note on the macro
-//! below for why a sealed miss cannot always be an answer.
+//! one type is the whole seam: a conformance run is hermetic without a second
+//! code path through the protocol.
 use mail_auth::{
     DnsError, DnssecStatus, Error, MX, RecordSet, ResolverCache, Txt,
     hickory_resolver::proto::op::ResponseCode,
@@ -51,12 +48,8 @@ impl<K: Eq + Hash, V: Clone> Table<K, V> {
     }
 }
 
-/// Answers `mail-auth` reads before it resolves.
-///
-/// Open (the production shape) every lookup misses, so `mail-auth` falls
-/// through to its resolver. Sealed (the conformance shape) a `Txt` miss is an
-/// authoritative "no such record"; the record-set tables decline instead, so
-/// a sealed table must be paired with a resolver that cannot leave the host.
+/// Answers `mail-auth` reads before it resolves. Open, every lookup misses and
+/// the resolver behind it answers; sealed, see `resolver_cache!`.
 #[derive(Default)]
 pub struct MailDns {
     txt: Table<Box<str>, Txt>,
@@ -84,7 +77,7 @@ fn sealed_txt() -> Option<Txt> {
     Some(Txt::Error(absent()))
 }
 
-/// No answer this table can give is honest; see the note on the macro.
+/// No answer a record-set table can give is honest; see `resolver_cache!`.
 fn decline<T>() -> Option<RecordSet<T>> {
     None
 }
@@ -138,17 +131,16 @@ fn records<T>(rrset: Vec<T>) -> RecordSet<T> {
     }
 }
 
-/// Writes are dropped: sealed, the table is the whole world and `mail-auth`
-/// has nothing to teach it; open, the resolver behind it keeps its own cache.
+/// Writes are dropped: sealed, the table is the whole world; open, the
+/// resolver behind it keeps its own cache.
 ///
-/// A sealed miss answers only where the answer is unambiguous. `Txt` carries an
-/// `Error`, so "no such record" is expressible and a miss says exactly that.
-/// A `RecordSet` cannot say it: an empty one means "the name exists with no
-/// records of this type", and `mail-auth`'s `exists:` mechanism tests presence
-/// with `get(..).is_some()`, so answering a miss with an empty set would assert
-/// that every unseeded name exists — turning a `-all` refusal into a pass. A
-/// sealed miss on those tables therefore declines to answer, and the caller
-/// must pair a sealed table with a resolver that cannot leave the host.
+/// A sealed miss answers only where the answer is unambiguous. `Txt` carries
+/// an `Error`, so it can say "no such record". A `RecordSet` cannot: an empty
+/// one means "the name exists with no records of this type", and `mail-auth`'s
+/// `exists:` mechanism tests presence with `get(..).is_some()`, so answering
+/// would assert every unseeded name exists and turn a `-all` refusal into a
+/// pass. Those tables decline, so a sealed table must be paired with a
+/// resolver that cannot leave the host.
 // ponytail: no second cache in front of hickory until a measurement asks for
 // one; adding it here would need TTL eviction to stay bounded.
 macro_rules! resolver_cache {
@@ -191,8 +183,7 @@ mod tests {
     fn an_open_table_misses_so_the_resolver_behind_it_answers() {
         let dns = MailDns::default();
         assert!(ResolverCache::<Box<str>, Txt>::get(&dns, "nothing.example.").is_none());
-        // A seeded name still answers: production may pin a record without
-        // sealing the world.
+        // Production may pin a record without sealing the world.
         dns.txt_add("seeded.example", Txt::Error(absent()));
         assert!(ResolverCache::<Box<str>, Txt>::get(&dns, "seeded.example.").is_some());
     }
@@ -208,10 +199,6 @@ mod tests {
             ),
             "a sealed TXT miss must read as NXDOMAIN, not as a cache miss"
         );
-        // An empty RecordSet does not mean "no such name": mail-auth's
-        // `exists:` mechanism tests presence with `is_some()`, so answering
-        // here would assert that every unseeded name exists and turn a `-all`
-        // refusal into a pass.
         let ptr: Option<RecordSet<Box<str>>> =
             ResolverCache::get(&dns, &IpAddr::from([10, 0, 0, 1]));
         assert!(ptr.is_none(), "a record-set miss must decline, not answer");
@@ -221,8 +208,7 @@ mod tests {
 
     #[test]
     fn seeding_is_keyed_the_way_mail_auth_asks() {
-        // mail-auth resolves `mx1.foobar.org` as the fully-qualified
-        // `mx1.foobar.org.`; a seed that does not match is a silent miss.
+        // A seed that does not match the fully-qualified name is a silent miss.
         let dns = MailDns::sealed();
         dns.ipv4_add("MX1.FooBar.org", vec![Ipv4Addr::new(10, 0, 0, 1)]);
         let found: Option<RecordSet<Ipv4Addr>> = ResolverCache::get(&dns, "mx1.foobar.org.");

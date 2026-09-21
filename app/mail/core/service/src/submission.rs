@@ -1,4 +1,4 @@
-use mail_kernel::{Error, MAX_MESSAGE_BYTES};
+use mail_kernel::{Error, MAX_MESSAGE_BYTES, MAX_SUBMISSION_BYTES};
 use mail_parser::{HeaderName, HeaderValue, MessageParser};
 
 /// Normalize only authenticated submissions; inbound message bytes are retained.
@@ -47,6 +47,13 @@ pub(super) fn normalize(raw: &[u8], address: &str) -> Result<Vec<u8>, Error> {
             output.extend_from_slice(b"\r\n");
         }
     }
+    // A repeated signed header is refused, which is what bounds `h=` and so
+    // `SIGNATURE_ALLOWANCE` -- see `SIGNED_HEADERS`. Conformant, not a local
+    // restriction: RFC 5322 section 3.6 permits at most one `To`, `Cc`,
+    // `Subject` or `Message-ID` and exactly one `From` and `Date`; RFC 2045
+    // permits one `MIME-Version`, one `Content-Type` and one
+    // `Content-Transfer-Encoding` per entity (sections 4, 5 and 6).
+    let mut signed = [false; mail_kernel::SIGNED_HEADERS.len()];
     let mut blind = false;
     let mut first = true;
     for line in raw[..end].split_inclusive(|b| *b == b'\n') {
@@ -68,6 +75,13 @@ pub(super) fn normalize(raw: &[u8], address: &str) -> Result<Vec<u8>, Error> {
                 return Err(Error::Invalid);
             }
             blind = name.eq_ignore_ascii_case(b"Bcc") || name.eq_ignore_ascii_case(b"Resent-Bcc");
+            if let Some(at) = mail_kernel::SIGNED_HEADERS
+                .iter()
+                .position(|covered| name.eq_ignore_ascii_case(covered.as_bytes()))
+                && std::mem::replace(&mut signed[at], true)
+            {
+                return Err(Error::Invalid);
+            }
         }
         if !blind {
             output.extend_from_slice(line);
@@ -86,7 +100,9 @@ pub(super) fn normalize(raw: &[u8], address: &str) -> Result<Vec<u8>, Error> {
     }) {
         return Err(Error::Invalid);
     }
-    if output.len() > MAX_MESSAGE_BYTES {
+    // The one gate both submitters pass -- SMTP `submit` and JMAP
+    // `submit_email`, which takes any stored blob and so covers IMAP APPEND.
+    if output.len() > MAX_SUBMISSION_BYTES {
         return Err(Error::OverQuota);
     }
     Ok(output)
@@ -120,4 +136,72 @@ fn validate_author(raw: &[u8], address: &str) -> Result<(), Error> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::normalize;
+    use mail_kernel::{Error, MAX_DATA_BYTES, SIGNED_HEADERS};
+
+    const ADDRESS: &str = "alice@example.org";
+
+    /// Every signed header once, `repeats` copies of `extra` after them, and
+    /// a body padded until the whole message is `size`.
+    fn submittable(extra: &str, repeats: usize, size: usize) -> Vec<u8> {
+        let mut raw = Vec::with_capacity(size);
+        for header in [
+            "From: <alice@example.org>",
+            "To: <bob@example.net>",
+            "Cc: <carol@example.net>",
+            "Subject: a realistic subject line about the reporting deadline",
+            "Date: Mon, 21 Sep 2026 12:34:56 +0000",
+            "Message-ID: <0123456789abcdef0123456789abcdef@example.org>",
+            "MIME-Version: 1.0",
+            "Content-Type: text/plain; charset=utf-8",
+            "Content-Transfer-Encoding: 8bit",
+        ] {
+            raw.extend_from_slice(header.as_bytes());
+            raw.extend_from_slice(b"\r\n");
+        }
+        for _ in 0..repeats {
+            raw.extend_from_slice(extra.as_bytes());
+            raw.extend_from_slice(b"\r\n");
+        }
+        raw.extend_from_slice(b"\r\n");
+        let line = b"padding to the ceiling, sixty-four bytes of body per line...\r\n";
+        // Room kept for the short final line, so the fill never truncates one
+        // into a bare `\r` that would be refused for its own reason.
+        while raw.len() + line.len() + 2 <= size {
+            raw.extend_from_slice(line);
+        }
+        raw.resize(size - 2, b'x');
+        raw.extend_from_slice(b"\r\n");
+        raw
+    }
+
+    /// The same message without the repeats is still accepted, so it is the
+    /// repetition that is refused and not the size.
+    #[test]
+    fn a_ceiling_message_that_repeats_a_signed_header_is_refused() {
+        let repeated = "Content-Transfer-Encoding: 8bit";
+        normalize(&submittable(repeated, 0, MAX_DATA_BYTES), ADDRESS)
+            .expect("a message at the ceiling is submittable");
+        assert_eq!(
+            normalize(&submittable(repeated, 100, MAX_DATA_BYTES), ADDRESS).err(),
+            Some(Error::Invalid)
+        );
+    }
+
+    /// Every name the facade signs, not only the one that measurably overruns.
+    #[test]
+    fn every_signed_header_is_refused_a_second_time() {
+        for name in SIGNED_HEADERS {
+            let raw = submittable(&format!("{name}: repeated"), 1, 4096);
+            assert_eq!(
+                normalize(&raw, ADDRESS).err(),
+                Some(Error::Invalid),
+                "{name}"
+            );
+        }
+    }
 }

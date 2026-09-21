@@ -69,6 +69,41 @@ fn invalid_outbound_configuration_fails_closed_without_credentials_in_diagnostic
             vec![("MAIL_SPF_MAIL_FROM", "Strict")],
             "must be disable, relaxed or strict",
         ),
+        (
+            vec![("MAIL_DKIM_DOMAIN", "example.org")],
+            "MAIL_DKIM_KEY is required",
+        ),
+        (
+            vec![
+                ("MAIL_DKIM_KEY", "/nonexistent/private-review-key.pem"),
+                ("MAIL_DKIM_DOMAIN", "example.org"),
+            ],
+            "MAIL_DKIM_SELECTOR is required",
+        ),
+        (
+            vec![
+                ("MAIL_DKIM_KEY", "/nonexistent/private-review-key.pem"),
+                ("MAIL_DKIM_DOMAIN", "example.org"),
+                ("MAIL_DKIM_SELECTOR", "default"),
+            ],
+            "not a readable PEM private key",
+        ),
+        (
+            vec![
+                ("MAIL_DKIM_KEY", "/nonexistent/private-review-key.pem"),
+                ("MAIL_DKIM_DOMAIN", "example.org"),
+                ("MAIL_DKIM_SELECTOR", "not a selector"),
+            ],
+            "MAIL_DKIM_SELECTOR must be",
+        ),
+        (
+            vec![
+                ("MAIL_DKIM_KEY", "/nonexistent/private-review-key.pem"),
+                ("MAIL_DKIM_DOMAIN", "example.org.."),
+                ("MAIL_DKIM_SELECTOR", "default"),
+            ],
+            "MAIL_DKIM_DOMAIN must be",
+        ),
     ];
     for (settings, expected) in cases {
         let mut command = fixture.command();

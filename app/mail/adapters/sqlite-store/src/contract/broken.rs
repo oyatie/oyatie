@@ -1,5 +1,5 @@
-//! A store that deliberately violates the `MetadataStore` contract in five
-//! documented ways, so the contract suite is shown to go red on each:
+//! A store that deliberately violates the `MetadataStore` contract, so the
+//! suite is shown to go red — on gates 2 through 6, and no other:
 //!
 //! - `execute` downgrades `Precondition::Require` to `Observed`: a stale
 //!   client-conditional batch is re-applied instead of returning `Conflict`.

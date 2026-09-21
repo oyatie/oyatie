@@ -8,6 +8,7 @@ mod lease;
 mod outbound;
 mod outbound_config;
 mod session;
+mod signing;
 mod sweep;
 use mail_api::DeliveryQueue;
 use mail_kernel::Account;
@@ -52,6 +53,9 @@ async fn serve(
     );
     let tls = TlsAcceptor::from(tls);
     let outbound = outbound_config::configured()?;
+    // Before anything binds: a key the server cannot sign with must stop it
+    // here, not in eight workers each discovering it on their first message.
+    let signer = signing::Signer::configured()?.map(Arc::new);
     lease::take(&db)?;
     let service = Arc::new(MailService {
         outbound: outbound
@@ -116,6 +120,7 @@ async fn serve(
             outbound_workers.spawn(outbound::run(
                 queue.clone(),
                 transport.clone(),
+                signer.clone(),
                 outbound_stopped.clone(),
             ));
         }
@@ -276,6 +281,6 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         Some("serve") if args.len()==5 => serve(&args[2],&args[3],&args[4]).await,
         Some("convert") if args.len()==5 => convert::run(&args[2],&args[3],&args[4]),
         _ if feed::run(&args[1..])? => Ok(()),
-        _ => Err(format!("usage: mail-app failed DATABASE ACCOUNT; mail-app retry DATABASE ACCOUNT MESSAGE; mail-app provision DATABASE TENANT ACCOUNT OWNER ADDRESS (MAIL_TOKEN env); mail-app convert DATABASE --backup-verified BACKUP_PATH | --backup-into BACKUP_PATH (stop `serve` first; a database below this binary's schema version is refused by every other command until converted); mail-app serve DATABASE CERTIFICATE_PEM PRIVATE_KEY_PEM (optional MAIL_SMTP_LISTEN, MAIL_SUBMISSION_LISTEN, MAIL_SUBMISSION_STARTTLS_LISTEN, MAIL_IMAP_LISTEN, MAIL_IMAP_STARTTLS_LISTEN, MAIL_HTTP_LISTEN, MAIL_POP_LISTEN, MAIL_POP_STARTTLS_LISTEN, MAIL_PUBLIC_URL; outbound MAIL_RELAY_HOST, MAIL_RELAY_PORT, MAIL_RELAY_HELO, MAIL_RELAY_STARTTLS, MAIL_RELAY_CA, MAIL_RELAY_USERNAME, MAIL_RELAY_PASSWORD; direct delivery MAIL_MX_DNS_SERVERS, MAIL_MX_HELO, MAIL_MX_PORT, MAIL_MX_CA, MAIL_MX_REQUIRE_TLS env; feed MAIL_CONSUMERS, MAIL_IDLE_FLOOR_MS); {}", feed::USAGE).into()),
+        _ => Err(format!("usage: mail-app failed DATABASE ACCOUNT; mail-app retry DATABASE ACCOUNT MESSAGE; mail-app provision DATABASE TENANT ACCOUNT OWNER ADDRESS (MAIL_TOKEN env); mail-app convert DATABASE --backup-verified BACKUP_PATH | --backup-into BACKUP_PATH (stop `serve` first; a database below this binary's schema version is refused by every other command until converted); mail-app serve DATABASE CERTIFICATE_PEM PRIVATE_KEY_PEM (optional MAIL_SMTP_LISTEN, MAIL_SUBMISSION_LISTEN, MAIL_SUBMISSION_STARTTLS_LISTEN, MAIL_IMAP_LISTEN, MAIL_IMAP_STARTTLS_LISTEN, MAIL_HTTP_LISTEN, MAIL_POP_LISTEN, MAIL_POP_STARTTLS_LISTEN, MAIL_PUBLIC_URL; outbound MAIL_RELAY_HOST, MAIL_RELAY_PORT, MAIL_RELAY_HELO, MAIL_RELAY_STARTTLS, MAIL_RELAY_CA, MAIL_RELAY_USERNAME, MAIL_RELAY_PASSWORD; direct delivery MAIL_MX_DNS_SERVERS, MAIL_MX_HELO, MAIL_MX_PORT, MAIL_MX_CA, MAIL_MX_REQUIRE_TLS env; inbound verification MAIL_SPF_EHLO, MAIL_SPF_MAIL_FROM (disable|relaxed|strict, default disable; each needs MAIL_MX_DNS_SERVERS, which relay delivery does not build); outbound signing MAIL_DKIM_KEY, MAIL_DKIM_DOMAIN, MAIL_DKIM_SELECTOR (all three or none; publish the matching public key as a TXT record at SELECTOR._domainkey.DOMAIN before enabling, because a signature receivers cannot verify is worse than none); feed MAIL_CONSUMERS, MAIL_IDLE_FLOOR_MS); {}", feed::USAGE).into()),
     }
 }

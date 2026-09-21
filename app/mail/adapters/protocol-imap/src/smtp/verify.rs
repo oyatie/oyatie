@@ -1,10 +1,9 @@
 //! What the sender's own DNS says about the peer: SPF on both identities the
 //! envelope offers, and the reverse lookup of the address it connected from.
 //!
-//! A verdict never refuses on its own. `Verify` decides whether a failure is
+//! A verdict never refuses on its own: `Verify` decides whether a failure is
 //! recorded or answered, so an operator can watch a policy before it starts
-//! rejecting mail — turning SPF on in one step is how a deployment loses
-//! legitimate mail it cannot get back.
+//! rejecting mail.
 use super::dns::MailDns;
 use mail_auth::{
     IprevOutput, MessageAuthenticator, Parameters, SpfOutput, SpfResult, spf::verify::SpfParameters,
@@ -18,9 +17,8 @@ pub enum Verify {
     #[default]
     Disabled,
     /// Evaluated and recorded; no answer of the domain's refuses the session.
-    /// The verification budget still applies — `Relaxed` performs the same
-    /// lookups as `Strict`, so it carries the same cost — and a session that
-    /// exhausts it is closed whichever policy asked for the work.
+    /// Performs the same lookups as `Strict`, so the verification budget
+    /// applies and exhausting it still closes the session.
     Relaxed,
     /// A `Fail` is answered with a refusal.
     Strict,
@@ -43,8 +41,6 @@ impl Verify {
     }
 }
 
-/// The resolver these checks verify against.
-///
 /// `MessageAuthenticator` owns a live resolver and has no `Debug`, so this
 /// carries one for `SmtpParams` without widening what a session prints.
 #[derive(Clone)]
@@ -60,9 +56,8 @@ impl std::fmt::Debug for Verifier {
 #[derive(Clone, Default)]
 pub struct Authentication {
     pub verifier: Option<Verifier>,
-    /// Answers consulted before the resolver. A sealed table answers what it
-    /// can and declines the rest, so it only bounds a run when the resolver
-    /// behind it is pointed somewhere that cannot answer either.
+    /// Answers consulted before the resolver. A sealed table only bounds a run
+    /// when the resolver behind it also cannot answer.
     pub dns: Option<Arc<MailDns>>,
     pub spf_ehlo: Verify,
     pub spf_mail_from: Verify,
@@ -142,22 +137,14 @@ const EHLO_REFUSED: &str = "550 5.7.23 SPF does not authorize this host for that
 const MAIL_FROM_REFUSED: &str = "550 5.7.23 SPF does not authorize this host for that sender\r\n";
 const UNDECIDED: &str = "451 4.4.3 SPF could not be evaluated; try again later\r\n";
 
-/// Under `Strict` this couples inbound acceptance to our own resolver: if it
-/// is unreachable every message is deferred until it returns. That is the
-/// right posture — a temporary refusal, not a decision — but it is why a
-/// deployment should sit on `Relaxed` long enough to see its own verdicts
-/// before it answers on them.
-///
-/// `Fail` is the domain saying no, and `Strict` answers it. `TempError` is
-/// the domain saying nothing yet, and `Strict` answers *that* with a
-/// temporary refusal rather than a decision: 451 is not "no", the client
-/// retries, and "could not tell" stays distinct from "said yes". Accepting on
-/// TempError would decide permissively on absent evidence, which is how a
-/// resolver outage becomes an open door.
+/// `TempError` is answered 451 rather than accepted: accepting would decide
+/// permissively on absent evidence, which is how a resolver outage becomes an
+/// open door. The cost is that `Strict` couples inbound acceptance to our own
+/// resolver, so a deployment sits on `Relaxed` until it trusts its verdicts.
 ///
 /// `SoftFail`, `Neutral`, `None` and `PermError` are not refusals: the domain
-/// either declined to assert anything or published something unusable, and
-/// neither is a statement that this host is forged.
+/// declined to assert anything, or published something unusable, and neither
+/// says this host is forged.
 fn refuse(policy: Verify, result: SpfResult, reply: &'static str) -> Result<(), &'static str> {
     if policy != Verify::Strict {
         return Ok(());
@@ -212,8 +199,8 @@ mod tests {
 
     #[test]
     fn either_half_missing_disables_evaluation() {
-        // Half-configured must not fall through to the real internet, and it
-        // is half-configured in both directions.
+        // Half-configured must not fall through to the real internet, in
+        // either direction.
         let cache_only = Authentication {
             dns: Some(Arc::new(MailDns::sealed())),
             spf_ehlo: Verify::Strict,
