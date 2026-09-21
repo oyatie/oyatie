@@ -1,22 +1,23 @@
 //! Where a data classification is allowed to live, and where one is required.
 //!
 //! Provenance: ADR-0709 carries ADR-0006 forward verbatim — every entity
-//! carries a `data_class` per declared property. The vocabulary for that is
-//! owned by `data/core/data-boundary-kernel`; these two touched-file rules
-//! keep it there and keep it answerable.
+//! carries a `data_class` per declared property. New declarations of that
+//! vocabulary are admitted only in the homes `known::CANONICAL_CRATES` names,
+//! beside a closed grandfathered set; these two touched-file rules keep it
+//! there and keep it answerable.
 
 mod known;
 
-use known::{CANONICAL_CRATE, GRANDFATHERED, GRANDFATHERED_HOLES};
+use known::{CANONICAL_CRATES, GRANDFATHERED, GRANDFATHERED_HOLES};
 
-/// Refuse a NEW `DataClass`-shaped enum declared outside the canonical crate.
+/// Refuse a NEW `DataClass`-shaped enum declared outside the canonical homes.
 ///
 /// Every parallel definition is a chance for a centrally added variant to go
 /// missing locally. A narrower set is legitimate, but it has to be expressed
 /// in terms of the canonical vocabulary rather than retyped beside it, so the
 /// next parallel definition is refused here.
 pub fn data_class_home_violations(path: &str, contents: &[u8]) -> Vec<String> {
-    if !path.ends_with(".rs") || path.starts_with(CANONICAL_CRATE) {
+    if !path.ends_with(".rs") || CANONICAL_CRATES.iter().any(|home| path.starts_with(home)) {
         return Vec::new();
     }
     declared_enums(&String::from_utf8_lossy(contents))
@@ -25,8 +26,8 @@ pub fn data_class_home_violations(path: &str, contents: &[u8]) -> Vec<String> {
         .map(|(line, name)| {
             format!(
                 "{path}:{line}: `enum {name}` declares a data-class vocabulary \
-                 outside {CANONICAL_CRATE}; re-export the canonical `DataClass` \
-                 or express the narrower set in terms of it"
+                 outside its homes {CANONICAL_CRATES:?}; re-export the canonical \
+                 `DataClass` or express the narrower set in terms of it"
             )
         })
         .collect()
