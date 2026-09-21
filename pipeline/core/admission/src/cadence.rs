@@ -60,7 +60,7 @@ pub const POSTSUBMIT_JOBS: &[&str] = &["live-postgres", "postsubmit", "test"];
 
 /// Occupants of `.github/workflows/` (sorted).
 pub const WORKFLOW_FILES: &[&str] = &[
-    "buck2-weekly-smoke.yml",
+    "buck2-graph-honesty.yml",
     "build-cache-qualification.yml",
     "commit-signing.yml",
     "dependency-denial.yml",
