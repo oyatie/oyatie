@@ -1,12 +1,12 @@
 rust_library(
-    name = "iam-identity-service",
+    name = "iam-identity-app",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "iam_identity_service",
+    crate = "iam_identity_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
         "//iam/core/identity-oidc-issuer-kernel:iam-identity-oidc-issuer-kernel",
-        "//libs/shared-scim-server-kernel:shared-scim-server-kernel",
+        "//iam/core/scim-server-kernel:shared-scim-server-kernel",
         "//iam/ports/identity-workload-api:iam-identity-workload-api",
         "//iam/facade/identity-workload-app:iam-identity-workload-app",
         "//iam/adapters/identity-workload-authz-cedar:iam-identity-workload-authz-cedar",
@@ -28,26 +28,26 @@ rust_library(
 )
 
 rust_binary(
-    name = "iam-identity-service-bin",
+    name = "iam-identity-app-bin",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//iam/facade/identity-service:iam-identity-service",
+        "//iam/facade/identity-app:iam-identity-app",
         "third-party//:tokio",
         "third-party//:tracing",
     ],
 )
 
 rust_test(
-    name = "iam-identity-service-tests",
+    name = "iam-identity-app-tests",
     srcs = glob(["src/**/*.rs"]),
-    crate = "iam_identity_service",
+    crate = "iam_identity_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
         "//iam/core/identity-oidc-issuer-kernel:iam-identity-oidc-issuer-kernel",
-        "//libs/shared-scim-server-kernel:shared-scim-server-kernel",
+        "//iam/core/scim-server-kernel:shared-scim-server-kernel",
         "//iam/ports/identity-workload-api:iam-identity-workload-api",
         "//iam/facade/identity-workload-app:iam-identity-workload-app",
         "//iam/adapters/identity-workload-authz-cedar:iam-identity-workload-authz-cedar",
@@ -70,12 +70,51 @@ rust_test(
 )
 
 rust_test(
-    name = "iam-identity-service-e2e",
-    srcs = glob(["tests/e2e_service.rs"]),
-    crate_root = "tests/e2e_service.rs",
+    name = "iam-identity-app-rest-and-scim",
+    srcs = ["tests/rest_and_scim.rs", "tests/service_support/mod.rs"],
+    crate = "rest_and_scim",
+    crate_root = "tests/rest_and_scim.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//iam/facade/identity-service:iam-identity-service",
+        "//iam/facade/identity-app:iam-identity-app",
+        "//iam/facade/identity-workload-rest:iam-identity-workload-rest",
+        "third-party//:aws-lc-rs",
+        "third-party//:base64",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:tonic",
+        "third-party//:uuid",
+    ],
+)
+
+rust_test(
+    name = "iam-identity-app-grpc-and-registration",
+    srcs = ["tests/grpc_and_registration.rs", "tests/service_support/mod.rs"],
+    crate = "grpc_and_registration",
+    crate_root = "tests/grpc_and_registration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//iam/facade/identity-app:iam-identity-app",
+        "//iam/facade/identity-workload-rest:iam-identity-workload-rest",
+        "third-party//:aws-lc-rs",
+        "third-party//:base64",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:tonic",
+        "third-party//:uuid",
+    ],
+)
+
+rust_test(
+    name = "iam-identity-app-live-durability",
+    srcs = ["tests/live_durability.rs", "tests/service_support/mod.rs"],
+    crate = "live_durability",
+    crate_root = "tests/live_durability.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//iam/facade/identity-app:iam-identity-app",
         "//iam/facade/identity-workload-rest:iam-identity-workload-rest",
         "third-party//:aws-lc-rs",
         "third-party//:base64",

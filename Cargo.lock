@@ -3302,18 +3302,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "iam-identity-domain"
-version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
-
-[[package]]
-name = "iam-identity-oidc-issuer-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "iam-identity-service"
+name = "iam-identity-app"
 version = "0.1.0"
 dependencies = [
  "aws-lc-rs",
@@ -3338,6 +3327,17 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
 ]
+
+[[package]]
+name = "iam-identity-domain"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
+
+[[package]]
+name = "iam-identity-oidc-issuer-kernel"
+version = "0.1.0"
 
 [[package]]
 name = "iam-identity-usecase"

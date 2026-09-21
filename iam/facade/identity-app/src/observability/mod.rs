@@ -36,7 +36,7 @@ impl TracingAuditSink {
 impl AuditSink for TracingAuditSink {
     fn record(&self, record: AuditRecord) {
         tracing::info!(
-            target: "iam_identity_service::audit",
+            target: "iam_identity_app::audit",
             event = record.event().label(),
             workload_id = record.workload_id().unwrap_or("-"),
             outcome = record.outcome(),
