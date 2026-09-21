@@ -1,7 +1,7 @@
 rust_library(
-    name = "billing-service",
+    name = "billing-app",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "billing_service",
+    crate = "billing_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -11,40 +11,40 @@ rust_library(
 )
 
 rust_test(
-    name = "billing-service-unittest",
+    name = "billing-app-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "billing_service",
+    crate = "billing_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
         "//billing/core/billing:billing-domain",
         "//billing/core/metering:billing-metering",
-        "//libs/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
         "third-party//:tokio",
     ],
 )
 
 rust_test(
-    name = "billing-service-integration-test",
+    name = "billing-app-integration-test",
     srcs = ["src/main.rs"],
-    crate = "billing_service_main_integration_test",
+    crate = "billing_app_main_integration_test",
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        ":billing-service",
+        ":billing-app",
         "//billing/core/billing:billing-domain",
         "//billing/core/metering:billing-metering",
-        "//libs/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
 rust_binary(
-    name = "billing-service-bin",
+    name = "billing-app-bin",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//billing/facade/billing-service:billing-service",
+        ":billing-app",
         "third-party//:tokio",
     ],
 )
