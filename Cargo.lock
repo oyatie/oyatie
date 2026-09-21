@@ -6667,7 +6667,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "network-oci"
+name = "network-provider-oci"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+ "network-domain",
+ "network-residency",
+]
+
+[[package]]
+name = "network-provider-selfhosted"
 version = "0.1.0"
 dependencies = [
  "data-boundary-kernel",
@@ -6687,15 +6696,6 @@ name = "network-residency-policy"
 version = "0.1.0"
 dependencies = [
  "data-classification",
- "network-residency",
-]
-
-[[package]]
-name = "network-selfhosted"
-version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
- "network-domain",
  "network-residency",
 ]
 
