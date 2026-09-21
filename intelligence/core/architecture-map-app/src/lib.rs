@@ -48,9 +48,8 @@ pub fn build_map(root: &Path) -> Result<ArchitectureMap, MapBuildError> {
     // This previously fed `parse_cargo_members` straight into the node set, so a `members` entry
     // like `*/core/*` became a literal node named `*/core/*` and the hundreds of crates it selects
     // got no node at all — `intelligence/core/api` among them. The map lost nearly the whole
-    // workspace while the freshness gate stayed green, because that gate compares the committed
-    // map against output from this same emitter: both sides were equally wrong, so nothing could
-    // notice. Expansion goes through the Cargo-faithful member kernel that the workspace gates
+    // workspace, and nothing noticed, because nothing reads what this emitter produces.
+    // Expansion goes through the Cargo-faithful member kernel that the workspace gates
     // already use, so the node set matches what Cargo itself resolves.
     let cargo_toml = root.join("Cargo.toml");
     let _ = read(&cargo_toml)?;
@@ -191,12 +190,12 @@ mod tests {
     /// A `members` glob must become the crates it selects, never a literal node.
     ///
     /// Regression: `*/core/*` was emitted verbatim, so the map held 41 nodes (15 of them globs)
-    /// instead of the workspace, and the freshness gate could not see it because it diffs the
-    /// committed map against this same emitter.
+    /// instead of the workspace, and nothing noticed: this emitter has no consumer to disagree
+    /// with it.
     ///
     /// The workspace under test is built here rather than read from the checkout: reaching it
-    /// through `env!("CARGO_MANIFEST_DIR")` does not compile under buck2, which defines no such
-    /// variable, and a test that walks out of its own inputs cannot state what it read.
+    /// through `env!("CARGO_MANIFEST_DIR")` does not compile under buck2, which defines that
+    /// variable only for a target whose rule declares it, and this one does not.
     #[test]
     fn build_map_expands_member_globs_into_real_crates() {
         let root = std::env::temp_dir().join(format!("arch-map-test-globs-{}", std::process::id()));
