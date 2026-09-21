@@ -1,9 +1,6 @@
 use super::*;
-use mail_auth::{
-    AuthenticatedMessage, DkimResult, MessageAuthenticator, Parameters,
-    common::{parse::TxtRecordParser, verify::DomainKey},
-    dkim::DkimError,
-};
+
+mod verify;
 
 /// 2048 bits, because aws-lc-rs refuses anything smaller and a shorter key
 /// would fail only at signing time. Fixed rather than generated: a keygen
@@ -52,37 +49,16 @@ fn key_file(name: &str) -> std::path::PathBuf {
     path
 }
 
-#[test]
-fn the_signature_names_this_domain_and_leaves_the_message_unaltered() {
-    let file = key_file("shape");
-    let signer = Signer::from_key_file(
-        &file.display().to_string(),
-        "example.org".to_owned(),
-        "default".to_owned(),
-    )
-    .expect("a 2048-bit key is a signer");
-    let raw = b"From: alice@example.org\r\nTo: bob@example.net\r\nSubject: signed\r\n\r\nbody\r\n";
-    let signed = signer.signed(raw).expect("a 2048-bit key signs");
-    let text = String::from_utf8(signed.clone()).unwrap();
-    assert!(text.starts_with("DKIM-Signature: "), "{text}");
-    for field in [
-        "v=1",
-        "a=rsa-sha256",
-        "d=example.org",
-        "s=default",
-        "c=simple/relaxed",
-    ] {
-        assert!(text.contains(field), "missing {field}: {text}");
-    }
-    // The header is prepended, so the bytes a receiver verifies are the
-    // bytes that were signed.
-    assert!(signed.ends_with(raw), "{text}");
-    // Folding included, every line ends CRLF and stays inside the
-    // 1000-byte limit the outbound path enforces.
-    for line in text.split_inclusive("\r\n") {
-        assert!(line.ends_with("\r\n"), "unterminated line: {line:?}");
-        assert!(line.len() <= 1000, "line too long: {}", line.len());
-    }
+/// The longest value `sub_domain` permits, built from the longest labels it
+/// permits. One validator covers both settings, so this is the selector's
+/// maximum as well as the domain's -- the worst case the signature's first
+/// line can carry, and so the case the allowance has to cover.
+pub(super) fn longest_sub_domain() -> String {
+    let domain =
+        ["a", "b", "c"].map(|label| label.repeat(63)).join(".") + &format!(".{}", "d".repeat(61));
+    assert_eq!(domain.len(), 253);
+    sub_domain("MAIL_DKIM_DOMAIN", &domain).expect("the longest permitted domain is permitted");
+    domain
 }
 
 #[test]
@@ -110,99 +86,117 @@ fn nothing_configured_signs_nothing() {
     assert_eq!(complete(NAMED, [None, None, None]), Ok(None));
 }
 
+/// A selector or domain goes verbatim into the signature's first line, which
+/// nothing folds. One long or malformed value would push every outbound
+/// message past the 1000-byte line limit -- not one message, all of them --
+/// so these are refused at startup rather than on the wire.
 #[test]
-fn an_unreadable_key_names_the_file_and_not_its_contents() {
-    let refusal = Signer::from_key_file(
-        "/nonexistent/dkim.pem",
-        "example.org".to_owned(),
-        "default".to_owned(),
-    )
-    .expect_err("a missing key is not a signer")
-    .to_string();
-    assert!(refusal.contains("/nonexistent/dkim.pem"), "{refusal}");
-    assert!(!refusal.contains("BEGIN"), "{refusal}");
+fn a_selector_or_domain_that_would_overrun_the_signature_line_is_refused() {
+    for bad in [
+        String::new(),
+        "a".repeat(254),
+        format!("{}.example", "a".repeat(64)),
+        "exam ple.org".to_owned(),
+        "example..org".to_owned(),
+        "selector\r\nX-Injected: yes".to_owned(),
+        "sel:ector".to_owned(),
+    ] {
+        let refusal = sub_domain("MAIL_DKIM_SELECTOR", &bad)
+            .expect_err("a selector that cannot fold is not a selector");
+        assert!(refusal.contains("MAIL_DKIM_SELECTOR"), "{refusal}");
+    }
+    for good in [
+        "default",
+        "s2026-09",
+        "mail.example.org",
+        &longest_sub_domain(),
+    ] {
+        sub_domain("MAIL_DKIM_DOMAIN", good).expect("a sub-domain is a sub-domain");
+    }
 }
 
-/// The verdict of a receiver, not the shape of a header. A signature with
-/// correct syntax over the wrong body hash passes every assertion above and is
-/// rejected on arrival, so the key that signed the message is published here
-/// and `mail-auth`'s own verifier is asked what it makes of the result.
+/// `MAX_SUBMISSION_BYTES` is what submission accepts; `MAX_MESSAGE_BYTES` is
+/// what outbound wire validation allows. Signing happens between them, so a
+/// message accepted at the ceiling must still fit once signed -- otherwise the
+/// transports answer `554`, the queue writes a DSN and deletes the job, and a
+/// maximum-size message that used to deliver becomes a permanent bounce.
 ///
-/// The table is sealed and the resolver behind it points at a closed loopback
-/// port: every TXT lookup is answered from the table, and nothing else can
-/// leave the host.
-#[tokio::test]
-async fn a_signed_message_verifies_and_one_altered_byte_of_body_stops_it() {
-    let file = key_file("verify");
+/// Signed here with the longest selector and domain the configuration permits,
+/// because that is the largest signature an operator can provoke.
+#[test]
+fn a_message_at_the_submission_ceiling_still_fits_once_signed() {
+    let file = key_file("ceiling");
     let signer = Signer::from_key_file(
         &file.display().to_string(),
-        "example.org".to_owned(),
-        "default".to_owned(),
+        longest_sub_domain(),
+        longest_sub_domain(),
     )
     .expect("a 2048-bit key is a signer");
-    let signed = signer
-        .signed(
-            b"From: alice@example.org\r\nTo: bob@example.net\r\nSubject: signed\r\n\r\nbody\r\n",
-        )
-        .expect("a 2048-bit key signs");
-
-    // `mail-auth` looks the key up at `<selector>._domainkey.<domain>`.
-    let dns = mail_protocol_imap::MailDns::sealed();
-    dns.txt_add(
-        "default._domainkey.example.org",
-        DomainKey::parse(format!("v=DKIM1; k=rsa; p={TEST_PUBLIC_KEY}").as_bytes())
-            .expect("the published record parses"),
-    );
-    let authenticator = nowhere();
-    assert_eq!(
-        verdict(&authenticator, &dns, &signed).await,
-        DkimResult::Pass
-    );
-
-    // One letter of the body -- not whitespace, which relaxed canonicalization
-    // is meant to absorb. Without this half the test cannot tell a real
-    // verification from one that always says yes.
-    let mut tampered = signed.clone();
-    let at = tampered.len() - 6;
-    assert_eq!(tampered[at], b'b', "the byte to alter is the body's first");
-    tampered[at] = b'B';
-    let refused = verdict(&authenticator, &dns, &tampered).await;
+    let raw = at_the_ceiling();
+    assert_eq!(raw.len(), mail_kernel::MAX_SUBMISSION_BYTES);
+    let signed = signer.signed(&raw).expect("a 2048-bit key signs");
     assert!(
-        matches!(
-            refused,
-            DkimResult::Neutral(mail_auth::Error::Dkim(DkimError::FailedBodyHashMatch))
-        ),
-        "an altered body must fail the body hash: {refused:?}"
+        signed.len() <= mail_kernel::MAX_MESSAGE_BYTES,
+        "signing put the message {} bytes over the deliverable ceiling",
+        signed.len() - mail_kernel::MAX_MESSAGE_BYTES
     );
 }
 
-/// The one verdict `mail-auth` reaches about these bytes. A message carrying
-/// no verdict at all would satisfy `all(Pass)` vacuously, so the count is
-/// asserted rather than the iterator.
-async fn verdict(
-    authenticator: &MessageAuthenticator,
-    dns: &mail_protocol_imap::MailDns,
-    raw: &[u8],
-) -> DkimResult {
-    let message = AuthenticatedMessage::parse(raw).expect("the signed bytes parse");
-    let output = authenticator
-        .verify_dkim(Parameters::new(&message).with_txt_cache(dns))
-        .await;
-    assert_eq!(output.len(), 1, "one signature, one verdict");
-    output[0].result().clone()
+/// Every signed header present with a realistic value, padded to exactly the
+/// size submission accepts.
+fn at_the_ceiling() -> Vec<u8> {
+    let mut raw = Vec::with_capacity(mail_kernel::MAX_SUBMISSION_BYTES);
+    for header in HEADERS {
+        raw.extend_from_slice(header.as_bytes());
+        raw.extend_from_slice(b"\r\n");
+    }
+    raw.extend_from_slice(b"\r\n");
+    let line = b"padding to the ceiling, sixty-four bytes of body per line...\r\n";
+    while raw.len() + line.len() <= mail_kernel::MAX_SUBMISSION_BYTES {
+        raw.extend_from_slice(line);
+    }
+    raw.resize(mail_kernel::MAX_SUBMISSION_BYTES - 2, b'x');
+    raw.extend_from_slice(b"\r\n");
+    raw
 }
 
-/// A resolver that cannot answer: a sealed table answers TXT itself, and a
-/// lookup it declines fails here rather than on the wire.
-fn nowhere() -> MessageAuthenticator {
-    use mail_auth::hickory_resolver::config::{NameServerConfig, ResolverConfig, ResolverOpts};
-    let mut server = NameServerConfig::udp_and_tcp(std::net::Ipv4Addr::LOCALHOST.into());
-    for connection in &mut server.connections {
-        connection.port = 1;
+pub(super) const HEADERS: &[&str] = &[
+    "From: \"Alice Example-Longname\" <alice@example.org>",
+    "To: \"Bob\" <bob@example.net>, \"Carol\" <carol@example.net>",
+    "Cc: \"Dave\" <dave@example.net>",
+    "Subject: a realistic subject line about the quarterly reporting deadline",
+    "Date: Mon, 21 Sep 2026 12:34:56 +0000",
+    "Message-ID: <0123456789abcdef0123456789abcdef@example.org>",
+    "MIME-Version: 1.0",
+    "Content-Type: multipart/mixed; boundary=\"----------0123456789abcdef0123\"",
+    "Content-Transfer-Encoding: 8bit",
+];
+
+/// PEM that parses as a container and holds nothing usable, and a key that is
+/// valid PEM but not RSA. Both reach a refusal with contents to leak, which
+/// the file this replaced -- a path that does not exist -- never could.
+const MALFORMED: &str = "-----BEGIN PRIVATE KEY-----
+SENTINEL-NOT-A-KEY
+-----END PRIVATE KEY-----";
+
+const ED25519: &str = "-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEILRgaJ7Idv/+uz6RhULamOB3mxH4Rqzs2uWNgtMaOgz6
+-----END PRIVATE KEY-----";
+
+#[test]
+fn a_key_that_cannot_sign_names_the_file_and_not_its_contents() {
+    for (name, contents) in [("malformed", MALFORMED), ("ed25519", ED25519)] {
+        let path = std::env::temp_dir().join(format!("mail-dkim-{name}.pem"));
+        std::fs::write(&path, contents).unwrap();
+        let path = path.display().to_string();
+        let refusal = Signer::from_key_file(&path, "example.org".to_owned(), "default".to_owned())
+            .expect_err("a key that cannot sign is not a signer")
+            .to_string();
+        assert!(refusal.contains(&path), "{refusal}");
+        assert!(!refusal.contains("SENTINEL"), "{refusal}");
+        assert!(!refusal.contains("BEGIN"), "{refusal}");
+        for line in contents.lines().filter(|l| !l.starts_with("---")) {
+            assert!(!refusal.contains(line), "{refusal}");
+        }
     }
-    let mut options = ResolverOpts::default();
-    options.attempts = 0;
-    options.timeout = std::time::Duration::from_millis(50);
-    MessageAuthenticator::new(ResolverConfig::from_name_servers(vec![server]), options)
-        .expect("a resolver pointed nowhere")
 }

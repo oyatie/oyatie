@@ -12,47 +12,55 @@ pub(super) async fn run(
             return;
         }
         let claim = queue.clone();
+        let signing = signer.clone();
         let result = tokio::task::spawn_blocking(move || {
             let lease = claim.claim_outbound(1)?.pop();
             lease
                 .map(|lease| {
-                    claim
-                        .outbound_message(&lease)
-                        .map(|message| (lease, message))
+                    claim.outbound_message(&lease).map(|mut message| {
+                        // Sign here rather than at the wire: this is above both
+                        // transports and above the validation every outbound
+                        // message is held to, so the signed bytes are the
+                        // checked bytes. On the blocking pool with the rest of
+                        // this closure, because SHA-256 over 25 MB and the copy
+                        // it makes have no business on the runtime that is also
+                        // serving SMTP, IMAP and HTTP.
+                        let signed = signing.as_ref().map_or(Ok(()), |signer| {
+                            signer.signed(&message.raw).map(|raw| message.raw = raw)
+                        });
+                        (lease, message, signed)
+                    })
                 })
                 .transpose()
         })
         .await;
         let delay = match result {
-            Ok(Ok(Some((lease, mut message)))) => {
-                // Sign here rather than at the wire: this is above both
-                // transports and above the validation every outbound message
-                // is held to, so the signed bytes are the checked bytes.
-                if let Some(signer) = &signer
-                    && let Err(error) = signer.signed(&message.raw).map(|raw| message.raw = raw)
-                {
+            Ok(Ok(Some((lease, message, signed)))) => {
+                let outcome = if let Err(error) = signed {
+                    // Believing your mail is signed when it is not is worse
+                    // than knowing it is not, so a signing failure retries
+                    // rather than leaving unsigned.
                     eprintln!("mail-app: outbound signing failed: {error}");
-                }
-                let outcome =
-                    if mail_api::Clock.now_secs().saturating_sub(message.retry_at) >= 432000 {
-                        DeliveryOutcome::Temporary(451)
-                    } else {
-                        match send_owned(
-                            queue.clone(),
-                            transport.as_ref(),
-                            &lease,
-                            &message,
-                            Duration::from_secs(30),
-                        )
-                        .await
-                        {
-                            Ok(outcome) => outcome,
-                            Err(error) => {
-                                eprintln!("mail-app: outbound ownership lost: {error:?}");
-                                continue;
-                            }
+                    DeliveryOutcome::Temporary(451)
+                } else if mail_api::Clock.now_secs().saturating_sub(message.retry_at) >= 432000 {
+                    DeliveryOutcome::Temporary(451)
+                } else {
+                    match send_owned(
+                        queue.clone(),
+                        transport.as_ref(),
+                        &lease,
+                        &message,
+                        Duration::from_secs(30),
+                    )
+                    .await
+                    {
+                        Ok(outcome) => outcome,
+                        Err(error) => {
+                            eprintln!("mail-app: outbound ownership lost: {error:?}");
+                            continue;
                         }
-                    };
+                    }
+                };
                 let complete = queue.clone();
                 if let Err(error) =
                     tokio::task::spawn_blocking(move || complete.finish_outbound(&lease, outcome))

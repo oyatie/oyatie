@@ -16,19 +16,61 @@ use rustls::pki_types::{PrivateKeyDer, pem::PemObject};
 
 /// The headers covered by the signature. `From` is required by RFC 6376; the
 /// rest are the ones a receiver weighs and a relay must not be free to alter.
-/// A header named here but absent from the message is simply not signed, so
-/// this list does not force any of them to exist.
+/// Each name appears twice, as RFC 6376 section 8.15 recommends. `mail-auth`
+/// already writes a name into `h=` whether or not the message carries it, so a
+/// header added where there was none is caught by the list alone; the second
+/// listing is what catches a relay adding a *second* `Cc` or `Subject` above
+/// the one the sender wrote, which a verifier reading each name once from the
+/// bottom would otherwise accept while showing the addition. Naming a header
+/// here still does not force it to exist.
 const SIGNED: &[&str] = &[
     "From",
+    "From",
+    "To",
     "To",
     "Cc",
+    "Cc",
+    "Subject",
     "Subject",
     "Date",
+    "Date",
+    "Message-ID",
     "Message-ID",
     "MIME-Version",
+    "MIME-Version",
+    "Content-Type",
     "Content-Type",
     "Content-Transfer-Encoding",
+    "Content-Transfer-Encoding",
 ];
+
+/// The selector and the domain are written verbatim into the signature's first
+/// line, which `mail-auth` never folds. A value long or strange enough pushes
+/// that line past the 1000-byte limit every outbound message is held to, and
+/// then *all* mail is refused `554` -- so both are bounded here, at startup,
+/// to the sub-domain syntax RFC 6376 gives them.
+fn sub_domain(name: &str, value: &str) -> Result<(), String> {
+    let refuse = || {
+        format!(
+            "{name} must be dot-separated labels of letters, digits and hyphens, \
+             each at most 63 bytes and at most 253 in total: {value}"
+        )
+    };
+    if value.is_empty() || value.len() > 253 {
+        return Err(refuse());
+    }
+    value
+        .split('.')
+        .all(|label| {
+            !label.is_empty()
+                && label.len() <= 63
+                && label
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b == b'-')
+        })
+        .then_some(())
+        .ok_or_else(refuse)
+}
 
 /// All three settings, or none. `Err` names the one that is missing, so an
 /// operator who configured two of three is told which, rather than finding
@@ -70,6 +112,10 @@ impl Signer {
         let Some([key, domain, selector]) = complete(named, given)? else {
             return Ok(None);
         };
+        // Before the file is read: the cheap refusals first, and a bad
+        // selector must not be reported as a bad key.
+        sub_domain("MAIL_DKIM_DOMAIN", &domain)?;
+        sub_domain("MAIL_DKIM_SELECTOR", &selector)?;
         Ok(Some(Self::from_key_file(&key, domain, selector)?))
     }
 

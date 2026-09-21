@@ -1,4 +1,4 @@
-use mail_kernel::{Error, MAX_MESSAGE_BYTES};
+use mail_kernel::{Error, MAX_MESSAGE_BYTES, MAX_SUBMISSION_BYTES};
 use mail_parser::{HeaderName, HeaderValue, MessageParser};
 
 /// Normalize only authenticated submissions; inbound message bytes are retained.
@@ -86,7 +86,11 @@ pub(super) fn normalize(raw: &[u8], address: &str) -> Result<Vec<u8>, Error> {
     }) {
         return Err(Error::Invalid);
     }
-    if output.len() > MAX_MESSAGE_BYTES {
+    // Both submitters normalize here -- SMTP `submit` and JMAP `submit_email`,
+    // which takes any stored blob and so covers IMAP APPEND too -- so this is
+    // the one place that decides what may reach the outbound queue. A message
+    // that only fits before it is signed is one the outbound path bounces.
+    if output.len() > MAX_SUBMISSION_BYTES {
         return Err(Error::OverQuota);
     }
     Ok(output)

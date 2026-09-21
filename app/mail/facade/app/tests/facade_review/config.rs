@@ -90,6 +90,25 @@ fn invalid_outbound_configuration_fails_closed_without_credentials_in_diagnostic
             ],
             "not a readable PEM private key",
         ),
+        // Both go verbatim into the signature's first line, which nothing
+        // folds: a value that overruns it refuses every outbound message, not
+        // one, so it is refused before anything binds.
+        (
+            vec![
+                ("MAIL_DKIM_KEY", "/nonexistent/private-review-key.pem"),
+                ("MAIL_DKIM_DOMAIN", "example.org"),
+                ("MAIL_DKIM_SELECTOR", "not a selector"),
+            ],
+            "MAIL_DKIM_SELECTOR must be",
+        ),
+        (
+            vec![
+                ("MAIL_DKIM_KEY", "/nonexistent/private-review-key.pem"),
+                ("MAIL_DKIM_DOMAIN", "example.org.."),
+                ("MAIL_DKIM_SELECTOR", "default"),
+            ],
+            "MAIL_DKIM_DOMAIN must be",
+        ),
     ];
     for (settings, expected) in cases {
         let mut command = fixture.command();

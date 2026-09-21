@@ -91,6 +91,10 @@ fn smtp_params(
             .peer_addr()
             .map_or(std::net::Ipv4Addr::UNSPECIFIED.into(), |a| a.ip()),
         authentication: authentication.clone(),
+        // Advertised `SIZE`, the `MAIL FROM SIZE=` check and the DATA reader
+        // all read this, so lowering it keeps what is advertised, what is
+        // accepted and what survives signing the same number.
+        max_message_size: mail_kernel::MAX_SUBMISSION_BYTES,
         ..mail_protocol_imap::SmtpParams::default()
     }
 }
