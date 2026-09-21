@@ -3,9 +3,10 @@ use super::builders::{
     workflow,
 };
 use super::product_activity::product_activity_spine;
-use super::types::{AccreditationState, OperatorContext, TenantRenderEnvelope};
+use super::types::{AccreditationState, ModuleCard, OperatorContext, TenantRenderEnvelope};
+use application_ontology_card::OntologyCardSource;
 
-pub(super) fn tenant_admin_envelope() -> TenantRenderEnvelope {
+pub(super) fn tenant_admin_envelope(ontology: &dyn OntologyCardSource) -> TenantRenderEnvelope {
     TenantRenderEnvelope {
         context: OperatorContext::TenantAdmin,
         tenant_name: s("Northwind Industrial Group"),
@@ -31,7 +32,10 @@ pub(super) fn tenant_admin_envelope() -> TenantRenderEnvelope {
         ],
         modules: crate::shell_capability_registry::permitted_module_cards(
             OperatorContext::TenantAdmin,
-        ),
+        )
+        .into_iter()
+        .map(|card| with_ontology_status(card, ontology))
+        .collect(),
         daily_tasks: vec![
             work(
                 "2026-04 급여 마감 — 박서준 직원 4대보험 변동 확인 필요",
@@ -185,4 +189,24 @@ pub(super) fn tenant_admin_envelope() -> TenantRenderEnvelope {
             "Healthcare and patient-care modules are not present in this tenant admin envelope; they are not hidden client-side.",
         ),
     }
+}
+
+/// The Ontology card carries the wedge product's status after its registry
+/// copy; a refusal is shown as such, never as stale or invented numbers.
+fn with_ontology_status(mut card: ModuleCard, ontology: &dyn OntologyCardSource) -> ModuleCard {
+    if card.name != "Ontology" {
+        return card;
+    }
+    let status = match ontology.ontology_card_facts() {
+        Ok(facts) => format!(
+            "policy {} · serving {} tenants · projection lag {} · poisoned {}",
+            facts.policy_version,
+            facts.served_tenants,
+            facts.projection_lag,
+            facts.poisoned_entries
+        ),
+        Err(error) => error.to_string(),
+    };
+    card.description = format!("{} · {status}", card.description);
+    card
 }

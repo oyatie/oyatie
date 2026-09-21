@@ -1,0 +1,15 @@
+[package]
+name = "application-ontology-card"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Port the console's Ontology module card reads its numbers through; the wedge product's status, without an HTTP client in the shell."
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

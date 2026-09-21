@@ -145,10 +145,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "application-ontology-card"
+version = "0.1.0"
+
+[[package]]
+name = "application-ontology-card-fake"
+version = "0.1.0"
+dependencies = [
+ "application-ontology-card",
+]
+
+[[package]]
 name = "application-shell-app"
 version = "0.1.0"
 dependencies = [
  "any_spawner",
+ "application-ontology-card",
+ "application-ontology-card-fake",
  "application-shell-app",
  "axum",
  "leptos",

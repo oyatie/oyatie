@@ -1,0 +1,18 @@
+[package]
+name = "application-ontology-card-fake"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "In-process fixture behind the ontology-card port; the fake the wedge rule admits before the HTTP adapter."
+
+[dependencies]
+application-ontology-card = { path = "../../ports/ontology-card" }
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
