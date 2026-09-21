@@ -11879,6 +11879,12 @@ cargo.rust_library(
     ],
 )
 
+alias(
+    name = "prettyplease",
+    actual = ":prettyplease-0.2",
+    visibility = ["PUBLIC"],
+)
+
 http_archive(
     name = "prettyplease-0.2.37.crate",
     sha256 = "479ca8adacdd7ce8f1fb39ce9ecccbfe93a3f1344b3d0d97f20bc0196208f62b",
@@ -12047,6 +12053,12 @@ cargo.rust_library(
         ":quote-1",
         ":smallvec-1",
     ],
+)
+
+alias(
+    name = "proc-macro2",
+    actual = ":proc-macro2-1",
+    visibility = ["PUBLIC"],
 )
 
 http_archive(
