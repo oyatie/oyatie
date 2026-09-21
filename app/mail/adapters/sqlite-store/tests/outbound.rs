@@ -108,6 +108,12 @@ fn outbound_leases_retry_survive_restart_and_create_one_durable_failure_notice()
     db.finish_outbound(&second, DeliveryOutcome::Temporary(451))
         .unwrap();
     assert!(db.claim_outbound(1).unwrap().is_empty());
+    assert_eq!(
+        sql.query_row("SELECT count(*) FROM submission_notices", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
     sql.execute("UPDATE outbound_jobs SET next_attempt=0", [])
         .unwrap();
     let third = db.claim_outbound(1).unwrap().pop().unwrap();
@@ -130,6 +136,17 @@ fn outbound_leases_retry_survive_restart_and_create_one_durable_failure_notice()
     );
     let notice = db.claim(10).unwrap();
     assert_eq!(notice.len(), 1);
+    let linked: Vec<(String, String)> = sql
+        .prepare("SELECT notice,submission FROM submission_notices")
+        .unwrap()
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+        .unwrap()
+        .collect::<Result<_, _>>()
+        .unwrap();
+    assert_eq!(
+        linked,
+        vec![(notice[0].message.clone(), third.message.clone())]
+    );
     let notice = db.queued_message(&notice[0]).unwrap();
     assert!(notice.sender.is_empty());
     let notice = String::from_utf8(notice.raw).unwrap();
