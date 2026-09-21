@@ -41,11 +41,15 @@ buildscript_run(
     manifest_dir = ":iam-pdp-app-manifest-dir",
 )
 
+# Cargo.toml renames both PDP crates; the same idents map here.
+_NAMED_DEPS = {
+    "iam_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar",
+    "shared_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+}
+
 _DEPS = [
     "//policy/core/decision-service-kernel:policy-decision-service-kernel",
     "//policy/adapters/pdp-bundle-file:policy-pdp-bundle-file",
-    "//policy/core/pdp-kernel:policy-pdp-kernel",
-    "//policy/adapters/pdp-cedar:policy-pdp-cedar",
     "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
     "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
     "//iam/core/identity-workload-domain:iam-identity-workload-domain",
@@ -80,6 +84,7 @@ rust_library(
     crate_root = "src/lib.rs",
     env = {"OUT_DIR": "$(location :iam-pdp-app-build-script-run[out_dir])"},
     visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
     deps = _DEPS,
 )
 
@@ -101,6 +106,7 @@ rust_test(
     crate_root = "src/lib.rs",
     env = {"OUT_DIR": "$(location :iam-pdp-app-build-script-run[out_dir])"},
     visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
     deps = _DEPS,
 )
 
@@ -118,6 +124,7 @@ rust_test(
     srcs = glob(["tests/rest_contract.rs", "tests/common/mod.rs", "cedar/**"]),
     crate_root = "tests/rest_contract.rs",
     visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
     deps = _TEST_DEPS,
 )
 
@@ -126,6 +133,7 @@ rust_test(
     srcs = glob(["tests/grpc_contract.rs", "tests/common/mod.rs", "cedar/**"]),
     crate_root = "tests/grpc_contract.rs",
     visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
     deps = _TEST_DEPS,
 )
 
@@ -134,6 +142,7 @@ rust_test(
     srcs = glob(["tests/e2e_live_socket.rs", "tests/common/mod.rs", "cedar/**"]),
     crate_root = "tests/e2e_live_socket.rs",
     visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
     deps = _TEST_DEPS + ["third-party//:reqwest"],
 )
 
@@ -142,6 +151,7 @@ rust_test(
     srcs = glob(["tests/mtls_live_socket.rs", "tests/common/mod.rs", "cedar/**"]),
     crate_root = "tests/mtls_live_socket.rs",
     visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
     deps = _TEST_DEPS,
 )
 
@@ -150,6 +160,7 @@ rust_test(
     srcs = glob(["tests/main_boot_closure.rs", "tests/common/mod.rs", "cedar/**"]),
     crate_root = "tests/main_boot_closure.rs",
     visibility = ["PUBLIC"],
+    named_deps = _NAMED_DEPS,
     deps = _TEST_DEPS + [
         "third-party//:base64",
         # Keystone (slice-1b-iii-c): boot the PDP from OPERATOR-PRODUCED mTLS

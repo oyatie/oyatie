@@ -1,8 +1,6 @@
-# Target renamed to `policy-decision-service-kernel`; the Rust crate stays
-# `iam_pdp_kernel`. Buck2 exposes a dependency only under its `crate` attribute
-# and has no equivalent of Cargo's `package =` rename, so renaming the crate
-# here breaks `use iam_pdp_kernel::` in its consumers. Both names change
-# together when those imports are renamed, not before.
+# `crate` keeps the pre-move name `iam_pdp_kernel` while consumers still say
+# `use iam_pdp_kernel::`. Cargo derives `policy_decision_service_kernel`; a consumer that uses
+# that ident maps it in its own BUCK with `named_deps`.
 
 rust_library(
     name = "policy-decision-service-kernel",
@@ -10,8 +8,8 @@ rust_library(
     crate = "iam_pdp_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    named_deps = {"shared_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel"},
     deps = [
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
     ],
 )
@@ -22,8 +20,8 @@ rust_test(
     crate = "iam_pdp_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    named_deps = {"shared_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel"},
     deps = [
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
     ],
 )
