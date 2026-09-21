@@ -21,10 +21,10 @@ genrule(
     name = "iam-identity-workload-rest-manifest-dir",
     srcs = [
         ":build.rs",
-        "//iam/identity/contracts/proto:workload.proto",
+        "//iam/facade/proto/iam/workload/v1:workload.proto",
     ],
     out = "manifest_dir",
-    cmd = "mkdir -p $OUT/contracts/proto && cp $(location :build.rs) $OUT/ && cp $(location //iam/identity/contracts/proto:workload.proto) $OUT/contracts/proto/",
+    cmd = "mkdir -p $OUT/proto && cp $(location :build.rs) $OUT/ && cp $(location //iam/facade/proto/iam/workload/v1:workload.proto) $OUT/proto/",
 )
 
 buildscript_run(

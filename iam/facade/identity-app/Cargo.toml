@@ -18,7 +18,7 @@ iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
 iam-identity-workload-app = { path = "../identity-workload-app" }
 iam-identity-workload-authz-cedar = { path = "../../adapters/identity-workload-authz-cedar" }
 iam-identity-workload-oidc = { path = "../../adapters/identity-workload-oidc" }
-iam-identity-workload-rest = { path = "../identity-workload-rest" }
+iam-identity-workload-rest = { path = "../../adapters/identity-workload-rest" }
 
 # Durable SCIM stores (G005): the composition root holds the shared PgPool and
 # runs the fail-closed RLS-enforceability guard (free fn over &PgPool) before
