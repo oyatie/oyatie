@@ -19,3 +19,9 @@ export_file(
     src = "iac/k8s/helm/templates/externalsecret.yaml",
     visibility = ["PUBLIC"],
 )
+
+export_file(
+    name = "k8s-manifest",
+    src = "k8s/cloud-intelligence.yaml",
+    visibility = ["PUBLIC"],
+)

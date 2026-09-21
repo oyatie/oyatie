@@ -1,7 +1,7 @@
 rust_library(
-    name = "intelligence-worker",
+    name = "intelligence-worker-app",
     srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
-    crate = "intelligence_worker",
+    crate = "intelligence_worker_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -12,18 +12,18 @@ rust_library(
 )
 
 rust_test(
-    name = "intelligence-worker-tests",
+    name = "intelligence-worker-app-tests",
     # Declared manifest binding: the ownership test greps the committed k8s manifest, which was
     # previously a cwd-relative read that only resolved under Buck's sandbox root.
     env = {
-        "OYATIE_INTELLIGENCE_K8S_MANIFEST": "$(location //intelligence/k8s:intelligence-app.yaml)",
+        "OYATIE_INTELLIGENCE_K8S_MANIFEST": "$(location //intelligence:k8s-manifest)",
     },
     srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
-    crate = "intelligence_worker_tests",
+    crate = "intelligence_worker_app_tests",
     crate_root = "tests/xproxy_worker_ownership.rs",
     visibility = ["PUBLIC"],
     deps = [
-        ":intelligence-worker",
+        ":intelligence-worker-app",
         "//intelligence/core/kernel:intelligence-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
