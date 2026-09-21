@@ -10,6 +10,11 @@ metadata:
     sli_class: availability
     plane: app
     owner_team: foundry
+  annotations:
+    runbook.symptom: "Reads are refused. A surface refusing everything still answers, so this is not reachability."
+    runbook.first-check: "An absent credential, a policy denial and an unusable revision pin are all counted here. Check whether refusals share one caller, one pin, or all callers."
+    runbook.mitigation: "A single bad revision pin is the caller's to correct. Refusals across all callers point at the authorizer or at a projection the process could not read; prefer restoring the projection over serving unauthorized reads."
+    runbook.escalation: "foundry, with whether refusals were caller-scoped or global."
 spec:
   service: foundry-ontology
   description: |

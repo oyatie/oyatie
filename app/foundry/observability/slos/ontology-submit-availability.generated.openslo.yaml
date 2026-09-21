@@ -10,6 +10,11 @@ metadata:
     sli_class: availability
     plane: app
     owner_team: foundry
+  annotations:
+    runbook.symptom: "Writes are refused. Callers see a refusal rather than a timeout, so the surface is answering."
+    runbook.first-check: "Separate authorization from storage: a policy denial refuses every caller identically, while a storage fault refuses regardless of identity and is not a conflict."
+    runbook.mitigation: "If the authorizer is unreachable the surface denies by default and that is intended; restore the authorizer rather than bypassing it. If the log is unwritable, restore write access to it before retrying."
+    runbook.escalation: "foundry, naming which of the two the first check ruled out."
 spec:
   service: foundry-ontology
   description: |

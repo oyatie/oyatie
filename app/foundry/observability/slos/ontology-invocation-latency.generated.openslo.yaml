@@ -10,6 +10,11 @@ metadata:
     sli_class: latency
     plane: app
     owner_team: foundry
+  annotations:
+    runbook.symptom: "The surface answers correctly but too slowly; callers may time out before it does."
+    runbook.first-check: "Compare read latency against projection freshness. A slow read with a healthy fold is query shape; a slow read with a growing gap is the fold competing for the same store."
+    runbook.mitigation: "Query shape is addressed by the caller's filter or page size, not by the service. Fold contention is addressed by letting catch-up finish before restoring full read load."
+    runbook.escalation: "foundry, with the slow operation and whether the freshness gap moved with it."
 spec:
   service: foundry-ontology
   description: |

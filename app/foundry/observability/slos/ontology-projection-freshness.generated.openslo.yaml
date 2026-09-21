@@ -10,6 +10,11 @@ metadata:
     sli_class: freshness
     plane: app
     owner_team: foundry
+  annotations:
+    runbook.symptom: "Reads return entities that are correct but stale: a write acknowledged by submit is not yet visible to a read."
+    runbook.first-check: "GET /statusz and compare the log head against the applied ordinal. A gap that is growing is a stalled fold; a gap that is constant and small is normal catch-up."
+    runbook.mitigation: "A stalled fold is usually a poisoned entry the fold will not pass. /statusz names the ordinal an operator starts from; rebuild the projection from the durable log rather than editing the entry."
+    runbook.escalation: "foundry, with the ordinal from /statusz and whether the gap grew, held, or closed while observed."
 spec:
   service: foundry-ontology
   description: |
