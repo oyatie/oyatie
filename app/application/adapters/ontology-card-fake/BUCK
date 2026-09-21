@@ -1,0 +1,21 @@
+rust_library(
+    name = "application-ontology-card-fake",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "application_ontology_card_fake",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/application/ports/ontology-card:application-ontology-card",
+    ],
+)
+
+rust_test(
+    name = "application-ontology-card-fake-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "application_ontology_card_fake",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/application/ports/ontology-card:application-ontology-card",
+    ],
+)
