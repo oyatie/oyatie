@@ -32,6 +32,7 @@ rust_test(
         "tests/cadence_graph.rs",
         "tests/cadence_graph/live_postgres.rs",
         "tests/cadence_graph/cache_qualification.rs",
+        "tests/cadence_graph/graph_honesty.rs",
         "tests/cadence_graph/qualification_closure.rs",
         "tests/cadence_graph/workflow_calls.rs",
     ],
