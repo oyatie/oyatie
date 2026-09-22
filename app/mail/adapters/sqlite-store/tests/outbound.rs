@@ -1,6 +1,11 @@
-use mail_api::{DeliveryOutcome, DeliveryQueue, SubmissionQueue};
-use mail_kernel::{Account, Error};
+use mail_api::{
+    DeliveryOutcome, DeliveryQueue, SubmissionAcceptance, SubmissionQueue, SubmissionStore,
+};
+use mail_kernel::{
+    Account, EnvelopeAddress, Error, SubmissionEnvelope, SubmissionRecord, UndoStatus,
+};
 use mail_sqlite_store::SqliteStore;
+use std::collections::BTreeMap;
 
 const RAW: &[u8] = b"From: alice@example.org\r\nSubject: outbound\r\n\r\nbody\r\n";
 
@@ -108,6 +113,12 @@ fn outbound_leases_retry_survive_restart_and_create_one_durable_failure_notice()
     db.finish_outbound(&second, DeliveryOutcome::Temporary(451))
         .unwrap();
     assert!(db.claim_outbound(1).unwrap().is_empty());
+    assert_eq!(
+        sql.query_row("SELECT count(*) FROM submission_notices", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
     sql.execute("UPDATE outbound_jobs SET next_attempt=0", [])
         .unwrap();
     let third = db.claim_outbound(1).unwrap().pop().unwrap();
@@ -130,6 +141,17 @@ fn outbound_leases_retry_survive_restart_and_create_one_durable_failure_notice()
     );
     let notice = db.claim(10).unwrap();
     assert_eq!(notice.len(), 1);
+    let linked: Vec<(String, String)> = sql
+        .prepare("SELECT notice,submission FROM submission_notices")
+        .unwrap()
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+        .unwrap()
+        .collect::<Result<_, _>>()
+        .unwrap();
+    assert_eq!(
+        linked,
+        vec![(notice[0].message.clone(), third.message.clone())]
+    );
     let notice = db.queued_message(&notice[0]).unwrap();
     assert!(notice.sender.is_empty());
     let notice = String::from_utf8(notice.raw).unwrap();
@@ -143,6 +165,56 @@ fn outbound_leases_retry_survive_restart_and_create_one_durable_failure_notice()
             .unwrap(),
         0
     );
+    drop(db);
+    drop(sql);
+    std::fs::remove_file(path).unwrap();
+}
+
+#[test]
+fn failure_notice_links_to_the_accepted_submission_record() {
+    let path = std::env::temp_dir().join(format!("mail-linked-{}.sqlite", std::process::id()));
+    let db = SqliteStore::open(&path).unwrap();
+    provision(&db);
+    db.deliver(&["alice@example.org".into()], RAW).unwrap();
+    let address = |email: &str| EnvelopeAddress {
+        email: email.into(),
+        parameters: BTreeMap::new(),
+    };
+    let acceptance = SubmissionAcceptance {
+        record: SubmissionRecord {
+            id: String::new(),
+            identity_id: "a".into(),
+            email_id: "e1".into(),
+            thread_id: String::new(),
+            envelope: SubmissionEnvelope {
+                mail_from: address("alice@example.org"),
+                rcpt_to: vec![address("alice@example.org"), address("one@remote.org")],
+            },
+            send_at: 0,
+            undo_status: UndoStatus::Pending,
+            delivery_status: BTreeMap::new(),
+            dsn_blob_ids: Vec::new(),
+        },
+        email_revision: 1,
+        raw: RAW.into(),
+        allow_remote: true,
+    };
+    db.accept_submission("a", 0, acceptance).unwrap();
+    let local = db.claim(1).unwrap().pop().unwrap();
+    db.finish(&local, Ok(())).unwrap();
+    let remote = db.claim_outbound(1).unwrap().pop().unwrap();
+    db.finish_outbound(&remote, DeliveryOutcome::Permanent(550))
+        .unwrap();
+    let records = db.submissions("a", None).unwrap().records;
+    let sql = rusqlite::Connection::open(&path).unwrap();
+    let linked: Vec<(String, String)> = sql
+        .prepare("SELECT n.submission,d.account FROM submission_notices n JOIN delivery_jobs d ON d.message=n.notice")
+        .unwrap()
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+        .unwrap()
+        .collect::<Result<_, _>>()
+        .unwrap();
+    assert_eq!(linked, vec![(records[0].id.clone(), "a".to_owned())]);
     drop(db);
     drop(sql);
     std::fs::remove_file(path).unwrap();

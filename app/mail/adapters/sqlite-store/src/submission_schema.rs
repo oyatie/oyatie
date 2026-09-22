@@ -17,7 +17,8 @@ pub(super) fn initialize(db: &Connection) -> Result<(), Error> {
         CREATE INDEX IF NOT EXISTS submission_thread ON submission_versions(account,thread_id,send_at);
         CREATE INDEX IF NOT EXISTS submission_undo ON submission_versions(account,undo,send_at);
         CREATE INDEX IF NOT EXISTS submission_time ON submission_versions(account,send_at,id);
-        CREATE TABLE IF NOT EXISTS submission_schedule(message TEXT PRIMARY KEY,account TEXT NOT NULL,send_at INTEGER NOT NULL,claimed INTEGER NOT NULL DEFAULT 0);")
+        CREATE TABLE IF NOT EXISTS submission_schedule(message TEXT PRIMARY KEY,account TEXT NOT NULL,send_at INTEGER NOT NULL,claimed INTEGER NOT NULL DEFAULT 0);
+        CREATE TABLE IF NOT EXISTS submission_notices(notice TEXT PRIMARY KEY,submission TEXT NOT NULL);")
         .map_err(storage)?;
     let mut statement = db
         .prepare("PRAGMA table_info(submission_heads)")

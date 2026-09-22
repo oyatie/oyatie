@@ -33,3 +33,6 @@ const HEADER_INSERTION_ALLOWANCE: usize = 512;
 /// Submission only. Inbound keeps `MAX_MESSAGE_BYTES`, since it neither
 /// normalizes nor signs.
 pub const MAX_DATA_BYTES: usize = MAX_SUBMISSION_BYTES - HEADER_INSERTION_ALLOWANCE;
+
+// The subtractions above catch underflow; only a zero allowance escapes them.
+const _: () = assert!(SIGNATURE_ALLOWANCE > 0 && HEADER_INSERTION_ALLOWANCE > 0);

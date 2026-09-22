@@ -101,6 +101,11 @@ fn notice(
         params![id, account.id, account.address, time],
     )
     .map_err(storage)?;
+    tx.execute(
+        "INSERT INTO submission_notices(notice,submission) VALUES(?1,?2)",
+        params![id, lease.message],
+    )
+    .map_err(storage)?;
     Ok(())
 }
 
