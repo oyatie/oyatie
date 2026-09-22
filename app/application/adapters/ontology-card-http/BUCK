@@ -1,0 +1,28 @@
+rust_library(
+    name = "application-ontology-card-http",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "application_ontology_card_http",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/application/ports/ontology-card:application-ontology-card",
+        "third-party//:reqwest",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "application-ontology-card-http-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "application_ontology_card_http",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/application/ports/ontology-card:application-ontology-card",
+        "third-party//:reqwest",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)
