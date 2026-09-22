@@ -1,11 +1,12 @@
-# `crate` keeps the pre-move name `iam_pdp_kernel` while consumers still say
-# `use iam_pdp_kernel::`. Cargo derives `policy_decision_service_kernel`; a consumer that uses
-# that ident maps it in its own BUCK with `named_deps`.
+# `crate` is the name Cargo derives from the package name. A consumer whose
+# Cargo.toml renames this package (`iam-pdp-kernel = { package =
+# "policy-decision-service-kernel" }`) maps the same ident in its own BUCK with
+# `named_deps = {"iam_pdp_kernel": "//policy/core/decision-service-kernel:policy-decision-service-kernel"}`.
 
 rust_library(
     name = "policy-decision-service-kernel",
     srcs = glob(["src/**/*.rs"]),
-    crate = "iam_pdp_kernel",
+    crate = "policy_decision_service_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     named_deps = {"shared_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel"},
@@ -17,7 +18,7 @@ rust_library(
 rust_test(
     name = "policy-decision-service-kernel-unittest",
     srcs = glob(["src/**/*.rs"]),
-    crate = "iam_pdp_kernel",
+    crate = "policy_decision_service_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     named_deps = {"shared_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel"},

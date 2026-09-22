@@ -6,16 +6,14 @@ export_file(
     visibility = ["PUBLIC"],
 )
 
-# Library target follows the package name `intelligence-rest-proxy`; its `crate`
-# stays `intelligence_rest` because Buck2 exposes a dependency only under its
-# `crate` attribute and external consumers still say `use intelligence_rest::`
-# (Cargo covers them with a `package =` rename). The crate's OWN tests are the
-# opposite case: under Cargo they must import the derived name
-# `intelligence_rest_proxy`, so each test target maps it back via `named_deps`.
+# `crate` is the name Cargo derives from the package name. A consumer whose
+# Cargo.toml renames this package (`intelligence-rest = { package =
+# "intelligence-rest-proxy" }`) maps the same ident in its own BUCK with
+# `named_deps = {"intelligence_rest": "//intelligence/adapters/rest-proxy:intelligence-rest-proxy"}`.
 rust_library(
     name = "intelligence-rest-proxy",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "intelligence_rest",
+    crate = "intelligence_rest_proxy",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -38,7 +36,7 @@ rust_library(
 rust_test(
     name = "intelligence-rest-proxy-tests",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "intelligence_rest",
+    crate = "intelligence_rest_proxy",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -64,8 +62,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d2_axum_proxy_test",
     crate_root = "tests/d2_axum_proxy.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "//intelligence/core/kernel:intelligence-kernel",
         "third-party//:axum",
         "third-party//:reqwest",
@@ -80,8 +78,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d2_axum_proxy_tenant_isolation_test",
     crate_root = "tests/d2_axum_proxy_tenant_isolation.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "//intelligence/core/kernel:intelligence-kernel",
         "third-party//:axum",
         "third-party//:reqwest",
@@ -96,8 +94,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d3_anthropic_adapter_test",
     crate_root = "tests/d3_anthropic_adapter.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "//intelligence/core/kernel:intelligence-kernel",
         "third-party//:reqwest",
         "third-party//:tokio",
@@ -110,8 +108,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d4_body_limit_test",
     crate_root = "tests/d4_body_limit.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "//intelligence/core/kernel:intelligence-kernel",
         "third-party//:axum",
         "third-party//:bytes",
@@ -129,8 +127,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d4_cross_tenant_ingress_test",
     crate_root = "tests/d4_cross_tenant_ingress.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "//intelligence/core/kernel:intelligence-kernel",
         "third-party//:axum",
         "third-party//:bytes",
@@ -148,8 +146,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d4_admin_tenant_scoping_test",
     crate_root = "tests/d4_admin_tenant_scoping.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "//intelligence/core/kernel:intelligence-kernel",
         "third-party//:axum",
         "third-party//:bytes",
@@ -167,8 +165,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d6_eventsink_fanout_test",
     crate_root = "tests/d6_eventsink_fanout.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "//intelligence/core/kernel:intelligence-kernel",
     ],
 )
@@ -179,8 +177,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d8_secret_provider_envelope_encryption_test",
     crate_root = "tests/d8_secret_provider_envelope_encryption.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "third-party//:tokio",
     ],
 )
@@ -191,8 +189,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d3_anthropic_adapter_integration_test",
     crate_root = "tests/d3_anthropic_adapter_integration.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "//intelligence/core/kernel:intelligence-kernel",
         "//intelligence/adapters/scripted-http-server:scripted-http-server",
         "third-party//:reqwest",
@@ -206,8 +204,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d3_anthropic_adapter_integration_outcomes_test",
     crate_root = "tests/d3_anthropic_adapter_integration_outcomes.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "//intelligence/core/kernel:intelligence-kernel",
         "//intelligence/adapters/scripted-http-server:scripted-http-server",
         "third-party//:reqwest",
@@ -221,8 +219,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d3_singleflight_upstream_test",
     crate_root = "tests/d3_singleflight_upstream.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "//intelligence/adapters/scripted-http-server:scripted-http-server",
         "third-party//:reqwest",
         "third-party//:serde_json",
@@ -236,8 +234,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d3_singleflight_upstream_recovery_test",
     crate_root = "tests/d3_singleflight_upstream_recovery.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "//intelligence/adapters/scripted-http-server:scripted-http-server",
         "third-party//:reqwest",
         "third-party//:serde_json",
@@ -251,8 +249,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d3_sse_streaming_test",
     crate_root = "tests/d3_sse_streaming.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "//intelligence/core/kernel:intelligence-kernel",
         "third-party//:axum",
         "third-party//:bytes",
@@ -270,8 +268,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d3_sse_streaming_lease_test",
     crate_root = "tests/d3_sse_streaming_lease.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "//intelligence/core/kernel:intelligence-kernel",
         "third-party//:axum",
         "third-party//:bytes",
@@ -289,8 +287,8 @@ rust_test(
     crate = "intelligence_rest_proxy_d5_hop_by_hop_filter_test",
     crate_root = "tests/d5_hop_by_hop_filter.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"intelligence_rest_proxy": ":intelligence-rest-proxy"},
     deps = [
+        ":intelligence-rest-proxy",
         "//intelligence/core/kernel:intelligence-kernel",
         "//intelligence/adapters/scripted-http-server:scripted-http-server",
         "third-party//:reqwest",

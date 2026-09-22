@@ -4,10 +4,8 @@ rust_library(
     crate = "policy_bundle_content",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    named_deps = {
-        "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
-    },
     deps = [
+        "//policy/core/pdp-kernel:policy-pdp-kernel",
         "//audit/adapters/digest-awslc:shared-audit-digest-adapter-awslc",
         "//audit/core/event-kernel:shared-audit-event-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
@@ -22,11 +20,9 @@ rust_test(
     crate = "content_identity",
     crate_root = "tests/content_identity.rs",
     visibility = ["PUBLIC"],
-    named_deps = {
-        "policy_bundle_content": ":policy-bundle-content",
-        "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
-    },
     deps = [
+        ":policy-bundle-content",
+        "//policy/core/pdp-kernel:policy-pdp-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
         "third-party//:serde",
     ],

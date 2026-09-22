@@ -1,11 +1,8 @@
-_NAMED_DEPS = {
-    "policy_bundle_content": "//policy/adapters/bundle-content:policy-bundle-content",
-    "policy_decision_service_kernel": "//policy/core/decision-service-kernel:policy-decision-service-kernel",
-    "policy_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar",
-    "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
-}
-
 _DEPS = [
+    "//policy/adapters/bundle-content:policy-bundle-content",
+    "//policy/adapters/pdp-cedar:policy-pdp-cedar",
+    "//policy/core/decision-service-kernel:policy-decision-service-kernel",
+    "//policy/core/pdp-kernel:policy-pdp-kernel",
     "//policy/core/cedar-domain:policy-cedar-domain",
     "//policy/core/decision-domain:policy-decision-domain",
     "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
@@ -19,7 +16,6 @@ rust_library(
     crate = "policy_engine_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    named_deps = _NAMED_DEPS,
     deps = _DEPS,
 )
 
@@ -29,17 +25,10 @@ alias(
     visibility = ["PUBLIC"],
 )
 
-_TEST_NAMED_DEPS = {
-    "policy_authoring_app": "//policy/facade/authoring-app:policy-authoring-app",
-    "policy_bundle_content": "//policy/adapters/bundle-content:policy-bundle-content",
-    "policy_decision_service_kernel": "//policy/core/decision-service-kernel:policy-decision-service-kernel",
-    "policy_pdp_bundle_file": "//policy/adapters/pdp-bundle-file:policy-pdp-bundle-file",
-    "policy_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar",
-    "policy_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
-}
-
 _TEST_DEPS = _DEPS + [
     ":policy-engine-app",
+    "//policy/facade/authoring-app:policy-authoring-app",
+    "//policy/adapters/pdp-bundle-file:policy-pdp-bundle-file",
     "//policy/core/rebac-domain:policy-rebac-domain",
     "//policy/adapters/tuple-store-inmemory:policy-tuple-store-inmemory",
     "//audit/adapters/digest-awslc:shared-audit-digest-adapter-awslc",
@@ -52,7 +41,6 @@ rust_test(
     crate = "engine_lifecycle",
     crate_root = "tests/engine_lifecycle.rs",
     visibility = ["PUBLIC"],
-    named_deps = _TEST_NAMED_DEPS,
     deps = _TEST_DEPS,
 )
 
@@ -62,6 +50,5 @@ rust_test(
     crate = "content_admission",
     crate_root = "tests/content_admission.rs",
     visibility = ["PUBLIC"],
-    named_deps = _TEST_NAMED_DEPS,
     deps = _TEST_DEPS,
 )

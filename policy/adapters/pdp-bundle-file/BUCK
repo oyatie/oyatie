@@ -1,16 +1,22 @@
-# `crate` keeps the pre-move name `iam_pdp_bundle_file` while consumers still say
-# `use iam_pdp_bundle_file::`. Cargo derives `policy_pdp_bundle_file`; a consumer that uses
-# that ident maps it in its own BUCK with `named_deps`.
+# `crate` is the name Cargo derives from the package name. Cargo.toml renames two
+# dependencies (`shared-pdp-kernel = { package = "policy-pdp-kernel" }`,
+# `iam-pdp-kernel = { package = "policy-decision-service-kernel" }`), so every target
+# here maps those idents with `named_deps`; a consumer that renames this package
+# (`iam-pdp-bundle-file = { package = "policy-pdp-bundle-file" }`) does the same in its
+# own BUCK with
+# `named_deps = {"iam_pdp_bundle_file": "//policy/adapters/pdp-bundle-file:policy-pdp-bundle-file"}`.
 
 rust_library(
     name = "policy-pdp-bundle-file",
     srcs = glob(["src/**/*.rs"]),
-    crate = "iam_pdp_bundle_file",
+    crate = "policy_pdp_bundle_file",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"shared_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel"},
+    named_deps = {
+        "iam_pdp_kernel": "//policy/core/decision-service-kernel:policy-decision-service-kernel",
+        "shared_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+    },
     deps = [
-        "//policy/core/decision-service-kernel:policy-decision-service-kernel",
         "//audit/adapters/digest-awslc:shared-audit-digest-adapter-awslc",
         "//audit/core/event-kernel:shared-audit-event-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
@@ -22,12 +28,14 @@ rust_library(
 rust_test(
     name = "policy-pdp-bundle-file-unittest",
     srcs = glob(["src/**/*.rs"]),
-    crate = "iam_pdp_bundle_file",
+    crate = "policy_pdp_bundle_file",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    named_deps = {"shared_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel"},
+    named_deps = {
+        "iam_pdp_kernel": "//policy/core/decision-service-kernel:policy-decision-service-kernel",
+        "shared_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+    },
     deps = [
-        "//policy/core/decision-service-kernel:policy-decision-service-kernel",
         "//audit/adapters/digest-awslc:shared-audit-digest-adapter-awslc",
         "//audit/core/event-kernel:shared-audit-event-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",

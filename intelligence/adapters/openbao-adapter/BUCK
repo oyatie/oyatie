@@ -4,9 +4,11 @@ rust_library(
     crate = "intelligence_openbao_adapter",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    named_deps = {
+        "intelligence_rest": "//intelligence/adapters/rest-proxy:intelligence-rest-proxy",
+    },
     deps = [
         "//intelligence/core/kernel:intelligence-kernel",
-        "//intelligence/adapters/rest-proxy:intelligence-rest-proxy",
         "third-party//:base64",
         "third-party//:bytes",
         "third-party//:reqwest",
