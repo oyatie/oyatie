@@ -1,0 +1,12 @@
+# `bundled`: build.rs compiles sqlite3/sqlite3.c through cc-rs and copies the
+# pregenerated bindings into OUT_DIR/bindgen.rs, which lib.rs include!()s.
+# rustc_link_lib/rustc_link_search capture cargo:rustc-link-lib=static=sqlite3
+# and cargo:rustc-link-search=native=<OUT_DIR> so the archive links at binary link time.
+
+[buildscript.run]
+rustc_link_lib = true
+rustc_link_search = true
+# cc-rs requires OPT_LEVEL/DEBUG/PROFILE; Buck2 buildscript_run only injects
+# OPT_LEVEL when the toolchain carries an explicit -Copt-level= flag
+# (system_rust_toolchain does not).
+env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release" }

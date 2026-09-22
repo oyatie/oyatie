@@ -5040,6 +5040,62 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "fallible-iterator-0.3.0.crate",
+    sha256 = "2acce4a10f12dc2fb14a218589d4f1f62ef011b2d0cc4b3cb1bba8e94da14649",
+    strip_prefix = "fallible-iterator-0.3.0",
+    urls = ["https://static.crates.io/crates/fallible-iterator/0.3.0/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "fallible-iterator-0.3",
+    srcs = [":fallible-iterator-0.3.0.crate"],
+    crate = "fallible_iterator",
+    crate_root = "fallible-iterator-0.3.0.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "fallible-iterator-0.3.0.crate",
+        "CARGO_PKG_NAME": "fallible-iterator",
+        "CARGO_PKG_VERSION": "0.3.0",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "3",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "alloc",
+        "default",
+    ],
+    visibility = [],
+)
+
+http_archive(
+    name = "fallible-streaming-iterator-0.1.9.crate",
+    sha256 = "7360491ce676a36bf9bb3c56c1aa791658183a54d2744120f27285738d90465a",
+    strip_prefix = "fallible-streaming-iterator-0.1.9",
+    urls = ["https://static.crates.io/crates/fallible-streaming-iterator/0.1.9/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "fallible-streaming-iterator-0.1",
+    srcs = [":fallible-streaming-iterator-0.1.9.crate"],
+    crate = "fallible_streaming_iterator",
+    crate_root = "fallible-streaming-iterator-0.1.9.crate/src/lib.rs",
+    edition = "2015",
+    env = {
+        "CARGO_MANIFEST_DIR": "fallible-streaming-iterator-0.1.9.crate",
+        "CARGO_PKG_NAME": "fallible-streaming-iterator",
+        "CARGO_PKG_VERSION": "0.1.9",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "1",
+        "CARGO_PKG_VERSION_PATCH": "9",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+)
+
+http_archive(
     name = "fastrand-2.4.1.crate",
     sha256 = "9f1f227452a390804cdb637b74a86990f2a7d7ba4b7d5693aac9b4dd6defd8d6",
     strip_prefix = "fastrand-2.4.1",
@@ -6059,6 +6115,37 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "hashbrown-0.14.5.crate",
+    sha256 = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1",
+    strip_prefix = "hashbrown-0.14.5",
+    urls = ["https://static.crates.io/crates/hashbrown/0.14.5/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "hashbrown-0.14",
+    srcs = [":hashbrown-0.14.5.crate"],
+    crate = "hashbrown",
+    crate_root = "hashbrown-0.14.5.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "hashbrown-0.14.5.crate",
+        "CARGO_PKG_NAME": "hashbrown",
+        "CARGO_PKG_VERSION": "0.14.5",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "14",
+        "CARGO_PKG_VERSION_PATCH": "5",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "ahash",
+        "inline-more",
+    ],
+    visibility = [],
+    deps = [":ahash-0.8"],
+)
+
+http_archive(
     name = "hashbrown-0.15.5.crate",
     sha256 = "9229cfe53dfd69f0609a49f65461bd93001ea1ef889cd5529dd176593f5338a1",
     strip_prefix = "hashbrown-0.15.5",
@@ -6162,6 +6249,33 @@ cargo.rust_library(
     features = ["default-hasher"],
     visibility = [],
     deps = [":foldhash-0.2"],
+)
+
+http_archive(
+    name = "hashlink-0.9.1.crate",
+    sha256 = "6ba4ff7128dee98c7dc9794b6a411377e1404dba1c97deb8d1a55297bd25d8af",
+    strip_prefix = "hashlink-0.9.1",
+    urls = ["https://static.crates.io/crates/hashlink/0.9.1/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "hashlink-0.9",
+    srcs = [":hashlink-0.9.1.crate"],
+    crate = "hashlink",
+    crate_root = "hashlink-0.9.1.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "hashlink-0.9.1.crate",
+        "CARGO_PKG_NAME": "hashlink",
+        "CARGO_PKG_VERSION": "0.9.1",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "9",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+    deps = [":hashbrown-0.14"],
 )
 
 http_archive(
@@ -9224,6 +9338,103 @@ buildscript_run(
 )
 
 http_archive(
+    name = "libsqlite3-sys-0.30.1.crate",
+    sha256 = "2e99fb7a497b1e3339bc746195567ed8d3e24945ecd636e3619d20b9de9e9149",
+    strip_prefix = "libsqlite3-sys-0.30.1",
+    urls = ["https://static.crates.io/crates/libsqlite3-sys/0.30.1/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "libsqlite3-sys-0.30",
+    srcs = [":libsqlite3-sys-0.30.1.crate"],
+    crate = "libsqlite3_sys",
+    crate_root = "libsqlite3-sys-0.30.1.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "libsqlite3-sys-0.30.1.crate",
+        "CARGO_PKG_NAME": "libsqlite3-sys",
+        "CARGO_PKG_VERSION": "0.30.1",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "30",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+        "OUT_DIR": "$(location :libsqlite3-sys-0.30-build-script-run[out_dir])",
+    },
+    features = [
+        "bundled",
+        "bundled_bindings",
+        "cc",
+        "default",
+        "min_sqlite_version_3_14_0",
+        "pkg-config",
+        "vcpkg",
+    ],
+    rustc_flags = ["@$(location :libsqlite3-sys-0.30-build-script-run[rustc_flags])"],
+    visibility = [],
+)
+
+cargo.rust_binary(
+    name = "libsqlite3-sys-0.30-build-script-build",
+    srcs = [":libsqlite3-sys-0.30.1.crate"],
+    crate = "build_script_build",
+    crate_root = "libsqlite3-sys-0.30.1.crate/build.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "libsqlite3-sys-0.30.1.crate",
+        "CARGO_PKG_NAME": "libsqlite3-sys",
+        "CARGO_PKG_VERSION": "0.30.1",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "30",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "bundled",
+        "bundled_bindings",
+        "cc",
+        "default",
+        "min_sqlite_version_3_14_0",
+        "pkg-config",
+        "vcpkg",
+    ],
+    visibility = [],
+    deps = [
+        ":cc-1",
+        ":pkg-config-0.3",
+        ":vcpkg-0.2",
+    ],
+)
+
+buildscript_run(
+    name = "libsqlite3-sys-0.30-build-script-run",
+    package_name = "libsqlite3-sys",
+    buildscript_rule = ":libsqlite3-sys-0.30-build-script-build",
+    env = {
+        "CARGO_MANIFEST_LINKS": "sqlite3",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "30",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+        "DEBUG": "false",
+        "OPT_LEVEL": "3",
+        "PROFILE": "release",
+    },
+    features = [
+        "bundled",
+        "bundled_bindings",
+        "cc",
+        "default",
+        "min_sqlite_version_3_14_0",
+        "pkg-config",
+        "vcpkg",
+    ],
+    rustc_link_lib = True,
+    rustc_link_search = True,
+    version = "0.30.1",
+)
+
+http_archive(
     name = "linked-hash-map-0.5.6.crate",
     sha256 = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f",
     strip_prefix = "linked-hash-map-0.5.6",
@@ -11683,6 +11894,32 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "pkg-config-0.3.33.crate",
+    sha256 = "19f132c84eca552bf34cab8ec81f1c1dcc229b811638f9d283dceabe58c5569e",
+    strip_prefix = "pkg-config-0.3.33",
+    urls = ["https://static.crates.io/crates/pkg-config/0.3.33/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "pkg-config-0.3",
+    srcs = [":pkg-config-0.3.33.crate"],
+    crate = "pkg_config",
+    crate_root = "pkg-config-0.3.33.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "pkg-config-0.3.33.crate",
+        "CARGO_PKG_NAME": "pkg-config",
+        "CARGO_PKG_VERSION": "0.3.33",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "3",
+        "CARGO_PKG_VERSION_PATCH": "33",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+)
+
+http_archive(
     name = "polling-3.11.0.crate",
     sha256 = "5d0e4f59085d47d8241c88ead0f274e8a0cb551f3625263c05eb8dd897c34218",
     strip_prefix = "polling-3.11.0",
@@ -13980,6 +14217,50 @@ cargo.rust_library(
         ":syn-2",
         ":syn_derive-0.2",
         ":thiserror-2",
+    ],
+)
+
+alias(
+    name = "rusqlite",
+    actual = ":rusqlite-0.32",
+    visibility = ["PUBLIC"],
+)
+
+http_archive(
+    name = "rusqlite-0.32.1.crate",
+    sha256 = "7753b721174eb8ff87a9a0e799e2d7bc3749323e773db92e0984debb00019d6e",
+    strip_prefix = "rusqlite-0.32.1",
+    urls = ["https://static.crates.io/crates/rusqlite/0.32.1/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "rusqlite-0.32",
+    srcs = [":rusqlite-0.32.1.crate"],
+    crate = "rusqlite",
+    crate_root = "rusqlite-0.32.1.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "rusqlite-0.32.1.crate",
+        "CARGO_PKG_NAME": "rusqlite",
+        "CARGO_PKG_VERSION": "0.32.1",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "32",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "bundled",
+        "modern_sqlite",
+    ],
+    visibility = [],
+    deps = [
+        ":bitflags-2",
+        ":fallible-iterator-0.3",
+        ":fallible-streaming-iterator-0.1",
+        ":hashlink-0.9",
+        ":libsqlite3-sys-0.30",
+        ":smallvec-1",
     ],
 )
 
@@ -19809,6 +20090,32 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
     },
     features = ["inline-i128"],
+    visibility = [],
+)
+
+http_archive(
+    name = "vcpkg-0.2.15.crate",
+    sha256 = "accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426",
+    strip_prefix = "vcpkg-0.2.15",
+    urls = ["https://static.crates.io/crates/vcpkg/0.2.15/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "vcpkg-0.2",
+    srcs = [":vcpkg-0.2.15.crate"],
+    crate = "vcpkg",
+    crate_root = "vcpkg-0.2.15.crate/src/lib.rs",
+    edition = "2015",
+    env = {
+        "CARGO_MANIFEST_DIR": "vcpkg-0.2.15.crate",
+        "CARGO_PKG_NAME": "vcpkg",
+        "CARGO_PKG_VERSION": "0.2.15",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "2",
+        "CARGO_PKG_VERSION_PATCH": "15",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
     visibility = [],
 )
 
