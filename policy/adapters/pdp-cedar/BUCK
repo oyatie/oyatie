@@ -1,170 +1,54 @@
-# Library target renamed to `policy-pdp-cedar`; its `crate` stays
-# `iam_pdp_cedar` because Buck2 exposes a dependency only under its `crate`
-# attribute and external consumers still say `use iam_pdp_cedar::` (Cargo
-# covers them with a `package =` rename). The crate's OWN tests are the
-# opposite case: under Cargo they must import the derived name
-# `policy_pdp_cedar`, so each test target maps it back via `named_deps` -
-# the Buck analogue of the Cargo rename, in the direction tests need.
-# Both names converge when the consumers' imports are renamed.
+# `crate` is the name Cargo derives from the package name. Cargo.toml renames
+# the kernel (`shared-pdp-kernel = { package = "policy-pdp-kernel" }`), so
+# every target here maps that ident with `named_deps`; a consumer that renames
+# this package (`iam-pdp-cedar = { package = "policy-pdp-cedar" }`) does the
+# same in its own BUCK with
+# `named_deps = {"iam_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar"}`.
+
+_NAMED_DEPS = {
+    "shared_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+}
+
+_DEPS = [
+    "//audit/adapters/ledger-file:audit-ledger-file",
+    "//audit/core/chain-domain:audit-chain-domain",
+    "//data/core/data-boundary-kernel:data-boundary-kernel",
+    "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+    "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
+    "third-party//:serde_json",
+]
 
 rust_library(
     name = "policy-pdp-cedar",
     srcs = glob(["src/**/*.rs"]),
-    crate = "iam_pdp_cedar",
+    crate = "policy_pdp_cedar",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        "//audit/adapters/ledger-file:audit-ledger-file",
-        "//audit/core/chain-domain:audit-chain-domain",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
-        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
-        "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
-        "third-party//:cedar-policy",
-        "third-party//:serde_json",
-    ],
+    named_deps = _NAMED_DEPS,
+    deps = _DEPS + ["third-party//:cedar-policy"],
 )
 
-rust_test(
-    name = "policy-pdp-cedar-cedar-bundle-admission",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "cedar_bundle_admission",
-    crate_root = "tests/cedar_bundle_admission.rs",
-    visibility = ["PUBLIC"],
-    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
-    deps = [
-        "//audit/adapters/ledger-file:audit-ledger-file",
-        "//audit/core/chain-domain:audit-chain-domain",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
-        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
-        "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
-        "third-party//:serde_json",
-    ],
-)
+# One in-process test crate per root under tests/.
+_TEST_ROOTS = [
+    "cedar_bundle_admission",
+    "cedar_rbac_abac_pbac_grants",
+    "cedar_tenant_overlays",
+    "cedar_cross_tenant_evasion",
+    "cedar_step_up_forbid",
+    "cedar_cache_and_bundle_swap",
+    "cedar_audit_chain",
+    "cedar_contract_surface",
+]
 
-rust_test(
-    name = "policy-pdp-cedar-cedar-rbac-abac-pbac-grants",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "cedar_rbac_abac_pbac_grants",
-    crate_root = "tests/cedar_rbac_abac_pbac_grants.rs",
-    visibility = ["PUBLIC"],
-    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
-    deps = [
-        "//audit/adapters/ledger-file:audit-ledger-file",
-        "//audit/core/chain-domain:audit-chain-domain",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
-        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
-        "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
-        "third-party//:serde_json",
-    ],
-)
-
-rust_test(
-    name = "policy-pdp-cedar-cedar-tenant-overlays",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "cedar_tenant_overlays",
-    crate_root = "tests/cedar_tenant_overlays.rs",
-    visibility = ["PUBLIC"],
-    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
-    deps = [
-        "//audit/adapters/ledger-file:audit-ledger-file",
-        "//audit/core/chain-domain:audit-chain-domain",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
-        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
-        "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
-        "third-party//:serde_json",
-    ],
-)
-
-rust_test(
-    name = "policy-pdp-cedar-cedar-cross-tenant-evasion",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "cedar_cross_tenant_evasion",
-    crate_root = "tests/cedar_cross_tenant_evasion.rs",
-    visibility = ["PUBLIC"],
-    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
-    deps = [
-        "//audit/adapters/ledger-file:audit-ledger-file",
-        "//audit/core/chain-domain:audit-chain-domain",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
-        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
-        "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
-        "third-party//:serde_json",
-    ],
-)
-
-rust_test(
-    name = "policy-pdp-cedar-cedar-step-up-forbid",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "cedar_step_up_forbid",
-    crate_root = "tests/cedar_step_up_forbid.rs",
-    visibility = ["PUBLIC"],
-    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
-    deps = [
-        "//audit/adapters/ledger-file:audit-ledger-file",
-        "//audit/core/chain-domain:audit-chain-domain",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
-        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
-        "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
-        "third-party//:serde_json",
-    ],
-)
-
-rust_test(
-    name = "policy-pdp-cedar-cedar-cache-and-bundle-swap",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "cedar_cache_and_bundle_swap",
-    crate_root = "tests/cedar_cache_and_bundle_swap.rs",
-    visibility = ["PUBLIC"],
-    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
-    deps = [
-        "//audit/adapters/ledger-file:audit-ledger-file",
-        "//audit/core/chain-domain:audit-chain-domain",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
-        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
-        "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
-        "third-party//:serde_json",
-    ],
-)
-
-rust_test(
-    name = "policy-pdp-cedar-cedar-audit-chain",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "cedar_audit_chain",
-    crate_root = "tests/cedar_audit_chain.rs",
-    visibility = ["PUBLIC"],
-    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
-    deps = [
-        "//audit/adapters/ledger-file:audit-ledger-file",
-        "//audit/core/chain-domain:audit-chain-domain",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
-        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
-        "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
-        "third-party//:serde_json",
-    ],
-)
-
-rust_test(
-    name = "policy-pdp-cedar-cedar-contract-surface",
-    srcs = glob(["tests/**/*.rs"]),
-    crate = "cedar_contract_surface",
-    crate_root = "tests/cedar_contract_surface.rs",
-    visibility = ["PUBLIC"],
-    named_deps = {"policy_pdp_cedar": ":policy-pdp-cedar"},
-    deps = [
-        "//audit/adapters/ledger-file:audit-ledger-file",
-        "//audit/core/chain-domain:audit-chain-domain",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
-        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
-        "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
-        "third-party//:serde_json",
-    ],
-)
+[
+    rust_test(
+        name = "policy-pdp-cedar-" + stem.replace("_", "-"),
+        srcs = glob(["tests/**/*.rs"]),
+        crate = stem,
+        crate_root = "tests/" + stem + ".rs",
+        visibility = ["PUBLIC"],
+        named_deps = _NAMED_DEPS,
+        deps = _DEPS + [":policy-pdp-cedar"],
+    )
+    for stem in _TEST_ROOTS
+]

@@ -1,0 +1,11 @@
+# Product-root export of the SLO payloads: the owner grammar keeps
+# `observability/slos/` package-less (only generated payloads live there), so
+# this is the nearest package that may name them for the ontology facade's
+# SLO test: the prelude rewrites `CARGO_MANIFEST_DIR` into the compile sandbox,
+# so the payload directory must be mirrored there at its repository path.
+# Keyed by basename so the exported directory is the `slos/` directory itself.
+filegroup(
+    name = "slos",
+    srcs = {path.split("/")[-1]: path for path in glob(["observability/slos/*.generated.openslo.yaml"])},
+    visibility = ["PUBLIC"],
+)

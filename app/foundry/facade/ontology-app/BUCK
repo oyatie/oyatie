@@ -7,6 +7,7 @@ FACADE_TEST_DEPS = [
     "//app/foundry/ports/draft/records:foundry-records-draft",
     "third-party//:axum",
     "third-party//:http-body-util",
+    "third-party//:serde_json",
     "third-party//:tokio",
     "third-party//:tower",
 ]
@@ -99,7 +100,6 @@ FACADE_TESTS = [
     ("metrics-search-around", "metrics_count_search_around", FACADE_TEST_DEPS),
     ("metrics-set-reads", "metrics_count_set_reads", FACADE_TEST_DEPS),
     ("cross-tenant", "cross_tenant_isolation", FACADE_TEST_DEPS),
-    ("slo-render", "slo_render_is_the_source", FACADE_TEST_DEPS),
     ("runbook", "runbook_is_bound_to_its_objective", FACADE_TEST_DEPS),
     ("metrics-counts", "metrics_count_what_happened", FACADE_TEST_DEPS + [
         "//app/foundry/ports/draft/projection:foundry-projection-draft",
@@ -118,7 +118,7 @@ FACADE_TESTS = [
     ("migration-attest-malformed", "migration_attest_refuses_a_malformed_plan", MIGRATION_TEST_DEPS),
     ("statusz-triage-facts", "statusz_serves_the_triage_facts", MIGRATION_TEST_DEPS),
     ("objectives-measure", "objectives_measure_latency_and_the_denial_trail", FACADE_TEST_DEPS),
-    ("durable-projection", "the_projection_is_durable", FACADE_TEST_DEPS + [
+    ("durable-projection", "the_projection_is_durable", MIGRATION_TEST_DEPS + [
         "//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft",
         "//app/foundry/ports/draft/projection:foundry-projection-draft",
     ]),
@@ -143,6 +143,22 @@ FACADE_TESTS = [
     )
     for suffix, stem, deps in FACADE_TESTS
 ]
+
+# The SLO payload test reads `../../observability/slos/` from the manifest
+# directory cargo sets, so the sandbox mirrors both at their repository paths.
+SLO_TEST_MAPPED_SRCS = {src: FACADE_ROOT + "/" + src for src in TEST_SRCS}
+SLO_TEST_MAPPED_SRCS["//app/foundry:slos"] = "app/foundry/observability/slos"
+
+rust_test(
+    name = "foundry-ontology-app-slo-render",
+    srcs = [],
+    crate = "slo_render_is_the_source",
+    crate_root = FACADE_ROOT + "/tests/slo_render_is_the_source.rs",
+    env = {"CARGO_MANIFEST_DIR": FACADE_ROOT},
+    mapped_srcs = SLO_TEST_MAPPED_SRCS,
+    visibility = ["PUBLIC"],
+    deps = FACADE_TEST_DEPS,
+)
 
 # The drills spawn the real executable, located through the env cargo sets.
 DRILLS = [

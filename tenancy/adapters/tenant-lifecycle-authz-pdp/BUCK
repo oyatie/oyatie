@@ -4,10 +4,12 @@ rust_library(
     crate = "tenancy_tenant_lifecycle_authz_pdp",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    named_deps = {
+        "iam_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar",
+        "shared_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+    },
     deps = [
         "//tenancy/ports/tenant-lifecycle-authz:tenancy-tenant-lifecycle-authz-port",
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
-        "//policy/adapters/pdp-cedar:policy-pdp-cedar",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
         "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
         "third-party//:aws-lc-rs",
@@ -23,10 +25,12 @@ rust_test(
     crate = "tenancy_tenant_lifecycle_authz_pdp",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    named_deps = {
+        "iam_pdp_cedar": "//policy/adapters/pdp-cedar:policy-pdp-cedar",
+        "shared_pdp_kernel": "//policy/core/pdp-kernel:policy-pdp-kernel",
+    },
     deps = [
         "//tenancy/ports/tenant-lifecycle-authz:tenancy-tenant-lifecycle-authz-port",
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
-        "//policy/adapters/pdp-cedar:policy-pdp-cedar",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
         "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
         "third-party//:aws-lc-rs",
