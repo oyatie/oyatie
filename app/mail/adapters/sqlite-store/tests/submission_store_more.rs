@@ -29,6 +29,7 @@ fn request(now: i64) -> SubmissionAcceptance {
             send_at: now,
             undo_status: UndoStatus::Pending,
             delivery_status: BTreeMap::new(),
+            dsn_blob_ids: Vec::new(),
         },
         email_revision: 1,
         raw: RAW.into(),

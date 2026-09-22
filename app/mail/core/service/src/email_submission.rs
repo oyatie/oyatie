@@ -95,6 +95,7 @@ impl MailService {
             send_at,
             undo_status: UndoStatus::Pending,
             delivery_status: BTreeMap::new(),
+            dsn_blob_ids: Vec::new(),
         };
         self.store
             .accept_submission(

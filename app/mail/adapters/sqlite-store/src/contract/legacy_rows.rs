@@ -131,6 +131,7 @@ pub(super) fn ancillary(tx: &Connection, spec: &LegacyAccountSpec) -> rusqlite::
         send_at: 2_000_000_000,
         undo_status: UndoStatus::Pending,
         delivery_status: BTreeMap::new(),
+        dsn_blob_ids: Vec::new(),
     };
     let state = serde_json::to_string(&record).map_err(|_| rusqlite::Error::InvalidQuery)?;
     tx.execute(
@@ -183,4 +184,19 @@ pub(super) fn queues(tx: &Connection, first: &LegacyAccountSpec) -> rusqlite::Re
         [],
     )?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_state_row_written_without_dsn_blob_ids_still_reads_back() {
+        let state = r#"{"id":"s-a","identity_id":"a","email_id":"e1","thread_id":"e1",
+            "envelope":{"mail_from":{"email":"alice@example.org","parameters":{}},
+            "rcpt_to":[{"email":"remote@example.net","parameters":{}}]},
+            "send_at":2000000000,"undo_status":"Pending","delivery_status":{}}"#;
+        let record: SubmissionRecord = serde_json::from_str(state).unwrap();
+        assert!(record.dsn_blob_ids.is_empty());
+    }
 }

@@ -206,6 +206,7 @@ fn submission_accept_cancel<S: Store>(store: &Counting<S>) -> Result<u64, String
             send_at: i64::MAX / 4,
             undo_status: UndoStatus::Pending,
             delivery_status: BTreeMap::new(),
+            dsn_blob_ids: Vec::new(),
         },
         email_revision: revision(store)?,
         raw: b"From: alice@example.org\r\nSubject: q\r\n\r\nbody\r\n".into(),
