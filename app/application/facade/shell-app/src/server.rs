@@ -19,6 +19,7 @@ use leptos::prelude::*;
 
 use crate::render_envelope_json;
 
+mod catalog_navigation;
 const TOKENS_CSS: &str = include_str!("../assets/tokens.css");
 const APP_CSS: &str = include_str!("../assets/app.css");
 const SITE_ROOT: &str = "target/site";
@@ -194,6 +195,7 @@ mountDashboardIsland();"#
             <body>
                 <noscript>"The Oyatie console needs WebAssembly enabled for island hydration; the server-rendered shell remains visible."</noscript>
                 <crate::App />
+                <script>{catalog_navigation::SCRIPT}</script>
                 <script type="module">{island_bootstrap}</script>
             </body>
         </html>
