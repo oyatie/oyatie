@@ -125,6 +125,9 @@ async fn live_ssr_host_serves_routes_confines_packages_and_shuts_down_cleanly() 
     assert!(root.contains("data-island=\"render-envelope-dashboard\""));
     assert!(root.contains("mount_dashboard_islands"));
     assert!(root.contains("/style/app.css"));
+    assert!(root.contains("href=\"#ontology-command-console\""));
+    assert!(root.contains("Open ontology"));
+    assert!(root.contains("id=\"ontology-command-console\""));
 
     let index = request(
         address,

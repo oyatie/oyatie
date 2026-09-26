@@ -6052,9 +6052,9 @@ fn service_catalog_module(module: ModuleCard) -> impl IntoView {
                 <span class=criticality_class>{criticality}</span>
             </span>
             <span class="catalog-row-actions">
-                <button type="button" data-catalog-action="open" data-catalog-target=route>
+                <a href=route data-catalog-action="open">
                     {module.action_label}
-                </button>
+                </a>
                 <button type="button" data-catalog-action="pin">"Pin"</button>
                 <button type="button" data-catalog-action="request">"Request access"</button>
             </span>
@@ -6142,16 +6142,46 @@ fn catalog_criticality_for(group: &str, name: &str) -> &'static str {
 }
 
 fn catalog_route_for(name: &str) -> &'static str {
-    if name.contains("Workflow") || name.contains("Approvals") {
-        "#workflow-studio"
-    } else if name.contains("Cloud") || name.contains("FinOps") {
-        "#cloud-ops-cockpit"
-    } else if name.contains("Audit") {
-        "#audit-ledger"
-    } else if name.contains("Human") || name.contains("Clinical") || name.contains("Patient") {
-        "#identity-employees"
-    } else {
-        "#work-hub"
+    match name {
+        "Tenant Admin" => "#substrate-proof",
+        "Cloud Compute" | "Cloud Network" | "FinOps" => "#cloud-ops-cockpit",
+        "Audit Chain" => "#evidence-spine",
+        "Work Home" | "Mail" | "Secure Messenger" => "#work-hub",
+        "Accounting" => "#finance-commercial-service",
+        "Human Resources" => "#identity-workforce-service",
+        "Approvals" => "#daily-execution",
+        "Workflow Studio" | "Care Workflows" => "#workflow-studio",
+        "Clinical Home" | "Patient Schedule" => "#schedule-title",
+        "Ontology" => "#ontology-command-console",
+        _ => "#service-catalog",
+    }
+}
+
+#[cfg(test)]
+mod catalog_navigation_tests {
+    use super::*;
+
+    #[test]
+    fn every_permitted_module_opens_a_rendered_section() {
+        for context in OperatorContext::ALL {
+            let envelope = server_derived_envelope(context);
+            let dashboard = static_dashboard_content(&envelope);
+            for module in &envelope.modules {
+                let route = catalog_route_for(&module.name);
+                assert_ne!(route, "#service-catalog", "{} needs a route", module.name);
+                assert!(
+                    static_catalog_module(module)
+                        .contains(&format!("href=\"{route}\" data-catalog-action=\"open\"")),
+                    "{} needs a usable link",
+                    module.name
+                );
+                assert!(
+                    dashboard.contains(&format!("id=\"{}\"", &route[1..])),
+                    "{} points to a missing section: {route}",
+                    module.name
+                );
+            }
+        }
     }
 }
 
@@ -8055,7 +8085,7 @@ fn static_catalog_module(module: &ModuleCard) -> String {
     let sidepeek_id = format!("CAT-{}", catalog_code_for(&module.name));
 
     format!(
-        r#"<article class="catalog-module-row module-card" data-catalog-module="true" data-catalog-group="{group_slug}" data-catalog-state="{state}"><span class="health-dot health-{state}" aria-label="{state_label}"></span><div class="catalog-module-main"><button type="button" class="catalog-module-title" data-sidepeek-trigger="catalog-module" data-sidepeek-title="{name}" data-sidepeek-id="{sidepeek_id}" data-sidepeek-desc="{sidepeek_desc}" data-sidepeek-owner="{owner}" data-sidepeek-risk="{state_label}" data-sidepeek-sla="4.0h review window">{name}</button><p>{description}</p><code>{code}</code></div><span class="cat-tag">{group}</span><span class="owner-cell"><span class="avatar-xs" aria-hidden="true">{avatar}</span><span>{owner}</span></span><span class="catalog-dependency-chain"><em>Workflow</em><i aria-hidden="true">→</i><em>{dependency}</em><i aria-hidden="true">→</i><em>Audit</em><span class="crit crit-{criticality}">{criticality}</span></span><span class="catalog-row-actions"><button type="button" data-catalog-action="open" data-catalog-target="{route}">{action}</button><button type="button" data-catalog-action="pin">Pin</button><button type="button" data-catalog-action="request">Request access</button></span></article>"#,
+        r#"<article class="catalog-module-row module-card" data-catalog-module="true" data-catalog-group="{group_slug}" data-catalog-state="{state}"><span class="health-dot health-{state}" aria-label="{state_label}"></span><div class="catalog-module-main"><button type="button" class="catalog-module-title" data-sidepeek-trigger="catalog-module" data-sidepeek-title="{name}" data-sidepeek-id="{sidepeek_id}" data-sidepeek-desc="{sidepeek_desc}" data-sidepeek-owner="{owner}" data-sidepeek-risk="{state_label}" data-sidepeek-sla="4.0h review window">{name}</button><p>{description}</p><code>{code}</code></div><span class="cat-tag">{group}</span><span class="owner-cell"><span class="avatar-xs" aria-hidden="true">{avatar}</span><span>{owner}</span></span><span class="catalog-dependency-chain"><em>Workflow</em><i aria-hidden="true">→</i><em>{dependency}</em><i aria-hidden="true">→</i><em>Audit</em><span class="crit crit-{criticality}">{criticality}</span></span><span class="catalog-row-actions"><a href="{route}" data-catalog-action="open">{action}</a><button type="button" data-catalog-action="pin">Pin</button><button type="button" data-catalog-action="request">Request access</button></span></article>"#,
         group_slug = escape(group_slug),
         state = escape(state),
         state_label = escape(state_label),

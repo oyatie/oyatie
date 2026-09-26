@@ -8799,6 +8799,7 @@ h3 {
 }
 
 .catalog-row-actions button,
+.catalog-row-actions a,
 .catalog-graph-actions button {
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius-sm);
@@ -8807,9 +8808,10 @@ h3 {
   font-size: var(--text-cap);
   font-weight: 800;
   padding: 0.35rem 0.55rem;
+  text-decoration: none;
 }
 
-.catalog-row-actions button:first-child,
+.catalog-row-actions a:first-child,
 .catalog-graph-actions button:first-child {
   border-color: var(--accent);
   color: var(--accent-deep);
