@@ -1,9 +1,15 @@
 // ponytail: This bridge serves the oversized legacy shell view; use an anchor when that view is split.
 pub(super) const SCRIPT: &str = r#"
-document.querySelector('[data-ontology-detail]')?.setAttribute('role', 'status');
-document.querySelectorAll('[data-ontology-node]').forEach((node) => {
-  node.setAttribute('aria-pressed', String(node.classList.contains('selected')));
-});
+function initializeOntologySelection() {
+  const graph = document.querySelector('[data-ontology-console]');
+  graph?.querySelector('[data-ontology-detail]')?.setAttribute('role', 'status');
+  graph?.querySelectorAll('[data-ontology-node]').forEach((node) => {
+    node.setAttribute('aria-pressed', String(node.classList.contains('selected')));
+  });
+}
+initializeOntologySelection();
+const host = document.getElementById('dashboard-island-root');
+if (host) new MutationObserver(initializeOntologySelection).observe(host, { childList: true, subtree: true });
 document.addEventListener('click', (event) => {
   if (!(event.target instanceof Element)) return;
   const button = event.target.closest('[data-catalog-action="open"]');
