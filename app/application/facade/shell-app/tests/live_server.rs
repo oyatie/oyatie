@@ -125,6 +125,13 @@ async fn live_ssr_host_serves_routes_confines_packages_and_shuts_down_cleanly() 
     assert!(root.contains("data-island=\"render-envelope-dashboard\""));
     assert!(root.contains("mount_dashboard_islands"));
     assert!(root.contains("/style/app.css"));
+    assert!(root.contains("CAT-OYATIE-ONTOLOGY"));
+    assert!(root.contains("data-sidepeek-title=\"Ontology\""));
+    assert!(root.contains("Open ontology"));
+    assert!(root.contains("ontology-command-console"));
+    assert!(root.contains("panel.focus({ preventScroll: true })"));
+    assert!(root.contains("data-ontology-action=\"inspect-fact\""));
+    assert!(root.contains("candidate.setAttribute('aria-pressed'"));
 
     let index = request(
         address,
