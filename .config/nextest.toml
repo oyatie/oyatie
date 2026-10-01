@@ -19,4 +19,4 @@ path = "junit.xml"
 fail-fast = false
 retries = 0
 test-threads = 1
-default-filter = "test(/^live_/)"
+default-filter = "test(/(^|::)live_[^:]*$/)"

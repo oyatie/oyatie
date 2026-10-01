@@ -266,7 +266,7 @@ fn workflow_dir_is_the_occupant_set() {
 fn nextest_live_profile_occupies_live_filter() {
     let t = read(".config/nextest.toml");
     assert!(t.contains("[profile.live]"));
-    assert!(t.contains("test(/^live_/)"));
+    assert!(t.contains("test(/(^|::)live_[^:]*$/)"));
 }
 
 #[test]
