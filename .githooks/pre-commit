@@ -3,37 +3,56 @@
 #
 # Staged bytes, not the worktree copy: `rustfmt --check <path>` reads from disk, so partial staging
 # (git add -p, or editing after add) let unformatted content commit while the hook reported clean.
-# Missing rustfmt warns and passes rather than blocking every commit in every worktree; presubmit
-# still gates fmt, so a local outage buys nothing. A failure prints the command that fixes it,
-# because a hook that only says "no" makes an agent retry the same commit forever.
+# Unchanged module children must come from the same index snapshot. They are inputs to recursive
+# formatting, not additional check roots. A missing tool or input refuses the formatting verdict.
 set -eu
 
-staged=$(git diff --cached --name-only --diff-filter=ACMR -- '*.rs')
+index_tree=$(git write-tree) || { echo "pre-commit: cannot resolve staged tree" >&2; exit 1; }
+if base_tree=$(git rev-parse --verify 'HEAD^{tree}' 2>/dev/null); then
+  :
+elif ! git rev-parse --verify --quiet HEAD >/dev/null; then
+  base_tree=$(git hash-object -w -t tree --stdin </dev/null)
+else
+  echo "pre-commit: cannot resolve HEAD tree" >&2
+  exit 1
+fi
+staged=$(git diff --name-only --diff-filter=ACMR "$base_tree" "$index_tree" -- '*.rs')
 [ -n "$staged" ] || exit 0
 
-if ! command -v rustfmt >/dev/null 2>&1; then
-  echo "pre-commit: rustfmt not on PATH; skipping fmt check (presubmit still gates it)" >&2
-  exit 0
+if ! command -v rustup >/dev/null 2>&1; then
+  echo "pre-commit: rustup not on PATH; refusing fmt check" >&2
+  exit 1
 fi
 
-top=$(git rev-parse --show-toplevel)
-tmp=$(mktemp -d) || { echo "pre-commit: mktemp failed; skipping fmt check" >&2; exit 0; }
+tmp=$(mktemp -d) || { echo "pre-commit: mktemp failed; refusing fmt check" >&2; exit 1; }
 trap 'rm -rf "$tmp"' EXIT INT TERM
 
+inputs=$(git ls-tree -r --name-only --full-tree "$index_tree")
 IFS='
 '
+for f in $inputs; do
+  case "$f" in
+    *.rs|rustfmt.toml|rust-toolchain.toml)
+      mkdir -p "$tmp/$(dirname "$f")"
+      git show "$index_tree:$f" > "$tmp/$f" || { echo "pre-commit: cannot read staged $f" >&2; exit 1; }
+      ;;
+  esac
+done
+for f in rustfmt.toml rust-toolchain.toml; do
+  [ -f "$tmp/$f" ] || { echo "pre-commit: missing staged $f" >&2; exit 1; }
+done
 for f in $staged; do
-  mkdir -p "$tmp/$(dirname "$f")"
-  # A missing blob is a broken index, not a formatting verdict: report it, do not pass silently.
-  git show ":$f" > "$tmp/$f" || { echo "pre-commit: cannot read staged $f" >&2; exit 1; }
+  [ -f "$tmp/$f" ] || { echo "pre-commit: missing staged Rust $f" >&2; exit 1; }
+  printf '%s\0' "$f" >> "$tmp/check-paths"
 done
 unset IFS
 
 # Real paths, not stdin: rustfmt exits 0 for stdin even when it prints a diff, so piping the
-# staged bytes in would look strict and gate nothing. The file list still reaches xargs -0 rustfmt.
-extracted=$(cd "$tmp" && find . -name '*.rs' | wc -l)
-[ "$extracted" -gt 0 ] || { echo "pre-commit: extracted no staged Rust; refusing to pass blind" >&2; exit 1; }
-if (cd "$tmp" && find . -name '*.rs' -print0 | xargs -0 rustfmt --check --config-path "$top/rustfmt.toml" --); then
+# staged bytes in would look strict and gate nothing. Only selected roots reach xargs -0 rustfmt;
+# rustfmt follows their module declarations through the complete extracted Rust inputs.
+# An inherited rustup override must not replace the captured toolchain configuration.
+[ -s "$tmp/check-paths" ] || { echo "pre-commit: extracted no staged Rust; refusing to pass blind" >&2; exit 1; }
+if (cd "$tmp" && unset RUSTUP_TOOLCHAIN && formatter=$(rustup which rustfmt) && xargs -0 "$formatter" --check --config-path "$tmp/rustfmt.toml" -- < "$tmp/check-paths"); then
   exit 0
 fi
 echo "" >&2

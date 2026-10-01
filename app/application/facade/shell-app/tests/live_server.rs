@@ -30,7 +30,7 @@ fn post_bootstrap_mount_contract_preserves_one_host_and_one_island_root() {
     // component root beneath the host rather than replacing the host itself. The two source
     // contracts below prevent duplicate IDs after bootstrap.
     assert!(app_source.contains("<div id=crate::DASHBOARD_MOUNT_HOST_ID>"));
-    assert!(bootstrap_source.contains("element.set_inner_html(\"\");"));
+    assert!(bootstrap_source.contains("parent.set_inner_html(\"\");"));
     assert!(bootstrap_source.contains("mount_to(parent, DashboardIsland)"));
     assert!(
         !island_source
@@ -132,6 +132,30 @@ async fn live_ssr_host_serves_routes_confines_packages_and_shuts_down_cleanly() 
     assert!(root.contains("panel.focus({ preventScroll: true })"));
     assert!(root.contains("data-ontology-action=\"inspect-fact\""));
     assert!(root.contains("candidate.setAttribute('aria-pressed'"));
+    let markup = root.split("<script").next().expect("SSR shell markup");
+    let ids = attribute_values(markup, "id")
+        .into_iter()
+        .collect::<std::collections::BTreeSet<_>>();
+    assert!(!ids.is_empty(), "SSR shell must expose destination IDs");
+    for fragment in attribute_values(markup, "href")
+        .into_iter()
+        .filter_map(|href| href.strip_prefix('#'))
+        .filter(|fragment| !fragment.is_empty())
+    {
+        assert!(
+            ids.contains(fragment),
+            "SSR fragment #{fragment} has no destination"
+        );
+    }
+    for label in attribute_values(markup, "aria-labelledby")
+        .into_iter()
+        .flat_map(str::split_whitespace)
+    {
+        assert!(
+            ids.contains(label),
+            "SSR label reference {label} has no destination"
+        );
+    }
 
     let index = request(
         address,
@@ -239,6 +263,14 @@ async fn live_ssr_host_serves_routes_confines_packages_and_shuts_down_cleanly() 
     tokio::fs::remove_dir_all(&package_root)
         .await
         .expect("remove test package root");
+}
+
+fn attribute_values<'a>(markup: &'a str, name: &str) -> Vec<&'a str> {
+    markup
+        .split(&format!(" {name}=\""))
+        .skip(1)
+        .filter_map(|suffix| suffix.split('"').next())
+        .collect()
 }
 
 async fn spawn_server(

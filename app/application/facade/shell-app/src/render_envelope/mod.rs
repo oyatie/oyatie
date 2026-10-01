@@ -7,8 +7,6 @@ mod healthcare_clinician;
 #[cfg(any(feature = "ssr", test))]
 mod product_activity;
 #[cfg(any(feature = "ssr", test))]
-pub mod source;
-#[cfg(any(feature = "ssr", test))]
 mod tenant_admin;
 mod types;
 
@@ -20,25 +18,43 @@ use self::{
     healthcare_clinician::healthcare_clinician_envelope, tenant_admin::tenant_admin_envelope,
 };
 
-/// Composition root for every served envelope: the Ontology card's source is
-/// chosen here and nowhere else, from [`source::STATUS_URL_VAR`] and
-/// [`source::STATUS_TOKEN_VAR`]; unconfigured, the card says so.
+/// The anonymous shell serves a preview; it never consults an operator source.
 #[cfg(any(feature = "ssr", test))]
 pub fn server_derived_envelope(context: OperatorContext) -> TenantRenderEnvelope {
-    permitted_envelope_snapshot(context, &*source::configured_source())
+    let mut envelope = match context {
+        OperatorContext::TenantAdmin => tenant_admin_envelope(),
+        OperatorContext::CorporateOffice => corporate_office_envelope(),
+        OperatorContext::HealthcareClinician => healthcare_clinician_envelope(),
+    };
+    envelope.server_derivation_note = "Anonymous preview only: this is sample UI. No tenant or role was verified, and live service status was not queried.".to_owned();
+    if context == OperatorContext::TenantAdmin {
+        if let Some(card) = envelope
+            .modules
+            .iter_mut()
+            .find(|card| card.name == "Ontology")
+        {
+            card.description
+                .push_str(" · Preview only · live ontology status requires a verified session");
+        }
+    }
+    envelope
 }
 
-/// Only the context that holds the Ontology grant consults `ontology`.
-#[cfg(any(feature = "ssr", test))]
+/// Contract-test snapshot only; no served route accepts an Ontology source.
+#[cfg(test)]
 pub fn permitted_envelope_snapshot(
     context: OperatorContext,
     ontology: &dyn application_ontology_card::OntologyCardSource,
 ) -> TenantRenderEnvelope {
-    match context {
-        OperatorContext::TenantAdmin => tenant_admin_envelope(ontology),
+    let mut envelope = match context {
+        OperatorContext::TenantAdmin => tenant_admin_envelope(),
         OperatorContext::CorporateOffice => corporate_office_envelope(),
         OperatorContext::HealthcareClinician => healthcare_clinician_envelope(),
+    };
+    if context == OperatorContext::TenantAdmin {
+        tenant_admin::with_ontology_status(&mut envelope, ontology);
     }
+    envelope
 }
 
 #[cfg(test)]
@@ -146,12 +162,29 @@ mod tests {
     }
 
     #[test]
-    fn the_served_envelope_without_configuration_says_unavailable_and_never_shows_the_fixture() {
+    fn every_anonymous_context_is_a_preview_in_the_api_and_ssr() {
+        for context in OperatorContext::ALL {
+            let envelope = server_derived_envelope(context);
+            assert!(
+                envelope
+                    .server_derivation_note
+                    .contains("Anonymous preview only"),
+                "{context:?}"
+            );
+            assert!(
+                envelope
+                    .server_derivation_note
+                    .contains("No tenant or role was verified"),
+                "{context:?}"
+            );
+            let json = crate::app::render_envelope_json(context.id()).expect("known context");
+            assert!(json.contains("Anonymous preview only"), "{context:?}");
+            assert!(!json.contains(SENTINEL), "{context:?}");
+        }
         let envelope = server_derived_envelope(OperatorContext::TenantAdmin);
         let card = ontology_card(&envelope).expect("tenant admin sees the Ontology card");
         assert!(
-            card.description
-                .contains("unavailable: ontology status source not configured"),
+            card.description.contains("Preview only"),
             "{}",
             card.description
         );
@@ -166,6 +199,10 @@ mod tests {
             envelope,
             server_derived_envelope(OperatorContext::TenantAdmin)
         );
+        let html = crate::app::static_dashboard_html();
+        assert!(html.contains("Anonymous preview only"), "{html}");
+        assert!(html.contains("Preview only"), "{html}");
+        assert!(!html.contains(SENTINEL), "{html}");
     }
 
     #[test]

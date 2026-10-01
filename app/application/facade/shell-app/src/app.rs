@@ -256,7 +256,7 @@ const BUSINESS_LOGIC_ROWS: [BusinessLogicRow; 7] = [
 ];
 
 pub fn shell_scope_notice_text() -> &'static str {
-    "Operator console scope: panels render from the production shell-BFF contract source with deny-by-default module visibility; no PHI/PII · shell covers close, workflow, people, mail, messenger, and community."
+    "Anonymous preview only: sample tenant and role; no PHI/PII. No tenant or role was verified, and live service status was not queried. Live Ontology status requires sign-in."
 }
 
 pub fn shell_landmark_label() -> &'static str {
@@ -345,25 +345,25 @@ fn ShellRail() -> impl IntoView {
             <a class="rail-nav" href="#cloud-ops-cockpit"><span aria-hidden="true">"◫"</span>"Cloud Ops"</a>
             <p class="rail-group">"Money"</p>
             <a class="rail-nav" href="#payroll-cockpit"><span aria-hidden="true">"₩"</span>"Payroll"</a>
-            <a class="rail-nav" href="#ledger-preview"><span aria-hidden="true">"▤"</span>"Ledger"</a>
-            <a class="rail-nav" href="#vendors-spend"><span aria-hidden="true">"◇"</span>"Vendors & spend"</a>
-            <a class="rail-nav" href="#billing-tax"><span aria-hidden="true">"▧"</span>"Billing & tax"</a>
-            <a class="rail-nav" href="#finops-pane"><span aria-hidden="true">"₩"</span>"FinOps"</a>
+            <a class="rail-nav" href="#finance-panel-ledger"><span aria-hidden="true">"▤"</span>"Ledger"</a>
+            <a class="rail-nav" href="#finance-panel-vendors"><span aria-hidden="true">"◇"</span>"Vendors & spend"</a>
+            <a class="rail-nav" href="#finance-panel-billing"><span aria-hidden="true">"▧"</span>"Billing & tax"</a>
+            <a class="rail-nav" href="#cockpit-panel-finops"><span aria-hidden="true">"₩"</span>"FinOps"</a>
             <p class="rail-group">"Compliance"</p>
             <a class="rail-nav" href="#filing-readiness"><span aria-hidden="true">"□"</span>"Filing readiness"<em>"2"</em></a>
-            <a class="rail-nav" href="#audit-ledger"><span aria-hidden="true">"◱"</span>"Audit ledger"</a>
-            <a class="rail-nav" href="#policy-access"><span aria-hidden="true">"⚿"</span>"Policy & access"</a>
+            <a class="rail-nav" href="#resource-panel-audit"><span aria-hidden="true">"◱"</span>"Audit ledger"</a>
+            <a class="rail-nav" href="#cockpit-panel-policy"><span aria-hidden="true">"⚿"</span>"Policy & access"</a>
             <p class="rail-group">"People"</p>
-            <a class="rail-nav" href="#identity-employees"><span aria-hidden="true">"◎"</span>"Employees"</a>
-            <a class="rail-nav" href="#leave-time"><span aria-hidden="true">"◫"</span>"Leave & time"</a>
+            <a class="rail-nav" href="#identity-panel-employees"><span aria-hidden="true">"◎"</span>"Employees"</a>
+            <a class="rail-nav" href="#finance-panel-leave"><span aria-hidden="true">"◫"</span>"Leave & time"</a>
             <a class="rail-nav" href="#identity-workforce-service"><span aria-hidden="true">"⚿"</span>"Auth · Org"</a>
             <p class="rail-group">"Trust"</p>
-            <a class="rail-nav" href="#resource-inventory"><span aria-hidden="true">"▤"</span>"Resource inventory"</a>
+            <a class="rail-nav" href="#resource-panel-inventory"><span aria-hidden="true">"▤"</span>"Resource inventory"</a>
             <a class="rail-nav" href="#modules-title"><span aria-hidden="true">"▦"</span>"Service catalog"</a>
             <a class="rail-nav" href="#evidence-spine"><span aria-hidden="true">"▥"</span>"Evidence spine"</a>
-            <a class="rail-nav" href="#deployment-gates"><span aria-hidden="true">"✓"</span>"Deployment gates"</a>
-            <a class="rail-nav" href="#ontology-title"><span aria-hidden="true">"◎"</span>"Object graph"</a>
-            <a class="rail-nav" href="#intelligence-title"><span aria-hidden="true">"✦"</span>"Copilot rail"</a>
+            <a class="rail-nav" href="#resource-panel-gates"><span aria-hidden="true">"✓"</span>"Deployment gates"</a>
+            <a class="rail-nav" href="#ontology-command-console"><span aria-hidden="true">"◎"</span>"Object graph"</a>
+            <a class="rail-nav" href="#intelligence-command-console"><span aria-hidden="true">"✦"</span>"Copilot rail"</a>
             <div class="workspace-switch">
                 <span class="workspace-avatar" aria-hidden="true">"N"</span>
                 <div>
@@ -406,7 +406,7 @@ fn MobileNavBar() -> impl IntoView {
                     <span aria-hidden="true">"◫"</span>
                     "Cloud"
                 </a>
-                <a href="#resource-audit-console">
+                <a href="#resource-panel-audit">
                     <span aria-hidden="true">"▤"</span>
                     "Audit"
                 </a>
@@ -470,8 +470,7 @@ fn HeroPanel() -> impl IntoView {
                         <span class="hero-lens-chip">"● Lens: tenant admin · Finance · 1,000 ppl"</span>
                     </div>
                     <p id="console-notice" class="scope-notice" role="note">
-                        "Production shell-BFF contract source — deny-by-default module visibility; no PHI/PII. "
-                        <span>"This week — close, filings, people, approvals."</span>
+                        {shell_scope_notice_text()}
                     </p>
                 </div>
                 <section class="hero-close-strip" aria-label="FD-001 close command proof">
@@ -745,6 +744,7 @@ pub fn DashboardIsland() -> impl IntoView {
     let (active_context, set_active_context) = signal(OperatorContext::TenantAdmin);
     let (selected_node_id, set_selected_node_id) = signal(initial_node_id);
     let (envelope, set_envelope) = signal(initial_envelope);
+    let request_generation = RwSignal::new(0_u64);
     let (loading, set_loading) = signal(false);
     let (error, set_error) = signal(None::<String>);
     let (active_surface, set_active_surface) = signal(ProductSurface::Workflow);
@@ -758,6 +758,7 @@ pub fn DashboardIsland() -> impl IntoView {
     if envelope.get_untracked().is_none() {
         request_render_envelope(
             OperatorContext::TenantAdmin,
+            request_generation,
             set_envelope,
             set_selected_node_id,
             set_loading,
@@ -765,17 +766,30 @@ pub fn DashboardIsland() -> impl IntoView {
         );
     }
 
-    // A-2: attach the reusable WAI-ARIA tablist keyboard island once the dashboard
-    // markup (which carries the five tablists) is in the DOM. The effect re-runs when
-    // the envelope resolves client-side, and `wire_tablist_keyboard_navigation` is
-    // idempotent (it skips any tablist it has already wired), so re-entry is safe.
+    // Bind navigation after the dashboard renders, including when reactive state
+    // replaces its panels. Listener cleanup belongs to the island's lifetime.
     #[cfg(target_arch = "wasm32")]
     {
+        on_cleanup(detach_island_listeners);
         Effect::new(move |_| {
-            // Track the envelope so the island re-binds after the async fetch swaps
-            // in the dashboard panels; the wiring itself is guarded against repeats.
-            let _ = envelope.get();
-            wire_tablist_keyboard_navigation();
+            let _ = (
+                envelope.get(),
+                selected_node_id.get(),
+                active_surface.get(),
+                workflow_tool.get(),
+                draft_node_count.get(),
+                selected_hub_index.get(),
+                draft_body.get(),
+                local_drafts.get(),
+            );
+            // The render effect can run after this effect. Wait one microtask so
+            // listener targets come from the settled dashboard DOM.
+            leptos::task::spawn_local_scoped_with_cancellation(async {
+                detach_island_listeners();
+                wire_tablist_keyboard_navigation();
+                wire_fragment_navigation();
+                restore_fragment_destination();
+            });
         });
     }
 
@@ -784,7 +798,7 @@ pub fn DashboardIsland() -> impl IntoView {
             class=move || if render_signal(loading) { "dashboard-island loading" } else { "dashboard-island" }
             data-island="render-envelope-dashboard"
             aria-live="polite"
-            aria-busy=move || render_signal(loading)
+            aria-busy=move || render_signal(loading).to_string()
         >
             <section class="context-switcher island-frame" aria-labelledby="context-title">
                 <div>
@@ -797,11 +811,12 @@ pub fn DashboardIsland() -> impl IntoView {
                         <button
                             type="button"
                             class=move || if render_signal(active_context) == context { "context-card selected" } else { "context-card" }
-                            aria-pressed=move || render_signal(active_context) == context
+                            aria-pressed=move || (render_signal(active_context) == context).to_string()
                             on:click=move |_| {
                                 set_active_context.set(context);
                                 request_render_envelope(
                                     context,
+                                    request_generation,
                                     set_envelope,
                                     set_selected_node_id,
                                     set_loading,
@@ -865,10 +880,8 @@ const TABLIST_SELECTORS: [&str; 5] = [
 
 /// Reusable client island (A-2): attaches canonical WAI-ARIA tablist keyboard
 /// behaviour to every dashboard tablist. Idempotent — a `data-tablist-wired`
-/// marker stops re-entry from the reactive effect re-binding a tablist. The
-/// `Closure`s it allocates are registered via `on_cleanup`, which both keeps
-/// them alive while the listeners are live and removes the listeners (so no
-/// closure is dropped while still attached) when the island unmounts.
+/// marker stops duplicate binding. The island retains listener closures until
+/// rebinding or unmounting, then detaches them before releasing the callbacks.
 #[cfg(target_arch = "wasm32")]
 fn wire_tablist_keyboard_navigation() {
     let Some(document) = web_sys::window().and_then(|window| window.document()) else {
@@ -931,9 +944,10 @@ fn apply_roving_tabindex(tabs: &[web_sys::HtmlElement]) {
 }
 
 /// Activate `target` within its tablist: update `aria-selected`, the `active`
-/// class on tab + matching panel, roving tabindex, and move focus to it.
+/// class on tab + matching panel and roving tabindex. Tab interactions move
+/// focus; fragment restoration can update selection without stealing focus.
 #[cfg(target_arch = "wasm32")]
-fn activate_tab(target: &web_sys::HtmlElement, tabs: &[web_sys::HtmlElement]) {
+fn activate_tab(target: &web_sys::HtmlElement, tabs: &[web_sys::HtmlElement], move_focus: bool) {
     let Some(document) = web_sys::window().and_then(|window| window.document()) else {
         return;
     };
@@ -963,7 +977,138 @@ fn activate_tab(target: &web_sys::HtmlElement, tabs: &[web_sys::HtmlElement]) {
         }
     }
 
-    let _ = target.focus();
+    if move_focus {
+        let _ = target.focus();
+    }
+}
+
+/// Reveal an anchor destination through its existing tab/panel relationship.
+#[cfg(target_arch = "wasm32")]
+fn reveal_fragment_destination(target: web_sys::Element, move_focus: bool) {
+    use wasm_bindgen::JsCast;
+
+    let Some(document) = web_sys::window().and_then(|window| window.document()) else {
+        return;
+    };
+
+    if let Ok(Some(panel)) = target.closest("[role=\"tabpanel\"]") {
+        if let Some(tab) = panel
+            .get_attribute("aria-labelledby")
+            .and_then(|id| document.get_element_by_id(&id))
+            .filter(|tab| {
+                tab.get_attribute("role").as_deref() == Some("tab")
+                    && tab.get_attribute("aria-controls").as_deref() == Some(panel.id().as_str())
+            })
+        {
+            if let (Ok(tab), Ok(Some(tablist))) = (
+                tab.clone().dyn_into::<web_sys::HtmlElement>(),
+                tab.closest("[role=\"tablist\"]"),
+            ) {
+                activate_tab(&tab, &collect_tablist_tabs(&tablist), false);
+            }
+        }
+    }
+
+    if move_focus {
+        if let Some(element) = target.dyn_ref::<web_sys::HtmlElement>() {
+            if !element.has_attribute("tabindex") {
+                let _ = element.set_attribute("tabindex", "-1");
+            }
+            let _ = element.focus();
+        }
+        target.scroll_into_view();
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen::prelude::wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(catch, js_name = decodeURIComponent)]
+    fn decode_fragment_id(fragment: &str) -> Result<String, wasm_bindgen::JsValue>;
+}
+
+#[cfg(target_arch = "wasm32")]
+fn current_fragment_destination(document: &web_sys::Document) -> Option<web_sys::Element> {
+    if let Ok(Some(target)) = document.query_selector(":target") {
+        return Some(target);
+    }
+    // Replacing the SSR target during WASM mount can leave :target unresolved.
+    let url = document.url().ok()?;
+    let (_, fragment) = url.split_once('#')?;
+    let id = decode_fragment_id(fragment).ok()?;
+    document.get_element_by_id(&id)
+}
+
+#[cfg(target_arch = "wasm32")]
+fn restore_fragment_destination() {
+    let Some(document) = web_sys::window().and_then(|window| window.document()) else {
+        return;
+    };
+    if let Some(target) = current_fragment_destination(&document) {
+        // The Ontology bridge owns the canonical console target and restores its
+        // focus only when context and facts match. Other targets use this restorer.
+        let move_focus = target.id() != "ontology-command-console"
+            && document
+                .active_element()
+                .is_none_or(|element| element.tag_name() == "BODY");
+        reveal_fragment_destination(target, move_focus);
+    }
+}
+
+/// Keep native anchor navigation and history, revealing hidden destinations
+/// before the browser scrolls. Clicking the current fragment also restores it.
+#[cfg(target_arch = "wasm32")]
+fn wire_fragment_navigation() {
+    use wasm_bindgen::{JsCast, closure::Closure};
+
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+    let Some(document) = window.document() else {
+        return;
+    };
+    let click_document = document.clone();
+    let click =
+        Closure::<dyn FnMut(web_sys::MouseEvent)>::new(move |event: web_sys::MouseEvent| {
+            if event.default_prevented()
+                || event.button() != 0
+                || event.alt_key()
+                || event.ctrl_key()
+                || event.meta_key()
+                || event.shift_key()
+            {
+                return;
+            }
+            let Some(element) = event
+                .target()
+                .and_then(|target| target.dyn_into::<web_sys::Element>().ok())
+            else {
+                return;
+            };
+            let Ok(Some(anchor)) = element.closest("a[href^=\"#\"]") else {
+                return;
+            };
+            if let Some(target) = anchor
+                .get_attribute("href")
+                .and_then(|href| decode_fragment_id(href.trim_start_matches('#')).ok())
+                .and_then(|id| click_document.get_element_by_id(&id))
+            {
+                reveal_fragment_destination(target, true);
+            }
+        });
+    register_island_listener(document.into(), "click", click.into_js_value());
+
+    for event in ["hashchange", "popstate"] {
+        let changed = Closure::<dyn FnMut(web_sys::Event)>::new(move |_| {
+            let Some(document) = web_sys::window().and_then(|window| window.document()) else {
+                return;
+            };
+            if let Some(target) = current_fragment_destination(&document) {
+                reveal_fragment_destination(target, true);
+            }
+        });
+        register_island_listener(window.clone().into(), event, changed.into_js_value());
+    }
 }
 
 /// Attach a click activation handler to a tab (the tablists previously had no
@@ -977,7 +1122,7 @@ fn wire_tab_click(tab: &web_sys::HtmlElement, tabs: &[web_sys::HtmlElement]) {
     let tab_for_handler = tab.clone();
     let closure =
         Closure::<dyn FnMut(web_sys::MouseEvent)>::new(move |_event: web_sys::MouseEvent| {
-            activate_tab(&tab_for_handler, &owned_tabs);
+            activate_tab(&tab_for_handler, &owned_tabs, true);
         });
 
     register_island_listener(tab.clone().into(), "click", closure.into_js_value());
@@ -1017,7 +1162,7 @@ fn wire_tablist_keydown(tablist: &web_sys::Element, tabs: Vec<web_sys::HtmlEleme
                 "Enter" | " " | "Spacebar" => {
                     // Manual activation of the focused tab.
                     event.prevent_default();
-                    activate_tab(&tabs[current], &tabs);
+                    activate_tab(&tabs[current], &tabs, true);
                     None
                 }
                 _ => None,
@@ -1052,12 +1197,10 @@ struct IslandListener {
 thread_local! {
     static ISLAND_LISTENERS: std::cell::RefCell<Vec<IslandListener>> =
         const { std::cell::RefCell::new(Vec::new()) };
-    static ISLAND_CLEANUP_REGISTERED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
 }
 
 /// Register an island listener: attach the callback to the DOM, retain it in the
-/// island registry so it outlives this call, and arrange (once) for `on_cleanup`
-/// to detach every listener when the dashboard island unmounts.
+/// island registry so it outlives this call. The dashboard owns its cleanup.
 #[cfg(target_arch = "wasm32")]
 fn register_island_listener(
     target: web_sys::EventTarget,
@@ -1080,13 +1223,6 @@ fn register_island_listener(
             callback,
         });
     });
-
-    // Ensure cleanup is wired exactly once for this island instance.
-    ISLAND_CLEANUP_REGISTERED.with(|registered| {
-        if !registered.replace(true) {
-            on_cleanup(detach_island_listeners);
-        }
-    });
 }
 
 /// Detach every island listener on unmount so no callback is freed while its
@@ -1101,9 +1237,13 @@ fn detach_island_listeners() {
                 listener.event,
                 listener.callback.unchecked_ref(),
             );
+            if let Some(element) = listener.target.dyn_ref::<web_sys::Element>() {
+                if element.get_attribute("role").as_deref() == Some("tablist") {
+                    let _ = element.remove_attribute("data-tablist-wired");
+                }
+            }
         }
     });
-    ISLAND_CLEANUP_REGISTERED.with(|registered| registered.set(false));
 }
 
 fn initial_envelope() -> Option<TenantRenderEnvelope> {
@@ -1121,6 +1261,7 @@ fn initial_envelope() -> Option<TenantRenderEnvelope> {
 #[cfg(target_arch = "wasm32")]
 fn request_render_envelope(
     context: OperatorContext,
+    request_generation: RwSignal<u64>,
     set_envelope: WriteSignal<Option<TenantRenderEnvelope>>,
     set_selected_node_id: WriteSignal<String>,
     set_loading: WriteSignal<bool>,
@@ -1129,6 +1270,8 @@ fn request_render_envelope(
     use wasm_bindgen::JsCast;
     use wasm_bindgen_futures::{JsFuture, spawn_local};
 
+    request_generation.update(|generation| *generation += 1);
+    let generation = request_generation.get_untracked();
     set_loading.set(true);
     set_error.set(None);
 
@@ -1167,6 +1310,9 @@ fn request_render_envelope(
         }
         .await;
 
+        if request_generation.try_get_untracked() != Some(generation) {
+            return;
+        }
         match result {
             Ok(envelope) => {
                 let node_id = envelope
@@ -1188,6 +1334,7 @@ fn request_render_envelope(
 #[cfg(all(not(target_arch = "wasm32"), any(feature = "ssr", test)))]
 fn request_render_envelope(
     context: OperatorContext,
+    _request_generation: RwSignal<u64>,
     set_envelope: WriteSignal<Option<TenantRenderEnvelope>>,
     set_selected_node_id: WriteSignal<String>,
     set_loading: WriteSignal<bool>,
@@ -1211,6 +1358,7 @@ fn request_render_envelope(
 #[cfg(all(not(target_arch = "wasm32"), not(any(feature = "ssr", test))))]
 fn request_render_envelope(
     _context: OperatorContext,
+    _request_generation: RwSignal<u64>,
     _set_envelope: WriteSignal<Option<TenantRenderEnvelope>>,
     _set_selected_node_id: WriteSignal<String>,
     _set_loading: WriteSignal<bool>,
@@ -1293,7 +1441,7 @@ fn dashboard_view(
             {daily_execution_console(envelope.clone())}
 
             <section id="work-hub" class="panel communications-panel" aria-labelledby="messages-title">
-                <PanelHeader eyebrow="Messenger · Mail · Community" title={"Work hub".to_string()} />
+                <PanelHeader heading_id="messages-title" eyebrow="Messenger · Mail · Community" title={"Work hub".to_string()} />
                 {communication_hub(
                     envelope.messages.clone(),
                     envelope.community.clone(),
@@ -1335,12 +1483,12 @@ fn dashboard_view(
             )}
 
             <section id="ontology-command-console" class="panel ontology-command-shell" aria-labelledby="ontology-title">
-                <PanelHeader eyebrow="Ontology" title={"Tenant workload graph".to_string()} />
-                {ontology_list(envelope.ontology.clone())}
+                <PanelHeader heading_id="ontology-title" eyebrow="Ontology" title={"Tenant workload graph".to_string()} />
+                {ontology_list(envelope.ontology.clone(), envelope.context)}
             </section>
 
             <section id="intelligence-command-console" class="panel intelligence-command-shell" aria-labelledby="intelligence-title">
-                <PanelHeader eyebrow="Intelligence" title={"Governed AI command".to_string()} />
+                <PanelHeader heading_id="intelligence-title" eyebrow="Intelligence" title={"Governed AI command".to_string()} />
                 {suggestion_list(envelope.intelligence.clone())}
             </section>
         </section>
@@ -1358,11 +1506,11 @@ fn loading_state() -> impl IntoView {
 }
 
 #[component]
-fn PanelHeader(eyebrow: &'static str, title: String) -> impl IntoView {
+fn PanelHeader(heading_id: &'static str, eyebrow: &'static str, title: String) -> impl IntoView {
     view! {
         <div class="panel-header">
             <p class="eyebrow">{eyebrow}</p>
-            <h3>{title}</h3>
+            <h3 id=heading_id>{title}</h3>
         </div>
     }
 }
@@ -5309,7 +5457,7 @@ fn communication_hub(
                     <button
                         type="button"
                         role="tab"
-                        aria-selected=move || render_signal(active_surface) == surface
+                        aria-selected=move || (render_signal(active_surface) == surface).to_string()
                         class=move || if render_signal(active_surface) == surface { "hub-tab active" } else { "hub-tab" }
                         on:click=move |_| {
                             set_active_surface.set(surface);
@@ -6239,7 +6387,7 @@ fn workflow_studio_panel(
                     <button
                         type="button"
                         class=move || if render_signal(workflow_tool) == tool { "active" } else { "" }
-                        aria-pressed=move || render_signal(workflow_tool) == tool
+                        aria-pressed=move || (render_signal(workflow_tool) == tool).to_string()
                         on:click=move |_| set_workflow_tool.set(tool)
                     >
                         {tool.label()}
@@ -6705,10 +6853,10 @@ fn selected_node_view(node: Option<WorkflowNode>) -> impl IntoView {
     }
 }
 
-fn ontology_list(items: Vec<OntologyFact>) -> impl IntoView {
+fn ontology_list(items: Vec<OntologyFact>, context: OperatorContext) -> impl IntoView {
     let fact_count = items.len();
     view! {
-        <div class="ontology-command-console" data-ontology-console="true">
+        <div class="ontology-command-console" data-ontology-console="true" data-ontology-context=context.id()>
             <div class="ontology-console-head">
                 <div>
                     <p class="screen-anchor">"ONTOLOGY · FD-001 TENANT WORKLOAD MAP"</p>
@@ -6953,7 +7101,7 @@ fn static_header_html() -> String {
 
 #[cfg(any(feature = "ssr", test))]
 fn static_hero_html() -> String {
-    r#"<section class="hero-panel" aria-labelledby="console-title"><div class="hero-main"><div class="page-title-copy"><p class="screen-anchor">01 / Command Center</p><div class="hero-title-row"><h1 id="console-title">Operations · 2026 May, week 19</h1><span class="hero-lens-chip">● Lens: tenant admin · Finance · 1,000 ppl</span></div><p id="console-notice" class="scope-notice" role="note">Production shell-BFF contract source — deny-by-default module visibility; no PHI/PII. <span>This week — close, filings, people, approvals.</span></p></div><section class="hero-close-strip" aria-label="FD-001 close command proof"><div><p class="screen-anchor">FD-001 CLOSE COMMAND</p><strong>April close proves the product workload on Oyatie Cloud</strong><span data-hero-status="true">Ready · REC-CLOSE-2026-04 · cell-us-east-2 · local command only</span></div><div class="hero-close-actions" aria-label="Close package routes"><button type="button" data-hero-action="close-april">Stage close</button><button type="button" data-hero-action="route-ledger">Ledger</button><button type="button" data-hero-action="route-cloud">Cloud proof</button><button type="button" data-hero-action="route-evidence">Evidence</button></div></section><section class="render-architecture-strip" aria-label="SSR shell and selective WASM hydration model"><article class="selected" data-render-arch-card="ssr"><p class="screen-anchor">SSR SHELL</p><strong>Fast baseline, service graph visible first</strong><span>Navigation, proof copy, tenant posture, and core dashboards render before island hydration.</span><button type="button" class="is-selected" data-render-arch-action="ssr">Show shell</button></article><article data-render-arch-card="islands"><p class="screen-anchor">SELECTIVE WASM</p><strong>Only interactive product surfaces hydrate</strong><span>Workflow Studio, Work Hub, filters, canvas state, and local drafts become browser-only islands.</span><button type="button" data-render-arch-action="islands">Show islands</button></article><article data-render-arch-card="boundary"><p class="screen-anchor">LOCAL BOUNDARY</p><strong>Visually functional, deliberately unwired</strong><span data-render-arch-status="true">No workflow execution, external send, IAM, billing, deploy, or cloud mutation.</span><button type="button" data-render-arch-action="boundary">Show evidence</button></article></section></div><div class="hero-side"><div class="hero-copy page-actions"><button type="button" data-sidepeek-trigger="new-action" data-sidepeek-title="Create governed action" data-sidepeek-id="ACT-LOCAL-DRAFT" data-sidepeek-desc="Local visual-only action draft. Nothing is persisted or sent." data-sidepeek-owner="Current operator session" data-sidepeek-risk="Draft" data-sidepeek-sla="No live SLA">New action</button><button type="button" data-command-trigger="true">Search ⌘K</button><button type="button" class="primary" data-hero-action="close-april">Close April →</button></div></div></section>"#
+    r#"<section class="hero-panel" aria-labelledby="console-title"><div class="hero-main"><div class="page-title-copy"><p class="screen-anchor">01 / Command Center</p><div class="hero-title-row"><h1 id="console-title">Operations · 2026 May, week 19</h1><span class="hero-lens-chip">● Lens: tenant admin · Finance · 1,000 ppl</span></div><p id="console-notice" class="scope-notice" role="note">Anonymous preview only: sample tenant and role; no PHI/PII. No tenant or role was verified, and live service status was not queried. Live Ontology status requires sign-in.</p></div><section class="hero-close-strip" aria-label="FD-001 close command proof"><div><p class="screen-anchor">FD-001 CLOSE COMMAND</p><strong>April close proves the product workload on Oyatie Cloud</strong><span data-hero-status="true">Ready · REC-CLOSE-2026-04 · cell-us-east-2 · local command only</span></div><div class="hero-close-actions" aria-label="Close package routes"><button type="button" data-hero-action="close-april">Stage close</button><button type="button" data-hero-action="route-ledger">Ledger</button><button type="button" data-hero-action="route-cloud">Cloud proof</button><button type="button" data-hero-action="route-evidence">Evidence</button></div></section><section class="render-architecture-strip" aria-label="SSR shell and selective WASM hydration model"><article class="selected" data-render-arch-card="ssr"><p class="screen-anchor">SSR SHELL</p><strong>Fast baseline, service graph visible first</strong><span>Navigation, proof copy, tenant posture, and core dashboards render before island hydration.</span><button type="button" class="is-selected" data-render-arch-action="ssr">Show shell</button></article><article data-render-arch-card="islands"><p class="screen-anchor">SELECTIVE WASM</p><strong>Only interactive product surfaces hydrate</strong><span>Workflow Studio, Work Hub, filters, canvas state, and local drafts become browser-only islands.</span><button type="button" data-render-arch-action="islands">Show islands</button></article><article data-render-arch-card="boundary"><p class="screen-anchor">LOCAL BOUNDARY</p><strong>Visually functional, deliberately unwired</strong><span data-render-arch-status="true">No workflow execution, external send, IAM, billing, deploy, or cloud mutation.</span><button type="button" data-render-arch-action="boundary">Show evidence</button></article></section></div><div class="hero-side"><div class="hero-copy page-actions"><button type="button" data-sidepeek-trigger="new-action" data-sidepeek-title="Create governed action" data-sidepeek-id="ACT-LOCAL-DRAFT" data-sidepeek-desc="Local visual-only action draft. Nothing is persisted or sent." data-sidepeek-owner="Current operator session" data-sidepeek-risk="Draft" data-sidepeek-sla="No live SLA">New action</button><button type="button" data-command-trigger="true">Search ⌘K</button><button type="button" class="primary" data-hero-action="close-april">Close April →</button></div></div></section>"#
         .to_string()
 }
 
@@ -7135,7 +7283,7 @@ fn static_dashboard_content(envelope: &TenantRenderEnvelope) -> String {
         communication_hub = static_communication_hub(&envelope.messages, &envelope.community),
         service_catalog = static_service_catalog(envelope),
         workflow_studio = static_workflow_studio_panel(envelope),
-        ontology = static_ontology_command_console(&envelope.ontology),
+        ontology = static_ontology_command_console(&envelope.ontology, envelope.context),
         suggestions = static_intelligence_command_console(&envelope.intelligence),
     )
 }
@@ -8203,7 +8351,7 @@ fn static_workflow_svg(nodes: &[WorkflowNode]) -> String {
 }
 
 #[cfg(any(feature = "ssr", test))]
-fn static_ontology_command_console(facts: &[OntologyFact]) -> String {
+fn static_ontology_command_console(facts: &[OntologyFact], context: OperatorContext) -> String {
     let fact_cards = facts
         .iter()
         .enumerate()
@@ -8211,9 +8359,10 @@ fn static_ontology_command_console(facts: &[OntologyFact]) -> String {
         .collect::<String>();
 
     format!(
-        r#"<div class="ontology-command-console" data-ontology-console="true"><div class="ontology-console-head"><div><p class="screen-anchor">ONTOLOGY · FD-001 TENANT WORKLOAD MAP</p><h4>What exists, who can see it, and where it runs</h4><span>Typed entities connect FD-001 tenant workload delivery to Oyatie Cloud cells, policy envelopes, workflow outputs, and evidence receipts.</span></div><div class="ontology-console-actions"><span class="status-chip success" data-ontology-status="true">{fact_count} facts · 7 workload nodes · local graph</span><button type="button" data-ontology-action="lineage">Trace lineage</button><button type="button" data-ontology-action="policy">Policy view</button><button type="button" data-ontology-action="evidence">Evidence</button></div></div><div class="ontology-topology-grid" aria-label="FD-001 tenant workload ontology graph"><button type="button" class="ontology-node root selected" data-ontology-node="Tenant" data-node-route="workload" data-sidepeek-trigger="ontology-node" data-sidepeek-title="Tenant" data-sidepeek-id="ONT-TENANT" data-sidepeek-desc="Tenant owns the permitted FD-001 module set and runtime envelope." data-sidepeek-owner="Tenant admin" data-sidepeek-risk="Visible" data-sidepeek-sla="Local graph only"><span>TENANT</span><strong>Tenant Admin</strong><em>owns envelope</em></button><button type="button" class="ontology-node workload" data-ontology-node="FD-001 Workloads" data-node-route="workflow" data-sidepeek-trigger="ontology-node" data-sidepeek-title="FD-001 workload set" data-sidepeek-id="ONT-FD001" data-sidepeek-desc="Core FD-001 microservices are represented as tenant workloads for dogfood validation." data-sidepeek-owner="Product delivery" data-sidepeek-risk="P0" data-sidepeek-sla="Dogfood proving loop"><span>FD-001</span><strong>Microservice workloads</strong><em>product goal</em></button><button type="button" class="ontology-node cloud" data-ontology-node="Oyatie Cloud" data-node-route="cloud" data-sidepeek-trigger="ontology-node" data-sidepeek-title="Oyatie Cloud substrate" data-sidepeek-id="ONT-CLOUD" data-sidepeek-desc="Hyperscaler-grade substrate hosts dogfood tenant workloads and exposes cell posture." data-sidepeek-owner="Cloud substrate" data-sidepeek-risk="Substrate proof" data-sidepeek-sla="99.95 target staged"><span>CLOUD</span><strong>Cell substrate</strong><em>hosts tenants</em></button><button type="button" class="ontology-node workflow" data-ontology-node="Workflow" data-node-route="workflow" data-sidepeek-trigger="ontology-node" data-sidepeek-title="Workflow runtime" data-sidepeek-id="ONT-WORKFLOW" data-sidepeek-desc="Workflow coordinates payroll close, approval, comms outputs, and receipts." data-sidepeek-owner="Workflow Studio" data-sidepeek-risk="Governed" data-sidepeek-sla="4.0h gate"><span>FLOW</span><strong>Workflow</strong><em>orchestrates</em></button><button type="button" class="ontology-node comms" data-ontology-node="Built-in Comms" data-node-route="mail" data-sidepeek-trigger="ontology-node" data-sidepeek-title="Built-in communications" data-sidepeek-id="ONT-COMMS" data-sidepeek-desc="Messenger, Mail, and Community receive workflow outputs without external send." data-sidepeek-owner="Work Hub" data-sidepeek-risk="Local only" data-sidepeek-sla="No backend send"><span>COMMS</span><strong>Messenger · Mail · Community</strong><em>outputs</em></button><button type="button" class="ontology-node evidence" data-ontology-node="Evidence" data-node-route="evidence" data-sidepeek-trigger="ontology-node" data-sidepeek-title="Evidence spine" data-sidepeek-id="ONT-EVIDENCE" data-sidepeek-desc="Receipts bind workload state, approvals, messages, and deployment gates." data-sidepeek-owner="Audit spine" data-sidepeek-risk="Immutable staged" data-sidepeek-sla="Sealed draft"><span>AUDIT</span><strong>Evidence spine</strong><em>proves</em></button><button type="button" class="ontology-node policy" data-ontology-node="Policy" data-node-route="identity" data-sidepeek-trigger="ontology-node" data-sidepeek-title="Policy envelope" data-sidepeek-id="ONT-POLICY" data-sidepeek-desc="Role, data-class, residency, and autonomy ceilings decide visibility and action eligibility." data-sidepeek-owner="Governance" data-sidepeek-risk="Guardrail" data-sidepeek-sla="Human review"><span>POLICY</span><strong>Access envelope</strong><em>permits</em></button></div><div class="ontology-fact-matrix" aria-label="Current permitted ontology facts">{fact_cards}</div><div class="ontology-proof-rail" aria-label="Substrate proof contract"><article><p class="screen-anchor">SUBSTRATE PROOF</p><strong>FD-001 runs as tenant workloads before service claim</strong><span>Cloud cells, policy envelopes, and evidence receipts prove the substrate can host real production tenants.</span></article><article><p class="screen-anchor">VISIBILITY</p><strong>Role + data-class gates</strong><span>Tenant admin can inspect posture; hidden modules remain server-derived, not client hidden.</span></article><article><p class="screen-anchor">GRAPH STATUS</p><strong data-ontology-detail="true">Tenant selected · workload lineage visible</strong><span>Click nodes or facts to stage local graph state.</span></article></div></div>"#,
+        r#"<div class="ontology-command-console" data-ontology-console="true" data-ontology-context="{context}"><div class="ontology-console-head"><div><p class="screen-anchor">ONTOLOGY · FD-001 TENANT WORKLOAD MAP</p><h4>What exists, who can see it, and where it runs</h4><span>Typed entities connect FD-001 tenant workload delivery to Oyatie Cloud cells, policy envelopes, workflow outputs, and evidence receipts.</span></div><div class="ontology-console-actions"><span class="status-chip success" data-ontology-status="true">{fact_count} facts · 7 workload nodes · local graph</span><button type="button" data-ontology-action="lineage">Trace lineage</button><button type="button" data-ontology-action="policy">Policy view</button><button type="button" data-ontology-action="evidence">Evidence</button></div></div><div class="ontology-topology-grid" aria-label="FD-001 tenant workload ontology graph"><button type="button" class="ontology-node root selected" data-ontology-node="Tenant" data-node-route="workload" data-sidepeek-trigger="ontology-node" data-sidepeek-title="Tenant" data-sidepeek-id="ONT-TENANT" data-sidepeek-desc="Tenant owns the permitted FD-001 module set and runtime envelope." data-sidepeek-owner="Tenant admin" data-sidepeek-risk="Visible" data-sidepeek-sla="Local graph only"><span>TENANT</span><strong>Tenant Admin</strong><em>owns envelope</em></button><button type="button" class="ontology-node workload" data-ontology-node="FD-001 Workloads" data-node-route="workflow" data-sidepeek-trigger="ontology-node" data-sidepeek-title="FD-001 workload set" data-sidepeek-id="ONT-FD001" data-sidepeek-desc="Core FD-001 microservices are represented as tenant workloads for dogfood validation." data-sidepeek-owner="Product delivery" data-sidepeek-risk="P0" data-sidepeek-sla="Dogfood proving loop"><span>FD-001</span><strong>Microservice workloads</strong><em>product goal</em></button><button type="button" class="ontology-node cloud" data-ontology-node="Oyatie Cloud" data-node-route="cloud" data-sidepeek-trigger="ontology-node" data-sidepeek-title="Oyatie Cloud substrate" data-sidepeek-id="ONT-CLOUD" data-sidepeek-desc="Hyperscaler-grade substrate hosts dogfood tenant workloads and exposes cell posture." data-sidepeek-owner="Cloud substrate" data-sidepeek-risk="Substrate proof" data-sidepeek-sla="99.95 target staged"><span>CLOUD</span><strong>Cell substrate</strong><em>hosts tenants</em></button><button type="button" class="ontology-node workflow" data-ontology-node="Workflow" data-node-route="workflow" data-sidepeek-trigger="ontology-node" data-sidepeek-title="Workflow runtime" data-sidepeek-id="ONT-WORKFLOW" data-sidepeek-desc="Workflow coordinates payroll close, approval, comms outputs, and receipts." data-sidepeek-owner="Workflow Studio" data-sidepeek-risk="Governed" data-sidepeek-sla="4.0h gate"><span>FLOW</span><strong>Workflow</strong><em>orchestrates</em></button><button type="button" class="ontology-node comms" data-ontology-node="Built-in Comms" data-node-route="mail" data-sidepeek-trigger="ontology-node" data-sidepeek-title="Built-in communications" data-sidepeek-id="ONT-COMMS" data-sidepeek-desc="Messenger, Mail, and Community receive workflow outputs without external send." data-sidepeek-owner="Work Hub" data-sidepeek-risk="Local only" data-sidepeek-sla="No backend send"><span>COMMS</span><strong>Messenger · Mail · Community</strong><em>outputs</em></button><button type="button" class="ontology-node evidence" data-ontology-node="Evidence" data-node-route="evidence" data-sidepeek-trigger="ontology-node" data-sidepeek-title="Evidence spine" data-sidepeek-id="ONT-EVIDENCE" data-sidepeek-desc="Receipts bind workload state, approvals, messages, and deployment gates." data-sidepeek-owner="Audit spine" data-sidepeek-risk="Immutable staged" data-sidepeek-sla="Sealed draft"><span>AUDIT</span><strong>Evidence spine</strong><em>proves</em></button><button type="button" class="ontology-node policy" data-ontology-node="Policy" data-node-route="identity" data-sidepeek-trigger="ontology-node" data-sidepeek-title="Policy envelope" data-sidepeek-id="ONT-POLICY" data-sidepeek-desc="Role, data-class, residency, and autonomy ceilings decide visibility and action eligibility." data-sidepeek-owner="Governance" data-sidepeek-risk="Guardrail" data-sidepeek-sla="Human review"><span>POLICY</span><strong>Access envelope</strong><em>permits</em></button></div><div class="ontology-fact-matrix" aria-label="Current permitted ontology facts">{fact_cards}</div><div class="ontology-proof-rail" aria-label="Substrate proof contract"><article><p class="screen-anchor">SUBSTRATE PROOF</p><strong>FD-001 runs as tenant workloads before service claim</strong><span>Cloud cells, policy envelopes, and evidence receipts prove the substrate can host real production tenants.</span></article><article><p class="screen-anchor">VISIBILITY</p><strong>Role + data-class gates</strong><span>Tenant admin can inspect posture; hidden modules remain server-derived, not client hidden.</span></article><article><p class="screen-anchor">GRAPH STATUS</p><strong data-ontology-detail="true">Tenant selected · workload lineage visible</strong><span>Click nodes or facts to stage local graph state.</span></article></div></div>"#,
         fact_count = facts.len(),
         fact_cards = fact_cards,
+        context = context.id(),
     )
 }
 

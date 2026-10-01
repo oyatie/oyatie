@@ -6,8 +6,6 @@ rust_library(
     rustc_flags = ["--cfg", "feature=\"ssr\""],
     visibility = ["PUBLIC"],
     deps = [
-        "//app/application/adapters/ontology-card-http:application-ontology-card-http",
-        "//app/application/ports/ontology-card:application-ontology-card",
         "//iam/core/oidc-client-kernel:shared-oidc-client-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
         "third-party//:any_spawner",
@@ -32,7 +30,6 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//app/application/adapters/ontology-card-fake:application-ontology-card-fake",
-        "//app/application/adapters/ontology-card-http:application-ontology-card-http",
         "//app/application/ports/ontology-card:application-ontology-card",
         "//iam/core/oidc-client-kernel:shared-oidc-client-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
@@ -57,8 +54,6 @@ rust_binary(
     visibility = ["PUBLIC"],
     deps = [
         ":application-shell-app",
-        "//app/application/adapters/ontology-card-http:application-ontology-card-http",
-        "//app/application/ports/ontology-card:application-ontology-card",
         "//iam/core/oidc-client-kernel:shared-oidc-client-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
         "third-party//:any_spawner",

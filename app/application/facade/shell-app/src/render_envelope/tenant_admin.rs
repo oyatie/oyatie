@@ -3,10 +3,11 @@ use super::builders::{
     workflow,
 };
 use super::product_activity::product_activity_spine;
-use super::types::{AccreditationState, ModuleCard, OperatorContext, TenantRenderEnvelope};
+use super::types::{AccreditationState, OperatorContext, TenantRenderEnvelope};
+#[cfg(test)]
 use application_ontology_card::OntologyCardSource;
 
-pub(super) fn tenant_admin_envelope(ontology: &dyn OntologyCardSource) -> TenantRenderEnvelope {
+pub(super) fn tenant_admin_envelope() -> TenantRenderEnvelope {
     TenantRenderEnvelope {
         context: OperatorContext::TenantAdmin,
         tenant_name: s("Northwind Industrial Group"),
@@ -19,9 +20,7 @@ pub(super) fn tenant_admin_envelope(ontology: &dyn OntologyCardSource) -> Tenant
                 "Healthcare-regulated surfaces are absent from this render envelope because the tenant lacks accredited healthcare state.",
             ),
         },
-        server_derivation_note: s(
-            "Server-derived envelope: admin can see tenant posture, cloud controls, approvals, service catalog, and workflow governance only.",
-        ),
+        server_derivation_note: s("Sample tenant-admin scene for the shell."),
         product_activity: product_activity_spine(OperatorContext::TenantAdmin),
         metrics: vec![
             metric("Close progress", "73%", "+12 vs Mar · payroll run"),
@@ -32,10 +31,7 @@ pub(super) fn tenant_admin_envelope(ontology: &dyn OntologyCardSource) -> Tenant
         ],
         modules: crate::shell_capability_registry::permitted_module_cards(
             OperatorContext::TenantAdmin,
-        )
-        .into_iter()
-        .map(|card| with_ontology_status(card, ontology))
-        .collect(),
+        ),
         daily_tasks: vec![
             work(
                 "2026-04 급여 마감 — 박서준 직원 4대보험 변동 확인 필요",
@@ -191,12 +187,18 @@ pub(super) fn tenant_admin_envelope(ontology: &dyn OntologyCardSource) -> Tenant
     }
 }
 
-/// The Ontology card carries the wedge product's status after its registry
-/// copy; a refusal is shown as such, never as stale or invented numbers.
-fn with_ontology_status(mut card: ModuleCard, ontology: &dyn OntologyCardSource) -> ModuleCard {
-    if card.name != "Ontology" {
-        return card;
-    }
+#[cfg(test)]
+pub(super) fn with_ontology_status(
+    envelope: &mut TenantRenderEnvelope,
+    ontology: &dyn OntologyCardSource,
+) {
+    let Some(card) = envelope
+        .modules
+        .iter_mut()
+        .find(|card| card.name == "Ontology")
+    else {
+        return;
+    };
     let status = match ontology.ontology_card_facts() {
         Ok(facts) => format!(
             "policy {} · serving {} tenants · projection lag {} · poisoned {}",
@@ -208,5 +210,4 @@ fn with_ontology_status(mut card: ModuleCard, ontology: &dyn OntologyCardSource)
         Err(error) => error.to_string(),
     };
     card.description = format!("{} · {status}", card.description);
-    card
 }
