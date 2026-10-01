@@ -1,28 +1,26 @@
 #![cfg(unix)]
 
-use std::{
-    net::SocketAddr,
-    path::PathBuf,
-    process::Command,
-    sync::atomic::{AtomicUsize, Ordering},
-};
+use std::process::Command;
 
-use application_shell_app::server::{router_for_package_root, serve_router_until_shutdown};
-use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    net::TcpStream,
-    sync::oneshot,
-};
+mod live_server_support;
+use live_server_support::*;
 
-static TEMP_ROOT_COUNTER: AtomicUsize = AtomicUsize::new(0);
+#[test]
+fn public_component_props_and_builders_remain_available() {
+    use application_shell_app::app::{
+        AppProps, AppPropsBuilder, DashboardIslandProps, DashboardIslandPropsBuilder,
+    };
+
+    let app: AppPropsBuilder = AppProps::builder();
+    let _: AppProps = app.build();
+    let dashboard: DashboardIslandPropsBuilder = DashboardIslandProps::builder();
+    let _: DashboardIslandProps = dashboard.build();
+}
 
 #[test]
 fn post_bootstrap_mount_contract_preserves_one_host_and_one_island_root() {
-    let app_source = include_str!("../src/app.rs");
-    let island_source = app_source
-        .split("pub fn DashboardIsland()")
-        .nth(1)
-        .expect("DashboardIsland component source");
+    let app_source = include_str!("../src/app/chrome.rs");
+    let island_source = include_str!("../src/app/dashboard.rs");
     let bootstrap_source = include_str!("../src/lib.rs");
 
     // `mount_dashboard_island_by_id` clears this stable host, then pinned Leptos 0.8.19
@@ -30,15 +28,9 @@ fn post_bootstrap_mount_contract_preserves_one_host_and_one_island_root() {
     // component root beneath the host rather than replacing the host itself. The two source
     // contracts below prevent duplicate IDs after bootstrap.
     assert!(app_source.contains("<div id=crate::DASHBOARD_MOUNT_HOST_ID>"));
-    assert!(bootstrap_source.contains("element.set_inner_html(\"\");"));
+    assert!(bootstrap_source.contains("parent.set_inner_html(\"\");"));
     assert!(bootstrap_source.contains("mount_to(parent, DashboardIsland)"));
-    assert!(
-        !island_source
-            .split("const TABLIST_SELECTORS")
-            .next()
-            .expect("DashboardIsland component boundary")
-            .contains("DASHBOARD_MOUNT_HOST_ID")
-    );
+    assert!(!island_source.contains("DASHBOARD_MOUNT_HOST_ID"));
 }
 
 #[test]
@@ -132,6 +124,30 @@ async fn live_ssr_host_serves_routes_confines_packages_and_shuts_down_cleanly() 
     assert!(root.contains("panel.focus({ preventScroll: true })"));
     assert!(root.contains("data-ontology-action=\"inspect-fact\""));
     assert!(root.contains("candidate.setAttribute('aria-pressed'"));
+    let markup = root.split("<script").next().expect("SSR shell markup");
+    let ids = attribute_values(markup, "id")
+        .into_iter()
+        .collect::<std::collections::BTreeSet<_>>();
+    assert!(!ids.is_empty(), "SSR shell must expose destination IDs");
+    for fragment in attribute_values(markup, "href")
+        .into_iter()
+        .filter_map(|href| href.strip_prefix('#'))
+        .filter(|fragment| !fragment.is_empty())
+    {
+        assert!(
+            ids.contains(fragment),
+            "SSR fragment #{fragment} has no destination"
+        );
+    }
+    for label in attribute_values(markup, "aria-labelledby")
+        .into_iter()
+        .flat_map(str::split_whitespace)
+    {
+        assert!(
+            ids.contains(label),
+            "SSR label reference {label} has no destination"
+        );
+    }
 
     let index = request(
         address,
@@ -239,62 +255,4 @@ async fn live_ssr_host_serves_routes_confines_packages_and_shuts_down_cleanly() 
     tokio::fs::remove_dir_all(&package_root)
         .await
         .expect("remove test package root");
-}
-
-async fn spawn_server(
-    package_root: PathBuf,
-) -> (SocketAddr, oneshot::Sender<()>, tokio::task::JoinHandle<()>) {
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
-        .await
-        .expect("bind test listener");
-    let address = listener.local_addr().expect("read listener address");
-    let (stop, stopped) = oneshot::channel();
-    let server = tokio::spawn(async move {
-        serve_router_until_shutdown(
-            listener,
-            router_for_package_root(package_root),
-            async move {
-                let _ = stopped.await;
-            },
-        )
-        .await
-        .expect("serve test router");
-    });
-    tokio::task::yield_now().await;
-    (address, stop, server)
-}
-
-async fn request(address: SocketAddr, request: &str) -> String {
-    let mut stream = TcpStream::connect(address)
-        .await
-        .expect("connect to test listener");
-    stream
-        .write_all(request.as_bytes())
-        .await
-        .expect("write HTTP request");
-    stream.flush().await.expect("flush HTTP request");
-
-    let mut response = Vec::new();
-    stream
-        .read_to_end(&mut response)
-        .await
-        .expect("read HTTP response");
-    String::from_utf8(response).expect("HTTP response is UTF-8")
-}
-
-fn temporary_package_root() -> PathBuf {
-    let sequence = TEMP_ROOT_COUNTER.fetch_add(1, Ordering::Relaxed);
-    let root = std::env::temp_dir().join(format!(
-        "application-shell-live-server-{}-{sequence}",
-        std::process::id()
-    ));
-    std::fs::create_dir(&root).expect("create unique test package root");
-    root
-}
-
-fn assert_status(response: &str, expected: &str) {
-    assert!(
-        response.starts_with(&format!("HTTP/1.1 {expected}")),
-        "expected HTTP {expected}, got: {response}"
-    );
 }

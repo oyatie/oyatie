@@ -22,6 +22,12 @@ pub use app::{App, DashboardIsland, shell_landmark_label, shell_scope_notice_tex
 pub use app::{render_envelope_json, static_dashboard_html};
 
 #[cfg(all(target_arch = "wasm32", any(feature = "csr", feature = "hydrate")))]
+thread_local! {
+    static DASHBOARD_UNMOUNT: std::cell::RefCell<Option<Box<dyn FnOnce()>>> =
+        const { std::cell::RefCell::new(None) };
+}
+
+#[cfg(all(target_arch = "wasm32", any(feature = "csr", feature = "hydrate")))]
 pub fn mount_app() {
     mount_dashboard_islands();
 }
@@ -47,10 +53,19 @@ fn mount_dashboard_island_by_id(element_id: &str) {
         return;
     };
 
-    element.set_inner_html("");
-
     if let Ok(parent) = element.dyn_into::<web_sys::HtmlElement>() {
-        leptos::mount::mount_to(parent, DashboardIsland).forget();
+        if let Some(unmount) = DASHBOARD_UNMOUNT.with(|previous| previous.borrow_mut().take()) {
+            unmount();
+        }
+        parent.set_inner_html("");
+        let owner = leptos::prelude::Owner::new();
+        let mount = owner.with(|| leptos::mount::mount_to(parent, DashboardIsland));
+        DASHBOARD_UNMOUNT.with(|previous| {
+            *previous.borrow_mut() = Some(Box::new(move || {
+                drop(mount);
+                owner.cleanup();
+            }));
+        });
     }
 }
 
@@ -65,13 +80,13 @@ mod tests {
     use super::{shell_landmark_label, shell_scope_notice_text};
 
     #[test]
-    fn scope_notice_names_production_contract_source_honestly() {
+    fn scope_notice_names_the_anonymous_preview_honestly() {
         let notice = shell_scope_notice_text();
 
-        assert_eq!(
-            notice,
-            "Operator console scope: panels render from the production shell-BFF contract source with deny-by-default module visibility; no PHI/PII · shell covers close, workflow, people, mail, messenger, and community."
-        );
+        assert!(notice.contains("Anonymous preview only"));
+        assert!(notice.contains("No tenant or role was verified"));
+        assert!(notice.contains("live service status was not queried"));
+        assert!(notice.contains("requires sign-in"));
         assert!(notice.contains("no PHI/PII"));
     }
 
@@ -90,9 +105,6 @@ mod tests {
         assert!(html.contains("id=\"dashboard-island-root\""));
         assert!(html.contains("data-island=\"render-envelope-dashboard\""));
         assert!(html.contains("Selective WASM islands"));
-        assert!(
-            html.to_ascii_lowercase()
-                .contains("production shell-bff contract source")
-        );
+        assert!(html.to_ascii_lowercase().contains("anonymous preview only"));
     }
 }
