@@ -27,15 +27,14 @@ pub fn server_derived_envelope(context: OperatorContext) -> TenantRenderEnvelope
         OperatorContext::HealthcareClinician => healthcare_clinician_envelope(),
     };
     envelope.server_derivation_note = "Anonymous preview only: this is sample UI. No tenant or role was verified, and live service status was not queried.".to_owned();
-    if context == OperatorContext::TenantAdmin {
-        if let Some(card) = envelope
+    if context == OperatorContext::TenantAdmin
+        && let Some(card) = envelope
             .modules
             .iter_mut()
             .find(|card| card.name == "Ontology")
-        {
-            card.description
-                .push_str(" · Preview only · live ontology status requires a verified session");
-        }
+    {
+        card.description
+            .push_str(" · Preview only · live ontology status requires a verified session");
     }
     envelope
 }

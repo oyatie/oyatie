@@ -71,7 +71,7 @@ rust_binary(
 
 rust_test(
     name = "application-shell-app-live-server-integration",
-    srcs = ["tests/live_server.rs", "src/app.rs", "src/lib.rs"],
+    srcs = ["tests/live_server.rs", "src/app.rs", "src/lib.rs"] + glob(["tests/live_server_support/**/*.rs", "src/app/**/*.rs"]),
     crate = "application_shell_app_live_server",
     crate_root = "tests/live_server.rs",
     rustc_flags = ["--cfg", "feature=\"ssr\""],
