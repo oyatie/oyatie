@@ -1,0 +1,22 @@
+rust_library(
+    name = "iam-identity-user-session-fake",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "iam_identity_user_session_fake",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//iam/ports/identity-user-session:iam-identity-user-session",
+    ],
+)
+
+rust_test(
+    name = "iam-identity-user-session-fake-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "iam_identity_user_session_fake",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//iam/ports/identity-user-session:iam-identity-user-session",
+        "third-party//:tokio",
+    ],
+)

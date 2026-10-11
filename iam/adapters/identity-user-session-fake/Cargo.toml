@@ -1,0 +1,21 @@
+[package]
+name = "iam-identity-user-session-fake"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Deterministic credential and membership fakes for the IAM user session port."
+
+[dependencies]
+iam-identity-user-session = { path = "../../ports/identity-user-session" }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

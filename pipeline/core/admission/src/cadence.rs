@@ -6,7 +6,7 @@ use super::live_postgres::{hits_backbone_postgres_path, hits_compute_lifecycle_p
 pub const LIVE_POSTGRES_CRATES: &[&str] = &[
     "compute-k8s-lifecycle-repository-postgres",
     "tenancy-tenant-lifecycle-store-postgres",
-    "identity-scim-store-postgres",
+    "iam-identity-scim-store-postgres",
     "iam-identity-app",
     "tenancy-tenant-lifecycle-app",
 ];

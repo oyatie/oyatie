@@ -260,7 +260,7 @@ fn live_postgres_crate_inventory_is_exact() {
         [
             "compute-k8s-lifecycle-repository-postgres",
             "tenancy-tenant-lifecycle-store-postgres",
-            "identity-scim-store-postgres",
+            "iam-identity-scim-store-postgres",
             "iam-identity-app",
             "tenancy-tenant-lifecycle-app",
         ]

@@ -12,7 +12,8 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-shared-scim-server-kernel = { path = "../../core/scim-server-kernel" }
+iam-scim-server-kernel = { path = "../../core/scim-server-kernel" }
+iam-identity-user-session = { path = "../../ports/identity-user-session" }
 iam-identity-oidc-issuer-kernel = { path = "../../core/identity-oidc-issuer-kernel" }
 iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
 iam-identity-workload-app = { path = "../identity-workload-app" }
@@ -24,12 +25,14 @@ iam-identity-workload-rest = { path = "../../adapters/identity-workload-rest" }
 # runs the fail-closed RLS-enforceability guard (free fn over &PgPool) before
 # serving. Transient Postgres adapter behind the unchanged UserStore/GroupStore
 # kernel ports (cutover litmus holds).
-identity-scim-store-postgres = { path = "../../adapters/identity-scim-store-postgres" }
+iam-identity-scim-store-postgres = { path = "../../adapters/identity-scim-store-postgres" }
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 aws-lc-rs = { workspace = true }
 base64 = "0.22.1"
+ciborium = "0.2.2"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+passkey-auth = "=0.1.3"
 # The composition root owns the sqlx::PgPool the SCIM stores share and passes it
 # to the RLS-enforceability guard (assert_rls_enforceable(&PgPool)).
 sqlx = { workspace = true }
@@ -37,13 +40,13 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "sig
 tonic = { workspace = true, features = ["router", "transport"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+uuid = { version = "1", features = ["v4"] }
 
 [dev-dependencies]
 # E2E: drive the live REST socket with reqwest and the live gRPC socket with
 # the tonic-generated client; tower for in-process router oneshot tests.
 reqwest = { workspace = true }
 tower = { version = "0.5", default-features = false, features = ["util"] }
-uuid = { version = "1", features = ["v4"] }
 
 [lints]
 workspace = true

@@ -112,6 +112,7 @@ pub mod lifecycle_authz;
 pub mod oauth2;
 pub mod observability;
 pub mod oidc;
+pub mod passkeys;
 pub mod realms;
 pub mod rest;
 pub mod server;

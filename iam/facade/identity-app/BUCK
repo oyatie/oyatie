@@ -7,6 +7,7 @@ rust_library(
     deps = [
         "//iam/core/identity-oidc-issuer-kernel:iam-identity-oidc-issuer-kernel",
         "//iam/core/scim-server-kernel:shared-scim-server-kernel",
+        "//iam/ports/identity-user-session:iam-identity-user-session",
         "//iam/ports/identity-workload-api:iam-identity-workload-api",
         "//iam/facade/identity-workload-app:iam-identity-workload-app",
         "//iam/adapters/identity-workload-authz-cedar:iam-identity-workload-authz-cedar",
@@ -17,13 +18,16 @@ rust_library(
         "third-party//:aws-lc-rs",
         "third-party//:axum",
         "third-party//:base64",
+        "third-party//passkeys:ciborium",
         "third-party//:serde",
         "third-party//:serde_json",
+        "third-party//passkeys:passkey-auth",
         "third-party//:sqlx",
         "third-party//:tokio",
         "third-party//:tonic",
         "third-party//:tracing",
         "third-party//:tracing-subscriber",
+        "third-party//:uuid",
     ],
 )
 
@@ -48,6 +52,7 @@ rust_test(
     deps = [
         "//iam/core/identity-oidc-issuer-kernel:iam-identity-oidc-issuer-kernel",
         "//iam/core/scim-server-kernel:shared-scim-server-kernel",
+        "//iam/ports/identity-user-session:iam-identity-user-session",
         "//iam/ports/identity-workload-api:iam-identity-workload-api",
         "//iam/facade/identity-workload-app:iam-identity-workload-app",
         "//iam/adapters/identity-workload-authz-cedar:iam-identity-workload-authz-cedar",
@@ -58,14 +63,17 @@ rust_test(
         "third-party//:aws-lc-rs",
         "third-party//:axum",
         "third-party//:base64",
+        "third-party//passkeys:ciborium",
         "third-party//:serde",
         "third-party//:serde_json",
+        "third-party//passkeys:passkey-auth",
         "third-party//:sqlx",
         "third-party//:tokio",
         "third-party//:tonic",
         "third-party//:tower",
         "third-party//:tracing",
         "third-party//:tracing-subscriber",
+        "third-party//:uuid",
     ],
 )
 
@@ -109,17 +117,20 @@ rust_test(
 
 rust_test(
     name = "iam-identity-app-live-durability",
-    srcs = ["tests/live_durability.rs", "tests/service_support/mod.rs"],
+    srcs = glob(["tests/live_durability/**/*.rs"]) + ["tests/live_durability.rs", "tests/service_support/mod.rs"],
     crate = "live_durability",
     crate_root = "tests/live_durability.rs",
     visibility = ["PUBLIC"],
     deps = [
         "//iam/facade/identity-app:iam-identity-app",
         "//iam/adapters/identity-workload-rest:iam-identity-workload-rest",
+        "//iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres",
+        "//iam/core/scim-server-kernel:shared-scim-server-kernel",
         "third-party//:aws-lc-rs",
         "third-party//:base64",
         "third-party//:reqwest",
         "third-party//:serde_json",
+        "third-party//:sqlx",
         "third-party//:tokio",
         "third-party//:tonic",
         "third-party//:uuid",

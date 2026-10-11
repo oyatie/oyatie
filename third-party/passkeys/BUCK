@@ -1,0 +1,608 @@
+load("//:pinned.bzl", "pinned_crate")
+
+# Shared signature, digest and generic-array targets keep both verification
+# algorithms on the same Rust trait identities.
+
+pinned_crate(
+    name = "base16ct",
+    version = "0.2.0",
+    sha256 = "4c7f02d4ea65f2c1853089ffd8d2787bdbc63de2f0d29dedbcf8ccdfa0ccd4cf",
+    features = ["alloc"],
+)
+
+pinned_crate(
+    name = "base64ct",
+    version = "1.8.3",
+    sha256 = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06",
+    edition = "2024",
+    features = ["alloc"],
+)
+
+pinned_crate(
+    name = "block-buffer",
+    version = "0.10.4",
+    sha256 = "3078c7629b62d3f0439517fa394996acacc5cbc91c5a20d8c658e77abd503a71",
+    edition = "2018",
+    deps = [":generic-array"],
+)
+
+pinned_crate(
+    name = "cfg-if",
+    version = "1.0.4",
+    sha256 = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801",
+    edition = "2018",
+)
+
+pinned_crate(
+    name = "ciborium",
+    version = "0.2.2",
+    sha256 = "42e69ffd6f0917f5c029256a24d0161db17cea3997d185db0d35926308770f0e",
+    features = ["default", "std"],
+    deps = [":ciborium-io", ":ciborium-ll", "third-party//:serde"],
+    visibility = ["root//iam/facade/identity-app/..."],
+)
+
+pinned_crate(
+    name = "ciborium-io",
+    version = "0.2.2",
+    sha256 = "05afea1e0a06c9be33d539b876f1ce3692f4afea2cb41f740e7743225ed1c757",
+    features = ["alloc", "std"],
+)
+
+pinned_crate(
+    name = "ciborium-ll",
+    version = "0.2.2",
+    sha256 = "57663b653d948a338bfb3eeba9bb2fd5fcfaecb9e199e87e1eda4d9e8b240fd9",
+    deps = [":ciborium-io", ":half"],
+)
+
+pinned_crate(
+    name = "const-oid",
+    version = "0.9.6",
+    sha256 = "c2459377285ad874054d797f3ccebf984978aa39129f6eafde5cdc8315b612f8",
+    features = ["db", "std"],
+)
+
+pinned_crate(
+    name = "cpufeatures",
+    version = "0.2.17",
+    sha256 = "59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280",
+    edition = "2018",
+    deps = ["third-party//:libc"],
+)
+
+pinned_crate(
+    name = "crypto-bigint",
+    version = "0.5.5",
+    sha256 = "0dc92fb57ca44df6db8059111ab3af99a63d5d0f8375d9972e319a379c6bab76",
+    features = ["generic-array", "rand_core", "zeroize"],
+    deps = [":generic-array", "third-party//:rand_core", ":subtle", "third-party//:zeroize"],
+)
+
+pinned_crate(
+    name = "crypto-common",
+    version = "0.1.7",
+    sha256 = "78c8292055d1c1df0cce5d180393dc8cce0abec0a7102adb6c7b1eef6016d60a",
+    edition = "2018",
+    features = ["std"],
+    deps = [":generic-array", ":typenum"],
+)
+
+pinned_crate(
+    name = "curve25519-dalek",
+    version = "4.1.3",
+    sha256 = "97fb8b7c4503de7d6ae7b42ab72a5a59857b4c937ec27a3d4539dba95b5ab2be",
+    features = ["alloc", "digest", "precomputed-tables", "zeroize"],
+    build_script = True,
+    deps = [":cfg-if", ":cpufeatures", ":curve25519-dalek-derive", ":digest", ":subtle", "third-party//:zeroize"],
+    build_deps = [":rustc_version"],
+)
+
+pinned_crate(
+    name = "curve25519-dalek-derive",
+    version = "0.1.1",
+    sha256 = "f46882e17999c6cc590af592290432be3bce0428cb0d5f8b6715e4dc7b383eb3",
+    proc_macro = True,
+    deps = ["third-party//:proc-macro2", "third-party//:quote", "third-party//:syn"],
+)
+
+pinned_crate(
+    name = "der",
+    version = "0.7.10",
+    sha256 = "e7c1832837b905bbfb5101e07cc24c8deddf52f93225eee6ead5f4d63d53ddcb",
+    features = ["alloc", "derive", "flagset", "oid", "pem", "std", "zeroize"],
+    deps = [":const-oid", ":der_derive", ":flagset", ":pem-rfc7468", "third-party//:zeroize"],
+)
+
+pinned_crate(
+    name = "der_derive",
+    version = "0.7.3",
+    sha256 = "8034092389675178f570469e6c3b0465d3d30b4505c294a6550db47f3c17ad18",
+    proc_macro = True,
+    deps = ["third-party//:proc-macro2", "third-party//:quote", "third-party//:syn"],
+)
+
+pinned_crate(
+    name = "digest",
+    version = "0.10.7",
+    sha256 = "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292",
+    edition = "2018",
+    features = ["alloc", "block-buffer", "const-oid", "core-api", "default", "mac", "oid", "std", "subtle"],
+    deps = [":block-buffer", ":const-oid", ":crypto-common", ":subtle"],
+)
+
+pinned_crate(
+    name = "displaydoc",
+    version = "0.2.7",
+    sha256 = "c6232dd377dcc64799954cbd3a9bb882e9cdc1308ccd87b1c098f1fb2eaf82a8",
+    proc_macro = True,
+    deps = ["third-party//:proc-macro2", "third-party//:quote", ":syn"],
+)
+
+pinned_crate(
+    name = "ecdsa",
+    version = "0.16.9",
+    sha256 = "ee27f32b5c5292967d2d4a9d7f1e0b0aed2c15daded5a60300e4abb9d8020bca",
+    features = ["alloc", "arithmetic", "der", "digest", "hazmat", "pem", "pkcs8", "rfc6979", "signing", "spki", "std", "verifying"],
+    deps = [":der", ":digest", ":elliptic-curve", ":rfc6979", ":signature", ":spki"],
+)
+
+pinned_crate(
+    name = "ed25519",
+    version = "2.2.3",
+    sha256 = "115531babc129696a58c64a4fef0a8bf9e9698629fb97e9e40767d235cfbcd53",
+    features = ["alloc", "pkcs8", "std"],
+    deps = [":pkcs8", ":signature"],
+)
+
+pinned_crate(
+    name = "ed25519-dalek",
+    version = "2.2.0",
+    sha256 = "70e796c081cee67dc755e1a36a0a172b897fab85fc3f6bc48307991f64e4eca9",
+    features = ["alloc", "default", "fast", "pkcs8", "std", "zeroize"],
+    deps = [":curve25519-dalek", ":ed25519", ":sha2", ":subtle", "third-party//:zeroize"],
+)
+
+pinned_crate(
+    name = "elliptic-curve",
+    version = "0.13.8",
+    sha256 = "b5e6043086bf7973472e0c7dff2142ea0b680d30e18d9cc40f267efbf222bd47",
+    features = ["alloc", "arithmetic", "digest", "ff", "group", "hazmat", "pem", "pkcs8", "sec1", "std"],
+    deps = [":base16ct", ":crypto-bigint", ":digest", ":ff", ":generic-array", ":group", ":pem-rfc7468", ":pkcs8", "third-party//:rand_core", ":sec1", ":subtle", "third-party//:zeroize"],
+)
+
+pinned_crate(
+    name = "ff",
+    version = "0.13.1",
+    sha256 = "c0b50bfb653653f9ca9095b427bed08ab8d75a137839d9ad64eb11810d5b6393",
+    features = ["alloc"],
+    deps = ["third-party//:rand_core", ":subtle"],
+)
+
+pinned_crate(
+    name = "flagset",
+    version = "0.4.7",
+    sha256 = "b7ac824320a75a52197e8f2d787f6a38b6718bb6897a35142d749af3c0e8f4fe",
+)
+
+pinned_crate(
+    name = "form_urlencoded",
+    version = "1.2.2",
+    sha256 = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf",
+    edition = "2018",
+    features = ["alloc", "std"],
+    deps = [":percent-encoding"],
+)
+
+pinned_crate(
+    name = "generic-array",
+    version = "0.14.7",
+    sha256 = "85649ca51fd72272d7821adaf274ad91c288277713d9c18820d8499a7ff69e9a",
+    edition = "2015",
+    features = ["more_lengths", "zeroize"],
+    build_script = True,
+    deps = [":typenum", "third-party//:zeroize"],
+    build_deps = [":version_check"],
+)
+
+pinned_crate(
+    name = "group",
+    version = "0.13.0",
+    sha256 = "f0f9ef7462f7c099f518d754361858f86d8a07af53ba9af0fe635bbccb151a63",
+    features = ["alloc"],
+    deps = [":ff", "third-party//:rand_core", ":subtle"],
+)
+
+pinned_crate(
+    name = "half",
+    version = "2.7.1",
+    sha256 = "6ea2d84b969582b4b1864a92dc5d27cd2b77b622a8d79306834f1be5ba20d84b",
+    deps = [":cfg-if", ":zerocopy"],
+)
+
+pinned_crate(
+    name = "hmac",
+    version = "0.12.1",
+    sha256 = "6c49c37c09c17a53d937dfbb742eb3a961d65a994e6bcdcf37e7399d0cc8ab5e",
+    edition = "2018",
+    features = ["reset"],
+    deps = [":digest"],
+)
+
+pinned_crate(
+    name = "icu_collections",
+    version = "2.2.0",
+    sha256 = "2984d1cd16c883d7935b9e07e44071dca8d917fd52ecc02c04d5fa0b5a3f191c",
+    deps = [":displaydoc", ":potential_utf", ":utf8_iter", ":yoke", ":zerofrom", ":zerovec"],
+)
+
+pinned_crate(
+    name = "icu_locale_core",
+    version = "2.2.0",
+    sha256 = "92219b62b3e2b4d88ac5119f8904c10f8f61bf7e95b640d25ba3075e6cac2c29",
+    features = ["zerovec"],
+    deps = [":displaydoc", ":litemap", ":tinystr", ":writeable", ":zerovec"],
+)
+
+pinned_crate(
+    name = "icu_normalizer",
+    version = "2.2.0",
+    sha256 = "c56e5ee99d6e3d33bd91c5d85458b6005a22140021cc324cea84dd0e72cff3b4",
+    features = ["compiled_data"],
+    deps = [":icu_collections", ":icu_normalizer_data", ":icu_provider", ":smallvec", ":zerovec"],
+)
+
+pinned_crate(
+    name = "icu_normalizer_data",
+    version = "2.2.0",
+    sha256 = "da3be0ae77ea334f4da67c12f149704f19f81d1adf7c51cf482943e84a2bad38",
+    build_script = True,
+)
+
+pinned_crate(
+    name = "icu_properties",
+    version = "2.2.0",
+    sha256 = "bee3b67d0ea5c2cca5003417989af8996f8604e34fb9ddf96208a033901e70de",
+    features = ["compiled_data"],
+    deps = [":icu_collections", ":icu_locale_core", ":icu_properties_data", ":icu_provider", ":zerotrie", ":zerovec"],
+)
+
+pinned_crate(
+    name = "icu_properties_data",
+    version = "2.2.0",
+    sha256 = "8e2bbb201e0c04f7b4b3e14382af113e17ba4f63e2c9d2ee626b720cbce54a14",
+    build_script = True,
+)
+
+pinned_crate(
+    name = "icu_provider",
+    version = "2.2.0",
+    sha256 = "139c4cf31c8b5f33d7e199446eff9c1e02decfc2f0eec2c8d71f65befa45b421",
+    features = ["baked"],
+    deps = [":displaydoc", ":icu_locale_core", ":writeable", ":yoke", ":zerofrom", ":zerotrie", ":zerovec"],
+)
+
+pinned_crate(
+    name = "idna",
+    version = "1.1.0",
+    sha256 = "3b0875f23caa03898994f6ddc501886a45c7d3d62d04d2d90788d47be1b1e4de",
+    edition = "2018",
+    features = ["alloc", "compiled_data", "std"],
+    deps = [":idna_adapter", ":smallvec", ":utf8_iter"],
+)
+
+pinned_crate(
+    name = "idna_adapter",
+    version = "1.2.2",
+    sha256 = "cb68373c0d6620ef8105e855e7745e18b0d00d3bdb07fb532e434244cdb9a714",
+    edition = "2024",
+    features = ["compiled_data"],
+    deps = [":icu_normalizer", ":icu_properties"],
+)
+
+pinned_crate(
+    name = "litemap",
+    version = "0.8.2",
+    sha256 = "92daf443525c4cce67b150400bc2316076100ce0b3686209eb8cf3c31612e6f0",
+)
+
+pinned_crate(
+    name = "p256",
+    version = "0.13.2",
+    sha256 = "c9863ad85fa8f4460f9c48cb909d38a0d689dba1f6f6988a5e3e0d31071bcd4b",
+    features = ["alloc", "arithmetic", "default", "digest", "ecdsa", "ecdsa-core", "pem", "pkcs8", "sha2", "sha256", "std"],
+    deps = [":elliptic-curve", ":primeorder", ":sha2"],
+    named_deps = {"ecdsa_core": ":ecdsa"},
+)
+
+pinned_crate(
+    name = "passkey-auth",
+    version = "0.1.3",
+    sha256 = "68b76d109aa51f99c94d2f361c10dc0c93980dd87aa1ad5212df83e7e1b80a29",
+    edition = "2024",
+    deps = ["third-party//:base64", ":ciborium", ":const-oid", ":ed25519-dalek", ":p256", ":rand", "third-party//:serde", "third-party//:serde_json", ":sha2", "third-party//:thiserror", ":url", ":x509-cert"],
+    visibility = ["root//iam/facade/identity-app/..."],
+)
+
+pinned_crate(
+    name = "pem-rfc7468",
+    version = "0.7.0",
+    sha256 = "88b39c9bfcfc231068454382784bb460aae594343fb030d46e9f50a645418412",
+    features = ["alloc"],
+    deps = [":base64ct"],
+)
+
+pinned_crate(
+    name = "percent-encoding",
+    version = "2.3.2",
+    sha256 = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220",
+    edition = "2018",
+    features = ["alloc", "std"],
+)
+
+pinned_crate(
+    name = "pkcs8",
+    version = "0.10.2",
+    sha256 = "f950b2377845cebe5cf8b5165cb3cc1a5e0fa5cfa3e1f7f55707d8fd82e0a7b7",
+    features = ["alloc", "pem", "std"],
+    deps = [":der", ":spki"],
+)
+
+pinned_crate(
+    name = "potential_utf",
+    version = "0.1.5",
+    sha256 = "0103b1cef7ec0cf76490e969665504990193874ea05c85ff9bab8b911d0a0564",
+    features = ["zerovec"],
+    deps = [":zerovec"],
+)
+
+pinned_crate(
+    name = "ppv-lite86",
+    version = "0.2.21",
+    sha256 = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9",
+    features = ["simd", "std"],
+    deps = [":zerocopy"],
+)
+
+pinned_crate(
+    name = "primeorder",
+    version = "0.13.6",
+    sha256 = "353e1ca18966c16d9deb1c69278edbc5f194139612772bd9537af60ac231e1e6",
+    deps = [":elliptic-curve"],
+)
+
+pinned_crate(
+    name = "rand",
+    version = "0.8.7",
+    sha256 = "22f6172bdec972074665ed81ed53b71da00bfc44b65a753cfde883ec4c702a1a",
+    edition = "2018",
+    features = ["alloc", "default", "getrandom", "libc", "rand_chacha", "std", "std_rng"],
+    deps = ["third-party//:libc", ":rand_chacha", "third-party//:rand_core"],
+)
+
+pinned_crate(
+    name = "rand_chacha",
+    version = "0.3.1",
+    sha256 = "e6c10a63a0fa32252be49d21e7709d4d4baf8d231c2dbce1eaa8141b9b127d88",
+    edition = "2018",
+    features = ["std"],
+    deps = [":ppv-lite86", "third-party//:rand_core"],
+)
+
+pinned_crate(
+    name = "rfc6979",
+    version = "0.4.0",
+    sha256 = "f8dd2a808d456c4a54e300a23e9f5a67e122c3024119acbfd73e3bf664491cb2",
+    deps = [":hmac", ":subtle"],
+)
+
+pinned_crate(
+    name = "rustc_version",
+    version = "0.4.1",
+    sha256 = "cfcb3a22ef46e85b45de6ee7e79d063319ebb6594faafcf1c225ea92ab6e9b92",
+    edition = "2018",
+    deps = ["third-party//:semver"],
+)
+
+pinned_crate(
+    name = "sec1",
+    version = "0.7.3",
+    sha256 = "d3e97a565f76233a6003f9f5c54be1d9c5bdfa3eccfb189469f11ec4901c47dc",
+    features = ["alloc", "default", "der", "pem", "pkcs8", "point", "std", "subtle", "zeroize"],
+    deps = [":base16ct", ":der", ":generic-array", ":pkcs8", ":subtle", "third-party//:zeroize"],
+)
+
+pinned_crate(
+    name = "sha2",
+    version = "0.10.9",
+    sha256 = "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283",
+    edition = "2018",
+    features = ["default", "std"],
+    deps = [":cfg-if", ":cpufeatures", ":digest"],
+)
+
+pinned_crate(
+    name = "signature",
+    version = "2.2.0",
+    sha256 = "77549399552de45a898a580c1b41d445bf730df867cc44e6c0233bbc4b8329de",
+    features = ["alloc", "digest", "rand_core", "std"],
+    deps = [":digest", "third-party//:rand_core"],
+)
+
+pinned_crate(
+    name = "smallvec",
+    version = "1.15.2",
+    sha256 = "8ed6a63f02c8539c91a8685a86f4099661ba3da017932f6ebbea6de3f0fa7c90",
+    edition = "2018",
+    features = ["const_generics"],
+)
+
+pinned_crate(
+    name = "spki",
+    version = "0.7.3",
+    sha256 = "d91ed6c858b01f942cd56b37a94b3e0a1798290327d1236e4d9cf4eaca44d29d",
+    features = ["alloc", "pem", "std"],
+    deps = [":der"],
+)
+
+pinned_crate(
+    name = "stable_deref_trait",
+    version = "1.2.1",
+    sha256 = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596",
+    edition = "2015",
+)
+
+pinned_crate(
+    name = "subtle",
+    version = "2.6.1",
+    sha256 = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292",
+    edition = "2018",
+    features = ["i128"],
+)
+
+pinned_crate(
+    name = "syn",
+    version = "3.0.3",
+    sha256 = "53e9bae58849f64dfa4f5d5ae372c8341f7305f82a3868709269343628b659a3",
+    features = ["clone-impls", "default", "derive", "parsing", "printing", "proc-macro"],
+    deps = ["third-party//:proc-macro2", "third-party//:quote", ":unicode-ident"],
+)
+
+pinned_crate(
+    name = "synstructure",
+    version = "0.13.2",
+    sha256 = "728a70f3dbaf5bab7f0c4b1ac8d7ae5ea60a4b5549c8a5914361c99147a709d2",
+    edition = "2018",
+    features = ["default", "proc-macro"],
+    deps = ["third-party//:proc-macro2", "third-party//:quote", "third-party//:syn"],
+)
+
+pinned_crate(
+    name = "tinystr",
+    version = "0.8.3",
+    sha256 = "c8323304221c2a851516f22236c5722a72eaa19749016521d6dff0824447d96d",
+    features = ["zerovec"],
+    deps = [":displaydoc", ":zerovec"],
+)
+
+pinned_crate(
+    name = "typenum",
+    version = "1.20.1",
+    sha256 = "b6f5e870be6c3b371b77fe0ee0bafb859fa4964b4404c27de1d380043c4dda20",
+    edition = "2018",
+)
+
+pinned_crate(
+    name = "unicode-ident",
+    version = "1.0.24",
+    sha256 = "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75",
+)
+
+pinned_crate(
+    name = "url",
+    version = "2.5.8",
+    sha256 = "ff67a8a4397373c3ef660812acab3268222035010ab8680ec4215f38ba3d0eed",
+    edition = "2018",
+    features = ["default", "std"],
+    deps = [":form_urlencoded", ":idna", ":percent-encoding"],
+)
+
+pinned_crate(
+    name = "utf8_iter",
+    version = "1.0.4",
+    sha256 = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be",
+)
+
+pinned_crate(
+    name = "version_check",
+    version = "0.9.5",
+    sha256 = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a",
+    edition = "2015",
+)
+
+pinned_crate(
+    name = "writeable",
+    version = "0.6.3",
+    sha256 = "1ffae5123b2d3fc086436f8834ae3ab053a283cfac8fe0a0b8eaae044768a4c4",
+)
+
+pinned_crate(
+    name = "x509-cert",
+    version = "0.2.5",
+    sha256 = "1301e935010a701ae5f8655edc0ad17c44bad3ac5ce8c39185f75453b720ae94",
+    features = ["default", "pem", "std"],
+    deps = [":const-oid", ":der", ":spki"],
+)
+
+pinned_crate(
+    name = "yoke",
+    version = "0.8.3",
+    sha256 = "709fe23a0424b6a435d82152b1bd3fdfb0833487d5fa90d05d42762a9891fef5",
+    features = ["derive", "zerofrom"],
+    deps = [":stable_deref_trait", ":yoke-derive", ":zerofrom"],
+)
+
+pinned_crate(
+    name = "yoke-derive",
+    version = "0.8.2",
+    sha256 = "de844c262c8848816172cef550288e7dc6c7b7814b4ee56b3e1553f275f1858e",
+    proc_macro = True,
+    deps = ["third-party//:proc-macro2", "third-party//:quote", "third-party//:syn", ":synstructure"],
+)
+
+pinned_crate(
+    name = "zerocopy",
+    version = "0.8.56",
+    sha256 = "556764e583adb45a9f8d413c2a147fa7e8d821e48e12b14fd560b607998b75eb",
+    features = ["derive", "simd", "zerocopy-derive"],
+    build_script = True,
+    deps = [":zerocopy-derive"],
+)
+
+pinned_crate(
+    name = "zerocopy-derive",
+    version = "0.8.56",
+    sha256 = "f2ab42fc20575779bd240faa45f94a74256f755c0fa9e89f0ede20d91d0cdfc1",
+    proc_macro = True,
+    deps = ["third-party//:proc-macro2", "third-party//:quote", "third-party//:syn"],
+)
+
+pinned_crate(
+    name = "zerofrom",
+    version = "0.1.8",
+    sha256 = "0ec05a11813ea801ff6d75110ad09cd0824ddba17dfe17128ea0d5f68e6c5272",
+    features = ["derive"],
+    deps = [":zerofrom-derive"],
+)
+
+pinned_crate(
+    name = "zerofrom-derive",
+    version = "0.1.7",
+    sha256 = "11532158c46691caf0f2593ea8358fed6bbf68a0315e80aae9bd41fbade684a1",
+    proc_macro = True,
+    deps = ["third-party//:proc-macro2", "third-party//:quote", "third-party//:syn", ":synstructure"],
+)
+
+pinned_crate(
+    name = "zerotrie",
+    version = "0.2.4",
+    sha256 = "0f9152d31db0792fa83f70fb2f83148effb5c1f5b8c7686c3459e361d9bc20bf",
+    features = ["yoke", "zerofrom"],
+    deps = [":displaydoc", ":yoke", ":zerofrom"],
+)
+
+pinned_crate(
+    name = "zerovec",
+    version = "0.11.6",
+    sha256 = "90f911cbc359ab6af17377d242225f4d75119aec87ea711a880987b18cd7b239",
+    features = ["derive", "yoke"],
+    deps = [":yoke", ":zerofrom", ":zerovec-derive"],
+)
+
+pinned_crate(
+    name = "zerovec-derive",
+    version = "0.11.3",
+    sha256 = "625dc425cab0dca6dc3c3319506e6593dcb08a9f387ea3b284dbd52a92c40555",
+    proc_macro = True,
+    deps = ["third-party//:proc-macro2", "third-party//:quote", "third-party//:syn"],
+)
