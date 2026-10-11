@@ -2,8 +2,8 @@
 # D-10 / D-43: rustfmt --check the *.rs committed between the push base and HEAD.
 #
 # Blobs at HEAD, not the worktree copy: the worktree can hold edits that are not in the commits
-# being pushed, so checking files on disk judges bytes the remote will never see. Missing rustfmt
-# warns and passes rather than blocking every push in every worktree; presubmit still gates fmt.
+# being pushed, so checking files on disk judges bytes the remote will never see. Unchanged module
+# children and formatting configuration come from that same immutable commit. Missing inputs refuse.
 # No base still refuses (D-43), but says how to get one instead of leaving the push wedged.
 set -eu
 
@@ -17,33 +17,44 @@ else
   exit 1
 fi
 
-changed=$(git diff --name-only --diff-filter=ACMR "$base"...HEAD -- '*.rs')
+base_commit=$(git rev-parse --verify "$base^{commit}")
+commit=$(git rev-parse --verify 'HEAD^{commit}')
+changed=$(git diff --name-only --diff-filter=ACMR "$base_commit...$commit" -- '*.rs')
 [ -n "$changed" ] || exit 0
 
-if ! command -v rustfmt >/dev/null 2>&1; then
-  echo "pre-push: rustfmt not on PATH; skipping fmt check (presubmit still gates it)" >&2
-  exit 0
+if ! command -v rustup >/dev/null 2>&1; then
+  echo "pre-push: rustup not on PATH; refusing fmt check" >&2
+  exit 1
 fi
 
-top=$(git rev-parse --show-toplevel)
-tmp=$(mktemp -d) || { echo "pre-push: mktemp failed; skipping fmt check" >&2; exit 0; }
+tmp=$(mktemp -d) || { echo "pre-push: mktemp failed; refusing fmt check" >&2; exit 1; }
 trap 'rm -rf "$tmp"' EXIT INT TERM
 
+inputs=$(git ls-tree -r --name-only --full-tree "$commit")
 IFS='
 '
+for f in $inputs; do
+  case "$f" in
+    *.rs|rustfmt.toml|rust-toolchain.toml)
+      mkdir -p "$tmp/$(dirname "$f")"
+      git show "$commit:$f" > "$tmp/$f" || { echo "pre-push: cannot read committed $f" >&2; exit 1; }
+      ;;
+  esac
+done
+for f in rustfmt.toml rust-toolchain.toml; do
+  [ -f "$tmp/$f" ] || { echo "pre-push: missing committed $f" >&2; exit 1; }
+done
 for f in $changed; do
-  mkdir -p "$tmp/$(dirname "$f")"
-  # A path can be deleted at HEAD while still appearing for an earlier revision in the range.
-  git show "HEAD:$f" > "$tmp/$f" 2>/dev/null || rm -f "$tmp/$f"
+  [ -f "$tmp/$f" ] || { echo "pre-push: missing committed Rust $f" >&2; exit 1; }
+  printf '%s\0' "$f" >> "$tmp/check-paths"
 done
 unset IFS
 
-# A range can change only files that no longer exist at HEAD, leaving nothing to check. That is a
-# pass, and it must be decided here: GNU xargs runs its command once on empty input, which would
-# hand rustfmt the push ref list on stdin, and rustfmt exits 0 for stdin even when it prints a diff.
-extracted=$(cd "$tmp" && find . -name '*.rs' | wc -l)
-[ "$extracted" -gt 0 ] || exit 0
-if (cd "$tmp" && find . -name '*.rs' -print0 | xargs -0 rustfmt --check --config-path "$top/rustfmt.toml" --); then
+# Only changed roots reach xargs -0 rustfmt; all Rust inputs remain available for recursive modules.
+# Never let empty xargs input turn the push ref list on stdin into a successful rustfmt check.
+# An inherited rustup override must not replace the captured toolchain configuration.
+[ -s "$tmp/check-paths" ] || { echo "pre-push: extracted no committed Rust; refusing to pass blind" >&2; exit 1; }
+if (cd "$tmp" && unset RUSTUP_TOOLCHAIN && formatter=$(rustup which rustfmt) && xargs -0 "$formatter" --check --config-path "$tmp/rustfmt.toml" -- < "$tmp/check-paths"); then
   exit 0
 fi
 echo "" >&2
