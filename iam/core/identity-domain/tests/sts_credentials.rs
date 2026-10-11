@@ -75,6 +75,28 @@ fn identity_user_requires_tenant_user_and_idp_binding_shapes() {
 }
 
 #[test]
+fn existing_user_roles_keep_their_original_acceptance() {
+    let binding = IdpBinding::new(
+        "pack-alpha".into(),
+        "idp_kr_oidc".into(),
+        "oidc://kr.example/admin".into(),
+        1_700_000_000,
+    )
+    .expect("idp binding");
+    let roles = vec!["legacy role with spaces".to_owned(), "역할".to_owned()];
+    let user = User::new(
+        "ten_alpha".into(),
+        "usr_admin".into(),
+        "admin@kr.example".into(),
+        "KR Admin".into(),
+        roles.clone(),
+        binding,
+    )
+    .expect("existing user role values stay accepted");
+    assert_eq!(user.roles.value, roles);
+}
+
+#[test]
 fn identity_user_rejects_invalid_user_and_idp_binding_shapes() {
     let valid_binding = IdpBinding::new(
         "pack-alpha".into(),

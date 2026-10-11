@@ -1,0 +1,19 @@
+[package]
+name = "iam-identity-user-session"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "IAM user session and tenant membership authorization port for the application shell."
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+iam-identity-domain = { path = "../../core/identity-domain" }
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

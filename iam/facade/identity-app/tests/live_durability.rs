@@ -5,6 +5,9 @@
 #[path = "service_support/mod.rs"]
 mod service_support;
 
+use aws_lc_rs::digest::{SHA256, digest};
+use iam_identity_scim_store_postgres::{PgScimUserStore, passkeys::PgPasskeyStore};
+use iam_scim_server_kernel::{OyatieExtension, TenantId, User, UserStore};
 use service_support::*;
 
 // ============================================================
@@ -59,6 +62,7 @@ fn require_live_app_url() -> String {
 async fn boot_with_url(
     fixture: &SigningFixture,
     scim_url: Option<String>,
+    passkey_origin: Option<&str>,
 ) -> server::ServiceHandle {
     let dir = std::env::temp_dir().join(format!("identity-e2e-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&dir).expect("temp dir");
@@ -89,9 +93,14 @@ async fn boot_with_url(
         lifecycle_caller_tenant: "ten_acme".into(),
         lifecycle_caller_id: "e2e-control-plane".into(),
     };
-    server::start_with_scim_url(&config, scim_url)
-        .await
-        .expect("service boots")
+    match passkey_origin {
+        Some(origin) => server::start_with_passkey_origin(&config, scim_url, origin.to_owned())
+            .await
+            .expect("passkey service boots"),
+        None => server::start_with_scim_url(&config, scim_url)
+            .await
+            .expect("service boots"),
+    }
 }
 
 /// LIVE durability proof (env-gated): boot the REAL service via
@@ -114,81 +123,7 @@ async fn boot_with_url(
 ///
 /// `#[ignore]` so default nextest does not count a skip as a pass. The live
 /// job runs this with `--run-ignored only`. Missing env is a hard failure.
-#[tokio::test(flavor = "multi_thread")]
-#[ignore = "live postgres"]
-async fn live_durable_scim_store_persists_across_service_rebuild() {
-    let app_url = require_live_app_url();
-
-    // ONE signing fixture across both boots so the JWKS is identical: a token
-    // minted now must validate against the freshly-rebuilt service.
-    let fixture = SigningFixture::generate();
-
-    // A unique userName per run so repeated live runs against the same database
-    // do not collide on the durable UNIQUE (tenant_id, user_name).
-    let user_name = format!("durable-{}@acme.example", std::process::id());
-    let payload = serde_json::json!({
-        "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
-        "userName": user_name,
-        "displayName": "Durable Provisioned User",
-        "active": true,
-    });
-    let token = fixture.mint("wl_provisioner", "scim.manage");
-
-    // Service #1: provision the user (durable store, born in Postgres).
-    let handle = boot_with_url(&fixture, Some(app_url.clone())).await;
-    let base = format!("http://{}", handle.rest_addr);
-    let client = reqwest::Client::new();
-    let response = client
-        .post(format!("{base}/scim/v2/ten_acme/Users"))
-        .bearer_auth(&token)
-        .json(&payload)
-        .send()
-        .await
-        .expect("scim create responds");
-    assert_eq!(
-        response.status().as_u16(),
-        201,
-        "durable SCIM create must succeed"
-    );
-    let created: serde_json::Value = response.json().await.expect("created json");
-    let id = created["id"].as_str().expect("assigned id").to_owned();
-    assert_eq!(created["userName"], user_name.as_str());
-    handle.shutdown().await;
-
-    // Service #2: a FRESH composition over the SAME backend. The earlier write
-    // is only observable here if it was durably persisted (the in-memory store,
-    // being per-process state, would 404).
-    let rebuilt = boot_with_url(&fixture, Some(app_url)).await;
-    let base2 = format!("http://{}", rebuilt.rest_addr);
-
-    let response = client
-        .get(format!("{base2}/scim/v2/ten_acme/Users/{id}"))
-        .bearer_auth(&token)
-        .send()
-        .await
-        .expect("scim get responds");
-    assert_eq!(
-        response.status().as_u16(),
-        200,
-        "durable SCIM user must survive a service rebuild"
-    );
-    let fetched: serde_json::Value = response.json().await.expect("fetched json");
-    assert_eq!(fetched["userName"], user_name.as_str());
-
-    // Facade-layer SCIM PEP cross-tenant deny: the `ten_acme` token hitting a
-    // `ten_other` path is denied 403 (tenant-mismatch) BEFORE the store is
-    // consulted. This is the PEP guard, NOT a store-layer RLS test.
-    let cross = client
-        .get(format!("{base2}/scim/v2/ten_other/Users/{id}"))
-        .bearer_auth(&token)
-        .send()
-        .await
-        .expect("cross-tenant scim responds");
-    assert_eq!(
-        cross.status().as_u16(),
-        403,
-        "cross-tenant SCIM access must be denied 403 by the PEP before the store"
-    );
-
-    rebuilt.shutdown().await;
-}
+#[path = "live_durability/scim.rs"]
+mod scim;
+#[path = "live_durability/sessions.rs"]
+mod sessions;

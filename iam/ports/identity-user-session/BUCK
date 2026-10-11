@@ -1,0 +1,23 @@
+rust_library(
+    name = "iam-identity-user-session",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "iam_identity_user_session",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "//iam/core/identity-domain:iam-identity-domain",
+    ],
+)
+
+rust_test(
+    name = "iam-identity-user-session-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "iam_identity_user_session",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "//iam/core/identity-domain:iam-identity-domain",
+    ],
+)
