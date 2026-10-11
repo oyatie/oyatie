@@ -1,5 +1,26 @@
 //! Additive durable passkey schema, applied through the native migration splitter.
 
+use shared_postgres_command_kernel::split_migration_statements;
+use sqlx::{Connection, PgConnection};
+
+/// Apply the additive passkey schema on an explicit administrator connection.
+/// The SCIM schema and runtime role must already exist. This is a setup API;
+/// serving connections never call it or receive additional privileges.
+///
+/// # Errors
+/// Returns the database error after rolling back all statements on failure.
+/// A rollback or commit failure is also returned to the caller.
+pub async fn provision_passkey_schema(setup: &mut PgConnection) -> Result<(), sqlx::Error> {
+    let mut transaction = setup.begin().await?;
+    for statement in split_migration_statements(PASSKEY_AUTHENTICATION_SQL) {
+        if let Err(error) = sqlx::query(&statement).execute(&mut *transaction).await {
+            transaction.rollback().await?;
+            return Err(error);
+        }
+    }
+    transaction.commit().await
+}
+
 pub const PASSKEY_AUTHENTICATION_SQL: &str = r#"-- Durable, tenant-scoped WebAuthn challenge, credential, and session records.
 -- Applied after the SCIM user tables; every serving read/write sets
 -- oyatie.tenant_id in its own transaction before touching these relations.

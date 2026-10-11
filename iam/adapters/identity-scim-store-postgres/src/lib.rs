@@ -4,7 +4,7 @@
 
 mod passkey_schema;
 pub mod passkeys;
-pub use passkey_schema::PASSKEY_AUTHENTICATION_SQL;
+pub use passkey_schema::{PASSKEY_AUTHENTICATION_SQL, provision_passkey_schema};
 
 use core::future::Future;
 use core::pin::Pin;

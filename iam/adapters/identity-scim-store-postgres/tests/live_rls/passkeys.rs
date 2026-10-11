@@ -39,9 +39,9 @@ async fn live_passkeys_are_tenant_scoped_single_use_and_retry_safe() {
     );
 
     // A migration retry must not delete an outstanding invitation.
-    for sql in split_migration_statements(PASSKEY_AUTHENTICATION_SQL) {
-        sqlx::query(&sql).execute(&setup).await.unwrap();
-    }
+    provision_passkey_schema(&mut setup.acquire().await.unwrap())
+        .await
+        .unwrap();
     let taken = store
         .take_challenge("ten_alpha", &challenge, "enroll", 150)
         .await
