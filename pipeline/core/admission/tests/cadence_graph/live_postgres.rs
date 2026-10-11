@@ -23,7 +23,7 @@ const BACKBONE_LIVE_STEP: &str = r#"      - name: Live Postgres tests (live_* on
           test -n "${OYATIE_BACKBONE_POSTGRES_URL}"
           test -n "${OYATIE_BACKBONE_POSTGRES_APP_URL}"
           cargo nextest run --locked --profile live --run-ignored only --no-tests=error -p tenancy-tenant-lifecycle-store-postgres
-          cargo nextest run --locked --profile live --run-ignored only --no-tests=error -p identity-scim-store-postgres
+          cargo nextest run --locked --profile live --run-ignored only --no-tests=error --manifest-path iam/adapters/identity-scim-store-postgres/Cargo.toml
           cargo nextest run --locked --profile live --run-ignored only --no-tests=error -p iam-identity-app
           cargo nextest run --locked --profile live --run-ignored only --no-tests=error -p tenancy-tenant-lifecycle-app"#;
 
@@ -213,7 +213,7 @@ fn each_cell_rejects_zero_test_and_cross_cell_package_mutations() {
     let missing_backbone = mutate_step(
         &y,
         BACKBONE_LIVE_STEP,
-        "          cargo nextest run --locked --profile live --run-ignored only --no-tests=error -p identity-scim-store-postgres\n",
+        "          cargo nextest run --locked --profile live --run-ignored only --no-tests=error --manifest-path iam/adapters/identity-scim-store-postgres/Cargo.toml\n",
         "",
     );
     assert!(!closed_cell_contracts(&missing_backbone));
@@ -267,5 +267,5 @@ fn live_postgres_crate_inventory_is_exact() {
     );
     let t = super::read(".config/nextest.toml");
     assert!(t.contains("[profile.live]"));
-    assert!(t.contains("test(/^live_/)"));
+    assert!(t.contains("test(/(^|::)live_[^:]*$/)"));
 }
