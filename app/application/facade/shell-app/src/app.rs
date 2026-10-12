@@ -51,6 +51,7 @@ mod island_listeners;
 #[cfg(target_arch = "wasm32")]
 use island_listeners::*;
 
+mod live_ontology;
 mod sign_in;
 use sign_in::*;
 

@@ -1,7 +1,13 @@
 mod credentials;
+mod explorer;
 
 pub(super) fn script() -> String {
-    format!("{}\n{}", credentials::SCRIPT, SCRIPT)
+    format!(
+        "{}\n{}\n{}",
+        credentials::SCRIPT,
+        explorer::script(),
+        SCRIPT
+    )
 }
 
 const SCRIPT: &str = r#"
@@ -21,6 +27,11 @@ if (signInPanel) {
   let ceremony = null;
   let tail = Promise.resolve();
   let expiryTimer = null;
+  const explorer = createOntologyExplorer({
+    valid: (session, version) => stillSelected(session, version) && current?.tenantId === session.tenantId && current?.userId === session.userId && current.expiresAt * 1000 > Date.now(),
+    fallback: () => account.focus(),
+    expired: text => { generation += 1; clearSession(); message(text, true); },
+  });
   const canonical = (value, prefix) => new RegExp(`^${prefix}[A-Za-z0-9_-]+$`).test(value) && value.length <= 256;
   function selected() {
     if (!canonical(tenant.value, 'ten_') || !canonical(account.value, 'usr_')) {
@@ -33,6 +44,7 @@ if (signInPanel) {
     status.dataset.error = String(error);
   }
   function clearLive() {
+    explorer.clear();
     card.hidden = true;
     for (const fact of card.querySelectorAll('[data-live-fact]')) fact.textContent = '';
     find('verified-ontology-identity').textContent = '';
@@ -89,8 +101,8 @@ if (signInPanel) {
     }).finally(() => { busy -= 1; ceremony = null; controls(); });
     return task;
   }
-  async function verify(snapshot, version) {
-    clearLive();
+  async function verify(snapshot, version, retaining = false) {
+    if (!retaining) clearLive();
     const session = await api(snapshot.tenantId, 'session');
     if (!stillSelected(snapshot, version)) return;
     if (session.tenantId !== snapshot.tenantId || session.userId !== snapshot.userId
@@ -120,6 +132,7 @@ if (signInPanel) {
     find('verified-ontology-identity').textContent = `${session.tenantId} · ${session.userId} · authorized by Foundry`;
     find('verified-ontology-updated').textContent = `Checked ${new Date().toLocaleTimeString()}. Refresh to check current access.`;
     card.hidden = false;
+    void explorer.open(session, version, retaining);
     message(`Signed in as ${session.userId}. Live Ontology access verified. The dashboard below remains a sample preview.`);
   }
   find('passkey-form').addEventListener('submit', event => {
@@ -172,8 +185,9 @@ if (signInPanel) {
     let snapshot;
     try { snapshot = selected(); } catch (error) { clearSession(); message(error.message, true); return; }
     const version = ++generation;
-    clearSession();
-    enqueue(() => verify(snapshot, version));
+    const retaining = current?.tenantId === snapshot.tenantId && current?.userId === snapshot.userId && current.expiresAt * 1000 > Date.now();
+    if (retaining) explorer.hold(version); else clearSession();
+    enqueue(() => verify(snapshot, version, retaining));
   }
   find('session-restore').addEventListener('click', restore);
   find('ontology-refresh').addEventListener('click', restore);
@@ -223,3 +237,6 @@ if (signInPanel) {
   }
 }
 "#;
+
+#[cfg(test)]
+mod explorer_test;

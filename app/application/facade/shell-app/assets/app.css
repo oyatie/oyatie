@@ -13293,3 +13293,13 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 
 #resource-audit-console .resource-filter-pills button[data-resource-filter][aria-pressed="false"] { background: var(--paper-raised); color: var(--ink-muted); }
 #resource-audit-console .resource-filter-pills button[data-resource-filter][aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+.live-ontology-query { display: grid; grid-template-columns: minmax(8rem, 1fr) minmax(10rem, 2fr); gap: var(--space-2); align-items: center; max-width: 50rem; }
+.live-ontology-query input, .live-ontology-query select { min-width: 0; min-height: 2.75rem; width: 100%; box-sizing: border-box; padding: var(--space-2); color: var(--color-text); background: var(--color-surface-sunken); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font: inherit; }
+.live-ontology-query p, .live-ontology-query button { grid-column: 1 / -1; }
+.live-ontology-explorer [data-live-results] { overflow-x: auto; margin-top: var(--space-3); }
+.live-ontology-explorer table { width: 100%; border-collapse: collapse; text-align: left; }
+.live-ontology-explorer th, .live-ontology-explorer td { padding: var(--space-2); border-bottom: 1px solid var(--color-border); vertical-align: top; overflow-wrap: anywhere; }
+.live-ontology-explorer pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+.live-ontology-explorer [aria-busy="true"] { opacity: .7; }
+@media (max-width: 40rem) { .live-ontology-query { grid-template-columns: minmax(0, 1fr); } }

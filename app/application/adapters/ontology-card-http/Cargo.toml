@@ -9,6 +9,7 @@ description = "Reads the console's Ontology card from the wedge product's facade
 
 [dependencies]
 application-ontology-card = { path = "../../ports/ontology-card" }
+application-ontology-read = { path = "../../ports/ontology-read" }
 reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

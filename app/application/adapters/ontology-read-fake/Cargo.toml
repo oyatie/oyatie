@@ -1,0 +1,22 @@
+[package]
+name = "application-ontology-read-fake"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Deterministic sample reads and refusals behind the Application Ontology read port."
+
+[dependencies]
+application-ontology-read = { path = "../../ports/ontology-read" }
+serde_json.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

@@ -1,3 +1,4 @@
+use super::live_ontology::LiveOntologyExplorer;
 use leptos::prelude::*;
 
 /// Kept outside DashboardIsland so context remounts cannot erase a ceremony.
@@ -9,7 +10,7 @@ pub(super) fn SignInPanel() -> impl IntoView {
                 <p class="screen-anchor">"OYATIE IAM"</p>
                 <h2 id="sign-in-title">"Sign in with a passkey"</h2>
                 <p>"Enter your tenant and account. Your administrator provides these IDs and a one-use invitation to add your first passkey."</p>
-                <p>"The dashboard below uses sample data. The separate live Ontology card requires verified access."</p>
+                <p>"The dashboard below uses sample data. The separate live Ontology card and explorer require verified access."</p>
             </div>
             <form id="passkey-form" class="sign-in-form" aria-describedby="sign-in-status">
                 <label for="sign-in-tenant">"Tenant ID"</label>
@@ -43,6 +44,7 @@ pub(super) fn SignInPanel() -> impl IntoView {
                 <p id="verified-ontology-updated"></p>
                 <button type="button" id="ontology-refresh">"Refresh live status"</button>
             </section>
+            <LiveOntologyExplorer />
         </section>
     }
 }
