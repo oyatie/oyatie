@@ -69,6 +69,10 @@ fn contextual_copy(
     capability_id: &str,
 ) -> Option<(&'static str, &'static str)> {
     match (context, capability_id) {
+        (OperatorContext::TenantAdmin, "foundry-ontology") => Some((
+            "Object types, instances, actions, and their audit trail · Preview only · live ontology status requires a verified session",
+            "Open ontology",
+        )),
         (OperatorContext::CorporateOffice, "workflow-studio") => {
             Some(("Draft team workflows from templates", "Draft workflow"))
         }

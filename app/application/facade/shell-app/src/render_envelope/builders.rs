@@ -1,7 +1,7 @@
 use super::types::{
-    ApprovalItem, CommunityItem, IntelligenceSuggestion, MessageItem, MetricCard, ModuleCard,
-    OntologyFact, ProductActivityStep, ScheduleItem, WorkItem, WorkflowEdge, WorkflowNode,
-    WorkflowPreview,
+    ApprovalItem, CommunityItem, InboxSampleMetadata, IntelligenceSampleId, IntelligenceSuggestion,
+    MessageItem, MetricCard, ModuleCard, OntologyFact, ProductActivityStep, ScheduleItem, WorkItem,
+    WorkflowEdge, WorkflowNode, WorkflowPreview,
 };
 
 pub(super) fn workflow(name: &str, goal: &str, nodes: Vec<WorkflowNode>) -> WorkflowPreview {
@@ -57,11 +57,31 @@ pub(super) fn module(name: &str, group: &str, description: &str, action_label: &
     }
 }
 
-pub(super) fn work(title: &str, detail: &str, priority: &str) -> WorkItem {
+pub(super) fn inbox_sample(
+    id: &str,
+    owner: &str,
+    owned_by_viewer: bool,
+    blocking: bool,
+) -> InboxSampleMetadata {
+    InboxSampleMetadata {
+        id: s(id),
+        owner: s(owner),
+        owned_by_viewer,
+        blocking,
+    }
+}
+
+pub(super) fn work(
+    title: &str,
+    detail: &str,
+    priority: &str,
+    inbox: InboxSampleMetadata,
+) -> WorkItem {
     WorkItem {
         title: s(title),
         detail: s(detail),
         priority: s(priority),
+        inbox,
     }
 }
 
@@ -89,11 +109,17 @@ pub(super) fn community(space: &str, topic: &str, activity: &str) -> CommunityIt
     }
 }
 
-pub(super) fn approval(title: &str, requester: &str, risk_note: &str) -> ApprovalItem {
+pub(super) fn approval(
+    title: &str,
+    requester: &str,
+    risk_note: &str,
+    inbox: InboxSampleMetadata,
+) -> ApprovalItem {
     ApprovalItem {
         title: s(title),
         requester: s(requester),
         risk_note: s(risk_note),
+        inbox,
     }
 }
 
@@ -123,11 +149,20 @@ pub(super) fn fact(entity: &str, relation: &str, access_reason: &str) -> Ontolog
     }
 }
 
-pub(super) fn suggestion(title: &str, body: &str, guardrail: &str) -> IntelligenceSuggestion {
+pub(super) fn suggestion(
+    id: IntelligenceSampleId,
+    title: &str,
+    body: &str,
+    guardrail: &str,
+) -> IntelligenceSuggestion {
+    let route = id.route();
     IntelligenceSuggestion {
+        id,
         title: s(title),
         body: s(body),
         guardrail: s(guardrail),
+        destination: route.map(|(destination, _)| s(destination)),
+        channel: route.and_then(|(_, channel)| channel.map(s)),
     }
 }
 

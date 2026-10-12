@@ -1,185 +1,189 @@
 use super::*;
 
-pub(super) fn workflow_canvas(
-    nodes: Vec<WorkflowNode>,
-    set_selected_node_id: WriteSignal<String>,
-    workflow_tool: ReadSignal<WorkflowTool>,
-    set_workflow_tool: WriteSignal<WorkflowTool>,
-) -> impl IntoView {
-    let board_nodes = nodes.clone();
-    let toolbar_nodes = nodes.clone();
-
+pub(super) fn workflow_canvas(sample: RwSignal<WorkflowSample>, editable: bool) -> impl IntoView {
     view! {
-        <div class="workflow-canvas island-frame" role="img" aria-label="Interactive workflow canvas preview">
-            <div class="workflow-toolbar" aria-label="Workflow studio tools">
-                <button type="button" on:click=move |_| set_workflow_tool.set(WorkflowTool::Select)>"Select"</button>
-                <button type="button" on:click=move |_| set_workflow_tool.set(WorkflowTool::Connect)>"Connect"</button>
-                <button type="button" on:click=move |_| set_workflow_tool.set(WorkflowTool::Simulate)>"Simulate"</button>
-                <span class="island-label">"interactive island"</span>
+        <div class="workflow-canvas island-frame" role="region" aria-label="Sample workflow canvas; select a node to inspect">
+            <div class="workflow-toolbar" aria-label="Sample canvas tools">
+                <span>"Select nodes to inspect"</span>
+                <button type="button" disabled aria-describedby="workflow-live-unavailable">"Connect unavailable"</button>
+                <button type="button" data-workflow-action="path" data-workflow-focus="canvas-path" disabled=!editable on:click=move |_| edit_workflow_sample(sample, WorkflowSample::preview_path)>"Preview sample path"</button>
             </div>
-            <div
-                class=move || match render_signal(workflow_tool) {
-                    WorkflowTool::Select => "workflow-board selectable",
-                    WorkflowTool::Connect => "workflow-board connectable",
-                    WorkflowTool::Simulate => "workflow-board simulating",
-                }
-                data-workflow-board="true"
-            >
-                <svg class="workflow-board-edges" viewBox="0 0 860 430" aria-hidden="true" focusable="false">
-                    <defs>
-                        <marker id="workflow-board-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-                            <path d="M0,0 L0,6 L9,3 z" class="workflow-arrow" />
-                        </marker>
-                    </defs>
-                    {board_edges(&board_nodes).into_iter().map(|(from, to, path)| view! {
-                        <path
-                            class="workflow-edge workflow-board-edge"
-                            data-edge-from=from
-                            data-edge-to=to
-                            d=path
-                            marker-end="url(#workflow-board-arrow)"
-                        />
-                    }).collect_view()}
-                </svg>
-                {workflow_canvas_metrics()}
-                {board_nodes.into_iter().enumerate().map(|(index, node)| {
-                    let id = node.id.clone();
-                    let id_attr = id.clone();
-                    let label_attr = node.label.clone();
-                    let label_text = node.label.clone();
-                    let kind_attr = node.kind.clone();
-                    let kind_text = node.kind.clone();
-                    let desc_attr = node.explanation.clone();
-                    let desc_text = node.explanation.clone();
-                    view! {
-                        <button
-                            type="button"
-                            class=move || match render_signal(workflow_tool) {
-                                WorkflowTool::Select => if index == 0 { "workflow-card active selectable" } else { "workflow-card selectable" },
-                                WorkflowTool::Connect => "workflow-card connectable",
-                                WorkflowTool::Simulate => "workflow-card simulating",
+            <div class="workflow-board selectable" data-workflow-board="true" style="overflow: auto;">
+                <div style=move || { let state = render_signal(sample.read_only()); format!("position: relative; width: {}px; height: {}px", 860 * state.zoom / 100, workflow_board_height(&state) * state.zoom / 100) }>
+                    <div style=move || { let state = render_signal(sample.read_only()); format!("position: absolute; width: 860px; height: {}px; transform: scale({}); transform-origin: 0 0", workflow_board_height(&state), f64::from(state.zoom) / 100.0) }>
+                        <svg class="workflow-board-edges" viewBox=move || format!("0 0 860 {}", workflow_board_height(&render_signal(sample.read_only()))) aria-hidden="true" focusable="false">
+                            <defs><marker id="workflow-board-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" class="workflow-arrow" /></marker></defs>
+                            {move || { let state = render_signal(sample.read_only()); board_edges(&state.nodes, &state.edges).into_iter().map(|(from, to, path)| view! {
+                                <path class="workflow-edge workflow-board-edge" data-edge-from=from data-edge-to=to d=path marker-end="url(#workflow-board-arrow)" />
+                            }).collect_view() }}
+                        </svg>
+                        <For each=move || render_signal(sample.read_only()).nodes key=|node| node.id.clone() children=move |node| {
+                            let id = StoredValue::new(node.id);
+                            view! {
+                                <button type="button" disabled=!editable
+                                    class=move || if render_signal(sample.read_only()).selected_id == id.get_value() { "workflow-card active selectable" } else { "workflow-card selectable" }
+                                    aria-pressed=move || (render_signal(sample.read_only()).selected_id == id.get_value()).to_string()
+                                    style=move || { let state = render_signal(sample.read_only()); let index = state.nodes.iter().position(|node| node.id == id.get_value()).unwrap_or(0); format!("left: {}px; top: {}px; cursor: pointer", workflow_board_x(index), state.nodes.get(index).map(|node| workflow_board_y(index, node)).unwrap_or(0)) }
+                                    data-workflow-card="true" data-node-id=id.get_value()
+                                    data-workflow-focus=format!("card-{}", id.get_value())
+                                    data-node-label=move || current_workflow_node(sample, id).map(|node| node.label).unwrap_or_default()
+                                    data-node-kind=move || current_workflow_node(sample, id).map(|node| node.kind).unwrap_or_default()
+                                    data-node-desc=move || current_workflow_node(sample, id).map(|node| node.explanation).unwrap_or_default()
+                                    on:click=move |_| edit_workflow_sample(sample, |state| { if state.nodes.iter().any(|node| node.id == id.get_value()) { state.selected_id = id.get_value(); } })>
+                                    <span class="workflow-card-type">{move || current_workflow_node(sample, id).map(|node| node.kind).unwrap_or_default()}</span>
+                                    <strong>{move || current_workflow_node(sample, id).map(|node| node.label).unwrap_or_default()}</strong>
+                                    <small>{move || current_workflow_node(sample, id).map(|node| node.explanation).unwrap_or_default()}</small>
+                                </button>
                             }
-                            style=format!(
-                                "left: {}px; top: {}px",
-                                workflow_board_x(index),
-                                workflow_board_y(index, &node)
-                            )
-                            data-workflow-card="true"
-                            data-node-id=id_attr
-                            data-node-label=label_attr
-                            data-node-kind=kind_attr
-                            data-node-desc=desc_attr
-                            on:click=move |_| set_selected_node_id.set(id.clone())
-                        >
-                            <span class="board-port in" aria-hidden="true"></span>
-                            <span class="board-port out" aria-hidden="true"></span>
-                            <span class="workflow-card-type">{kind_text}</span>
-                            <strong>{label_text}</strong>
-                            <small>{desc_text}</small>
-                        </button>
-                    }
-                }).collect_view()}
-                <div class="workflow-ai-suggestion" aria-label="AI workflow suggestion">
-                    <p>"AI · WORKFLOW SUGGESTION"</p>
-                    <strong>"CFO 승인이 SLA를 초과할 때 자동 위임 조건을 추가"</strong>
-                    <span>"conf 0.86 · model oyatie-flow-sense-1.4 · why →"</span>
-                    <div>
-                        <button type="button" data-workflow-suggestion="dismiss">"Dismiss"</button>
-                        <button type="button" data-workflow-suggestion="preview">"Preview"</button>
-                        <button type="button" data-workflow-suggestion="apply">"Apply"</button>
+                        } />
                     </div>
-                </div>
-                <div class="canvas-drop-hint" aria-hidden="true">
-                    "Drag blocks here · connect ports visually · local only"
                 </div>
             </div>
             <div class="canvas-footer">
-                <div class="zoom-controls" aria-label="Visual zoom controls">
-                    <button type="button">"−"</button>
-                    <span>"82%"</span>
-                    <button type="button">"+"</button>
+                <div class="zoom-controls" aria-label="Sample canvas zoom">
+                    <button type="button" data-workflow-action="zoom-out" data-workflow-focus="zoom-out" aria-label="Zoom sample canvas out" disabled=move || !editable || render_signal(sample.read_only()).zoom <= 25 on:click=move |_| edit_workflow_sample(sample, |state| state.zoom = (state.zoom - 10).clamp(25, 150))>"−"</button>
+                    <span data-workflow-zoom="true">{move || format!("{}%", render_signal(sample.read_only()).zoom)}</span>
+                    <button type="button" data-workflow-action="zoom-in" data-workflow-focus="zoom-in" aria-label="Zoom sample canvas in" disabled={move || !editable || render_signal(sample.read_only()).zoom >= 150} on:click=move |_| edit_workflow_sample(sample, |state| state.zoom = (state.zoom + 10).clamp(25, 150))>"+"</button>
                 </div>
-                <div class="mini-map" aria-hidden="true">
-                    <span></span><span></span><span></span><span></span>
-                </div>
+                <span>"Sample structure only; no run telemetry"</span>
             </div>
-            <div class="node-toolbar" aria-label="Select workflow node to inspect">
-                {toolbar_nodes.into_iter().map(|node| {
-                    let id = node.id.clone();
+            <div class="node-toolbar" aria-label="Select sample workflow node">
+                <For each=move || render_signal(sample.read_only()).nodes key=|node| node.id.clone() children=move |node| {
+                    let id = StoredValue::new(node.id);
                     view! {
-                        <button type="button" on:click=move |_| set_selected_node_id.set(id.clone())>
-                            {node.label}
+                        <button type="button" disabled=!editable data-workflow-focus=format!("list-{}", id.get_value())
+                            aria-pressed=move || (render_signal(sample.read_only()).selected_id == id.get_value()).to_string()
+                            on:click=move |_| edit_workflow_sample(sample, |state| state.selected_id = id.get_value())>
+                            {move || current_workflow_node(sample, id).map(|node| node.label).unwrap_or_default()}
                         </button>
                     }
-                }).collect_view()}
+                } />
             </div>
+            <aside class="workflow-ai-suggestion" style="position: static; width: auto;" aria-label="Illustrative sample idea" hidden=move || render_signal(sample.read_only()).suggestion_dismissed>
+                <p>"SAMPLE IDEA · no AI generation or provenance"</p>
+                <strong>"Illustrative idea: request human review before an external example step."</strong>
+                <p hidden=move || !render_signal(sample.read_only()).suggestion_open>"This fixed example is descriptive only. No rule, model, owner, or SLA has been evaluated."</p>
+                <div>
+                    <button type="button" data-workflow-suggestion="dismiss" data-workflow-focus="suggestion-dismiss" disabled=!editable on:click=move |_| edit_workflow_sample(sample, |state| state.suggestion_dismissed = true)>"Dismiss sample idea"</button>
+                    <button type="button" data-workflow-suggestion="preview" data-workflow-focus="suggestion-preview" disabled=!editable on:click=move |_| edit_workflow_sample(sample, |state| state.suggestion_open = !state.suggestion_open)>"Inspect sample idea"</button>
+                    <button type="button" data-workflow-suggestion="apply" disabled aria-describedby="workflow-live-unavailable">"Apply unavailable"</button>
+                </div>
+            </aside>
         </div>
     }
 }
 
-pub(super) fn workflow_canvas_metrics() -> impl IntoView {
-    view! {
-        <div class="workflow-canvas-metrics" aria-label="Workflow simulation metrics overlay">
-            <span><small>"CYCLE"</small><strong>"5.4d"</strong><em>"+1.4 vs target"</em></span>
-            <span><small>"TARGET"</small><strong>"4.0d"</strong><em>"SLA limit"</em></span>
-            <span><small>"COST"</small><strong>"₩2.18M"</strong><em>"delay cost"</em></span>
-            <span><small>"REWORK"</small><strong>"8%"</strong><em>"2 loops"</em></span>
-        </div>
-    }
+fn current_workflow_node(
+    sample: RwSignal<WorkflowSample>,
+    id: StoredValue<String>,
+) -> Option<WorkflowNode> {
+    render_signal(sample.read_only())
+        .nodes
+        .into_iter()
+        .find(|node| node.id == id.get_value())
 }
 
-pub(super) fn workflow_property_form() -> impl IntoView {
+pub(super) fn workflow_property_form(
+    sample: RwSignal<WorkflowSample>,
+    editable: bool,
+) -> impl IntoView {
     view! {
-        <form class="workflow-property-form" aria-label="Selected workflow node properties">
-            <label>
-                <span>"LABEL · KO"</span>
-                <input data-workflow-prop="label-ko" value="재무 검토 · 사인오프" />
+        <form class="workflow-property-form" aria-label="Selected sample node properties" on:submit=move |event| event.prevent_default()>
+            <label><span>"Sample label"</span>
+                <input id="workflow-selected-label" data-workflow-prop="label-ko" data-workflow-focus="selected-label" disabled=!editable
+                    value=move || render_signal(sample.read_only()).selected().map(|node| node.label.clone()).unwrap_or_default()
+                    prop:value=move || render_signal(sample.read_only()).selected().map(|node| node.label.clone()).unwrap_or_default()
+                    on:input=move |event| edit_workflow_sample(sample, |state| state.rename_selected(event_target_value(&event))) />
             </label>
-            <label>
-                <span>"TYPE"</span>
-                <select data-workflow-prop="type">
-                    <option>"Single · auto-delegate"</option>
-                    <option>"Parallel quorum"</option>
-                    <option>"Human review stop"</option>
-                </select>
-            </label>
-            <label>
-                <span>"OWNER"</span>
-                <select data-workflow-prop="owner">
-                    <option>"Sarah Kim · EMP-188 · HR Manager"</option>
-                    <option>"Choi Yu-na · CFO"</option>
-                    <option>"David Chen · Delegate"</option>
-                </select>
-            </label>
-            <div class="workflow-form-row">
-                <label><span>"SLA TARGET"</span><input data-workflow-prop="sla" value="1.2d" /></label>
-                <label><span>"ESCALATE AFTER"</span><input data-workflow-prop="escalate" value="0.8d" /></label>
-            </div>
-            <fieldset class="workflow-rule-stack">
-                <legend>"승인 조건"</legend>
-                <label><span>"1"</span><input data-workflow-prop="rule-1" value="payroll.gross > ₩500,000,000" /></label>
-                <label><span>"2"</span><input data-workflow-prop="rule-2" value="policy.P0 == active" /></label>
-                <button type="button" data-workflow-process-action="add-condition">"+ Add condition"</button>
+            <label><span>"Native sample kind · read-only"</span><input data-workflow-prop="type" data-workflow-focus="selected-kind" readonly
+                value=move || render_signal(sample.read_only()).selected().map(|node| node.kind.clone()).unwrap_or_default()
+                prop:value=move || render_signal(sample.read_only()).selected().map(|node| node.kind.clone()).unwrap_or_default() /></label>
+            <fieldset disabled aria-describedby="workflow-property-unavailable">
+                <legend>"Unsupported live properties"</legend>
+                <label><span>"Owner"</span><input data-workflow-prop="owner" placeholder="Unavailable" /></label>
+                <label><span>"SLA target"</span><input data-workflow-prop="sla" placeholder="Unavailable" /></label>
+                <label><span>"Escalation"</span><input data-workflow-prop="escalate" placeholder="Unavailable" /></label>
+                <button type="button" data-workflow-process-action="add-condition">"Approval conditions unavailable"</button>
             </fieldset>
+            <p id="workflow-property-unavailable" role="note">"Owner, SLA, escalation, and approval evaluation are unavailable; no matching live properties or policy authority are connected."</p>
         </form>
     }
 }
 
-pub(super) fn selected_node_view(node: Option<WorkflowNode>) -> impl IntoView {
-    match node {
-        Some(node) => view! {
-            <aside class="node-inspector" aria-live="polite">
-                <p class="eyebrow">"Selected node"</p>
-                <h4>{node.label}</h4>
-                <p><strong>{node.kind}</strong>" · "{node.explanation}</p>
-            </aside>
-        }
-        .into_any(),
-        None => view! {
-            <aside class="node-inspector" aria-live="polite">
-                <p>"Select a node to inspect its workflow, ontology, and guardrail meaning."</p>
-            </aside>
-        }
-        .into_any(),
+pub(super) fn selected_node_view(sample: RwSignal<WorkflowSample>) -> impl IntoView {
+    view! {
+        <aside class="node-inspector" aria-live="polite">
+            <p class="eyebrow">"Selected sample node"</p>
+            <h4 data-workflow-selected-label="true">{move || render_signal(sample.read_only()).selected().map(|node| node.label.clone()).unwrap_or_else(|| "No sample node selected".into())}</h4>
+            <p><strong data-workflow-selected-kind="true">{move || render_signal(sample.read_only()).selected().map(|node| node.kind.clone()).unwrap_or_default()}</strong>" · "
+                {move || render_signal(sample.read_only()).selected().map(|node| node.explanation.clone()).unwrap_or_default()}</p>
+        </aside>
     }
+}
+
+pub(super) fn board_edges(
+    nodes: &[WorkflowNode],
+    edges: &[crate::render_envelope::WorkflowEdge],
+) -> Vec<(String, String, String)> {
+    edges
+        .iter()
+        .filter_map(|edge| {
+            let from_index = nodes.iter().position(|node| node.id == edge.from)?;
+            let to_index = nodes.iter().position(|node| node.id == edge.to)?;
+            let from = &nodes[from_index];
+            let to = &nodes[to_index];
+            let start_x = workflow_board_x(from_index) + 156;
+            let start_y = workflow_board_y(from_index, from) + 36;
+            let end_x = workflow_board_x(to_index);
+            let end_y = workflow_board_y(to_index, to) + 36;
+            let control_delta = ((end_x - start_x).abs() / 2).max(64);
+            let path = format!(
+                "M {start_x} {start_y} C {} {start_y}, {} {end_y}, {end_x} {end_y}",
+                start_x + control_delta,
+                end_x - control_delta,
+            );
+            Some((from.id.clone(), to.id.clone(), path))
+        })
+        .collect()
+}
+
+pub(super) fn workflow_board_x(index: usize) -> i32 {
+    55 + ((index as i32 % 4) * 156)
+}
+
+pub(super) fn workflow_board_y(index: usize, node: &WorkflowNode) -> i32 {
+    if node.id.starts_with("draft-block-") {
+        258 + ((index as i32 / 4) * 104)
+    } else {
+        72 + ((index as i32 / 4) * 112)
+    }
+}
+
+pub(super) fn workflow_board_height(sample: &WorkflowSample) -> i32 {
+    sample
+        .nodes
+        .iter()
+        .enumerate()
+        .map(|(index, node)| workflow_board_y(index, node) + 120)
+        .max()
+        .unwrap_or(430)
+        .max(430)
+}
+
+pub(super) fn fit_workflow_sample(sample: RwSignal<WorkflowSample>) {
+    #[cfg(target_arch = "wasm32")]
+    if let Some(board) = web_sys::window()
+        .and_then(|window| window.document())
+        .and_then(|document| {
+            document
+                .query_selector("#workflow-studio [data-workflow-board]")
+                .ok()
+                .flatten()
+        })
+    {
+        let zoom = ((board.client_width() - 16) * 100 / 860).clamp(25, 100);
+        edit_workflow_sample(sample, |state| state.zoom = zoom);
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    let _ = sample;
 }

@@ -26,3 +26,20 @@ rust_test(
         "third-party//:tokio",
     ],
 )
+
+rust_test(
+    name = "application-ontology-card-http-real-facade",
+    srcs = ["tests/reads_the_real_facade.rs"],
+    crate = "application_ontology_card_http_real_facade",
+    crate_root = "tests/reads_the_real_facade.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":application-ontology-card-http",
+        "//app/application/ports/ontology-card:application-ontology-card",
+        "//app/foundry/facade/ontology-app:foundry-ontology-app",
+        "third-party//:axum",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)

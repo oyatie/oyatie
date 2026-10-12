@@ -6,6 +6,9 @@ rust_library(
     rustc_flags = ["--cfg", "feature=\"ssr\""],
     visibility = ["PUBLIC"],
     deps = [
+        "//app/application/adapters/ontology-card-http:application-ontology-card-http",
+        "//iam/ports/identity-user-session:iam-identity-user-session",
+        "third-party//:reqwest",
         "//iam/core/oidc-client-kernel:shared-oidc-client-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
         "third-party//:any_spawner",
@@ -29,6 +32,10 @@ rust_test(
     rustc_flags = ["--cfg", "feature=\"ssr\""],
     visibility = ["PUBLIC"],
     deps = [
+        "//app/application/adapters/ontology-card-http:application-ontology-card-http",
+        "//iam/ports/identity-user-session:iam-identity-user-session",
+        "third-party//:reqwest",
+        "third-party//:tower",
         "//app/application/adapters/ontology-card-fake:application-ontology-card-fake",
         "//app/application/ports/ontology-card:application-ontology-card",
         "//iam/core/oidc-client-kernel:shared-oidc-client-kernel",
@@ -53,6 +60,9 @@ rust_binary(
     rustc_flags = ["--cfg", "feature=\"ssr\""],
     visibility = ["PUBLIC"],
     deps = [
+        "//app/application/adapters/ontology-card-http:application-ontology-card-http",
+        "//iam/ports/identity-user-session:iam-identity-user-session",
+        "third-party//:reqwest",
         ":application-shell-app",
         "//iam/core/oidc-client-kernel:shared-oidc-client-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",

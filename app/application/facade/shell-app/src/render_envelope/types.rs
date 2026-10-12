@@ -64,6 +64,14 @@ pub struct TenantRenderEnvelope {
     pub ontology: Vec<OntologyFact>,
     pub intelligence: Vec<IntelligenceSuggestion>,
     pub omitted_capability_note: String,
+    #[serde(default)]
+    pub finance_body_projection: Option<FinanceBodyProjection>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct FinanceBodyProjection {
+    pub context: OperatorContext,
+    pub body: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -108,10 +116,19 @@ pub struct ModuleCard {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct InboxSampleMetadata {
+    pub id: String,
+    pub owner: String,
+    pub owned_by_viewer: bool,
+    pub blocking: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct WorkItem {
     pub title: String,
     pub detail: String,
     pub priority: String,
+    pub inbox: InboxSampleMetadata,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -140,6 +157,7 @@ pub struct ApprovalItem {
     pub title: String,
     pub requester: String,
     pub risk_note: String,
+    pub inbox: InboxSampleMetadata,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -175,8 +193,77 @@ pub struct OntologyFact {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct IntelligenceSuggestion {
+    pub id: IntelligenceSampleId,
     pub title: String,
     pub body: String,
     pub guardrail: String,
+    pub destination: Option<String>,
+    pub channel: Option<String>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum IntelligenceSampleId {
+    TenantWorkflowDelegation,
+    TenantTaxFiling,
+    TenantOvertime,
+    CorporatePolicyChecklist,
+    CorporateInvoiceMismatch,
+    CorporateDayPriority,
+    ClinicalDischargeChecklist,
+    ClinicalHandoff,
+    ClinicalChecklistGap,
+}
+
+impl IntelligenceSampleId {
+    pub const ALL: [Self; 9] = [
+        Self::TenantWorkflowDelegation,
+        Self::TenantTaxFiling,
+        Self::TenantOvertime,
+        Self::CorporatePolicyChecklist,
+        Self::CorporateInvoiceMismatch,
+        Self::CorporateDayPriority,
+        Self::ClinicalDischargeChecklist,
+        Self::ClinicalHandoff,
+        Self::ClinicalChecklistGap,
+    ];
+
+    pub fn context(self) -> OperatorContext {
+        match self {
+            Self::TenantWorkflowDelegation | Self::TenantTaxFiling | Self::TenantOvertime => {
+                OperatorContext::TenantAdmin
+            }
+            Self::CorporatePolicyChecklist
+            | Self::CorporateInvoiceMismatch
+            | Self::CorporateDayPriority => OperatorContext::CorporateOffice,
+            Self::ClinicalDischargeChecklist
+            | Self::ClinicalHandoff
+            | Self::ClinicalChecklistGap => OperatorContext::HealthcareClinician,
+        }
+    }
+
+    /// Existing local sample views only; this relation grants no live action.
+    pub fn route(self) -> Option<(&'static str, Option<&'static str>)> {
+        match self {
+            Self::TenantWorkflowDelegation
+            | Self::CorporatePolicyChecklist
+            | Self::ClinicalDischargeChecklist
+            | Self::ClinicalChecklistGap => Some(("workflow-studio", None)),
+            Self::TenantTaxFiling => None,
+            Self::TenantOvertime => Some(("identity-panel-employees", None)),
+            Self::CorporateInvoiceMismatch => Some(("finance-panel-ledger", None)),
+            Self::CorporateDayPriority => Some(("work-hub", Some("Mail"))),
+            Self::ClinicalHandoff => Some(("work-hub", Some("Messenger"))),
+        }
+    }
+
+    pub fn id(self) -> String {
+        serde_json::to_value(self)
+            .expect("sample identity serializes")
+            .as_str()
+            .expect("sample identity is a string")
+            .to_owned()
+    }
 }

@@ -17,7 +17,8 @@ pub(super) fn request_render_envelope(
     context: OperatorContext,
     request_generation: RwSignal<u64>,
     set_envelope: WriteSignal<Option<TenantRenderEnvelope>>,
-    set_selected_node_id: WriteSignal<String>,
+    workflow_sample: RwSignal<WorkflowSample>,
+    hub_sample: RwSignal<HubSample>,
     set_loading: WriteSignal<bool>,
     set_error: WriteSignal<Option<String>>,
 ) {
@@ -69,13 +70,16 @@ pub(super) fn request_render_envelope(
         }
         match result {
             Ok(envelope) => {
-                let node_id = envelope
-                    .workflow
-                    .nodes
-                    .first()
-                    .map(|node| node.id.clone())
-                    .unwrap_or_default();
-                set_selected_node_id.set(node_id);
+                workflow_sample.set(workflow_sample_for_envelope(
+                    &envelope,
+                    &workflow_sample.get_untracked(),
+                ));
+                if envelope.context == context {
+                    hub_sample.set(hub_sample_for_envelope(
+                        &envelope,
+                        &hub_sample.get_untracked(),
+                    ));
+                }
                 set_envelope.set(Some(envelope));
             }
             Err(message) => set_error.set(Some(message)),
@@ -90,7 +94,8 @@ pub(super) fn request_render_envelope(
     context: OperatorContext,
     _request_generation: RwSignal<u64>,
     set_envelope: WriteSignal<Option<TenantRenderEnvelope>>,
-    set_selected_node_id: WriteSignal<String>,
+    workflow_sample: RwSignal<WorkflowSample>,
+    hub_sample: RwSignal<HubSample>,
     set_loading: WriteSignal<bool>,
     set_error: WriteSignal<Option<String>>,
 ) {
@@ -98,13 +103,14 @@ pub(super) fn request_render_envelope(
     set_error.set(None);
 
     let envelope = server_derived_envelope(context);
-    let node_id = envelope
-        .workflow
-        .nodes
-        .first()
-        .map(|node| node.id.clone())
-        .unwrap_or_default();
-    set_selected_node_id.set(node_id);
+    workflow_sample.set(workflow_sample_for_envelope(
+        &envelope,
+        &workflow_sample.get_untracked(),
+    ));
+    hub_sample.set(hub_sample_for_envelope(
+        &envelope,
+        &hub_sample.get_untracked(),
+    ));
     set_envelope.set(Some(envelope));
     set_loading.set(false);
 }
@@ -114,7 +120,8 @@ pub(super) fn request_render_envelope(
     _context: OperatorContext,
     _request_generation: RwSignal<u64>,
     _set_envelope: WriteSignal<Option<TenantRenderEnvelope>>,
-    _set_selected_node_id: WriteSignal<String>,
+    _workflow_sample: RwSignal<WorkflowSample>,
+    _hub_sample: RwSignal<HubSample>,
     _set_loading: WriteSignal<bool>,
     set_error: WriteSignal<Option<String>>,
 ) {

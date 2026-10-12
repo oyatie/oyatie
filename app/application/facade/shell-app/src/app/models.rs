@@ -34,32 +34,47 @@ impl ProductSurface {
             Self::Messenger | Self::Mail | Self::Community => "#work-hub",
         }
     }
+
+    pub(super) const fn hub_channel(self) -> Option<HubChannel> {
+        match self {
+            Self::Workflow => None,
+            Self::Messenger => Some(HubChannel::Messenger),
+            Self::Mail => Some(HubChannel::Mail),
+            Self::Community => Some(HubChannel::Community),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(super) enum WorkflowTool {
-    Select,
-    Connect,
-    Simulate,
+pub(super) enum HubChannel {
+    Messenger,
+    Mail,
+    Community,
 }
 
-impl WorkflowTool {
-    pub(super) const ALL: [Self; 3] = [Self::Select, Self::Connect, Self::Simulate];
+impl HubChannel {
+    pub(super) const ALL: [Self; 3] = [Self::Messenger, Self::Mail, Self::Community];
+
+    pub(super) const fn surface(self) -> ProductSurface {
+        match self {
+            Self::Messenger => ProductSurface::Messenger,
+            Self::Mail => ProductSurface::Mail,
+            Self::Community => ProductSurface::Community,
+        }
+    }
 
     pub(super) const fn label(self) -> &'static str {
-        match self {
-            Self::Select => "Select",
-            Self::Connect => "Connect",
-            Self::Simulate => "Simulate",
-        }
+        self.surface().label()
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct LocalDraft {
+    pub(super) id: u64,
     pub(super) surface: ProductSurface,
     pub(super) title: String,
     pub(super) body: String,
+    pub(super) provenance: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -69,6 +84,37 @@ pub(super) struct HubItem {
     pub(super) title: String,
     pub(super) body: String,
     pub(super) meta: String,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(super) enum HubItemKey {
+    Sample(HubChannel, usize),
+    Draft(u64),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(super) struct HubRow {
+    pub(super) key: HubItemKey,
+    pub(super) item: HubItem,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(super) enum HubFilter {
+    All,
+    Drafts,
+    Evidence,
+}
+
+impl HubFilter {
+    pub(super) const ALL: [Self; 3] = [Self::All, Self::Drafts, Self::Evidence];
+
+    pub(super) const fn label(self) -> &'static str {
+        match self {
+            Self::All => "All",
+            Self::Drafts => "Local drafts",
+            Self::Evidence => "Sample evidence",
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -113,7 +159,7 @@ pub(super) struct DeploymentGate {
     pub(super) progress: &'static str,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
 pub(super) struct BusinessLogicRow {
     pub(super) id: &'static str,
     pub(super) name: &'static str,
@@ -177,7 +223,7 @@ pub(super) const BUSINESS_LOGIC_ROWS: [BusinessLogicRow; 7] = [
         state: "attention",
         state_label: "attention",
         tasks: "1",
-        route: "#vendors-spend",
+        route: "#finance-panel-vendors",
         description: "Stripe renewal, budget note, and CFO attestation are linked to FinOps and vendor spend surfaces.",
     },
     BusinessLogicRow {
@@ -193,7 +239,7 @@ pub(super) const BUSINESS_LOGIC_ROWS: [BusinessLogicRow; 7] = [
         state: "review",
         state_label: "review",
         tasks: "4",
-        route: "#policy-access",
+        route: "#cockpit-panel-policy",
         description: "RBAC, sessions, policy evidence, and deployment gates share one recertification spine.",
     },
     BusinessLogicRow {
@@ -209,7 +255,7 @@ pub(super) const BUSINESS_LOGIC_ROWS: [BusinessLogicRow; 7] = [
         state: "on-track",
         state_label: "on track",
         tasks: "2",
-        route: "#identity-onboarding",
+        route: "#identity-panel-onboarding",
         description: "Onboarding, documents, payroll setup, and community announcement are staged from one workflow.",
     },
     BusinessLogicRow {

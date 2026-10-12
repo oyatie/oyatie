@@ -111,61 +111,70 @@ pub(super) fn audit_receipts() -> [AuditReceipt; 5] {
     ]
 }
 
+pub(super) type ReceiptSource = (
+    &'static str,
+    &'static str,
+    &'static str,
+    &'static str,
+    &'static str,
+    &'static str,
+);
+
+pub(super) fn receipt_sources() -> [ReceiptSource; 4] {
+    [
+        (
+            "workflow",
+            "Workflow output bundle",
+            "REC-FD001-WF-018",
+            "Workflow → Messenger/Mail/Community → Evidence",
+            "Workflow Studio",
+            "review",
+        ),
+        (
+            "comms",
+            "Work Hub handoff draft",
+            "REC-COMMS-HANDOFF-006",
+            "Messenger/Mail/Community draft handoff",
+            "Work Hub",
+            "draft",
+        ),
+        (
+            "cloud",
+            "Cloud tenant workload posture",
+            "REC-FD001-CLOUD-009",
+            "Oyatie Cloud workload plane → gates",
+            "Cloud substrate",
+            "sealed",
+        ),
+        (
+            "gates",
+            "Deployment admission packet",
+            "REC-DEPLOY-GATE-014",
+            "Jenkins → ArgoCD → Cosign → Audit",
+            "Release governance",
+            "gate",
+        ),
+    ]
+}
+
 pub(super) fn receipt_stitching_console() -> impl IntoView {
     view! {
-        <section
-            class="receipt-stitching-console"
-            data-receipt-stitching-console="true"
-            aria-label="FD-001 and Oyatie Cloud receipt stitching console"
-        >
-            <div class="receipt-stitching-head">
-                <div>
-                    <p class="screen-anchor">"RECEIPT STITCHING CONSOLE"</p>
-                    <h5>"Every product action returns to one proof stream"</h5>
-                    <span data-receipt-stitching-status="true">
-                        "Workflow output, Work Hub drafts, Cloud workload posture, and Deployment gates are ready to stitch locally."
-                    </span>
-                </div>
-                <button type="button" data-receipt-stitching-action="seal">"Seal visible packet"</button>
+        <section class="receipt-stitching-console" data-receipt-stitching-console="true" aria-label="Illustrative receipt source inspection">
+            <div class="receipt-stitching-head"><div><p class="screen-anchor">"SAMPLE RECEIPT SOURCES"</p>
+                <h5>"Four illustrative source records"</h5><span data-receipt-stitching-status="true" role="status">"Select a sample source to inspect its exact fields; no packet is stitched."</span>
+            </div>{ae_action("stitch", "seal", "Seal visible packet")}</div>
+            <div class="receipt-stitching-grid" aria-label="Illustrative receipt sources">
+                {receipt_sources().into_iter().map(|(key, title, receipt, route, owner, state)| view! {
+                    <button type="button" data-receipt-source=key data-receipt-title=title data-receipt-id=receipt data-receipt-route=route data-receipt-owner=owner data-receipt-state=state
+                        data-ae-select=format!("source:{key}") data-ae-record=ae_record(&format!("source:{key}")) data-ae-focus=format!("source:{key}") aria-pressed="false">
+                        <span>"Sample "{key}</span><strong data-ae-value="Title">{title}</strong><em data-ae-value="Receipt">{receipt}</em>
+                    </button>
+                }).collect_view()}
             </div>
-            <div class="receipt-stitching-grid" aria-label="Receipt source routes">
-                <button type="button" class="selected" data-receipt-source="workflow" data-receipt-title="Workflow output bundle" data-receipt-id="REC-FD001-WF-018" data-receipt-route="Workflow → Messenger/Mail/Community → Evidence" data-receipt-owner="Workflow Studio" data-receipt-state="review">
-                    <span>"01 · WORKFLOW"</span>
-                    <strong>"Run output bundle"</strong>
-                    <em>"REC-FD001-WF-018"</em>
-                </button>
-                <button type="button" data-receipt-source="comms" data-receipt-title="Work Hub handoff draft" data-receipt-id="REC-COMMS-HANDOFF-006" data-receipt-route="Messenger/Mail/Community draft handoff" data-receipt-owner="Work Hub" data-receipt-state="draft">
-                    <span>"02 · COMMS"</span>
-                    <strong>"Draft handoff proof"</strong>
-                    <em>"REC-COMMS-HANDOFF-006"</em>
-                </button>
-                <button type="button" data-receipt-source="cloud" data-receipt-title="Cloud tenant workload posture" data-receipt-id="REC-FD001-CLOUD-009" data-receipt-route="Oyatie Cloud workload plane → gates" data-receipt-owner="Cloud substrate" data-receipt-state="sealed">
-                    <span>"03 · CLOUD"</span>
-                    <strong>"Tenant workload proof"</strong>
-                    <em>"REC-FD001-CLOUD-009"</em>
-                </button>
-                <button type="button" data-receipt-source="gates" data-receipt-title="Deployment admission packet" data-receipt-id="REC-DEPLOY-GATE-014" data-receipt-route="Jenkins → ArgoCD → Cosign → Audit" data-receipt-owner="Release governance" data-receipt-state="gate">
-                    <span>"04 · GATES"</span>
-                    <strong>"Admission proof"</strong>
-                    <em>"REC-DEPLOY-GATE-014"</em>
-                </button>
+            <div class="receipt-stitching-actions" aria-label="Existing sample source destinations">
+                {ae_action("stitch", "workflow", "Workflow")}{ae_action("stitch", "cloud", "Cloud")}{ae_action("stitch", "mail", "Sample Mail")}
+                {ae_action("stitch", "community", "Sample Community")}{ae_action("stitch", "graph", "Object graph")}{ae_action("stitch", "gates", "Gates")}
             </div>
-            <aside class="receipt-stitching-detail" aria-label="Selected receipt stitch detail">
-                <dl>
-                    <div><dt>"Selected"</dt><dd data-receipt-detail-title="true">"Workflow output bundle"</dd></div>
-                    <div><dt>"Receipt"</dt><dd data-receipt-detail-id="true">"REC-FD001-WF-018"</dd></div>
-                    <div><dt>"Route"</dt><dd data-receipt-detail-route="true">"Workflow → Messenger/Mail/Community → Evidence"</dd></div>
-                    <div><dt>"Owner"</dt><dd data-receipt-detail-owner="true">"Workflow Studio"</dd></div>
-                </dl>
-                <div class="receipt-stitching-actions" aria-label="Selected receipt actions">
-                    <button type="button" data-receipt-stitching-action="workflow">"Workflow"</button>
-                    <button type="button" data-receipt-stitching-action="cloud">"Cloud"</button>
-                    <button type="button" data-receipt-stitching-action="mail">"Mail brief"</button>
-                    <button type="button" data-receipt-stitching-action="community">"Community"</button>
-                    <button type="button" data-receipt-stitching-action="graph">"Graph"</button>
-                    <button type="button" data-receipt-stitching-action="gates">"Gates"</button>
-                </div>
-            </aside>
         </section>
     }
 }
@@ -174,25 +183,25 @@ pub(super) fn deployment_gates() -> [DeploymentGate; 4] {
     [
         DeploymentGate {
             label: "Jenkins parity",
-            detail: "Required CI mirror lanes passed in local evidence preview.",
+            detail: "Illustrative CI mirror percentage; no required check result measured or verified.",
             state: "active",
             progress: "92%",
         },
         DeploymentGate {
             label: "ArgoCD application",
-            detail: "Tenant namespace isolation and rollback preview present.",
+            detail: "Illustrative application percentage; no isolation or rollback readiness verified.",
             state: "review",
             progress: "74%",
         },
         DeploymentGate {
             label: "Cosign verification",
-            detail: "Image signature receipt available; key attestation pending.",
+            detail: "Illustrative signature percentage; no image signature, receipt or key verified.",
             state: "attention",
             progress: "61%",
         },
         DeploymentGate {
             label: "Audit-chain emit",
-            detail: "Deployment event payload shaped but not yet emitted before live integration.",
+            detail: "Illustrative audit emission percentage; no deployment event or receipt emitted.",
             state: "draft",
             progress: "48%",
         },

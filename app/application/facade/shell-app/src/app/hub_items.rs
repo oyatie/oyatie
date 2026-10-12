@@ -14,7 +14,7 @@ pub(super) fn hub_items(
             source: "Local draft".to_string(),
             title: draft.title.clone(),
             body: draft.body.clone(),
-            meta: "Stored in WASM island state only".to_string(),
+            meta: format!("Local browser draft only · {}", draft.provenance),
         })
         .collect::<Vec<_>>();
 
@@ -81,7 +81,7 @@ pub(super) fn hub_items(
                     surface,
                     source: "Review".to_string(),
                     title: "HomeTax attestation request".to_string(),
-                    body: "118 employees validated; 사업자등록번호 confirmation and CFO attestation remain before filing preview.".to_string(),
+                    body: "118 sample employees; not validated; 사업자등록번호 confirmation and CFO attestation remain before filing preview.".to_string(),
                     meta: "Evidence-linked mail route".to_string(),
                 },
                 HubItem {
@@ -124,20 +124,13 @@ pub(super) fn hub_items(
     items
 }
 
-pub(super) fn hub_item_kind(item: &HubItem, index: usize) -> &'static str {
+pub(super) fn hub_item_kind(item: &HubItem, _index: usize) -> &'static str {
     let haystack =
         format!("{} {} {} {}", item.source, item.title, item.body, item.meta).to_ascii_lowercase();
-    if haystack.contains("draft") || haystack.contains("brief") || haystack.contains("send") {
-        "draft"
-    } else if haystack.contains("evidence")
-        || haystack.contains("receipt")
-        || haystack.contains("rec-")
-    {
+    if haystack.contains("evidence") || haystack.contains("receipt") || haystack.contains("rec-") {
         "evidence"
-    } else if index < 2 || haystack.contains("unread") || haystack.contains("blocking") {
-        "unread"
     } else {
-        "review"
+        "sample"
     }
 }
 
@@ -150,6 +143,94 @@ pub(super) fn hub_item_chip_class(kind: &str) -> &'static str {
     }
 }
 
-pub(super) fn selected_hub_item(items: &[HubItem], selected_index: usize) -> Option<HubItem> {
-    items.get(selected_index).or_else(|| items.first()).cloned()
+pub(super) fn hub_row_kind(row: &HubRow) -> &'static str {
+    if matches!(row.key, HubItemKey::Draft(_)) {
+        "draft"
+    } else {
+        hub_item_kind(&row.item, 0)
+    }
 }
+
+pub(super) fn render_hub_sample(sample: RwSignal<HubSample>) -> HubSample {
+    #[cfg(target_arch = "wasm32")]
+    return sample.get();
+    #[cfg(not(target_arch = "wasm32"))]
+    sample.get_untracked()
+}
+
+impl HubSample {
+    pub(super) fn rows(&self, channel: HubChannel) -> Vec<HubRow> {
+        let draft_ids = self
+            .drafts
+            .iter()
+            .filter(|draft| draft.surface == channel.surface())
+            .map(|draft| draft.id)
+            .collect::<Vec<_>>();
+        hub_items(
+            &self.messages,
+            &self.communities,
+            &self.drafts,
+            channel.surface(),
+        )
+        .into_iter()
+        .enumerate()
+        .map(|(ordinal, item)| HubRow {
+            key: draft_ids.get(ordinal).map_or_else(
+                || HubItemKey::Sample(channel, ordinal - draft_ids.len()),
+                |id| HubItemKey::Draft(*id),
+            ),
+            item,
+        })
+        .collect()
+    }
+
+    pub(super) fn visible(&self) -> Vec<HubRow> {
+        let query = self.query.trim().to_lowercase();
+        self.rows(self.channel)
+            .into_iter()
+            .filter(|row| {
+                let item = &row.item;
+                let text = format!("{} {} {} {}", item.source, item.title, item.body, item.meta)
+                    .to_lowercase();
+                let filter = match self.filter {
+                    HubFilter::All => true,
+                    HubFilter::Drafts => matches!(row.key, HubItemKey::Draft(_)),
+                    HubFilter::Evidence => {
+                        !matches!(row.key, HubItemKey::Draft(_))
+                            && hub_item_kind(item, 0) == "evidence"
+                    }
+                };
+                filter && text.contains(&query)
+            })
+            .collect()
+    }
+
+    pub(super) fn selected_row(&self) -> Option<HubRow> {
+        self.visible()
+            .into_iter()
+            .find(|row| Some(row.key) == self.selected)
+    }
+
+    pub(super) fn select_first(&mut self) {
+        self.selected = self.visible().first().map(|row| row.key);
+        self.preview = false;
+    }
+
+    pub(super) fn reconcile_selection(&mut self) {
+        if self.selected_row().is_none() {
+            self.select_first();
+        }
+    }
+
+    pub(super) fn select_channel(&mut self, channel: HubChannel) {
+        self.channel = channel;
+        self.tab_stop = channel;
+        self.query.clear();
+        self.filter = HubFilter::All;
+        self.select_first();
+    }
+}
+
+#[cfg(test)]
+#[path = "hub_items_tests.rs"]
+mod tests;

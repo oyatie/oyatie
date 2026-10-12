@@ -71,7 +71,12 @@ globalThis.document = {
   querySelector: (selector) => body.querySelector(selector),
   getElementById: (id) => body.querySelector(`[id="${id}"]`),
 };
-globalThis.window = { location: { hash: '' } };
+const windowListeners = {};
+globalThis.window = {
+  location: { hash: '' },
+  addEventListener: (name, callback) => (windowListeners[name] ||= []).push(callback),
+  emit: (name) => (windowListeners[name] || []).forEach(callback => callback()),
+};
 let notifyMutation;
 globalThis.MutationObserver = class {
   constructor(callback) { notifyMutation = callback; }
@@ -116,6 +121,20 @@ const oldGraph = ontologyPanel();
 shellHost.append(card);
 shellHost.append(oldGraph.panel);
 vm.runInThisContext(process.argv[1]);
+
+const payroll = body.append(new FakeElement('article', {
+  id: 'payroll-finance-preview', 'data-payroll-preview-context': 'sample-april-close',
+}));
+window.location.hash = '#payroll-finance-preview';
+window.emit('hashchange');
+assert.equal(document.activeElement, payroll, 'SSR history restores Payroll destination focus');
+assert.equal(payroll.focusCount, 1, 'one SSR restorer owns Payroll navigation');
+body.append(new FakeElement('div', { 'data-fragment-navigation': 'island' }));
+outside.focus();
+window.emit('hashchange');
+assert.equal(document.activeElement, outside, 'SSR restorer retires after WASM ownership');
+assert.equal(payroll.focusCount, 1, 'WASM ownership prevents duplicate SSR handling');
+window.location.hash = '';
 
 document.emit('click', open);
 assert.equal(document.activeElement, oldGraph.panel);

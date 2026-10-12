@@ -3,145 +3,14 @@ use super::*;
 #[component]
 pub(super) fn UtilityPanels() -> impl IntoView {
     view! {
-        <div class="utility-panel-backdrop" data-utility-backdrop hidden></div>
+        <dialog id="notification-center" class="utility-panel activity-center" data-utility-panel="notifications"
+            data-notification-source=notification_source() aria-labelledby="notification-title"
+            aria-describedby="notification-notice notification-status" closedby="any"
+            inner_html=notification_body_html()></dialog>
 
-        <section
-            class="utility-panel activity-center"
-            data-utility-panel="notifications"
-            aria-label="Notification and activity center"
-            aria-hidden="true"
-        >
-            <div class="utility-panel-head">
-                <div>
-                    <p class="screen-anchor">"ACTIVITY CENTER"</p>
-                    <h2>"Notifications, approvals, and local events"</h2>
-                </div>
-                <button type="button" data-utility-close="true" aria-label="Close activity center">"×"</button>
-            </div>
-            <section class="utility-proof-strip" aria-label="Activity center FD-001 substrate proof">
-                <article>
-                    <p class="screen-anchor">"FD-001 OPERATIONS SIGNALS"</p>
-                    <strong>"Notifications are workload control signals, not inbox noise"</strong>
-                    <span data-activity-status="true">"Close, filing, vendor, and audit events are Oyatie Cloud tenant workload previews."</span>
-                </article>
-                <div class="utility-route-grid" aria-label="Activity center routes">
-                    <button type="button" data-utility-route="work-hub"><span>"Comms"</span><strong>"Work Hub"</strong></button>
-                    <button type="button" data-utility-route="evidence"><span>"Receipt"</span><strong>"Evidence spine"</strong></button>
-                    <button type="button" data-utility-route="cloud"><span>"Substrate"</span><strong>"Cloud cells"</strong></button>
-                </div>
-            </section>
-            <div class="utility-summary">
-                    <span><strong data-activity-count="true">"3"</strong><small>"unread"</small></span>
-                <span><strong>"12"</strong><small>"today"</small></span>
-                <span><strong>"3"</strong><small>"blocking"</small></span>
-            </div>
-            <div class="utility-filter-row" role="toolbar" aria-label="Activity filters">
-                <button type="button" class="active" data-activity-filter="all">"All"</button>
-                <button type="button" data-activity-filter="unread">"Unread"</button>
-                <button type="button" data-activity-filter="blocking">"Blocking"</button>
-                <button type="button" data-activity-action="clear-read">"Clear read"</button>
-            </div>
-            <ol class="activity-list" data-activity-list="true" aria-live="polite">
-                <li data-activity-item="true" data-activity-state="unread" data-activity-severity="blocking">
-                    <time>"09:18"</time>
-                    <span class="status-chip danger">"blocking"</span>
-                    <strong>"4대보험 변동 확인 필요"</strong>
-                    <p>"Payroll close cannot seal until Park Seo-jun's insurance delta is reviewed."</p>
-                    <button type="button" data-activity-action="mark-read">"Mark read"</button>
-                </li>
-                <li data-activity-item="true" data-activity-state="unread" data-activity-severity="review">
-                    <time>"09:42"</time>
-                    <span class="status-chip warning">"review"</span>
-                    <strong>"Withholding tax brief ready"</strong>
-                    <p>"HomeTax transport is staged locally; reviewer must approve before send."</p>
-                    <button type="button" data-activity-action="mark-read">"Mark read"</button>
-                </li>
-                <li data-activity-item="true" data-activity-state="unread" data-activity-severity="blocking">
-                    <time>"10:05"</time>
-                    <span class="status-chip danger">"vendor"</span>
-                    <strong>"Stripe renewal needs owner"</strong>
-                    <p>"Spend approval exceeds one-step threshold and requires CFO attestation."</p>
-                    <button type="button" data-activity-action="mark-read">"Mark read"</button>
-                </li>
-                <li data-activity-item="true" data-activity-state="read" data-activity-severity="info">
-                    <time>"10:21"</time>
-                    <span class="status-chip success">"sealed"</span>
-                    <strong>"Audit receipt staged"</strong>
-                    <p>"REC-FIN-2026-05 was added to the local close package preview."</p>
-                    <button type="button" data-activity-action="open-audit">"Open audit"</button>
-                </li>
-            </ol>
-        </section>
-
-        <section
-            class="utility-panel settings-center"
-            data-utility-panel="settings"
-            aria-label="Workspace settings"
-            aria-hidden="true"
-        >
-            <div class="utility-panel-head">
-                <div>
-                    <p class="screen-anchor">"SETTINGS"</p>
-                    <h2>"Workspace, profile, appearance, and integrations"</h2>
-                </div>
-                <button type="button" data-utility-close="true" aria-label="Close settings">"×"</button>
-            </div>
-            <section class="utility-proof-strip settings-proof" aria-label="Settings FD-001 substrate proof">
-                <article>
-                    <p class="screen-anchor">"CONTROL PLANE SETTINGS"</p>
-                    <strong>"Workspace preferences stay tied to FD-001, policy, and Oyatie Cloud posture"</strong>
-                    <span>"Every preference is local visual state; no auth, IAM, billing, integration, mail, or cloud mutation occurs."</span>
-                </article>
-                <div class="utility-route-grid" aria-label="Settings connected routes">
-                    <button type="button" data-utility-route="identity"><span>"Identity"</span><strong>"Role envelope"</strong></button>
-                    <button type="button" data-utility-route="policy"><span>"Policy"</span><strong>"Access matrix"</strong></button>
-                    <button type="button" data-utility-route="catalog"><span>"Catalog"</span><strong>"Tenant modules"</strong></button>
-                </div>
-            </section>
-            <div class="settings-person-card">
-                <span class="workspace-avatar" aria-hidden="true">"최"</span>
-                <div><strong>"최유나 · Choi Yu-na"</strong><p>"Tenant admin · Finance owner · PIPA-safe contract envelope"</p></div>
-            </div>
-            // A-2: settings tablist — aria-orientation + id/aria-controls on tabs + role=tabpanel on panels
-            <div class="settings-tabs" role="tablist" aria-label="Settings panels" aria-orientation="horizontal">
-                <button type="button" id="settings-tab-profile" class="active" data-settings-tab="profile" role="tab" aria-selected="true" aria-controls="settings-panel-profile">"Profile"</button>
-                <button type="button" id="settings-tab-appearance" data-settings-tab="appearance" role="tab" aria-selected="false" aria-controls="settings-panel-appearance">"Appearance"</button>
-                <button type="button" id="settings-tab-integrations" data-settings-tab="integrations" role="tab" aria-selected="false" aria-controls="settings-panel-integrations">"Integrations"</button>
-                <button type="button" id="settings-tab-audit" data-settings-tab="audit" role="tab" aria-selected="false" aria-controls="settings-panel-audit">"Audit"</button>
-            </div>
-            <article id="settings-panel-profile" class="settings-panel active" data-settings-panel="profile" role="tabpanel" aria-labelledby="settings-tab-profile">
-                <dl class="settings-kv">
-                    <div><dt>"Workspace"</dt><dd>"Oyatie Corp. · 118 employees"</dd></div>
-                    <div><dt>"Role"</dt><dd>"Admin · payroll close approver"</dd></div>
-                    <div><dt>"Region pack"</dt><dd>"US/EU/KR · Korean payroll enabled"</dd></div>
-                </dl>
-                <button type="button" data-settings-action="open-identity">"Open identity profile"</button>
-            </article>
-            <article id="settings-panel-appearance" class="settings-panel" data-settings-panel="appearance" role="tabpanel" aria-labelledby="settings-tab-appearance">
-                <p>"Adjust local visual density and shell language without changing server state."</p>
-                <div class="settings-action-grid">
-                    <button type="button" data-settings-action="density-comfortable">"Comfortable"</button>
-                    <button type="button" data-settings-action="density-compact">"Compact"</button>
-                    <button type="button" data-settings-action="locale-ko">"한국어 우선"</button>
-                    <button type="button" data-settings-action="locale-en">"English labels"</button>
-                </div>
-            </article>
-            <article id="settings-panel-integrations" class="settings-panel" data-settings-panel="integrations" role="tabpanel" aria-labelledby="settings-tab-integrations">
-                <ol class="integration-list">
-                    <li><strong>"Shinhan Bank"</strong><span class="status-chip success">"verified"</span><small>"Bank transport staged locally; no money movement."</small></li>
-                    <li><strong>"HomeTax"</strong><span class="status-chip warning">"review"</span><small>"Filing transport waits for human attestation."</small></li>
-                    <li><strong>"Google Workspace"</strong><span class="status-chip">"local"</span><small>"Mail and community previews only."</small></li>
-                </ol>
-            </article>
-            <article id="settings-panel-audit" class="settings-panel" data-settings-panel="audit" role="tabpanel" aria-labelledby="settings-tab-audit">
-                <ol class="activity-list compact">
-                    <li><time>"09:14"</time><strong>"Settings drawer opened"</strong><p>"Local shell state only."</p></li>
-                    <li><time>"09:18"</time><strong>"Density preference staged"</strong><p>"Stored in this browser session."</p></li>
-                    <li><time>"09:42"</time><strong>"Identity panel linked"</strong><p>"No auth mutation."</p></li>
-                </ol>
-            </article>
-            <p class="settings-status" data-settings-status="true">"Local settings ready · no backend persistence."</p>
-        </section>
+        <dialog id="settings-center" class="utility-panel settings-center" data-utility-panel="settings"
+            data-settings-density="comfortable" aria-label="Settings · sample preview" closedby="any"
+            inner_html=settings_body_html()></dialog>
     }
 }
 
@@ -201,4 +70,16 @@ pub(super) fn SidePeek() -> impl IntoView {
             </div>
         </aside>
     }
+}
+
+pub(super) fn settings_body_html() -> &'static str {
+    r#"<div class="utility-panel-head"><div><p class="screen-anchor">SETTINGS · SAMPLE PREVIEW</p><h2 data-settings-label="title" lang="en">Settings · sample preview</h2></div><button type="button" data-utility-close="true" aria-label="Close settings" commandfor="settings-center" command="close">×</button></div>
+<section class="utility-proof-strip settings-proof" aria-label="Sample Settings context"><article><p class="screen-anchor">PAGE MEMORY ONLY</p><strong>Settings preview; live account and workspace facts unavailable</strong><span>Preferences change this Settings drawer only and reset on reload. They never supply identity, grants, privacy, integration or tenant admission authority.</span></article><div class="utility-route-grid" aria-label="Existing sample Settings destinations"><button type="button" data-utility-route="identity"><span>Account</span><strong>Sample profile</strong></button><button type="button" data-utility-route="policy"><span>Policy</span><strong>Sample access matrix</strong></button><button type="button" data-utility-route="catalog"><span>Catalog</span><strong>Sample modules</strong></button></div></section>
+<div class="settings-person-card" aria-label="Sample person and workspace"><span class="workspace-avatar" aria-hidden="true">최</span><div><strong>Sample: 최유나 · Choi Yu-na</strong><p>Sample Tenant Admin · Finance owner; live role and privacy status Unknown / unavailable.</p></div></div>
+<div class="settings-tabs" role="tablist" aria-label="Sample Settings panels" aria-orientation="horizontal"><button type="button" id="settings-tab-profile" class="active" data-settings-tab="profile" data-settings-label="profile" lang="en" role="tab" aria-selected="true" aria-controls="settings-panel-profile">Sample profile</button><button type="button" id="settings-tab-appearance" data-settings-tab="appearance" data-settings-label="appearance" lang="en" role="tab" aria-selected="false" aria-controls="settings-panel-appearance">Drawer appearance</button><button type="button" id="settings-tab-integrations" data-settings-tab="integrations" data-settings-label="integrations" lang="en" role="tab" aria-selected="false" aria-controls="settings-panel-integrations">Sample integrations</button><button type="button" id="settings-tab-audit" data-settings-tab="audit" data-settings-label="audit" lang="en" role="tab" aria-selected="false" aria-controls="settings-panel-audit">Sample audit examples</button></div>
+<article id="settings-panel-profile" class="settings-panel active" data-settings-panel="profile" role="tabpanel" aria-labelledby="settings-tab-profile"><dl class="settings-kv" aria-label="Sample workspace facts"><div><dt>Sample workspace</dt><dd>Oyatie Corp. · 118 example employees</dd></div><div><dt>Sample role</dt><dd>Admin · payroll approver example</dd></div><div><dt>Sample region pack</dt><dd>US/EU/KR example; live enablement unavailable</dd></div></dl><button type="button" data-settings-action="open-identity">Open sample account profile</button></article>
+<article id="settings-panel-appearance" class="settings-panel" data-settings-panel="appearance" role="tabpanel" aria-labelledby="settings-tab-appearance"><p>Density changes only Settings drawer spacing. Language previews only its title and four tab labels. Both reset on reload; the rest of the shell is unchanged.</p><div class="settings-action-grid" aria-label="Settings drawer preview preferences"><button type="button" data-settings-action="density-comfortable" aria-pressed="true">Comfortable drawer</button><button type="button" data-settings-action="density-compact" aria-pressed="false">Compact drawer</button><button type="button" data-settings-action="locale-ko" aria-pressed="false">한국어 drawer label preview</button><button type="button" data-settings-action="locale-en" aria-pressed="true">English drawer label preview</button></div></article>
+<article id="settings-panel-integrations" class="settings-panel" data-settings-panel="integrations" role="tabpanel" aria-labelledby="settings-tab-integrations"><ol class="integration-list" aria-label="Sample integration examples"><li><strong>Sample Shinhan Bank</strong><span class="status-chip">Unknown / unavailable</span><small>Example only; no account or transport verification supplied.</small></li><li><strong>Sample HomeTax</strong><span class="status-chip">Unknown / unavailable</span><small>Example only; no filing connection supplied.</small></li><li><strong>Sample Google Workspace</strong><span class="status-chip">Unknown / unavailable</span><small>Example only; no connected mail service supplied.</small></li></ol></article>
+<article id="settings-panel-audit" class="settings-panel" data-settings-panel="audit" role="tabpanel" aria-labelledby="settings-tab-audit"><p>Static audit examples, not events from this page or a browser, session or server log.</p><ol class="activity-list compact" aria-label="Static sample Settings audit examples"><li><time>09:14 example</time><strong>Sample drawer inspection</strong><p>Illustrative event only.</p></li><li><time>09:18 example</time><strong>Sample density choice</strong><p>Illustrative event only; no persistence claimed.</p></li><li><time>09:42 example</time><strong>Sample account navigation</strong><p>Illustrative event only; no authentication occurred.</p></li></ol></article>
+<p class="settings-status" data-settings-status="true" role="status">Settings drawer previews use page memory and reset on reload. Live account facts unavailable.</p>"#
 }

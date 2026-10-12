@@ -1,6 +1,9 @@
 use super::*;
 
-pub(super) fn tenant_rbac_board(envelope: TenantRenderEnvelope) -> impl IntoView {
+pub(super) fn tenant_rbac_board(
+    envelope: TenantRenderEnvelope,
+    available: Signal<bool>,
+) -> impl IntoView {
     view! {
         <section
             class="tenant-rbac-board"
@@ -9,55 +12,19 @@ pub(super) fn tenant_rbac_board(envelope: TenantRenderEnvelope) -> impl IntoView
         >
             <div class="service-board-head">
                 <div>
-                    <p class="screen-anchor">"TENANT RBAC SERVICE GRAPH"</p>
-                    <h3 id="service-board-title">"Corporate operations graph"</h3>
+                    <p class="screen-anchor">"SAMPLE SERVICE GRAPH"</p>
+                    <h3 id="service-board-title">"Sample corporate operations graph"</h3>
                 </div>
-                <span class="status-chip success">{format!("{} permitted services", envelope.modules.len())}</span>
+                <span class="status-chip success">{format!("{} sample service cards", envelope.modules.len())}</span>
             </div>
 
-            {business_logic_os_panel()}
-            {governance_ops_command_board(envelope.workflow.name.clone())}
+            {governance_preview(envelope.clone(), available)}
 
-            <article id="payroll-cockpit" class="service-card payroll-card">
-                <p class="screen-anchor">"PAYROLL CLOSE"</p>
-                <h4>"2026-04 payroll close"</h4>
-                <p class="service-card-brief">"FD-001 payroll workload dogfooded on Oyatie Cloud with workflow, Mail, and evidence return paths."</p>
-                <div class="service-metric-row">
-                    <span><strong>"73%"</strong><small>"close progress"</small></span>
-                    <span><strong>"5.4d"</strong><small>"cycle time"</small></span>
-                    <span><strong>"₩2.18M"</strong><small>"cost of delay"</small></span>
-                </div>
-                <ol class="service-checklist">
-                    <li><span class="status-chip danger">"blocking"</span>"4대보험 변동 확인 필요"</li>
-                    <li><span class="status-chip warning">"review"</span>"Payroll reminder mail draft ready"</li>
-                    <li><span class="status-chip success">"sealed"</span>"Receipt REC-PAY-2026-04 staged"</li>
-                </ol>
-                <div class="service-card-actions">
-                    <button type="button" data-service-action="payroll-finance">"Finance cockpit"</button>
-                    <button type="button" data-service-action="payroll-workflow">"Workflow gate"</button>
-                    <button type="button" data-service-action="payroll-mail">"Mail brief"</button>
-                    <button type="button" data-service-action="payroll-evidence">"Evidence"</button>
-                </div>
-            </article>
+            {payroll_preview_card()}
 
-            <article id="filing-readiness" class="service-card filing-card">
-                <p class="screen-anchor">"FILING READINESS"</p>
-                <h4>"Withholding return"</h4>
-                <p class="service-card-brief">"Korea localization workload joins the same substrate proof loop: reviewer attestation, transport, and receipt."</p>
-                // A-6: added role=progressbar + aria-value* attributes
-                <div class="readiness-bars compact" aria-label="Filing readiness">
-                    <span role="progressbar" aria-valuenow="86" aria-valuemin="0" aria-valuemax="100" aria-label="Employee validation: 86%" style="--bar: 86%"><em aria-hidden="true">"Employee validation"</em></span>
-                    <span role="progressbar" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100" aria-label="HomeTax transport: 64%" style="--bar: 64%"><em aria-hidden="true">"HomeTax transport"</em></span>
-                    <span role="progressbar" aria-valuenow="52" aria-valuemin="0" aria-valuemax="100" aria-label="Reviewer attestation: 52%" style="--bar: 52%"><em aria-hidden="true">"Reviewer attestation"</em></span>
-                </div>
-                <div class="service-card-actions">
-                    <button type="button" data-sidepeek-trigger="filing" data-sidepeek-title="Withholding return" data-sidepeek-id="FILE-KR-2026-04" data-sidepeek-desc="Filing readiness is staged locally and never submitted before live integration." data-sidepeek-owner="Finance close" data-sidepeek-risk="2 review" data-sidepeek-sla="Due 2026-05-10">"Inspect"</button>
-                    <button type="button" data-service-action="filing-billing">"Billing · tax"</button>
-                    <button type="button" data-service-action="filing-community">"Council note"</button>
-                    <button type="button" data-service-action="filing-evidence">"Receipt"</button>
-                </div>
-                {filing_readiness_anchor_board()}
-            </article>
+            {finance_sample_scope(envelope.context).filing_examples.then(|| view! {
+                {finance_filing_card(&envelope)}
+            })}
 
             <article id="employee-directory" class="service-card employee-card">
                 <p class="screen-anchor">"EMPLOYEES"</p>
@@ -85,29 +52,7 @@ pub(super) fn tenant_rbac_board(envelope: TenantRenderEnvelope) -> impl IntoView
                 </div>
             </article>
 
-            <article id="governance-analytics-summary" class="service-card governance-card">
-                <p class="screen-anchor">"GOVERNANCE ANALYTICS"</p>
-                <h4>"Policy, receipts, workflow health"</h4>
-                <p class="service-card-brief">"Executive posture rolls FD-001 workload proof, cloud cell evidence, and built-in surface routes into one council view."</p>
-                <div class="service-graph" aria-hidden="true">
-                    <span style="--bar: 78%"></span>
-                    <span style="--bar: 48%"></span>
-                    <span style="--bar: 92%"></span>
-                    <span style="--bar: 61%"></span>
-                    <span style="--bar: 72%"></span>
-                </div>
-                <dl class="service-kv">
-                    <div><dt>"Risk"</dt><dd>"3 high-risk approvals"</dd></div>
-                    <div><dt>"Evidence"</dt><dd>"12 sealed draft receipts"</dd></div>
-                    <div><dt>"Workflow"</dt><dd>{envelope.workflow.name}</dd></div>
-                </dl>
-                <div class="service-card-actions">
-                    <button type="button" data-service-action="governance-command">"Command board"</button>
-                    <button type="button" data-service-action="governance-risk">"Risk heatmap"</button>
-                    <button type="button" data-service-action="governance-community">"Community"</button>
-                    <button type="button" data-service-action="governance-evidence">"Evidence"</button>
-                </div>
-            </article>
+
         </section>
     }
 }
@@ -123,8 +68,8 @@ pub(super) fn filing_readiness_anchor_board() -> impl IntoView {
                         "Withholding return, employee validation, HomeTax transport, billing, Mail, Community, and evidence receipts stay in the FD-001 tenant workload graph."
                     </p>
                     <div class="trust-anchor-actions">
-                        <button type="button" data-trust-proof-action="stage-filing">"Stage filing"</button>
-                        <button type="button" data-trust-proof-action="route-billing">"Billing · tax"</button>
+                        <button type="button" disabled data-finance-unavailable="true" aria-describedby="finance-unavailable-reason">"Stage filing"</button>
+                        <a href="#finance-panel-billing">"Billing · tax"</a>
                     </div>
                 </article>
                 <article class="trust-anchor-card" data-trust-proof-card="filing-cloud">
@@ -134,33 +79,185 @@ pub(super) fn filing_readiness_anchor_board() -> impl IntoView {
                         "Oyatie Cloud shows PIPA-aware residency, policy envelope, release gates, audit freshness, and rollback posture before any tax workload readiness claim."
                     </p>
                     <div class="trust-anchor-actions">
-                        <button type="button" data-trust-proof-action="route-policy">"PIPA policy"</button>
-                        <button type="button" data-trust-proof-action="route-cloud">"Cloud cells"</button>
+                        <a href="#cockpit-panel-policy">"PIPA policy"</a>
+                        <a href="#cloud-ops-cockpit">"Cloud cells"</a>
                     </div>
                 </article>
                 <article class="trust-anchor-card" data-trust-proof-card="filing-local">
                     <p class="screen-anchor">"LOCAL-ONLY FILING RAIL"</p>
-                    <h5>"Reviewer-ready, never submitted"</h5>
+                    <h5>"Sample reviewer context; not submitted"</h5>
                     <p>
                         "Operators can inspect readiness, stage a reviewer packet, and route council notes visually; no HomeTax, bank, payroll, billing, mail, or cloud mutation executes."
                     </p>
                     <div class="trust-anchor-actions">
-                        <button type="button" data-trust-proof-action="route-mail">"Reviewer Mail"</button>
-                        <button type="button" data-trust-proof-action="route-evidence">"Receipt spine"</button>
+                        <a href="#work-hub" data-finance-channel="Mail">"Reviewer Mail"</a>
+                        <a href="#evidence-spine">"Receipt spine"</a>
                     </div>
                 </article>
             </div>
             <div class="trust-anchor-footer">
                 <span data-trust-proof-status="true">
-                    "Filing readiness ready · FD-001 localization workload dogfoods Oyatie Cloud with local-only submission controls."
+                    "Sample filing; agency acceptance unavailable · FD-001 localization workload dogfoods Oyatie Cloud with local-only submission controls."
                 </span>
                 <div class="trust-anchor-routes" aria-label="Filing readiness connected routes">
-                    <button type="button" data-trust-proof-action="route-finance">"Finance close"</button>
-                    <button type="button" data-trust-proof-action="route-community">"Community note"</button>
-                    <button type="button" data-trust-proof-action="route-audit">"Audit ledger"</button>
-                    <button type="button" data-trust-proof-action="route-catalog">"Catalog"</button>
+                    <a href="#finance-panel-ledger">"Finance close"</a>
+                    <a href="#work-hub" data-finance-channel="Community">"Community note"</a>
+                    <a href="#resource-panel-audit">"Audit ledger"</a>
+                    <a href="#modules-title">"Catalog"</a>
                 </div>
             </div>
         </div>
+    }
+}
+
+pub(super) fn governance_sample_visible(context: OperatorContext) -> bool {
+    matches!(
+        context,
+        OperatorContext::TenantAdmin | OperatorContext::CorporateOffice
+    )
+}
+
+pub(super) fn governance_sample_source(envelope: &TenantRenderEnvelope) -> String {
+    serde_json::to_string(&(
+        envelope.context,
+        daily_sample_label(envelope),
+        HubSample::envelope_source(envelope),
+        governance_body_html(envelope, true),
+    ))
+    .expect("complete native Governance sample source is serializable")
+}
+
+fn governance_available(available: Signal<bool>) -> bool {
+    #[cfg(target_arch = "wasm32")]
+    {
+        available.try_get().unwrap_or(false)
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        available.try_get_untracked().unwrap_or(false)
+    }
+}
+
+fn governance_preview(envelope: TenantRenderEnvelope, available: Signal<bool>) -> impl IntoView {
+    let visible = governance_sample_visible(envelope.context);
+    view! {
+        <section id="governance-preview" aria-label="Anonymous Governance sample"
+            data-governance-source=governance_sample_source(&envelope)
+            data-governance-context=envelope.context.id() data-governance-label=daily_sample_label(&envelope)
+            data-governance-hub-source=HubSample::envelope_source(&envelope)
+            data-governance-visible=visible.to_string()
+            data-governance-source-available=move || governance_available(available).to_string()
+            data-governance-mode=if cfg!(target_arch = "wasm32") { "island" } else { "ssr" }
+            data-governance-available=move || (visible && governance_available(available)).to_string()
+            inner_html=governance_native_body_html(&envelope)></section>
+    }
+}
+
+pub(super) fn governance_body_html(envelope: &TenantRenderEnvelope, native: bool) -> String {
+    let label = daily_escape(&daily_sample_label(envelope));
+    if !governance_sample_visible(envelope.context) {
+        return format!(
+            r#"<p data-governance-availability="true" role="status">Observed anonymous sample: {label}. Executive Governance examples are omitted for the clinician sample. No tenant or role is verified; live Governance remains unavailable.</p>"#
+        );
+    }
+    format!(
+        r##"<p data-governance-availability="true" role="status">Observed anonymous sample: {label}. Executive examples only; no tenant or role is verified.</p><p data-governance-reset="true" role="status" hidden>Sample source changed; prior local search, filter, selection and inspection cleared.</p>{logic}{command}
+<article id="governance-analytics-summary" class="service-card governance-card" data-governance-workflow-source="{workflow_source}"><p class="screen-anchor">SAMPLE GOVERNANCE SUMMARY</p><h4>Example policy, risk and evidence</h4><p class="service-card-brief">May 2026–April 2027 illustrative fixtures. Live posture, freshness, attestations and durable signed receipts are unavailable.</p><dl class="service-kv"><div><dt>Sample risks</dt><dd>5 illustrated records</dd></div><div><dt>Verified receipts</dt><dd>Unavailable</dd></div><div><dt>Sample workflow</dt><dd>{workflow}</dd></div></dl><nav class="service-card-actions" aria-label="Existing Governance sample views"><a href="#governance-analytics" data-governance-route="command" data-service-action="governance-command">Open command sample</a><a href="#governance-risk-matrix" data-governance-route="risk" data-service-action="governance-risk">Open risk examples</a>{community}{evidence}</nav></article>
+<p data-governance-route-status="true" role="status">Existing sample views only; no action, draft, message or receipt is created.</p>"##,
+        logic = business_logic_os_html(native),
+        command = governance_command_html(&envelope.workflow.name, native),
+        workflow = daily_escape(&envelope.workflow.name),
+        workflow_source = daily_escape(
+            &serde_json::to_string(&envelope.workflow)
+                .expect("native sample workflow is serializable")
+        ),
+        community = governance_route_html("community", "Community", native),
+        evidence = governance_route_html("evidence", "Evidence", native)
+    )
+}
+
+#[cfg(any(feature = "ssr", test))]
+pub(super) fn static_governance_preview(envelope: &TenantRenderEnvelope) -> String {
+    let templates = if governance_sample_visible(envelope.context) {
+        [HubChannel::Mail, HubChannel::Community]
+            .into_iter()
+            .map(|channel| {
+                format!(
+                    r#"<template data-governance-hub-template="{}">{}</template>"#,
+                    channel.label(),
+                    communication_hub_html(envelope, channel)
+                )
+            })
+            .collect::<String>()
+    } else {
+        String::new()
+    };
+    format!(
+        r#"<section id="governance-preview" aria-label="Anonymous Governance sample" data-governance-source="{}" data-governance-context="{}" data-governance-label="{}" data-governance-hub-source="{}" data-governance-visible="{}" data-governance-mode="ssr" data-governance-source-available="true" data-governance-available="{}">{}{templates}</section>"#,
+        daily_escape(&governance_sample_source(envelope)),
+        envelope.context.id(),
+        daily_escape(&daily_sample_label(envelope)),
+        daily_escape(&HubSample::envelope_source(envelope)),
+        governance_sample_visible(envelope.context),
+        governance_sample_visible(envelope.context),
+        governance_body_html(envelope, false)
+    )
+}
+
+fn governance_native_body_html(envelope: &TenantRenderEnvelope) -> String {
+    let body = governance_body_html(envelope, true);
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        if governance_sample_visible(envelope.context) {
+            return body
+                + &[HubChannel::Mail, HubChannel::Community]
+                    .into_iter()
+                    .map(|channel| {
+                        format!(
+                            r#"<template data-governance-hub-template="{}">{}</template>"#,
+                            channel.label(),
+                            communication_hub_html(envelope, channel)
+                        )
+                    })
+                    .collect::<String>();
+        }
+    }
+    body
+}
+
+pub(super) fn governance_rail_html(context: OperatorContext, logic: bool) -> String {
+    if !governance_sample_visible(context) {
+        return String::new();
+    }
+    if logic {
+        format!(
+            r##"<a class="rail-nav" data-governance-rail="true" href="#business-logics"><span aria-hidden="true">⌬</span>Sample Logics<em>{}</em></a>"##,
+            BUSINESS_LOGIC_ROWS.len()
+        )
+    } else {
+        r##"<a class="rail-nav" data-governance-rail="true" href="#governance-analytics"><span aria-hidden="true">↟</span>Governance sample</a>"##.to_string()
+    }
+}
+
+pub(super) fn finance_filing_card(envelope: &TenantRenderEnvelope) -> impl IntoView + use<> {
+    view! {
+            <article id="filing-readiness" data-finance-owned="filing" data-finance-owner-source=finance_sample_source(envelope) data-finance-context=envelope.context.id() class="service-card filing-card">
+                <p class="screen-anchor">"FILING READINESS"</p>
+                <h4>"Withholding return preview"</h4>
+                <p class="service-card-brief">"Sample readiness figures only. Workforce validation, HomeTax transport, and reviewer attestation have not been performed."</p>
+                // A-6: added role=progressbar + aria-value* attributes
+                <div class="readiness-bars compact" aria-label="Sample filing readiness">
+                    <span role="progressbar" aria-valuenow="86" aria-valuemin="0" aria-valuemax="100" aria-label="Sample employee validation: 86%; not performed" style="--bar: 86%"><em aria-hidden="true">"Sample employee validation"</em></span>
+                    <span role="progressbar" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100" aria-label="Sample HomeTax transport: 64%; not performed" style="--bar: 64%"><em aria-hidden="true">"Sample HomeTax transport"</em></span>
+                    <span role="progressbar" aria-valuenow="52" aria-valuemin="0" aria-valuemax="100" aria-label="Sample reviewer attestation: 52%; not performed" style="--bar: 52%"><em aria-hidden="true">"Sample reviewer attestation"</em></span>
+                </div>
+                <div class="service-card-actions">
+                    <details><summary>"Inspect filing example"</summary><p>"Sample FILE-KR-2026-04, April 2026. Workforce validation, HomeTax transport, attestation and agency acceptance unavailable; nothing submitted."</p></details>
+                    <a href="#finance-panel-billing">"Billing · tax"</a>
+                    <a href="#work-hub" data-finance-channel="Community">"Council note"</a>
+                    <a href="#evidence-spine">"Receipt"</a>
+                </div>
+                {filing_readiness_anchor_board()}
+            </article>
     }
 }

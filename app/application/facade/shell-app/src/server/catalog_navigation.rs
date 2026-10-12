@@ -35,6 +35,21 @@ function focusPanel(id) {
   panel.focus({ preventScroll: true });
   return panel;
 }
+function restorePayrollFragment() {
+  if (document.querySelector('[data-fragment-navigation="island"]')) return;
+  let id;
+  try {
+    id = decodeURIComponent(window.location.hash.slice(1));
+  } catch {
+    return;
+  }
+  const target = document.getElementById(id);
+  if (target && (target.dataset.payrollPreviewContext || id === 'payroll-cockpit')) {
+    focusPanel(id);
+  }
+}
+window.addEventListener('hashchange', restorePayrollFragment);
+restorePayrollFragment();
 function initializeOntologySelection() {
   const graph = document.querySelector('[data-ontology-console]');
   graph?.querySelector('[data-ontology-detail]')?.setAttribute('role', 'status');

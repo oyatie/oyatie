@@ -118,13 +118,96 @@ async fn live_ssr_host_serves_routes_confines_packages_and_shuts_down_cleanly() 
     assert!(root.contains("mount_dashboard_islands"));
     assert!(root.contains("/style/app.css"));
     assert!(root.contains("CAT-OYATIE-ONTOLOGY"));
-    assert!(root.contains("data-sidepeek-title=\"Ontology\""));
-    assert!(root.contains("Open ontology"));
-    assert!(root.contains("ontology-command-console"));
-    assert!(root.contains("panel.focus({ preventScroll: true })"));
-    assert!(root.contains("data-ontology-action=\"inspect-fact\""));
-    assert!(root.contains("candidate.setAttribute('aria-pressed'"));
     let markup = root.split("<script").next().expect("SSR shell markup");
+    assert!(markup.contains("Open ontology sample"));
+    assert!(!markup.contains("data-sidepeek-title=\"Ontology\""));
+    assert!(markup.contains("ontology-command-console"));
+    assert!(markup.contains("data-ontology-action=\"inspect-fact\""));
+    assert!(root.contains("panel.focus({ preventScroll: true })"));
+    assert!(root.contains("candidate.setAttribute('aria-pressed'"));
+    assert!(markup.contains("no tenant or role is verified"));
+    assert!(markup.contains(
+        "Live review, execution, attestation, sealing and receipt creation are unavailable"
+    ));
+    assert!(markup.contains("data-governance-unavailable=\"true\" disabled"));
+    assert!(markup.contains("<strong>Sample workspace</strong>"));
+    assert!(markup.contains("id=\"console-title\">Operations samples</h1>"));
+    assert_eq!(markup.matches("href=\"#catalog-sample-search\"").count(), 2);
+    let form = markup
+        .split_once("<form id=\"passkey-form\"")
+        .expect("native passkey form")
+        .1
+        .split_once("</form>")
+        .unwrap()
+        .0;
+    for control in [
+        "passkey-sign-in",
+        "session-restore",
+        "session-logout",
+        "passkey-enroll",
+        "passkey-invitation",
+    ] {
+        let tag = form
+            .split_once(&format!("id=\"{control}\""))
+            .unwrap()
+            .1
+            .split_once('>')
+            .unwrap()
+            .0;
+        assert!(
+            tag.contains(" disabled"),
+            "anonymous initial control {control}"
+        );
+    }
+    let live_card = markup
+        .split_once("<section id=\"verified-ontology-card\"")
+        .expect("separate verified live card")
+        .1;
+    assert!(live_card.split_once('>').unwrap().0.contains(" hidden"));
+    for fact in [
+        "policyVersion",
+        "servedTenants",
+        "projectionLag",
+        "poisonedEntries",
+    ] {
+        assert!(live_card.contains(&format!("data-live-fact=\"{fact}\"></dd>")));
+    }
+
+    let availability = request(
+        address,
+        "GET /api/identity-config HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n",
+    )
+    .await;
+    assert_status(&availability, "200");
+    assert!(availability.contains("\"enabled\":false"));
+    for path in [
+        "/api/identity/ten_acme/session",
+        "/api/ontology-status/ten_acme",
+    ] {
+        let anonymous = request(address, &format!("GET {path} HTTP/1.1\r\nHost: localhost\r\nCookie: __Host-oya_session=ssn_fixture\r\nConnection: close\r\n\r\n")).await;
+        assert_status(&anonymous, "503");
+        assert!(anonymous.contains("cache-control: no-store"));
+        assert!(!anonymous.contains("\"subject\"") && !anonymous.contains("\"policyVersion\""));
+    }
+    let compatibility_markup = application_shell_app::app::static_dashboard_html();
+    for rendered in [markup, compatibility_markup.as_str()] {
+        for destination in ["finance", "workflow", "mail", "evidence"] {
+            let target = format!("payroll-{destination}-preview");
+            assert_eq!(rendered.matches(&format!("id=\"{target}\"")).count(), 1);
+            assert!(rendered.contains(&format!("href=\"#{target}\"")));
+        }
+        assert_eq!(
+            rendered
+                .matches("data-payroll-preview-context=\"sample-april-close\"")
+                .count(),
+            4
+        );
+        assert!(rendered.contains("sample close progress"));
+        assert!(rendered.contains("118 sample employees; not validated"));
+        assert!(rendered.contains("Example only; not created"));
+        assert!(!rendered.contains("118 employees validated"));
+        assert!(!rendered.contains("Receipt REC-PAY-2026-04 staged"));
+    }
     let ids = attribute_values(markup, "id")
         .into_iter()
         .collect::<std::collections::BTreeSet<_>>();
