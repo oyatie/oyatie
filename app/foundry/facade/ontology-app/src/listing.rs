@@ -13,7 +13,7 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use foundry_spine::{PageError, objects_of_type_at_revision};
 
-use crate::composition::AppState;
+use crate::composition::{AppState, TenantState};
 use crate::listing_query::ListingQuery;
 use crate::read_dto::{ListingBody, pinned_body};
 use crate::reads::{
@@ -29,6 +29,15 @@ pub async fn objects(
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };
+    objects_response(&state, &caller.tenant_id, tenant, raw_query).await
+}
+
+pub(crate) async fn objects_response(
+    state: &AppState,
+    tenant_id: &str,
+    tenant: &tokio::sync::Mutex<TenantState>,
+    raw_query: Option<String>,
+) -> Response {
     let query = match ListingQuery::parse(raw_query.as_deref()) {
         Ok(query) => query,
         Err(refusal) => {
@@ -37,11 +46,7 @@ pub async fn objects(
         }
     };
     let tenant = tenant.lock().await;
-    let declared = declared_type(
-        &tenant.projection.engine,
-        &caller.tenant_id,
-        &query.entity_type,
-    );
+    let declared = declared_type(&tenant.projection.engine, tenant_id, &query.entity_type);
     let Some(entity_type) = declared else {
         state.metrics.read_refused();
         return refuse(
@@ -53,7 +58,7 @@ pub async fn objects(
     match objects_of_type_at_revision(
         &*tenant.projection_store,
         &tenant.projection.engine,
-        &caller.tenant_id,
+        tenant_id,
         &entity_type,
         query.revision,
         &query.page(),
@@ -71,7 +76,7 @@ pub async fn objects(
             })
             .into_response()
         }
-        Err(error) => refuse_page_error(&state, &error),
+        Err(error) => refuse_page_error(state, &error),
     }
 }
 
