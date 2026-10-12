@@ -14,17 +14,44 @@ function ontologyTable(caption, columns, rows) {
   if (!rows.length) { const tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = columns.length; td.textContent = 'No native rows.'; tr.append(td); body.append(tr); }
   table.append(body); return table;
 }
+function ontologyDeclarationText(value) {
+  if (value === null) return 'Legacy string contract';
+  if (value.kind === 'array') return `array of ${ontologyDeclarationText(value.element)}`;
+  if (value.kind === 'struct') return `struct { ${value.fields.map(field => `${field.name} (${field.required ? 'required' : 'optional'}): ${ontologyDeclarationText(field.value_type)}`).join('; ')} }`;
+  return value.kind;
+}
 const ontologyDecode = (() => {
   const object = v => v !== null && typeof v === 'object' && !Array.isArray(v);
   const integer = v => Number.isSafeInteger(v) && v >= 0;
   const string = v => typeof v === 'string';
   const nullable = v => v === null || string(v);
+  const named = v => string(v) && !/^\p{White_Space}*$/u.test(v);
+  const shape = (v, keys) => object(v) && Object.keys(v).length === keys.length && keys.every(key => Object.hasOwn(v, key));
+  const uniqueNames = v => new Set(v.map(row => row.name)).size === v.length;
+  const privacyClasses = ['INTERNAL_ONLY','PHI','PII_IDENTIFYING','PII_QUASI_IDENTIFIER','PCI','FINANCIAL','FINANCIAL_REGULATED_CREDIT','BEHAVIORAL_TENANT_PRODUCT','BEHAVIORAL_ADS','DECLARED_PREFERENCE','SEARCH_QUERY','PUBLIC','SENSITIVE_PIPA_ART23'];
+  const tiers = ['scalar','vector','timeseries','geo','ciphertext','struct'];
+  function declaration(v, depth = 1) {
+    if (!object(v) || depth > 8) return false;
+    if (['string','integer','double','boolean','date','timestamp'].includes(v.kind)) return shape(v, ['kind']);
+    if (v.kind === 'array') return shape(v, ['kind','element']) && declaration(v.element, depth + 1);
+    return v.kind === 'struct' && shape(v, ['kind','fields']) && Array.isArray(v.fields) && v.fields.length > 0
+      && v.fields.every(field => shape(field, ['name','required','value_type']) && named(field.name) && typeof field.required === 'boolean' && declaration(field.value_type, depth + 1)) && uniqueNames(v.fields);
+  }
+  const schemaProperty = p => shape(p, ['name','tier','data_class','required','value_type']) && named(p.name)
+    && tiers.includes(p.tier) && privacyClasses.includes(p.data_class) && typeof p.required === 'boolean'
+    && (p.value_type === null || declaration(p.value_type) && p.tier === (p.value_type.kind === 'array' ? 'vector' : p.value_type.kind === 'struct' ? 'struct' : 'scalar'));
+  const schema = s => shape(s, ['entity_type','revision','properties','primary_key_property','title_property'])
+    && string(s.entity_type) && s.entity_type.startsWith('ety_') && s.entity_type.length > 4 && integer(s.revision) && s.revision <= 4294967295
+    && Array.isArray(s.properties) && s.properties.length > 0 && s.properties.every(schemaProperty) && uniqueNames(s.properties)
+    && nullable(s.primary_key_property) && nullable(s.title_property)
+    && (s.primary_key_property === null || s.properties.some(p => p.name === s.primary_key_property && p.required))
+    && (s.title_property === null || s.properties.some(p => p.name === s.title_property));
   const rows = (v, accepts) => { if (!Array.isArray(v) || !v.every(accepts)) throw new Error('source_unavailable'); };
   const pinned = v => object(v) && string(v.object_ref) && integer(v.written_revision)
     && ['current', 'upcast_pending'].includes(v.upcast_state) && object(v.properties)
     && Object.values(v.properties).every(p => object(p) && string(p.value_type) && string(p.data_class) && Object.hasOwn(p, 'value'));
   return {
-    types: v => rows(v, t => object(t) && string(t.entity_type) && integer(t.revision) && Array.isArray(t.properties) && t.properties.every(string)),
+    schemas: v => { rows(v, schema); if (new Set(v.map(s => s.entity_type)).size !== v.length) throw new Error('source_unavailable'); },
     page: (v, pin, limit) => { if (!object(v) || v.requested_revision !== pin || !nullable(v.next)) throw new Error('source_unavailable'); rows(v.objects, pinned); if (v.objects.length > limit) throw new Error('source_unavailable'); },
     detail: (v, ref, pin) => { if (!object(v) || v.requested_revision !== pin || !pinned(v.object) || v.object.object_ref !== ref) throw new Error('source_unavailable'); },
     history: v => rows(v, r => object(r) && ['ordinal', 'object_sequence', 'schema_revision'].every(k => integer(r[k])) && ['principal_id', 'decision_id', 'action_type', 'audit_event_type'].every(k => string(r[k]))),

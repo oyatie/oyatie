@@ -1,5 +1,6 @@
 mod failures;
 mod query;
+mod schemas;
 mod support;
 
 use super::HumanOntologyCardSource;

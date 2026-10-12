@@ -11,6 +11,9 @@ pub enum OntologyEngineError {
     EmptyDisplayName,
     EmptyProperties,
     EmptyPropertyName,
+    DuplicatePropertyName {
+        name: String,
+    },
     DuplicateEntityType,
     DuplicateLinkType,
     DuplicateActionType,

@@ -11,8 +11,9 @@ use iam_identity_user_session::UserSessionAuthorizer;
 
 use crate::human_support::{TrackingPdp, instrument};
 
-pub const SUFFIXES: [&str; 5] = [
+pub const SUFFIXES: [&str; 6] = [
     "/types",
+    "/schemas",
     "/objects?type=ety_record&revision=1",
     "/objects/ent_alpha?revision=1",
     "/objects/ent_alpha/history",

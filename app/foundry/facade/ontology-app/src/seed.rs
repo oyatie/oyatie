@@ -83,11 +83,7 @@ pub fn declared_entity_types<'a>(
     engine: &'a OntologyEngine,
     tenant_id: &str,
 ) -> Vec<&'a EntityTypeDefinition> {
-    [EntityTypeId::new(SEEDED_ENTITY_TYPE)]
-        .into_iter()
-        .flatten()
-        .filter_map(|id| engine.entity_type(tenant_id, &id))
-        .collect()
+    engine.entity_types(tenant_id).collect()
 }
 
 pub fn declared_action_types<'a>(

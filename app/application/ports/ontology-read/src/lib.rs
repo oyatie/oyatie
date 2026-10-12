@@ -8,11 +8,15 @@ use std::future::Future;
 
 mod models;
 mod query;
+mod schema;
 pub use models::{
     AuditDisposition, AuditRow, EntityType, HistoryRow, ObjectDetail, ObjectPage, PinnedObject,
     Property, UpcastState,
 };
 pub use query::{DEFAULT_PAGE_LIMIT, FilterValue, MAX_PAGE_LIMIT, ObjectListQuery, PropertyFilter};
+pub use schema::{
+    EntitySchema, PropertyDefinition, PropertyTier, StructFieldDeclaration, ValueTypeDeclaration,
+};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -45,6 +49,12 @@ impl std::error::Error for OntologyReadError {}
 /// The server adapter revalidates the user's credential and tenant on each read.
 /// No browser principal, role list or sample fallback authorizes a live result.
 pub trait OntologyReadSource: Send + Sync {
+    /// Current accepted declarations, separate from the compatible type-name read.
+    fn schemas(
+        &self,
+        tenant: &str,
+    ) -> impl Future<Output = Result<Vec<EntitySchema>, OntologyReadError>> + Send;
+
     fn types(
         &self,
         tenant: &str,
@@ -78,3 +88,6 @@ pub trait OntologyReadSource: Send + Sync {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod schema_tests;

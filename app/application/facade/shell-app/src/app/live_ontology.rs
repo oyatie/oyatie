@@ -19,8 +19,13 @@ pub(super) fn LiveOntologyExplorer() -> impl IntoView {
                 <p id="live-ontology-filter-help">"Text filters accept ASCII values without spaces, &, #, or quotes. Boolean values are true or false. Unsupported filters are refused."</p>
                 <button type="submit" id="live-ontology-read" disabled>"Read objects"</button>
             </form>
-            <div class="sign-in-actions"><button type="button" id="live-ontology-types-refresh">"Refresh types"</button><button type="button" id="live-ontology-audit-read">"Read tenant audit"</button></div>
+            <div class="sign-in-actions"><button type="button" id="live-ontology-types-refresh">"Refresh schemas"</button><button type="button" id="live-ontology-audit-read">"Read tenant audit"</button></div>
             <p id="live-ontology-status" role="status" aria-live="polite">"Sign in to read your tenant's Ontology."</p>
+            <section id="live-ontology-schema" aria-labelledby="live-ontology-schema-title" data-live-results="true" hidden>
+                <h4 id="live-ontology-schema-title">"Native entity schema"</h4>
+                <p>"The current accepted declaration is shown for the selected type. Requested object revisions are set separately."</p>
+                <p id="live-ontology-schema-summary"></p><div id="live-ontology-schema-properties"></div>
+            </section>
             <div id="live-ontology-page" data-live-results="true"></div>
             <div class="sign-in-actions"><button type="button" id="live-ontology-first" hidden>"First page"</button><button type="button" id="live-ontology-next" hidden>"Next page"</button></div>
             <section id="live-ontology-detail" aria-labelledby="live-ontology-detail-title" data-live-results="true" hidden>

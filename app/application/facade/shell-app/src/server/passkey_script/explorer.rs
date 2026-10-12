@@ -7,12 +7,31 @@ function createOntologyExplorer(lifecycle) {
   const find = id => document.getElementById(`live-ontology-${id}`);
   const root = find('explorer');
   let identity = null, generation = 0, epoch = 0, abort = null;
+  let schemas = [];
   let next = null, cursor = null, objectRef = null, historyShown = false, readPage = false;
   const queryControls = ['type', 'revision', 'limit', 'property', 'comparison', 'kind', 'from', 'to'];
   const note = text => { find('status').textContent = text; };
   const valid = token => token === epoch && identity && lifecycle.valid(identity, generation) && root.isConnected;
   function invalidate() { epoch += 1; abort?.abort(); abort = null; }
   function busy(value) { root.setAttribute('aria-busy', String(value)); }
+  function ownsReadFocus(active) {
+    return root.contains(active) && (active.closest('[data-live-results]') || ['type','read','next','first'].some(id => find(id) === active));
+  }
+  function focusSchemaControl() {
+    [find('type'), find('types-refresh')].find(control => control && !control.disabled && !control.hidden)?.focus({ preventScroll: true });
+  }
+  function emptySchema() {
+    const restoreFocus = find('schema').contains(document.activeElement);
+    find('schema-summary').textContent = ''; find('schema-properties').replaceChildren(); find('schema').hidden = true;
+    if (restoreFocus) focusSchemaControl();
+  }
+  function renderSchema() {
+    const schema = schemas.find(row => row.entity_type === find('type').value);
+    if (!schema) { emptySchema(); return; }
+    find('schema-summary').textContent = `${schema.entity_type} · current accepted declaration revision ${schema.revision}. Primary-key property: ${schema.primary_key_property ?? 'none declared'}. Title property: ${schema.title_property ?? 'none declared'}.`;
+    find('schema-properties').replaceChildren(ontologyTable('Native declared properties', ['Property', 'Tier', 'Value declaration', 'Presence', 'Privacy class'], schema.properties.map(property => [property.name, property.tier, ontologyDeclarationText(property.value_type), property.required ? 'Required' : 'Optional', property.data_class])));
+    find('schema').hidden = false;
+  }
   function emptyResults() {
     if ([find('next'), find('first')].includes(document.activeElement)) find('read').focus();
     if (root.contains(document.activeElement) && document.activeElement.closest('[data-live-results]')) find('type').focus();
@@ -25,6 +44,7 @@ function createOntologyExplorer(lifecycle) {
     invalidate();
     if (root.contains(document.activeElement)) lifecycle.fallback();
     emptyResults();
+    schemas = []; emptySchema();
     find('type').replaceChildren(); find('type').disabled = true; find('read').disabled = true;
     find('revision').value = '1'; find('limit').value = '25';
     for (const id of ['property', 'from', 'to']) find(id).value = '';
@@ -62,8 +82,12 @@ function createOntologyExplorer(lifecycle) {
   }
   function failure(error, token) {
     if (!valid(token) || error.name === 'AbortError') return;
+    const active = document.activeElement;
+    const restoreFocus = ownsReadFocus(active);
     emptyResults();
-    if (['forbidden', 'source_unavailable'].includes(error.message) || !['unauthenticated','invalid_query','absent_object','revision_conflict','filter_conflict'].includes(error.message)) { find('type').replaceChildren(); find('type').disabled = true; find('read').disabled = true; if (document.activeElement === find('type')) find('types-refresh').focus(); }
+    schemas = []; emptySchema();
+    if (['forbidden', 'source_unavailable'].includes(error.message) || !['unauthenticated','invalid_query','absent_object','revision_conflict','filter_conflict'].includes(error.message)) { find('type').replaceChildren(); find('type').disabled = true; find('read').disabled = true; }
+    if (restoreFocus) focusSchemaControl();
     const messages = {
       unauthenticated: 'Session revoked or expired. Sign in again.',
       forbidden: 'Ontology access refused. Ask your administrator to check access.',
@@ -145,15 +169,19 @@ function createOntologyExplorer(lifecycle) {
     if (!selection) clear();
     identity = session; generation = version; root.hidden = false;
     find('identity').textContent = `Verified tenant ${session.tenantId} · account ${session.userId}`;
-    await run('Reading native entity types…', async token => {
-      const types = await fetchRead('types', token);
-      if (!types || !valid(token)) return;
-      ontologyDecode.types(types);
-      find('type').replaceChildren(...types.map(t => { const option = document.createElement('option'); option.value = t.entity_type; option.textContent = `${t.entity_type} · declared revision ${t.revision}`; option.dataset.revision = t.revision; return option; }));
-      find('type').disabled = types.length === 0; find('read').disabled = types.length === 0;
-      if (selection && types.some(t => t.entity_type === selection.type)) { find('type').value = selection.type; find('revision').value = selection.revision; }
-      else { emptyResults(); if (types.length) find('revision').value = types[0].revision; }
-      note(types.length ? 'Native types loaded. Choose a type and requested schema revision, then Read objects.' : 'No entity types are declared for this verified tenant.');
+    schemas = []; emptySchema();
+    await run('Reading native entity schemas…', async token => {
+      const rows = await fetchRead('schemas', token);
+      if (!valid(token)) return;
+      ontologyDecode.schemas(rows); schemas = rows;
+      const active = document.activeElement, restoreFocus = ownsReadFocus(active);
+      find('type').replaceChildren(...schemas.map(t => { const option = document.createElement('option'); option.value = t.entity_type; option.textContent = `${t.entity_type} · declared revision ${t.revision}`; option.dataset.revision = t.revision; return option; }));
+      find('type').disabled = schemas.length === 0; find('read').disabled = schemas.length === 0;
+      if (selection && schemas.some(t => t.entity_type === selection.type)) { find('type').value = selection.type; find('revision').value = selection.revision; }
+      else { emptyResults(); if (schemas.length) find('revision').value = schemas[0].revision; }
+      renderSchema();
+      if (restoreFocus && (schemas.length === 0 || active === find('type'))) focusSchemaControl();
+      note(schemas.length ? 'Native schemas loaded. Choose a type and requested schema revision, then Read objects.' : 'No entity types are declared for this verified tenant.');
       if (selection?.readPage && find('type').value === selection.type) await loadPage(token, selection.cursor, selection.objectRef);
       if (selection?.auditShown && valid(token)) await loadAudit(token);
     });
@@ -174,9 +202,9 @@ function createOntologyExplorer(lifecycle) {
   find('audit-read').addEventListener('click', () => run('Reading native tenant audit…', loadAudit));
   for (const id of queryControls) find(id).addEventListener('input', () => {
     invalidate(); emptyResults(); busy(false);
-    if (id === 'type') find('revision').value = find('type').selectedOptions[0]?.dataset.revision || '1';
+    if (id === 'type') { find('revision').value = find('type').selectedOptions[0]?.dataset.revision || '1'; renderSchema(); }
     note('Read selection changed. Read objects to load this context.');
   });
-  return { clear, open, hold: version => { invalidate(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
+  return { clear, open, hold: version => { invalidate(); schemas = []; emptySchema(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
 }
 "#;
