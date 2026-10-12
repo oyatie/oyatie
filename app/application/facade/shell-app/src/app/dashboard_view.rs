@@ -1,9 +1,5 @@
 use super::*;
 
-#[expect(
-    clippy::too_many_arguments,
-    reason = "Leptos shell view composes several reactive signals at the island boundary; refactoring into state bags would obscure the explicit contract-envelope flow."
-)]
 pub(super) fn dashboard_view(
     envelope: TenantRenderEnvelope,
     workflow_sample: RwSignal<WorkflowSample>,

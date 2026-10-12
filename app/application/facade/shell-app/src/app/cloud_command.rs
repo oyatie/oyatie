@@ -1,5 +1,16 @@
 use super::*;
 
+pub(super) type CloudWorkload = (
+    &'static str,
+    &'static str,
+    &'static str,
+    &'static str,
+    &'static str,
+    &'static str,
+    &'static str,
+    &'static str,
+);
+
 pub(super) fn cloud_ops_command_matrix(envelope: &TenantRenderEnvelope) -> impl IntoView + use<> {
     view! {
         <div class="ops-command-matrix" aria-label="Illustrative Cloud controls">

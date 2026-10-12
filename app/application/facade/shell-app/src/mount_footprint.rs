@@ -151,6 +151,15 @@ pub(crate) fn release(generation: Option<u64>, settled: bool) {
 }
 
 #[cfg(test)]
+fn minimum(value: &str, priority: &str, attribute_present: bool) -> InlineMinimum {
+    InlineMinimum {
+        value: value.into(),
+        priority: priority.into(),
+        attribute_present,
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -158,8 +167,8 @@ mod tests {
     fn compact_loading_and_pending_bridge_keep_the_measured_footprint() {
         let mut footprint = MountFootprint::default();
         let generation = footprint.begin(minimum("", "", false)).unwrap();
-        let protected_height = minimum_height(21_830.65625).unwrap();
-        assert!(protected_height >= 21_830.65625);
+        let protected_height = minimum_height(21_830.656_25).unwrap();
+        assert!(protected_height >= 21_830.656_25);
         assert!(
             footprint
                 .finish(generation, replacement_settled(true, false, false))
@@ -229,13 +238,5 @@ mod tests {
             assert_eq!(minimum_height(invalid), None);
         }
         assert_eq!(minimum_height(0.0), Some(0.0));
-    }
-}
-#[cfg(test)]
-fn minimum(value: &str, priority: &str, attribute_present: bool) -> InlineMinimum {
-    InlineMinimum {
-        value: value.into(),
-        priority: priority.into(),
-        attribute_present,
     }
 }

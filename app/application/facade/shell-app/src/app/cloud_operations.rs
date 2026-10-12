@@ -104,7 +104,7 @@ pub(super) const CLOUD_REGIONS: [(&str, &str, &str, &str); 3] = [
         "Example residency review; live capacity unavailable.",
     ),
 ];
-pub(super) const CLOUD_WORKLOADS: [(&str, &str, &str, &str, &str, &str, &str, &str); 4] = [
+pub(super) const CLOUD_WORKLOADS: [CloudWorkload; 4] = [
     (
         "workflow",
         "Workflow runner",
