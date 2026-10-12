@@ -16,7 +16,7 @@ doctest = false
 default = ["csr"]
 csr = ["dep:wasm-bindgen", "leptos/csr"]
 hydrate = ["dep:wasm-bindgen", "leptos/hydrate", "leptos/csr"]
-ssr = ["dep:any_spawner", "dep:axum", "dep:tokio", "dep:reqwest", "dep:application-ontology-card-http", "dep:iam-identity-user-session", "leptos/ssr"]
+ssr = ["dep:any_spawner", "dep:axum", "dep:tokio", "dep:reqwest", "dep:application-ontology-card-http", "dep:application-ontology-read", "dep:iam-identity-user-session", "leptos/ssr"]
 
 [dependencies]
 shared-oidc-client-kernel = { path = "../../../../iam/core/oidc-client-kernel" }
@@ -40,6 +40,7 @@ wasm-bindgen = { version = "=0.2.121", optional = true }
 # explicit `ssr` contract for its test target without broadening production
 # defaults, and add only the Tokio I/O capability used by the live server.
 [dev-dependencies]
+foundry-ontology-app = { path = "../../../foundry/facade/ontology-app" }
 application-shell-app = { path = ".", default-features = false, features = ["ssr"] }
 application-ontology-card = { path = "../../ports/ontology-card" }
 application-ontology-card-fake = { path = "../../adapters/ontology-card-fake" }
@@ -48,6 +49,7 @@ tower = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 application-ontology-card-http = { path = "../../adapters/ontology-card-http", optional = true }
+application-ontology-read = { path = "../../ports/ontology-read", optional = true }
 iam-identity-user-session = { path = "../../../../iam/ports/identity-user-session", optional = true }
 reqwest = { workspace = true, optional = true }
 leptos_axum = { workspace = true }

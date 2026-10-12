@@ -110,3 +110,36 @@ pub(super) async fn request(
     }
     response
 }
+
+pub(super) async fn verified_session(
+    config: &SignInConfig,
+    tenant: &str,
+    cookie: String,
+) -> Result<
+    iam_identity_user_session::ActiveUserMembership,
+    application_ontology_read::OntologyReadError,
+> {
+    use application_ontology_read::OntologyReadError;
+    let response = request(
+        config,
+        tenant,
+        Operation::Session,
+        Bytes::new(),
+        Some(cookie),
+    )
+    .await;
+    if response.status() != StatusCode::OK {
+        return Err(match response.status() {
+            StatusCode::UNAUTHORIZED => OntologyReadError::Unauthenticated,
+            StatusCode::FORBIDDEN => OntologyReadError::Forbidden,
+            _ => OntologyReadError::SourceUnavailable,
+        });
+    }
+    let body = axum::body::to_bytes(response.into_body(), 64 * 1024)
+        .await
+        .map_err(|_| OntologyReadError::SourceUnavailable)?;
+    let view: SessionView =
+        serde_json::from_slice(&body).map_err(|_| OntologyReadError::SourceUnavailable)?;
+    view.into_active_membership(tenant, now())
+        .map_err(|_| OntologyReadError::Unauthenticated)
+}
