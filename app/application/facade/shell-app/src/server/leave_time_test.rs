@@ -58,15 +58,21 @@ class Element {
   before(node) { node.remove();node.parentElement=this.parentElement;this.parentElement.parts.splice(this.parentElement.parts.indexOf(this),0,node); }
   contains(node) { for(;node;node=node.parentElement)if(node===this)return true;return false; }
   matches(selector) { return selector.split(',').some(part=>{const terms=part.trim().split(/\s+(?![^[]*\])/);let node=this;const match=(node,term)=>{
-const attrs=[...term.matchAll(/\[([\w-]+)(?:="([^"]*)")?\]/g)], plain=term.replace(/\[[^\]]*\]/g,'');
-const tag=plain.match(/^[a-z][\w-]*/i)?.[0].toUpperCase();
-return (!tag||node.tagName===tag)&&[...plain.matchAll(/#([\w-]+)/g)].every(([,id])=>node.id===id)
-  &&[...plain.matchAll(/\.([\w-]+)/g)].every(([,name])=>node.classList.contains(name))
+let parsed=selectorTerms.get(term);
+if(!parsed){const attrs=[...term.matchAll(/\[([\w-]+)(?:="([^"]*)")?\]/g)],plain=term.replace(/\[[^\]]*\]/g,'');parsed={attrs,tag:plain.match(/^[a-z][\w-]*/i)?.[0].toUpperCase(),ids:[...plain.matchAll(/#([\w-]+)/g)].map(([,id])=>id),classes:[...plain.matchAll(/\.([\w-]+)/g)].map(([,name])=>name)};selectorTerms.set(term,parsed);}
+const {attrs,tag,ids,classes}=parsed;
+return (!tag||node.tagName===tag)&&ids.every(id=>node.id===id)
+  &&classes.every(name=>node.classList.contains(name))
   &&attrs.every(([,name,value])=>value===undefined?node.hasAttribute(name):node.getAttribute(name)===value);
   };if(!match(node,terms.pop()))return false;while(terms.length){const term=terms.pop();do{node=node.parentElement;}while(node&&!match(node,term));if(!node)return false;}return true;}); }
   closest(selector) { for(let node=this;node;node=node.parentElement)if(node.matches(selector))return node;return null; }
   querySelectorAll(selector) { if(selector==='#'||selector.startsWith('#['))throw new SyntaxError('Invalid CSS selector: '+selector);selectors.push(selector);const nodes=[];const visit=node=>{for(const child of node.children){if(child.matches(selector))nodes.push(child);visit(child);}};visit(this);return nodes; }
-  querySelector(selector) { return this.querySelectorAll(selector)[0]||null; }
+  querySelector(selector) {
+    if(selector==='#'||selector.startsWith('#['))throw new SyntaxError('Invalid CSS selector: '+selector);
+    selectors.push(selector);
+    const visit=node=>{for(const child of node.children){if(child.matches(selector))return child;const found=visit(child);if(found)return found;}return null;};
+    return visit(this);
+  }
   cloneNode() { const copy=new Element(this.tagName,{...this.attrs});if(this.localValue!==undefined)copy.localValue=this.localValue;for(const part of this.parts)typeof part==='string'?copy.parts.push(part):copy.append(part.cloneNode(true));if(this.content)copy.content=this.content.cloneNode(true);return copy; }
   getClientRects() { const panel=this.closest('.identity-panel, .finance-panel, .cockpit-panel, .resource-panel');return this.isConnected&&!this.closest('[hidden]')&&!(panel&&!panel.classList.contains('active'))?[{}]:[]; }
   focus() { document.activeElement=this;emit('focusin',{target:this}); }
@@ -91,13 +97,47 @@ else if(!voids.has(tag)&&!token.endsWith('/>'))stack.push(node);
   }
   assert.equal(stack.length,1);
 }
-const selectors=[],tree=new Element('body');parse(input.html,tree);
+const selectors=[],selectorTerms=new Map(),tree=new Element('body');parse(input.html,tree);
 const NodeFilter={SHOW_COMMENT:128};
-const document={body:tree,activeElement:tree,hasFocus:()=>focused,getElementById:id=>tree.querySelectorAll('[id]').find(node=>node.id===id)||null,querySelectorAll:selector=>tree.querySelectorAll(selector),querySelector:selector=>tree.querySelector(selector),createElement:tag=>new Element(tag),createComment:data=>new Comment(data),createTreeWalker:(root,whatToShow)=>{
+function firstLiteralId(node,id) {
+  for(const child of node.parts) {
+    if(!(child instanceof Element))continue;
+    if(child.hasAttribute('id')&&child.id===id)return child;
+    const found=firstLiteralId(child,id);if(found)return found;
+  }
+  return null;
+}
+const document={body:tree,activeElement:tree,hasFocus:()=>focused,getElementById:id=>id===''?null:firstLiteralId(tree,id),querySelectorAll:selector=>tree.querySelectorAll(selector),querySelector:selector=>tree.querySelector(selector),createElement:tag=>new Element(tag),createComment:data=>new Comment(data),createTreeWalker:(root,whatToShow)=>{
   assert.equal(whatToShow,NodeFilter.SHOW_COMMENT);
   const comments=[],visit=node=>{for(const child of node.parts||[]){if(child instanceof Comment)comments.push(child);else if(child instanceof Element)visit(child);}};visit(root);
   let index=0;return {nextNode:()=>comments[index++]||null};
 },addEventListener:(name,callback,capture=false)=>(events[name] ||= []).push({callback,capture})};
+const idProbe=tree.append(new Element('div')), literalId='fixture.[literal]#id';
+assert.equal(document.getElementById(''),null,'missing IDs cannot match an empty lookup');
+idProbe.append(new Element('span',{id:''}));assert.equal(document.getElementById(''),null,'empty ID attributes do not name a destination');
+const firstId=idProbe.append(new Element('section')).append(new Element('span',{id:literalId})), secondId=idProbe.append(new Element('span',{id:literalId}));
+assert.equal(document.getElementById(literalId),firstId,'first literal ID follows physical tree order');
+const replacedId=new Element('span',{id:literalId});firstId.replaceWith(replacedId);
+assert.equal(document.getElementById(literalId),replacedId,'lookup sees physical replacement');
+replacedId.remove();assert.equal(document.getElementById(literalId),secondId,'removal exposes next duplicate');
+secondId.setAttribute('id','fixture-renamed-id');assert.equal(document.getElementById(literalId),null);assert.equal(document.getElementById('fixture-renamed-id'),secondId);
+idProbe.remove();assert.equal(document.getElementById('fixture-renamed-id'),null,'detached IDs are absent');
+
+const queryProbe=tree.append(new Element('div',{class:'fixture-first-match'})), queryFirst=queryProbe.append(new Element('section')).append(new Element('span',{class:'fixture-first-match'})), querySecond=queryProbe.append(new Element('span',{class:'fixture-first-match fixture-last-match'}));
+const querySelector='.fixture-last-match, .fixture-first-match';
+assert.equal(queryProbe.querySelector(querySelector),queryFirst,'first descendant follows tree order, not selector order');
+assert.deepEqual(queryProbe.querySelectorAll(querySelector),[queryFirst,querySecond],'all-match lookup retains duplicates');
+querySecond.matches=()=>assert.fail('first-match lookup must stop');assert.equal(queryProbe.querySelector(querySelector),queryFirst);delete querySecond.matches;
+queryFirst.before(querySecond);assert.equal(queryProbe.querySelector(querySelector),querySecond,'lookup sees physical reordering');
+const queryReplacement=new Element('span',{class:'fixture-first-match'});querySecond.replaceWith(queryReplacement);assert.equal(queryProbe.querySelector(querySelector),queryReplacement,'lookup sees physical replacement');
+queryReplacement.remove();assert.equal(queryProbe.querySelector(querySelector),queryFirst,'removal exposes next match');
+queryFirst.setAttribute('class','fixture-renamed-match');assert.equal(queryProbe.querySelector(querySelector),null);assert.equal(queryProbe.querySelector('.fixture-renamed-match'),queryFirst);
+queryFirst.setAttribute('data-fixture-match','first');assert.equal(queryProbe.querySelector('section span[data-fixture-match="first"]'),queryFirst);
+queryFirst.setAttribute('data-fixture-match','second');assert.equal(queryProbe.querySelector('section span[data-fixture-match="first"]'),null);assert.equal(queryProbe.querySelector('section span[data-fixture-match="second"]'),queryFirst);
+queryFirst.setAttribute('id','fixture-cached-id');assert.equal(queryProbe.querySelector('#fixture-cached-id'),queryFirst);queryFirst.setAttribute('id','fixture-renamed-id');assert.equal(queryProbe.querySelector('#fixture-cached-id'),null);
+queryFirst.parentElement.setAttribute('class','fixture-cached-parent');assert.equal(queryProbe.querySelector('.fixture-cached-parent [data-fixture-match]'),queryFirst);queryFirst.parentElement.removeAttribute('class');assert.equal(queryProbe.querySelector('.fixture-cached-parent [data-fixture-match]'),null);
+queryProbe.remove();assert.equal(document.querySelector('.fixture-renamed-match'),null,'document excludes detached matches');assert.equal(queryProbe.querySelector('.fixture-renamed-match'),queryFirst,'detached subtree remains queryable');
+for(const selector of ['#','#[invalid]'])for(const root of [tree,new Element('div')]) {assert.throws(()=>root.querySelector(selector),SyntaxError);assert.throws(()=>root.querySelectorAll(selector),SyntaxError);}
 
 const location=new URL('https://preview.invalid/');
 if(input.scenario==='fragments')location.hash='#leave-sample-request';
