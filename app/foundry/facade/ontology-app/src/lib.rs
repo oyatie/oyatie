@@ -21,6 +21,7 @@ pub mod read_dto;
 pub mod reads;
 pub mod routes;
 pub mod runbook;
+mod schemas;
 mod search_around;
 mod search_around_body;
 mod search_around_refusals;

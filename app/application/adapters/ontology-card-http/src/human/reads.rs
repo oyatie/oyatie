@@ -1,6 +1,6 @@
 use application_ontology_read::{
-    AuditRow, EntityType, HistoryRow, ObjectDetail, ObjectListQuery, ObjectPage, OntologyReadError,
-    OntologyReadSource, PinnedObject,
+    AuditRow, EntitySchema, EntityType, HistoryRow, ObjectDetail, ObjectListQuery, ObjectPage,
+    OntologyReadError, OntologyReadSource, PinnedObject,
 };
 use reqwest::{StatusCode, Url, header::HeaderValue};
 use serde::{Deserialize, de::DeserializeOwned};
@@ -125,6 +125,18 @@ impl Refusal {
 }
 
 impl OntologyReadSource for HumanOntologyReadSource {
+    async fn schemas(&self, tenant: &str) -> Result<Vec<EntitySchema>, OntologyReadError> {
+        let schemas: Vec<EntitySchema> = self.get(self.url(tenant, &["schemas"])?).await?;
+        let mut ids = std::collections::BTreeSet::new();
+        for schema in &schemas {
+            if !ids.insert(&schema.entity_type) {
+                return Err(OntologyReadError::SourceUnavailable);
+            }
+            schema.validate()?;
+        }
+        Ok(schemas)
+    }
+
     async fn types(&self, tenant: &str) -> Result<Vec<EntityType>, OntologyReadError> {
         self.get(self.url(tenant, &["types"])?).await
     }

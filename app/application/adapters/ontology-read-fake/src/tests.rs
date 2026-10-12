@@ -14,6 +14,36 @@ fn query(revision: u32) -> ObjectListQuery {
 }
 
 #[tokio::test]
+async fn current_schema_metadata_is_explicit_sample_and_preserves_refusals() {
+    let source = FixtureOntologyReadSource::sample();
+    let schema = source.schemas(TENANT).await.unwrap().remove(0);
+    assert_eq!(schema.validate(), Ok(()));
+    assert_eq!(schema.revision, 2);
+    assert_eq!(schema.title_property.as_deref(), Some("name"));
+    assert_eq!(schema.primary_key_property, None);
+    assert_eq!(
+        schema
+            .properties
+            .iter()
+            .map(|p| p.name.clone())
+            .collect::<Vec<_>>(),
+        source.types(TENANT).await.unwrap()[0].properties
+    );
+    assert_eq!(schema.properties[0].data_class, "PII_IDENTIFYING");
+    assert_eq!(schema.properties[3].value_type, None);
+    assert_eq!(
+        source.schemas("ten_foreign").await,
+        Err(OntologyReadError::Forbidden)
+    );
+    assert_eq!(
+        FixtureOntologyReadSource::refusing(OntologyReadError::SourceUnavailable)
+            .schemas(TENANT)
+            .await,
+        Err(OntologyReadError::SourceUnavailable)
+    );
+}
+
+#[tokio::test]
 async fn schema_list_and_detail_use_one_pinned_vocabulary_without_fabricating_an_upcast() {
     let source = FixtureOntologyReadSource::sample();
     let request = query(2);
@@ -198,6 +228,7 @@ async fn explicit_refusals_reach_every_read_without_sample_fallback() {
         OntologyReadError::SourceUnavailable,
     ] {
         let source = FixtureOntologyReadSource::refusing(error);
+        assert_eq!(source.schemas(TENANT).await, Err(error));
         assert_eq!(source.types(TENANT).await, Err(error));
         assert_eq!(source.objects(TENANT, &query(1)).await, Err(error));
         assert_eq!(source.object(TENANT, ALPHA, 1).await, Err(error));

@@ -4,7 +4,10 @@ mod conformance;
 mod evolution;
 mod invocation;
 mod links;
+mod names;
 mod value_conformance;
+
+use names::{check_parameter_names_unique, check_property_names_unique};
 
 pub use links::LinkInstanceOutcome;
 
@@ -100,6 +103,7 @@ impl OntologyEngine {
         &mut self,
         definition: EntityTypeDefinition,
     ) -> Result<EntityTypeId, OntologyEngineError> {
+        check_property_names_unique(&definition)?;
         check_designation_integrity(&definition)?;
         crate::display::check_display_integrity(definition.display.as_ref())?;
         for property in &definition.properties {
@@ -163,6 +167,12 @@ impl OntologyEngine {
         self.entity_types
             .get(&ontology_scoped_key(tenant_id, &id.value))
     }
+    pub fn entity_types(&self, tenant_id: &str) -> impl Iterator<Item = &EntityTypeDefinition> {
+        self.entity_types
+            .iter()
+            .filter(move |(key, _)| key.tenant_id == tenant_id)
+            .map(|(_, definition)| definition)
+    }
     pub fn entity_type_at_revision(
         &self,
         tenant_id: &str,
@@ -210,20 +220,6 @@ fn check_pillar_consistency(
         && from_pillar != to_pillar
     {
         return Err(OntologyEngineError::CrossPillarLink);
-    }
-    Ok(())
-}
-
-fn check_parameter_names_unique(
-    definition: &ActionTypeDefinition,
-) -> Result<(), OntologyEngineError> {
-    let mut seen = std::collections::BTreeSet::new();
-    for parameter in &definition.parameters {
-        if !seen.insert(parameter.name.as_str()) {
-            return Err(OntologyEngineError::DuplicateParameterName {
-                name: parameter.name.clone(),
-            });
-        }
     }
     Ok(())
 }

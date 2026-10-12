@@ -77,8 +77,9 @@ impl Drop for NativeFixture {
         }
     }
 }
-const READS: [&str; 5] = [
+const READS: [&str; 6] = [
     "types",
+    "schemas",
     "objects?type=ety_record&revision=1&limit=1",
     "objects/ent_alpha?revision=1",
     "objects/ent_alpha/history",
@@ -115,29 +116,43 @@ async fn real_foundry_human_routes_answer_durable_data_and_revalidate_local_iam_
     let native = NativeFixture::new(&iam).await;
     let shell = native.shell(&iam);
     let types = read(&shell, READS[0], StatusCode::OK).await;
-    assert_eq!(types[0]["entity_type"], "ety_record");
-    assert_eq!(types[0]["revision"], 1);
-    let page = read(&shell, READS[1], StatusCode::OK).await;
+    assert_eq!(
+        types,
+        serde_json::json!([{"entity_type":"ety_record","revision":1,"properties":["name","note"]}])
+    );
+    let schemas = read(&shell, READS[1], StatusCode::OK).await;
+    assert_eq!(
+        schemas,
+        serde_json::json!([{
+            "entity_type":"ety_record", "revision":1,
+            "properties":[
+                {"name":"name","tier":"scalar","data_class":"INTERNAL_ONLY","required":true,"value_type":null},
+                {"name":"note","tier":"scalar","data_class":"INTERNAL_ONLY","required":false,"value_type":null}
+            ],
+            "primary_key_property":null,"title_property":"name"
+        }])
+    );
+    let page = read(&shell, READS[2], StatusCode::OK).await;
     assert_eq!(page["requested_revision"], 1);
     assert_eq!(page["objects"][0]["object_ref"], "ent_alpha");
     assert_eq!(page["next"], serde_json::Value::Null);
-    let detail = read(&shell, READS[2], StatusCode::OK).await;
+    let detail = read(&shell, READS[3], StatusCode::OK).await;
     assert_eq!(detail["object"], page["objects"][0]);
     assert_eq!(detail["object"]["properties"]["name"]["value"], "Ada");
     assert_eq!(detail["object"]["upcast_state"], "current");
     assert_eq!(detail["object"]["written_revision"], 1);
-    let history = read(&shell, READS[3], StatusCode::OK).await;
+    let history = read(&shell, READS[4], StatusCode::OK).await;
     assert_eq!(history[0]["ordinal"], 1);
     assert_eq!(history[0]["principal_id"], "prn_fixture");
     assert_eq!(history[0]["audit_event_type"], "record.written");
-    let audit = read(&shell, READS[4], StatusCode::OK).await;
+    let audit = read(&shell, READS[5], StatusCode::OK).await;
     assert_eq!(audit[0]["object_ref"], "ent_alpha");
     assert_eq!(audit[0]["disposition"], "applied");
     println!(
         "native_ontology_fixture_results={}",
-        serde_json::json!({"types":types,"page":page,"detail":detail,"history":history,"audit":audit})
+        serde_json::json!({"types":types,"schemas":schemas,"page":page,"detail":detail,"history":history,"audit":audit})
     );
-    assert_eq!(iam.calls.lock().unwrap().len(), 10);
+    assert_eq!(iam.calls.lock().unwrap().len(), 12);
     iam.reply.lock().unwrap().body = session().replace(r#"["foundry-operator"]"#, "[]");
     for suffix in READS {
         assert_eq!(
@@ -145,7 +160,7 @@ async fn real_foundry_human_routes_answer_durable_data_and_revalidate_local_iam_
             "forbidden"
         );
     }
-    assert_eq!(iam.calls.lock().unwrap().len(), 20);
+    assert_eq!(iam.calls.lock().unwrap().len(), 24);
     {
         let mut reply = iam.reply.lock().unwrap();
         reply.status = StatusCode::UNAUTHORIZED;
@@ -158,7 +173,7 @@ async fn real_foundry_human_routes_answer_durable_data_and_revalidate_local_iam_
         );
     }
     let calls = iam.calls.lock().unwrap();
-    assert_eq!(calls.len(), 25);
+    assert_eq!(calls.len(), 30);
     for (path, headers, body) in calls.iter() {
         assert_eq!(path, "/identity/v1/ten_acme/session");
         assert_eq!(headers[header::COOKIE], cookie());

@@ -9,6 +9,7 @@ mod key_title_designations;
 mod link_action_versioning;
 mod object_graph;
 mod pillar_links;
+mod registry_names;
 mod revision_retention;
 mod schema_evolution;
 mod support;

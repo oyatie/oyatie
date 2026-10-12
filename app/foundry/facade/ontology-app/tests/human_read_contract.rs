@@ -59,3 +59,30 @@ async fn valid_human_reads_match_the_native_operator_results() {
     assert_eq!(sessions.calls.load(Ordering::SeqCst), 5);
     assert_eq!(pdp.calls.load(Ordering::SeqCst), 5);
 }
+
+#[tokio::test]
+async fn current_schema_read_preserves_explicit_metadata_and_old_type_wire() {
+    let fixture = Fixture::new("human-schema-results");
+    let sessions = FakeSessions::new(Ok(view()));
+    let (router, _, pdp) = instrument(fixture.state(), sessions.clone());
+    let schema = body(
+        request(&router, "/v1/tenants/ten_acme/schemas", &[&cookie()]).await,
+        StatusCode::OK,
+    )
+    .await;
+    assert_eq!(
+        schema,
+        serde_json::json!([{"entity_type":"ety_record","revision":1,"properties":[
+        {"name":"name","tier":"scalar","data_class":"INTERNAL_ONLY","required":true,"value_type":null},
+        {"name":"note","tier":"scalar","data_class":"INTERNAL_ONLY","required":false,"value_type":null}
+    ],"primary_key_property":null,"title_property":"name"}])
+    );
+    let (status, types) = get(&fixture, Some(fixture.operator_token()), "/v1/types").await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(
+        types,
+        r#"[{"entity_type":"ety_record","revision":1,"properties":["name","note"]}]"#
+    );
+    assert_eq!(sessions.calls.load(Ordering::SeqCst), 1);
+    assert_eq!(pdp.calls.load(Ordering::SeqCst), 1);
+}

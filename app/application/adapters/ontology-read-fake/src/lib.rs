@@ -4,8 +4,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use application_ontology_read::{
-    AuditRow, EntityType, HistoryRow, ObjectDetail, ObjectListQuery, ObjectPage, OntologyReadError,
-    OntologyReadSource, UpcastState,
+    AuditRow, EntitySchema, EntityType, HistoryRow, ObjectDetail, ObjectListQuery, ObjectPage,
+    OntologyReadError, OntologyReadSource, UpcastState,
 };
 
 mod filtering;
@@ -65,6 +65,11 @@ fn pin(mut object: application_ontology_read::PinnedObject, revision: u32) -> Ob
 }
 
 impl OntologyReadSource for FixtureOntologyReadSource {
+    async fn schemas(&self, tenant: &str) -> Result<Vec<EntitySchema>, OntologyReadError> {
+        self.check(tenant)?;
+        Ok(vec![fixture::schema()])
+    }
+
     async fn types(&self, tenant: &str) -> Result<Vec<EntityType>, OntologyReadError> {
         self.check(tenant)?;
         Ok(vec![EntityType {

@@ -31,6 +31,7 @@ impl OntologyEngine {
         &mut self,
         definition: EntityTypeDefinition,
     ) -> Result<EntityTypeId, OntologyEngineError> {
+        super::check_property_names_unique(&definition)?;
         super::check_designation_integrity(&definition)?;
         crate::display::check_display_integrity(definition.display.as_ref())?;
         for property in &definition.properties {

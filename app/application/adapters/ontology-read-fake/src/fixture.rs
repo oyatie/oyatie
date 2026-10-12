@@ -1,5 +1,6 @@
 use application_ontology_read::{
-    AuditDisposition, AuditRow, HistoryRow, PinnedObject, Property, UpcastState,
+    AuditDisposition, AuditRow, EntitySchema, HistoryRow, PinnedObject, Property,
+    PropertyDefinition, PropertyTier, UpcastState, ValueTypeDeclaration,
 };
 use serde_json::json;
 
@@ -9,6 +10,48 @@ pub(super) fn properties(revision: u32) -> Vec<String> {
         names.push("note");
     }
     names.into_iter().map(str::to_owned).collect()
+}
+
+pub(super) fn schema() -> EntitySchema {
+    let properties = [
+        (
+            "name",
+            "PII_IDENTIFYING",
+            true,
+            Some(ValueTypeDeclaration::String {}),
+        ),
+        (
+            "active",
+            "PUBLIC",
+            true,
+            Some(ValueTypeDeclaration::Boolean {}),
+        ),
+        (
+            "score",
+            "INTERNAL_ONLY",
+            true,
+            Some(ValueTypeDeclaration::Integer {}),
+        ),
+        ("note", "INTERNAL_ONLY", false, None),
+    ]
+    .into_iter()
+    .map(
+        |(name, data_class, required, value_type)| PropertyDefinition {
+            name: name.to_owned(),
+            tier: PropertyTier::Scalar,
+            data_class: data_class.to_owned(),
+            required,
+            value_type,
+        },
+    )
+    .collect();
+    EntitySchema {
+        entity_type: super::FixtureOntologyReadSource::ENTITY_TYPE.to_owned(),
+        revision: 2,
+        properties,
+        primary_key_property: None,
+        title_property: Some("name".to_owned()),
+    }
 }
 
 pub(super) fn objects() -> Vec<PinnedObject> {
