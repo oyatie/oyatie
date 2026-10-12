@@ -12,6 +12,7 @@ const CHECK: &str = r#"
     assert.ok(input.html.includes(`for="live-ontology-${id}"`), 'native input has a label');
   }
   assert.ok(input.html.includes('id="live-ontology-detail-title" tabindex="-1"'));
+  assert.ok(input.html.includes('>Object detail</h4>'), 'cleared heading matches the production static label');
   assert.ok(input.html.includes('id="live-ontology-query"'));
   assert.ok(input.html.includes('id="live-ontology-schema" aria-labelledby="live-ontology-schema-title"'));
   assert.ok(input.html.includes('Requested object revisions are set separately.'));
@@ -33,11 +34,13 @@ const CHECK: &str = r#"
   assert.match(text(find('live-ontology-page')),/ent_alpha/);
   let row=find('live-ontology-page').querySelectorAll('[data-live-object]')[0];row.focus();row.emit('click');await flush();
   assert.equal(document.activeElement,find('live-ontology-detail-title'),'native object activation focuses its heading');
+  assert.match(find('live-ontology-detail-title').textContent,/ent_alpha.*requested schema 1.*stored schema 1/);
   assert.match(text(find('live-ontology-properties')),/<script>Ada<\/script>/,'property content is literal text');
   find('live-ontology-history-read').emit('click');await flush();assert.match(text(find('live-ontology-history')),/record.written/);
   find('live-ontology-audit-read').emit('click');await flush();assert.match(text(find('live-ontology-audit-rows')),/applied/);
   find('live-ontology-revision').value='2';find('live-ontology-revision').emit('input');
   assert.equal(find('live-ontology-page').children.length,0,'changed pin clears prior rows synchronously');
+  assert.equal(find('live-ontology-detail-title').textContent,'Object detail','changed pin clears the prior object identifier and revisions');
   assert.match(find('live-ontology-schema-summary').textContent,/declaration revision 1/,'current declaration is independent of requested object revision');
   find('live-ontology-query').emit('submit');await flush();
   row=find('live-ontology-page').querySelectorAll('[data-live-object]')[0];row.focus();row.emit('click');await flush();
@@ -78,8 +81,12 @@ const CHECK: &str = r#"
   holdPath='/objects?';find('live-ontology-query').emit('submit');await flush();
   find('live-ontology-revision').value='3';find('live-ontology-revision').emit('input');held();await flush();
   assert.equal(find('live-ontology-page').children.length,0,'late previous-pin rows stay absent');
+  find('live-ontology-query').emit('submit');await flush();
+  row=find('live-ontology-page').querySelectorAll('[data-live-object]')[0];row.focus();row.emit('click');await flush();
+  assert.match(find('live-ontology-detail-title').textContent,/ent_alpha.*requested schema 3/);
   nativeError='forbidden';find('live-ontology-types-refresh').emit('click');await flush();
   assert.match(find('live-ontology-status').textContent,/access refused/);assert.equal(find('live-ontology-page').children.length,0);
+  assert.equal(find('live-ontology-detail-title').textContent,'Object detail','read refusal clears the prior object identifier and revisions');
   assert.equal(find('live-ontology-schema').hidden,true);assert.equal(find('live-ontology-schema-summary').textContent,'');
   nativeError=null;await restore();assert.equal(find('live-ontology-schema').hidden,false);
   nativeError='source_unavailable';find('live-ontology-types-refresh').emit('click');await flush();
@@ -96,8 +103,10 @@ const CHECK: &str = r#"
   assert.equal(root.hidden,true,'cookie identity from another tab cannot retain old labels/data');
   assert.equal(find('live-ontology-schema').hidden,true);
   headerUser='usr_alice';await restore();find('live-ontology-query').emit('submit');await flush();
-  row=find('live-ontology-page').querySelectorAll('[data-live-object]')[0];row.focus();timers.at(-1)();
+  row=find('live-ontology-page').querySelectorAll('[data-live-object]')[0];row.focus();row.emit('click');await flush();
+  assert.match(find('live-ontology-detail-title').textContent,/ent_alpha.*requested schema/);timers.at(-1)();
   assert.equal(root.hidden,true);assert.equal(document.activeElement,find('sign-in-account'),'expiry moves focus to the stable account input');
+  assert.equal(find('live-ontology-detail-title').textContent,'Object detail','session expiry clears the prior object identifier and revisions');
   assert.equal(find('live-ontology-schema').hidden,true);
   await restore();find('live-ontology-schema').focus();holdPath='/schemas';find('live-ontology-types-refresh').emit('click');await flush();
   assert.equal(document.activeElement,find('live-ontology-type'),'clearing a focused schema moves to the enabled type control');assert.equal(document.activeElement.disabled,false);

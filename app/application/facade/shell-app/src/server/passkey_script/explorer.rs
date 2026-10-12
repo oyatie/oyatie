@@ -36,6 +36,7 @@ function createOntologyExplorer(lifecycle) {
     if ([find('next'), find('first')].includes(document.activeElement)) find('read').focus();
     if (root.contains(document.activeElement) && document.activeElement.closest('[data-live-results]')) find('type').focus();
     for (const id of ['page', 'properties', 'history', 'audit-rows']) find(id).replaceChildren();
+    find('detail-title').textContent = 'Object detail';
     find('detail').hidden = true; find('audit').hidden = true;
     find('next').hidden = true; find('first').hidden = true;
     next = null; cursor = null; objectRef = null; historyShown = false; readPage = false;
