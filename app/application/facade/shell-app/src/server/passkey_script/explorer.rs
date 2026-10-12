@@ -88,7 +88,7 @@ function createOntologyExplorer(lifecycle) {
     ontologyDecode.page(page, Number(params.get('revision')), Number(params.get('limit')));
     const active = document.activeElement;
     const focusedRef = active?.dataset?.liveObject;
-    const restoreFocus = focusedRef && find('page').contains(active);
+    const restoreFocus = find('page').contains(active);
     find('page').replaceChildren(ontologyTable('Pinned native objects', ['Object reference', 'Stored schema revision', 'Upcast state'], page.objects.map(object => {
       const button = document.createElement('button'); button.type = 'button'; button.textContent = object.object_ref;
       button.dataset.liveObject = object.object_ref;
@@ -97,7 +97,8 @@ function createOntologyExplorer(lifecycle) {
     })));
     if (restoreFocus) {
       const replacement = [...find('page').querySelectorAll('[data-live-object]')].find(b => b.dataset.liveObject === focusedRef);
-      replacement?.focus();
+      const fallback = [find('type'), find('read')].find(control => control && !control.disabled && !control.hidden);
+      (replacement || fallback)?.focus({ preventScroll: true });
     }
     next = page.next; cursor = params.get('cursor'); readPage = true;
     find('next').hidden = !next; find('first').hidden = !cursor;
