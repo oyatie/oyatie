@@ -1,7 +1,16 @@
 use std::time::Duration;
 
 use application_ontology_card::OntologyCardFacts;
+use application_ontology_read::OntologyReadError;
 use reqwest::{Client, StatusCode, Url, header};
+
+mod query;
+mod reads;
+mod transport;
+pub use reads::HumanOntologyReadSource;
+
+#[cfg(test)]
+mod tests;
 
 use super::StatusBody;
 
@@ -65,33 +74,27 @@ impl HumanOntologyCardSource {
         url.path_segments_mut()
             .map_err(|_| HumanOntologyRefusal::Unavailable)?
             .extend(["v1", "tenants", tenant, "status"]);
-        let mut response = self
-            .client
-            .get(url)
-            .header(header::COOKIE, session_cookie)
-            .header(header::ACCEPT, "application/json")
-            .send()
-            .await
+        let mut cookie = header::HeaderValue::from_str(session_cookie)
             .map_err(|_| HumanOntologyRefusal::Unavailable)?;
+        cookie.set_sensitive(true);
+        let response = self.request(url, &cookie).await.map_err(card_refusal)?;
         match response.status() {
             StatusCode::UNAUTHORIZED => return Err(HumanOntologyRefusal::Unauthenticated),
             StatusCode::FORBIDDEN => return Err(HumanOntologyRefusal::Forbidden),
             StatusCode::OK => {}
             _ => return Err(HumanOntologyRefusal::Unavailable),
         }
-        let mut body = Vec::new();
-        while let Some(chunk) = response
-            .chunk()
+        let body: StatusBody = transport::decode(response, 16 * 1024)
             .await
-            .map_err(|_| HumanOntologyRefusal::Unavailable)?
-        {
-            if body.len() + chunk.len() > 16 * 1024 {
-                return Err(HumanOntologyRefusal::Unavailable);
-            }
-            body.extend_from_slice(&chunk);
-        }
-        let body: StatusBody =
-            serde_json::from_slice(&body).map_err(|_| HumanOntologyRefusal::Unavailable)?;
+            .map_err(card_refusal)?;
         Ok(body.into_facts())
+    }
+}
+
+fn card_refusal(error: OntologyReadError) -> HumanOntologyRefusal {
+    match error {
+        OntologyReadError::Unauthenticated => HumanOntologyRefusal::Unauthenticated,
+        OntologyReadError::Forbidden => HumanOntologyRefusal::Forbidden,
+        _ => HumanOntologyRefusal::Unavailable,
     }
 }

@@ -160,6 +160,7 @@ name = "application-ontology-card-http"
 version = "0.1.0"
 dependencies = [
  "application-ontology-card",
+ "application-ontology-read",
  "axum",
  "foundry-ontology-app",
  "reqwest 0.13.4",
