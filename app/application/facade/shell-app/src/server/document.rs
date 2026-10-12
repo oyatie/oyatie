@@ -44,7 +44,7 @@ mountDashboardIsland();"#
                 <script>{policy_navigation::SCRIPT}</script>
                 <script>{crate::app::ssr_tab_navigation_script()}</script>
                 <script>{hr_directory::SCRIPT}</script>
-                <script>{settings_account::SCRIPT}</script>
+                <script>{settings_account::script()}</script>
                 <script>{notifications::script()}</script>
                 <script>{workflow_navigation::SCRIPT}</script>
                 <script>{workhub_focus::SCRIPT}</script>
