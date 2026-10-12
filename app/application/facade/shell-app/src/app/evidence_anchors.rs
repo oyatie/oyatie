@@ -1,6 +1,6 @@
 use super::*;
 
-pub(super) fn evidence_ledger_anchor_board() -> impl IntoView {
+pub(super) fn evidence_ledger_anchor_board(context: OperatorContext) -> impl IntoView {
     view! {
         <div class="trust-anchor-board" aria-label="FD-001 evidence ledger and Oyatie Cloud substrate proof">
             <div class="trust-anchor-grid">
@@ -11,49 +11,49 @@ pub(super) fn evidence_ledger_anchor_board() -> impl IntoView {
                         "Messenger, Mail, Community, Workflow, Finance, and Daily Work receipts stay one FD-001 tenant workload packet rather than disconnected modules."
                     </p>
                     <div class="trust-anchor-actions">
-                        <button type="button" data-trust-proof-action="seal-receipt">"Seal packet"</button>
-                        <button type="button" data-trust-proof-action="route-workflow">"Workflow proof"</button>
+                        {ae_action("trust", "seal-receipt", "Seal packet")}
+                        {ae_action("trust", "route-workflow", "Workflow proof")}
                     </div>
                 </article>
                 <article class="trust-anchor-card" data-trust-proof-card="ledger-cloud">
                     <p class="screen-anchor">"OYATIE CLOUD ADMISSION"</p>
-                    <h5>"Substrate proves real tenant hosting"</h5>
+                    <h5>"Illustrative cloud admission; live hosting unknown"</h5>
                     <p>
-                        "Every cloud cell, policy grant, release gate, and FinOps signal attaches evidence before FD-001 services can claim production readiness."
+                        "Example cloud, policy, release and FinOps relationships; no production-readiness proof is bound."
                     </p>
                     <div class="trust-anchor-actions">
-                        <button type="button" data-trust-proof-action="route-cloud">"Cloud cells"</button>
-                        <button type="button" data-trust-proof-action="route-gates">"Release gates"</button>
+                        {ae_action("trust", "route-cloud", "Cloud cells")}
+                        {ae_action("trust", "route-gates", "Release gates")}
                     </div>
                 </article>
                 <article class="trust-anchor-card" data-trust-proof-card="ledger-local">
                     <p class="screen-anchor">"LOCAL-ONLY RECEIPT VAULT"</p>
                     <h5>"Interactive trust without mutation"</h5>
                     <p>
-                        "Operators can inspect, seal, brief, and route receipts visually; no backend write, deploy, billing, mail, or cloud mutation executes."
+                        "Inspect illustrative fields and open existing sample routes. Seal, brief, and all live effects remain unavailable."
                     </p>
                     <div class="trust-anchor-actions">
-                        <button type="button" data-trust-proof-action="route-mail">"Mail brief"</button>
-                        <button type="button" data-trust-proof-action="route-community">"Community note"</button>
+                        {ae_action("trust", "route-mail", "Mail brief")}
+                        {ae_action("trust", "route-community", "Community note")}
                     </div>
                 </article>
             </div>
             <div class="trust-anchor-footer">
                 <span data-trust-proof-status="true">
-                    "Evidence ledger ready · FD-001 tenant workload receipts dogfood Oyatie Cloud locally."
+                    "Illustrative receipt examples; none created, sealed or verified."
                 </span>
                 <div class="trust-anchor-routes" aria-label="Evidence ledger connected routes">
-                    <button type="button" data-trust-proof-action="route-finops">"FinOps"</button>
-                    <button type="button" data-trust-proof-action="route-inventory">"Inventory"</button>
-                    <button type="button" data-trust-proof-action="route-graph">"Object graph"</button>
-                    <button type="button" data-trust-proof-action="route-policy">"Policy"</button>
+                    {ae_finops(context, "")}
+                    {ae_action("trust", "route-inventory", "Inventory")}
+                    {ae_action("trust", "route-graph", "Object graph")}
+                    {ae_action("trust", "route-policy", "Policy")}
                 </div>
             </div>
         </div>
     }
 }
 
-pub(super) fn object_graph_anchor_board() -> impl IntoView {
+pub(super) fn object_graph_anchor_board(context: OperatorContext) -> impl IntoView {
     view! {
         <div class="trust-anchor-board" aria-label="FD-001 object graph and Oyatie Cloud substrate proof">
             <div class="trust-anchor-grid">
@@ -64,42 +64,42 @@ pub(super) fn object_graph_anchor_board() -> impl IntoView {
                         "Workflow, approvals, Messenger, Mail, Community, Finance, Daily Work, and audit nodes resolve to a single tenant operation lineage."
                     </p>
                     <div class="trust-anchor-actions">
-                        <button type="button" data-trust-proof-action="trace-lineage">"Trace lineage"</button>
-                        <button type="button" data-trust-proof-action="route-catalog">"Catalog objects"</button>
+                        {ae_action("trust", "trace-lineage", "Trace lineage")}
+                        {ae_action("trust", "route-catalog", "Catalog objects")}
                     </div>
                 </article>
                 <article class="trust-anchor-card" data-trust-proof-card="graph-cloud">
                     <p class="screen-anchor">"OYATIE CLOUD GRAPH"</p>
                     <h5>"Substrate nodes join product nodes"</h5>
                     <p>
-                        "Cells, resources, policies, deployment gates, FinOps, and receipts prove FD-001 microservices can run as production tenant workloads."
+                        "Illustrative cells, resources, policies, gates, FinOps and receipts; production workload proof is unavailable."
                     </p>
                     <div class="trust-anchor-actions">
-                        <button type="button" data-trust-proof-action="route-cloud">"Cloud topology"</button>
-                        <button type="button" data-trust-proof-action="route-policy">"Policy edge"</button>
+                        {ae_action_at("trust", "route-cloud", "Cloud topology", "graph")}
+                        {ae_action_at("trust", "route-policy", "Policy edge", "graph")}
                     </div>
                 </article>
                 <article class="trust-anchor-card" data-trust-proof-card="graph-local">
                     <p class="screen-anchor">"LOCAL-ONLY GRAPH OPS"</p>
                     <h5>"Selectable lineage, no side effects"</h5>
                     <p>
-                        "Operators can traverse graph edges, stage evidence, and open communications visually; no database, workflow, deploy, or cloud mutation occurs."
+                        "Select example nodes and open existing communication samples; tracing, evidence staging and all live effects are unavailable."
                     </p>
                     <div class="trust-anchor-actions">
-                        <button type="button" data-trust-proof-action="route-evidence">"Evidence spine"</button>
-                        <button type="button" data-trust-proof-action="route-mail">"Reviewer Mail"</button>
+                        {ae_action("trust", "route-evidence", "Evidence spine")}
+                        {ae_action_at("trust", "route-mail", "Reviewer Mail", "graph")}
                     </div>
                 </article>
             </div>
             <div class="trust-anchor-footer">
                 <span data-trust-proof-status="true">
-                    "Object graph ready · FD-001 services and Oyatie Cloud substrate stay one local visual lineage."
+                    "Illustrative object graph; live lineage is unknown."
                 </span>
                 <div class="trust-anchor-routes" aria-label="Object graph connected routes">
-                    <button type="button" data-trust-proof-action="route-workflow">"Workflow"</button>
-                    <button type="button" data-trust-proof-action="route-inventory">"Resources"</button>
-                    <button type="button" data-trust-proof-action="route-community">"Community"</button>
-                    <button type="button" data-trust-proof-action="route-finops">"FinOps"</button>
+                    {ae_action_at("trust", "route-workflow", "Workflow", "graph")}
+                    {ae_action_at("trust", "route-inventory", "Resources", "graph")}
+                    {ae_action_at("trust", "route-community", "Community", "graph")}
+                    {ae_finops(context, "graph")}
                 </div>
             </div>
         </div>

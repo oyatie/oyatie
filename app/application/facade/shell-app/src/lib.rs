@@ -8,6 +8,8 @@ pub mod app;
 mod browser_panic_hook;
 pub mod client_session_state;
 pub mod design_system;
+#[cfg(any(target_arch = "wasm32", test))]
+mod mount_footprint;
 pub mod render_envelope;
 #[cfg(any(feature = "ssr", test))]
 pub mod server;
@@ -54,6 +56,10 @@ fn mount_dashboard_island_by_id(element_id: &str) {
     };
 
     if let Ok(parent) = element.dyn_into::<web_sys::HtmlElement>() {
+        let Some(_generation) = mount_footprint::protect(&parent) else {
+            return;
+        };
+        app::wire_fragment_navigation();
         if let Some(unmount) = DASHBOARD_UNMOUNT.with(|previous| previous.borrow_mut().take()) {
             unmount();
         }
@@ -83,10 +89,10 @@ mod tests {
     fn scope_notice_names_the_anonymous_preview_honestly() {
         let notice = shell_scope_notice_text();
 
-        assert!(notice.contains("Anonymous preview only"));
-        assert!(notice.contains("No tenant or role was verified"));
-        assert!(notice.contains("live service status was not queried"));
-        assert!(notice.contains("requires sign-in"));
+        assert!(notice.contains("Sample dashboard · anonymous preview only"));
+        assert!(notice.contains("This preview does not verify a tenant or role"));
+        assert!(notice.contains("does not query live service status"));
+        assert!(notice.contains("separate live Ontology card requires sign-in"));
         assert!(notice.contains("no PHI/PII"));
     }
 

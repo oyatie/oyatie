@@ -1,15 +1,18 @@
 use super::builders::{
-    approval, community, fact, message, metric, module, node, s, schedule, suggestion, work,
-    workflow,
+    approval, community, fact, inbox_sample, message, metric, module, node, s, schedule,
+    suggestion, work, workflow,
 };
 use super::product_activity::product_activity_spine;
-use super::types::{AccreditationState, OperatorContext, TenantRenderEnvelope};
+use super::types::{
+    AccreditationState, IntelligenceSampleId, OperatorContext, TenantRenderEnvelope,
+};
 #[cfg(test)]
 use application_ontology_card::OntologyCardSource;
 
 pub(super) fn tenant_admin_envelope() -> TenantRenderEnvelope {
     TenantRenderEnvelope {
         context: OperatorContext::TenantAdmin,
+        finance_body_projection: None,
         tenant_name: s("Northwind Industrial Group"),
         role_name: s(OperatorContext::TenantAdmin.role()),
         tenant_class: s("Enterprise tenant · US/EU/KR packs enabled"),
@@ -37,16 +40,34 @@ pub(super) fn tenant_admin_envelope() -> TenantRenderEnvelope {
                 "2026-04 급여 마감 — 박서준 직원 4대보험 변동 확인 필요",
                 "건강보험료 등급 상승(변동액 +₩47,200/월). 마감 전 확인 후 승인.",
                 "High",
+                inbox_sample(
+                    "tenant-admin-payroll-close",
+                    "Sample tenant admin",
+                    true,
+                    true,
+                ),
             ),
             work(
                 "연차 사용 승인 — 김지영 (5/13 – 5/17, 5일)",
                 "$60 잔여 13.5일 → 8.5일. 팀 백업 확인됨.",
                 "Medium",
+                inbox_sample(
+                    "tenant-admin-leave-review",
+                    "Sample HR reviewer",
+                    false,
+                    false,
+                ),
             ),
             work(
                 "원천징수이행상황신고서 — 2026-04 제출 준비 완료",
                 "118명 직원 검증 완료. 홈택스 전송 대기.",
                 "Medium",
+                inbox_sample(
+                    "tenant-admin-filing-preparation",
+                    "Sample tenant admin",
+                    true,
+                    false,
+                ),
             ),
         ],
         schedule: vec![
@@ -97,16 +118,34 @@ pub(super) fn tenant_admin_envelope() -> TenantRenderEnvelope {
                 "구매 승인 경로 단축 가능 — Stripe 청구서 (₩4,820,000)",
                 "Procurement",
                 "정책상 < ₩5M는 1단계 승인 가능. 현재 3단계로 라우팅 중.",
+                inbox_sample(
+                    "tenant-admin-procurement-route-review",
+                    "Sample procurement reviewer",
+                    false,
+                    true,
+                ),
             ),
             approval(
                 "Payroll workflow template request",
                 "Corporate HR",
                 "No production execution; draft routes to Mail and Community.",
+                inbox_sample(
+                    "tenant-admin-workflow-template-review",
+                    "Sample tenant admin",
+                    true,
+                    false,
+                ),
             ),
             approval(
                 "Increase compute quota",
                 "Factory systems",
                 "Budget owner review required before runtime tier change.",
+                inbox_sample(
+                    "tenant-admin-compute-quota-review",
+                    "Sample budget reviewer",
+                    false,
+                    false,
+                ),
             ),
         ],
         workflow: workflow(
@@ -166,16 +205,19 @@ pub(super) fn tenant_admin_envelope() -> TenantRenderEnvelope {
         ],
         intelligence: vec![
             suggestion(
+                IntelligenceSampleId::TenantWorkflowDelegation,
                 "병목: 공계 승인 단계 (2.1d)",
                 "과거 12회 사이클 평균 0.6d. 최유나 매니저에 위임 권한 자동 부여 시 1.4d 단축.",
                 "Read-only suggestion; never auto-executes.",
             ),
             suggestion(
+                IntelligenceSampleId::TenantTaxFiling,
                 "원천세 신고 자동 제출 가능",
                 "118명 검증 완료. 사업자등록번호 1건 확인 후 자동 전송.",
                 "User must review before HomeTax send.",
             ),
             suggestion(
+                IntelligenceSampleId::TenantOvertime,
                 "$53 위험: 윤태민",
                 "이번 주 49.5h 예상. 백업 가능 인력 2명 추천.",
                 "Uses permitted roster data only.",

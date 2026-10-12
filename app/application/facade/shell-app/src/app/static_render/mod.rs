@@ -21,8 +21,10 @@ pub fn render_envelope_json(context_id: &str) -> Option<String> {
 
 #[cfg(any(feature = "ssr", test))]
 pub fn static_dashboard_html() -> String {
-    let envelope = server_derived_envelope(OperatorContext::TenantAdmin);
-    format!(
+    let owner = Owner::new();
+    let html = owner.with(|| {
+        let envelope = server_derived_envelope(OperatorContext::TenantAdmin);
+        format!(
         r##"<div class="console-app">
   <a class="skip-link" href="#console-shell">Skip to dashboard</a>
   {rail}
@@ -37,14 +39,17 @@ pub fn static_dashboard_html() -> String {
   {side_peek}
   {command_palette}
 </div>"##,
-        rail = static_rail_html(),
-        header = static_header_html(),
-        hero = static_hero_html(),
-        dashboard = static_dashboard_content(&envelope),
-        utility_panels = static_utility_panels_html(),
-        side_peek = static_side_peek_html(),
-        command_palette = static_command_palette_html(),
-    )
+            rail = static_rail_html(),
+            header = static_header_html(),
+            hero = static_hero_html(),
+            dashboard = static_dashboard_content(&envelope),
+            utility_panels = static_utility_panels_html(),
+            side_peek = static_side_peek_html(),
+            command_palette = static_command_palette_html(),
+        )
+    });
+    owner.cleanup();
+    html
 }
 
 #[cfg(any(feature = "ssr", test))]

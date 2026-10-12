@@ -15,8 +15,8 @@ doctest = false
 [features]
 default = ["csr"]
 csr = ["dep:wasm-bindgen", "leptos/csr"]
-hydrate = ["dep:wasm-bindgen", "leptos/hydrate"]
-ssr = ["dep:any_spawner", "dep:axum", "dep:tokio", "leptos/ssr"]
+hydrate = ["dep:wasm-bindgen", "leptos/hydrate", "leptos/csr"]
+ssr = ["dep:any_spawner", "dep:axum", "dep:tokio", "dep:reqwest", "dep:application-ontology-card-http", "dep:iam-identity-user-session", "leptos/ssr"]
 
 [dependencies]
 shared-oidc-client-kernel = { path = "../../../../iam/core/oidc-client-kernel" }
@@ -44,14 +44,20 @@ application-shell-app = { path = ".", default-features = false, features = ["ssr
 application-ontology-card = { path = "../../ports/ontology-card" }
 application-ontology-card-fake = { path = "../../adapters/ontology-card-fake" }
 tokio = { workspace = true, features = ["io-util"] }
+tower = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+application-ontology-card-http = { path = "../../adapters/ontology-card-http", optional = true }
+iam-identity-user-session = { path = "../../../../iam/ports/identity-user-session", optional = true }
+reqwest = { workspace = true, optional = true }
 leptos_axum = { workspace = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "=0.4.71"
 web-sys = { version = "=0.3.98", features = [
+    "CssStyleDeclaration",
     "Document",
+    "DomRect",
     "DomTokenList",
     "Element",
     "Event",

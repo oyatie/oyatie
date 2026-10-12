@@ -8,6 +8,9 @@ use std::time::Duration;
 use application_ontology_card::{OntologyCardError, OntologyCardFacts, OntologyCardSource};
 use serde::Deserialize;
 
+mod human;
+pub use human::{HumanOntologyCardSource, HumanOntologyRefusal};
+
 pub struct HttpOntologyCardSource {
     statusz: reqwest::Url,
     token: String, // data_class: SECRET
@@ -20,6 +23,17 @@ struct StatusBody {
     served_tenants: u64,
     projection_lag: u64,
     poisoned_entries: u64,
+}
+
+impl StatusBody {
+    fn into_facts(self) -> OntologyCardFacts {
+        OntologyCardFacts {
+            policy_version: self.policy_version,
+            served_tenants: self.served_tenants,
+            projection_lag: self.projection_lag,
+            poisoned_entries: self.poisoned_entries,
+        }
+    }
 }
 
 impl HttpOntologyCardSource {
@@ -63,12 +77,7 @@ impl HttpOntologyCardSource {
             .map_err(|error| unavailable(format!("GET /statusz body: {}", error.without_url())))?;
         let body: StatusBody = serde_json::from_slice(&body)
             .map_err(|error| unavailable(format!("/statusz body: {:?}", error.classify())))?;
-        Ok(OntologyCardFacts {
-            policy_version: body.policy_version,
-            served_tenants: body.served_tenants,
-            projection_lag: body.projection_lag,
-            poisoned_entries: body.poisoned_entries,
-        })
+        Ok(body.into_facts())
     }
 }
 

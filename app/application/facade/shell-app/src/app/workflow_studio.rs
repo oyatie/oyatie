@@ -1,247 +1,252 @@
 use super::*;
 
-#[expect(
-    clippy::too_many_arguments,
-    reason = "Workflow panel keeps each reactive control explicit pending a production component boundary."
-)]
+const WORKFLOW_BLOCKS: &[(&str, &str, &str, &str)] = &[
+    (
+        "Primitives",
+        "System task",
+        "System",
+        "Deterministic step example",
+    ),
+    ("Primitives", "Approval", "Human", "Human approval example"),
+    (
+        "Primitives",
+        "Validation",
+        "Validation",
+        "Rule check example",
+    ),
+    (
+        "Primitives",
+        "External call",
+        "External",
+        "HTTP, RPC, or connector example",
+    ),
+    (
+        "Primitives",
+        "Branch / Switch",
+        "Branch",
+        "Condition split example",
+    ),
+    (
+        "Primitives",
+        "Wait / Timer",
+        "Wait",
+        "Time or duration example",
+    ),
+    (
+        "Primitives",
+        "Loop / For-each",
+        "Loop",
+        "Collection example",
+    ),
+    (
+        "Primitives",
+        "AI step",
+        "AI example",
+        "Illustrative suggestion; no model connected",
+    ),
+    (
+        "Primitives",
+        "중단 / 에스컬레이트",
+        "Escalation",
+        "Escalation example",
+    ),
+    ("Primitives", "Form / Input", "Input", "Human input example"),
+    (
+        "Primitives",
+        "Webhook trigger",
+        "Trigger",
+        "Event start example",
+    ),
+    (
+        "Primitives",
+        "End / Receipt",
+        "Audit",
+        "Evidence reference example; no receipt issued",
+    ),
+    ("Actions", "Task", "Action", "Work item example"),
+    ("Actions", "HTTP request", "Action", "External HTTP example"),
+    (
+        "Actions",
+        "Database",
+        "Action",
+        "Record example; no read or write",
+    ),
+    (
+        "Actions",
+        "Transform",
+        "Action",
+        "Payload transformation example",
+    ),
+    ("Actions", "Filter", "Action", "Item filter example"),
+    (
+        "Actions",
+        "Write to doc",
+        "Action",
+        "Document example; no document changed",
+    ),
+    ("Logic", "If / Branch", "Logic", "Two-way condition example"),
+    ("Logic", "Switch", "Logic", "Routing example"),
+    ("Logic", "Loop / For-each", "Logic", "Iteration example"),
+    ("Logic", "Wait", "Logic", "Delay example"),
+    ("Logic", "Merge", "Logic", "Branch join example"),
+    (
+        "Connectors",
+        "HomeTax",
+        "Connector",
+        "Tax connector example; disconnected",
+    ),
+    (
+        "Connectors",
+        "NPS / 4대",
+        "Connector",
+        "Insurance connector example; disconnected",
+    ),
+    (
+        "Connectors",
+        "Shinhan",
+        "Connector",
+        "Bank connector example; disconnected",
+    ),
+    (
+        "Connectors",
+        "Toss",
+        "Connector",
+        "Payment connector example; disconnected",
+    ),
+    (
+        "Connectors",
+        "Kakao Work",
+        "Connector",
+        "Messaging connector example; disconnected",
+    ),
+    (
+        "Connectors",
+        "Slack",
+        "Connector",
+        "Messaging connector example; disconnected",
+    ),
+    (
+        "Connectors",
+        "Workspace",
+        "Connector",
+        "Workspace connector example; disconnected",
+    ),
+    (
+        "Connectors",
+        "QuickBooks",
+        "Connector",
+        "Accounting connector example; disconnected",
+    ),
+    (
+        "Connectors",
+        "Notion",
+        "Connector",
+        "Document connector example; disconnected",
+    ),
+];
+
+fn workflow_block_matches(query: &str, label: &str, detail: &str) -> bool {
+    format!("{label} {detail}")
+        .to_lowercase()
+        .contains(&query.trim().to_lowercase())
+}
+
 pub(super) fn workflow_studio_panel(
-    name: String,
-    goal: String,
-    nodes: Vec<WorkflowNode>,
-    selected_node: Option<WorkflowNode>,
-    set_selected_node_id: WriteSignal<String>,
-    workflow_tool: ReadSignal<WorkflowTool>,
-    set_workflow_tool: WriteSignal<WorkflowTool>,
-    draft_node_count: ReadSignal<usize>,
-    set_draft_node_count: WriteSignal<usize>,
-    set_active_surface: WriteSignal<ProductSurface>,
+    envelope: TenantRenderEnvelope,
+    sample: RwSignal<WorkflowSample>,
 ) -> impl IntoView {
+    let editable = cfg!(target_arch = "wasm32");
     view! {
-        <section id="workflow-studio" class="panel workflow-panel cohesive-workflow" aria-labelledby="workflow-title">
+        <section id="workflow-studio" class="panel workflow-panel cohesive-workflow" aria-labelledby="workflow-title" tabindex="-1" data-workflow-focus="panel"
+            data-workflow-source=sample.get_untracked().source data-workflow-context=envelope.context.id()
+            data-workflow-mode=if editable { "island" } else { "ssr" }>
             <div class="workflow-topbar">
-                <div>
-                    <p class="eyebrow">"Workflow Studio"</p>
-                    <h3 id="workflow-title">{name}</h3>
-                    <div class="workflow-doc-meta">
-                        <span>"v18 · draft"</span>
-                        <span>"Owner · tenant admin"</span>
-                        <span>"SLA · 4.0h"</span>
-                    </div>
+                <div><p class="eyebrow">"Workflow Studio · sample editor"</p><h3 id="workflow-title">{envelope.workflow.name}</h3>
+                    <div class="workflow-doc-meta"><span>"Local page sample"</span><span>"No version, owner, or SLA verified"</span></div>
                 </div>
-                <div class="workflow-run-chip" aria-label="Run state preview">
-                    <span></span>
-                    {move || match render_signal(workflow_tool) {
-                        WorkflowTool::Select => "draft · select mode",
-                        WorkflowTool::Connect => "draft · connect mode",
-                        WorkflowTool::Simulate => "simulation preview",
-                    }}
-                </div>
-                <div class="workflow-actions" aria-label="Workflow actions preview">
-                    <button type="button">"Fit"</button>
-                    <button type="button" on:click=move |_| set_workflow_tool.set(WorkflowTool::Select)>"Clear run"</button>
-                    <button type="button" on:click=move |_| set_workflow_tool.set(WorkflowTool::Select)>"Validate"</button>
-                    <button class="primary-action" type="button" on:click=move |_| set_workflow_tool.set(WorkflowTool::Simulate)>"Run"</button>
-                    <button type="button" on:click=move |_| set_draft_node_count.set(render_signal(draft_node_count) + 1)>"Add block"</button>
-                    <button class="dark-action" type="button">"Publish"</button>
+                <div class="workflow-run-chip"><span></span>"No workflow run connected"</div>
+                <div class="workflow-actions" aria-label="Sample workflow actions">
+                    <button type="button" data-workflow-action="fit" data-workflow-focus="fit" disabled=!editable on:click=move |_| fit_workflow_sample(sample)>"Fit"</button>
+                    <button type="button" data-workflow-action="clear" data-workflow-focus="clear" disabled=!editable on:click=move |_| edit_workflow_sample(sample, |state| state.outcome = "Local preview cleared; nothing saved or executed.".into())>"Clear preview"</button>
+                    <button type="button" data-workflow-action="validate" data-workflow-focus="validate" disabled=!editable on:click=move |_| edit_workflow_sample(sample, WorkflowSample::validate)>"Validate sample"</button>
+                    <button class="primary-action" type="button" disabled aria-describedby="workflow-live-unavailable">"Run unavailable"</button>
+                    <button type="button" data-workflow-action="add" data-workflow-focus="add" disabled=!editable on:click=move |_| edit_workflow_sample(sample, |state| state.add("New sample block", "Sample", "Locally added example"))>"Add block"</button>
+                    <button class="dark-action" type="button" disabled aria-describedby="workflow-live-unavailable">"Publish unavailable"</button>
                 </div>
             </div>
-            {workflow_process_chrome()}
+            <p id="workflow-live-unavailable" role="note">"Run, publication, AI generation, autosave, and durable persistence are unavailable: no live Workflow authority is connected. Local edits remain only on this page while context and sample source match."</p>
+            <p id="workflow-edit-availability" role="note">{if editable { "Local sample editing is available; no live effect." } else { "Sample editing is unavailable until the native browser island loads. Native inspection and destination routes remain available." }}</p>
+            {workflow_process_chrome(sample, editable)}
             {workflow_output_bus()}
-            <p class="panel-intro">{goal}</p>
-
-            <div class="workflow-modebar" role="toolbar" aria-label="Workflow editor modes">
-                {WorkflowTool::ALL.into_iter().map(|tool| view! {
-                    <button
-                        type="button"
-                        class=move || if render_signal(workflow_tool) == tool { "active" } else { "" }
-                        aria-pressed=move || (render_signal(workflow_tool) == tool).to_string()
-                        on:click=move |_| set_workflow_tool.set(tool)
-                    >
-                        {tool.label()}
-                    </button>
-                }).collect_view()}
-            </div>
+            {payroll_preview_detail(PayrollPreview::Workflow)}
+            <p class="panel-intro">{envelope.workflow.goal}</p>
             {workflow_lens_toolbar()}
-
             <div class="workflow-ide">
-                <aside class="workflow-palette" aria-label="Workflow building blocks">
-                    <div class="palette-search">
-                        <span aria-hidden="true">"⌕"</span>
-                        <input data-workflow-palette-search="true" aria-label="Search workflow blocks" placeholder="Search nodes..." />
-                        <kbd>"⌘K"</kbd>
+                <aside class="workflow-palette" aria-label="Sample workflow building blocks">
+                    <div class="palette-search"><span aria-hidden="true">"⌕"</span>
+                        <input id="workflow-palette-search" data-workflow-palette-search="true" data-workflow-focus="palette-search" aria-label="Search sample workflow blocks" placeholder="Search sample blocks" disabled=!editable
+                            prop:value=move || render_signal(sample.read_only()).query
+                            on:input=move |event| edit_workflow_sample(sample, |state| state.query = event_target_value(&event)) />
                     </div>
-                    <div class="palette-heading"><span>"Primitives"</span><em>"12"</em></div>
-                    {[
-                        ("System task", "Deterministic step · 0 ms", "S"),
-                        ("Approval", "Single, parallel, or quorum", "A"),
-                        ("Validation", "Rule check · halts on fail", "V"),
-                        ("External call", "HTTP, RPC, or connector", "E"),
-                        ("Branch / Switch", "Multi-way condition split", "B"),
-                        ("Wait / Timer", "Until time · or duration", "W"),
-                        ("Loop / For-each", "Iterate over collection", "L"),
-                        ("AI step", "Suggest · classify · extract", "⌥A"),
-                        ("중단 / 에스컬레이트", "CFO 알림 · 실행 중단", "H"),
-                        ("Form / Input", "Collect data from human", "F"),
-                        ("Webhook trigger", "Inbound event start", "T"),
-                        ("End / Receipt", "Emit immutable event", "⌘E"),
-                    ].into_iter().map(|(label, detail, key)| view! {
-                        <button
-                            type="button"
-                            data-palette-item="primitive"
-                            on:click=move |_| set_draft_node_count.set(render_signal(draft_node_count) + 1)
-                        >
-                            <span>{label}</span><small>{detail}</small><kbd>{key}</kbd>
-                        </button>
+                    {["Primitives", "Actions", "Logic", "Connectors"].into_iter().map(|group| {
+                        let entries: Vec<_> = WORKFLOW_BLOCKS.iter().copied().filter(|entry| entry.0 == group).collect();
+                        view! {
+                            <div class="palette-heading"><span>{group}</span><em>{move || WORKFLOW_BLOCKS.iter().filter(|entry| entry.0 == group && workflow_block_matches(&render_signal(sample.read_only()).query, entry.1, entry.3)).count()}</em></div>
+                            {entries.into_iter().map(|(_, label, kind, detail)| view! {
+                                <button type="button" data-palette-item=kind data-workflow-focus=format!("palette-{group}-{label}") disabled=!editable
+                                    hidden=move || !workflow_block_matches(&render_signal(sample.read_only()).query, label, detail)
+                                    on:click=move |_| edit_workflow_sample(sample, |state| state.add(label, kind, detail))>
+                                    <span>{label}</span><small>{detail}</small>
+                                </button>
+                            }).collect_view()}
+                        }
                     }).collect_view()}
-                    <div class="palette-heading"><span>"Actions"</span><em>"6"</em></div>
-                    {[
-                        ("Task", "Create a governed work item", "T"),
-                        ("HTTP request", "Call external REST/HTTP", "H"),
-                        ("Database", "Read/write a record", "D"),
-                        ("Transform", "Reshape the payload", "X"),
-                        ("Filter", "Drop failed items", "F"),
-                        ("Write to doc", "Append a row / line", "W"),
-                    ].into_iter().map(|(label, detail, key)| view! {
-                        <button
-                            type="button"
-                            data-palette-item="action"
-                            on:click=move |_| set_draft_node_count.set(render_signal(draft_node_count) + 1)
-                        >
-                            <span>{label}</span><small>{detail}</small><kbd>{key}</kbd>
-                        </button>
-                    }).collect_view()}
-                    <div class="palette-heading"><span>"Logic"</span><em>"5"</em></div>
-                    {[
-                        ("If / Branch", "Two-way condition split", "I"),
-                        ("Switch", "Multi-way routing", "S"),
-                        ("Loop / For-each", "Iterate collection", "L"),
-                        ("Wait", "Delay or duration", "W"),
-                        ("Merge", "Wait for branches", "M"),
-                    ].into_iter().map(|(label, detail, key)| view! {
-                        <button
-                            type="button"
-                            data-palette-item="logic"
-                            on:click=move |_| set_draft_node_count.set(render_signal(draft_node_count) + 1)
-                        >
-                            <span>{label}</span><small>{detail}</small><kbd>{key}</kbd>
-                        </button>
-                    }).collect_view()}
-                    <div class="palette-heading"><span>"Built-in surfaces"</span><em>"3"</em></div>
-                    <button type="button" data-palette-item="surface" on:click=move |_| set_active_surface.set(ProductSurface::Messenger)><span>"Messenger post"</span><small>"Route run summary to Ops room"</small><kbd>"M"</kbd></button>
-                    <button type="button" data-palette-item="surface" on:click=move |_| set_active_surface.set(ProductSurface::Mail)><span>"Mail draft"</span><small>"Formal approval note"</small><kbd>"⌘M"</kbd></button>
-                    <button type="button" data-palette-item="surface" on:click=move |_| set_active_surface.set(ProductSurface::Community)><span>"Community note"</span><small>"Publish governed update"</small><kbd>"C"</kbd></button>
-                    <div class="palette-heading"><span>"Connectors"</span><em>"9"</em></div>
-                    <div class="workflow-connector-grid" aria-label="Workflow connector shortcuts">
-                        {[
-                            ("국세", "HomeTax"),
-                            ("국민", "NPS / 4대"),
-                            ("신한", "Shinhan"),
-                            ("T", "Toss"),
-                            ("K", "Kakao Work"),
-                            ("#", "Slack"),
-                            ("G", "Workspace"),
-                            ("Q", "QuickBooks"),
-                            ("N", "Notion"),
-                        ].into_iter().map(|(mark, label)| view! {
-                            <button type="button" data-palette-item="connector" on:click=move |_| set_draft_node_count.set(render_signal(draft_node_count) + 1)>
-                                <strong>{mark}</strong><span>{label}</span>
-                            </button>
-                        }).collect_view()}
-                    </div>
+                    <p data-workflow-palette-empty="true" hidden=move || WORKFLOW_BLOCKS.iter().any(|entry| workflow_block_matches(&render_signal(sample.read_only()).query, entry.1, entry.3))>"No sample blocks match your search."</p>
+                    <div class="palette-heading"><span>"Existing destinations"</span><em>"3"</em></div>
+                    {workflow_destination_button("messenger", "Messenger", "palette-messenger")}
+                    {workflow_destination_button("mail", "Mail", "palette-mail")}
+                    {workflow_destination_button("community", "Community", "palette-community")}
                 </aside>
-
-                {workflow_canvas(nodes.clone(), set_selected_node_id, workflow_tool, set_workflow_tool)}
-
-                <aside class="workflow-inspector" aria-label="Selected workflow node inspector">
-                    <div class="inspector-tabs" aria-hidden="true">
-                        <span class="active">"Inspector"</span>
-                        <span>"Run log"</span>
-                    </div>
-                    {selected_node_view(selected_node)}
-                    {workflow_property_form()}
-                    <dl class="inspector-fields">
-                        <div><dt>"Guardrail"</dt><dd>"Human review before action"</dd></div>
-                        <div><dt>"Output"</dt><dd>"Task · message · evidence draft"</dd></div>
-                        <div><dt>"Execution"</dt><dd>"Disabled until live integration"</dd></div>
-                    </dl>
-                    <div class="inspector-stat-grid" aria-label="Selected node run statistics">
-                        <div><span>"Avg"</span><strong>"0.8s"</strong></div>
-                        <div><span>"P95"</span><strong>"2.1s"</strong></div>
-                        <div><span>"Errors"</span><strong>"0"</strong></div>
-                        <div><span>"Cost"</span><strong>"$0.03"</strong></div>
-                    </div>
-                    <div class="run-log-preview">
-                        <p class="eyebrow">"Run log"</p>
-                        <ol>
-                            <li><time>"10:31"</time><span>"Validation preview passed"</span></li>
-                            <li><time>"10:32"</time><span>"Messenger/Mail/Community drafts generated"</span></li>
-                            <li><time>"10:33"</time><span>"Audit receipt staged locally"</span></li>
-                        </ol>
-                    </div>
+                {workflow_canvas(sample, editable)}
+                <aside class="workflow-inspector" aria-label="Selected sample workflow node inspector">
+                    {selected_node_view(sample)}
+                    {workflow_property_form(sample, editable)}
+                    <dl class="inspector-fields"><div><dt>"Execution"</dt><dd>"Unavailable; no engine connected"</dd></div><div><dt>"Metrics"</dt><dd>"Unavailable; no run telemetry connected"</dd></div></dl>
+                    <div class="run-log-preview"><p class="eyebrow">"Performed local sample action"</p><p role="status" data-workflow-outcome="true">{move || render_signal(sample.read_only()).outcome}</p></div>
                 </aside>
             </div>
-
-            <div class="workflow-statusbar" aria-label="Workflow editor status">
-                <span>{move || format!("Nodes: {}", nodes.len())}</span>
-                <span>{move || format!("Local blocks: {}", render_signal(draft_node_count))}</span>
-                <span>"Messenger/Mail/Community outputs are drafts"</span>
-                <span>{move || match render_signal(workflow_tool) {
-                    WorkflowTool::Select => "Ready · staged",
-                    WorkflowTool::Connect => "Click nodes to visualize links",
-                    WorkflowTool::Simulate => "Previewing run path only",
-                }}</span>
+            <div class="workflow-statusbar" aria-label="Current sample editor status">
+                <span data-workflow-node-count="true">{move || format!("Nodes: {}", render_signal(sample.read_only()).nodes.len())}</span>
+                <span data-workflow-draft-count="true">{move || { let state = render_signal(sample.read_only()); format!("Local blocks: {}", state.nodes.len().saturating_sub(state.base_count)) }}</span>
+                <span>"No output, receipt, or durable save created"</span>
             </div>
         </section>
     }
 }
 
-pub(super) fn workflow_process_chrome() -> impl IntoView {
+fn workflow_process_chrome(sample: RwSignal<WorkflowSample>, editable: bool) -> impl IntoView {
     view! {
-        <div class="workflow-process-chrome" aria-label="Workflow process command chrome">
-            <div class="workflow-process-meta">
-                <span>"PROCESS"</span>
-                <strong>"PROC-PAYROLL-CLOSE"</strong>
-                <span>"OWNER"</span>
-                <strong>"Hyo-jin Park · #274"</strong>
-                <span>"SLA"</span>
-                <strong>"4.0d"</strong>
-            </div>
+        <div class="workflow-process-chrome" aria-label="Local sample commands">
+            <div class="workflow-process-meta"><span>"CURRENT SAMPLE"</span><strong>"Structure and list order only"</strong></div>
             <div class="workflow-process-actions">
-                <button type="button" data-workflow-process-action="validate">"✓ Validate"</button>
-                <button type="button" data-workflow-process-action="simulate">"◷ Simulate"</button>
-                <button type="button" data-workflow-process-action="diff">"↯ Diff v17 → v18"</button>
-                <button type="button" class="dark-action" data-workflow-process-action="publish">"게시 v18"</button>
+                <button type="button" data-workflow-process-action="validate" data-workflow-focus="process-validate" disabled=!editable on:click=move |_| edit_workflow_sample(sample, WorkflowSample::validate)>"Validate sample"</button>
+                <button type="button" data-workflow-process-action="simulate" data-workflow-focus="path-preview" disabled=!editable on:click=move |_| edit_workflow_sample(sample, WorkflowSample::preview_path)>"Preview sample path"</button>
+                <button type="button" data-workflow-process-action="diff" disabled aria-describedby="workflow-live-unavailable">"Version diff unavailable"</button>
+                <button type="button" data-workflow-process-action="publish" disabled aria-describedby="workflow-live-unavailable">"Publish unavailable"</button>
             </div>
-            <span class="workflow-process-status" data-workflow-process-status="true">"autosaved · local visual IDE"</span>
+            <span class="workflow-process-status" data-workflow-process-status="true">"Local page sample · autosave unavailable"</span>
         </div>
     }
 }
 
-pub(super) fn workflow_lens_toolbar() -> impl IntoView {
+fn workflow_lens_toolbar() -> impl IntoView {
     view! {
-        <div class="workflow-lens-toolbar" aria-label="Workflow layout, overlay, and filter controls">
-            <div class="workflow-lens-group">
-                <span>"LAYOUT"</span>
-                <button type="button" class="active" data-workflow-lens="Graph">"Graph"</button>
-                <button type="button" data-workflow-lens="Swimlanes">"Swimlanes"</button>
-                <button type="button" data-workflow-lens="Timeline">"Timeline"</button>
-                <button type="button" data-workflow-lens="Tree">"Tree"</button>
-            </div>
-            <div class="workflow-lens-group">
-                <span>"OVERLAY"</span>
-                <button type="button" data-workflow-overlay="Cycle">"Cycle"</button>
-                <button type="button" class="active" data-workflow-overlay="Cost">"Cost"</button>
-                <button type="button" data-workflow-overlay="Owner">"Owner"</button>
-                <button type="button" data-workflow-overlay="Risk">"Risk"</button>
-                <button type="button" data-workflow-overlay="Off">"Off"</button>
-            </div>
-            <div class="workflow-lens-group">
-                <span>"FILTER"</span>
-                <button type="button" data-workflow-filter="All">"All"</button>
-                <button type="button" class="active" data-workflow-filter="Critical path">"Critical path"</button>
-                <button type="button" data-workflow-filter="Bottlenecks">"Bottlenecks"</button>
-                <button type="button" data-workflow-filter="AI suggestions">"AI suggestions"</button>
-            </div>
+        <div class="workflow-lens-toolbar" aria-label="Sample layout limitations">
+            <span>"Graph · all sample nodes"</span>
+            <button type="button" data-workflow-lens="Swimlanes" disabled>"Swimlanes unavailable"</button>
+            <button type="button" data-workflow-lens="Timeline" disabled>"Timeline unavailable"</button>
+            <button type="button" data-workflow-lens="Tree" disabled>"Tree unavailable"</button>
+            <span role="note">"Evaluated overlays, critical path, and bottleneck filters are unavailable; no execution or telemetry is connected."</span>
         </div>
     }
 }

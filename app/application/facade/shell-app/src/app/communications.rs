@@ -1,280 +1,234 @@
 use super::*;
 
-#[expect(
-    clippy::too_many_arguments,
-    reason = "Communication surface keeps signal ownership explicit so local-only drafts cannot be confused with server persistence."
-)]
 pub(super) fn communication_hub(
-    messages: Vec<MessageItem>,
-    communities: Vec<CommunityItem>,
-    active_surface: ReadSignal<ProductSurface>,
-    set_active_surface: WriteSignal<ProductSurface>,
-    selected_hub_index: ReadSignal<usize>,
-    set_selected_hub_index: WriteSignal<usize>,
-    draft_body: ReadSignal<String>,
-    set_draft_body: WriteSignal<String>,
-    local_drafts: ReadSignal<Vec<LocalDraft>>,
-    set_local_drafts: WriteSignal<Vec<LocalDraft>>,
+    sample: RwSignal<HubSample>,
+    set_active: WriteSignal<ProductSurface>,
+    available: Signal<bool>,
 ) -> impl IntoView {
-    let tabs = [
-        ProductSurface::Messenger,
-        ProductSurface::Mail,
-        ProductSurface::Community,
-    ];
-    let list_messages = messages.clone();
-    let list_communities = communities.clone();
-    let detail_messages = messages.clone();
-    let detail_communities = communities.clone();
-
     view! {
-        <div class="communications-hub interactive-hub">
-            <div class="hub-tabs" role="tablist" aria-label="Work hub channels">
-                {tabs.into_iter().map(|surface| view! {
-                    <button
-                        type="button"
-                        role="tab"
-                        aria-selected=move || (render_signal(active_surface) == surface).to_string()
-                        class=move || if render_signal(active_surface) == surface { "hub-tab active" } else { "hub-tab" }
-                        on:click=move |_| {
-                            set_active_surface.set(surface);
-                            set_selected_hub_index.set(0);
-                        }
-                    >
-                        {surface.label()}
-                    </button>
+        <div class="communications-hub interactive-hub" data-hub-source=move || render_hub_sample(sample).source
+            data-hub-context=move || render_hub_sample(sample).context.id() data-hub-mode=if cfg!(target_arch = "wasm32") { "island" } else { "ssr" }>
+            <div class="hub-tabs" role="tablist" aria-label="Work hub channels" data-native-hub-tabs="true">
+                {HubChannel::ALL.into_iter().map(|channel| view! {
+                    <button type="button" id=hub_tab_id(channel) role="tab" aria-controls=hub_panel_id(channel)
+                        aria-selected=move || (render_hub_sample(sample).channel == channel).to_string()
+                        tabindex=move || if render_hub_sample(sample).tab_stop == channel { "0" } else { "-1" }
+                        class=move || if render_hub_sample(sample).channel == channel { "hub-tab active" } else { "hub-tab" }
+                        disabled=move || !hub_editing_available(available) aria-describedby="hub-availability"
+                        on:click=move |event| { if hub_control_available(sample, available, event.current_target()) { select_product_surface(channel.surface(), set_active, sample); } }
+                        on:keydown=move |event| {
+                            if !hub_control_available(sample, available, event.current_target()) { return; }
+                            match event.key().as_str() {
+                                "Enter" | " " | "Spacebar" => { event.prevent_default(); select_product_surface(channel.surface(), set_active, sample); }
+                                key => if let Some(next) = hub_focus_channel(channel, key) { event.prevent_default(); edit_hub_sample(sample, |state| state.tab_stop = next); focus_hub_element(&hub_tab_id(next)); },
+                            }
+                        }>{channel.label()}</button>
                 }).collect_view()}
             </div>
-
-            <div class="comms-kpi-strip" aria-label="Built-in communications summary">
-                <span><strong>"18"</strong><small>"threads · drafts"</small></span>
-                <span><strong>"6"</strong><small>"workflow routes"</small></span>
-                <span><strong>"4"</strong><small>"evidence links"</small></span>
-                <span><strong>"0"</strong><small>"external sends"</small></span>
-            </div>
-
-            <div class="hub-route-board" aria-label="Workflow output routes">
-                <div>
-                    <p class="screen-anchor">"OUTPUT ROUTES"</p>
-                    <strong>"FD-001 tenant-workload drafts fan out to Messenger, Mail, and Community with evidence return paths"</strong>
-                    <span data-comms-route-status="true">"FD-001 workload dogfood · REC-WF-7741 · no backend send"</span>
+            <p id="hub-availability" role="status">{move || if hub_editing_available(available) {
+                "Sample communications and browser-local drafts only; no live send, publication or receipt creation."
+            } else if cfg!(target_arch = "wasm32") {
+                "Work Hub unavailable while the requested sample context is loading, failed or mismatched. Local controls are disabled."
+            } else { "Server sample preview; local controls require the matching WebAssembly island. No message sent or posted." }}</p>
+            <div class="hub-channel-panel" role="tabpanel" id=move || hub_panel_id(render_hub_sample(sample).channel)
+                aria-labelledby=move || hub_tab_id(render_hub_sample(sample).channel)>
+                <div class="comms-kpi-strip" aria-label="Sample communications summary">
+                    <span><strong>{move || render_hub_sample(sample).visible().len()}</strong><small>"visible items"</small></span>
+                    <span><strong>{move || render_hub_sample(sample).drafts.len()}</strong><small>"browser-local drafts"</small></span>
+                    <span><strong>"Unavailable"</strong><small>"live delivery"</small></span>
                 </div>
-                <button type="button" data-hub-route="Messenger" on:click=move |_| {
-                    set_active_surface.set(ProductSurface::Messenger);
-                    set_selected_hub_index.set(0);
-                }>"Messenger post"</button>
-                <button type="button" data-hub-route="Mail" on:click=move |_| {
-                    set_active_surface.set(ProductSurface::Mail);
-                    set_selected_hub_index.set(0);
-                }>"Mail draft"</button>
-                <button type="button" data-hub-route="Community" on:click=move |_| {
-                    set_active_surface.set(ProductSurface::Community);
-                    set_selected_hub_index.set(0);
-                }>"Community note"</button>
-            </div>
-
-            {move || comms_product_board(render_signal(active_surface))}
-
-            <section class="comms-substrate-strip" aria-label="Oyatie Cloud tenant-workload proof">
-                <div>
-                    <p class="screen-anchor">"SUBSTRATE PROOF"</p>
-                    <strong>"Messenger, Mail, and Community are dogfood tenant workloads on Oyatie Cloud"</strong>
-                    <span data-comms-substrate-status="true">
-                        {move || format!(
-                            "{} route pinned to FD-001 workload · cell-us-east-2 · local visual proof",
-                            render_signal(active_surface).label()
-                        )}
-                    </span>
+                <div class="hub-route-board" aria-label="Sample channel routes">
+                    <div><p class="screen-anchor">"SAMPLE ROUTES"</p><strong>"Open a complete channel sample"</strong>
+                        <span data-comms-route-status="true">{move || format!("{} sample preview · no message sent or posted", render_hub_sample(sample).channel.label())}</span></div>
+                    {HubChannel::ALL.into_iter().map(|channel| view! {
+                        <button type="button" data-hub-route=channel.label() disabled=move || !hub_editing_available(available) aria-describedby="hub-availability"
+                            on:click=move |event| { if hub_control_available(sample, available, event.current_target()) { select_product_surface(channel.surface(), set_active, sample); } }>{channel.label()}</button>
+                    }).collect_view()}
                 </div>
-                <button type="button" data-comms-action="prove-substrate">
-                    <span>"Cloud cell"</span><strong>"cell-us-east-2"</strong>
-                </button>
-                <button type="button" data-comms-action="route-cloud">
-                    <span>"Tenant workload"</span><strong>"FD-001 microservices"</strong>
-                </button>
-                <button type="button" data-comms-action="seal-proof">
-                    <span>"Evidence"</span><strong>"REC-WF-7741"</strong>
-                </button>
-            </section>
-
-            {comms_receipt_bridge()}
-
-            <div class="comms-service-toolbar" aria-label="Communications workspace controls">
-                <label>
-                    <span aria-hidden="true">"⌕"</span>
-                    <input data-comms-search="true" aria-label="Search communications" placeholder="Search threads, mail, spaces..." />
-                </label>
-                <div class="comms-filter-pills" role="toolbar" aria-label="Communication filters">
-                    <button type="button" class="active" data-comms-filter="all">"All"</button>
-                    <button type="button" data-comms-filter="unread">"Unread"</button>
-                    <button type="button" data-comms-filter="draft">"Drafts"</button>
-                    <button type="button" data-comms-filter="evidence">"Evidence"</button>
-                </div>
-                <button type="button" data-comms-action="new-thread">"New thread"</button>
-                <button type="button" data-comms-action="attach-evidence">"Attach evidence"</button>
-                <button type="button" data-comms-action="directory">"Directory"</button>
-                <span data-comms-status="true">"Local service workspace ready · no external send"</span>
-            </div>
-
-            <div class="hub-workspace comms-service-shell">
-                <aside class="comms-sidebar" aria-label="Communications folders and spaces">
-                    <p class="screen-anchor">"WORKSPACES"</p>
-                    <button type="button" class="active" data-hub-route="Messenger">
-                        <strong>"Ops room"</strong><span>"Messenger · 5 items · 2 unread"</span>
-                    </button>
-                    <button type="button" data-hub-route="Mail">
-                        <strong>"Finance close"</strong><span>"Mail · 4 drafts · 2 evidence"</span>
-                    </button>
-                    <button type="button" data-hub-route="Community">
-                        <strong>"Governance council"</strong><span>"Community · 5 spaces · 1 publish"</span>
-                    </button>
-                    <button type="button" data-comms-action="notification-filter">
-                        <strong>"Notifications"</strong><span>"6 local alerts · no external send"</span>
-                    </button>
-                </aside>
-                <div class="hub-list" role="list" aria-label="Channel items">
-                    {move || {
-                        let items = hub_items(
-                            &list_messages,
-                            &list_communities,
-                            &render_signal(local_drafts),
-                            render_signal(active_surface),
-                        );
-                        let active_index = render_signal(selected_hub_index);
-                        items.into_iter().enumerate().map(|(index, item)| {
-                            let kind = hub_item_kind(&item, index);
-                            let chip_class = hub_item_chip_class(kind);
-                            view! {
-                                <button
-                                    type="button"
-                                    class=if index == active_index { "hub-item active" } else { "hub-item" }
-                                    data-comms-item="true"
-                                    data-comms-kind=kind
-                                    on:click=move |_| set_selected_hub_index.set(index)
-                                >
-                                    <span class=chip_class>{item.source}</span>
-                                    <strong>{item.title}</strong>
-                                    <p>{item.body}</p>
-                                    <small><em>{kind}</em><b>{item.meta}</b></small>
-                                </button>
-                            }
-                        }).collect_view()
-                    }}
-                </div>
-
-                <div class="hub-detail" aria-live="polite">
-                    <div class="comms-message-toolbar" aria-label="Selected communication actions">
-                        <span class="status-chip success">"role-visible"</span>
-                        <button type="button" data-comms-action="mark-reviewed">"Mark reviewed"</button>
-                        <button type="button" data-comms-action="create-task">"Create task"</button>
-                        <button type="button" data-comms-action="link-workflow">"Link workflow"</button>
-                        <button type="button" data-comms-action="send-preview">"Send preview"</button>
-                        <button type="button" data-comms-action="publish-note">"Publish local"</button>
+                {move || comms_product_board(render_hub_sample(sample).channel.surface())}
+                {comms_receipt_bridge(sample, set_active, available)}
+                <div class="comms-service-toolbar" aria-label="Communications workspace controls">
+                    <label><span aria-hidden="true">"⌕"</span><input data-comms-search="true" aria-label="Search communications" placeholder="Search sample and local items"
+                        prop:value=move || render_hub_sample(sample).query disabled=move || !hub_editing_available(available) aria-describedby="hub-availability"
+                        on:input=move |event| { if hub_control_available(sample, available, event.current_target()) { edit_hub_sample(sample, |state| { state.query = event_target_value(&event); state.reconcile_selection(); }); } } /></label>
+                    <div class="comms-filter-pills" role="toolbar" aria-label="Communication filters">
+                        {HubFilter::ALL.into_iter().map(|filter| view! {
+                            <button type="button" data-comms-filter=match filter { HubFilter::All => "all", HubFilter::Drafts => "draft", HubFilter::Evidence => "evidence" }
+                                class=move || if render_hub_sample(sample).filter == filter { "active" } else { "" }
+                                aria-pressed=move || (render_hub_sample(sample).filter == filter).to_string()
+                                disabled=move || !hub_editing_available(available) aria-describedby="hub-availability"
+                                on:click=move |event| { if hub_control_available(sample, available, event.current_target()) { edit_hub_sample(sample, |state| { state.filter = filter; state.reconcile_selection(); }); } }>{filter.label()}</button>
+                        }).collect_view()}
+                        <button type="button" disabled aria-describedby="hub-unread-reason">"Unread"</button>
                     </div>
-                    {move || {
-                        let items = hub_items(
-                            &detail_messages,
-                            &detail_communities,
-                            &render_signal(local_drafts),
-                            render_signal(active_surface),
-                        );
-                        match selected_hub_item(&items, render_signal(selected_hub_index)) {
-                            Some(item) => {
-                                let kind = hub_item_kind(&item, render_signal(selected_hub_index));
-                                let chip_class = hub_item_chip_class(kind);
-                                let surface_label = item.surface.label();
-                                view! {
-                                    <article class="comms-detail-card">
-                                        <div class="comms-detail-head">
-                                            <div>
-                                                <p class="eyebrow">{surface_label}</p>
-                                                <h4>{item.title.clone()}</h4>
-                                            </div>
-                                            <span class=chip_class>{kind}</span>
-                                        </div>
-                                        <p>{item.body.clone()}</p>
-                                        <span class="hub-meta">{item.meta.clone()}</span>
-                                        <dl class="comms-detail-grid">
-                                            <div><dt>"Route"</dt><dd>{surface_label}</dd></div>
-                                            <div><dt>"Workflow"</dt><dd>"Tenant change approval"</dd></div>
-                                            <div><dt>"Receipt"</dt><dd>"REC-WF-7741"</dd></div>
-                                            <div><dt>"Persistence"</dt><dd>"Local browser state only"</dd></div>
-                                        </dl>
-                                    </article>
-                                }.into_any()
-                            },
-                            None => view! {
-                                <article>
-                                    <p class="eyebrow">"Empty channel"</p>
-                                    <h4>"No visible items"</h4>
-                                    <p>"This permitted envelope has no items for the selected channel."</p>
-                                </article>
-                            }.into_any(),
-                        }
-                    }}
-
-                    {communication_composer(
-                        active_surface,
-                        set_selected_hub_index,
-                        draft_body,
-                        set_draft_body,
-                        local_drafts,
-                        set_local_drafts,
-                    )}
-
+                    <button type="button" data-comms-action="new-thread" disabled=move || !hub_editing_available(available) aria-describedby="hub-availability"
+                        on:click=move |event| { if hub_control_available(sample, available, event.current_target()) { focus_hub_element("hub-composer-input"); } }>"New local draft"</button>
+                    <span id="hub-unread-reason">"Unread and notifications unavailable: no live read state is connected."</span>
+                    <span data-comms-status="true" role="status">{move || render_hub_sample(sample).outcome}</span>
                 </div>
-
-                <aside class="comms-context-rail" aria-label="People, provenance, and notification context">
-                    <section>
-                        <p class="screen-anchor">"PEOPLE"</p>
-                        <div class="presence-stack">
-                            <span><em>"OP"</em><strong>"Ops bot"</strong><small>"online"</small></span>
-                            <span><em>"SR"</em><strong>"Security reviewer"</strong><small>"watching"</small></span>
-                            <span><em>"FL"</em><strong>"Finance lead"</strong><small>"mail owner"</small></span>
+                <div class="hub-workspace comms-service-shell">
+                    <aside class="comms-sidebar" aria-label="Communications channels"><p class="screen-anchor">"SAMPLE CHANNELS"</p>
+                        {HubChannel::ALL.into_iter().map(|channel| view! {
+                            <button type="button" data-hub-route=channel.label() class=move || if render_hub_sample(sample).channel == channel { "active" } else { "" }
+                                aria-pressed=move || (render_hub_sample(sample).channel == channel).to_string()
+                                disabled=move || !hub_editing_available(available) aria-describedby="hub-availability"
+                                on:click=move |event| { if hub_control_available(sample, available, event.current_target()) { select_product_surface(channel.surface(), set_active, sample); } }>
+                                <strong>{channel.label()}</strong><span>{move || format!("{} sample/local items", render_hub_sample(sample).rows(channel).len())}</span>
+                            </button>
+                        }).collect_view()}
+                    </aside>
+                    <div class="hub-list" role="list" aria-label="Channel items">{move || {
+                        let current = render_hub_sample(sample); let rows = current.visible();
+                        if rows.is_empty() { return view! { <p role="status">"No matching sample or local items. Clear search or choose All to recover."</p> }.into_any(); }
+                        rows.into_iter().map(|row| { let key = row.key; let kind = hub_row_kind(&row); view! {
+                            <div role="listitem"><button type="button" class=if Some(key) == current.selected { "hub-item active" } else { "hub-item" }
+                                data-comms-item="true" data-comms-kind=kind aria-pressed=(Some(key) == current.selected).to_string()
+                                disabled=move || !hub_editing_available(available) aria-describedby="hub-availability"
+                                on:click=move |event| { if hub_control_available(sample, available, event.current_target()) { edit_hub_sample(sample, |state| { state.selected = Some(key); state.preview = false; }); } }>
+                                <span class=hub_item_chip_class(kind)>{row.item.source}</span><strong>{row.item.title}</strong><p>{row.item.body}</p>
+                                <small><em>{if kind == "draft" { "local draft" } else if kind == "evidence" { "sample evidence" } else { "sample" }}</em><b>{row.item.meta}</b></small>
+                            </button></div>
+                        } }).collect_view().into_any()
+                    }}</div>
+                    <div class="hub-detail" aria-live="polite">
+                        <div class="comms-message-toolbar" aria-label="Selected sample actions">
+                            <button type="button" data-comms-action="mark-reviewed" disabled=move || !hub_editing_available(available) || render_hub_sample(sample).selected_row().is_none()
+                                aria-describedby="hub-availability" on:click=move |event| { if hub_control_available(sample, available, event.current_target()) { edit_hub_sample(sample, HubSample::review_selected); } }>"Review locally"</button>
+                            <button type="button" data-comms-action="send-preview" disabled=move || !hub_editing_available(available) || render_hub_sample(sample).selected_row().is_none()
+                                aria-describedby="hub-availability" on:click=move |event| { if hub_control_available(sample, available, event.current_target()) { edit_hub_sample(sample, |state| { state.preview = true; state.outcome = "Selected text previewed locally; no external send.".into(); }); } }>"Preview selected text"</button>
+                            {hub_copy_button(HubChannel::Mail, sample, set_active, available)}{hub_copy_button(HubChannel::Community, sample, set_active, available)}
                         </div>
-                    </section>
-                    <section>
-                        <p class="screen-anchor">"PROVENANCE"</p>
-                        <dl class="comms-kv">
-                            <div><dt>"Envelope"</dt><dd>"tenant-admin"</dd></div>
-                            <div><dt>"Workflow"</dt><dd>"Tenant change approval"</dd></div>
-                            <div><dt>"Receipt"</dt><dd>"REC-WF-7741"</dd></div>
-                        </dl>
-                    </section>
-                    <section class="comms-handoff-card" data-comms-handoff="true" aria-label="Local draft handoff state">
-                        <p class="screen-anchor">"DRAFT HANDOFF BUS"</p>
-                        <strong data-comms-handoff-title="true">"Messenger → Mail approval brief"</strong>
-                        <span data-comms-handoff-status="true">"Select Promote to Mail or Publish local to carry context across surfaces."</span>
-                        <dl class="comms-kv compact">
-                            <div><dt>"Source"</dt><dd data-comms-handoff-source="true">"Messenger"</dd></div>
-                            <div><dt>"Destination"</dt><dd data-comms-handoff-destination="true">"Mail"</dd></div>
-                            <div><dt>"Audience"</dt><dd data-comms-handoff-audience="true">"CFO · SRE · Governance"</dd></div>
-                            <div><dt>"Persistence"</dt><dd>"Browser local state only"</dd></div>
-                        </dl>
-                        <div class="comms-handoff-actions">
-                            <button type="button" data-comms-action="thread-to-mail">"Promote to Mail"</button>
-                            <button type="button" data-comms-action="publish-note">"Publish local"</button>
-                        </div>
-                    </section>
-                    <section>
-                        <p class="screen-anchor">"DELIVERY MATRIX"</p>
-                        <div class="comms-delivery-matrix" aria-label="Local delivery readiness">
-                            <span class="ready"><strong>"Messenger"</strong><em>"ops room draft"</em></span>
-                            <span class="ready"><strong>"Mail"</strong><em>"approval brief"</em></span>
-                            <span class="review"><strong>"Community"</strong><em>"council review"</em></span>
-                            <span><strong>"Audit"</strong><em>"receipt attached"</em></span>
-                        </div>
-                    </section>
-                    <section>
-                        <p class="screen-anchor">"LOCAL NOTIFICATIONS"</p>
-                        <ol class="notification-stack">
-                            <li>"Draft queued locally"</li>
-                            <li>"Evidence link available"</li>
-                            <li>"No external send enabled"</li>
-                            <li>"Workflow route preview ready"</li>
-                        </ol>
-                    </section>
-                </aside>
+                        {move || { let current = render_hub_sample(sample); match current.selected_row() {
+                            Some(row) => view! { <article class="comms-detail-card"><div class="comms-detail-head"><div><p class="eyebrow">{current.channel.label()}</p><h4>{row.item.title}</h4></div>
+                                <span class="status-chip">{if current.reviewed.contains(&row.key) { "reviewed locally" } else { "sample/local item" }}</span></div>
+                                <p>{row.item.body.clone()}</p><span class="hub-meta">{row.item.meta}</span><dl class="comms-detail-grid">
+                                    <div><dt>"Route"</dt><dd>{current.channel.label()}</dd></div><div><dt>"Source"</dt><dd>{row.item.source}</dd></div><div><dt>"Persistence"</dt><dd>"Browser-local drafts only; no backend write"</dd></div>
+                                </dl>{current.preview.then(|| view! { <details open><summary>"Local text preview; no send"</summary><p>{row.item.body}</p></details> })}</article> }.into_any(),
+                            None => view! { <article><p class="eyebrow">"Empty selection"</p><h4>"No visible item selected"</h4><p>"Clear search or choose All, then select a visible item."</p></article> }.into_any(),
+                        }}}
+                        {communication_composer(sample, available)}
+                    </div>
+                    <aside class="comms-context-rail" aria-label="Sample provenance and unavailable services">
+                        <section><p class="screen-anchor">"SAMPLE PROVENANCE"</p><p>{move || render_hub_sample(sample).provenance}</p></section>
+                        <section class="comms-handoff-card" data-comms-handoff="true"><p class="screen-anchor">"LOCAL COPY"</p><strong>"Copy selected text into a local destination draft"</strong>
+                            <span>"The destination draft is selected in this browser. No delivery or approval follows."</span><div class="comms-handoff-actions">
+                                {hub_copy_button(HubChannel::Mail, sample, set_active, available)}{hub_copy_button(HubChannel::Community, sample, set_active, available)}</div>
+                            <p id="hub-copy-reason">"Copy requires a selected visible item and the matching browser island."</p>
+                        </section>
+                        <section><p class="screen-anchor">"UNAVAILABLE SERVICES"</p><p id="hub-service-reason">"Live directory, presence, task creation, evidence attachment, send, publication and notification services are not connected."</p>
+                            <button type="button" data-comms-action="directory" disabled aria-describedby="hub-service-reason">"Directory"</button>
+                            <button type="button" data-comms-action="create-task" disabled aria-describedby="hub-service-reason">"Create task"</button>
+                            <button type="button" data-comms-action="attach-evidence" disabled aria-describedby="hub-service-reason">"Attach evidence"</button>
+                        </section>
+                    </aside>
+                </div>
             </div>
+            {HubChannel::ALL.into_iter().map(|channel| move || {
+                (render_hub_sample(sample).channel != channel).then(|| view! {
+                    <div role="tabpanel" id=hub_panel_id(channel) aria-labelledby=hub_tab_id(channel) hidden></div>
+                })
+            }).collect_view()}
         </div>
     }
+}
+
+fn hub_copy_button(
+    channel: HubChannel,
+    sample: RwSignal<HubSample>,
+    set_active: WriteSignal<ProductSurface>,
+    available: Signal<bool>,
+) -> impl IntoView {
+    view! { <button type="button" data-comms-action=if channel == HubChannel::Mail { "thread-to-mail" } else { "publish-note" }
+    disabled=move || !hub_editing_available(available) || render_hub_sample(sample).selected_row().is_none() aria-describedby="hub-copy-reason hub-availability"
+    on:click=move |event| { if hub_control_available(sample, available, event.current_target()) { edit_hub_sample(sample, |state| { if state.copy_to(channel) { set_active.set(channel.surface()); } }); } }>{format!("Copy sample to {}", channel.label())}</button> }
+}
+
+pub(super) fn hub_tab_id(channel: HubChannel) -> String {
+    format!("hub-tab-{}", channel.label().to_ascii_lowercase())
+}
+pub(super) fn hub_panel_id(channel: HubChannel) -> String {
+    format!("hub-panel-{}", channel.label().to_ascii_lowercase())
+}
+pub(super) fn hub_focus_channel(channel: HubChannel, key: &str) -> Option<HubChannel> {
+    let index = HubChannel::ALL
+        .iter()
+        .position(|current| *current == channel)?;
+    let next = match key {
+        "ArrowRight" | "ArrowDown" => (index + 1) % 3,
+        "ArrowLeft" | "ArrowUp" => (index + 2) % 3,
+        "Home" => 0,
+        "End" => 2,
+        _ => return None,
+    };
+    Some(HubChannel::ALL[next])
+}
+pub(super) fn hub_editing_available(available: Signal<bool>) -> bool {
+    cfg!(target_arch = "wasm32") && available.try_get().unwrap_or(false)
+}
+fn focus_hub_element(id: &str) {
+    #[cfg(target_arch = "wasm32")]
+    {
+        use wasm_bindgen::JsCast;
+        if let Some(element) = web_sys::window()
+            .and_then(|window| window.document())
+            .and_then(|document| document.get_element_by_id(id))
+            .and_then(|element| element.dyn_into::<web_sys::HtmlElement>().ok())
+        {
+            let _ = element.focus();
+        }
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    let _ = id;
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub(super) fn communication_hub_html(
+    envelope: &TenantRenderEnvelope,
+    channel: HubChannel,
+) -> String {
+    let owner = Owner::new();
+    let html = owner.with(|| {
+        let mut initial = HubSample::from_envelope(envelope);
+        initial.select_channel(channel);
+        let sample = RwSignal::new(initial);
+        let (_, set_active) = signal(channel.surface());
+        communication_hub(sample, set_active, Signal::derive(|| false))
+            .into_view()
+            .to_html()
+    });
+    owner.cleanup();
+    html
+}
+
+#[cfg(target_arch = "wasm32")]
+pub(super) fn hub_control_available(
+    sample: RwSignal<HubSample>,
+    available: Signal<bool>,
+    target: Option<web_sys::EventTarget>,
+) -> bool {
+    use wasm_bindgen::JsCast;
+    if !hub_editing_available(available) {
+        return false;
+    }
+    let Some(target) = target.and_then(|target| target.dyn_into::<web_sys::Element>().ok()) else {
+        return false;
+    };
+    if !target.is_connected() {
+        return false;
+    }
+    let Ok(Some(owner)) = target.closest(".communications-hub[data-hub-source]") else {
+        return false;
+    };
+    sample.try_get_untracked().is_some_and(|current| {
+        owner.get_attribute("data-hub-source").as_deref() == Some(current.source.as_str())
+    })
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub(super) fn hub_control_available<T>(
+    _sample: RwSignal<HubSample>,
+    _available: Signal<bool>,
+    _target: Option<T>,
+) -> bool {
+    false
 }

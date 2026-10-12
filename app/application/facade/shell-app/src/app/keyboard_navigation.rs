@@ -1,8 +1,111 @@
+#[cfg(target_arch = "wasm32")]
 use super::*;
 
-/// The five WAI-ARIA tablists in the hydrated dashboard, addressed by their
-/// `role="tablist"` container class. The keyboard island wires each one with a
-/// canonical roving-tabindex + arrow/Home/End/Enter/Space interaction model.
+const DOM_TABLIST_OWNERS: [(&str, &str); 5] = [
+    ("settings-tabs", "settings-center"),
+    ("identity-tabs", "identity-workforce-service"),
+    ("finance-tabs", "finance-commercial-service"),
+    ("cockpit-tabs", "cloud-ops-cockpit"),
+    ("resource-tabs", "resource-audit-console"),
+];
+
+#[cfg(any(target_arch = "wasm32", test))]
+pub(super) fn dom_tablist_owned(classes: &str) -> bool {
+    let classes = classes.split_ascii_whitespace().collect::<Vec<_>>();
+    !classes.contains(&"hub-tabs")
+        && DOM_TABLIST_OWNERS
+            .iter()
+            .any(|(class, _)| classes.contains(class))
+}
+
+/// The document fallback owns only unwired DOM tablists. Hydrated listeners
+/// retain their existing marker, manual activation model and island lifetime.
+#[cfg(any(feature = "ssr", test))]
+pub(crate) fn ssr_tab_navigation_script() -> String {
+    const SCRIPT: &str = r#"
+(() => {
+  const owners = __TABLIST_OWNERS__;
+  function controls(tab) {
+    if (!(tab instanceof Element) || !tab.isConnected || tab.disabled ||
+        tab.getAttribute('role') !== 'tab') return null;
+    const tablist = tab.closest('[role="tablist"]');
+    if (!tablist || tab.parentElement !== tablist ||
+        tablist.hasAttribute('data-tablist-wired') ||
+        tablist.hasAttribute('data-native-hub-tabs') || tablist.classList.contains('hub-tabs')) return null;
+    const admitted = owners.filter(([name]) => tablist.classList.contains(name));
+    if (admitted.length !== 1) return null;
+    const [name, id] = admitted[0];
+    const owner = tablist.closest(`#${id}`);
+    const shell = document.querySelector('.console-app');
+    if (!owner?.isConnected || document.getElementById(id) !== owner ||
+        owner.closest('.console-app') !== shell || !shell ||
+        owner.querySelector(`.${name}[role="tablist"]`) !== tablist) return null;
+    const tabs = [...tablist.children].filter(child => child.getAttribute('role') === 'tab');
+    const panels = tabs.map(candidate => document.getElementById(candidate.getAttribute('aria-controls')));
+    const stem = name.slice(0, -5);
+    if (!tabs.length || tabs.filter(candidate => candidate.getAttribute('aria-selected') === 'true').length !== 1 ||
+        tabs.some((candidate, index) => !candidate.isConnected ||
+          document.getElementById(candidate.id) !== candidate || !candidate.id.startsWith(`${stem}-tab-`) ||
+          !['true', 'false'].includes(candidate.getAttribute('aria-selected')) ||
+          !panels[index]?.isConnected || panels[index].getAttribute('role') !== 'tabpanel' ||
+          panels[index].id !== candidate.id.replace(`${stem}-tab-`, `${stem}-panel-`) ||
+          panels[index].getAttribute('aria-labelledby') !== candidate.id ||
+          panels[index].closest(`#${id}`) !== owner)) return null;
+    return {tabs, panels};
+  }
+  function activate(tab, owned, moveFocus) {
+    owned.tabs.forEach((candidate, index) => {
+      const selected = candidate === tab;
+      candidate.setAttribute('aria-selected', String(selected));
+      candidate.tabIndex = selected ? 0 : -1;
+      candidate.classList.toggle('active', selected);
+      owned.panels[index].classList.toggle('active', selected);
+    });
+    if (moveFocus) tab.focus();
+  }
+  document.querySelectorAll('[role="tablist"]').forEach(tablist => {
+    const tab = [...tablist.children].find(child => child.getAttribute('role') === 'tab');
+    const owned = controls(tab);
+    owned?.tabs.forEach(candidate => {
+      candidate.tabIndex = candidate.getAttribute('aria-selected') === 'true' ? 0 : -1;
+    });
+  });
+  document.addEventListener('click', event => {
+    if (!(event.target instanceof Element)) return;
+    const tab = event.target.closest('[role="tab"]');
+    const owned = controls(tab);
+    if (owned) activate(tab, owned, event.isTrusted);
+  });
+  document.addEventListener('keydown', event => {
+    const tab = document.activeElement;
+    if (event.target !== tab) return;
+    const owned = controls(tab);
+    if (!owned) return;
+    const current = owned.tabs.indexOf(tab);
+    if (current < 0) return;
+    let index;
+    switch (event.key) {
+      case 'Enter': case ' ': case 'Spacebar':
+        event.preventDefault(); activate(tab, owned, true); return;
+      case 'ArrowRight': case 'ArrowDown': index = (current + 1) % owned.tabs.length; break;
+      case 'ArrowLeft': case 'ArrowUp': index = (current + owned.tabs.length - 1) % owned.tabs.length; break;
+      case 'Home': index = 0; break;
+      case 'End': index = owned.tabs.length - 1; break;
+      default: return;
+    }
+    if (owned.tabs[index].disabled) return;
+    event.preventDefault();
+    owned.tabs.forEach((candidate, position) => { candidate.tabIndex = position === index ? 0 : -1; });
+    owned.tabs[index].focus();
+  });
+})();
+"#;
+    SCRIPT.replace(
+        "__TABLIST_OWNERS__",
+        &serde_json::to_string(&DOM_TABLIST_OWNERS).expect("fixed DOM tab owners serialize"),
+    )
+}
+
 #[cfg(target_arch = "wasm32")]
 pub(super) const TABLIST_SELECTORS: [&str; 5] = [
     ".settings-tabs[role=\"tablist\"]",
@@ -67,8 +170,6 @@ pub(super) fn collect_tablist_tabs(tablist: &web_sys::Element) -> Vec<web_sys::H
     tabs
 }
 
-/// Set the roving tabindex so the selected tab is the only tab stop (0) and the
-/// remaining tabs are -1 (focusable only programmatically / via arrow keys).
 #[cfg(target_arch = "wasm32")]
 pub(super) fn apply_roving_tabindex(tabs: &[web_sys::HtmlElement]) {
     for tab in tabs {
@@ -78,14 +179,21 @@ pub(super) fn apply_roving_tabindex(tabs: &[web_sys::HtmlElement]) {
 }
 
 /// Activate `target` within its tablist: update `aria-selected`, the `active`
-/// class on tab + matching panel and roving tabindex. Tab interactions move
-/// focus; fragment restoration can update selection without stealing focus.
+/// class on tab + matching panel and roving tabindex. User tab interactions move
+/// focus; automatic restoration can update selection without stealing focus.
 #[cfg(target_arch = "wasm32")]
 pub(super) fn activate_tab(
     target: &web_sys::HtmlElement,
     tabs: &[web_sys::HtmlElement],
     move_focus: bool,
 ) {
+    let Ok(Some(tablist)) = target.closest("[role=tablist]") else {
+        return;
+    };
+    // Native Hub callbacks own selection; fragment reveal may call this shared boundary.
+    if tablist.has_attribute("data-native-hub-tabs") || !dom_tablist_owned(&tablist.class_name()) {
+        return;
+    }
     let Some(document) = web_sys::window().and_then(|window| window.document()) else {
         return;
     };
@@ -130,8 +238,8 @@ pub(super) fn wire_tab_click(tab: &web_sys::HtmlElement, tabs: &[web_sys::HtmlEl
     let owned_tabs = tabs.to_vec();
     let tab_for_handler = tab.clone();
     let closure =
-        Closure::<dyn FnMut(web_sys::MouseEvent)>::new(move |_event: web_sys::MouseEvent| {
-            activate_tab(&tab_for_handler, &owned_tabs, true);
+        Closure::<dyn FnMut(web_sys::MouseEvent)>::new(move |event: web_sys::MouseEvent| {
+            activate_tab(&tab_for_handler, &owned_tabs, event.is_trusted());
         });
 
     register_island_listener(tab.clone().into(), "click", closure.into_js_value());

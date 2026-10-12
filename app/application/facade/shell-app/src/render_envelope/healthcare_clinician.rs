@@ -1,13 +1,16 @@
 use super::builders::{
-    approval, community, fact, message, metric, module, node, s, schedule, suggestion, work,
-    workflow,
+    approval, community, fact, inbox_sample, message, metric, module, node, s, schedule,
+    suggestion, work, workflow,
 };
 use super::product_activity::product_activity_spine;
-use super::types::{AccreditationState, OperatorContext, TenantRenderEnvelope};
+use super::types::{
+    AccreditationState, IntelligenceSampleId, OperatorContext, TenantRenderEnvelope,
+};
 
 pub(super) fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
     TenantRenderEnvelope {
         context: OperatorContext::HealthcareClinician,
+        finance_body_projection: None,
         tenant_name: s("Harborview Care Network"),
         role_name: s(OperatorContext::HealthcareClinician.role()),
         tenant_class: s("Accredited healthcare tenant · Clinical role scope"),
@@ -44,21 +47,45 @@ pub(super) fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
                 "Prepare visit room 4",
                 "Redacted patient context; no PHI in contract envelope data",
                 "High",
+                inbox_sample(
+                    "healthcare-clinician-room-preparation",
+                    "Sample clinician",
+                    true,
+                    true,
+                ),
             ),
             work(
                 "Acknowledge lab follow-up",
                 "Secure message requires clinician acknowledgement",
                 "High",
+                inbox_sample(
+                    "healthcare-clinician-lab-follow-up",
+                    "Sample follow-up clinician",
+                    false,
+                    true,
+                ),
             ),
             work(
                 "Review discharge checklist",
                 "Template draft for care-team review",
                 "Medium",
+                inbox_sample(
+                    "healthcare-clinician-discharge-task",
+                    "Sample clinician",
+                    true,
+                    false,
+                ),
             ),
             work(
                 "Update shift handoff note",
                 "No production chart mutation",
                 "Medium",
+                inbox_sample(
+                    "healthcare-clinician-handoff-note",
+                    "Sample clinician",
+                    true,
+                    false,
+                ),
             ),
         ],
         schedule: vec![
@@ -117,16 +144,34 @@ pub(super) fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
                 "Discharge checklist draft",
                 "Care coordinator",
                 "Clinician review required before workflow use",
+                inbox_sample(
+                    "healthcare-clinician-discharge-review",
+                    "Sample clinician",
+                    true,
+                    true,
+                ),
             ),
             approval(
                 "Shift handoff template",
                 "Charge nurse",
                 "No production chart write",
+                inbox_sample(
+                    "healthcare-clinician-handoff-template-review",
+                    "Sample charge nurse",
+                    false,
+                    false,
+                ),
             ),
             approval(
                 "Care-team message",
                 "Secure messenger",
                 "Acknowledge locally; not yet wired to a live service",
+                inbox_sample(
+                    "healthcare-clinician-care-message-review",
+                    "Sample clinician",
+                    true,
+                    false,
+                ),
             ),
         ],
         workflow: workflow(
@@ -186,16 +231,19 @@ pub(super) fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
         ],
         intelligence: vec![
             suggestion(
+                IntelligenceSampleId::ClinicalDischargeChecklist,
                 "Explain the checklist",
                 "Summarize why each discharge step matters in plain language.",
                 "No PHI/PII; placeholders only.",
             ),
             suggestion(
+                IntelligenceSampleId::ClinicalHandoff,
                 "Draft handoff",
                 "Create a clinician-reviewable handoff draft from permitted task labels.",
                 "User must approve; no chart write.",
             ),
             suggestion(
+                IntelligenceSampleId::ClinicalChecklistGap,
                 "Find missing step",
                 "Compare this template to the care-team checklist.",
                 "Advisory only.",

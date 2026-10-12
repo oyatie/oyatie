@@ -1,13 +1,16 @@
 use super::builders::{
-    approval, community, fact, message, metric, module, node, s, schedule, suggestion, work,
-    workflow,
+    approval, community, fact, inbox_sample, message, metric, module, node, s, schedule,
+    suggestion, work, workflow,
 };
 use super::product_activity::product_activity_spine;
-use super::types::{AccreditationState, OperatorContext, TenantRenderEnvelope};
+use super::types::{
+    AccreditationState, IntelligenceSampleId, OperatorContext, TenantRenderEnvelope,
+};
 
 pub(super) fn corporate_office_envelope() -> TenantRenderEnvelope {
     TenantRenderEnvelope {
         context: OperatorContext::CorporateOffice,
+        finance_body_projection: None,
         tenant_name: s("Northwind Industrial Group"),
         role_name: s(OperatorContext::CorporateOffice.role()),
         tenant_class: s("Corporate office role · Accounting + HR module scope"),
@@ -48,21 +51,45 @@ pub(super) fn corporate_office_envelope() -> TenantRenderEnvelope {
                 "Approve travel exception",
                 "Policy allows manager review under $2,500",
                 "High",
+                inbox_sample(
+                    "corporate-office-travel-exception-task",
+                    "Sample office operator",
+                    true,
+                    true,
+                ),
             ),
             work(
                 "Send payroll close reminder",
                 "Draft is ready for HR review",
                 "Medium",
+                inbox_sample(
+                    "corporate-office-payroll-reminder",
+                    "Sample HR reviewer",
+                    false,
+                    false,
+                ),
             ),
             work(
                 "Reconcile vendor invoice",
                 "Accounting module matched 2 of 3 line items",
                 "Medium",
+                inbox_sample(
+                    "corporate-office-invoice-reconciliation",
+                    "Sample office operator",
+                    true,
+                    true,
+                ),
             ),
             work(
                 "Acknowledge updated leave policy",
                 "Due today for all office roles",
                 "Low",
+                inbox_sample(
+                    "corporate-office-leave-policy-acknowledgement",
+                    "Sample office operator",
+                    true,
+                    false,
+                ),
             ),
         ],
         schedule: vec![
@@ -109,16 +136,34 @@ pub(super) fn corporate_office_envelope() -> TenantRenderEnvelope {
                 "Travel exception",
                 "Sales manager",
                 "Over soft policy limit; manager can approve",
+                inbox_sample(
+                    "corporate-office-travel-exception-review",
+                    "Sample manager",
+                    false,
+                    true,
+                ),
             ),
             approval(
                 "Vendor tax-code fix",
                 "Accounts payable",
                 "Accounting-only scope",
+                inbox_sample(
+                    "corporate-office-tax-code-review",
+                    "Sample office operator",
+                    true,
+                    false,
+                ),
             ),
             approval(
                 "Onboarding checklist",
                 "HR partner",
                 "Template draft, no production execution",
+                inbox_sample(
+                    "corporate-office-onboarding-review",
+                    "Sample HR partner",
+                    false,
+                    false,
+                ),
             ),
         ],
         workflow: workflow(
@@ -178,16 +223,19 @@ pub(super) fn corporate_office_envelope() -> TenantRenderEnvelope {
         ],
         intelligence: vec![
             suggestion(
+                IntelligenceSampleId::CorporatePolicyChecklist,
                 "Turn policy into steps",
                 "Convert the leave-policy update into a checklist for affected teams.",
                 "Draft only; HR approves before sending.",
             ),
             suggestion(
+                IntelligenceSampleId::CorporateInvoiceMismatch,
                 "Explain invoice mismatch",
                 "Summarize the tax-code mismatch without exposing unrelated vendor data.",
                 "Uses accounting envelope only.",
             ),
             suggestion(
+                IntelligenceSampleId::CorporateDayPriority,
                 "Prioritize my day",
                 "Group mail, tasks, and approvals into a close-friendly order.",
                 "No state mutation.",

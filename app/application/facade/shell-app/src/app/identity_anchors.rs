@@ -41,7 +41,7 @@ pub(super) fn workforce_anchor_board() -> impl IntoView {
             </article>
         </div>
         <div class="workforce-anchor-footer">
-            <span data-workforce-anchor-status="true">"Employees ready · FD-001 workforce workload dogfoods Oyatie Cloud locally."</span>
+            <span data-workforce-anchor-status="true">"Sample workforce preview · employee readiness unavailable."</span>
             <div class="workforce-anchor-routes" aria-label="Workforce connected routes">
                 <button type="button" data-workforce-anchor-action="route-mail">"Reviewer Mail"</button>
                 <button type="button" data-workforce-anchor-action="route-community">"Community update"</button>
@@ -52,161 +52,24 @@ pub(super) fn workforce_anchor_board() -> impl IntoView {
     }
 }
 
-pub(super) fn onboarding_anchor_board() -> impl IntoView {
-    view! {
-        <div class="onboarding-anchor-grid" aria-label="FD-001 tenant admission setup proof">
-            <article class="onboarding-anchor-card selected" data-onboarding-card="tenant">
-                <p class="screen-anchor">"FD-001 TENANT ADMISSION"</p>
-                <h5>"Product workload setup path"</h5>
-                <p>
-                    "Legal profile, payroll calendar, employee import, policy gates, Mail reviewers, Community launch notes, "
-                    "and evidence receipts become one tenant setup packet."
-                </p>
-                <div class="onboarding-anchor-actions">
-                    <button type="button" data-onboarding-anchor-action="route-tasks">"Today queue"</button>
-                    <button type="button" data-onboarding-anchor-action="import-employees">"Import people"</button>
-                </div>
-            </article>
-            <article class="onboarding-anchor-card" data-onboarding-card="cloud">
-                <p class="screen-anchor">"OYATIE CLOUD"</p>
-                <h5>"Substrate readiness before go-live"</h5>
-                <p>
-                    "Region pack, PIPA boundary, role envelope, deployment gates, audit freshness, and rollback posture "
-                    "prove the tenant can be hosted safely."
-                </p>
-                <div class="onboarding-anchor-actions">
-                    <button type="button" data-onboarding-anchor-action="route-cloud">"Cloud cells"</button>
-                    <button type="button" data-onboarding-anchor-action="route-policy">"Policy gate"</button>
-                </div>
-            </article>
-            <article class="onboarding-anchor-card" data-onboarding-card="launch">
-                <p class="screen-anchor">"LAUNCH PACKET"</p>
-                <h5>"Interactive, local-only setup"</h5>
-                <p>
-                    "Operators can advance setup, draft reviewer mail, post a community note, and attach evidence while "
-                    "registries, HRIS, payroll, auth, and cloud mutations remain disconnected."
-                </p>
-                <div class="onboarding-anchor-actions">
-                    <button type="button" data-onboarding-anchor-action="advance-setup">"Advance setup"</button>
-                    <button type="button" data-onboarding-anchor-action="route-evidence">"Evidence"</button>
-                </div>
-            </article>
-        </div>
-        <div class="onboarding-anchor-footer">
-            <span data-onboarding-anchor-status="true">
-                "Onboarding ready · FD-001 tenant setup dogfoods Oyatie Cloud locally."
-            </span>
-            <div class="onboarding-anchor-routes" aria-label="Onboarding connected routes">
-                <button type="button" data-onboarding-anchor-action="route-payroll">"Payroll calendar"</button>
-                <button type="button" data-onboarding-anchor-action="route-mail">"Reviewer Mail"</button>
-                <button type="button" data-onboarding-anchor-action="route-community">"Community launch"</button>
-                <button type="button" data-onboarding-anchor-action="route-schedule">"Schedule"</button>
-            </div>
-        </div>
-    }
+pub(super) fn onboarding_anchor_html() -> String {
+    r##"<div class="onboarding-anchor-grid" aria-label="Sample setup destinations"><article class="onboarding-anchor-card"><p class="screen-anchor">SAMPLE SETUP</p><h5>Inspect product workload examples</h5><p>Legal, calendar, people and policy examples are not a tenant admission packet.</p><div class="onboarding-anchor-actions"><a href="#tasks-title" data-account-route="tasks" data-account-focus="setup-tasks">Tasks sample</a><button type="button" data-onboarding-anchor-action="import-employees" data-account-focus="setup-import">Inspect HR sample; import unavailable</button></div></article><article class="onboarding-anchor-card"><p class="screen-anchor">CLOUD AND POLICY EXAMPLES</p><h5>Inspect existing sample destinations</h5><p>Live hosting, privacy, deployment and readiness remain Unknown / unavailable.</p><div class="onboarding-anchor-actions"><button type="button" data-onboarding-anchor-action="route-cloud" data-account-focus="setup-cloud">Cloud sample</button><button type="button" data-onboarding-anchor-action="route-policy" data-account-focus="setup-policy">Policy sample</button></div></article><article class="onboarding-anchor-card"><p class="screen-anchor">PAGE MEMORY ONLY</p><h5>Complete illustrative steps locally</h5><p>No reviewer draft, community publication, evidence receipt, import or go-live is created.</p><div class="onboarding-anchor-actions"><button type="button" data-onboarding-anchor-action="advance-setup" data-account-focus="setup-anchor-advance">Complete sample step</button><button type="button" data-onboarding-anchor-action="route-evidence" data-account-focus="setup-evidence">Evidence sample</button></div></article></div><div class="onboarding-anchor-footer"><span data-onboarding-anchor-status="true" data-account-local="anchor-status" role="status">Sample setup only; no tenant admission or readiness occurred.</span><div class="onboarding-anchor-routes" aria-label="Sample setup routes"><button type="button" data-onboarding-anchor-action="route-payroll" data-account-focus="setup-payroll">Payroll sample</button><button type="button" data-onboarding-anchor-action="route-mail" data-account-focus="setup-mail">Mail sample</button><button type="button" data-onboarding-anchor-action="route-community" data-account-focus="setup-community">Community sample</button><a href="#schedule-title" data-account-route="schedule" data-account-focus="setup-schedule">Schedule sample</a></div></div>"##.to_owned()
 }
 
-pub(super) fn identity_sessions_anchor_board() -> impl IntoView {
-    view! {
-        <div class="identity-anchor-grid identity-sessions-anchor" aria-label="Session tenant proof">
-            <article class="identity-anchor-card selected" data-identity-anchor-card="sessions">
-                <p class="screen-anchor">"FD-001 SESSION PROOF"</p>
-                <h5>"Auth sessions protect product workloads"</h5>
-                <p>"Passkey, device, and payroll-role activity are evidence leaves for FD-001 tenant services."</p>
-                <div class="identity-anchor-actions">
-                    <button type="button" data-identity-anchor-action="route-roles">"Role envelope"</button>
-                    <button type="button" data-identity-anchor-action="route-evidence">"Evidence graph"</button>
-                </div>
-            </article>
-            <article class="identity-anchor-card" data-identity-anchor-card="cloud">
-                <p class="screen-anchor">"OYATIE CLOUD"</p>
-                <h5>"Oyatie Cloud tenant session posture"</h5>
-                <p>"Device locality, PIPA-safe audit, and session freshness prove the substrate can host workforce tenants."</p>
-                <div class="identity-anchor-actions">
-                    <button type="button" data-identity-anchor-action="route-cloud">"Cloud cells"</button>
-                    <button type="button" data-identity-anchor-action="route-policy">"PIPA policy"</button>
-                </div>
-            </article>
-        </div>
-        <div class="identity-anchor-footer">
-            <span data-identity-anchor-status="true">"Sessions ready · local-only identity telemetry."</span>
-            <div class="identity-anchor-routes">
-                <button type="button" data-identity-anchor-action="route-mail">"Reviewer Mail"</button>
-                <button type="button" data-identity-anchor-action="route-audit">"Audit ledger"</button>
-            </div>
-        </div>
-    }
-}
-
-pub(super) fn identity_roles_anchor_board() -> impl IntoView {
-    view! {
-        <div class="identity-anchor-grid identity-roles-anchor" aria-label="Role envelope proof">
-            <article class="identity-anchor-card selected" data-identity-anchor-card="roles">
-                <p class="screen-anchor">"FD-001 ROLE ENVELOPE"</p>
-                <h5>"Access controls every product workload"</h5>
-                <p>"Payroll, filing, workflow, Mail, Community, and cloud operations share one role envelope."</p>
-                <div class="identity-anchor-actions">
-                    <button type="button" data-identity-anchor-action="review-roles">"Review grants"</button>
-                    <button type="button" data-identity-anchor-action="route-workflow">"Workflow gate"</button>
-                </div>
-            </article>
-            <article class="identity-anchor-card" data-identity-anchor-card="pipa">
-                <p class="screen-anchor">"OYATIE CLOUD POLICY"</p>
-                <h5>"Oyatie Cloud PIPA-safe tenant boundary"</h5>
-                <p>"Role decisions stay auditable before any tenant workload can move through cloud admission gates."</p>
-                <div class="identity-anchor-actions">
-                    <button type="button" data-identity-anchor-action="route-policy">"Policy board"</button>
-                    <button type="button" data-identity-anchor-action="route-cloud">"Cloud gate"</button>
-                </div>
-            </article>
-            <article class="identity-anchor-card" data-identity-anchor-card="local">
-                <p class="screen-anchor">"LOCAL ONLY"</p>
-                <h5>"Interactive access preview"</h5>
-                <p>"Grant reviews, denial traces, and reviewer routes update visual state only; no SSO or IAM mutation runs."</p>
-                <div class="identity-anchor-actions">
-                    <button type="button" data-identity-anchor-action="route-evidence">"Evidence"</button>
-                    <button type="button" data-identity-anchor-action="route-community">"Community note"</button>
-                </div>
-            </article>
-        </div>
-        <div class="identity-anchor-footer">
-            <span data-identity-anchor-status="true">"Roles ready · FD-001 access envelope dogfoods Oyatie Cloud locally."</span>
-            <div class="identity-anchor-routes">
-                <button type="button" data-identity-anchor-action="route-payroll">"Payroll close"</button>
-                <button type="button" data-identity-anchor-action="route-audit">"Audit packet"</button>
-            </div>
-        </div>
-    }
-}
-
-pub(super) fn identity_org_anchor_board() -> impl IntoView {
-    view! {
-        <div class="identity-anchor-grid identity-org-anchor" aria-label="Organization tenant proof">
-            <article class="identity-anchor-card selected" data-identity-anchor-card="org">
-                <p class="screen-anchor">"FD-001 ORG PROFILE"</p>
-                <h5>"Corporate facts feed every module"</h5>
-                <p>"Legal profile, payroll calendar, tax identifiers, billing, and employee facts become shared tenant context."</p>
-                <div class="identity-anchor-actions">
-                    <button type="button" data-identity-anchor-action="route-onboarding">"Setup packet"</button>
-                    <button type="button" data-identity-anchor-action="route-payroll">"Payroll calendar"</button>
-                </div>
-            </article>
-            <article class="identity-anchor-card" data-identity-anchor-card="cloud">
-                <p class="screen-anchor">"OYATIE CLOUD TENANT"</p>
-                <h5>"Oyatie Cloud hosted profile readiness"</h5>
-                <p>"Region packs, audit receipts, deployment gates, and evidence spine prove this tenant can be hosted."</p>
-                <div class="identity-anchor-actions">
-                    <button type="button" data-identity-anchor-action="route-cloud">"Cloud cells"</button>
-                    <button type="button" data-identity-anchor-action="route-evidence">"Evidence spine"</button>
-                </div>
-            </article>
-        </div>
-        <div class="identity-anchor-footer">
-            <span data-identity-anchor-status="true">"Organization ready · local-only tenant profile preview."</span>
-            <div class="identity-anchor-routes">
-                <button type="button" data-identity-anchor-action="route-mail">"Reviewer Mail"</button>
-                <button type="button" data-identity-anchor-action="route-community">"Community launch"</button>
-            </div>
-        </div>
-    }
+pub(super) fn identity_anchor_html(panel: &str) -> String {
+    let inspect = match panel {
+        "sessions" => {
+            r#"<button type="button" data-identity-anchor-action="route-roles" data-account-focus="device-roles">Inspect sample roles</button>"#
+        }
+        "roles" => {
+            r#"<button type="button" data-identity-anchor-action="review-roles" data-account-focus="review-grants">Review sample grants</button><button type="button" data-identity-anchor-action="route-workflow" data-account-focus="roles-workflow">Workflow sample</button>"#
+        }
+        "org" => {
+            r#"<button type="button" data-identity-anchor-action="route-onboarding" data-account-focus="org-setup">Inspect sample setup</button>"#
+        }
+        _ => panic!("unsupported account anchor"),
+    };
+    format!(
+        r#"<div class="identity-anchor-grid identity-{panel}-anchor" aria-label="Sample {panel} connected destinations"><article class="identity-anchor-card"><p class="screen-anchor">SAMPLE ACCOUNT CONTEXT</p><h5>Illustrative {panel} facts</h5><p>These fixed examples supply no verified account, privacy, hosting or policy result.</p><div class="identity-anchor-actions">{inspect}<button type="button" data-identity-anchor-action="route-evidence" data-account-focus="{panel}-evidence">Evidence sample</button></div></article><article class="identity-anchor-card"><p class="screen-anchor">EXISTING SAMPLE DESTINATIONS</p><h5>Inspect cloud and policy examples</h5><p>Live authority is Unknown / unavailable.</p><div class="identity-anchor-actions"><button type="button" data-identity-anchor-action="route-cloud" data-account-focus="{panel}-cloud">Cloud sample</button><button type="button" data-identity-anchor-action="route-policy" data-account-focus="{panel}-policy">Policy sample</button></div></article></div><div class="identity-anchor-footer"><span data-identity-anchor-status="true" data-account-local="{panel}-status" role="status">Sample inspection only; no live authority supplied.</span><div class="identity-anchor-routes" aria-label="Sample {panel} routes"><button type="button" data-identity-anchor-action="route-mail" data-account-focus="{panel}-mail">Mail sample</button><button type="button" data-identity-anchor-action="route-community" data-account-focus="{panel}-community">Community sample</button><button type="button" data-identity-anchor-action="route-payroll" data-account-focus="{panel}-payroll">Payroll sample</button><button type="button" data-identity-anchor-action="route-audit" data-account-focus="{panel}-audit">Audit sample</button></div></div>"#
+    )
 }

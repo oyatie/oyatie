@@ -1,231 +1,274 @@
 use super::*;
 
-pub(super) const CATALOG_FILTERS: [(&str, &str); 9] = [
-    ("all", "All"),
-    ("control", "Control"),
-    ("cloud", "Cloud"),
-    ("operations", "Ops"),
-    ("trust", "Trust"),
-    ("corporate", "Corporate"),
-    ("daily", "Daily"),
-    ("workflow", "Workflow"),
-    ("no-code", "No-code"),
-];
+pub(super) fn catalog_available(available: Signal<bool>) -> bool {
+    #[cfg(target_arch = "wasm32")]
+    {
+        available.try_get().unwrap_or(false)
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        available.try_get_untracked().unwrap_or(false)
+    }
+}
 
 pub(super) fn service_catalog_panel(
-    modules: Vec<ModuleCard>,
-    omitted_note: String,
+    envelope: TenantRenderEnvelope,
+    available: Signal<bool>,
 ) -> impl IntoView {
-    let total_modules = modules.len();
-    let attention_count = modules
+    let source = catalog_source(&envelope);
+    view! {
+        <For each=move || [(source.clone(), envelope.clone())]
+            key=|(source, _)| source.clone()
+            children=move |(source, envelope)| catalog_panel(envelope, available, source) />
+    }
+}
+
+fn catalog_source(envelope: &TenantRenderEnvelope) -> String {
+    let records: Vec<_> = envelope.modules.iter().filter_map(catalog_record).collect();
+    let label = daily_sample_label(envelope);
+    let hub_source = HubSample::envelope_source(envelope);
+    serde_json::to_string(&(
+        envelope.context.id(),
+        &label,
+        &hub_source,
+        records
+            .iter()
+            .map(|record| (record.id, record.fields()))
+            .collect::<Vec<_>>(),
+    ))
+    .expect("native visible Catalog sample source serializes")
+}
+
+fn catalog_panel(
+    envelope: TenantRenderEnvelope,
+    available: Signal<bool>,
+    source: String,
+) -> impl IntoView {
+    let records: Vec<_> = envelope.modules.iter().filter_map(catalog_record).collect();
+    let identities: std::collections::BTreeSet<_> =
+        records.iter().map(|record| record.id).collect();
+    let admitted = envelope.modules
+        == crate::shell_capability_registry::permitted_module_cards(envelope.context)
+        && records.len() == envelope.modules.len()
+        && identities.len() == records.len();
+    let enabled = move || admitted && catalog_available(available);
+    let local_available = Signal::derive(enabled);
+    let groups: std::collections::BTreeMap<_, _> = records
         .iter()
-        .filter(|module| catalog_state_for(&module.group, &module.name) == "attention")
-        .count();
-    let cloud_count = modules
+        .map(|record| {
+            (
+                catalog_group_slug(&record.module.group),
+                record.module.group.clone(),
+            )
+        })
+        .collect();
+    let total = records.len();
+    let attention = records
         .iter()
-        .filter(|module| catalog_group_slug(&module.group) == "cloud")
+        .filter(|record| record.state == "attention")
         .count();
-    let trust_count = modules
+    let cloud = records
         .iter()
-        .filter(|module| matches!(catalog_group_slug(&module.group), "trust" | "control"))
+        .filter(|record| record.module.group == "Cloud")
         .count();
+    let trust = records
+        .iter()
+        .filter(|record| matches!(record.module.group.as_str(), "Trust" | "Control"))
+        .count();
+    let group_count = groups.len();
+    let label = daily_sample_label(&envelope);
+    let hub_source = HubSample::envelope_source(&envelope);
+    let templates = catalog_hub_templates(&envelope);
 
     view! {
-        <div class="catalog-kpi-strip" aria-label="Service catalog summary">
-            <div class="catalog-kpi accent"><span>"Permitted modules"</span><strong>{total_modules}</strong><small>"from server envelope"</small></div>
-            <div class="catalog-kpi"><span>"Cloud dependencies"</span><strong>{cloud_count}</strong><small>"compute · network · cells"</small></div>
-            <div class="catalog-kpi warn"><span>"Need attention"</span><strong>{attention_count}</strong><small>"review before promote"</small></div>
-            <div class="catalog-kpi"><span>"Trust surfaces"</span><strong>{trust_count}</strong><small>"roles · audit · policy"</small></div>
-            <div class="catalog-kpi"><span>"Cross-service routes"</span><strong>"7"</strong><small>"workflow → mail/community/ops"</small></div>
-        </div>
-
-        <div class="catalog-toolbar" aria-label="Catalog search and filters">
-            <label class="catalog-search">
-                <span aria-hidden="true">"⌕"</span>
-                <input data-catalog-search="true" type="search" aria-label="Search service catalog" placeholder="Search modules, owners, dependencies..." />
-            </label>
-            <div class="filter-pills catalog-filters" role="toolbar" aria-label="Catalog filters">
-                {CATALOG_FILTERS.into_iter().map(|(slug, label)| view! {
-                    <button
-                        type="button"
-                        class=if slug == "all" { "fp active" } else { "fp" }
-                        data-catalog-filter=slug
-                    >
-                        <span class="fp-dot" aria-hidden="true"></span>{label}
-                    </button>
-                }).collect_view()}
-                <button type="button" class="fp" data-catalog-filter="attention">
-                    <span class="fp-dot danger" aria-hidden="true"></span>"Attention"
-                </button>
+        <section id="service-catalog" class="panel modules-panel catalog-workbench" aria-labelledby="modules-title"
+            data-catalog-root="true" data-catalog-context=envelope.context.id() data-catalog-label=label.clone()
+            data-catalog-source=source data-catalog-hub-source=hub_source data-catalog-admitted=admitted.to_string()
+            data-catalog-mode=if cfg!(target_arch="wasm32") { "island" } else { "ssr" }
+            data-catalog-available=move || enabled().to_string()>
+            <div class="panel-header catalog-header"><div><p class="eyebrow">"Service catalog"</p>
+                <h3 id="modules-title">"Illustrative service samples"</h3></div>
+                <span class="catalog-live-chip">"Anonymous samples · live authority unavailable"</span>
             </div>
-            <span class="catalog-status" data-catalog-status="true">
-                <strong data-catalog-visible-count="true">{total_modules}</strong>
-                " visible · all filter · local catalog only"
+            <p class="sample-context-notice">{format!("Observed anonymous sample: {label}. No tenant or role verified; signing in does not grant live Catalog authority.")}</p>
+            <p>"Cards, health labels, owners, priorities, dependencies and lineage are illustrative examples, not current service status or entitlements."</p>
+            <p id="catalog-availability" data-catalog-availability="true" role="status">{move || if enabled() {
+                "Search, pin and inspect these browser-local samples. Live Catalog operations are unavailable."
+            } else { "Catalog sample unavailable while the requested context is loading, failed, mismatched or unrecognized. Local controls are disabled." }}</p>
+            <p id="catalog-unavailable-effects">"Request access and Stage manifest are unavailable: no live grant, admission or provisioning contract. No request, receipt, file or durable pin is created."</p>
+            <div class="catalog-kpi-strip" aria-label="Illustrative Catalog sample summary">
+                <div class="catalog-kpi accent"><span>"Sample cards"</span><strong>{total}</strong><small>"from the observed sample envelope"</small></div>
+                <div class="catalog-kpi"><span>"Cloud examples"</span><strong>{cloud}</strong><small>"illustrative dependencies"</small></div>
+                <div class="catalog-kpi warn"><span>"Attention examples"</span><strong>{attention}</strong><small>"sample labels; no live health"</small></div>
+                <div class="catalog-kpi"><span>"Trust examples"</span><strong>{trust}</strong><small>"no authorization inferred"</small></div>
+                <div class="catalog-kpi"><span>"Visible categories"</span><strong>{group_count}</strong><small>"derived from these cards"</small></div>
+            </div>
+            <div class="catalog-toolbar" aria-label="Catalog search and filters">
+                <label class="catalog-search"><span aria-hidden="true">"⌕"</span>
+                    <input id="catalog-sample-search" data-catalog-search="true" data-catalog-focus="search" type="search" aria-label="Search Catalog samples"
+                        placeholder="Search samples, owners, dependencies" disabled=move || !enabled() aria-describedby="catalog-availability" />
+                </label>
+                <div class="filter-pills catalog-filters" role="toolbar" aria-label="Sample categories">
+                    <button type="button" class="fp active" data-catalog-filter="all" data-catalog-focus="filter:all" aria-pressed="true"
+                        disabled=move || !enabled()>"All"</button>
+                    {groups.into_iter().map(|(slug, group)| view! {
+                        <button type="button" class="fp" data-catalog-filter=slug data-catalog-focus=format!("filter:{slug}")
+                            aria-pressed="false" disabled=move || !enabled()>{group}</button>
+                    }).collect_view()}
+                    <button type="button" class="fp" data-catalog-attention="true" data-catalog-focus="attention"
+                        aria-pressed="false" disabled=move || !enabled()>"Attention examples"</button>
+                    <button type="button" data-catalog-reset="true" data-catalog-focus="reset" disabled=move || !enabled()>"Reset local view"</button>
+                </div>
+                <span class="catalog-status" data-catalog-status="true" role="status" aria-live="polite">{format!("{total} of {total} sample cards · all categories")}</span>
+            </div>
+            <p data-catalog-empty="true" hidden>"No sample cards match. Reset the local view to see the observed sample cards."</p>
+            <section class="catalog-detail" data-catalog-inspection="true" id="catalog-sample-detail" aria-label="Selected Catalog sample" hidden>
+                <h4 data-catalog-detail-title="true">"Sample record"</h4><p>"Illustrative fields only; live verification and operations unavailable."</p>
+                <dl>{(0..12).map(|index| view! {
+                    <div data-catalog-inspect-field=index hidden><dt data-catalog-inspect-label="true"></dt><dd data-catalog-inspect-value="true"></dd></div>
+                }).collect_view()}</dl>
+                <button type="button" data-catalog-close="true" data-catalog-focus="close" disabled=move || !enabled()>"Close sample inspection"</button>
+            </section>
+            <div class="catalog-workspace">
+                <div class="catalog-table-shell" role="region" aria-label="Illustrative sample cards; scroll horizontally for all fields and actions"
+                    tabindex="0" data-catalog-focus="table">
+                    <div class="catalog-table-head" aria-hidden="true"><span>"Sample health"</span><span>"Module"</span><span>"Category"</span>
+                        <span>"Sample owner"</span><span>"Illustrative dependency"</span><span>"Local actions"</span></div>
+                    <div class="catalog-module-list">{records.into_iter().map(|record| catalog_module(record, local_available)).collect_view()}</div>
+                </div>
+                <aside id="service-graph" class="catalog-service-graph" aria-label="Illustrative sample lineage">
+                    <div class="graph-head"><p class="screen-anchor">"SAMPLE GRAPH"</p><strong>"Illustrative service lineage"</strong>
+                        <span>"Examples only. Live relationships, delivery and verified receipts are unavailable."</span></div>
+                    <ol class="lineage-list">
+                        <li class="root"><span>"Workflow"</span><strong>"Tenant change approval"</strong><em>"example root"</em></li>
+                        <li><span>"Messenger"</span><strong>"Ops room sample"</strong><em>"no message created"</em></li>
+                        <li><span>"Mail"</span><strong>"Formal approval sample"</strong><em>"no draft created"</em></li>
+                        <li><span>"Community"</span><strong>"Governance council sample"</strong><em>"no publication"</em></li>
+                        <li><span>"Cloud Ops"</span><strong>"Runbook + FinOps examples"</strong><em>"no live operation"</em></li>
+                        <li><span>"Audit"</span><strong>"Receipt example"</strong><em>"unverified"</em></li>
+                    </ol>
+                    <div class="catalog-graph-actions" aria-label="Existing sample graph routes">
+                        {catalog_link("graph-workflow", "workflow-studio", "", "Workflow sample")}
+                        {catalog_link("graph-mail", "work-hub", "Mail", "Mail sample")}
+                        {catalog_link("graph-community", "work-hub", "Community", "Community sample")}
+                        {catalog_link("graph-evidence", "evidence-spine", "", "Evidence sample")}
+                    </div>
+                </aside>
+            </div>
+            {service_catalog_anchor_board()}
+            <p class="catalog-footer-hint omitted-note">{envelope.omitted_capability_note}</p>
+            <p data-catalog-route-status="true" role="status">"Existing sample routes only; no operation or output performed."</p>
+            {templates}
+        </section>
+    }
+}
+
+pub(super) fn catalog_module(record: CatalogRecord, available: Signal<bool>) -> impl IntoView {
+    let fields =
+        serde_json::to_string(&record.fields()).expect("visible Catalog record serializes");
+    let health = catalog_state_label(record.state);
+    let group_slug = catalog_group_slug(&record.module.group);
+    let unavailable_id = format!("catalog-unavailable-{}", record.id);
+    let title_marker = format!("CAT-{}", catalog_code_for(&record.module.name));
+    let open = if record.destination.is_empty() {
+        view! { <button type="button" disabled aria-describedby=unavailable_id.clone()>"Open unavailable"</button> }.into_any()
+    } else if record.id == "foundry-ontology" {
+        view! { <button type="button" data-catalog-action="open" data-catalog-target=record.destination data-catalog-focus="open:foundry-ontology"
+            disabled=move || !catalog_available(available)>"Open ontology sample"</button> }.into_any()
+    } else {
+        view! { <a href=format!("#{}", record.destination) data-catalog-route=record.id data-catalog-channel=record.channel
+            data-catalog-focus=format!("open:{}", record.id) aria-describedby=format!("catalog-availability {unavailable_id}")>
+            <span data-catalog-field="Action">{record.module.action_label.clone()}</span>" sample"
+        </a> }.into_any()
+    };
+    view! {
+        <article class="catalog-module-row module-card" data-catalog-module=record.id data-catalog-record=fields
+            data-catalog-group=group_slug data-catalog-state=record.state>
+            <span class="catalog-health"><span class=format!("health-dot health-{}", record.state) aria-hidden="true"></span>
+                <span data-catalog-field="Sample health">{health}</span></span>
+            <div class="catalog-module-main">
+                <button type="button" class="catalog-module-title" data-catalog-detail=record.id data-sidepeek-id=title_marker
+                    data-catalog-field="Module" data-catalog-focus=format!("detail:{}", record.id)
+                    aria-controls="catalog-sample-detail" aria-expanded="false" disabled=move || !catalog_available(available)>{record.module.name.clone()}</button>
+                <p data-catalog-field="Description">{record.module.description.clone()}</p><code>{catalog_code_for(&record.module.name)}</code>
+            </div>
+            <span class="cat-tag" data-catalog-field="Category">{record.module.group}</span>
+            <span class="owner-cell"><span class="avatar-xs" aria-hidden="true">{catalog_owner_avatar(record.owner)}</span>
+                <span data-catalog-field="Sample owner">{record.owner}</span></span>
+            <span class="catalog-dependency-chain"><em>"Workflow example"</em><i aria-hidden="true">"→"</i>
+                <em data-catalog-field="Sample dependency">{record.dependency}</em><i aria-hidden="true">"→"</i><em>"Audit example"</em>
+                <span class="crit" data-catalog-field="Sample priority">{record.priority}</span></span>
+            <span class="catalog-row-actions">{open}
+                <button type="button" data-catalog-pin=record.id data-catalog-focus=format!("pin:{}", record.id) aria-pressed="false"
+                    disabled=move || !catalog_available(available)>"Pin locally"</button>
+                <button type="button" disabled data-catalog-unavailable="request" aria-describedby="catalog-unavailable-effects">"Request access unavailable"</button>
             </span>
-        </div>
+            <small id=unavailable_id class="catalog-open-reason" hidden=!record.destination.is_empty()>"Dedicated product unavailable; this card is an illustrative sample only."</small>
+        </article>
+    }
+}
 
-        <div class="catalog-workspace">
-            <div class="catalog-table-shell" role="region" aria-label="Permitted modules table">
-                <div class="catalog-table-head" aria-hidden="true">
-                    <span>"Health"</span>
-                    <span>"Module"</span>
-                    <span>"Category"</span>
-                    <span>"Owner"</span>
-                    <span>"Downstream graph"</span>
-                    <span>"Actions"</span>
-                </div>
-                <div class="catalog-module-list">
-                    {modules.into_iter().map(service_catalog_module).collect_view()}
-                </div>
-            </div>
-
-            <aside id="service-graph" class="catalog-service-graph" aria-label="Service graph and module lineage">
-                <div class="graph-head">
-                    <p class="screen-anchor">"SERVICE GRAPH"</p>
-                    <strong>"One cohesive Oyatie nervous system"</strong>
-                    <span>"Workflow events fan out to built-in surfaces and return audit evidence."</span>
-                </div>
-                <ol class="lineage-list">
-                    <li class="root"><span>"Workflow"</span><strong>"Tenant change approval"</strong><em>"root event"</em></li>
-                    <li><span>"Messenger"</span><strong>"Ops room draft"</strong><em>"delivered"</em></li>
-                    <li><span>"Mail"</span><strong>"Formal approval brief"</strong><em>"pending"</em></li>
-                    <li><span>"Community"</span><strong>"Governance council note"</strong><em>"review"</em></li>
-                    <li><span>"Cloud Ops"</span><strong>"Runbook + FinOps"</strong><em>"guarded"</em></li>
-                    <li><span>"Audit"</span><strong>"Receipt spine"</strong><em>"sealed"</em></li>
-                </ol>
-                <div class="catalog-graph-actions" aria-label="Service graph actions">
-                    <button type="button" data-catalog-graph-action="workflow">"Open workflow"</button>
-                    <button type="button" data-catalog-graph-action="mail">"Mail route"</button>
-                    <button type="button" data-catalog-graph-action="community">"Community route"</button>
-                    <button type="button" data-catalog-graph-action="evidence">"Evidence spine"</button>
-                </div>
-            </aside>
-        </div>
-
-        {service_catalog_anchor_board()}
-
-        <p class="catalog-footer-hint omitted-note">
-            <span aria-hidden="true">"✦"</span>
-            {omitted_note}
-        </p>
+pub(super) fn catalog_link(
+    key: &'static str,
+    destination: &'static str,
+    channel: &'static str,
+    label: &'static str,
+) -> impl IntoView {
+    let unavailable_id = format!("catalog-link-unavailable-{key}");
+    view! {
+        <span class="catalog-connected-link">
+            <a href=format!("#{destination}") data-catalog-link=key data-catalog-channel=channel
+                data-catalog-focus=format!("route:{key}") aria-describedby=format!("catalog-availability {unavailable_id}")>{label}</a>
+            <small id=unavailable_id class="catalog-open-reason" data-catalog-link-reason=key hidden></small>
+        </span>
     }
 }
 
 pub(super) fn service_catalog_anchor_board() -> impl IntoView {
     view! {
-        <div class="trust-anchor-board catalog-trust-board" aria-label="FD-001 service catalog and Oyatie Cloud tenant workload proof">
+        <div class="trust-anchor-board catalog-trust-board" aria-label="Illustrative Catalog dependencies; no live admission proof">
             <div class="trust-anchor-grid">
-                <article class="trust-anchor-card selected" data-trust-proof-card="catalog-fd001">
-                    <p class="screen-anchor">"FD-001 MODULE CONTRACT"</p>
-                    <h5>"Catalog is the service graph manifest"</h5>
-                    <p>
-                        "Core, Workflow, Messenger, Mail, Community, Finance, Identity, Ontology, Intelligence, and Daily Work are presented as one permitted FD-001 tenant workload graph."
-                    </p>
-                    <div class="trust-anchor-actions">
-                        <button type="button" data-trust-proof-action="stage-catalog">"Stage manifest"</button>
-                        <button type="button" data-trust-proof-action="route-workflow">"Workflow proof"</button>
-                    </div>
-                </article>
-                <article class="trust-anchor-card" data-trust-proof-card="catalog-cloud">
-                    <p class="screen-anchor">"OYATIE CLOUD ADMISSION"</p>
-                    <h5>"Substrate dependencies are visible first"</h5>
-                    <p>
-                        "Cloud cells, policy gates, resource inventory, deployment gates, FinOps, and audit receipts make hosting readiness explicit before service claims."
-                    </p>
-                    <div class="trust-anchor-actions">
-                        <button type="button" data-trust-proof-action="route-cloud">"Cloud substrate"</button>
-                        <button type="button" data-trust-proof-action="route-gates">"Deployment gates"</button>
-                    </div>
-                </article>
-                <article class="trust-anchor-card" data-trust-proof-card="catalog-local">
-                    <p class="screen-anchor">"LOCAL-ONLY CATALOG OPS"</p>
-                    <h5>"Request, pin, and route without provisioning"</h5>
-                    <p>
-                        "Operators can filter modules, inspect dependencies, pin rows, and route reviewers visually; no service admission, IAM, deploy, billing, or cloud mutation executes."
-                    </p>
-                    <div class="trust-anchor-actions">
-                        <button type="button" data-trust-proof-action="route-policy">"Policy"</button>
-                        <button type="button" data-trust-proof-action="route-audit">"Audit ledger"</button>
-                    </div>
-                </article>
+                <article class="trust-anchor-card selected"><p class="screen-anchor">"SAMPLE MODULE GRAPH"</p><h5>"Inspect the visible sample cards"</h5>
+                    <p>"This anonymous sample does not establish service admission, health or entitlement."</p><div class="trust-anchor-actions">
+                        <button type="button" disabled data-catalog-unavailable="stage" aria-describedby="catalog-unavailable-effects">"Stage manifest unavailable"</button>
+                        {catalog_link("workflow", "workflow-studio", "", "Workflow sample")}
+                    </div></article>
+                <article class="trust-anchor-card"><p class="screen-anchor">"ILLUSTRATIVE CLOUD"</p><h5>"Example dependencies only"</h5>
+                    <p>"No live hosting, deployment or production readiness is verified."</p><div class="trust-anchor-actions">
+                        {catalog_link("cloud", "cockpit-panel-topology", "", "Cloud sample")}
+                        {catalog_link("gates", "resource-panel-gates", "", "Gate examples")}
+                    </div></article>
+                <article class="trust-anchor-card"><p class="screen-anchor">"BROWSER-LOCAL CATALOG"</p><h5>"Filter, pin and inspect samples"</h5>
+                    <p>"Local pins last only for this page. No provisioning or durable changes."</p><div class="trust-anchor-actions">
+                        {catalog_link("policy", "cockpit-panel-policy", "", "Policy sample")}
+                        {catalog_link("audit", "resource-panel-audit", "", "Audit sample")}
+                    </div></article>
             </div>
-            <div class="trust-anchor-footer">
-                <span data-trust-proof-status="true">
-                    "Service catalog ready · FD-001 module graph dogfoods Oyatie Cloud as local tenant workload proof."
-                </span>
-                <div class="trust-anchor-routes" aria-label="Service catalog connected routes">
-                    <button type="button" data-trust-proof-action="route-finance">"Finance"</button>
-                    <button type="button" data-trust-proof-action="route-identity">"Identity"</button>
-                    <button type="button" data-trust-proof-action="route-daily">"Daily Work"</button>
-                    <button type="button" data-trust-proof-action="route-evidence">"Evidence"</button>
-                </div>
-            </div>
+            <div class="trust-anchor-footer"><span>"Illustrative Catalog lineage; live authority unavailable."</span>
+                <div class="trust-anchor-routes" aria-label="Existing connected samples">
+                    {catalog_link("finance", "finance-panel-ledger", "", "Finance sample")}
+                    {catalog_link("identity", "identity-panel-auth", "", "Identity sample")}
+                    {catalog_link("daily", "daily-execution", "", "Daily sample")}
+                    {catalog_link("evidence", "evidence-spine", "", "Evidence sample")}
+                </div></div>
         </div>
     }
 }
 
-pub(super) fn service_catalog_module(module: ModuleCard) -> impl IntoView {
-    let group_slug = catalog_group_slug(&module.group);
-    let state = catalog_state_for(&module.group, &module.name);
-    let state_label = catalog_state_label(state);
-    let health_class = format!("health-dot health-{state}");
-    let owner = catalog_owner_for(&module.group, &module.name);
-    let avatar = catalog_owner_avatar(owner);
-    let criticality = catalog_criticality_for(&module.group, &module.name);
-    let criticality_class = format!("crit crit-{criticality}");
-    let route = catalog_route_for(&module.name);
-    let dependency = catalog_dependency_for(&module.group, &module.name);
-    let sidepeek_desc = format!(
-        "{} · {} · {}",
-        module.description, owner, "local visual-only catalog module"
-    );
-    let sidepeek_id = format!("CAT-{}", catalog_code_for(&module.name));
-
-    view! {
-        <article
-            class="catalog-module-row module-card"
-            data-catalog-module="true"
-            data-catalog-group=group_slug
-            data-catalog-state=state
-        >
-            <span class=health_class aria-label=state_label></span>
-            <div class="catalog-module-main">
-                <button
-                    type="button"
-                    class="catalog-module-title"
-                    data-sidepeek-trigger="catalog-module"
-                    data-sidepeek-title=module.name.clone()
-                    data-sidepeek-id=sidepeek_id
-                    data-sidepeek-desc=sidepeek_desc
-                    data-sidepeek-owner=owner
-                    data-sidepeek-risk=state_label
-                    data-sidepeek-sla="4.0h review window"
-                >
-                    {module.name.clone()}
-                </button>
-                <p>{module.description.clone()}</p>
-                <code>{catalog_code_for(&module.name)}</code>
-            </div>
-            <span class="cat-tag">{module.group.clone()}</span>
-            <span class="owner-cell">
-                <span class="avatar-xs" aria-hidden="true">{avatar}</span>
-                <span>{owner}</span>
-            </span>
-            <span class="catalog-dependency-chain">
-                <em>"Workflow"</em>
-                <i aria-hidden="true">"→"</i>
-                <em>{dependency}</em>
-                <i aria-hidden="true">"→"</i>
-                <em>"Audit"</em>
-                <span class=criticality_class>{criticality}</span>
-            </span>
-            <span class="catalog-row-actions">
-                <button type="button" data-catalog-action="open" data-catalog-target=route>
-                    {module.action_label}
-                </button>
-                <button type="button" data-catalog-action="pin">"Pin"</button>
-                <button type="button" data-catalog-action="request">"Request access"</button>
-            </span>
-        </article>
+fn catalog_hub_templates(envelope: &TenantRenderEnvelope) -> impl IntoView + use<> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        view! { {HubChannel::ALL.into_iter().map(|channel| view! {
+            <template data-catalog-hub-template=channel.label() inner_html=communication_hub_html(envelope, channel)></template>
+        }).collect_view()} }
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        let _ = envelope;
+        view! {}
     }
 }
+
+#[cfg(test)]
+#[path = "catalog_identity_test.rs"]
+mod tests;

@@ -2,6 +2,9 @@
 //! in-process the way its own suites boot it, answers the adapter.
 
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+static NEXT_FIXTURE: AtomicU64 = AtomicU64::new(0);
 
 use application_ontology_card::{OntologyCardError, OntologyCardSource};
 use application_ontology_card_http::HttpOntologyCardSource;
@@ -15,12 +18,13 @@ struct Files(Vec<PathBuf>);
 impl Files {
     fn new() -> Self {
         let stamp = format!(
-            "{}-{}",
+            "{}-{}-{}",
             std::process::id(),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .expect("system clock is after the epoch")
-                .as_nanos()
+                .as_nanos(),
+            NEXT_FIXTURE.fetch_add(1, Ordering::Relaxed)
         );
         let temp = std::env::temp_dir();
         let files = Self(

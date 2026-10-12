@@ -15,11 +15,30 @@ use axum::{
     response::{IntoResponse, Response},
     routing::get,
 };
-use leptos::prelude::*;
 
 use crate::render_envelope_json;
 
+mod action_inbox;
+mod audit_evidence;
 mod catalog_navigation;
+mod catalog_preview;
+mod cloud_resources;
+mod daily_execution;
+mod document;
+mod finance_preview;
+mod governance;
+mod hr_directory;
+mod identity;
+mod intelligence_sample;
+mod leave_time;
+mod notifications;
+mod passkey_script;
+mod policy_navigation;
+mod settings_account;
+mod workflow_navigation;
+mod workhub_focus;
+use document::ServerShell;
+pub use identity::SignInConfig;
 const TOKENS_CSS: &str = include_str!("../assets/tokens.css");
 const APP_CSS: &str = include_str!("../assets/app.css");
 const SITE_ROOT: &str = "target/site";
@@ -86,14 +105,17 @@ where
 
 /// Builds the native route graph.
 ///
-/// Every route is an explicit, non-mutating read so the SSR shell and its deny-by-default
-/// envelope are easy to audit. There is deliberately no `/api/{*fn_name}` server-function route:
+/// Identity operations are five finite, origin-guarded human routes; the preview
+/// envelope remains an anonymous read. There is deliberately no `/api/{*fn_name}` server-function route:
 /// this crate — and the workspace as a whole — declares zero `#[server]` functions, so mounting
 /// `leptos_axum::handle_server_fns` would publish an unauthenticated wildcard POST control plane
 /// backed by an empty registry. Re-adding it requires a fail-closed authz layer (verified
 /// principal + server-side PDP `decide()`) landed in the same change as the first server function.
 pub fn router() -> Router {
-    router_for_package_root(PathBuf::from(SITE_ROOT).join("pkg"))
+    router_with_sign_in(
+        PathBuf::from(SITE_ROOT).join("pkg"),
+        SignInConfig::from_environment(),
+    )
 }
 
 /// Builds the route graph with an explicitly configured, trusted package root.
@@ -101,6 +123,11 @@ pub fn router() -> Router {
 /// The host uses [`router`] in production. This constructor keeps filesystem-confinement
 /// coverage independent from the developer's local `target/site` contents.
 pub fn router_for_package_root(package_root: PathBuf) -> Router {
+    router_with_sign_in(package_root, None)
+}
+
+/// Builds a shell with an explicit trusted identity composition.
+pub fn router_with_sign_in(package_root: PathBuf, identity: Option<SignInConfig>) -> Router {
     // Streaming SSR spawns through `any_spawner`, so the native Tokio executor must be installed
     // before the renderer is constructed. Re-initialization is a no-op, hence the discarded result.
     let _ = any_spawner::Executor::init_tokio();
@@ -117,6 +144,7 @@ pub fn router_for_package_root(package_root: PathBuf) -> Router {
         .with_state(ServerState {
             package_root: Arc::new(package_root),
         })
+        .merge(identity::router(identity))
 }
 
 async fn tokens_css() -> impl IntoResponse {
@@ -162,44 +190,6 @@ async fn package_asset(
 
 async fn package_asset_empty() -> Response {
     plain_response(StatusCode::BAD_REQUEST, "bad request")
-}
-
-#[component]
-fn ServerShell() -> impl IntoView {
-    let wasm_package_available = Path::new(SITE_ROOT)
-        .join("pkg/application_shell_app.js")
-        .exists();
-    let island_bootstrap = format!(
-        r#"const wasmPackageAvailable = {wasm_package_available};
-async function mountDashboardIsland() {{
-  if (!wasmPackageAvailable) {{
-    console.info('Oyatie console: WASM island package missing from /pkg; serving the server-rendered shell only.');
-    return;
-  }}
-  const wasm = await import('/pkg/application_shell_app.js');
-  await wasm.default();
-  wasm.mount_dashboard_islands();
-}}
-mountDashboardIsland();"#
-    );
-
-    view! {
-        <html lang="en">
-            <head>
-                <meta charset="utf-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <title>"Oyatie Cloud/Tenant Control Center"</title>
-                <link rel="stylesheet" href="/style/tokens.css" />
-                <link rel="stylesheet" href="/style/app.css" />
-            </head>
-            <body>
-                <noscript>"The Oyatie console needs WebAssembly enabled for island hydration; the server-rendered shell remains visible."</noscript>
-                <crate::App />
-                <script>{catalog_navigation::SCRIPT}</script>
-                <script type="module">{island_bootstrap}</script>
-            </body>
-        </html>
-    }
 }
 
 fn safe_site_package_path(asset: &str) -> Option<PathBuf> {
