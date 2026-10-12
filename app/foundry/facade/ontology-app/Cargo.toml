@@ -24,6 +24,9 @@ policy-pdp-kernel = { path = "../../../../policy/core/pdp-kernel" }
 shared-platform-contracts-kernel = { path = "../../../../iam/core/platform-contracts-kernel" }
 shared-ulid-id-kernel = { path = "../../../../data/core/ulid-id-kernel" }
 
+iam-identity-user-session = { path = "../../../../iam/ports/identity-user-session" }
+reqwest = { workspace = true }
+
 axum = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
