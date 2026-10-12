@@ -1,0 +1,24 @@
+rust_library(
+    name = "application-ontology-read-fake",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "application_ontology_read_fake",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/application/ports/ontology-read:application-ontology-read",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "application-ontology-read-fake-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "application_ontology_read_fake",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/application/ports/ontology-read:application-ontology-read",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)

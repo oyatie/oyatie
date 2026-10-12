@@ -1,0 +1,23 @@
+rust_library(
+    name = "application-ontology-read",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "application_ontology_read",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "application-ontology-read-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "application_ontology_read",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

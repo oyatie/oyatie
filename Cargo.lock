@@ -169,6 +169,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "application-ontology-read"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "application-ontology-read-fake"
+version = "0.1.0"
+dependencies = [
+ "application-ontology-read",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "application-shell-app"
 version = "0.1.0"
 dependencies = [
