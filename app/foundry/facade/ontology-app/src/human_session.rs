@@ -9,17 +9,18 @@ use axum::response::Response;
 use foundry_caller_draft::Caller;
 use iam_identity_user_session::{SessionRefusal, UserSessionAuthorizer};
 
-use crate::composition::AppState;
+use crate::composition::{AppState, TenantState};
 use crate::reads::{TENANT_SCOPED_RESOURCE, authorized_caller, refuse};
 
 mod config;
 mod cookie;
 mod http;
+pub(crate) mod reads;
 pub use config::{HumanSessionConfig, HumanSessionConfigError};
 pub use http::HttpUserSessionAuthorizer;
 
 #[derive(Clone)]
-pub(crate) struct HumanStatusState {
+pub(crate) struct HumanReadState {
     pub(crate) app: Arc<AppState>,
     pub(crate) sessions: Arc<dyn UserSessionAuthorizer>,
 }
@@ -33,7 +34,7 @@ pub(crate) fn now_epoch_seconds() -> Result<i64, SessionRefusal> {
 }
 
 pub(crate) async fn status(
-    State(state): State<HumanStatusState>,
+    State(state): State<HumanReadState>,
     Path(tenant_id): Path<String>,
     headers: HeaderMap,
 ) -> Response {
@@ -41,37 +42,50 @@ pub(crate) async fn status(
     no_store(response)
 }
 
-async fn status_inner(state: &HumanStatusState, tenant_id: &str, headers: &HeaderMap) -> Response {
+async fn status_inner(state: &HumanReadState, tenant_id: &str, headers: &HeaderMap) -> Response {
+    let (caller, tenant) = match authorized(state, tenant_id, headers, TENANT_SCOPED_RESOURCE).await
+    {
+        Ok(authorized) => authorized,
+        Err(response) => return *response,
+    };
+    crate::status::human_status_response(&state.app, &caller.tenant_id, tenant)
+}
+
+async fn authorized<'a>(
+    state: &'a HumanReadState,
+    tenant_id: &str,
+    headers: &HeaderMap,
+    object_ref: &str,
+) -> Result<(Caller, &'a tokio::sync::Mutex<TenantState>), Box<Response>> {
     let token = match cookie::session_token(headers) {
         Ok(token) => token,
-        Err(error) => return session_refusal(&state.app, error),
+        Err(error) => return Err(Box::new(session_refusal(&state.app, error))),
     };
     let now = match now_epoch_seconds() {
         Ok(now) => now,
-        Err(error) => return session_refusal(&state.app, error),
+        Err(error) => return Err(Box::new(session_refusal(&state.app, error))),
     };
     let membership = match state.sessions.authorize(Some(token), tenant_id, now).await {
         Ok(membership) => membership,
-        Err(error) => return session_refusal(&state.app, error),
+        Err(error) => return Err(Box::new(session_refusal(&state.app, error))),
     };
     let current = now_epoch_seconds().and_then(|now| membership.ensure_current(now));
     if let Err(error) = current {
-        return session_refusal(&state.app, error);
+        return Err(Box::new(session_refusal(&state.app, error)));
     }
     if membership.tenant_id() != tenant_id {
-        return session_refusal(&state.app, SessionRefusal::TenantMismatch);
+        return Err(Box::new(session_refusal(
+            &state.app,
+            SessionRefusal::TenantMismatch,
+        )));
     }
     let caller = Caller {
         tenant_id: membership.tenant_id().to_owned(),
         principal_id: membership.user_id().to_owned(),
         roles: membership.roles().to_vec(),
     };
-    let (caller, _decision, tenant) =
-        match authorized_caller(&state.app, caller, TENANT_SCOPED_RESOURCE) {
-            Ok(authorized) => authorized,
-            Err(response) => return *response,
-        };
-    crate::status::human_status_response(&state.app, &caller.tenant_id, tenant)
+    authorized_caller(&state.app, caller, object_ref)
+        .map(|(caller, _decision, tenant)| (caller, tenant))
 }
 
 fn session_refusal(state: &AppState, error: SessionRefusal) -> Response {

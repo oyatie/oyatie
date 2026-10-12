@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use axum::Router;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{get, post};
+use axum::{Router, middleware};
 
 use crate::composition::AppState;
 use crate::metrics::prometheus_text;
@@ -43,7 +43,7 @@ pub fn router_from(state: Arc<AppState>) -> Router {
         .with_state(state)
 }
 
-/// Human status is additive; the operator router never enables it implicitly.
+/// Human reads are additive; the operator router never enables them implicitly.
 pub fn router_with_user_sessions(
     state: Arc<AppState>,
     sessions: Arc<dyn iam_identity_user_session::UserSessionAuthorizer>,
@@ -53,7 +53,30 @@ pub fn router_with_user_sessions(
             "/v1/tenants/{tenant}/status",
             get(crate::human_session::status),
         )
-        .with_state(crate::human_session::HumanStatusState {
+        .route(
+            "/v1/tenants/{tenant}/types",
+            get(crate::human_session::reads::types),
+        )
+        .route(
+            "/v1/tenants/{tenant}/objects",
+            get(crate::human_session::reads::objects),
+        )
+        .route(
+            "/v1/tenants/{tenant}/objects/{object_ref}",
+            get(crate::human_session::reads::object),
+        )
+        .route(
+            "/v1/tenants/{tenant}/objects/{object_ref}/history",
+            get(crate::human_session::reads::history),
+        )
+        .route(
+            "/v1/tenants/{tenant}/audit",
+            get(crate::human_session::reads::audit),
+        )
+        .layer(middleware::map_response(|response| async {
+            crate::human_session::no_store(response)
+        }))
+        .with_state(crate::human_session::HumanReadState {
             app: state.clone(),
             sessions,
         });
