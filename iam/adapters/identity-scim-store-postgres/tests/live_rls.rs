@@ -21,7 +21,7 @@ use iam_identity_scim_store_postgres::passkeys::{
     ChallengeWindow, PasskeyStoreError, PgPasskeyStore,
 };
 use iam_identity_scim_store_postgres::{
-    PASSKEY_AUTHENTICATION_SQL, PgScimGroupStore, PgScimUserStore, SCHEMA_NAME, USERS_TABLE,
+    PgScimGroupStore, PgScimUserStore, SCHEMA_NAME, USERS_TABLE, provision_passkey_schema,
 };
 use iam_identity_user_session::UserMembershipStore;
 use iam_scim_server_kernel::{
@@ -135,7 +135,6 @@ async fn setup_schema(setup: &PgPool, app_role: &str) {
         .unwrap();
     let role_migration = include_str!("../migrations/0000_runtime_role.sql");
     let table_migration = include_str!("../migrations/0001_identity_scim_store.sql");
-    let passkey_migration = PASSKEY_AUTHENTICATION_SQL;
     assert!(
         role_migration.contains(RUNTIME_ROLE),
         "0000 migration must provision the runtime role"
@@ -144,13 +143,16 @@ async fn setup_schema(setup: &PgPool, app_role: &str) {
         table_migration.contains(RUNTIME_ROLE),
         "0001 migration must bind the runtime role"
     );
-    for migration in [role_migration, table_migration, passkey_migration] {
+    for migration in [role_migration, table_migration] {
         for sql in split_migration_statements(migration) {
             sqlx::query(&sql).execute(setup).await.unwrap_or_else(|e| {
                 panic!("migration statement failed: {sql}\n{e}");
             });
         }
     }
+    provision_passkey_schema(&mut setup.acquire().await.unwrap())
+        .await
+        .unwrap();
     // Membership grant (default INHERIT): the app login becomes a USAGE-member of
     // the runtime role, inheriting its schema USAGE + table privileges and making
     // the `TO {RUNTIME_ROLE}` policies apply to it.
@@ -182,3 +184,5 @@ mod membership;
 mod passkeys;
 #[path = "live_rls/rls.rs"]
 mod rls;
+#[path = "live_rls/schema_setup.rs"]
+mod schema_setup;
