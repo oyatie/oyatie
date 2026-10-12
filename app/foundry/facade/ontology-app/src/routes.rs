@@ -43,6 +43,23 @@ pub fn router_from(state: Arc<AppState>) -> Router {
         .with_state(state)
 }
 
+/// Human status is additive; the operator router never enables it implicitly.
+pub fn router_with_user_sessions(
+    state: Arc<AppState>,
+    sessions: Arc<dyn iam_identity_user_session::UserSessionAuthorizer>,
+) -> Router {
+    let human = Router::new()
+        .route(
+            "/v1/tenants/{tenant}/status",
+            get(crate::human_session::status),
+        )
+        .with_state(crate::human_session::HumanStatusState {
+            app: state.clone(),
+            sessions,
+        });
+    router_from(state).merge(human)
+}
+
 /// Liveness: the listener is bound and this process is answering. It asks
 /// nothing about correctness, so it must not consult readiness state.
 async fn healthz() -> impl IntoResponse {

@@ -54,6 +54,8 @@ rust_library(
         "//policy/adapters/pdp-cedar:policy-pdp-cedar",
         "//policy/core/pdp-kernel:policy-pdp-kernel",
         "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
+        "//iam/ports/identity-user-session:iam-identity-user-session",
+        "third-party//:reqwest",
         "third-party//:axum",
         "third-party//:serde",
         "third-party//:serde_json",
@@ -84,6 +86,11 @@ FACADE_TESTS = [
     ("pep", "pep_denies_by_default", [":foundry-ontology-app"]),
     ("submit", "submit_contract", FACADE_TEST_DEPS),
     ("authorizer-outage", "authorizer_outage_is_deny", FACADE_TEST_DEPS + [
+        "//policy/core/pdp-kernel:policy-pdp-kernel",
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+    ]),
+    ("human-status", "human_status_authorization", FACADE_TEST_DEPS + [
+        "//iam/ports/identity-user-session:iam-identity-user-session",
         "//policy/core/pdp-kernel:policy-pdp-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
     ]),

@@ -10,73 +10,15 @@ use axum::Json;
 use axum::extract::{Path, RawQuery, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
-use foundry_caller_draft::Caller;
 use foundry_records_draft::SealedEnvelope;
 use foundry_spine::{ViewError, audit_view, object_at_revision_in_store, object_history};
 
-use crate::auth::bearer_token;
 use crate::composition::AppState;
 use crate::dto::RefusalBody;
-use crate::pdp::Surface;
 use crate::read_dto::{AuditRow, EntityTypeRow, HistoryRow, RevisionPin, pinned_body};
 
-/// Verify the credential, resolve the tenant this process serves for it,
-/// then ask the policy decision point with that served tenant as the
-/// resource's tenant. The roster is consulted before the PDP because the
-/// served tenant is an input to the decision, not a consequence of it.
-pub(crate) fn authorized<'a>(
-    state: &'a AppState,
-    headers: &HeaderMap,
-    object_ref: &str,
-) -> Result<
-    (
-        Caller,
-        data_ontology_kernel::ActionPolicyDecision,
-        &'a tokio::sync::Mutex<crate::composition::TenantState>,
-    ),
-    Box<Response>,
-> {
-    let Some(token) = bearer_token(headers.get("authorization").and_then(|v| v.to_str().ok()))
-    else {
-        state.metrics.read_refused();
-        return Err(Box::new(refuse(
-            StatusCode::UNAUTHORIZED,
-            "credential",
-            "no bearer credential",
-        )));
-    };
-    let Some(caller) = state.verifier.verify(Some(token)) else {
-        state.metrics.read_refused();
-        return Err(Box::new(refuse(
-            StatusCode::UNAUTHORIZED,
-            "credential",
-            "the presented credential is not recognized",
-        )));
-    };
-    let Some((served_tenant, tenant)) = state.tenants.get_key_value(&caller.tenant_id) else {
-        state.metrics.read_refused();
-        return Err(Box::new(refuse(
-            StatusCode::FORBIDDEN,
-            "authorization",
-            "the credential names a tenant this process does not serve",
-        )));
-    };
-    // The decision is returned, not discarded: it is the authority a query
-    // execution records, and a route that needed one would otherwise ask the
-    // policy engine a second time for an answer this gate already has.
-    let Ok(decision) = state
-        .pep
-        .decide(&caller, Surface::Use, object_ref, served_tenant)
-    else {
-        state.metrics.read_refused();
-        return Err(Box::new(refuse(
-            StatusCode::FORBIDDEN,
-            "authorization",
-            "the policy decision point refused this read",
-        )));
-    };
-    Ok((caller, decision, tenant))
-}
+mod authorization;
+pub(crate) use authorization::{authorized, authorized_caller};
 
 pub async fn object(
     State(state): State<Arc<AppState>>,

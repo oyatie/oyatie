@@ -1,4 +1,6 @@
-use foundry_ontology_app::{Config, compose, observability, router};
+use foundry_ontology_app::human_session::{HttpUserSessionAuthorizer, HumanSessionConfig};
+use foundry_ontology_app::{Config, compose, observability, router, router_with_user_sessions};
+use std::sync::Arc;
 use tracing::{error, info};
 
 async fn shutdown_signal() {
@@ -40,6 +42,15 @@ async fn main() {
             std::process::exit(1);
         }
     };
+    let human_sessions = match HumanSessionConfig::from_env()
+        .and_then(|config| config.map(HttpUserSessionAuthorizer::new).transpose())
+    {
+        Ok(sessions) => sessions,
+        Err(error) => {
+            error!(error = %error, "IAM transport configuration rejected");
+            std::process::exit(1);
+        }
+    };
     let listen_addr = config.listen_addr.clone();
 
     let state = match compose(&config) {
@@ -69,7 +80,11 @@ async fn main() {
     };
     info!(address = %listen_addr, "serving");
 
-    if let Err(error) = axum::serve(listener, router(state))
+    let routes = match human_sessions {
+        Some(sessions) => router_with_user_sessions(Arc::new(state), Arc::new(sessions)),
+        None => router(state),
+    };
+    if let Err(error) = axum::serve(listener, routes)
         .with_graceful_shutdown(shutdown_signal())
         .await
     {

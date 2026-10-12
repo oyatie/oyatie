@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 use axum::Json;
 use axum::extract::State;
-use axum::http::HeaderMap;
+use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
 
@@ -66,13 +66,54 @@ pub async fn statusz(State(state): State<Arc<AppState>>, headers: HeaderMap) -> 
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };
-    let seen = crate::observation::observe(&state);
-    let (entity_types, sync, registry) = match facts_without_waiting(tenant, &caller.tenant_id) {
+    status_response(&state, &caller.tenant_id, tenant)
+}
+
+pub(crate) fn status_response(
+    state: &AppState,
+    tenant_id: &str,
+    tenant: &tokio::sync::Mutex<TenantState>,
+) -> Response {
+    let body = status_facts(state, tenant_id, tenant);
+    state.metrics.read_served();
+    Json(body).into_response()
+}
+
+pub(crate) fn human_status_response(
+    state: &AppState,
+    tenant_id: &str,
+    tenant: &tokio::sync::Mutex<TenantState>,
+) -> Response {
+    let body = status_facts(state, tenant_id, tenant);
+    if body.observed_tenants != body.served_tenants
+        || body.contended_tenants != 0
+        || body.unreadable_tenants != 0
+        || body.tenant.is_none()
+        || body.entity_types.is_none()
+        || body.registry.is_none()
+    {
+        state.metrics.read_refused();
+        return crate::reads::refuse(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "observation",
+            "complete current status observations are unavailable",
+        );
+    }
+    state.metrics.read_served();
+    Json(body).into_response()
+}
+
+fn status_facts(
+    state: &AppState,
+    tenant_id: &str,
+    tenant: &tokio::sync::Mutex<TenantState>,
+) -> StatusBody {
+    let seen = crate::observation::observe(state);
+    let (entity_types, sync, registry) = match facts_without_waiting(tenant, tenant_id) {
         Some((entity_types, sync, registry)) => (Some(entity_types), sync, Some(registry)),
         None => (None, None, None),
     };
-    state.metrics.read_served();
-    Json(StatusBody {
+    StatusBody {
         policy_version: state.pep.loaded_policy_version().as_str().to_owned(),
         served_tenants: state.tenant_count() as u64,
         observed_tenants: seen.observed,
@@ -83,8 +124,7 @@ pub async fn statusz(State(state): State<Arc<AppState>>, headers: HeaderMap) -> 
         entity_types,
         tenant: sync,
         registry,
-    })
-    .into_response()
+    }
 }
 
 type TenantFacts = (Vec<String>, Option<TenantSync>, Registry);
