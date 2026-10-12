@@ -13,7 +13,7 @@ use axum::response::{IntoResponse, Response};
 use foundry_records_draft::SealedEnvelope;
 use foundry_spine::{ViewError, audit_view, object_at_revision_in_store, object_history};
 
-use crate::composition::AppState;
+use crate::composition::{AppState, TenantState};
 use crate::dto::RefusalBody;
 use crate::read_dto::{AuditRow, EntityTypeRow, HistoryRow, RevisionPin, pinned_body};
 
@@ -30,6 +30,16 @@ pub async fn object(
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };
+    object_response(&state, &caller.tenant_id, tenant, object_ref, raw_query).await
+}
+
+pub(crate) async fn object_response(
+    state: &AppState,
+    tenant_id: &str,
+    tenant: &tokio::sync::Mutex<TenantState>,
+    object_ref: String,
+    raw_query: Option<String>,
+) -> Response {
     let RevisionPin::Pinned(revision) = RevisionPin::parse(raw_query.as_deref()) else {
         state.metrics.read_refused();
         return refuse(
@@ -46,7 +56,7 @@ pub async fn object(
     match object_at_revision_in_store(
         &*tenant.projection_store,
         &tenant.projection.engine,
-        &caller.tenant_id,
+        tenant_id,
         &object_ref,
         revision,
     ) {
@@ -101,12 +111,21 @@ pub async fn history(
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };
+    history_response(&state, &caller.tenant_id, tenant, &object_ref).await
+}
+
+pub(crate) async fn history_response(
+    state: &AppState,
+    tenant_id: &str,
+    tenant: &tokio::sync::Mutex<TenantState>,
+    object_ref: &str,
+) -> Response {
     let tenant = tenant.lock().await;
-    let entries = match entries_or_refuse(&state, &tenant, &caller.tenant_id) {
+    let entries = match entries_or_refuse(state, &tenant, tenant_id) {
         Ok(entries) => entries,
         Err(response) => return *response,
     };
-    let rows: Vec<HistoryRow> = object_history(&tenant.projection, &entries, &object_ref)
+    let rows: Vec<HistoryRow> = object_history(&tenant.projection, &entries, object_ref)
         .into_iter()
         .map(|entry| HistoryRow {
             ordinal: entry.ordinal,
@@ -127,8 +146,16 @@ pub async fn audit(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Re
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };
+    audit_response(&state, &caller.tenant_id, tenant).await
+}
+
+pub(crate) async fn audit_response(
+    state: &AppState,
+    tenant_id: &str,
+    tenant: &tokio::sync::Mutex<TenantState>,
+) -> Response {
     let tenant = tenant.lock().await;
-    let entries = match entries_or_refuse(&state, &tenant, &caller.tenant_id) {
+    let entries = match entries_or_refuse(state, &tenant, tenant_id) {
         Ok(entries) => entries,
         Err(response) => return *response,
     };
@@ -161,9 +188,17 @@ pub async fn types(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Re
         Ok(authorized) => authorized,
         Err(response) => return *response,
     };
+    types_response(&state, &caller.tenant_id, tenant).await
+}
+
+pub(crate) async fn types_response(
+    state: &AppState,
+    tenant_id: &str,
+    tenant: &tokio::sync::Mutex<TenantState>,
+) -> Response {
     let tenant = tenant.lock().await;
     let rows: Vec<EntityTypeRow> =
-        crate::seed::declared_entity_types(&tenant.projection.engine, &caller.tenant_id)
+        crate::seed::declared_entity_types(&tenant.projection.engine, tenant_id)
             .into_iter()
             .map(|definition| EntityTypeRow {
                 entity_type: definition.id.value.clone(),
