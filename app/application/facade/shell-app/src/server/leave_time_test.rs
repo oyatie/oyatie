@@ -93,11 +93,29 @@ else if(!voids.has(tag)&&!token.endsWith('/>'))stack.push(node);
 }
 const selectors=[],tree=new Element('body');parse(input.html,tree);
 const NodeFilter={SHOW_COMMENT:128};
-const document={body:tree,activeElement:tree,hasFocus:()=>focused,getElementById:id=>tree.querySelectorAll('[id]').find(node=>node.id===id)||null,querySelectorAll:selector=>tree.querySelectorAll(selector),querySelector:selector=>tree.querySelector(selector),createElement:tag=>new Element(tag),createComment:data=>new Comment(data),createTreeWalker:(root,whatToShow)=>{
+function firstLiteralId(node,id) {
+  for(const child of node.parts) {
+    if(!(child instanceof Element))continue;
+    if(child.hasAttribute('id')&&child.id===id)return child;
+    const found=firstLiteralId(child,id);if(found)return found;
+  }
+  return null;
+}
+const document={body:tree,activeElement:tree,hasFocus:()=>focused,getElementById:id=>id===''?null:firstLiteralId(tree,id),querySelectorAll:selector=>tree.querySelectorAll(selector),querySelector:selector=>tree.querySelector(selector),createElement:tag=>new Element(tag),createComment:data=>new Comment(data),createTreeWalker:(root,whatToShow)=>{
   assert.equal(whatToShow,NodeFilter.SHOW_COMMENT);
   const comments=[],visit=node=>{for(const child of node.parts||[]){if(child instanceof Comment)comments.push(child);else if(child instanceof Element)visit(child);}};visit(root);
   let index=0;return {nextNode:()=>comments[index++]||null};
 },addEventListener:(name,callback,capture=false)=>(events[name] ||= []).push({callback,capture})};
+const idProbe=tree.append(new Element('div')), literalId='fixture.[literal]#id';
+assert.equal(document.getElementById(''),null,'missing IDs cannot match an empty lookup');
+idProbe.append(new Element('span',{id:''}));assert.equal(document.getElementById(''),null,'empty ID attributes do not name a destination');
+const firstId=idProbe.append(new Element('section')).append(new Element('span',{id:literalId})), secondId=idProbe.append(new Element('span',{id:literalId}));
+assert.equal(document.getElementById(literalId),firstId,'first literal ID follows physical tree order');
+const replacedId=new Element('span',{id:literalId});firstId.replaceWith(replacedId);
+assert.equal(document.getElementById(literalId),replacedId,'lookup sees physical replacement');
+replacedId.remove();assert.equal(document.getElementById(literalId),secondId,'removal exposes next duplicate');
+secondId.setAttribute('id','fixture-renamed-id');assert.equal(document.getElementById(literalId),null);assert.equal(document.getElementById('fixture-renamed-id'),secondId);
+idProbe.remove();assert.equal(document.getElementById('fixture-renamed-id'),null,'detached IDs are absent');
 
 const location=new URL('https://preview.invalid/');
 if(input.scenario==='fragments')location.hash='#leave-sample-request';
