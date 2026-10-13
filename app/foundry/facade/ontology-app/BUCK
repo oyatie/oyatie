@@ -46,6 +46,7 @@ rust_library(
     "//app/foundry/core/ontology-query-domain:foundry-ontology-query-domain",
     "//app/foundry/core/ontology-query-usecase:foundry-ontology-query-usecase",
         "//app/foundry/ports/draft/caller:foundry-caller-draft",
+        "//app/foundry/ports/model-api:foundry-model-api",
         "//app/foundry/ports/draft/projection:foundry-projection-draft",
         "//app/foundry/ports/draft/records:foundry-records-draft",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
@@ -57,6 +58,7 @@ rust_library(
         "//iam/ports/identity-user-session:iam-identity-user-session",
         "third-party//:reqwest",
         "third-party//:axum",
+        "third-party//:http-body-util",
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:tokio",
@@ -81,6 +83,14 @@ rust_binary(
 # One row per in-process test crate: the target's name suffix, the crate root's
 # stem under tests/, and its deps.
 FACADE_TESTS = [
+    ("model-control", "model_control_contract", FACADE_TEST_DEPS + [
+        "//app/foundry/ports/model-api:foundry-model-api",
+        "//app/foundry/adapters/draft/model-sqlite:foundry-model-sqlite-draft",
+        "//iam/ports/identity-user-session:iam-identity-user-session",
+        "//policy/core/pdp-kernel:policy-pdp-kernel",
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+        "//app/foundry/ports/draft/caller:foundry-caller-draft",
+    ]),
     ("boot", "boot_refuses_on_unopenable_log", [":foundry-ontology-app"]),
     ("probes", "probes_report_honest_readiness", FACADE_TEST_DEPS),
     ("pep", "pep_denies_by_default", [":foundry-ontology-app"]),

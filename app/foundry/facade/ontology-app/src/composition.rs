@@ -35,6 +35,7 @@ pub struct TenantState {
     pub denial_log: Box<dyn RecordsLog + Send>,
     /// The durable mirror of `projection`; the sync status is read here.
     pub projection_store: Box<dyn ProjectionStore + Send>,
+    pub(crate) model_store: Option<crate::model_control::EstablishedModelStore>,
 }
 
 /// Why a tenant's sync status could not be read: either side may fail, and
@@ -206,6 +207,7 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
                 action_log: Box::new(action_log),
                 denial_log: Box::new(denial_log),
                 projection_store: Box::new(store),
+                model_store: None,
             }),
         );
     }

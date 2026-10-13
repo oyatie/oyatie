@@ -65,6 +65,18 @@ fn bundle(version: &str) -> Result<PolicyBundle, PepError> {
         template_links: Vec::new(),
         action_map: BTreeMap::from([
             (
+                crate::authz::ModelOperation::Read.slug().into(),
+                r#"Action::"foundry.ontology.model.read""#.into(),
+            ),
+            (
+                crate::authz::ModelOperation::Author.slug().into(),
+                r#"Action::"foundry.ontology.model.author""#.into(),
+            ),
+            (
+                crate::authz::ModelOperation::Publish.slug().into(),
+                r#"Action::"foundry.ontology.model.publish""#.into(),
+            ),
+            (
                 Surface::Invoke.slug().to_owned(),
                 r#"Action::"InvokeAction""#.to_owned(),
             ),

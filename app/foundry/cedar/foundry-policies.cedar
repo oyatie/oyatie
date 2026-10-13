@@ -39,3 +39,15 @@ forbid(
 ) when {
   principal.tenant != resource.tenant
 };
+
+permit(principal is Principal, action == Action::"foundry.ontology.model.read", resource is OntologyModel)
+when {
+  (principal in Role::"foundry-model-reader" || principal in Role::"foundry-model-author" || principal in Role::"foundry-model-publisher") &&
+  principal.tenant == resource.tenant
+};
+permit(principal is Principal in Role::"foundry-model-author", action == Action::"foundry.ontology.model.author", resource is OntologyModel)
+when { principal.tenant == resource.tenant };
+permit(principal is Principal in Role::"foundry-model-publisher", action == Action::"foundry.ontology.model.publish", resource is OntologyModel)
+when { principal.tenant == resource.tenant };
+forbid(principal is Principal, action, resource is OntologyModel)
+when { principal.tenant != resource.tenant };

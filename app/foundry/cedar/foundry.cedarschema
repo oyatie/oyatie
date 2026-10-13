@@ -11,6 +11,16 @@ entity Principal in [Role] {
 entity OntologyObject in [Tenant] {
   tenant: String,
 };
+entity OntologyModel in [Tenant] { tenant: String };
+action "foundry.ontology.model.read" appliesTo {
+  principal: [Principal], resource: [OntologyModel], context: {},
+};
+action "foundry.ontology.model.author" appliesTo {
+  principal: [Principal], resource: [OntologyModel], context: {},
+};
+action "foundry.ontology.model.publish" appliesTo {
+  principal: [Principal], resource: [OntologyModel], context: {},
+};
 action InvokeAction appliesTo {
   principal: [Principal],
   resource: [OntologyObject],

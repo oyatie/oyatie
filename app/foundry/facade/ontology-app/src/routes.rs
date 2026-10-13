@@ -48,6 +48,14 @@ pub fn router_with_user_sessions(
     state: Arc<AppState>,
     sessions: Arc<dyn iam_identity_user_session::UserSessionAuthorizer>,
 ) -> Router {
+    router_with_model_control(state, sessions, None)
+}
+
+pub fn router_with_model_control(
+    state: Arc<AppState>,
+    sessions: Arc<dyn iam_identity_user_session::UserSessionAuthorizer>,
+    origin: Option<crate::model_control::ModelMutationOrigin>,
+) -> Router {
     let human = Router::new()
         .route(
             "/v1/tenants/{tenant}/status",
@@ -90,9 +98,11 @@ pub fn router_with_user_sessions(
         }))
         .with_state(crate::human_session::HumanReadState {
             app: state.clone(),
-            sessions,
+            sessions: sessions.clone(),
         });
-    router_from(state).merge(human)
+    router_from(state.clone())
+        .merge(human)
+        .merge(crate::model_control::router(state, sessions, origin))
 }
 
 /// Liveness: the listener is bound and this process is answering. It asks

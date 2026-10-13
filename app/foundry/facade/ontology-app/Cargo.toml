@@ -11,6 +11,7 @@ description = "Runnable Foundry ontology service: composes the governed M3 write
 data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
 data-ontology-kernel = { path = "../../../../data/core/ontology-kernel" }
 foundry-caller-draft = { path = "../../ports/draft/caller" }
+foundry-model-api = { path = "../../ports/model-api" }
 foundry-edits = { path = "../../core/edits" }
 foundry-projection-draft = { path = "../../ports/draft/projection" }
 foundry-projection-sqlite-draft = { path = "../../adapters/draft/projection-sqlite" }
@@ -28,6 +29,7 @@ iam-identity-user-session = { path = "../../../../iam/ports/identity-user-sessio
 reqwest = { workspace = true }
 
 axum = { workspace = true }
+http-body-util = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 # The workspace default feature set is rt-multi-thread/net/macros; this
@@ -38,6 +40,7 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
 [dev-dependencies]
+foundry-model-sqlite-draft = { path = "../../adapters/draft/model-sqlite" }
 # Evolve a composed registry so a migration plan has two revisions to span.
 data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
 data-ontology-kernel = { path = "../../../../data/core/ontology-kernel" }

@@ -10,6 +10,16 @@ use crate::error::OntologyEngineError;
 use super::{OntologyEngine, ontology_scoped_key};
 
 impl OntologyEngine {
+    pub fn entity_type_revisions(
+        &self,
+        tenant_id: &str,
+    ) -> impl Iterator<Item = &EntityTypeDefinition> {
+        self.entity_type_revisions
+            .iter()
+            .filter(move |(key, _)| key.tenant_id == tenant_id)
+            .map(|(_, definition)| definition)
+    }
+
     /// Register or evolve an entity type definition. An id unknown for the
     /// tenant is a first registration and `DuplicateEntityType` is never
     /// returned here.
