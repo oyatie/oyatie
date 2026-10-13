@@ -8,6 +8,7 @@ license = "Apache-2.0"
 description = "Typed native Ontology reads consumed by the verified Application explorer."
 
 [dependencies]
+foundry-model-api = { path = "../../../foundry/ports/model-api" }
 serde.workspace = true
 serde_json.workspace = true
 

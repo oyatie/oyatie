@@ -9,7 +9,10 @@ use application_ontology_card::{OntologyCardError, OntologyCardFacts, OntologyCa
 use serde::Deserialize;
 
 mod human;
-pub use human::{HumanOntologyCardSource, HumanOntologyReadSource, HumanOntologyRefusal};
+pub use human::{
+    HumanOntologyCardSource, HumanOntologyModelSource, HumanOntologyReadSource,
+    HumanOntologyRefusal,
+};
 
 pub struct HttpOntologyCardSource {
     statusz: reqwest::Url,

@@ -7,6 +7,8 @@ use application_ontology_read::{
     AuditRow, EntitySchema, EntityType, EntityTypeLabel, HistoryRow, LinkSchema, ObjectDetail,
     ObjectListQuery, ObjectPage, OntologyReadError, OntologyReadSource, UpcastState,
 };
+mod model;
+pub use model::FixtureOntologyModelSource;
 
 mod filtering;
 mod fixture;

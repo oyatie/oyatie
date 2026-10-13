@@ -194,7 +194,7 @@ fn native_explorer_controller_preserves_identity_and_refuses_stale_rows_or_focus
     check_controller(CHECK);
 }
 
-fn check_controller(check: &str) {
+pub(super) fn check_controller(check: &str) {
     let owner = Owner::new();
     let html = owner.with(|| super::super::document::ServerShell().into_view().to_html());
     owner.cleanup();

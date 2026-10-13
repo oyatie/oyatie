@@ -6,7 +6,7 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
         <section id="foundry-workspace" class="foundry-workspace" aria-labelledby="foundry-workspace-title" tabindex="-1">
             <header class="foundry-workspace-header">
                 <div><p class="screen-anchor">"FOUNDRY / ONTOLOGY"</p><h2 id="foundry-workspace-title">"Ontology workspace"</h2><p>"Explore your data model and the objects it describes."</p></div>
-                <span class="foundry-read-label">"Verified reads"</span>
+                <span class="foundry-read-label">"Verified access"</span>
             </header>
             <p id="live-ontology-access-notice" class="foundry-access-notice">"Sign in to explore your tenant's native model. "<a href="#oyatie-sign-in">"Sign in with a passkey"</a>" or "<a href="#ontology-command-console">"explore the labeled sample graph"</a>"."</p>
             <section id="live-ontology-explorer" class="live-ontology-explorer" aria-labelledby="live-ontology-title" aria-describedby="live-ontology-status" hidden>
@@ -16,6 +16,7 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
                     <label for="live-ontology-type">"Selected entity type"</label><select id="live-ontology-type" required disabled></select>
                     <button type="button" id="live-ontology-types-refresh">"Refresh model"</button>
                 </div>
+                <super::model_editor::ModelDraftControls />
                 <p id="live-ontology-status" role="status" aria-live="polite">"Sign in to read your tenant's Ontology."</p>
                 <div class="foundry-workspace-body">
                     <details class="foundry-library" open>
@@ -35,7 +36,7 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
                             <div id="live-ontology-graph" class="foundry-graph" tabindex="0" aria-label="Native object type graph" aria-describedby="live-ontology-graph-help" data-live-results="true"><div id="live-ontology-stage" class="foundry-graph-stage"><div id="live-ontology-scene" class="foundry-graph-scene"></div></div></div>
                             <p id="live-ontology-graph-help">"Arrows follow the declared from → to direction. Select a type or relationship to inspect it. Scroll or swipe to pan; use arrow keys when the canvas is focused. + and − zoom; Home fits the model."</p>
                             <div id="live-ontology-model-table" class="foundry-model-table" data-live-results="true" hidden></div>
-                            <p class="foundry-model-note">"Current schema and relationship declarations are loaded separately. This view is not an atomic model snapshot."</p>
+                            <p id="live-ontology-model-note" class="foundry-model-note">"Current schema and relationship declarations are loaded separately. This view is not an atomic model snapshot."</p>
                         </section>
                         <section id="live-ontology-objects" aria-label="Native object instances" hidden>
             <form id="live-ontology-query" class="live-ontology-query">
@@ -66,10 +67,12 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
                 <p id="live-ontology-schema-summary"></p><div id="live-ontology-schema-properties"></div>
             </section>
                         <section id="live-ontology-link" aria-labelledby="live-ontology-link-title" data-live-results="true" hidden><h4 id="live-ontology-link-title">"Native relationship declaration"</h4><div id="live-ontology-link-properties"></div><p>"Cross-tenant intent describes the model. It does not grant permission to read another tenant."</p></section>
+                        <super::model_editor::ModelDraftInspector />
                         <p id="live-ontology-inspector-empty">"Select a type or relationship to inspect its declaration."</p>
                     </details>
                 </div>
-                <details class="foundry-capability-note"><summary>"Workspace capabilities"</summary><p>"Available now: registered types and relationships, object reads, object history and tenant audit. Model authoring, source mappings, publication, instance graph traversal and scenarios require their native workflows."</p></details>
+                <super::model_editor::ModelDraftTray />
+                <details class="foundry-capability-note"><summary>"Workspace capabilities"</summary><p>"Available now: registered types and relationships, object reads, object history and tenant audit. Owned model drafts require separate native model access. Source mappings, publication, instance graph traversal and scenarios require their native workflows."</p></details>
             </section>
         </section>
     }

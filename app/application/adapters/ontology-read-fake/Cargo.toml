@@ -8,6 +8,7 @@ license = "Apache-2.0"
 description = "Deterministic sample reads and refusals behind the Application Ontology read port."
 
 [dependencies]
+foundry-model-api = { path = "../../../foundry/ports/model-api" }
 application-ontology-read = { path = "../../ports/ontology-read" }
 serde_json.workspace = true
 

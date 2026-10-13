@@ -8,11 +8,13 @@ use std::future::Future;
 
 mod labels;
 mod links;
+mod model;
 mod models;
 mod query;
 mod schema;
 pub use labels::EntityTypeLabel;
 pub use links::{LinkCardinality, LinkSchema};
+pub use model::*;
 pub use models::{
     AuditDisposition, AuditRow, EntityType, HistoryRow, ObjectDetail, ObjectPage, PinnedObject,
     Property, UpcastState,

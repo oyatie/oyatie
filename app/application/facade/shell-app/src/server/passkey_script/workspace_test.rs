@@ -15,7 +15,8 @@ const CHECK: &str = r##"
   assert.ok(1280>collapseAt, '1280 desktop retains simultaneous library, graph and inspector');
   assert.ok(1024<=collapseAt, 'tablet can collapse the inspector below the graph');
   assert.ok(workspaceCss.includes('@media (max-width: 60rem)'), '390 mobile receives a single-column layout');
-  assert.ok(input.html.includes('class="foundry-library" open')&&input.html.includes('class="foundry-inspector" open'), 'panes use operable native disclosures');
+  const disclosureTags=[...input.html.matchAll(/<details\b[^>]*>/g)].map(match=>match[0]);
+  for(const className of ['foundry-library','foundry-inspector'])assert.ok(disclosureTags.some(tag=>tag.includes(`class="${className}"`) && /\sopen(?:[\s=>])/.test(tag)), 'panes remain open operable native disclosures independent of attribute order');
   assert.ok(workspaceCss.includes('overflow-x: auto')&&workspaceCss.includes('min-height: max(44px, 2.75rem)'), 'table overflow and unscaled touch controls are preserved');
   assert.ok(!input.html.includes('id="live-ontology-publish"'), 'unqualified authoring is not exposed');
   await flush(); find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();

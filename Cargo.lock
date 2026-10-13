@@ -173,6 +173,7 @@ dependencies = [
 name = "application-ontology-read"
 version = "0.1.0"
 dependencies = [
+ "foundry-model-api",
  "serde",
  "serde_json",
 ]
@@ -182,6 +183,7 @@ name = "application-ontology-read-fake"
 version = "0.1.0"
 dependencies = [
  "application-ontology-read",
+ "foundry-model-api",
  "serde_json",
  "tokio",
 ]

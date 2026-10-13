@@ -139,6 +139,8 @@ pub(crate) fn release(generation: Option<u64>, settled: bool) {
                 active.original_minimum.attribute_present,
                 style.length(),
             ) {
+                // Synchronize lazy CSSOM serialization before removing the empty attribute.
+                let _ = active.host.get_attribute("style");
                 active.host.remove_attribute("style")
             } else {
                 Ok(())

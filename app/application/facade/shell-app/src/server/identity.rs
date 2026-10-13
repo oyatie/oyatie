@@ -13,6 +13,7 @@ use std::sync::Arc;
 
 mod config;
 mod cookie;
+mod ontology_model;
 mod ontology_read;
 mod transport;
 pub use config::SignInConfig;
@@ -37,6 +38,7 @@ pub(super) fn router(config: Option<SignInConfig>) -> Router {
         .route("/api/ontology-status/{tenant}", get(ontology))
         .merge(ontology_read::router())
         .layer(DefaultBodyLimit::max(64 * 1024))
+        .merge(ontology_model::router())
         .layer(middleware::map_response(no_store))
         .with_state(config.map(Arc::new))
 }

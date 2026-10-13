@@ -1,5 +1,5 @@
 pub(super) const SCRIPT: &str = r#"
-function createOntologyModelView(selectType, fallback) {
+function createOntologyModelView(selectType, fallback, selectRelationship = () => {}, modeChanged = () => {}) {
   const find = id => document.getElementById(`live-ontology-${id}`);
   let schemas = [], links = [], selectedType = null, selectedLink = null;
   let representation = 'graph', zoom = 1, width = 640, height = 360;
@@ -33,10 +33,10 @@ function createOntologyModelView(selectType, fallback) {
       ['Relationship type', link.link_type], ['From entity type', typeText(link.from_entity_type)], ['To entity type', typeText(link.to_entity_type)],
       ['Cardinality', `${cardinality(link.cardinality)} (${link.cardinality})`], ['Cross-tenant intent', String(link.allow_cross_tenant)], ['Current declaration revision', link.revision],
     ]));
-    find('link').hidden = false; find('inspector-empty').hidden = true; selection();
+    find('link').hidden = false; find('inspector-empty').hidden = true; selection(); selectRelationship(id);
     if (restore) fallback();
   }
-  function typeText(id) { return `${schemas.find(row => row.entity_type === id).display_name} · ${id}`; }
+  function typeText(id) { return `${schemas.find(row => row.entity_type === id)?.display_name || id} · ${id}`; }
   function select(id) {
     const restore = find('link').contains(document.activeElement);
     selectedType = id; selectedLink = null; find('link-properties').replaceChildren(); find('link').hidden = true;
@@ -97,6 +97,7 @@ function createOntologyModelView(selectType, fallback) {
     const arrow = document.createElementNS(svg.namespaceURI, 'path'); arrow.setAttribute('d','M 0 0 L 8 4 L 0 8 z'); marker.append(arrow); defs.append(marker); svg.append(defs); scene.append(svg);
     links.forEach((link, index) => {
       const from = positions.get(link.from_entity_type), to = positions.get(link.to_entity_type);
+      if (!from || !to) return;
       const self = link.from_entity_type === link.to_entity_type;
       const edge = document.createElementNS(svg.namespaceURI, 'path');
       const startX = from.x + 130, startY = from.y + 200, endX = to.x + 130, endY = to.y;
@@ -149,6 +150,7 @@ function createOntologyModelView(selectType, fallback) {
     const restore = prior.contains(document.activeElement);
     find('model').hidden = value !== 'schema'; find('objects').hidden = value !== 'objects';
     for (const id of ['schema','objects']) find(`mode-${id}`).setAttribute('aria-pressed', String(value === id));
+    modeChanged(value);
     if (restore) find(`mode-${value}`).focus({preventScroll:true});
   }
   function showRepresentation(value) {
@@ -172,6 +174,6 @@ function createOntologyModelView(selectType, fallback) {
     if (direction) { event.preventDefault(); find('graph').scrollBy({left:direction[0],top:direction[1],behavior:'auto'}); }
     else if (['+','=','-','Home'].includes(event.key)) { event.preventDefault(); if (event.key === 'Home') fit(); else scale(zoom + (event.key === '-' ? -0.25 : 0.25)); }
   });
-  return {setModel,select,clear,reset:()=>{clear();find('search').value='';zoom=1;showMode('schema');showRepresentation('graph');scale(1);}};
+  return {setModel,select,selectLink,clear,reset:()=>{clear();find('search').value='';zoom=1;showMode('schema');showRepresentation('graph');scale(1);}};
 }
 "#;

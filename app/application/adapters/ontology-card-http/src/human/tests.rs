@@ -1,6 +1,7 @@
 mod failures;
 mod labels;
 mod links;
+mod model;
 mod query;
 mod schemas;
 mod support;

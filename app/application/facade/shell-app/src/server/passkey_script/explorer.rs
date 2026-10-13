@@ -1,18 +1,31 @@
+mod editor;
 mod model;
 mod render;
 pub(super) fn script() -> String {
-    format!("{}\n{}\n{}", render::SCRIPT, model::SCRIPT, SCRIPT)
+    format!(
+        "{}\n{}\n{}\n{}",
+        render::SCRIPT,
+        model::SCRIPT,
+        editor::script(),
+        SCRIPT
+    )
 }
 pub(super) const SCRIPT: &str = r#"
 function createOntologyExplorer(lifecycle) {
   const find = id => document.getElementById(`live-ontology-${id}`);
   const root = find('explorer');
   let identity = null, generation = 0, epoch = 0, abort = null;
-  let schemas = [], links = [];
+  let schemas = [], links = [], workspaceMode = 'schema';
+  let editor;
   const model = createOntologyModelView(id => {
+    if (workspaceMode==='schema' && editor?.active()) { editor.selectType(id); return; }
     find('type').value = id;
     changeType();
-  }, focusSchemaControl);
+  }, focusSchemaControl, id=>{if(workspaceMode==='schema')editor?.selectLink(id);}, value=>{
+    workspaceMode=value;editor?.setMode(value);
+    if(value==='objects' || !editor?.active()) {model.setModel(schemas,links,find('type').value || null);renderSchema();}
+  });
+  editor=createOntologyDraftEditor(lifecycle,{setModel:(rows,relations,selected)=>{model.setModel(rows,relations,selected);renderSchemaFor(rows.find(row=>row.entity_type===selected));},selectLink:id=>model.selectLink(id),fallback:()=>{model.setModel(schemas,links,find('type').value || null);renderSchema();}});
   let next = null, cursor = null, objectRef = null, historyShown = false, readPage = false;
   const queryControls = ['type', 'revision', 'limit', 'property', 'comparison', 'kind', 'from', 'to'];
   const note = text => { find('status').textContent = text; };
@@ -32,10 +45,13 @@ function createOntologyExplorer(lifecycle) {
   }
   function clearModel() {
     schemas = []; links = []; emptySchema(); model.clear();
+    find('model-note').textContent='Current schema and relationship declarations are loaded separately. This view is not an atomic model snapshot.';
     for (const option of find('type').children) option.textContent = option.value;
   }
   function renderSchema() {
-    const schema = schemas.find(row => row.entity_type === find('type').value);
+    renderSchemaFor(schemas.find(row => row.entity_type === find('type').value));
+  }
+  function renderSchemaFor(schema) {
     if (!schema) { emptySchema(); return; }
     find('schema-summary').textContent = `${schema.display_name} · ${schema.entity_type} · current accepted declaration revision ${schema.revision}. Primary-key property: ${schema.primary_key_property ?? 'none declared'}. Title property: ${schema.title_property ?? 'none declared'}.`;
     find('schema-properties').replaceChildren(ontologyTable('Native declared properties', ['Property', 'Tier', 'Value declaration', 'Presence', 'Privacy class'], schema.properties.map(property => [property.name, property.tier, ontologyDeclarationText(property.value_type), property.required ? 'Required' : 'Optional', property.data_class])));
@@ -51,7 +67,7 @@ function createOntologyExplorer(lifecycle) {
     next = null; cursor = null; objectRef = null; historyShown = false; readPage = false;
   }
   function clear() {
-    invalidate();
+    invalidate(); editor.clear();
     if (root.contains(document.activeElement)) lifecycle.fallback();
     emptyResults();
     schemas = []; links = []; emptySchema(); model.reset();
@@ -96,7 +112,7 @@ function createOntologyExplorer(lifecycle) {
     const active = document.activeElement;
     const restoreFocus = ownsReadFocus(active);
     emptyResults();
-    clearModel();
+    if (!editor.active()) clearModel(); else { schemas=[];links=[];emptySchema();editor.render(); }
     if (['forbidden', 'source_unavailable'].includes(error.message) || !['unauthenticated','invalid_query','absent_object','revision_conflict','filter_conflict'].includes(error.message)) { find('type').replaceChildren(); find('type').disabled = true; find('read').disabled = true; }
     if (restoreFocus) focusSchemaControl();
     const messages = {
@@ -180,7 +196,8 @@ function createOntologyExplorer(lifecycle) {
     if (!selection) clear();
     identity = session; generation = version; root.hidden = false; find('access-notice').hidden = true;
     find('identity').textContent = `Verified tenant ${session.tenantId} · account ${session.userId}`;
-    clearModel();
+    if (!editor.active()) clearModel();
+    const modelAccess=editor.open(session,version,retaining);
     await run('Reading native entity schemas…', async token => {
       const rows = await fetchRead('schemas', token);
       if (!valid(token)) return;
@@ -196,12 +213,14 @@ function createOntologyExplorer(lifecycle) {
       find('type').disabled = schemas.length === 0; find('read').disabled = schemas.length === 0;
       if (selection && schemas.some(t => t.entity_type === selection.type)) { find('type').value = selection.type; find('revision').value = selection.revision; }
       else { emptyResults(); if (schemas.length) find('revision').value = schemas[0].revision; }
-      model.setModel(schemas, links, find('type').value || null); renderSchema();
+      if (!editor.active()) {model.setModel(schemas, links, find('type').value || null); renderSchema();}
       if (restoreFocus && (schemas.length === 0 || active === find('type'))) focusSchemaControl();
       note(schemas.length ? 'Native schemas loaded. Choose a type and requested schema revision, then Read objects.' : 'No entity types are declared for this verified tenant.');
       if (selection?.readPage && find('type').value === selection.type) await loadPage(token, selection.cursor, selection.objectRef);
       if (selection?.auditShown && valid(token)) await loadAudit(token);
     });
+    await modelAccess;
+    if (editor.active()) {editor.render();note('Native model workspace loaded. Object access is checked independently.');}
   }
   find('query').addEventListener('submit', event => { event.preventDefault(); emptyResults(); run('Reading pinned native objects…', token => loadPage(token)); });
   find('next').addEventListener('click', () => { const after = next; emptyResults(); run('Reading next native page…', token => loadPage(token, after)); });
@@ -227,6 +246,6 @@ function createOntologyExplorer(lifecycle) {
     invalidate(); emptyResults(); busy(false);
     note('Read selection changed. Read objects to load this context.');
   });
-  return { clear, open, hold: version => { invalidate(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
+  return { clear, open, hold: version => { invalidate(); editor.hold(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
 }
 "#;
