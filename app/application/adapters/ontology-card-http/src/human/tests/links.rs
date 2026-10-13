@@ -69,6 +69,21 @@ async fn malformed_or_ambiguous_link_declarations_refuse_the_entire_catalog() {
 }
 
 #[tokio::test]
+async fn raw_positional_or_duplicate_key_rows_refuse_the_entire_link_catalog() {
+    for wire in [
+        r#"[["lty_related","ety_record","ety_record","one_to_many",false,0]]"#,
+        r#"[{"link_type":"lty_related","link_type":"lty_other","from_entity_type":"ety_record",
+            "to_entity_type":"ety_record","cardinality":"one_to_many","allow_cross_tenant":false,"revision":0}]"#,
+    ] {
+        let (base, _) = stub(vec![(200, wire.to_owned(), String::new())]);
+        assert_eq!(
+            source(&base, &cookie('A')).link_types("ten_acme").await,
+            Err(OntologyReadError::SourceUnavailable)
+        );
+    }
+}
+
+#[tokio::test]
 async fn empty_catalog_is_valid_and_each_link_read_preserves_current_authorization_refusals() {
     let (base, seen) = stub(vec![
         (200, "[]".into(), String::new()),

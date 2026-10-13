@@ -19,6 +19,17 @@ fn native_cardinalities_self_links_and_zero_revision_round_trip() {
 }
 
 #[test]
+fn raw_catalog_rows_require_objects_and_duplicate_keys_remain_refused() {
+    for wire in [
+        r#"[["lty_related","ety_record","ety_record","one_to_many",false,0]]"#,
+        r#"[{"link_type":"lty_related","link_type":"lty_other","from_entity_type":"ety_record",
+            "to_entity_type":"ety_record","cardinality":"one_to_many","allow_cross_tenant":false,"revision":0}]"#,
+    ] {
+        assert!(serde_json::from_str::<Vec<LinkSchema>>(wire).is_err());
+    }
+}
+
+#[test]
 fn declarations_require_closed_typed_fields_and_canonical_cardinality() {
     for field in [
         "link_type",
