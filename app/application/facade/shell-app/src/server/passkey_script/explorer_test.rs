@@ -144,6 +144,19 @@ const CHECK: &str = r#"
   nativeSchemas=schemaFixture;find('live-ontology-types-refresh').emit('click');await flush();assert.equal(find('live-ontology-schema').hidden,false);
   const decodeSchemas = rows => vm.runInNewContext(`ontologyDecode.schemas(${JSON.stringify(rows)})`,context);
   const changed = change => { const schema=JSON.parse(JSON.stringify(schemaFixture[0]));change(schema);return [schema]; };
+  for(const [tier,value_type] of [['vector',{kind:'array',element:{kind:'string'}}],['struct',{kind:'struct',fields:[{name:'code',required:true,value_type:{kind:'integer'}}]}]]) {
+    const composite=changed(s=>{s.primary_key_property='name';s.properties[0].tier=tier;s.properties[0].value_type=value_type;});
+    assert.throws(()=>decodeSchemas(composite),/source_unavailable/,'required valid composite primary key refuses');
+    nativeSchemas=schemaFixture;await restore();find('live-ontology-query').emit('submit');await flush();
+    nativeSchemas=composite;find('live-ontology-types-refresh').emit('click');await flush();
+    assert.match(find('live-ontology-status').textContent,/unavailable/);
+    for(const id of ['scene','library-types','schema-properties','page','properties','history'])assert.equal(find('live-ontology-'+id).children.length,0,'composite key refusal clears prior native rows');
+    assert.equal(find('live-ontology-schema-summary').textContent,'');
+    assert.equal(find('live-ontology-type').children.length,0);
+  }
+  nativeSchemas=schemaFixture;await restore();
+  for(const tier of ['scalar','vector','timeseries','geo','ciphertext','struct'])assert.doesNotThrow(()=>decodeSchemas(changed(s=>{s.primary_key_property='name';s.properties[0].tier=tier;})),'legacy null primary key retains every native tier');
+  for(const kind of ['string','integer','double','boolean','date','timestamp'])assert.doesNotThrow(()=>decodeSchemas(changed(s=>{s.primary_key_property='name';s.properties[0].value_type={kind};})),'all native scalar primary keys remain admitted');
   assert.doesNotThrow(()=>decodeSchemas(changed(s=>s.revision=0)),'native declaration revision zero remains inspectable');
   assert.doesNotThrow(()=>decodeSchemas(changed(s=>{s.properties[0].name='\uFEFF';s.title_property='\uFEFF';})),'native Unicode non-whitespace name is not trimmed away');
   assert.doesNotThrow(()=>decodeSchemas(changed(s=>{s.properties[0].tier='struct';s.properties[0].value_type={kind:'struct',fields:[{name:'\uFEFF',required:true,value_type:{kind:'string'}}]};})),'nested native Unicode non-whitespace name remains admitted');

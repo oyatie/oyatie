@@ -14,13 +14,12 @@ pub use links::LinkInstanceOutcome;
 #[cfg(test)]
 pub(crate) use evolution::check_property_compatibility;
 
-use std::collections::BTreeMap;
-
 use crate::definitions::{
     ActionTypeDefinition, ActionTypeId, EntityTypeDefinition, EntityTypeId, LinkTypeDefinition,
     LinkTypeId,
 };
 use crate::error::OntologyEngineError;
+use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct OntologyEngine {
@@ -259,33 +258,36 @@ pub(crate) fn check_value_type_integrity<'a>(
     Ok(())
 }
 
-/// The key property must be `required`: a key absent from a conformant
-/// instance is a contradiction.
+/// A key must be required and carry scalar values, including legacy strings.
 pub(crate) fn check_designation_integrity(
     definition: &EntityTypeDefinition,
 ) -> Result<(), OntologyEngineError> {
-    for name in [
-        definition.primary_key_property.as_deref(),
-        definition.title_property.as_deref(),
-    ]
-    .into_iter()
-    .flatten()
+    for name in definition
+        .primary_key_property
+        .iter()
+        .chain(&definition.title_property)
     {
-        if !definition.properties.iter().any(|p| p.name == name) {
-            return Err(OntologyEngineError::DesignatedPropertyNotDeclared {
-                name: name.to_string(),
-            });
+        if !definition.properties.iter().any(|p| &p.name == name) {
+            return Err(OntologyEngineError::DesignatedPropertyNotDeclared { name: name.clone() });
         }
     }
-    if let Some(key_name) = definition.primary_key_property.as_deref()
-        && definition
-            .properties
-            .iter()
-            .any(|p| p.name == key_name && !p.required)
+    if let Some(key) = definition
+        .properties
+        .iter()
+        .find(|p| definition.primary_key_property.as_ref() == Some(&p.name))
     {
-        return Err(OntologyEngineError::PrimaryKeyPropertyNotRequired {
-            name: key_name.to_string(),
-        });
+        if !key.required {
+            return Err(OntologyEngineError::PrimaryKeyPropertyNotRequired {
+                name: key.name.clone(),
+            });
+        }
+        if let Some(kind) = &key.value_type
+            && kind.tier() != crate::PropertyTier::Scalar
+        {
+            return Err(OntologyEngineError::PrimaryKeyPropertyNotScalar {
+                name: key.name.clone(),
+            });
+        }
     }
     Ok(())
 }

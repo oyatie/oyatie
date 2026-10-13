@@ -4,9 +4,10 @@ use axum::{
     http::{HeaderMap, Method, StatusCode, header},
 };
 
-const SUFFIXES: [&str; 7] = [
+const SUFFIXES: [&str; 8] = [
     "types",
     "schemas",
+    "type-labels",
     "link-types",
     "objects?type=ety_record&revision=1",
     "objects/ent_alpha?revision=1",

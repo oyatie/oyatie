@@ -16,6 +16,7 @@ pub(super) fn router() -> Router<Configuration> {
     Router::new()
         .route("/api/ontology/{tenant}/types", get(types))
         .route("/api/ontology/{tenant}/schemas", get(schemas))
+        .route("/api/ontology/{tenant}/type-labels", get(type_labels))
         .route("/api/ontology/{tenant}/link-types", get(link_types))
         .route("/api/ontology/{tenant}/objects", get(objects))
         .route("/api/ontology/{tenant}/objects/{object_ref}", get(object))
@@ -96,6 +97,19 @@ async fn schemas(State(c): State<Configuration>, Path(t): Path<String>, h: Heade
         async {
             let (source, member) = reader(c, &t, &h).await?;
             Ok((source.schemas(&t).await?, member))
+        }
+        .await,
+    )
+}
+async fn type_labels(
+    State(c): State<Configuration>,
+    Path(t): Path<String>,
+    h: HeaderMap,
+) -> Response {
+    response(
+        async {
+            let (source, member) = reader(c, &t, &h).await?;
+            Ok((source.type_labels(&t).await?, member))
         }
         .await,
     )

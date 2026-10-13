@@ -77,7 +77,7 @@ impl Drop for NativeFixture {
         }
     }
 }
-const READS: [&str; 7] = [
+const READS: [&str; 8] = [
     "types",
     "schemas",
     "objects?type=ety_record&revision=1&limit=1",
@@ -85,6 +85,7 @@ const READS: [&str; 7] = [
     "objects/ent_alpha/history",
     "audit",
     "link-types",
+    "type-labels",
 ];
 async fn read(shell: &Router, suffix: &str, status: StatusCode) -> serde_json::Value {
     let r = call(
@@ -151,9 +152,14 @@ async fn real_foundry_human_routes_answer_durable_data_and_revalidate_local_iam_
     assert_eq!(audit[0]["disposition"], "applied");
     let links = read(&shell, READS[6], StatusCode::OK).await;
     assert_eq!(links, serde_json::json!([]));
+    let labels = read(&shell, READS[7], StatusCode::OK).await;
+    assert_eq!(
+        labels,
+        serde_json::json!([{"entity_type":"ety_record","revision":1,"display_name":"Record"}])
+    );
     println!(
         "native_ontology_fixture_results={}",
-        serde_json::json!({"types":types,"schemas":schemas,"links":links,"page":page,"detail":detail,"history":history,"audit":audit})
+        serde_json::json!({"types":types,"schemas":schemas,"links":links,"labels":labels,"page":page,"detail":detail,"history":history,"audit":audit})
     );
     assert_eq!(iam.calls.lock().unwrap().len(), READS.len() * 2);
     iam.reply.lock().unwrap().body = session().replace(r#"["foundry-operator"]"#, "[]");

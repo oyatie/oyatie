@@ -96,10 +96,11 @@ impl EntitySchema {
             .as_ref()
             .is_some_and(|name| !names.contains(name.as_str()))
             || self.primary_key_property.as_ref().is_some_and(|name| {
-                !self
-                    .properties
-                    .iter()
-                    .any(|property| &property.name == name && property.required)
+                !self.properties.iter().any(|property| {
+                    &property.name == name
+                        && property.required
+                        && (property.value_type.is_none() || property.tier == PropertyTier::Scalar)
+                })
             })
         {
             return Err(OntologyReadError::SourceUnavailable);

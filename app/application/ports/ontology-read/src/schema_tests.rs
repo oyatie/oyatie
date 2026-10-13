@@ -169,3 +169,72 @@ fn all_native_privacy_labels_and_legacy_tiers_remain_admitted() {
         }
     }
 }
+
+#[test]
+fn primary_keys_require_scalar_carriers_and_preserve_all_native_scalar_and_legacy_tiers() {
+    for (tier, declaration) in [
+        (
+            "vector",
+            json!({"kind":"array","element":{"kind":"string"}}),
+        ),
+        (
+            "struct",
+            json!({"kind":"struct","fields":[{"name":"code","required":true,"value_type":{"kind":"integer"}}]}),
+        ),
+    ] {
+        let mut wire = schema_wire();
+        wire["properties"][0]["tier"] = json!(tier);
+        wire["properties"][0]["value_type"] = declaration;
+        assert_eq!(
+            serde_json::from_value::<EntitySchema>(wire.clone())
+                .unwrap()
+                .validate(),
+            Ok(()),
+            "non-key composites and titles are valid"
+        );
+        wire["primary_key_property"] = json!("name");
+        assert_eq!(
+            serde_json::from_value::<EntitySchema>(wire)
+                .unwrap()
+                .validate(),
+            Err(OntologyReadError::SourceUnavailable)
+        );
+    }
+    for kind in [
+        "string",
+        "integer",
+        "double",
+        "boolean",
+        "date",
+        "timestamp",
+    ] {
+        let mut wire = schema_wire();
+        wire["primary_key_property"] = json!("name");
+        wire["properties"][0]["value_type"] = json!({"kind":kind});
+        assert_eq!(
+            serde_json::from_value::<EntitySchema>(wire)
+                .unwrap()
+                .validate(),
+            Ok(())
+        );
+    }
+    for tier in [
+        "scalar",
+        "vector",
+        "timeseries",
+        "geo",
+        "ciphertext",
+        "struct",
+    ] {
+        let mut wire = schema_wire();
+        wire["primary_key_property"] = json!("name");
+        wire["properties"][0]["tier"] = json!(tier);
+        assert_eq!(
+            serde_json::from_value::<EntitySchema>(wire)
+                .unwrap()
+                .validate(),
+            Ok(()),
+            "legacy None still carries String values"
+        );
+    }
+}

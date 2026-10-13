@@ -1,6 +1,6 @@
 use application_ontology_read::{
-    AuditRow, EntitySchema, EntityType, HistoryRow, LinkSchema, ObjectDetail, ObjectListQuery,
-    ObjectPage, OntologyReadError, OntologyReadSource, PinnedObject,
+    AuditRow, EntitySchema, EntityType, EntityTypeLabel, HistoryRow, LinkSchema, ObjectDetail,
+    ObjectListQuery, ObjectPage, OntologyReadError, OntologyReadSource, PinnedObject,
 };
 use reqwest::{StatusCode, Url, header::HeaderValue};
 use serde::{Deserialize, de::DeserializeOwned};
@@ -125,6 +125,18 @@ impl Refusal {
 }
 
 impl OntologyReadSource for HumanOntologyReadSource {
+    async fn type_labels(&self, tenant: &str) -> Result<Vec<EntityTypeLabel>, OntologyReadError> {
+        let labels: Vec<EntityTypeLabel> = self.get(self.url(tenant, &["type-labels"])?).await?;
+        let mut ids = std::collections::BTreeSet::new();
+        for label in &labels {
+            if !ids.insert(&label.entity_type) {
+                return Err(OntologyReadError::SourceUnavailable);
+            }
+            label.validate()?;
+        }
+        Ok(labels)
+    }
+
     async fn link_types(&self, tenant: &str) -> Result<Vec<LinkSchema>, OntologyReadError> {
         let links: Vec<LinkSchema> = self.get(self.url(tenant, &["link-types"])?).await?;
         let mut ids = std::collections::BTreeSet::new();

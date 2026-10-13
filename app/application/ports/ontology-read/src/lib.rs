@@ -6,10 +6,12 @@
 
 use std::future::Future;
 
+mod labels;
 mod links;
 mod models;
 mod query;
 mod schema;
+pub use labels::EntityTypeLabel;
 pub use links::{LinkCardinality, LinkSchema};
 pub use models::{
     AuditDisposition, AuditRow, EntityType, HistoryRow, ObjectDetail, ObjectPage, PinnedObject,
@@ -51,6 +53,12 @@ impl std::error::Error for OntologyReadError {}
 /// The server adapter revalidates the user's credential and tenant on each read.
 /// No browser principal, role list or sample fallback authorizes a live result.
 pub trait OntologyReadSource: Send + Sync {
+    /// Native human names; consumers join only matching schema IDs and revisions.
+    fn type_labels(
+        &self,
+        tenant: &str,
+    ) -> impl Future<Output = Result<Vec<EntityTypeLabel>, OntologyReadError>> + Send;
+
     /// Current registered relationships; separate reads do not form an atomic snapshot.
     fn link_types(
         &self,

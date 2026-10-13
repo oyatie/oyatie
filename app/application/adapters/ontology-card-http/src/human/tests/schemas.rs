@@ -77,3 +77,27 @@ async fn missing_nullable_fields_ambiguous_schemas_and_non_native_metadata_are_u
         );
     }
 }
+
+#[tokio::test]
+async fn required_typed_composite_primary_keys_are_unavailable() {
+    for (tier, declaration) in [
+        (
+            "vector",
+            json!({"kind":"array","element":{"kind":"string"}}),
+        ),
+        (
+            "struct",
+            json!({"kind":"struct","fields":[{"name":"code","required":true,"value_type":{"kind":"integer"}}]}),
+        ),
+    ] {
+        let mut invalid = wire();
+        invalid[0]["properties"][0]["tier"] = json!(tier);
+        invalid[0]["properties"][0]["value_type"] = declaration;
+        let (base, _) = stub(vec![(200, invalid.to_string(), String::new())]);
+        assert_eq!(
+            source(&base, &cookie('A')).schemas("ten_acme").await,
+            Err(OntologyReadError::SourceUnavailable),
+            "the designated name is declared and required; composite shape alone must refuse"
+        );
+    }
+}

@@ -13295,7 +13295,7 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 #resource-audit-console .resource-filter-pills button[data-resource-filter][aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 
 .live-ontology-query { display: grid; grid-template-columns: minmax(8rem, 1fr) minmax(10rem, 2fr); gap: var(--space-2); align-items: center; max-width: 50rem; }
-.live-ontology-query input, .live-ontology-query select { min-width: 0; min-height: 2.75rem; width: 100%; box-sizing: border-box; padding: var(--space-2); color: var(--color-text); background: var(--color-surface-sunken); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font: inherit; }
+.live-ontology-query input, .live-ontology-query select { min-width: 0; min-height: max(44px, 2.75rem); width: 100%; box-sizing: border-box; padding: var(--space-2); color: var(--color-text); background: var(--color-surface-sunken); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font: inherit; }
 .live-ontology-query p, .live-ontology-query button { grid-column: 1 / -1; }
 .live-ontology-explorer [data-live-results] { overflow-x: auto; margin-top: var(--space-3); }
 .live-ontology-explorer table { width: 100%; border-collapse: collapse; text-align: left; }
@@ -13313,12 +13313,12 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-context { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: .75rem 1rem; background: var(--paper-sunken); }
 .foundry-context h3 { font-size: var(--text-sm); margin: 0; }
 .foundry-mode-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .75rem 1rem; border-bottom: 1px solid var(--rule); }
-.foundry-workspace button, .foundry-workspace summary { min-height: 2.75rem; font: inherit; }
+.foundry-workspace button, .foundry-workspace summary { min-height: max(44px, 2.75rem); font: inherit; }
 .foundry-workspace button { color: var(--ink); background: var(--paper-raised); border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: .45rem .65rem; cursor: pointer; }
 .foundry-workspace button[aria-pressed="true"] { color: var(--accent-deep); border-color: var(--accent); background: var(--accent-bg); }
 .foundry-workspace button:disabled { color: var(--ink-muted); background: var(--paper-sunken); cursor: default; }
 .foundry-workspace :is(button,input,select,summary,[tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.foundry-mode-bar select { min-height: 2.75rem; max-width: 100%; min-width: 0; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: .4rem; font: inherit; color: var(--ink); background: var(--paper-raised); }
+.foundry-mode-bar select { min-height: max(44px, 2.75rem); max-width: 100%; min-width: 0; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: .4rem; font: inherit; color: var(--ink); background: var(--paper-raised); }
 #live-ontology-status { margin: 0; padding: .65rem 1rem; border-bottom: 1px solid var(--rule); color: var(--ink-muted); font-size: var(--text-cap); }
 .foundry-workspace-body { display: grid; grid-template-columns: 13rem minmax(0, 1fr) minmax(19rem, .7fr); min-height: 34rem; }
 .foundry-library, .foundry-inspector { min-width: 0; padding: .75rem; background: var(--paper-sunken); }
@@ -13326,7 +13326,7 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-inspector { border-left: 1px solid var(--rule); }
 .foundry-workspace summary { cursor: pointer; font-weight: 650; padding: .65rem 0; }
 .foundry-library label { display: block; color: var(--ink-muted); font-size: var(--text-cap); margin: .5rem 0; }
-.foundry-library input { width: 100%; min-width: 0; min-height: 2.75rem; padding: .5rem; font: inherit; border: 1px solid var(--rule); border-radius: var(--radius-sm); background: var(--paper-raised); color: var(--ink); }
+.foundry-library input { width: 100%; min-width: 0; min-height: max(44px, 2.75rem); padding: .5rem; font: inherit; border: 1px solid var(--rule); border-radius: var(--radius-sm); background: var(--paper-raised); color: var(--ink); }
 .foundry-library h4 { margin: 1.25rem 0 .4rem; font-size: var(--text-cap); }
 .foundry-library-item { width: 100%; display: block; text-align: left; margin: .25rem 0; overflow-wrap: anywhere; }
 .foundry-library-help, #live-ontology-library-summary, .foundry-model-note, #live-ontology-graph-help { color: var(--ink-muted); font-size: var(--text-cap); line-height: 1.5; }

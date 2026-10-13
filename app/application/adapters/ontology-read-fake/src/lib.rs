@@ -4,8 +4,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use application_ontology_read::{
-    AuditRow, EntitySchema, EntityType, HistoryRow, LinkSchema, ObjectDetail, ObjectListQuery,
-    ObjectPage, OntologyReadError, OntologyReadSource, UpcastState,
+    AuditRow, EntitySchema, EntityType, EntityTypeLabel, HistoryRow, LinkSchema, ObjectDetail,
+    ObjectListQuery, ObjectPage, OntologyReadError, OntologyReadSource, UpcastState,
 };
 
 mod filtering;
@@ -65,6 +65,15 @@ fn pin(mut object: application_ontology_read::PinnedObject, revision: u32) -> Ob
 }
 
 impl OntologyReadSource for FixtureOntologyReadSource {
+    async fn type_labels(&self, tenant: &str) -> Result<Vec<EntityTypeLabel>, OntologyReadError> {
+        self.check(tenant)?;
+        Ok(vec![EntityTypeLabel {
+            entity_type: Self::ENTITY_TYPE.to_owned(),
+            revision: 2,
+            display_name: "Fixture record".to_owned(),
+        }])
+    }
+
     async fn link_types(&self, tenant: &str) -> Result<Vec<LinkSchema>, OntologyReadError> {
         self.check(tenant)?;
         Ok(vec![])
@@ -150,3 +159,6 @@ impl OntologyReadSource for FixtureOntologyReadSource {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod label_tests;

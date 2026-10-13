@@ -30,6 +30,7 @@ pub mod seed;
 pub mod slo;
 mod status;
 pub mod submit;
+mod type_labels;
 
 pub use authz::PolicyEnforcementPoint;
 pub use composition::{AppState, BootError, TenantState, compose};
