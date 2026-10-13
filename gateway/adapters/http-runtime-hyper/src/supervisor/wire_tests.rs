@@ -147,12 +147,15 @@ fn saturated_connection_budget_reuses_capacity_and_drain_interrupts_paused_accep
         std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
     ));
     assert_eq!(calls.load(Ordering::SeqCst), 1);
+    // Response handoff does not imply that the supervisor has reaped the job.
+    wait_for(|| server.control.snapshot().active[2] == 0);
     drop(first);
     second
         .set_read_timeout(Some(Duration::from_secs(2)))
         .unwrap();
     assert!(read_closed(second).starts_with("HTTP/1.1 200"));
     assert_eq!(calls.load(Ordering::SeqCst), 2);
+    wait_for(|| server.control.snapshot().active[2] == 0);
 
     let occupied = server.client(b"GET / HTTP/1.1\r\nHost: localhost\r\n\r\n");
     wait_for(|| calls.load(Ordering::SeqCst) == 3);
