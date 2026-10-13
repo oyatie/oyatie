@@ -163,25 +163,6 @@ pub fn next_model_version(current: u64) -> Result<u64, ModelError> {
         .ok_or(ModelError::VersionOverflow)
 }
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn numerical_versions_refuse_overflow_instead_of_wrapping() {
-        assert_eq!(
-            super::next_model_version(super::MAX_MODEL_VERSION),
-            Err(super::ModelError::VersionOverflow)
-        );
-        assert_eq!(
-            super::next_model_version(u64::MAX),
-            Err(super::ModelError::VersionOverflow)
-        );
-        assert_eq!(
-            super::next_model_version(super::MAX_MODEL_VERSION - 1),
-            Ok(super::MAX_MODEL_VERSION)
-        );
-    }
-}
-
 pub(crate) fn context(binding: &ModelBinding, caller: &ModelCaller) -> Result<(), ModelError> {
     binding.validate()?;
     if caller.owner.trim().is_empty() || caller.owner.len() > MAX_MODEL_CONTEXT_BYTES {
@@ -209,5 +190,24 @@ impl ModelBinding {
             return Err(ModelError::InvalidContext);
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn numerical_versions_refuse_overflow_instead_of_wrapping() {
+        assert_eq!(
+            super::next_model_version(super::MAX_MODEL_VERSION),
+            Err(super::ModelError::VersionOverflow)
+        );
+        assert_eq!(
+            super::next_model_version(u64::MAX),
+            Err(super::ModelError::VersionOverflow)
+        );
+        assert_eq!(
+            super::next_model_version(super::MAX_MODEL_VERSION - 1),
+            Ok(super::MAX_MODEL_VERSION)
+        );
     }
 }
