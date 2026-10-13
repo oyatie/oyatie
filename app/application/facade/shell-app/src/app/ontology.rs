@@ -8,6 +8,7 @@ pub(super) fn ontology_list(items: Vec<OntologyFact>, context: OperatorContext) 
                 <div>
                     <p class="screen-anchor">"ONTOLOGY · FD-001 TENANT WORKLOAD MAP"</p>
                     <h4>"What exists, who can see it, and where it runs"</h4>
+                    <p>"Anonymous sample workload map. These nodes illustrate the shell; the native type model is in the Foundry workspace."</p>
                     <span>"Typed entities connect FD-001 tenant workload delivery to Oyatie Cloud cells, policy envelopes, workflow outputs, and evidence receipts."</span>
                 </div>
                 <div class="ontology-console-actions">

@@ -196,6 +196,12 @@ impl OntologyEngine {
         self.link_types
             .get(&ontology_scoped_key(tenant_id, &id.value))
     }
+    pub fn link_types(&self, tenant_id: &str) -> impl Iterator<Item = &LinkTypeDefinition> {
+        self.link_types
+            .iter()
+            .filter(move |(key, _)| key.tenant_id == tenant_id)
+            .map(|(_, definition)| definition)
+    }
     pub fn action_type(&self, tenant_id: &str, id: &ActionTypeId) -> Option<&ActionTypeDefinition> {
         self.action_types
             .get(&ontology_scoped_key(tenant_id, &id.value))

@@ -52,6 +52,15 @@ const ontologyDecode = (() => {
     && Object.values(v.properties).every(p => object(p) && string(p.value_type) && string(p.data_class) && Object.hasOwn(p, 'value'));
   return {
     schemas: v => { rows(v, schema); if (new Set(v.map(s => s.entity_type)).size !== v.length) throw new Error('source_unavailable'); },
+    links: (v, schemas) => {
+      const id = (value, prefix) => string(value) && value.startsWith(prefix) && value.length > prefix.length;
+      rows(v, row => shape(row, ['link_type','from_entity_type','to_entity_type','cardinality','allow_cross_tenant','revision'])
+        && id(row.link_type, 'lty_') && id(row.from_entity_type, 'ety_') && id(row.to_entity_type, 'ety_')
+        && ['one_to_one','one_to_many','many_to_many'].includes(row.cardinality) && typeof row.allow_cross_tenant === 'boolean'
+        && integer(row.revision) && row.revision <= 4294967295);
+      const types = new Set(schemas.map(row => row.entity_type));
+      if (new Set(v.map(row => row.link_type)).size !== v.length || v.some(row => !types.has(row.from_entity_type) || !types.has(row.to_entity_type))) throw new Error('source_unavailable');
+    },
     page: (v, pin, limit) => { if (!object(v) || v.requested_revision !== pin || !nullable(v.next)) throw new Error('source_unavailable'); rows(v.objects, pinned); if (v.objects.length > limit) throw new Error('source_unavailable'); },
     detail: (v, ref, pin) => { if (!object(v) || v.requested_revision !== pin || !pinned(v.object) || v.object.object_ref !== ref) throw new Error('source_unavailable'); },
     history: v => rows(v, r => object(r) && ['ordinal', 'object_sequence', 'schema_revision'].every(k => integer(r[k])) && ['principal_id', 'decision_id', 'action_type', 'audit_event_type'].every(k => string(r[k]))),

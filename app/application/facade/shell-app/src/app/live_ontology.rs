@@ -1,14 +1,44 @@
 use leptos::prelude::*;
 
 #[component]
-pub(super) fn LiveOntologyExplorer() -> impl IntoView {
+pub(super) fn FoundryWorkspace() -> impl IntoView {
     view! {
-        <section id="live-ontology-explorer" class="verified-ontology-card live-ontology-explorer" aria-labelledby="live-ontology-title" aria-describedby="live-ontology-status" hidden>
-            <h3 id="live-ontology-title">"Native Ontology explorer"</h3>
-            <p id="live-ontology-identity"></p>
-            <p>"Live reads for this verified account. The sample dashboard below has a separate sample context. Reads do not change objects."</p>
+        <section id="foundry-workspace" class="foundry-workspace" aria-labelledby="foundry-workspace-title" tabindex="-1">
+            <header class="foundry-workspace-header">
+                <div><p class="screen-anchor">"FOUNDRY / ONTOLOGY"</p><h2 id="foundry-workspace-title">"Ontology workspace"</h2><p>"Explore your data model and the objects it describes."</p></div>
+                <span class="foundry-read-label">"Verified reads"</span>
+            </header>
+            <p id="live-ontology-access-notice" class="foundry-access-notice">"Sign in to explore your tenant's native model. "<a href="#oyatie-sign-in">"Sign in with a passkey"</a>" or "<a href="#ontology-command-console">"explore the labeled sample graph"</a>"."</p>
+            <section id="live-ontology-explorer" class="live-ontology-explorer" aria-labelledby="live-ontology-title" aria-describedby="live-ontology-status" hidden>
+                <div class="foundry-context"><h3 id="live-ontology-title">"Native Ontology explorer"</h3><p id="live-ontology-identity"></p></div>
+                <div class="foundry-mode-bar">
+                    <div role="group" aria-label="Ontology workspace mode"><button type="button" id="live-ontology-mode-schema" aria-pressed="true" aria-controls="live-ontology-model">"Model"</button><button type="button" id="live-ontology-mode-objects" aria-pressed="false" aria-controls="live-ontology-objects">"Objects"</button></div>
+                    <label for="live-ontology-type">"Selected entity type"</label><select id="live-ontology-type" required disabled></select>
+                    <button type="button" id="live-ontology-types-refresh">"Refresh model"</button>
+                </div>
+                <p id="live-ontology-status" role="status" aria-live="polite">"Sign in to read your tenant's Ontology."</p>
+                <div class="foundry-workspace-body">
+                    <details class="foundry-library" open>
+                        <summary>"Model library"</summary>
+                        <label for="live-ontology-search">"Search types, properties and relationships"</label><input id="live-ontology-search" type="search" autocomplete="off" placeholder="Search model library" />
+                        <p id="live-ontology-library-summary" role="status" aria-live="polite"></p>
+                        <h4>"Object types"</h4><div id="live-ontology-library-types" data-live-results="true"></div>
+                        <h4>"Relationships"</h4><div id="live-ontology-library-links" data-live-results="true"></div>
+                        <p class="foundry-library-help">"The graph shows type declarations. Objects are instances; source lineage is a separate view."</p>
+                    </details>
+                    <div class="foundry-main">
+                        <section id="live-ontology-model" aria-labelledby="live-ontology-model-title">
+                            <div class="foundry-canvas-toolbar"><div><h4 id="live-ontology-model-title">"Type graph"</h4><p id="live-ontology-model-summary"></p></div>
+                                <div role="group" aria-label="Model representation"><button type="button" id="live-ontology-view-graph" aria-pressed="true" aria-controls="live-ontology-graph">"Graph"</button><button type="button" id="live-ontology-view-table" aria-pressed="false" aria-controls="live-ontology-model-table">"Table"</button></div>
+                                <div id="live-ontology-graph-controls" role="group" aria-label="Type graph zoom"><button type="button" id="live-ontology-zoom-out" aria-label="Zoom out">"−"</button><output id="live-ontology-zoom" aria-live="polite">"100%"</output><button type="button" id="live-ontology-zoom-in" aria-label="Zoom in">"+"</button><button type="button" id="live-ontology-fit">"Fit to view"</button></div>
+                            </div>
+                            <div id="live-ontology-graph" class="foundry-graph" tabindex="0" aria-label="Native object type graph" aria-describedby="live-ontology-graph-help" data-live-results="true"><div id="live-ontology-stage" class="foundry-graph-stage"><div id="live-ontology-scene" class="foundry-graph-scene"></div></div></div>
+                            <p id="live-ontology-graph-help">"Arrows follow the declared from → to direction. Select a type or relationship to inspect it. Scroll or swipe to pan; use arrow keys when the canvas is focused. + and − zoom; Home fits the model."</p>
+                            <div id="live-ontology-model-table" class="foundry-model-table" data-live-results="true" hidden></div>
+                            <p class="foundry-model-note">"Current schema and relationship declarations are loaded separately. This view is not an atomic model snapshot."</p>
+                        </section>
+                        <section id="live-ontology-objects" aria-label="Native object instances" hidden>
             <form id="live-ontology-query" class="live-ontology-query">
-                <label for="live-ontology-type">"Entity type"</label><select id="live-ontology-type" required disabled></select>
                 <label for="live-ontology-revision">"Requested schema revision"</label><input id="live-ontology-revision" type="number" min="0" max="4294967295" value="1" required />
                 <label for="live-ontology-limit">"Objects per page"</label><input id="live-ontology-limit" type="number" min="1" max="1000" value="25" required />
                 <label for="live-ontology-property">"Filter property (optional)"</label><input id="live-ontology-property" type="text" autocomplete="off" />
@@ -19,13 +49,7 @@ pub(super) fn LiveOntologyExplorer() -> impl IntoView {
                 <p id="live-ontology-filter-help">"Text filters accept ASCII values without spaces, &, #, or quotes. Boolean values are true or false. Unsupported filters are refused."</p>
                 <button type="submit" id="live-ontology-read" disabled>"Read objects"</button>
             </form>
-            <div class="sign-in-actions"><button type="button" id="live-ontology-types-refresh">"Refresh schemas"</button><button type="button" id="live-ontology-audit-read">"Read tenant audit"</button></div>
-            <p id="live-ontology-status" role="status" aria-live="polite">"Sign in to read your tenant's Ontology."</p>
-            <section id="live-ontology-schema" aria-labelledby="live-ontology-schema-title" data-live-results="true" hidden>
-                <h4 id="live-ontology-schema-title">"Native entity schema"</h4>
-                <p>"The current accepted declaration is shown for the selected type. Requested object revisions are set separately."</p>
-                <p id="live-ontology-schema-summary"></p><div id="live-ontology-schema-properties"></div>
-            </section>
+            <div class="sign-in-actions"><button type="button" id="live-ontology-audit-read">"Read tenant audit"</button></div>
             <div id="live-ontology-page" data-live-results="true"></div>
             <div class="sign-in-actions"><button type="button" id="live-ontology-first" hidden>"First page"</button><button type="button" id="live-ontology-next" hidden>"Next page"</button></div>
             <section id="live-ontology-detail" aria-labelledby="live-ontology-detail-title" data-live-results="true" hidden>
@@ -33,6 +57,20 @@ pub(super) fn LiveOntologyExplorer() -> impl IntoView {
                 <button type="button" id="live-ontology-history-read">"Read object history"</button><div id="live-ontology-history"></div>
             </section>
             <section id="live-ontology-audit" aria-labelledby="live-ontology-audit-title" data-live-results="true" hidden><h4 id="live-ontology-audit-title">"Native tenant audit"</h4><div id="live-ontology-audit-rows"></div></section>
+                        </section>
+                    </div>
+                    <details class="foundry-inspector" open><summary>"Inspector"</summary>
+            <section id="live-ontology-schema" aria-labelledby="live-ontology-schema-title" data-live-results="true" hidden>
+                <h4 id="live-ontology-schema-title">"Native entity schema"</h4>
+                <p>"The current accepted declaration is shown for the selected type. Requested object revisions are set separately."</p>
+                <p id="live-ontology-schema-summary"></p><div id="live-ontology-schema-properties"></div>
+            </section>
+                        <section id="live-ontology-link" aria-labelledby="live-ontology-link-title" data-live-results="true" hidden><h4 id="live-ontology-link-title">"Native relationship declaration"</h4><div id="live-ontology-link-properties"></div><p>"Cross-tenant intent describes the model. It does not grant permission to read another tenant."</p></section>
+                        <p id="live-ontology-inspector-empty">"Select a type or relationship to inspect its declaration."</p>
+                    </details>
+                </div>
+                <details class="foundry-capability-note"><summary>"Workspace capabilities"</summary><p>"Available now: registered types and relationships, object reads, object history and tenant audit. Model authoring, source mappings, publication, instance graph traversal and scenarios require their native workflows."</p></details>
+            </section>
         </section>
     }
 }

@@ -6,9 +6,11 @@
 
 use std::future::Future;
 
+mod links;
 mod models;
 mod query;
 mod schema;
+pub use links::{LinkCardinality, LinkSchema};
 pub use models::{
     AuditDisposition, AuditRow, EntityType, HistoryRow, ObjectDetail, ObjectPage, PinnedObject,
     Property, UpcastState,
@@ -49,6 +51,12 @@ impl std::error::Error for OntologyReadError {}
 /// The server adapter revalidates the user's credential and tenant on each read.
 /// No browser principal, role list or sample fallback authorizes a live result.
 pub trait OntologyReadSource: Send + Sync {
+    /// Current registered relationships; separate reads do not form an atomic snapshot.
+    fn link_types(
+        &self,
+        tenant: &str,
+    ) -> impl Future<Output = Result<Vec<LinkSchema>, OntologyReadError>> + Send;
+
     /// Current accepted declarations, separate from the compatible type-name read.
     fn schemas(
         &self,
@@ -91,3 +99,6 @@ mod tests;
 
 #[cfg(test)]
 mod schema_tests;
+
+#[cfg(test)]
+mod link_tests;

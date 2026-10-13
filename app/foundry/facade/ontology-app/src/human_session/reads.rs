@@ -31,6 +31,19 @@ pub(crate) async fn schemas(
     crate::schemas::response(&state.app, &caller.tenant_id, tenant).await
 }
 
+pub(crate) async fn link_types(
+    State(state): State<HumanReadState>,
+    Path(tenant_id): Path<String>,
+    headers: HeaderMap,
+) -> Response {
+    let (caller, tenant) =
+        match authorized(&state, &tenant_id, &headers, TENANT_SCOPED_RESOURCE).await {
+            Ok(authorized) => authorized,
+            Err(response) => return *response,
+        };
+    crate::link_types::response(&state.app, &caller.tenant_id, tenant).await
+}
+
 pub(crate) async fn objects(
     State(state): State<HumanReadState>,
     Path(tenant_id): Path<String>,

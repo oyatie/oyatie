@@ -4,9 +4,10 @@ use axum::{
     http::{HeaderMap, Method, StatusCode, header},
 };
 
-const SUFFIXES: [&str; 6] = [
+const SUFFIXES: [&str; 7] = [
     "types",
     "schemas",
+    "link-types",
     "objects?type=ety_record&revision=1",
     "objects/ent_alpha?revision=1",
     "objects/ent_alpha/history",
@@ -147,6 +148,7 @@ async fn expired_verified_session_precedes_invalid_or_unrepresentable_query_refu
     let iam=Fixture::new(&serde_json::json!({"tenantId":"ten_acme","userId":"usr_alice","expiresAt":1,"roles":["foundry-operator"]}).to_string()).await;
     let foundry = Fixture::new("[]").await;
     for path in [
+        "link-types",
         "objects?unknown=x",
         "objects?type=ety_record&revision=1&property=name&equals=text%3AAda%20Lovelace",
         "objects/ent_alpha?revision=invalid",
@@ -162,6 +164,6 @@ async fn expired_verified_session_precedes_invalid_or_unrepresentable_query_refu
         expect_no_store(&r, StatusCode::UNAUTHORIZED);
         assert_eq!(json(r).await["error"], "unauthenticated");
     }
-    assert_eq!(iam.calls.lock().unwrap().len(), 3);
+    assert_eq!(iam.calls.lock().unwrap().len(), 4);
     assert!(foundry.calls.lock().unwrap().is_empty());
 }
