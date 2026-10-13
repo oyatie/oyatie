@@ -114,12 +114,13 @@ async fn model_proxy_preserves_exact_request_ack_and_keeps_closed_malformed_shap
     .await;
     expect_no_store(&response, StatusCode::CREATED);
     assert_eq!(json(response).await, draft);
-    let calls = foundry.calls.lock().unwrap();
-    assert_eq!(calls[0].0, "/v1/tenants/ten_acme/model/drafts");
-    assert_eq!(calls[0].1[header::ORIGIN], ORIGIN);
-    assert_eq!(calls[0].1[header::COOKIE], cookie());
-    assert!(!calls[0].1.contains_key(header::AUTHORIZATION));
-    drop(calls);
+    {
+        let calls = foundry.calls.lock().unwrap();
+        assert_eq!(calls[0].0, "/v1/tenants/ten_acme/model/drafts");
+        assert_eq!(calls[0].1[header::ORIGIN], ORIGIN);
+        assert_eq!(calls[0].1[header::COOKIE], cookie());
+        assert!(!calls[0].1.contains_key(header::AUTHORIZATION));
+    }
     for body in [
         r#"{"expected_generation":1,"document":{"entities":[],"links":[]}}"#,
         r#"{"expected_generation":"1","expected_generation":"1","document":{"entities":[],"links":[]}}"#,
