@@ -4,6 +4,9 @@ use compute_k8s_lifecycle_repository_postgres::{
     PgK8sLifecycleSchemaError,
 };
 use sqlx::{PgPool, postgres::PgPoolOptions};
+use std::time::Duration;
+
+mod teardown;
 
 use crate::support::{reset_runtime_role, setup_schema};
 
@@ -139,6 +142,24 @@ async fn create_database(setup: &PgPool, name: &str) -> PgPool {
 }
 
 async fn drop_database(setup: &PgPool, name: &str) {
+    // SQLx closes the client stream before PostgreSQL finishes removing the backend.
+    tokio::time::timeout(Duration::from_secs(3), async {
+        loop {
+            let connected: bool = sqlx::query_scalar(
+                "SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_stat_activity WHERE datname = $1)",
+            )
+            .bind(name)
+            .fetch_one(setup)
+            .await
+            .expect("observe disposable claim-test sessions");
+            if !connected {
+                break;
+            }
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect("disposable claim-test sessions did not exit before the cleanup deadline");
     sqlx::query(&format!(
         "DROP DATABASE {}",
         crate::support::quote_identifier(name)
