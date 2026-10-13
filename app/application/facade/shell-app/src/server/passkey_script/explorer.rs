@@ -1,13 +1,18 @@
+mod model;
 mod render;
 pub(super) fn script() -> String {
-    format!("{}\n{}", render::SCRIPT, SCRIPT)
+    format!("{}\n{}\n{}", render::SCRIPT, model::SCRIPT, SCRIPT)
 }
 pub(super) const SCRIPT: &str = r#"
 function createOntologyExplorer(lifecycle) {
   const find = id => document.getElementById(`live-ontology-${id}`);
   const root = find('explorer');
   let identity = null, generation = 0, epoch = 0, abort = null;
-  let schemas = [];
+  let schemas = [], links = [];
+  const model = createOntologyModelView(id => {
+    find('type').value = id;
+    changeType();
+  }, focusSchemaControl);
   let next = null, cursor = null, objectRef = null, historyShown = false, readPage = false;
   const queryControls = ['type', 'revision', 'limit', 'property', 'comparison', 'kind', 'from', 'to'];
   const note = text => { find('status').textContent = text; };
@@ -30,11 +35,11 @@ function createOntologyExplorer(lifecycle) {
     if (!schema) { emptySchema(); return; }
     find('schema-summary').textContent = `${schema.entity_type} · current accepted declaration revision ${schema.revision}. Primary-key property: ${schema.primary_key_property ?? 'none declared'}. Title property: ${schema.title_property ?? 'none declared'}.`;
     find('schema-properties').replaceChildren(ontologyTable('Native declared properties', ['Property', 'Tier', 'Value declaration', 'Presence', 'Privacy class'], schema.properties.map(property => [property.name, property.tier, ontologyDeclarationText(property.value_type), property.required ? 'Required' : 'Optional', property.data_class])));
-    find('schema').hidden = false;
+    find('schema').hidden = false; model.select(schema.entity_type);
   }
   function emptyResults() {
     if ([find('next'), find('first')].includes(document.activeElement)) find('read').focus();
-    if (root.contains(document.activeElement) && document.activeElement.closest('[data-live-results]')) find('type').focus();
+    if (['page','detail','audit'].some(id => find(id).contains(document.activeElement))) find('type').focus({ preventScroll: true });
     for (const id of ['page', 'properties', 'history', 'audit-rows']) find(id).replaceChildren();
     find('detail-title').textContent = 'Object detail';
     find('detail').hidden = true; find('audit').hidden = true;
@@ -45,11 +50,12 @@ function createOntologyExplorer(lifecycle) {
     invalidate();
     if (root.contains(document.activeElement)) lifecycle.fallback();
     emptyResults();
-    schemas = []; emptySchema();
+    schemas = []; links = []; emptySchema(); model.reset();
     find('type').replaceChildren(); find('type').disabled = true; find('read').disabled = true;
     find('revision').value = '1'; find('limit').value = '25';
     for (const id of ['property', 'from', 'to']) find(id).value = '';
     find('comparison').value = 'none'; find('kind').value = 'text';
+    find('access-notice').hidden = false;
     find('identity').textContent = ''; root.hidden = true; identity = null; busy(false);
   }
   function query(after = null) {
@@ -86,7 +92,7 @@ function createOntologyExplorer(lifecycle) {
     const active = document.activeElement;
     const restoreFocus = ownsReadFocus(active);
     emptyResults();
-    schemas = []; emptySchema();
+    schemas = []; links = []; emptySchema(); model.clear();
     if (['forbidden', 'source_unavailable'].includes(error.message) || !['unauthenticated','invalid_query','absent_object','revision_conflict','filter_conflict'].includes(error.message)) { find('type').replaceChildren(); find('type').disabled = true; find('read').disabled = true; }
     if (restoreFocus) focusSchemaControl();
     const messages = {
@@ -168,19 +174,22 @@ function createOntologyExplorer(lifecycle) {
     const same = identity?.tenantId === session.tenantId && identity?.userId === session.userId;
     const selection = retaining && same ? { type: find('type').value, revision: find('revision').value, cursor, objectRef, readPage, auditShown: !find('audit').hidden } : null;
     if (!selection) clear();
-    identity = session; generation = version; root.hidden = false;
+    identity = session; generation = version; root.hidden = false; find('access-notice').hidden = true;
     find('identity').textContent = `Verified tenant ${session.tenantId} · account ${session.userId}`;
-    schemas = []; emptySchema();
+    schemas = []; links = []; emptySchema(); model.clear();
     await run('Reading native entity schemas…', async token => {
       const rows = await fetchRead('schemas', token);
       if (!valid(token)) return;
-      ontologyDecode.schemas(rows); schemas = rows;
+      ontologyDecode.schemas(rows);
+      const relations = await fetchRead('link-types', token);
+      if (!valid(token)) return;
+      ontologyDecode.links(relations, rows); schemas = rows; links = relations;
       const active = document.activeElement, restoreFocus = ownsReadFocus(active);
       find('type').replaceChildren(...schemas.map(t => { const option = document.createElement('option'); option.value = t.entity_type; option.textContent = `${t.entity_type} · declared revision ${t.revision}`; option.dataset.revision = t.revision; return option; }));
       find('type').disabled = schemas.length === 0; find('read').disabled = schemas.length === 0;
       if (selection && schemas.some(t => t.entity_type === selection.type)) { find('type').value = selection.type; find('revision').value = selection.revision; }
       else { emptyResults(); if (schemas.length) find('revision').value = schemas[0].revision; }
-      renderSchema();
+      model.setModel(schemas, links, find('type').value || null); renderSchema();
       if (restoreFocus && (schemas.length === 0 || active === find('type'))) focusSchemaControl();
       note(schemas.length ? 'Native schemas loaded. Choose a type and requested schema revision, then Read objects.' : 'No entity types are declared for this verified tenant.');
       if (selection?.readPage && find('type').value === selection.type) await loadPage(token, selection.cursor, selection.objectRef);
@@ -201,11 +210,16 @@ function createOntologyExplorer(lifecycle) {
     note(rows.length ? `${rows.length} native audit entries. These rows do not authorize a current read.` : 'No native tenant audit entries.');
   }
   find('audit-read').addEventListener('click', () => run('Reading native tenant audit…', loadAudit));
-  for (const id of queryControls) find(id).addEventListener('input', () => {
+  function changeType() {
     invalidate(); emptyResults(); busy(false);
-    if (id === 'type') { find('revision').value = find('type').selectedOptions[0]?.dataset.revision || '1'; renderSchema(); }
+    find('revision').value = find('type').selectedOptions[0]?.dataset.revision || '1'; renderSchema();
+    note('Model selection changed. Choose Objects to read instances of this type.');
+  }
+  for (const id of queryControls) find(id).addEventListener('input', () => {
+    if (id === 'type') { changeType(); return; }
+    invalidate(); emptyResults(); busy(false);
     note('Read selection changed. Read objects to load this context.');
   });
-  return { clear, open, hold: version => { invalidate(); schemas = []; emptySchema(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
+  return { clear, open, hold: version => { invalidate(); schemas = []; links = []; emptySchema(); model.clear(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
 }
 "#;

@@ -1,4 +1,3 @@
-use super::live_ontology::LiveOntologyExplorer;
 use leptos::prelude::*;
 
 /// Kept outside DashboardIsland so context remounts cannot erase a ceremony.
@@ -44,7 +43,6 @@ pub(super) fn SignInPanel() -> impl IntoView {
                 <p id="verified-ontology-updated"></p>
                 <button type="button" id="ontology-refresh">"Refresh live status"</button>
             </section>
-            <LiveOntologyExplorer />
         </section>
     }
 }

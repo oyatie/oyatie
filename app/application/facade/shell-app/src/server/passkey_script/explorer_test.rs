@@ -1,5 +1,7 @@
 #[path = "explorer_test_dom.rs"]
 mod dom;
+#[path = "workspace_test.rs"]
+mod workspace;
 use leptos::prelude::*;
 use std::{
     io::Write,
@@ -176,11 +178,15 @@ const CHECK: &str = r#"
 "#;
 #[test]
 fn native_explorer_controller_preserves_identity_and_refuses_stale_rows_or_focus() {
+    check_controller(CHECK);
+}
+
+fn check_controller(check: &str) {
     let owner = Owner::new();
     let html = owner.with(|| super::super::document::ServerShell().into_view().to_html());
     owner.cleanup();
-    let input = serde_json::json!({"html":html,"script":super::script()});
-    let check = format!("{}{CHECK}", dom::SCRIPT);
+    let input = serde_json::json!({"html":html,"script":super::script(),"css":include_str!("../../../assets/app.css")});
+    let check = format!("{}{check}", dom::SCRIPT);
     let mut child = Command::new("node")
         .args(["-e", &check])
         .stdin(Stdio::piped())

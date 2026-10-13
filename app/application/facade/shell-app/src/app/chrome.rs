@@ -25,6 +25,7 @@ pub fn App() -> impl IntoView {
             >
                 <HeroPanel />
                 <SignInPanel />
+                <super::live_ontology::FoundryWorkspace />
                 <div id=crate::DASHBOARD_MOUNT_HOST_ID>
                     <DashboardIsland />
                 </div>
@@ -38,6 +39,8 @@ pub fn App() -> impl IntoView {
 #[component]
 fn ShellNavigation() -> impl IntoView {
     view! {
+                <p class="rail-group">"Foundry"</p>
+                <a class="rail-nav" href="#foundry-workspace"><span aria-hidden="true">"◎"</span>"Ontology workspace"</a>
                 <p class="rail-group">"Workspace samples"</p>
                 <a class="rail-nav" href="#console-shell"><span aria-hidden="true">"⌂"</span>"Command center"</a>
                 <a class="rail-nav" href="#command-center-workbench"><span aria-hidden="true">"▥"</span>"Action Inbox"</a>
@@ -164,7 +167,8 @@ pub(super) fn ShellHeader() -> impl IntoView {
                 <span class="sep" aria-hidden="true">"/"</span>
                 <strong aria-current="page">"Control Center"</strong>
             </nav>
-            <div class="header-route-strip" aria-label="Sample quick routes">
+            <div class="header-route-strip" aria-label="Workspace quick routes">
+                <a href="#foundry-workspace"><span>"Foundry"</span>" workspace"</a>
                 <a href="#service-catalog"><span>"Catalog"</span>" samples"</a>
                 <a href="#cloud-ops-cockpit"><span>"Cloud"</span>" samples"</a>
                 <a href="#work-hub"><span>"Work hub"</span>" samples"</a>

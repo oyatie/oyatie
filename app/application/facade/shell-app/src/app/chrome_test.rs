@@ -129,11 +129,11 @@ fn ordinary_shell_routes_resolve_owned_sample_views_across_contexts() {
                 .split_once("<a class=\"command-trigger\"")
                 .unwrap()
                 .0;
-            for routes in [rail_routes, header_routes] {
+            for (routes, expected_routes) in [(rail_routes, 4), (header_routes, 5)] {
                 assert_eq!(
                     routes.matches("<a ").count(),
-                    4,
-                    "{context:?}/{available}: four ordinary native routes"
+                    expected_routes,
+                    "{context:?}/{available}: existing samples plus the native Foundry route"
                 );
                 for (target, label) in destinations {
                     let marker = format!("href=\"#{target}\"");
@@ -171,6 +171,11 @@ fn ordinary_shell_routes_resolve_owned_sample_views_across_contexts() {
                         && !routes.contains("data-header-route=")
                 );
             }
+            assert_eq!(
+                header_routes.matches("href=\"#foundry-workspace\"").count(),
+                1
+            );
+            assert!(!dashboard.contains("id=\"foundry-workspace\""));
             for (target, _) in destinations {
                 assert_eq!(dashboard.matches(&format!("id=\"{target}\"")).count(), 1);
             }
@@ -206,7 +211,7 @@ fn collapsed_navigation_reuses_the_complete_rail_inventory() {
         )
     });
     owner.cleanup();
-    assert_eq!(inventory.matches("href=\"#").count(), 21);
+    assert_eq!(inventory.matches("href=\"#").count(), 22);
     assert!(rail.contains(&inventory));
     assert!(mobile.contains(&inventory));
     for group in ["commercial", "finops", "filing"] {
