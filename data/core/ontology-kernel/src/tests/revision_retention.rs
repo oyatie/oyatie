@@ -144,3 +144,48 @@ fn revision_history_is_tenant_isolated() {
         2
     );
 }
+
+#[test]
+fn retained_revision_iterator_is_complete_tenant_scoped_and_never_fills_gaps() {
+    let mut engine = OntologyEngine::default();
+    engine
+        .register_entity_type(def("ten_a", 0, vec![]))
+        .unwrap();
+    engine
+        .evolve_entity_type(def("ten_a", 4, vec![prop("email", false)]))
+        .unwrap();
+    engine
+        .register_entity_type(def("ten_b", 2, vec![]))
+        .unwrap();
+    let before: Vec<_> = engine.entity_type_revisions("ten_a").cloned().collect();
+    assert_eq!(
+        before.iter().map(|row| row.revision).collect::<Vec<_>>(),
+        [0, 4]
+    );
+    assert!(engine.evolve_entity_type(def("ten_a", 7, vec![])).is_err());
+    assert_eq!(
+        engine
+            .entity_type_revisions("ten_a")
+            .cloned()
+            .collect::<Vec<_>>(),
+        before
+    );
+    assert_eq!(
+        engine
+            .entity_type_revisions("ten_b")
+            .map(|row| row.revision)
+            .collect::<Vec<_>>(),
+        [2]
+    );
+    assert_eq!(engine.entity_type_revisions("ten_missing").count(), 0);
+    engine
+        .evolve_entity_type(def("ten_a", u32::MAX, vec![prop("email", false)]))
+        .unwrap();
+    assert_eq!(
+        engine
+            .entity_type_revisions("ten_a")
+            .map(|row| row.revision)
+            .collect::<Vec<_>>(),
+        [0, 4, u32::MAX]
+    );
+}

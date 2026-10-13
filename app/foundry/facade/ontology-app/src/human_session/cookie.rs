@@ -17,7 +17,7 @@ pub(super) fn valid_token(token: &str) -> bool {
             .is_some_and(|b| b"AEIMQUYcgkosw048".contains(b))
 }
 
-pub(super) fn session_token(headers: &HeaderMap) -> Result<&str, SessionRefusal> {
+pub(crate) fn session_token(headers: &HeaderMap) -> Result<&str, SessionRefusal> {
     let mut found = None;
     let mut bytes = 0usize;
     for header in headers.get_all(COOKIE) {

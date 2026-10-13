@@ -19,6 +19,9 @@ impl std::fmt::Display for HumanSessionConfigError {
 impl std::error::Error for HumanSessionConfigError {}
 
 impl HumanSessionConfig {
+    pub(crate) fn exact_origin(&self) -> String {
+        self.base.origin().ascii_serialization()
+    }
     pub fn https(base: &str) -> Result<Self, HumanSessionConfigError> {
         Self::parse(base, false)
     }

@@ -2529,6 +2529,26 @@ name = "foundry-edits"
 version = "0.1.0"
 
 [[package]]
+name = "foundry-model-api"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+ "data-ontology-kernel",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "foundry-model-sqlite-draft"
+version = "0.1.0"
+dependencies = [
+ "foundry-model-api",
+ "rusqlite",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "foundry-ontology-app"
 version = "0.1.0"
 dependencies = [
@@ -2537,6 +2557,8 @@ dependencies = [
  "data-ontology-kernel",
  "foundry-caller-draft",
  "foundry-edits",
+ "foundry-model-api",
+ "foundry-model-sqlite-draft",
  "foundry-ontology-query-domain",
  "foundry-ontology-query-usecase",
  "foundry-projection-draft",

@@ -10,6 +10,9 @@ use shared_platform_contracts_kernel::pdp::{
 
 use crate::pdp::{OPS_CONSOLE, PepError, Surface};
 
+pub mod model;
+pub use model::{ModelDecision, ModelOperation, ModelPepError};
+
 pub struct PolicyEnforcementPoint {
     guard: PdpRuntimeGuard,
 }
@@ -118,6 +121,10 @@ fn request(caller: &Caller, surface: Surface, object_ref: &str) -> Authorization
 }
 
 fn entities(caller: &Caller, object_ref: &str, served_tenant: &str) -> EntitySlice {
+    resource_entities(caller, object_ref_of(object_ref), served_tenant)
+}
+
+fn resource_entities(caller: &Caller, resource: EntityRef, served_tenant: &str) -> EntitySlice {
     let role_refs: Vec<EntityRef> = caller
         .roles
         .iter()
@@ -136,7 +143,7 @@ fn entities(caller: &Caller, object_ref: &str, served_tenant: &str) -> EntitySli
             parents: role_refs.clone(),
         },
         EntityRecord {
-            uid: object_ref_of(object_ref),
+            uid: resource,
             attributes: BTreeMap::from([(
                 "tenant".to_owned(),
                 serde_json::Value::String(served_tenant.to_owned()),

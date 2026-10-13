@@ -1,0 +1,27 @@
+rust_library(
+    name = "foundry-model-sqlite-draft",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_model_sqlite_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/foundry/ports/model-api:foundry-model-api",
+        "third-party//:rusqlite",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "foundry-model-sqlite-draft-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_model_sqlite_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/foundry/ports/model-api:foundry-model-api",
+        "third-party//:rusqlite",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

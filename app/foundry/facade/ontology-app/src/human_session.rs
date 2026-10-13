@@ -14,6 +14,7 @@ use crate::reads::{TENANT_SCOPED_RESOURCE, authorized_caller, refuse};
 
 mod config;
 mod cookie;
+pub(crate) use cookie::session_token;
 mod http;
 pub(crate) mod reads;
 pub use config::{HumanSessionConfig, HumanSessionConfigError};
