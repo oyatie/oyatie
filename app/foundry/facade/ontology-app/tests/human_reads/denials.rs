@@ -184,7 +184,7 @@ async fn revoked_roles_and_pdp_fault_refuse_before_query_or_sources() {
     );
     assert_eq!(
         sessions.calls.load(Ordering::SeqCst),
-        22,
+        SUFFIXES.len() * 3 + 4,
         "every read rechecks IAM, including warm native decisions"
     );
 }

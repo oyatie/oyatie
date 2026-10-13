@@ -1,4 +1,5 @@
 mod failures;
+mod links;
 mod query;
 mod schemas;
 mod support;

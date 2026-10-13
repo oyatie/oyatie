@@ -14,6 +14,28 @@ fn query(revision: u32) -> ObjectListQuery {
 }
 
 #[tokio::test]
+async fn undeclared_sample_links_stay_empty_and_tenant_and_source_refusals_are_preserved() {
+    let source = FixtureOntologyReadSource::sample();
+    assert_eq!(source.link_types(TENANT).await, Ok(vec![]));
+    assert_eq!(
+        source.link_types("ten_foreign").await,
+        Err(OntologyReadError::Forbidden)
+    );
+    for error in [
+        OntologyReadError::Unauthenticated,
+        OntologyReadError::Forbidden,
+        OntologyReadError::SourceUnavailable,
+    ] {
+        assert_eq!(
+            FixtureOntologyReadSource::refusing(error)
+                .link_types(TENANT)
+                .await,
+            Err(error)
+        );
+    }
+}
+
+#[tokio::test]
 async fn current_schema_metadata_is_explicit_sample_and_preserves_refusals() {
     let source = FixtureOntologyReadSource::sample();
     let schema = source.schemas(TENANT).await.unwrap().remove(0);

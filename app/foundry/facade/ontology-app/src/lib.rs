@@ -8,6 +8,7 @@ pub mod composition;
 pub mod config;
 pub mod dto;
 pub mod human_session;
+mod link_types;
 mod listing;
 mod listing_query;
 pub mod metrics;

@@ -46,6 +46,57 @@ fn current_registry_enumeration_preserves_tenant_scope_and_native_property_order
 }
 
 #[test]
+fn current_link_catalog_preserves_tenant_scope_same_ids_and_registered_metadata() {
+    let mut engine = OntologyEngine::default();
+    for tenant in ["ten_a", "ten_b"] {
+        for id in ["ety_from", "ety_to"] {
+            engine
+                .register_entity_type(definition(tenant, id, 0))
+                .unwrap();
+        }
+        for (id, cardinality) in [
+            ("lty_zeta", LinkCardinality::OneToOne),
+            ("lty_alpha", LinkCardinality::OneToMany),
+        ] {
+            let mut link = LinkTypeDefinition::new(
+                tenant,
+                LinkTypeId::new(id).unwrap(),
+                EntityTypeId::new("ety_from").unwrap(),
+                EntityTypeId::new("ety_to").unwrap(),
+                cardinality,
+                tenant == "ten_b",
+            )
+            .unwrap();
+            link.revision = if tenant == "ten_a" { 0 } else { 7 };
+            engine.register_link_type(link).unwrap();
+        }
+    }
+    let rows: Vec<_> = engine.link_types("ten_a").collect();
+    assert_eq!(
+        rows.iter().map(|d| d.id.value.as_str()).collect::<Vec<_>>(),
+        vec!["lty_alpha", "lty_zeta"]
+    );
+    assert_eq!(rows[0].cardinality, LinkCardinality::OneToMany);
+    assert_eq!(rows[0].from_entity_type.value, "ety_from");
+    assert_eq!(rows[0].to_entity_type.value, "ety_to");
+    assert!(
+        rows.iter()
+            .all(|d| d.tenant_id == "ten_a" && d.revision == 0 && !d.allow_cross_tenant)
+    );
+    assert!(
+        engine
+            .link_types("ten_b")
+            .all(|d| d.revision == 7 && d.allow_cross_tenant)
+    );
+    assert!(engine.link_types("ten_absent").next().is_none());
+    let mut evolved = rows[0].clone();
+    evolved.revision = 2;
+    engine.evolve_link_type(evolved).unwrap();
+    assert_eq!(engine.link_types("ten_a").next().unwrap().revision, 2);
+    assert!(engine.link_types("ten_b").all(|d| d.revision == 7));
+}
+
+#[test]
 fn ambiguous_or_blank_names_never_enter_first_registration_or_retained_revisions() {
     for evolve in [false, true] {
         for blank in [false, true] {

@@ -77,13 +77,14 @@ impl Drop for NativeFixture {
         }
     }
 }
-const READS: [&str; 6] = [
+const READS: [&str; 7] = [
     "types",
     "schemas",
     "objects?type=ety_record&revision=1&limit=1",
     "objects/ent_alpha?revision=1",
     "objects/ent_alpha/history",
     "audit",
+    "link-types",
 ];
 async fn read(shell: &Router, suffix: &str, status: StatusCode) -> serde_json::Value {
     let r = call(
@@ -148,11 +149,13 @@ async fn real_foundry_human_routes_answer_durable_data_and_revalidate_local_iam_
     let audit = read(&shell, READS[5], StatusCode::OK).await;
     assert_eq!(audit[0]["object_ref"], "ent_alpha");
     assert_eq!(audit[0]["disposition"], "applied");
+    let links = read(&shell, READS[6], StatusCode::OK).await;
+    assert_eq!(links, serde_json::json!([]));
     println!(
         "native_ontology_fixture_results={}",
-        serde_json::json!({"types":types,"schemas":schemas,"page":page,"detail":detail,"history":history,"audit":audit})
+        serde_json::json!({"types":types,"schemas":schemas,"links":links,"page":page,"detail":detail,"history":history,"audit":audit})
     );
-    assert_eq!(iam.calls.lock().unwrap().len(), 12);
+    assert_eq!(iam.calls.lock().unwrap().len(), READS.len() * 2);
     iam.reply.lock().unwrap().body = session().replace(r#"["foundry-operator"]"#, "[]");
     for suffix in READS {
         assert_eq!(
@@ -160,7 +163,7 @@ async fn real_foundry_human_routes_answer_durable_data_and_revalidate_local_iam_
             "forbidden"
         );
     }
-    assert_eq!(iam.calls.lock().unwrap().len(), 24);
+    assert_eq!(iam.calls.lock().unwrap().len(), READS.len() * 4);
     {
         let mut reply = iam.reply.lock().unwrap();
         reply.status = StatusCode::UNAUTHORIZED;
@@ -173,7 +176,7 @@ async fn real_foundry_human_routes_answer_durable_data_and_revalidate_local_iam_
         );
     }
     let calls = iam.calls.lock().unwrap();
-    assert_eq!(calls.len(), 30);
+    assert_eq!(calls.len(), READS.len() * 5);
     for (path, headers, body) in calls.iter() {
         assert_eq!(path, "/identity/v1/ten_acme/session");
         assert_eq!(headers[header::COOKIE], cookie());
