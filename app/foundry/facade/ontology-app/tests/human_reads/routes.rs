@@ -34,7 +34,7 @@ async fn seed_link_catalog_is_empty_and_each_read_rechecks_human_membership() {
 }
 
 #[tokio::test]
-async fn link_catalog_refusals_precede_access_to_the_native_registry() {
+async fn model_catalog_refusals_precede_access_to_the_native_registry() {
     let fixture = Fixture::new("human-link-guard-before-registry");
     let sessions = FakeSessions::new(Ok(view()));
     let state = Arc::new(fixture.state());
@@ -66,14 +66,38 @@ async fn link_catalog_refusals_precede_access_to_the_native_registry() {
             vec![cookie()]
         };
         let values: Vec<_> = cookies.iter().map(String::as_str).collect();
-        let response = tokio::time::timeout(
-            std::time::Duration::from_secs(1),
-            request(&router, "/v1/tenants/ten_acme/link-types", &values),
-        )
-        .await
-        .expect("a refused read must not wait for the held registry");
-        body(response, expected).await;
+        for suffix in ["link-types", "type-labels"] {
+            let response = tokio::time::timeout(
+                std::time::Duration::from_secs(1),
+                request(&router, &format!("/v1/tenants/ten_acme/{suffix}"), &values),
+            )
+            .await
+            .expect("a refused read must not wait for the held registry");
+            body(response, expected).await;
+        }
     }
+}
+
+#[tokio::test]
+async fn native_record_label_rechecks_membership_and_keeps_the_declared_revision() {
+    let fixture = Fixture::new("human-native-type-labels");
+    let sessions = FakeSessions::new(Ok(view()));
+    let router = foundry_ontology_app::router_with_user_sessions(
+        Arc::new(fixture.state()),
+        sessions.clone(),
+    );
+    for _ in 0..2 {
+        assert_eq!(
+            body(
+                request(&router, "/v1/tenants/ten_acme/type-labels", &[&cookie()]).await,
+                StatusCode::OK
+            )
+            .await,
+            serde_json::json!([{"entity_type":"ety_record","revision":1,"display_name":"Record"}])
+        );
+    }
+    assert_eq!(sessions.calls.load(Ordering::SeqCst), 2);
+    assert_eq!(fixture.log_head(), 0);
 }
 
 #[tokio::test]

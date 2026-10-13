@@ -1,4 +1,5 @@
 mod failures;
+mod labels;
 mod links;
 mod query;
 mod schemas;

@@ -99,6 +99,10 @@ pub enum OntologyEngineError {
         /// The designated primary-key property name.
         name: String,
     },
+    /// The designated primary-key property declares an Array or Struct carrier.
+    PrimaryKeyPropertyNotScalar {
+        name: String,
+    },
     /// The candidate definition changes an already-set primary-key
     /// designation (including removing it); adopting a key where none was
     /// set remains allowed.

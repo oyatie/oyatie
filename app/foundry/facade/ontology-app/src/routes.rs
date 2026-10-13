@@ -62,6 +62,10 @@ pub fn router_with_user_sessions(
             get(crate::human_session::reads::schemas),
         )
         .route(
+            "/v1/tenants/{tenant}/type-labels",
+            get(crate::human_session::reads::type_labels),
+        )
+        .route(
             "/v1/tenants/{tenant}/link-types",
             get(crate::human_session::reads::link_types),
         )

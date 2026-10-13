@@ -14,6 +14,11 @@ class Element {
   addEventListener(name,action) { (this.events[name] ||= []).push(action); }
   emit(name,values={}) { for (const action of this.events[name] || []) action({target:this,preventDefault(){},...values}); }
   scrollBy({left=0,top=0}) {this.scrollLeft+=left;this.scrollTop+=top;}
+  get offsetLeft() {return Number.parseFloat(this.style.left)||0;}
+  get offsetTop() {return Number.parseFloat(this.style.top)||0;}
+  get offsetWidth() {return this.mockWidth||0;}
+  get offsetHeight() {return this.mockHeight||0;}
+  getBBox() {return this.mockBounds||{x:0,y:0,width:0,height:0};}
   contains(target) { for(let node=target;node;node=node.parentElement) if(node===this)return true;return false; }
   closest(selector) { for(let node=this;node;node=node.parentElement)if(selector==='[data-live-results]'&&node.dataset.liveResults)return node;return null; }
   querySelectorAll(selector) { const result=[];for(const child of this.children){if(selector==='[data-live-object]'&&child.dataset.liveObject||selector==='[data-live-fact]'&&child.dataset.liveFact||selector==='[data-model-type]'&&child.dataset.modelType||selector==='[data-model-link]'&&child.dataset.modelLink||selector==='[data-model-edge]'&&child.dataset.modelEdge)result.push(child);result.push(...child.querySelectorAll(selector));}return result; }
@@ -54,13 +59,15 @@ const schemaFixture=[
   {entity_type:'ety_record',revision:1,properties:[{name:'name',tier:'scalar',data_class:'INTERNAL_ONLY',required:true,value_type:null},{name:'note',tier:'scalar',data_class:'INTERNAL_ONLY',required:false,value_type:null}],primary_key_property:null,title_property:'name'},
   {entity_type:'ety_profile',revision:3,properties:[{name:'id',tier:'scalar',data_class:'PUBLIC',required:true,value_type:{kind:'integer'}},{name:'<script>label</script>',tier:'scalar',data_class:'PII_IDENTIFYING',required:false,value_type:{kind:'string'}},{name:'profile',tier:'struct',data_class:'INTERNAL_ONLY',required:false,value_type:{kind:'struct',fields:[{name:'flags',required:true,value_type:{kind:'array',element:{kind:'boolean'}}}]}}],primary_key_property:'id',title_property:'<script>label</script>'},
 ];
-let nativeSchemas=schemaFixture, nativeLinks=[];
+const labelFixture=[{entity_type:'ety_record',revision:1,display_name:'Record'}, {entity_type:'ety_profile',revision:3,display_name:'직원 <img src=x onerror=alert(1)>'}];
+let nativeSchemas=schemaFixture, nativeLinks=[], nativeLabels=null;
 function payload(url) {
   if(url.endsWith('identity-config'))return {enabled:true};
   if(url.endsWith('/session'))return session;
   if(url.includes('ontology-status'))return {policyVersion:'p',servedTenants:1,projectionLag:0,poisonedEntries:0};
   if(url.endsWith('/types'))return [{entity_type:'ety_record',revision:1,properties:['name']}];
   if(url.endsWith('/schemas'))return nativeSchemas;
+  if(url.endsWith('/type-labels'))return nativeLabels ?? labelFixture.filter(label=>nativeSchemas.some(schema=>schema.entity_type===label.entity_type)).map(label=>({...label,revision:nativeSchemas.find(schema=>schema.entity_type===label.entity_type).revision}));
   if(url.endsWith('/link-types'))return nativeLinks;
   if(url.includes('/objects?'))return {requested_revision:Number(new URL('https://shell.invalid'+url).searchParams.get('revision')),objects:pageEmpty?[]:[object],next:null};
   if(url.endsWith('/history'))return [{ordinal:1,object_sequence:1,principal_id:'usr_alice',decision_id:'dec_native',action_type:'aty_record_write',audit_event_type:'record.written',schema_revision:1}];
@@ -69,7 +76,7 @@ function payload(url) {
   return null;
 }
 function reply(url,error=nativeError) { const isRead=url.includes('/api/ontology/');return {ok:!isRead||!error,status:url.endsWith('session:logout')?204:isRead&&error?403:200,headers:{get:name=>({'x-oyatie-user':headerUser,'x-oyatie-tenant':session.tenantId,'x-oyatie-session-expires':String(session.expiresAt)})[name]??null},json:async()=>isRead&&error?{error}:payload(url)}; }
-const context={document,Element,URLSearchParams,AbortController,window:{isSecureContext:true,PublicKeyCredential:function(){}},navigator:{credentials:{},locks:{request:(_,action)=>action()}},fetch:(url,options)=>{calls.push([url,options]);if(holdPath&&url.includes(holdPath)){holdPath=null;return new Promise(resolve=>{held=()=>resolve(reply(url));});}return Promise.resolve(reply(url));},setTimeout:callback=>{timers.push(callback);return timers.length;},clearTimeout(){},setInterval:callback=>intervals.push(callback)};
+const context={document,Element,URLSearchParams,AbortController,getComputedStyle:element=>({strokeWidth:String(element.mockStrokeWidth||0)}),window:{isSecureContext:true,PublicKeyCredential:function(){}},navigator:{credentials:{},locks:{request:(_,action)=>action()}},fetch:(url,options)=>{calls.push([url,options]);if(holdPath&&url.includes(holdPath)){holdPath=null;return new Promise(resolve=>{held=()=>resolve(reply(url));});}return Promise.resolve(reply(url));},setTimeout:callback=>{timers.push(callback);return timers.length;},clearTimeout(){},setInterval:callback=>intervals.push(callback)};
 vm.runInNewContext(input.script,context,{timeout:1000});
 const find=id=>elements[id], text=node=>(node.textContent||'')+node.children.map(text).join(' ');
 async function flush() { for(let i=0;i<80;i++)await Promise.resolve(); }

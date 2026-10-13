@@ -30,10 +30,14 @@ function createOntologyExplorer(lifecycle) {
     find('schema-summary').textContent = ''; find('schema-properties').replaceChildren(); find('schema').hidden = true;
     if (restoreFocus) focusSchemaControl();
   }
+  function clearModel() {
+    schemas = []; links = []; emptySchema(); model.clear();
+    for (const option of find('type').children) option.textContent = option.value;
+  }
   function renderSchema() {
     const schema = schemas.find(row => row.entity_type === find('type').value);
     if (!schema) { emptySchema(); return; }
-    find('schema-summary').textContent = `${schema.entity_type} · current accepted declaration revision ${schema.revision}. Primary-key property: ${schema.primary_key_property ?? 'none declared'}. Title property: ${schema.title_property ?? 'none declared'}.`;
+    find('schema-summary').textContent = `${schema.display_name} · ${schema.entity_type} · current accepted declaration revision ${schema.revision}. Primary-key property: ${schema.primary_key_property ?? 'none declared'}. Title property: ${schema.title_property ?? 'none declared'}.`;
     find('schema-properties').replaceChildren(ontologyTable('Native declared properties', ['Property', 'Tier', 'Value declaration', 'Presence', 'Privacy class'], schema.properties.map(property => [property.name, property.tier, ontologyDeclarationText(property.value_type), property.required ? 'Required' : 'Optional', property.data_class])));
     find('schema').hidden = false; model.select(schema.entity_type);
   }
@@ -92,7 +96,7 @@ function createOntologyExplorer(lifecycle) {
     const active = document.activeElement;
     const restoreFocus = ownsReadFocus(active);
     emptyResults();
-    schemas = []; links = []; emptySchema(); model.clear();
+    clearModel();
     if (['forbidden', 'source_unavailable'].includes(error.message) || !['unauthenticated','invalid_query','absent_object','revision_conflict','filter_conflict'].includes(error.message)) { find('type').replaceChildren(); find('type').disabled = true; find('read').disabled = true; }
     if (restoreFocus) focusSchemaControl();
     const messages = {
@@ -176,16 +180,19 @@ function createOntologyExplorer(lifecycle) {
     if (!selection) clear();
     identity = session; generation = version; root.hidden = false; find('access-notice').hidden = true;
     find('identity').textContent = `Verified tenant ${session.tenantId} · account ${session.userId}`;
-    schemas = []; links = []; emptySchema(); model.clear();
+    clearModel();
     await run('Reading native entity schemas…', async token => {
       const rows = await fetchRead('schemas', token);
       if (!valid(token)) return;
       ontologyDecode.schemas(rows);
+      const labelRows = await fetchRead('type-labels', token);
+      if (!valid(token)) return;
+      const labels = ontologyDecode.labels(labelRows, rows);
       const relations = await fetchRead('link-types', token);
       if (!valid(token)) return;
-      ontologyDecode.links(relations, rows); schemas = rows; links = relations;
+      ontologyDecode.links(relations, rows); schemas = rows.map(row => ({...row, display_name: labels.get(row.entity_type).display_name})); links = relations;
       const active = document.activeElement, restoreFocus = ownsReadFocus(active);
-      find('type').replaceChildren(...schemas.map(t => { const option = document.createElement('option'); option.value = t.entity_type; option.textContent = `${t.entity_type} · declared revision ${t.revision}`; option.dataset.revision = t.revision; return option; }));
+      find('type').replaceChildren(...schemas.map(t => { const option = document.createElement('option'); option.value = t.entity_type; option.textContent = `${t.display_name} · ${t.entity_type} · declared revision ${t.revision}`; option.dataset.revision = t.revision; return option; }));
       find('type').disabled = schemas.length === 0; find('read').disabled = schemas.length === 0;
       if (selection && schemas.some(t => t.entity_type === selection.type)) { find('type').value = selection.type; find('revision').value = selection.revision; }
       else { emptyResults(); if (schemas.length) find('revision').value = schemas[0].revision; }
@@ -220,6 +227,6 @@ function createOntologyExplorer(lifecycle) {
     invalidate(); emptyResults(); busy(false);
     note('Read selection changed. Read objects to load this context.');
   });
-  return { clear, open, hold: version => { invalidate(); schemas = []; links = []; emptySchema(); model.clear(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
+  return { clear, open, hold: version => { invalidate(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
 }
 "#;

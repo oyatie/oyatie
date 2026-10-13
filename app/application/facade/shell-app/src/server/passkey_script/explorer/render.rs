@@ -44,7 +44,7 @@ const ontologyDecode = (() => {
     && string(s.entity_type) && s.entity_type.startsWith('ety_') && s.entity_type.length > 4 && integer(s.revision) && s.revision <= 4294967295
     && Array.isArray(s.properties) && s.properties.length > 0 && s.properties.every(schemaProperty) && uniqueNames(s.properties)
     && nullable(s.primary_key_property) && nullable(s.title_property)
-    && (s.primary_key_property === null || s.properties.some(p => p.name === s.primary_key_property && p.required))
+    && (s.primary_key_property === null || s.properties.some(p => p.name === s.primary_key_property && p.required && (p.value_type === null || p.tier === 'scalar')))
     && (s.title_property === null || s.properties.some(p => p.name === s.title_property));
   const rows = (v, accepts) => { if (!Array.isArray(v) || !v.every(accepts)) throw new Error('source_unavailable'); };
   const pinned = v => object(v) && string(v.object_ref) && integer(v.written_revision)
@@ -52,6 +52,14 @@ const ontologyDecode = (() => {
     && Object.values(v.properties).every(p => object(p) && string(p.value_type) && string(p.data_class) && Object.hasOwn(p, 'value'));
   return {
     schemas: v => { rows(v, schema); if (new Set(v.map(s => s.entity_type)).size !== v.length) throw new Error('source_unavailable'); },
+    labels: (v, schemas) => {
+      rows(v, row => shape(row, ['entity_type','revision','display_name']) && string(row.entity_type)
+        && row.entity_type.startsWith('ety_') && row.entity_type.length > 4 && integer(row.revision)
+        && row.revision <= 4294967295 && named(row.display_name));
+      const labels = new Map(v.map(row => [row.entity_type, row]));
+      if (labels.size !== v.length || v.length !== schemas.length || schemas.some(row => labels.get(row.entity_type)?.revision !== row.revision)) throw new Error('source_unavailable');
+      return labels;
+    },
     links: (v, schemas) => {
       const id = (value, prefix) => string(value) && value.startsWith(prefix) && value.length > prefix.length;
       rows(v, row => shape(row, ['link_type','from_entity_type','to_entity_type','cardinality','allow_cross_tenant','revision'])
