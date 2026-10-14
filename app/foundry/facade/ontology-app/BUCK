@@ -120,6 +120,13 @@ FACADE_TESTS = [
     ("search-around", "search_around_contract", FACADE_TEST_DEPS),
     ("search-around-grammar", "search_around_grammar", FACADE_TEST_DEPS),
     ("search-around-seed", "search_around_seed", FACADE_TEST_DEPS),
+    ("search-disclosure", "search_around_disclosure", FACADE_TEST_DEPS + [
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+        "//policy/core/pdp-kernel:policy-pdp-kernel",
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+    ]),
     ("metrics-search-around", "metrics_count_search_around", FACADE_TEST_DEPS),
     ("metrics-set-reads", "metrics_count_set_reads", FACADE_TEST_DEPS),
     ("cross-tenant", "cross_tenant_isolation", FACADE_TEST_DEPS),
