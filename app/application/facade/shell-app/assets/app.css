@@ -945,6 +945,9 @@ textarea {
   border-radius: var(--radius-sm);
   background: var(--paper-raised);
   padding: var(--space-3);
+  color: var(--ink);
+  text-decoration: none;
+  min-height: max(44px, 2.75rem);
 }
 
 .workspace-switch div {
@@ -954,6 +957,7 @@ textarea {
 
 .workspace-switch strong {
   font-size: var(--text-sm);
+  overflow-wrap: anywhere;
 }
 
 .workspace-switch span:not(.workspace-avatar) {
@@ -13098,7 +13102,7 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 }
 
 /* Stable identity controls live outside the sample dashboard island. */
-.header-sign-in { color: var(--color-text); padding: .5rem .7rem; white-space: nowrap; }
+.header-sign-in { display: inline-flex; align-items: center; min-height: max(44px, 2.75rem); box-sizing: border-box; color: var(--color-text); padding: .5rem .7rem; white-space: nowrap; }
 .sign-in-panel { scroll-margin-top: 4.25rem; margin: 1rem 0 1.5rem; padding: 1.25rem; border: 1px solid var(--color-border-soft); border-radius: var(--radius); color: var(--color-text); background: var(--color-surface-raised); }
 .sign-in-panel p { overflow-wrap: anywhere; }
 .sign-in-copy h2 { margin: .3rem 0 .7rem; font-size: 1.2rem; }
@@ -13305,20 +13309,22 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 @media (max-width: 40rem) { .live-ontology-query { grid-template-columns: minmax(0, 1fr); } }
 
 .foundry-workspace { grid-column: 1 / -1; min-width: 0; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-raised); color: var(--ink); scroll-margin-top: 5rem; }
-.foundry-workspace-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem; border-bottom: 1px solid var(--rule); }
+.foundry-workspace-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 1rem; border-bottom: 1px solid var(--rule); }
+.foundry-workspace-header > div { min-width: 0; }
+.foundry-workspace .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+.foundry-workspace-header #live-ontology-identity { overflow-wrap: anywhere; font-size: var(--text-cap); }
 .foundry-workspace-header h2 { margin: .25rem 0; font-size: var(--text-xl); }
-.foundry-workspace-header p, .foundry-context p { margin: .25rem 0; color: var(--ink-muted); }
+.foundry-workspace-header p { margin: .25rem 0; color: var(--ink-muted); }
 .foundry-read-label { padding: .4rem .65rem; border: 1px solid var(--accent-border); border-radius: var(--radius-sm); color: var(--accent-deep); background: var(--accent-bg); white-space: nowrap; font-size: var(--text-cap); }
 .foundry-access-notice { padding: 1rem 1.25rem; }
-.foundry-context { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: .75rem 1rem; background: var(--paper-sunken); }
-.foundry-context h3 { font-size: var(--text-sm); margin: 0; }
-.foundry-mode-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .75rem 1rem; border-bottom: 1px solid var(--rule); }
+.foundry-taskbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .75rem 1rem; border-bottom: 1px solid var(--rule); }
+.foundry-mode-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem; }
 .foundry-workspace button, .foundry-workspace summary { min-height: max(44px, 2.75rem); font: inherit; }
 .foundry-workspace button { color: var(--ink); background: var(--paper-raised); border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: .45rem .65rem; cursor: pointer; }
 .foundry-workspace button[aria-pressed="true"] { color: var(--accent-deep); border-color: var(--accent); background: var(--accent-bg); }
 .foundry-workspace button:disabled { color: var(--ink-muted); background: var(--paper-sunken); cursor: default; }
 .foundry-workspace :is(button,input,select,summary,[tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.foundry-mode-bar select { min-height: max(44px, 2.75rem); max-width: 100%; min-width: 0; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: .4rem; font: inherit; color: var(--ink); background: var(--paper-raised); }
+.foundry-object-type-controls select { min-height: max(44px, 2.75rem); max-width: 100%; min-width: 0; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: .4rem; font: inherit; color: var(--ink); background: var(--paper-raised); }
 #live-ontology-status { margin: 0; padding: .65rem 1rem; border-bottom: 1px solid var(--rule); color: var(--ink-muted); font-size: var(--text-cap); }
 .foundry-workspace-body { display: grid; grid-template-columns: 13rem minmax(0, 1fr) minmax(19rem, .7fr); min-height: 34rem; }
 .foundry-library, .foundry-inspector { min-width: 0; padding: .75rem; background: var(--paper-sunken); }
@@ -13369,15 +13375,18 @@ dialog:is(.settings-center, .activity-center)::backdrop {
   .foundry-workspace-header { align-items: flex-start; padding: .75rem; }
   .foundry-workspace-header h2 { font-size: var(--text-lg); }
   .foundry-read-label { white-space: normal; }
-  .foundry-mode-bar select { flex: 1; }
+  .foundry-object-type-controls select { flex: 1; }
   .foundry-graph { height: 25rem; }
 }
 
-.foundry-draft-controls { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; padding:.75rem 1rem; border-bottom:1px solid var(--rule); }
-.foundry-draft-controls p { flex-basis:100%; margin:.25rem 0; color:var(--ink-muted); font-size:var(--text-cap); }
+.foundry-draft-controls { display:contents; }
+.foundry-model-choice { display:flex; align-items:center; flex-wrap:wrap; gap:.5rem; min-width:0; }
+.foundry-model-choice label { color:var(--ink-muted); font-size:var(--text-cap); }
+.foundry-draft-controls p { order:1; flex-basis:100%; margin:0; overflow-wrap:anywhere; color:var(--ink-muted); font-size:var(--text-cap); }
 .foundry-editor-form { display:grid; grid-template-columns:minmax(0,1fr); gap:.45rem; margin:.75rem 0; }
 .foundry-workspace .foundry-editor-form input, .foundry-workspace .foundry-editor-form select, .foundry-workspace .foundry-draft-controls select, #live-ontology-property-choice { width:100%; min-width:0; min-height:max(44px,2.75rem); padding:.5rem; font:inherit; border:1px solid var(--rule); border-radius:var(--radius-sm); background:var(--paper-raised); color:var(--ink); box-sizing:border-box; }
 .foundry-draft-controls select { max-width:24rem; }
+.foundry-workspace .foundry-model-choice select { width:clamp(12rem,18vw,24rem); max-width:100%; }
 .foundry-draft-tray { border-top:1px solid var(--rule); padding:1rem; overflow-wrap:anywhere; }
 .foundry-draft-tray h4 { margin:0; }
 .foundry-draft-tray p, .foundry-editor-form p { color:var(--ink-muted); font-size:var(--text-cap); line-height:1.5; }

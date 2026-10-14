@@ -82,15 +82,15 @@ pub(super) fn ShellRail() -> impl IntoView {
                 <span class="rail-mark" aria-hidden="true">"O"</span>
                 <div>
                     <strong>"Oyatie"</strong>
-                    <span>"Control Center"</span>
+                    <span id="shell-rail-product">"Control Center"</span>
                 </div>
                 <code>"v0.1"</code>
             </div>
-            <section class="rail-proof-card" aria-label="Anonymous sample destinations">
-                <p>"ANONYMOUS SAMPLE VIEWS"</p>
-                <strong>"Explore shell samples"</strong>
-                <span>"Catalog, cloud, evidence and Work Hub samples. Live operations are unavailable."</span>
-                <small data-rail-status="true">"Navigation only · no live operation"</small>
+            <section id="shell-rail-context" class="rail-proof-card" aria-label="Anonymous sample destinations">
+                <p id="shell-rail-scope">"ANONYMOUS SAMPLE VIEWS"</p>
+                <strong id="shell-rail-title">"Explore shell samples"</strong>
+                <span id="shell-rail-description">"Catalog, cloud, evidence and Work Hub samples. Live operations are unavailable."</span>
+                <small id="shell-rail-status" data-rail-status="true">"Navigation only · no live operation"</small>
                 <div class="rail-proof-actions" aria-label="Sample destinations">
                     <a href="#service-catalog">"Catalog samples"</a>
                     <a href="#cloud-ops-cockpit">"Cloud samples"</a>
@@ -99,13 +99,13 @@ pub(super) fn ShellRail() -> impl IntoView {
                 </div>
             </section>
             <ShellNavigation />
-            <div class="workspace-switch">
-                <span class="workspace-avatar" aria-hidden="true">"S"</span>
+            <a class="workspace-switch" href="#oyatie-sign-in" aria-label="Account and session">
+                <span id="shell-account-mark" class="workspace-avatar" aria-hidden="true">"S"</span>
                 <div>
-                    <strong>"Sample workspace"</strong>
-                    <span>"Anonymous preview"</span>
+                    <strong id="shell-account-title">"Sample workspace"</strong>
+                    <span id="shell-account-detail">"Anonymous preview"</span>
                 </div>
-            </div>
+            </a>
         </aside>
     }
 }
@@ -163,9 +163,9 @@ pub(super) fn ShellHeader() -> impl IntoView {
             <nav class="top-breadcrumb" aria-label="Breadcrumb">
                 <span>"Oyatie Cloud"</span>
                 <span class="sep" aria-hidden="true">"/"</span>
-                <span>"Sample views"</span>
+                <span id="shell-breadcrumb-scope">"Sample views"</span>
                 <span class="sep" aria-hidden="true">"/"</span>
-                <strong aria-current="page">"Control Center"</strong>
+                <strong id="shell-breadcrumb-destination" aria-current="page">"Control Center"</strong>
             </nav>
             <div class="header-route-strip" aria-label="Workspace quick routes">
                 <a href="#foundry-workspace"><span>"Foundry"</span>" workspace"</a>
@@ -173,14 +173,14 @@ pub(super) fn ShellHeader() -> impl IntoView {
                 <a href="#cloud-ops-cockpit"><span>"Cloud"</span>" samples"</a>
                 <a href="#work-hub"><span>"Work hub"</span>" samples"</a>
                 <a href="#evidence-spine"><span>"Evidence"</span>" samples"</a>
-                <small data-header-route-status="true">"Navigation only · no live operation"</small>
+                <small id="shell-route-status" data-header-route-status="true">"Navigation only · no live operation"</small>
             </div>
             <a class="command-trigger" href="#catalog-sample-search">
                 <span aria-hidden="true">"⌕"</span>
                 <span>"Search Catalog samples"</span>
             </a>
-            <div class="header-actions" aria-label="Sample tools">
-                <a class="header-sign-in" href="#oyatie-sign-in">"Sign in"</a>
+            <div class="header-actions" aria-label="Shell tools">
+                <a id="shell-session-entry" class="header-sign-in" href="#oyatie-sign-in">"Sign in"</a>
                 <button type="button" class="header-icon" data-header-action="notifications" aria-label=format!("Open sample notifications, {} unread", notification_unread_count()) aria-controls="notification-center" aria-haspopup="dialog" commandfor="notification-center" command="show-modal">
                     "◔"
                     <span class="header-badge" data-activity-badge="true" aria-hidden="true">{notification_unread_count()}</span>

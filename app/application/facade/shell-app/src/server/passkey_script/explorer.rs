@@ -206,6 +206,6 @@ pub(super) const SCRIPT: &str = r#"
     invalidate(); emptyResults(); busy(false);
     note('Read selection changed. Read objects to load this context.');
   });
-  return { clear, open, hold: version => {find('access-badge').textContent='Checking session'; invalidate(); clearRelationships(); editor.hold(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
+  return { clear, open, hold: version => {find('access-badge').textContent='Checking session';find('identity').textContent=identity?`Checking tenant ${identity.tenantId} · account ${identity.userId}`:''; invalidate(); clearRelationships(); editor.hold(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
 }
 "#;

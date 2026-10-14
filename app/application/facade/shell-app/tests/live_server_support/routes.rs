@@ -45,7 +45,7 @@ async fn live_ssr_host_serves_routes_confines_packages_and_shuts_down_cleanly() 
         "Live review, execution, attestation, sealing and receipt creation are unavailable"
     ));
     assert!(markup.contains("data-governance-unavailable=\"true\" disabled"));
-    assert!(markup.contains("<strong>Sample workspace</strong>"));
+    assert!(markup.contains("id=\"shell-account-title\">Sample workspace</strong>"));
     assert!(markup.contains("id=\"console-title\">Operations samples</h1>"));
     assert_eq!(markup.matches("href=\"#catalog-sample-search\"").count(), 2);
     let form = markup

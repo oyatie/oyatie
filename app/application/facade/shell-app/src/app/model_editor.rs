@@ -16,7 +16,7 @@ fn RelationshipCardinalityHelp(id: &'static str) -> impl IntoView {
 pub(super) fn ModelDraftControls() -> impl IntoView {
     view! {
         <div id="live-ontology-draft-controls" class="foundry-draft-controls" data-live-results="true" hidden>
-            <label for="live-ontology-draft-choice">"Model version"</label><select id="live-ontology-draft-choice" disabled></select>
+            <span class="foundry-model-choice"><label for="live-ontology-draft-choice">"Model version"</label><select id="live-ontology-draft-choice" disabled></select></span>
             <button id="live-ontology-draft-more" type="button" hidden>"Load more drafts"</button>
             <button id="live-ontology-draft-new" type="button" disabled>"Create draft"</button>
             <button id="live-ontology-draft-save" type="button" disabled>"Save draft"</button>
