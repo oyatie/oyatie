@@ -35,7 +35,9 @@ pub(super) fn ModelDraftInspector() -> impl IntoView {
             </form>
             <form id="live-ontology-property-add" class="foundry-editor-form" hidden>
                 <label for="live-ontology-new-property-name">"New property name"</label><input id="live-ontology-new-property-name" type="text" maxlength="4096" />
-                <button type="submit">"Add String property"</button>
+                <label for="live-ontology-new-property-kind">"New property value declaration"</label><select id="live-ontology-new-property-kind"><option value="string">"String"</option><option value="integer">"Integer"</option><option value="double">"Double"</option><option value="boolean">"Boolean"</option><option value="date">"Date"</option><option value="timestamp">"Timestamp"</option></select>
+                <label for="live-ontology-new-property-required">"New property presence"</label><select id="live-ontology-new-property-required"><option value="optional">"Optional"</option><option value="required">"Required"</option></select>
+                <button type="submit">"Add property"</button>
             </form>
             <form id="live-ontology-link-edit" class="foundry-editor-form" hidden>
                 <label for="live-ontology-link-from">"From type"</label><select id="live-ontology-link-from"></select>
@@ -46,7 +48,7 @@ pub(super) fn ModelDraftInspector() -> impl IntoView {
             </form>
             <fieldset><legend>"Add declarations"</legend>
                 <form id="live-ontology-entity-add" class="foundry-editor-form"><label for="live-ontology-new-entity-id">"New type ID (ety_)"</label><input id="live-ontology-new-entity-id" type="text" maxlength="4096" /><label for="live-ontology-new-entity-name">"Display name"</label><input id="live-ontology-new-entity-name" type="text" maxlength="4096" /><button type="submit">"Add type"</button></form>
-                <form id="live-ontology-link-add" class="foundry-editor-form"><label for="live-ontology-new-link-id">"New relationship ID (lty_)"</label><input id="live-ontology-new-link-id" type="text" maxlength="4096" /><label for="live-ontology-new-link-from">"From type"</label><select id="live-ontology-new-link-from"></select><label for="live-ontology-new-link-to">"To type"</label><select id="live-ontology-new-link-to"></select><button type="submit">"Add relationship"</button></form>
+                <form id="live-ontology-link-add" class="foundry-editor-form"><label for="live-ontology-new-link-id">"New relationship ID (lty_)"</label><input id="live-ontology-new-link-id" type="text" maxlength="4096" /><label for="live-ontology-new-link-from">"From type"</label><select id="live-ontology-new-link-from"></select><label for="live-ontology-new-link-to">"To type"</label><select id="live-ontology-new-link-to"></select><label for="live-ontology-new-link-cardinality">"New relationship cardinality"</label><select id="live-ontology-new-link-cardinality"><option value="one_to_many">"One to many"</option><option value="one_to_one">"One to one"</option><option value="many_to_many">"Many to many"</option></select><button type="submit">"Add relationship"</button></form>
             </fieldset>
         </section>
     }
