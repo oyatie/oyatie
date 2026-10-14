@@ -1,7 +1,7 @@
 pub(super) const SCRIPT: &str = r#"
 function decodeOntologyRelationships(graph, request, link) {
     const shape = (value, keys) => value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value,key));
-    const id = (value, prefix) => typeof value === 'string' && value.startsWith(prefix) && value.length > prefix.length && new TextEncoder().encode(value).length <= 256 && value.trim() === value && !/[\u0000-\u001f\u007f-\u009f]/.test(value);
+    const id = (value, prefix) => typeof value === 'string' && value.startsWith(prefix) && value.length > prefix.length && new TextEncoder().encode(value).length <= 256 && !/^\p{White_Space}|\p{White_Space}$/u.test(value) && !/[\u0000-\u001f\u007f-\u009f]/.test(value);
     const reject = () => { throw new Error('source_unavailable'); };
     if (!shape(graph,['nodes','edges','observed_at_epoch_seconds','truncated']) || !Array.isArray(graph.nodes) || !Array.isArray(graph.edges)
       || graph.nodes.length < 1 || graph.nodes.length > 1000 || graph.edges.length > 5000 || typeof graph.truncated !== 'boolean'

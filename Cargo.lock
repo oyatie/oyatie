@@ -201,7 +201,6 @@ dependencies = [
  "axum",
  "foundry-model-api",
  "foundry-ontology-app",
- "foundry-projection-draft",
  "iam-identity-user-session",
  "leptos",
  "leptos_axum",
