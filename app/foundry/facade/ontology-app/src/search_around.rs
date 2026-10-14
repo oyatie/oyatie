@@ -27,6 +27,8 @@ use crate::reads::{TENANT_SCOPED_RESOURCE, authorized, declared_type, refuse};
 use crate::search_around_body::SearchAroundRequest;
 use crate::search_around_refusals::{refuse_denial, refuse_query_error};
 
+mod admission;
+
 /// The query surface this process serves. The usecase refuses a surface outside
 /// the declared set; this route names its own, so that refusal guards a future
 /// caller rather than this one.
@@ -154,6 +156,10 @@ pub async fn search_around(
     match receipt.status {
         OntologyQueryExecutionStatus::Completed => match receipt.response {
             Some(response) => {
+                if let Err(error) = admission::admit(&state, &caller, &tenant, &response) {
+                    state.metrics.read_refused();
+                    return error.response();
+                }
                 state.metrics.read_served();
                 Json(graph_of(response)).into_response()
             }

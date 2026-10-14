@@ -13372,3 +13372,13 @@ dialog:is(.settings-center, .activity-center)::backdrop {
   .foundry-mode-bar select { flex: 1; }
   .foundry-graph { height: 25rem; }
 }
+
+.foundry-draft-controls { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; padding:.75rem 1rem; border-bottom:1px solid var(--rule); }
+.foundry-draft-controls p { flex-basis:100%; margin:.25rem 0; color:var(--ink-muted); font-size:var(--text-cap); }
+.foundry-editor-form { display:grid; grid-template-columns:minmax(0,1fr); gap:.45rem; margin:.75rem 0; }
+.foundry-workspace .foundry-editor-form input, .foundry-workspace .foundry-editor-form select, .foundry-workspace .foundry-draft-controls select, #live-ontology-property-choice { width:100%; min-width:0; min-height:max(44px,2.75rem); padding:.5rem; font:inherit; border:1px solid var(--rule); border-radius:var(--radius-sm); background:var(--paper-raised); color:var(--ink); box-sizing:border-box; }
+.foundry-draft-controls select { max-width:24rem; }
+.foundry-draft-tray { border-top:1px solid var(--rule); padding:1rem; overflow-wrap:anywhere; }
+.foundry-draft-tray h4 { margin:0; }
+.foundry-draft-tray p, .foundry-editor-form p { color:var(--ink-muted); font-size:var(--text-cap); line-height:1.5; }
+.foundry-draft-tray pre { max-height:12rem; overflow:auto; }

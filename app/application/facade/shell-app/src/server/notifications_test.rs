@@ -59,7 +59,10 @@ class Element {
   };if(!match(node,terms.pop()))return false;while(terms.length){const term=terms.pop();do{node=node.parentElement;}while(node&&!match(node,term));if(!node)return false;}return true;}); }
   closest(selector) { for(let node=this;node;node=node.parentElement)if(node.matches(selector))return node;return null; }
   querySelectorAll(selector) { const nodes=[];const visit=node=>{for(const child of node.children){if(child.matches(selector))nodes.push(child);visit(child);}};visit(this);return nodes; }
-  querySelector(selector) { return this.querySelectorAll(selector)[0]||null; }
+  querySelector(selector) {
+    const visit=node=>{for(const child of node.children){if(child.matches(selector))return child;const found=visit(child);if(found)return found;}return null;};
+    return visit(this);
+  }
   cloneNode() { const copy=new Element(this.tagName,{...this.attrs});for(const part of this.parts)typeof part==='string'?copy.parts.push(part):copy.append(part.cloneNode(true));if(this.content)copy.content=this.content.cloneNode(true);return copy; }
   getClientRects() { const panel=this.closest('.identity-panel, .finance-panel, .cockpit-panel, .resource-panel'), dialog=this.closest('dialog');return this.isConnected&&!this.closest('[hidden], [inert], [aria-hidden="true"]')&&!(dialog&&!dialog.open)&&!(panel&&!panel.classList.contains('active'))?[{}]:[]; }
   focus() { document.activeElement=this;emit('focusin',{target:this}); }
@@ -87,11 +90,36 @@ function parse(html,root) {
 }
 const tree=new Element('body');parse(input.html,tree);
 const NodeFilter={SHOW_COMMENT:128};
-const document={body:tree,activeElement:tree,hasFocus:()=>focused,getElementById:id=>tree.querySelector('#'+id),querySelectorAll:selector=>tree.querySelectorAll(selector),querySelector:selector=>tree.querySelector(selector),createElement:tag=>new Element(tag),createComment:data=>new Comment(data),createTreeWalker:(root,whatToShow)=>{
+function firstLiteralId(node,id) {
+  for(const child of node.parts) {
+    if(!(child instanceof Element))continue;
+    if(child.hasAttribute('id')&&child.id===id)return child;
+    const found=firstLiteralId(child,id);if(found)return found;
+  }
+  return null;
+}
+const document={body:tree,activeElement:tree,hasFocus:()=>focused,getElementById:id=>id===''?null:firstLiteralId(tree,id),querySelectorAll:selector=>tree.querySelectorAll(selector),querySelector:selector=>tree.querySelector(selector),createElement:tag=>new Element(tag),createComment:data=>new Comment(data),createTreeWalker:(root,whatToShow)=>{
   assert.equal(whatToShow,NodeFilter.SHOW_COMMENT);
   const comments=[],visit=node=>{for(const child of node.parts||[]){if(child instanceof Comment)comments.push(child);else if(child instanceof Element)visit(child);}};visit(root);
   let index=0;return {nextNode:()=>comments[index++]||null};
 },addEventListener:(name,callback)=>(events[name] ||= []).push(callback),removeEventListener:(name,callback)=>{events[name]=(events[name]||[]).filter(item=>item!==callback);}};
+(() => {
+  const root=tree.append(new Element('div',{class:'fixture-first-match'})), branch=root.append(new Element('section'));
+  const first=branch.append(new Element('span',{class:'fixture-first-match',id:'fixture.[literal]#id'}));
+  const later=first.append(new Element('span')), second=root.append(new Element('span',{class:'fixture-first-match fixture-last-match',id:first.id}));
+  const selector='.fixture-last-match, .fixture-first-match';
+  assert.equal(root.querySelector(selector),first,'first descendant follows tree order, not selector order');
+  assert.deepEqual(root.querySelectorAll(selector),[first,second],'all-match lookup retains duplicate descendants and excludes receiver');
+  later.matches=second.matches=()=>assert.fail('first-match lookup must stop before later descendants');
+  assert.equal(root.querySelector(selector),first);delete later.matches;delete second.matches;
+  assert.equal(first.querySelector(selector),null,'receiver does not match itself');
+  assert.equal(root.querySelector('.fixture-missing'),null,'missing descendant returns null');
+  later.hasAttribute=second.hasAttribute=()=>assert.fail('literal ID lookup must stop before later descendants');
+  assert.equal(document.getElementById(first.id),first,'literal duplicate ID follows tree order');delete later.hasAttribute;delete second.hasAttribute;
+  assert.equal(document.getElementById(''),null);assert.equal(document.getElementById('fixture-missing'),null);
+  first.remove();assert.equal(root.querySelector(selector),second);assert.equal(document.getElementById(second.id),second,'removal exposes next ID');
+  root.remove();assert.equal(document.getElementById(second.id),null,'detached IDs are absent');
+})();
 const location=new URL('https://preview.invalid/');
 const emit=(name,event)=>(events[name]||[]).forEach(callback=>callback(event));
 function click(target,options={}) { const event={target,button:0,isTrusted:false,defaultPrevented:false,...options,preventDefault(){this.defaultPrevented=true;}};

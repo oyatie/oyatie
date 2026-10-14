@@ -20,8 +20,9 @@ class Element {
   get offsetHeight() {return this.mockHeight||0;}
   getBBox() {return this.mockBounds||{x:0,y:0,width:0,height:0};}
   contains(target) { for(let node=target;node;node=node.parentElement) if(node===this)return true;return false; }
-  closest(selector) { for(let node=this;node;node=node.parentElement)if(selector==='[data-live-results]'&&node.dataset.liveResults)return node;return null; }
-  querySelectorAll(selector) { const result=[];for(const child of this.children){if(selector==='[data-live-object]'&&child.dataset.liveObject||selector==='[data-live-fact]'&&child.dataset.liveFact||selector==='[data-model-type]'&&child.dataset.modelType||selector==='[data-model-link]'&&child.dataset.modelLink||selector==='[data-model-edge]'&&child.dataset.modelEdge)result.push(child);result.push(...child.querySelectorAll(selector));}return result; }
+  closest(selector) { for(let node=this;node;node=node.parentElement)if(selector==='[data-live-results]'&&node.dataset.liveResults||selector==='[hidden]'&&node.hidden)return node;return null; }
+  getClientRects() { return this.isConnected && !this.closest('[hidden]') ? [{}] : []; }
+  querySelectorAll(selector) { const result=[];for(const child of this.children){if(selector===child.tagName||selector==='[data-live-object]'&&child.dataset.liveObject||selector==='[data-live-fact]'&&child.dataset.liveFact||selector==='[data-model-type]'&&child.dataset.modelType||selector==='[data-model-link]'&&child.dataset.modelLink||selector==='[data-model-edge]'&&child.dataset.modelEdge)result.push(child);result.push(...child.querySelectorAll(selector));}return result; }
   focus(options) { if(this.disabled)return;this.focusOptions=options; document.activeElement=this; }
 }
 const elements={}, panel=new Element('section');
@@ -34,7 +35,7 @@ for(const id of ['passkey-form','passkey-invitation','verified-ontology-identity
 const card=add('verified-ontology-card');for(const key of ['policyVersion','servedTenants','projectionLag','poisonedEntries']){const e=new Element();e.dataset.liveFact=key;card.append(e);}
 const root=add('live-ontology-explorer','section');root.hidden=true;
 for(const id of ['identity','query','status','page','detail','detail-title','properties','history','audit','audit-rows'])add('live-ontology-'+id,'div',root);
-for(const id of ['access-notice','model','model-summary','library-summary','library-types','library-links','model-table','graph-help','graph-controls','zoom','inspector-empty'])add('live-ontology-'+id,'div',root);
+for(const id of ['access-notice','model-note','model','model-summary','library-summary','library-types','library-links','model-table','graph-help','graph-controls','zoom','inspector-empty'])add('live-ontology-'+id,'div',root);
 const graph=add('live-ontology-graph','div',root),stage=add('live-ontology-stage','div',graph);add('live-ontology-scene','div',stage);
 const link=add('live-ontology-link','section',root);link.hidden=true;add('live-ontology-link-properties','div',link);
 add('live-ontology-objects','section',root);add('live-ontology-search','input',root);
@@ -51,8 +52,17 @@ elements['live-ontology-model'].append(...['graph','graph-help','graph-controls'
 for(const id of ['page','detail','audit','schema'])elements['live-ontology-'+id].dataset.liveResults='true';
 for(const [id,values] of [['comparison',['none','equals','range']],['kind',['text','int','bool']]])for(const value of values){const option=new Element('option');option.value=value;elements['live-ontology-'+id].append(option);}
 elements['live-ontology-revision'].value='1';elements['live-ontology-limit'].value='25';
+for(const id of ['draft-controls','draft-inspector','draft-tray','draft-state','draft-status','draft-selection','draft-diff','draft-diagnostics','property-compatibility'])add('live-ontology-'+id,'div',root);
+for(const id of ['draft-choice','property-choice','property-kind','property-required','new-property-kind','new-property-required','link-from','link-to','link-cardinality','new-link-from','new-link-to','new-link-cardinality'])add('live-ontology-'+id,'select',root);
+for(const id of ['entity-name','entity-revision','property-name','new-property-name','link-revision','new-entity-id','new-entity-name','new-link-id'])add('live-ontology-'+id,'input',root);
+for(const id of ['draft-more','draft-new','draft-save','draft-reload','draft-validate'])add('live-ontology-'+id,'button',root);
+for(const id of ['entity-edit','property-edit','property-add','link-edit','entity-add','link-add']){const form=add('live-ontology-'+id,'form',findEditorParent());form.append(new Element('button'));}
+function findEditorParent(){return elements['live-ontology-draft-inspector'];}
+add('live-ontology-draft-inspector-title','h4',findEditorParent()).setAttribute('tabindex','-1');findEditorParent().append(elements['live-ontology-property-choice']);
+for(const [form,fields] of [['entity-edit',['entity-name','entity-revision']],['property-edit',['property-name','property-kind','property-required']],['link-edit',['link-from','link-to','link-cardinality','link-revision']]])elements['live-ontology-'+form].append(...fields.map(id=>elements['live-ontology-'+id]));
+for(const [id,values] of [['property-kind',['legacy','string','integer','double','boolean','date','timestamp']],['property-required',['required','optional']],['new-property-kind',['string','integer','double','boolean','date','timestamp']],['new-property-required',['optional','required']],['link-cardinality',['one_to_one','one_to_many','many_to_many']],['new-link-cardinality',['one_to_many','one_to_one','many_to_many']]])for(const value of values){const option=new Element('option');option.value=value;elements['live-ontology-'+id].append(option);}
 const document={activeElement:panel,body:panel,visibilityState:'visible',getElementById:id=>elements[id],createElement:tag=>new Element(tag),createElementNS:(namespace,tag)=>{const e=new Element(tag);e.namespaceURI=namespace;return e;},addEventListener(){}};
-let intervals=[], timers=[], calls=[], held=null, holdPath=null, nativeError=null, headerUser='usr_alice', pageEmpty=false;
+let intervals=[], timers=[], calls=[], held=null, holdPath=null, nativeError=null, statusError=null, modelEnabled=false, modelError=null, modelLoseAck=false, modelTamper=false, modelValidation=null, headerUser='usr_alice', pageEmpty=false;
 const session={tenantId:'ten_acme',userId:'usr_alice',expiresAt:Math.floor(Date.now()/1000)+3600,roles:['foundry-operator']};
 const object={object_ref:'ent_alpha',written_revision:1,upcast_state:'current',properties:{name:{value_type:'string',data_class:'INTERNAL_ONLY',value:'<script>Ada</script>'}}};
 const schemaFixture=[
@@ -75,8 +85,27 @@ function payload(url) {
   if(url.includes('/objects/'))return {requested_revision:Number(new URL('https://shell.invalid'+url).searchParams.get('revision')),object};
   return null;
 }
-function reply(url,error=nativeError) { const isRead=url.includes('/api/ontology/');return {ok:!isRead||!error,status:url.endsWith('session:logout')?204:isRead&&error?403:200,headers:{get:name=>({'x-oyatie-user':headerUser,'x-oyatie-tenant':session.tenantId,'x-oyatie-session-expires':String(session.expiresAt)})[name]??null},json:async()=>isRead&&error?{error}:payload(url)}; }
-const context={document,Element,URLSearchParams,AbortController,getComputedStyle:element=>({strokeWidth:String(element.mockStrokeWidth||0)}),window:{isSecureContext:true,PublicKeyCredential:function(){}},navigator:{credentials:{},locks:{request:(_,action)=>action()}},fetch:(url,options)=>{calls.push([url,options]);if(holdPath&&url.includes(holdPath)){holdPath=null;return new Promise(resolve=>{held=()=>resolve(reply(url));});}return Promise.resolve(reply(url));},setTimeout:callback=>{timers.push(callback);return timers.length;},clearTimeout(){},setInterval:callback=>intervals.push(callback)};
+const modelDocument={entities:[{id:'ety_record',display_name:'Record',properties:[{name:'name',tier:'scalar',data_class:'InternalOnly',required:true,value_type:null,display:null},{name:'structure',tier:'struct',data_class:'InternalOnly',required:false,value_type:{shape:'struct',fields:[{name:'date',required:true,value_type:{shape:'scalar',kind:'date'}}]},display:{display_name:'Untouched',description:null,icon:'native',color:null,plural_name:null}}],revision:1,pillar:null,primary_key_property:null,title_property:'name',display:{display_name:'Record',description:'Preserve this',icon:null,color:null,plural_name:null}}],links:[]};
+const modelWorkspace={generation:'9007199254740993',document:modelDocument,capabilities:{author:true,publish:false}}, modelDrafts=new Map();let nextDraft=9007199254740993n;
+function modelReply(url,options){
+  let body=null,code=modelEnabled?modelError:'forbidden';if(code)return {ok:false,status:code==='unauthenticated'?401:code==='model_unavailable'?503:403,json:async()=>({error:code})};
+  const path=new URL('https://shell.invalid'+url).pathname, payload=options.body?JSON.parse(options.body):null;
+  if(path.endsWith('/model'))body=modelWorkspace;
+  else if(path.endsWith('/drafts') && options.method==='POST'){const id=String(nextDraft++);body={id,tenant_id:session.tenantId,owner:session.userId,base_generation:payload.expected_generation,version:'1',document:payload.document,publication:null};modelDrafts.set(id,structuredClone(body));}
+  else if(path.endsWith('/drafts'))body={drafts:[...modelDrafts.values()].filter(d=>d.owner===session.userId).map(d=>({id:d.id,version:d.version,base_generation:d.base_generation,published_generation:null})),next:null};
+  else {const parts=path.split('/'),id=parts.at(-1)==='save'||parts.at(-1)==='validate'?parts.at(-2):parts.at(-1),draft=modelDrafts.get(id);
+    if(!draft || draft.owner!==session.userId)return {ok:false,status:404,json:async()=>({error:'draft_not_found'})};
+    if(payload && (payload.expected_version!==draft.version || payload.expected_base!==draft.base_generation))return {ok:false,status:409,json:async()=>({error:'draft_conflict'})};
+    if(path.endsWith('/save')){draft.version=String(BigInt(draft.version)+1n);draft.document=structuredClone(payload.document);body=draft;}
+    else if(path.endsWith('/validate'))body={draft_id:id,draft_version:draft.version,base_generation:draft.base_generation,valid:true,diagnostics:[],...(modelValidation || {})};
+    else body=draft;
+  }
+  if(options.method==='POST' && modelLoseAck){modelLoseAck=false;throw new Error('network lost after native commit');}
+  body=structuredClone(body);if(modelTamper && options.method==='POST' && body.id){modelTamper=false;body.version='9007199254740995';}
+  return {ok:true,status:options.method==='POST' && path.endsWith('/drafts')?201:200,headers:{get:name=>({'x-oyatie-user':headerUser,'x-oyatie-tenant':session.tenantId,'x-oyatie-session-expires':String(session.expiresAt)})[name]??null},json:async()=>body};
+}
+function reply(url,error=nativeError) { const isRead=url.includes('/api/ontology/');if(url.includes('ontology-status') && statusError)return {ok:false,status:statusError,json:async()=>({error:'forbidden'})};return {ok:!isRead||!error,status:url.endsWith('session:logout')?204:isRead&&error?403:200,headers:{get:name=>({'x-oyatie-user':headerUser,'x-oyatie-tenant':session.tenantId,'x-oyatie-session-expires':String(session.expiresAt)})[name]??null},json:async()=>isRead&&error?{error}:payload(url)}; }
+const context={document,Element,URLSearchParams,AbortController,TextEncoder,getComputedStyle:element=>({strokeWidth:String(element.mockStrokeWidth||0)}),window:{isSecureContext:true,PublicKeyCredential:function(){}},navigator:{credentials:{},locks:{request:(_,action)=>action()}},fetch:(url,options)=>{calls.push([url,options]);if(url.includes('ontology-status') && statusError==='network')return Promise.reject(new Error('status transport unavailable'));if(url.includes('/model')){if(holdPath && url.includes(holdPath)){holdPath=null;return new Promise(resolve=>{const captured=modelReply(url,options);held=()=>resolve(captured);});}try{return Promise.resolve(modelReply(url,options));}catch(e){return Promise.reject(e);}}if(holdPath&&url.includes(holdPath)){holdPath=null;return new Promise(resolve=>{held=()=>resolve(reply(url));});}return Promise.resolve(reply(url));},setTimeout:callback=>{timers.push(callback);return timers.length;},clearTimeout(){},setInterval:callback=>intervals.push(callback)};
 vm.runInNewContext(input.script,context,{timeout:1000});
 const find=id=>elements[id], text=node=>(node.textContent||'')+node.children.map(text).join(' ');
 async function flush() { for(let i=0;i<80;i++)await Promise.resolve(); }

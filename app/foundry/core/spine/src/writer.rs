@@ -9,6 +9,8 @@ use crate::error::{RefusalGate, Refused};
 use crate::fold::{FoldOutcome, PoisonReason, apply_sealed};
 use crate::state::ProjectionState;
 
+mod link_admission;
+
 /// One caller submission: what the Action wants to do, and the policy
 /// decision that authorizes the caller to want it.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -70,17 +72,26 @@ fn submit_gated(
     check_parameter_conformance(&registry, submission)?;
     let schema_revision = admit_edits_and_stamp_registered_revision(&registry, submission)?;
     let envelope = encode_envelope(submission, &receipt, schema_revision)?;
-    advisory_dry_run_against_scratch_fold(projection, &envelope)?;
+    let scratch = advisory_dry_run_against_scratch_fold(projection, &envelope)?;
     // A retry under a fresh decision is the same request: the log keeps the
     // first decision and this appends nothing.
-    if let Some(stored) = log
+    match log
         .spent(&envelope.tenant_id, &envelope.idempotency_key)
         .map_err(WriteError::Log)?
-        && crate::retry::same_request(&stored.envelope, &envelope)
     {
-        let mut log_receipt = stored.receipt;
-        log_receipt.deduplicated = true;
-        return Ok(outcome_of_deduplicated_append(projection, log_receipt));
+        Some(stored) if crate::retry::same_request(&stored.envelope, &envelope) => {
+            let mut log_receipt = stored.receipt;
+            log_receipt.deduplicated = true;
+            return Ok(outcome_of_deduplicated_append(projection, log_receipt));
+        }
+        // The real append owns divergent-key conflicts and storage failures.
+        Some(_) => {}
+        None => link_admission::admit_link_endpoints(
+            projection,
+            &scratch,
+            &envelope,
+            &submission.edits,
+        )?,
     }
     let log_receipt =
         append_with_receipt(receipt, log, envelope.clone()).map_err(WriteError::Log)?;
@@ -196,7 +207,7 @@ fn encode_envelope(
 fn advisory_dry_run_against_scratch_fold(
     projection: &ProjectionState,
     envelope: &ActionEnvelope,
-) -> Result<(), WriteError> {
+) -> Result<ProjectionState, WriteError> {
     let mut scratch = projection.clone();
     let probe = SealedEnvelope {
         envelope: envelope.clone(),
@@ -211,7 +222,7 @@ fn advisory_dry_run_against_scratch_fold(
             RefusalGate::Admission,
             "edits fail the fold's own admission",
         )),
-        FoldOutcome::Applied => Ok(()),
+        FoldOutcome::Applied => Ok(scratch),
     }
 }
 

@@ -21,23 +21,7 @@ impl HumanOntologyCardSource {
         &self,
         session_cookie: &str,
     ) -> Result<HumanOntologyReadSource, OntologyReadError> {
-        let token = session_cookie
-            .strip_prefix("__Host-oya_session=v1.")
-            .ok_or(OntologyReadError::Unauthenticated)?;
-        if token.len() != 43
-            || !token
-                .bytes()
-                .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_'))
-            || !token
-                .as_bytes()
-                .last()
-                .is_some_and(|b| b"AEIMQUYcgkosw048".contains(b))
-        {
-            return Err(OntologyReadError::Unauthenticated);
-        }
-        let mut cookie = HeaderValue::from_str(session_cookie)
-            .map_err(|_| OntologyReadError::Unauthenticated)?;
-        cookie.set_sensitive(true);
+        let cookie = transport::cookie(session_cookie)?;
         Ok(HumanOntologyReadSource {
             transport: self.clone(),
             cookie,

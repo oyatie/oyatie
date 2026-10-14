@@ -17,6 +17,20 @@ pub enum LinkInstanceOutcome {
 }
 
 impl OntologyEngine {
+    /// Borrow directed `(link_type_id, from_entity_id, to_entity_id)` tuples for one tenant.
+    pub fn link_instances(&self, tenant_id: &str) -> impl Iterator<Item = (&str, &str, &str)> {
+        self.link_instances
+            .keys()
+            .filter(move |key| key.tenant_id == tenant_id)
+            .map(|key| {
+                (
+                    key.link_type_id.as_str(),
+                    key.from_entity_id.as_str(),
+                    key.to_entity_id.as_str(),
+                )
+            })
+    }
+
     /// Register a directed link instance from `from_entity_id` to `to_entity_id`
     /// under `link_type_id` for `tenant_id`.
     pub fn register_link_instance(

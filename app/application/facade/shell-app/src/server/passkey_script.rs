@@ -43,13 +43,13 @@ if (signInPanel) {
     status.textContent = text;
     status.dataset.error = String(error);
   }
-  function clearLive() {
-    explorer.clear();
+  function clearCard() {
     card.hidden = true;
     for (const fact of card.querySelectorAll('[data-live-fact]')) fact.textContent = '';
     find('verified-ontology-identity').textContent = '';
     find('verified-ontology-updated').textContent = '';
   }
+  function clearLive() { explorer.clear(); clearCard(); }
   function clearSession() {
     current = null;
     clearTimeout(expiryTimer);
@@ -116,24 +116,28 @@ if (signInPanel) {
       clearSession();
       message('Session expired. Sign in again.', true);
     }, Math.min(session.expiresAt * 1000 - Date.now(), 2147483647));
-    if (!session.roles.length) throw new Error('Signed in, but no product role is assigned. Ask your administrator for access.');
-    const response = await fetch(`/api/ontology-status/${encodeURIComponent(snapshot.tenantId)}`, {
-      credentials: 'same-origin', cache: 'no-store', redirect: 'error',
-    });
-    if (!stillSelected(snapshot, version)) return;
-    if (!response.ok) throw new Error(response.status === 401 ? 'Session revoked or expired. Sign in again.'
-      : response.status === 403 ? 'Live Ontology access refused. Ask your administrator for access.'
-      : 'Live Ontology status unavailable. Retry when the service is available.');
-    const facts = await response.json();
-    if (!stillSelected(snapshot, version) || session.expiresAt * 1000 <= Date.now()) return;
-    if (typeof facts.policyVersion !== 'string' || ['servedTenants', 'projectionLag', 'poisonedEntries']
-      .some(key => !Number.isSafeInteger(facts[key]) || facts[key] < 0)) throw new Error('Live Ontology status unavailable. Retry.');
-    for (const fact of card.querySelectorAll('[data-live-fact]')) fact.textContent = String(facts[fact.dataset.liveFact]);
-    find('verified-ontology-identity').textContent = `${session.tenantId} · ${session.userId} · authorized by Foundry`;
-    find('verified-ontology-updated').textContent = `Checked ${new Date().toLocaleTimeString()}. Refresh to check current access.`;
-    card.hidden = false;
-    void explorer.open(session, version, retaining);
-    message(`Signed in as ${session.userId}. Live Ontology access verified. The dashboard below remains a sample preview.`);
+    const statusCheck = (async () => {
+      const response = await fetch(`/api/ontology-status/${encodeURIComponent(snapshot.tenantId)}`, {
+        credentials: 'same-origin', cache: 'no-store', redirect: 'error',
+      });
+      if (!stillSelected(snapshot, version)) return;
+      if (!response.ok) {
+        clearCard();
+        if (response.status === 401) { generation += 1; clearSession(); message('Session revoked or expired. Sign in again.',true); }
+        return;
+      }
+      const facts = await response.json();
+      if (!stillSelected(snapshot, version) || session.expiresAt * 1000 <= Date.now()) return;
+      if (typeof facts.policyVersion !== 'string' || ['servedTenants','projectionLag','poisonedEntries'].some(key=>!Number.isSafeInteger(facts[key]) || facts[key]<0)) {clearCard();return;}
+      for (const fact of card.querySelectorAll('[data-live-fact]')) fact.textContent = String(facts[fact.dataset.liveFact]);
+      find('verified-ontology-identity').textContent = `${session.tenantId} · ${session.userId} · authorized by Foundry`;
+      find('verified-ontology-updated').textContent = `Checked ${new Date().toLocaleTimeString()}. Refresh to check current access.`;
+      card.hidden = false;
+    })().catch(()=>{if(stillSelected(snapshot,version))clearCard();});
+    void explorer.open(session,version,retaining);
+    await Promise.allSettled([statusCheck]);
+    if (stillSelected(snapshot,version) && current) message(`Signed in as ${session.userId}. Each Ontology surface checks its own access. The dashboard remains a sample preview.`);
+
   }
   find('passkey-form').addEventListener('submit', event => {
     event.preventDefault();
@@ -240,3 +244,12 @@ if (signInPanel) {
 
 #[cfg(test)]
 mod explorer_test;
+
+#[cfg(test)]
+mod draft_editor_test;
+
+#[cfg(test)]
+mod pending_selection_test;
+
+#[cfg(test)]
+mod validation_navigation_test;

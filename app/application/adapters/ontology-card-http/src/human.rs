@@ -4,7 +4,9 @@ use application_ontology_card::OntologyCardFacts;
 use application_ontology_read::OntologyReadError;
 use reqwest::{Client, StatusCode, Url, header};
 
+mod model;
 mod query;
+pub use model::HumanOntologyModelSource;
 mod reads;
 mod transport;
 pub use reads::HumanOntologyReadSource;

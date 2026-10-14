@@ -15,7 +15,8 @@ const CHECK: &str = r##"
   assert.ok(1280>collapseAt, '1280 desktop retains simultaneous library, graph and inspector');
   assert.ok(1024<=collapseAt, 'tablet can collapse the inspector below the graph');
   assert.ok(workspaceCss.includes('@media (max-width: 60rem)'), '390 mobile receives a single-column layout');
-  assert.ok(input.html.includes('class="foundry-library" open')&&input.html.includes('class="foundry-inspector" open'), 'panes use operable native disclosures');
+  const disclosureTags=[...input.html.matchAll(/<details\b[^>]*>/g)].map(match=>match[0]);
+  for(const className of ['foundry-library','foundry-inspector'])assert.ok(disclosureTags.some(tag=>tag.includes(`class="${className}"`) && /\sopen(?:[\s=>])/.test(tag)), 'panes remain open operable native disclosures independent of attribute order');
   assert.ok(workspaceCss.includes('overflow-x: auto')&&workspaceCss.includes('min-height: max(44px, 2.75rem)'), 'table overflow and unscaled touch controls are preserved');
   assert.ok(!input.html.includes('id="live-ontology-publish"'), 'unqualified authoring is not exposed');
   await flush(); find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
@@ -33,8 +34,8 @@ const CHECK: &str = r##"
   assert.ok(!cards()[1].children.some(child=>child.tagName==='img'),'label content never creates HTML');
   find('live-ontology-search').value='직원';find('live-ontology-search').emit('input');assert.equal(types().length,1,'native display names are searchable');
   find('live-ontology-search').value='';find('live-ontology-search').emit('input');
-  assert.match(text(find('live-ontology-library-links')),/No registered relationships/);
-  assert.match(find('live-ontology-model-summary').textContent,/2 registered types · 0 registered relationships/);
+  assert.match(text(find('live-ontology-library-links')),/No relationship declarations/);
+  assert.match(find('live-ontology-model-summary').textContent,/2 type declarations · 0 relationship declarations/);
   nativeLinks=[link,{...link,link_type:'lty_has',from_entity_type:'ety_record',cardinality:'many_to_many',revision:3,allow_cross_tenant:true}];
   find('live-ontology-types-refresh').emit('click');await flush();
   assert.equal(edges().length,2);assert.equal(relations().length,2);
@@ -56,7 +57,7 @@ const CHECK: &str = r##"
   relations()[0].focus();find('live-ontology-search').value='absent';find('live-ontology-search').emit('input');assert.equal(document.activeElement,find('live-ontology-search'),'filtered-away library focus returns to search');
   find('live-ontology-search').value='';find('live-ontology-search').emit('input');
   find('live-ontology-view-table').emit('click');assert.equal(find('live-ontology-graph').hidden,true);assert.equal(find('live-ontology-model-table').hidden,false);
-  assert.match(text(find('live-ontology-model-table')),/Registered relationships.*lty_reports.*one → many/);
+  assert.match(text(find('live-ontology-model-table')),/Relationship declarations.*lty_reports.*one → many/);
   const tableType=find('live-ontology-model-table').querySelectorAll('[data-model-type]')[0];tableType.focus();find('live-ontology-view-graph').emit('click');assert.equal(document.activeElement,find('live-ontology-view-graph'),'hidden table releases focus to the representation control');
   find('live-ontology-graph').focus();find('live-ontology-graph').emit('keydown',{key:'ArrowRight'});assert.equal(find('live-ontology-graph').scrollLeft,80);
   find('live-ontology-graph').emit('keydown',{key:'+'});assert.equal(find('live-ontology-zoom').textContent,'125%');
@@ -111,6 +112,39 @@ const CHECK: &str = r##"
 #[test]
 fn native_workspace_composes_registered_model_and_preserves_trust_and_accessibility() {
     super::check_controller(CHECK);
+}
+
+#[test]
+fn relationship_inspection_explains_the_selected_directed_cardinality() {
+    super::check_controller(
+        r#"
+(async () => {
+  for(const prefix of ['link','new-link']) {
+    const select=input.html.match(new RegExp(`<select\\b[^>]*id="live-ontology-${prefix}-cardinality"[^>]*>`))[0];
+    const help=select.match(/aria-describedby="([^"]+)"/)[1];
+    assert.ok(input.html.includes(`id="${help}"`),'cardinality select refers to rendered accessible help');
+  }
+  nativeLinks=['one_to_one','one_to_many','many_to_many'].map(cardinality=>({link_type:'lty_'+cardinality,from_entity_type:'ety_record',to_entity_type:'ety_profile',cardinality,allow_cross_tenant:false,revision:1}));
+  await flush();find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
+  const expected=[['at most one target','at most one source'],['many targets','at most one source'],['many targets','many sources']];
+  const relations=find('live-ontology-library-links').querySelectorAll('[data-model-link]');
+  for(const [index,button] of relations.entries()) {
+    button.focus();button.emit('click');
+    const rows=find('live-ontology-link-properties').querySelectorAll('tr').slice(1);
+    const value=label=>rows.find(row=>row.children[0].textContent===label).children[1].textContent;
+    assert.equal(value('Relationship type'),nativeLinks[index].link_type,'inspection follows the selected declaration');
+    assert.match(value('From entity type (source)'),/Record · ety_record/);
+    assert.match(value('To entity type (target)'),/직원 <img src=x onerror=alert\(1\)> · ety_profile/,'target label stays literal and direction is preserved');
+    assert.ok(value('Cardinality').includes(`(${nativeLinks[index].cardinality})`),'native enum remains visible');
+    const limits=value('Limits per relationship type and tenant');
+    assert.ok(limits.includes(expected[index][0]) && limits.includes(expected[index][1]));
+    assert.ok(limits.endsWith('No links are required.'));
+    assert.equal(document.activeElement,button,'inspection retains the invoking control focus');
+  }
+  console.log('Selected directed relationship cardinality and accessible authoring guidance PASS');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"#,
+    );
 }
 
 const CHECK_FIT: &str = r##"

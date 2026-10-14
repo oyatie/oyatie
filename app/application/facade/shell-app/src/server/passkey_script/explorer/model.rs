@@ -1,11 +1,16 @@
 pub(super) const SCRIPT: &str = r#"
-function createOntologyModelView(selectType, fallback) {
+function createOntologyModelView(selectType, fallback, selectRelationship = () => {}, modeChanged = () => {}) {
   const find = id => document.getElementById(`live-ontology-${id}`);
   let schemas = [], links = [], selectedType = null, selectedLink = null;
   let representation = 'graph', zoom = 1, width = 640, height = 360;
   let typeButtons = [], linkButtons = [], graphLabels = [], graphNodes = [], graphEdges = [];
   const arrowSize = 8, arrowRefX = 7, arrowRefY = 4;
   const cardinality = value => ({one_to_one:'one → one',one_to_many:'one → many',many_to_many:'many → many'})[value];
+  const cardinalityLimits = value => ({
+    one_to_one:'Each source can link to at most one target; each target can link from at most one source.',
+    one_to_many:'Each source can link to many targets; each target can link from at most one source.',
+    many_to_many:'Each source can link to many targets; each target can link from many sources.',
+  })[value] + ' No links are required.';
   function node(tag, text = '', className = '') {
     const element = document.createElement(tag); element.textContent = text; element.className = className; return element;
   }
@@ -29,14 +34,15 @@ function createOntologyModelView(selectType, fallback) {
     const link = links.find(row => row.link_type === id); if (!link) return;
     const active = document.activeElement, restore = find('schema').contains(active);
     selectedLink = id; find('schema').hidden = true;
-    find('link-properties').replaceChildren(ontologyTable('Registered relationship', ['Declaration', 'Value'], [
-      ['Relationship type', link.link_type], ['From entity type', typeText(link.from_entity_type)], ['To entity type', typeText(link.to_entity_type)],
-      ['Cardinality', `${cardinality(link.cardinality)} (${link.cardinality})`], ['Cross-tenant intent', String(link.allow_cross_tenant)], ['Current declaration revision', link.revision],
+    find('link-properties').replaceChildren(ontologyTable('Relationship declaration', ['Declaration', 'Value'], [
+      ['Relationship type', link.link_type], ['From entity type (source)', typeText(link.from_entity_type)], ['To entity type (target)', typeText(link.to_entity_type)],
+      ['Cardinality', `${cardinality(link.cardinality)} (${link.cardinality})`], ['Limits per relationship type and tenant', cardinalityLimits(link.cardinality)],
+      ['Cross-tenant intent', String(link.allow_cross_tenant)], ['Declaration revision', link.revision],
     ]));
-    find('link').hidden = false; find('inspector-empty').hidden = true; selection();
+    find('link').hidden = false; find('inspector-empty').hidden = true; selection(); selectRelationship(id);
     if (restore) fallback();
   }
-  function typeText(id) { return `${schemas.find(row => row.entity_type === id).display_name} · ${id}`; }
+  function typeText(id) { return `${schemas.find(row => row.entity_type === id)?.display_name || id} · ${id}`; }
   function select(id) {
     const restore = find('link').contains(document.activeElement);
     selectedType = id; selectedLink = null; find('link-properties').replaceChildren(); find('link').hidden = true;
@@ -50,8 +56,8 @@ function createOntologyModelView(selectType, fallback) {
     const relations = links.filter(row => [row.link_type,typeText(row.from_entity_type),typeText(row.to_entity_type)].some(value => value.toLocaleLowerCase().includes(search)));
     typeButtons = typeButtons.filter(([element]) => !find('library-types').contains(element));
     linkButtons = linkButtons.filter(([element]) => !find('library-links').contains(element));
-    find('library-types').replaceChildren(...(types.length ? types.map(row => typeButton(row, 'foundry-library-item')) : [node('p', schemas.length ? 'No matching types.' : 'No registered types.')]));
-    find('library-links').replaceChildren(...(relations.length ? relations.map(row => linkButton(row, 'foundry-library-item')) : [node('p', links.length ? 'No matching relationships.' : 'No registered relationships.')]));
+    find('library-types').replaceChildren(...(types.length ? types.map(row => typeButton(row, 'foundry-library-item')) : [node('p', schemas.length ? 'No matching types.' : 'No type declarations.')]));
+    find('library-links').replaceChildren(...(relations.length ? relations.map(row => linkButton(row, 'foundry-library-item')) : [node('p', links.length ? 'No matching relationships.' : 'No relationship declarations.')]));
     find('library-summary').textContent = `${types.length} of ${schemas.length} types · ${relations.length} of ${links.length} relationships`;
     selection(); if (restore) find('search').focus({preventScroll:true});
   }
@@ -97,6 +103,7 @@ function createOntologyModelView(selectType, fallback) {
     const arrow = document.createElementNS(svg.namespaceURI, 'path'); arrow.setAttribute('d','M 0 0 L 8 4 L 0 8 z'); marker.append(arrow); defs.append(marker); svg.append(defs); scene.append(svg);
     links.forEach((link, index) => {
       const from = positions.get(link.from_entity_type), to = positions.get(link.to_entity_type);
+      if (!from || !to) return;
       const self = link.from_entity_type === link.to_entity_type;
       const edge = document.createElementNS(svg.namespaceURI, 'path');
       const startX = from.x + 130, startY = from.y + 200, endX = to.x + 130, endY = to.y;
@@ -120,20 +127,20 @@ function createOntologyModelView(selectType, fallback) {
       card.append(node('small',`${schema.properties.length} declared properties · ${schema.properties.filter(p=>p.required).length} required`));
       card.style.left = `${position.x}px`; card.style.top = `${position.y}px`; card.setAttribute('aria-label', `Inspect entity type ${schema.display_name}, ${schema.entity_type}, declaration revision ${schema.revision}`); scene.append(card); graphNodes.push(card);
     }
-    if (!schemas.length) scene.append(node('p','No native types are registered.','foundry-graph-empty'));
+    if (!schemas.length) scene.append(node('p','No native type declarations.','foundry-graph-empty'));
     scale(zoom);
   }
   function table() {
     find('model-table').replaceChildren(
-      ontologyTable('Registered object types', ['Object type','Current declaration revision','Properties'], schemas.map(row => [typeButton(row),row.revision,row.properties.length])),
-      ontologyTable('Registered relationships', ['Relationship','From','To','Cardinality','Current declaration revision'], links.map(row => [linkButton(row),typeText(row.from_entity_type),typeText(row.to_entity_type),cardinality(row.cardinality),row.revision])),
+      ontologyTable('Object type declarations', ['Object type','Declaration revision','Properties'], schemas.map(row => [typeButton(row),row.revision,row.properties.length])),
+      ontologyTable('Relationship declarations', ['Relationship','From','To','Cardinality','Declaration revision'], links.map(row => [linkButton(row),typeText(row.from_entity_type),typeText(row.to_entity_type),cardinality(row.cardinality),row.revision])),
     );
   }
   function setModel(rows, relations, selected) {
     schemas = rows; links = relations; typeButtons = []; linkButtons = [];
     selectedType = selected; selectedLink = null;
     library(); graph(); table(); select(selected);
-    find('model-summary').textContent = `${schemas.length} registered types · ${links.length} registered relationships`;
+    find('model-summary').textContent = `${schemas.length} type declarations · ${links.length} relationship declarations`;
   }
   function clear() {
     const active = document.activeElement;
@@ -149,6 +156,7 @@ function createOntologyModelView(selectType, fallback) {
     const restore = prior.contains(document.activeElement);
     find('model').hidden = value !== 'schema'; find('objects').hidden = value !== 'objects';
     for (const id of ['schema','objects']) find(`mode-${id}`).setAttribute('aria-pressed', String(value === id));
+    modeChanged(value);
     if (restore) find(`mode-${value}`).focus({preventScroll:true});
   }
   function showRepresentation(value) {
@@ -172,6 +180,6 @@ function createOntologyModelView(selectType, fallback) {
     if (direction) { event.preventDefault(); find('graph').scrollBy({left:direction[0],top:direction[1],behavior:'auto'}); }
     else if (['+','=','-','Home'].includes(event.key)) { event.preventDefault(); if (event.key === 'Home') fit(); else scale(zoom + (event.key === '-' ? -0.25 : 0.25)); }
   });
-  return {setModel,select,clear,reset:()=>{clear();find('search').value='';zoom=1;showMode('schema');showRepresentation('graph');scale(1);}};
+  return {setModel,select,selectLink,clear,reset:()=>{clear();find('search').value='';zoom=1;showMode('schema');showRepresentation('graph');scale(1);}};
 }
 "#;
