@@ -166,18 +166,31 @@ async fn cookie_membership_and_policy_refuse_before_the_query_and_on_replay() {
 #[tokio::test]
 async fn json_protocol_and_stream_size_are_bounded_after_identity() {
     let fixture = HumanGraph::new("human-protocol");
-    for (content_type, text, status) in [
+    for (content_type, bytes, status, cause) in [
         (
             "text/plain",
-            request("plain").to_string(),
+            request("plain").to_string().into_bytes(),
             StatusCode::UNSUPPORTED_MEDIA_TYPE,
+            "a relationship read requires application/json",
         ),
         (
             "application/json",
-            " ".repeat(4097),
+            vec![b' '; 4097],
             StatusCode::PAYLOAD_TOO_LARGE,
+            "a relationship read body may hold at most 4096 bytes",
         ),
-        ("application/json", "[".into(), StatusCode::BAD_REQUEST),
+        (
+            "application/json",
+            b"[".to_vec(),
+            StatusCode::BAD_REQUEST,
+            "a relationship read requires one declared root, accepted relationship and direction",
+        ),
+        (
+            "application/json",
+            vec![0xff],
+            StatusCode::BAD_REQUEST,
+            "a relationship read requires one declared root, accepted relationship and direction",
+        ),
     ] {
         let response = fixture
             .router
@@ -188,13 +201,28 @@ async fn json_protocol_and_stream_size_are_bounded_after_identity() {
                     .uri("/v1/tenants/ten_acme/search-around")
                     .header("cookie", cookie())
                     .header("content-type", content_type)
-                    .body(Body::from(text))
+                    .body(Body::from(bytes))
                     .unwrap(),
             )
             .await
             .unwrap();
-        body(response, status).await;
+        assert_eq!(
+            body(response, status).await,
+            json!({"gate":"surface","cause":cause})
+        );
     }
+    let metrics = crate::facade_support::scrape(&crate::facade_support::Session::from_shared(
+        fixture.state.clone(),
+    ))
+    .await;
+    assert_eq!(
+        crate::facade_support::value_of(&metrics, "foundry_read_refused_total"),
+        4
+    );
+    assert_eq!(
+        crate::facade_support::value_of(&metrics, "foundry_read_served_total"),
+        0
+    );
 }
 
 #[tokio::test]

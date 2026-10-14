@@ -36,7 +36,7 @@ pub(crate) async fn search_around(
         };
     let body = match transport::request_body(&state, &headers, body).await {
         Ok(body) => body,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
     let Some(request) = Request::parse(&body) else {
         return invalid(&state);

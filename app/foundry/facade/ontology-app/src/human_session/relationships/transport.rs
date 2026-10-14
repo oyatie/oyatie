@@ -11,29 +11,29 @@ pub(super) async fn request_body(
     state: &HumanReadState,
     headers: &HeaderMap,
     body: Body,
-) -> Result<String, Response> {
+) -> Result<String, Box<Response>> {
     let types: Vec<_> = headers.get_all(header::CONTENT_TYPE).iter().collect();
     if types.len() != 1 || types[0].as_bytes() != b"application/json" {
         state.app.metrics.read_refused();
-        return Err(refuse(
+        return Err(Box::new(refuse(
             StatusCode::UNSUPPORTED_MEDIA_TYPE,
             "surface",
             "a relationship read requires application/json",
-        ));
+        )));
     }
     let lengths: Vec<_> = headers.get_all(header::CONTENT_LENGTH).iter().collect();
     if lengths.len() > 1 {
-        return Err(invalid(state));
+        return Err(Box::new(invalid(state)));
     }
     if let Some(length) = lengths.first() {
         let Ok(raw) = length.to_str() else {
-            return Err(invalid(state));
+            return Err(Box::new(invalid(state)));
         };
         if raw.is_empty() || !raw.bytes().all(|byte| byte.is_ascii_digit()) {
-            return Err(invalid(state));
+            return Err(Box::new(invalid(state)));
         }
         let Ok(length) = raw.parse::<u64>() else {
-            return Err(invalid(state));
+            return Err(Box::new(invalid(state)));
         };
         if length > 4096 {
             return Err(too_large(state));
@@ -45,16 +45,16 @@ pub(super) async fn request_body(
         {
             too_large(state)
         } else {
-            invalid(state)
+            Box::new(invalid(state))
         }
     })?;
-    String::from_utf8(bytes.to_vec()).map_err(|_| invalid(state))
+    String::from_utf8(bytes.to_vec()).map_err(|_| Box::new(invalid(state)))
 }
-fn too_large(state: &HumanReadState) -> Response {
+fn too_large(state: &HumanReadState) -> Box<Response> {
     state.app.metrics.read_refused();
-    refuse(
+    Box::new(refuse(
         StatusCode::PAYLOAD_TOO_LARGE,
         "surface",
         "a relationship read body may hold at most 4096 bytes",
-    )
+    ))
 }
