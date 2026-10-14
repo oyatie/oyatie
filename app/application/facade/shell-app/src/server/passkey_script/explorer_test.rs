@@ -1,5 +1,7 @@
 #[path = "explorer_test_dom.rs"]
 mod dom;
+#[path = "relationship_test.rs"]
+mod relationships;
 #[path = "workspace_test.rs"]
 mod workspace;
 use leptos::prelude::*;

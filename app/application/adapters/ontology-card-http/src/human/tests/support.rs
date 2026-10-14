@@ -37,6 +37,22 @@ pub fn stub(replies: Vec<(u16, String, String)>) -> (String, Receiver<String>) {
                 }
                 request.extend_from_slice(&chunk[..n]);
             }
+            let boundary = request.windows(4).position(|w| w == b"\r\n\r\n").unwrap() + 4;
+            let length = String::from_utf8_lossy(&request[..boundary])
+                .lines()
+                .find_map(|line| {
+                    let (name, value) = line.split_once(':')?;
+                    name.eq_ignore_ascii_case("content-length")
+                        .then(|| value.trim().parse::<usize>().unwrap())
+                })
+                .unwrap_or(0);
+            while request.len() < boundary + length {
+                let count = stream.read(&mut chunk).unwrap();
+                if count == 0 {
+                    break;
+                }
+                request.extend_from_slice(&chunk[..count]);
+            }
             let _ = sender.send(String::from_utf8(request).unwrap());
             let _ = write!(
                 stream,

@@ -56,6 +56,16 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
             <section id="live-ontology-detail" aria-labelledby="live-ontology-detail-title" data-live-results="true" hidden>
                 <h4 id="live-ontology-detail-title" tabindex="-1">"Object detail"</h4><div id="live-ontology-properties"></div>
                 <button type="button" id="live-ontology-history-read">"Read object history"</button><div id="live-ontology-history"></div>
+                <section aria-labelledby="live-ontology-relationship-title">
+                    <h5 id="live-ontology-relationship-title">"Related objects"</h5><p id="live-ontology-relationship-root"></p>
+                    <div class="live-ontology-query">
+                        <label for="live-ontology-relationship-direction">"Direction from this object"</label><select id="live-ontology-relationship-direction"><option value="outbound">"Outbound · from this object"</option><option value="inbound">"Inbound · to this object"</option></select>
+                        <label for="live-ontology-relationship-type">"Accepted relationship"</label><select id="live-ontology-relationship-type" required></select>
+                        <button type="button" id="live-ontology-relationship-read" disabled>"Read related objects"</button>
+                    </div>
+                    <p id="live-ontology-relationship-status" role="status" aria-live="polite"></p><div id="live-ontology-relationship-results" data-live-results="true"></div>
+                    <p>"A bounded one-hop table of object instances. The Model canvas shows type declarations. Each read checks current access; choose Read related objects again for a fresh request."</p>
+                </section>
             </section>
             <section id="live-ontology-audit" aria-labelledby="live-ontology-audit-title" data-live-results="true" hidden><h4 id="live-ontology-audit-title">"Native tenant audit"</h4><div id="live-ontology-audit-rows"></div></section>
                         </section>
@@ -72,7 +82,7 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
                     </details>
                 </div>
                 <super::model_editor::ModelDraftTray />
-                <details class="foundry-capability-note"><summary>"Workspace capabilities"</summary><p>"Available now: type and relationship declarations, object reads, object history and tenant audit. Owned model drafts require separate native model access. Source mappings, publication, instance graph traversal and scenarios require their native workflows."</p></details>
+                <details class="foundry-capability-note"><summary>"Workspace capabilities"</summary><p>"Available now: type and relationship declarations, object reads, selected relationship traversal in a one-hop table, object history and tenant audit. Owned model drafts require separate native model access. Source mappings, publication, an instance graph canvas, multi-hop exploration and scenarios require their native workflows."</p></details>
             </section>
         </section>
     }

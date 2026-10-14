@@ -11,6 +11,7 @@ use axum::{
 use iam_identity_user_session::ActiveUserMembership;
 use serde::Serialize;
 mod query;
+mod relationships;
 
 pub(super) fn router() -> Router<Configuration> {
     Router::new()
@@ -25,6 +26,7 @@ pub(super) fn router() -> Router<Configuration> {
             get(history),
         )
         .route("/api/ontology/{tenant}/audit", get(audit))
+        .merge(relationships::router())
 }
 
 async fn reader(

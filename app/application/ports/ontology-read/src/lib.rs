@@ -11,6 +11,7 @@ mod links;
 mod model;
 mod models;
 mod query;
+mod relationships;
 mod schema;
 pub use labels::EntityTypeLabel;
 pub use links::{LinkCardinality, LinkSchema};
@@ -20,6 +21,11 @@ pub use models::{
     Property, UpcastState,
 };
 pub use query::{DEFAULT_PAGE_LIMIT, FilterValue, MAX_PAGE_LIMIT, ObjectListQuery, PropertyFilter};
+pub use relationships::{
+    MAX_RELATIONSHIP_EDGES, MAX_RELATIONSHIP_NODES, MAX_RELATIONSHIP_REQUEST_BYTES,
+    MAX_RELATIONSHIP_RESPONSE_BYTES, RelationshipDirection, RelationshipEdge, RelationshipGraph,
+    RelationshipNode, RelationshipQuery, RelationshipRoot,
+};
 pub use schema::{
     EntitySchema, PropertyDefinition, PropertyTier, StructFieldDeclaration, ValueTypeDeclaration,
 };
@@ -55,6 +61,13 @@ impl std::error::Error for OntologyReadError {}
 /// The server adapter revalidates the user's credential and tenant on each read.
 /// No browser principal, role list or sample fallback authorizes a live result.
 pub trait OntologyReadSource: Send + Sync {
+    /// A bounded, directed one-hop read; every replay needs current authorization.
+    fn search_around(
+        &self,
+        tenant: &str,
+        query: &RelationshipQuery,
+    ) -> impl Future<Output = Result<RelationshipGraph, OntologyReadError>> + Send;
+
     /// Native human names; consumers join only matching schema IDs and revisions.
     fn type_labels(
         &self,
@@ -112,3 +125,6 @@ mod schema_tests;
 
 #[cfg(test)]
 mod link_tests;
+
+#[cfg(test)]
+mod relationship_tests;

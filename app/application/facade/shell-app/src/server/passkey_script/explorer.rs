@@ -1,16 +1,23 @@
 mod editor;
 mod model;
+mod objects;
+mod relationship_codec;
+mod relationships;
 mod render;
 pub(super) fn script() -> String {
     format!(
-        "{}\n{}\n{}\n{}",
+        "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
         render::SCRIPT,
         model::SCRIPT,
         editor::script(),
+        relationship_codec::SCRIPT,
+        SETUP,
+        objects::SCRIPT,
+        relationships::SCRIPT,
         SCRIPT
     )
 }
-pub(super) const SCRIPT: &str = r#"
+const SETUP: &str = r#"
 function createOntologyExplorer(lifecycle) {
   const find = id => document.getElementById(`live-ontology-${id}`);
   const root = find('explorer');
@@ -26,7 +33,7 @@ function createOntologyExplorer(lifecycle) {
     if(value==='objects' || !editor?.active()) {model.setModel(schemas,links,find('type').value || null);renderSchema();}
   });
   editor=createOntologyDraftEditor(lifecycle,{setModel:(rows,relations,selected)=>{model.setModel(rows,relations,selected);renderSchemaFor(rows.find(row=>row.entity_type===selected));},selectLink:id=>model.selectLink(id),fallback:()=>{model.setModel(schemas,links,find('type').value || null);renderSchema();}});
-  let next = null, cursor = null, objectRef = null, historyShown = false, readPage = false;
+  let next = null, cursor = null, activeObject = null, historyShown = false, readPage = false;
   const queryControls = ['type', 'revision', 'limit', 'property', 'comparison', 'kind', 'from', 'to'];
   const note = text => { find('status').textContent = text; };
   const valid = token => token === epoch && identity && lifecycle.valid(identity, generation) && root.isConnected;
@@ -64,7 +71,8 @@ function createOntologyExplorer(lifecycle) {
     find('detail-title').textContent = 'Object detail';
     find('detail').hidden = true; find('audit').hidden = true;
     find('next').hidden = true; find('first').hidden = true;
-    next = null; cursor = null; objectRef = null; historyShown = false; readPage = false;
+    clearRelationships();
+    next = null; cursor = null; activeObject = null; historyShown = false; readPage = false;
   }
   function clear() {
     invalidate(); editor.clear();
@@ -93,19 +101,22 @@ function createOntologyExplorer(lifecycle) {
     }
     return params;
   }
-  async function fetchRead(path, token) {
+  async function fetchRead(path, token, body = undefined) {
     const response = await fetch(`/api/ontology/${encodeURIComponent(identity.tenantId)}/${path}`, {
       credentials: 'same-origin', cache: 'no-store', redirect: 'error', signal: abort.signal,
+      method: body === undefined ? 'GET' : 'POST', headers: body === undefined ? {} : {'content-type':'application/json'}, body,
     });
     if (!valid(token)) return null;
     if (response.ok && (response.headers.get('x-oyatie-tenant') !== identity.tenantId
       || response.headers.get('x-oyatie-user') !== identity.userId
       || !Number.isSafeInteger(Number(response.headers.get('x-oyatie-session-expires')))
       || Number(response.headers.get('x-oyatie-session-expires')) * 1000 <= Date.now())) throw new Error('unauthenticated');
-    const body = await response.json();
+    const replyExpiry = Number(response.headers.get('x-oyatie-session-expires'));
+    const payload = await response.json();
     if (!valid(token)) return null;
-    if (!response.ok) throw new Error(typeof body.error === 'string' ? body.error : 'source_unavailable');
-    return body;
+    if (!response.ok) throw new Error(typeof payload.error === 'string' ? payload.error : 'source_unavailable');
+    if (replyExpiry * 1000 <= Date.now()) throw new Error('unauthenticated');
+    return payload;
   }
   function failure(error, token) {
     if (!valid(token) || error.name === 'AbortError') return;
@@ -134,66 +145,14 @@ function createOntologyExplorer(lifecycle) {
     try { await work(token); } catch (error) { failure(error, token); }
     finally { if (valid(token)) busy(false); }
   }
-  function renderPage(page, params, token) {
-    if (!valid(token)) return;
-    ontologyDecode.page(page, Number(params.get('revision')), Number(params.get('limit')));
-    const active = document.activeElement;
-    const focusedRef = active?.dataset?.liveObject;
-    const restoreFocus = find('page').contains(active);
-    find('page').replaceChildren(ontologyTable('Pinned native objects', ['Object reference', 'Stored schema revision', 'Upcast state'], page.objects.map(object => {
-      const button = document.createElement('button'); button.type = 'button'; button.textContent = object.object_ref;
-      button.dataset.liveObject = object.object_ref;
-      button.addEventListener('click', () => detail(object.object_ref, button));
-      return [button, object.written_revision, object.upcast_state];
-    })));
-    if (restoreFocus) {
-      const replacement = [...find('page').querySelectorAll('[data-live-object]')].find(b => b.dataset.liveObject === focusedRef);
-      const fallback = [find('type'), find('read')].find(control => control && !control.disabled && !control.hidden);
-      (replacement || fallback)?.focus({ preventScroll: true });
-    }
-    next = page.next; cursor = params.get('cursor'); readPage = true;
-    find('next').hidden = !next; find('first').hidden = !cursor;
-    note(page.objects.length ? `${page.objects.length} native objects · requested schema revision ${page.requested_revision}. Stored revisions are shown per object.`
-      : `No native objects match this query at requested schema revision ${page.requested_revision}.`);
-  }
-  function renderDetail(detail, reference, token, trigger = null) {
-    if (!valid(token)) return;
-    ontologyDecode.detail(detail, reference, Number(find('revision').value));
-    objectRef = reference;
-    find('detail-title').textContent = `${reference} · requested schema ${detail.requested_revision} · stored schema ${detail.object.written_revision} · ${detail.object.upcast_state}`;
-    find('properties').replaceChildren(ontologyTable('Native object properties', ['Property', 'Value kind', 'Privacy class', 'Value'], Object.entries(detail.object.properties).map(([name, p]) => [name, p.value_type, p.data_class, JSON.stringify(p.value)])));
-    find('detail').hidden = false;
-    if (trigger && document.activeElement === trigger) find('detail-title').focus();
-  }
-  async function loadPage(token, after = null, selected = null) {
-    const params = query(after), page = await fetchRead(`objects?${params}`, token);
-    if (!page || !valid(token)) return;
-    renderPage(page, params, token);
-    if (selected) {
-      const detail = await fetchRead(`objects/${encodeURIComponent(selected)}?revision=${params.get('revision')}`, token);
-      if (detail) renderDetail(detail, selected, token);
-      if (historyShown && valid(token)) await loadHistory(token);
-    }
-  }
-  function detail(reference, trigger) {
-    return run('Reading pinned native object…', async token => {
-      find('properties').replaceChildren(); find('history').replaceChildren(); find('detail').hidden = true; historyShown = false;
-      const result = await fetchRead(`objects/${encodeURIComponent(reference)}?revision=${find('revision').value}`, token);
-      if (result) { renderDetail(result, reference, token, trigger); note('Pinned native object read. History is a separate native log read.'); }
-    });
-  }
-  async function loadHistory(token) {
-    const rows = await fetchRead(`objects/${encodeURIComponent(objectRef)}/history`, token);
-    if (!rows || !valid(token)) return;
-    ontologyDecode.history(rows); historyShown = true;
-    find('history').replaceChildren(ontologyTable('Native object history', ['Ordinal', 'Object sequence', 'Principal', 'Decision', 'Action', 'Event', 'Schema revision'], rows.map(r => [r.ordinal, r.object_sequence, r.principal_id, r.decision_id, r.action_type, r.audit_event_type, r.schema_revision])));
-    note(rows.length ? `${rows.length} native history entries. Each has its own schema revision.` : 'No native history entries for this object.');
-  }
+"#;
+pub(super) const SCRIPT: &str = r#"
   async function open(session, version, retaining = false) {
     if (!session || !lifecycle.valid(session, version)) { clear(); return; }
     const same = identity?.tenantId === session.tenantId && identity?.userId === session.userId;
-    const selection = retaining && same ? { type: find('type').value, revision: find('revision').value, cursor, objectRef, readPage, auditShown: !find('audit').hidden } : null;
+    const selection = retaining && same ? { type: find('type').value, revision: find('revision').value, cursor, activeObject, readPage, auditShown: !find('audit').hidden } : null;
     if (!selection) clear();
+    else clearRelationships();
     identity = session; generation = version; root.hidden = false; find('access-notice').hidden = true;
     find('identity').textContent = `Verified tenant ${session.tenantId} · account ${session.userId}`;
     if (!editor.active()) clearModel();
@@ -216,7 +175,7 @@ function createOntologyExplorer(lifecycle) {
       if (!editor.active()) {model.setModel(schemas, links, find('type').value || null); renderSchema();}
       if (restoreFocus && (schemas.length === 0 || active === find('type'))) focusSchemaControl();
       note(schemas.length ? 'Native schemas loaded. Choose a type and requested schema revision, then Read objects.' : 'No entity types are declared for this verified tenant.');
-      if (selection?.readPage && find('type').value === selection.type) await loadPage(token, selection.cursor, selection.objectRef);
+      if (selection?.readPage && find('type').value === selection.type) await loadPage(token, selection.cursor, selection.activeObject);
       if (selection?.auditShown && valid(token)) await loadAudit(token);
     });
     await modelAccess;
@@ -246,6 +205,6 @@ function createOntologyExplorer(lifecycle) {
     invalidate(); emptyResults(); busy(false);
     note('Read selection changed. Read objects to load this context.');
   });
-  return { clear, open, hold: version => { invalidate(); editor.hold(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
+  return { clear, open, hold: version => { invalidate(); clearRelationships(); editor.hold(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
 }
 "#;

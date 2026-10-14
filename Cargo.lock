@@ -199,6 +199,7 @@ dependencies = [
  "application-ontology-read",
  "application-shell-app",
  "axum",
+ "foundry-model-api",
  "foundry-ontology-app",
  "iam-identity-user-session",
  "leptos",

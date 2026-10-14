@@ -82,6 +82,10 @@ pub fn router_with_model_control(
             get(crate::human_session::reads::objects),
         )
         .route(
+            "/v1/tenants/{tenant}/search-around",
+            post(crate::human_session::relationships::search_around),
+        )
+        .route(
             "/v1/tenants/{tenant}/objects/{object_ref}",
             get(crate::human_session::reads::object),
         )

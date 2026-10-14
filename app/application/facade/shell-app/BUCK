@@ -39,6 +39,7 @@ rust_test(
         "third-party//:reqwest",
         "third-party//:tower",
         "//app/foundry/facade/ontology-app:foundry-ontology-app",
+        "//app/foundry/ports/model-api:foundry-model-api",
         "//app/application/adapters/ontology-card-fake:application-ontology-card-fake",
         "//app/application/ports/ontology-card:application-ontology-card",
         "//iam/core/oidc-client-kernel:shared-oidc-client-kernel",
