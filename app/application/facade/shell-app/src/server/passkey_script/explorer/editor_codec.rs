@@ -40,4 +40,36 @@ function ontologyModelRows(document) {
   const declaration = v => v===null ? null : v.shape==='scalar' ? {kind:v.kind} : v.shape==='array' ? {kind:'array',element:declaration(v.element)} : {kind:'struct',fields:v.fields.map(f=>({...f,value_type:declaration(f.value_type)}))};
   return {schemas:document.entities.map(e=>({entity_type:e.id,display_name:e.display_name,revision:e.revision,properties:e.properties.map(p=>({...p,value_type:declaration(p.value_type)})),primary_key_property:e.primary_key_property,title_property:e.title_property})),links:document.links.map(l=>({...l,link_type:l.id}))};
 }
+function ontologyModelDiagnosticTarget(document, diagnostic) {
+  const matches=[];
+  const add=(codes,path,target)=>{if(codes.includes(diagnostic.code) && diagnostic.path===path)matches.push(target);};
+  for(const entity of document.entities){
+    const path=`entities.${entity.id}`,type=focus=>({kind:'type',id:entity.id,focus});
+    add(['new_definition_revision'],path,type('entity-revision'));
+    add(['invalid_entity_type_id','empty_properties','empty_property_name','incompatible_evolution','designated_property_not_declared'],path,type('draft-inspector-title'));
+    add(['empty_display_name'],`${path}.display_name`,type('entity-name'));
+    add(['revision_not_increased'],`${path}.revision`,type('entity-revision'));
+    add(['frozen_pillar'],`${path}.pillar`,type('draft-inspector-title'));
+    add(['unsupported_key_adoption','frozen_primary_key'],`${path}.primary_key_property`,type('draft-inspector-title'));
+    for(const field of ['display_name','description','icon','color','plural_name'])add(['blank_display_field'],`${path}.display.${field}`,type('draft-inspector-title'));
+    entity.properties.forEach((property,index)=>{
+      const target=focus=>({kind:'property',id:entity.id,propertyIndex:index,focus}),propertyPath=`${path}.properties.${property.name}`;
+      add(['unsupported_data_class'],propertyPath,target('property-choice'));
+      add(['invalid_value_type','value_type_tier_mismatch','primary_key_not_scalar'],propertyPath,target('property-kind'));
+      add(['primary_key_not_required'],propertyPath,target('property-required'));
+    });
+  }
+  for(const link of document.links){
+    const path=`links.${link.id}`,target=focus=>({kind:'link',id:link.id,focus});
+    add(['new_definition_revision'],path,target('link-revision'));
+    add(['cross_tenant_link','invalid_entity_type_id','invalid_link_type_id','unknown_endpoint','cross_pillar_link'],path,target('draft-inspector-title'));
+    add(['revision_not_increased'],`${path}.revision`,target('link-revision'));
+    for(const field of ['display_name','description','icon','color','plural_name'])add(['blank_display_field'],`${path}.display.${field}`,target('draft-inspector-title'));
+    for(const [field,focus] of [['from_entity_type','link-from'],['to_entity_type','link-to'],['cardinality','link-cardinality'],['allow_cross_tenant','draft-inspector-title']])add(['frozen_field_changed'],`${path}.${field}`,target(focus));
+  }
+  if(matches.length!==1)return null;
+  const target=matches[0],rows=target.kind==='link'?document.links:document.entities;
+  if(rows.filter(row=>row.id===target.id).length!==1)return null;
+  return target;
+}
 "#;

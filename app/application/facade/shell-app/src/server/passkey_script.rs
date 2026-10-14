@@ -247,3 +247,6 @@ mod explorer_test;
 
 #[cfg(test)]
 mod draft_editor_test;
+
+#[cfg(test)]
+mod validation_navigation_test;

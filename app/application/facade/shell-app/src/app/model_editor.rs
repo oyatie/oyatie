@@ -18,7 +18,7 @@ pub(super) fn ModelDraftControls() -> impl IntoView {
 pub(super) fn ModelDraftInspector() -> impl IntoView {
     view! {
         <section id="live-ontology-draft-inspector" class="foundry-draft-inspector" aria-labelledby="live-ontology-draft-inspector-title" data-live-results="true" hidden>
-            <h4 id="live-ontology-draft-inspector-title">"Draft declaration"</h4>
+            <h4 id="live-ontology-draft-inspector-title" tabindex="-1">"Draft declaration"</h4>
             <p id="live-ontology-draft-selection"></p>
             <form id="live-ontology-entity-edit" class="foundry-editor-form" hidden>
                 <label for="live-ontology-entity-name">"Type display name"</label><input id="live-ontology-entity-name" type="text" maxlength="4096" />

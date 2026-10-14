@@ -20,7 +20,8 @@ class Element {
   get offsetHeight() {return this.mockHeight||0;}
   getBBox() {return this.mockBounds||{x:0,y:0,width:0,height:0};}
   contains(target) { for(let node=target;node;node=node.parentElement) if(node===this)return true;return false; }
-  closest(selector) { for(let node=this;node;node=node.parentElement)if(selector==='[data-live-results]'&&node.dataset.liveResults)return node;return null; }
+  closest(selector) { for(let node=this;node;node=node.parentElement)if(selector==='[data-live-results]'&&node.dataset.liveResults||selector==='[hidden]'&&node.hidden)return node;return null; }
+  getClientRects() { return this.isConnected && !this.closest('[hidden]') ? [{}] : []; }
   querySelectorAll(selector) { const result=[];for(const child of this.children){if(selector===child.tagName||selector==='[data-live-object]'&&child.dataset.liveObject||selector==='[data-live-fact]'&&child.dataset.liveFact||selector==='[data-model-type]'&&child.dataset.modelType||selector==='[data-model-link]'&&child.dataset.modelLink||selector==='[data-model-edge]'&&child.dataset.modelEdge)result.push(child);result.push(...child.querySelectorAll(selector));}return result; }
   focus(options) { if(this.disabled)return;this.focusOptions=options; document.activeElement=this; }
 }
@@ -57,9 +58,11 @@ for(const id of ['entity-name','entity-revision','property-name','new-property-n
 for(const id of ['draft-more','draft-new','draft-save','draft-reload','draft-validate'])add('live-ontology-'+id,'button',root);
 for(const id of ['entity-edit','property-edit','property-add','link-edit','entity-add','link-add']){const form=add('live-ontology-'+id,'form',findEditorParent());form.append(new Element('button'));}
 function findEditorParent(){return elements['live-ontology-draft-inspector'];}
+add('live-ontology-draft-inspector-title','h4',findEditorParent()).setAttribute('tabindex','-1');findEditorParent().append(elements['live-ontology-property-choice']);
+for(const [form,fields] of [['entity-edit',['entity-name','entity-revision']],['property-edit',['property-name','property-kind','property-required']],['link-edit',['link-from','link-to','link-cardinality','link-revision']]])elements['live-ontology-'+form].append(...fields.map(id=>elements['live-ontology-'+id]));
 for(const [id,values] of [['property-kind',['legacy','string','integer','double','boolean','date','timestamp']],['property-required',['required','optional']],['new-property-kind',['string','integer','double','boolean','date','timestamp']],['new-property-required',['optional','required']],['link-cardinality',['one_to_one','one_to_many','many_to_many']],['new-link-cardinality',['one_to_many','one_to_one','many_to_many']]])for(const value of values){const option=new Element('option');option.value=value;elements['live-ontology-'+id].append(option);}
 const document={activeElement:panel,body:panel,visibilityState:'visible',getElementById:id=>elements[id],createElement:tag=>new Element(tag),createElementNS:(namespace,tag)=>{const e=new Element(tag);e.namespaceURI=namespace;return e;},addEventListener(){}};
-let intervals=[], timers=[], calls=[], held=null, holdPath=null, nativeError=null, statusError=null, modelEnabled=false, modelError=null, modelLoseAck=false, modelTamper=false, headerUser='usr_alice', pageEmpty=false;
+let intervals=[], timers=[], calls=[], held=null, holdPath=null, nativeError=null, statusError=null, modelEnabled=false, modelError=null, modelLoseAck=false, modelTamper=false, modelValidation=null, headerUser='usr_alice', pageEmpty=false;
 const session={tenantId:'ten_acme',userId:'usr_alice',expiresAt:Math.floor(Date.now()/1000)+3600,roles:['foundry-operator']};
 const object={object_ref:'ent_alpha',written_revision:1,upcast_state:'current',properties:{name:{value_type:'string',data_class:'INTERNAL_ONLY',value:'<script>Ada</script>'}}};
 const schemaFixture=[
@@ -94,7 +97,7 @@ function modelReply(url,options){
     if(!draft || draft.owner!==session.userId)return {ok:false,status:404,json:async()=>({error:'draft_not_found'})};
     if(payload && (payload.expected_version!==draft.version || payload.expected_base!==draft.base_generation))return {ok:false,status:409,json:async()=>({error:'draft_conflict'})};
     if(path.endsWith('/save')){draft.version=String(BigInt(draft.version)+1n);draft.document=structuredClone(payload.document);body=draft;}
-    else if(path.endsWith('/validate'))body={draft_id:id,draft_version:draft.version,base_generation:draft.base_generation,valid:true,diagnostics:[]};
+    else if(path.endsWith('/validate'))body={draft_id:id,draft_version:draft.version,base_generation:draft.base_generation,valid:true,diagnostics:[],...(modelValidation || {})};
     else body=draft;
   }
   if(options.method==='POST' && modelLoseAck){modelLoseAck=false;throw new Error('network lost after native commit');}

@@ -67,6 +67,12 @@ function createOntologyDraftForms(context) {
     propertyIndex=Number(find('property-choice').value);property();
   });
   const capture=()=>({typeId,linkId,propertyIndex,dirtyFields:[...dirtyFields],values:Object.fromEntries(ids.map(id=>[id,find(id).value]))});
-  return {capture,restore:snapshot=>{held=snapshot;render(context.document(),true);},suspend:()=>{const snapshot=capture();clear();held=snapshot;},enable:value=>{enable(value);property();},clear,render,selection:()=>typeId,selectedLink:()=>linkId,reset,selectType:id=>{typeId=id;linkId=null;propertyIndex=0;render(context.document(),true);},selectLink:id=>{linkId=id;typeId=null;render(context.document(),true);}};
+  function selectType(id,index=null){
+    const rows=context.document()?.entities.filter(e=>e.id===id) || [];
+    if(context.dirty() || rows.length!==1 || index!==null && (!Number.isInteger(index) || index<0 || !rows[0].properties[index] || rows[0].properties.filter(p=>p.name===rows[0].properties[index].name).length!==1))return false;
+    typeId=id;linkId=null;propertyIndex=index ?? 0;return true;
+  }
+  function selectLink(id){if(context.dirty() || context.document()?.links.filter(l=>l.id===id).length!==1)return false;linkId=id;typeId=null;return true;}
+  return {capture,restore:snapshot=>{held=snapshot;render(context.document(),true);},suspend:()=>{const snapshot=capture();clear();held=snapshot;},enable:value=>{enable(value);property();},clear,render,selection:()=>typeId,selectedLink:()=>linkId,reset,selectType,selectLink};
 }
 "#;
