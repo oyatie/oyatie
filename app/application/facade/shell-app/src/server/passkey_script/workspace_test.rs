@@ -34,8 +34,8 @@ const CHECK: &str = r##"
   assert.ok(!cards()[1].children.some(child=>child.tagName==='img'),'label content never creates HTML');
   find('live-ontology-search').value='직원';find('live-ontology-search').emit('input');assert.equal(types().length,1,'native display names are searchable');
   find('live-ontology-search').value='';find('live-ontology-search').emit('input');
-  assert.match(text(find('live-ontology-library-links')),/No registered relationships/);
-  assert.match(find('live-ontology-model-summary').textContent,/2 registered types · 0 registered relationships/);
+  assert.match(text(find('live-ontology-library-links')),/No relationship declarations/);
+  assert.match(find('live-ontology-model-summary').textContent,/2 type declarations · 0 relationship declarations/);
   nativeLinks=[link,{...link,link_type:'lty_has',from_entity_type:'ety_record',cardinality:'many_to_many',revision:3,allow_cross_tenant:true}];
   find('live-ontology-types-refresh').emit('click');await flush();
   assert.equal(edges().length,2);assert.equal(relations().length,2);
@@ -57,7 +57,7 @@ const CHECK: &str = r##"
   relations()[0].focus();find('live-ontology-search').value='absent';find('live-ontology-search').emit('input');assert.equal(document.activeElement,find('live-ontology-search'),'filtered-away library focus returns to search');
   find('live-ontology-search').value='';find('live-ontology-search').emit('input');
   find('live-ontology-view-table').emit('click');assert.equal(find('live-ontology-graph').hidden,true);assert.equal(find('live-ontology-model-table').hidden,false);
-  assert.match(text(find('live-ontology-model-table')),/Registered relationships.*lty_reports.*one → many/);
+  assert.match(text(find('live-ontology-model-table')),/Relationship declarations.*lty_reports.*one → many/);
   const tableType=find('live-ontology-model-table').querySelectorAll('[data-model-type]')[0];tableType.focus();find('live-ontology-view-graph').emit('click');assert.equal(document.activeElement,find('live-ontology-view-graph'),'hidden table releases focus to the representation control');
   find('live-ontology-graph').focus();find('live-ontology-graph').emit('keydown',{key:'ArrowRight'});assert.equal(find('live-ontology-graph').scrollLeft,80);
   find('live-ontology-graph').emit('keydown',{key:'+'});assert.equal(find('live-ontology-zoom').textContent,'125%');

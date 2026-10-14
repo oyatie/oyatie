@@ -63,7 +63,7 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
                     <details class="foundry-inspector" open><summary>"Inspector"</summary>
             <section id="live-ontology-schema" aria-labelledby="live-ontology-schema-title" data-live-results="true" hidden>
                 <h4 id="live-ontology-schema-title">"Native entity schema"</h4>
-                <p>"The current accepted declaration is shown for the selected type. Requested object revisions are set separately."</p>
+                <p>"The selected type declaration is shown. Requested object revisions are set separately."</p>
                 <p id="live-ontology-schema-summary"></p><div id="live-ontology-schema-properties"></div>
             </section>
                         <section id="live-ontology-link" aria-labelledby="live-ontology-link-title" data-live-results="true" hidden><h4 id="live-ontology-link-title">"Native relationship declaration"</h4><div id="live-ontology-link-properties"></div><p>"Cross-tenant intent describes the model. It does not grant permission to read another tenant."</p></section>
@@ -72,7 +72,7 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
                     </details>
                 </div>
                 <super::model_editor::ModelDraftTray />
-                <details class="foundry-capability-note"><summary>"Workspace capabilities"</summary><p>"Available now: registered types and relationships, object reads, object history and tenant audit. Owned model drafts require separate native model access. Source mappings, publication, instance graph traversal and scenarios require their native workflows."</p></details>
+                <details class="foundry-capability-note"><summary>"Workspace capabilities"</summary><p>"Available now: type and relationship declarations, object reads, object history and tenant audit. Owned model drafts require separate native model access. Source mappings, publication, instance graph traversal and scenarios require their native workflows."</p></details>
             </section>
         </section>
     }

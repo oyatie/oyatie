@@ -29,9 +29,9 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     const link = links.find(row => row.link_type === id); if (!link) return;
     const active = document.activeElement, restore = find('schema').contains(active);
     selectedLink = id; find('schema').hidden = true;
-    find('link-properties').replaceChildren(ontologyTable('Registered relationship', ['Declaration', 'Value'], [
+    find('link-properties').replaceChildren(ontologyTable('Relationship declaration', ['Declaration', 'Value'], [
       ['Relationship type', link.link_type], ['From entity type', typeText(link.from_entity_type)], ['To entity type', typeText(link.to_entity_type)],
-      ['Cardinality', `${cardinality(link.cardinality)} (${link.cardinality})`], ['Cross-tenant intent', String(link.allow_cross_tenant)], ['Current declaration revision', link.revision],
+      ['Cardinality', `${cardinality(link.cardinality)} (${link.cardinality})`], ['Cross-tenant intent', String(link.allow_cross_tenant)], ['Declaration revision', link.revision],
     ]));
     find('link').hidden = false; find('inspector-empty').hidden = true; selection(); selectRelationship(id);
     if (restore) fallback();
@@ -50,8 +50,8 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     const relations = links.filter(row => [row.link_type,typeText(row.from_entity_type),typeText(row.to_entity_type)].some(value => value.toLocaleLowerCase().includes(search)));
     typeButtons = typeButtons.filter(([element]) => !find('library-types').contains(element));
     linkButtons = linkButtons.filter(([element]) => !find('library-links').contains(element));
-    find('library-types').replaceChildren(...(types.length ? types.map(row => typeButton(row, 'foundry-library-item')) : [node('p', schemas.length ? 'No matching types.' : 'No registered types.')]));
-    find('library-links').replaceChildren(...(relations.length ? relations.map(row => linkButton(row, 'foundry-library-item')) : [node('p', links.length ? 'No matching relationships.' : 'No registered relationships.')]));
+    find('library-types').replaceChildren(...(types.length ? types.map(row => typeButton(row, 'foundry-library-item')) : [node('p', schemas.length ? 'No matching types.' : 'No type declarations.')]));
+    find('library-links').replaceChildren(...(relations.length ? relations.map(row => linkButton(row, 'foundry-library-item')) : [node('p', links.length ? 'No matching relationships.' : 'No relationship declarations.')]));
     find('library-summary').textContent = `${types.length} of ${schemas.length} types · ${relations.length} of ${links.length} relationships`;
     selection(); if (restore) find('search').focus({preventScroll:true});
   }
@@ -121,20 +121,20 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
       card.append(node('small',`${schema.properties.length} declared properties · ${schema.properties.filter(p=>p.required).length} required`));
       card.style.left = `${position.x}px`; card.style.top = `${position.y}px`; card.setAttribute('aria-label', `Inspect entity type ${schema.display_name}, ${schema.entity_type}, declaration revision ${schema.revision}`); scene.append(card); graphNodes.push(card);
     }
-    if (!schemas.length) scene.append(node('p','No native types are registered.','foundry-graph-empty'));
+    if (!schemas.length) scene.append(node('p','No native type declarations.','foundry-graph-empty'));
     scale(zoom);
   }
   function table() {
     find('model-table').replaceChildren(
-      ontologyTable('Registered object types', ['Object type','Current declaration revision','Properties'], schemas.map(row => [typeButton(row),row.revision,row.properties.length])),
-      ontologyTable('Registered relationships', ['Relationship','From','To','Cardinality','Current declaration revision'], links.map(row => [linkButton(row),typeText(row.from_entity_type),typeText(row.to_entity_type),cardinality(row.cardinality),row.revision])),
+      ontologyTable('Object type declarations', ['Object type','Declaration revision','Properties'], schemas.map(row => [typeButton(row),row.revision,row.properties.length])),
+      ontologyTable('Relationship declarations', ['Relationship','From','To','Cardinality','Declaration revision'], links.map(row => [linkButton(row),typeText(row.from_entity_type),typeText(row.to_entity_type),cardinality(row.cardinality),row.revision])),
     );
   }
   function setModel(rows, relations, selected) {
     schemas = rows; links = relations; typeButtons = []; linkButtons = [];
     selectedType = selected; selectedLink = null;
     library(); graph(); table(); select(selected);
-    find('model-summary').textContent = `${schemas.length} registered types · ${links.length} registered relationships`;
+    find('model-summary').textContent = `${schemas.length} type declarations · ${links.length} relationship declarations`;
   }
   function clear() {
     const active = document.activeElement;

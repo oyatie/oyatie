@@ -53,7 +53,7 @@ function createOntologyExplorer(lifecycle) {
   }
   function renderSchemaFor(schema) {
     if (!schema) { emptySchema(); return; }
-    find('schema-summary').textContent = `${schema.display_name} · ${schema.entity_type} · current accepted declaration revision ${schema.revision}. Primary-key property: ${schema.primary_key_property ?? 'none declared'}. Title property: ${schema.title_property ?? 'none declared'}.`;
+    find('schema-summary').textContent = `${schema.display_name} · ${schema.entity_type} · declaration revision ${schema.revision}. Primary-key property: ${schema.primary_key_property ?? 'none declared'}. Title property: ${schema.title_property ?? 'none declared'}.`;
     find('schema-properties').replaceChildren(ontologyTable('Native declared properties', ['Property', 'Tier', 'Value declaration', 'Presence', 'Privacy class'], schema.properties.map(property => [property.name, property.tier, ontologyDeclarationText(property.value_type), property.required ? 'Required' : 'Optional', property.data_class])));
     find('schema').hidden = false; model.select(schema.entity_type);
   }
