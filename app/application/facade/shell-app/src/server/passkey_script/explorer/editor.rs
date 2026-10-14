@@ -56,9 +56,9 @@ function createOntologyDraftEditor(lifecycle, view) {
   }
   function render(selected=null) {
     if (!active() || mode!=='schema') {controls();return;}
-    const rows=ontologyModelRows(working || workspace.document);view.setModel(rows.schemas,rows.links,selected || forms.selection() || rows.schemas[0]?.entity_type || null);
+    forms.render(working,draft);const rows=ontologyModelRows(working || workspace.document);view.setModel(rows.schemas,rows.links,selected || forms.selection() || rows.schemas[0]?.entity_type || null);
     find('model-note').textContent=draft ? `Working draft based on generation ${draft.base_generation}. Object reads use published declarations.` : `Coherent published metadata snapshot at generation ${workspace.generation}. Object reads are independent.`;
-    forms.render(working,draft);if(forms.selectedLink())view.selectLink(forms.selectedLink());diff();controls();
+    if(forms.selectedLink())view.selectLink(forms.selectedLink());diff();controls();
   }
   const forms=createOntologyDraftForms({find,document:()=>working,editable:()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication && !loading && !pending && !blocked,
     acceptInput:()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication, dirty:()=>formDirty, input:()=>{formDirty=true;validation=null;find('draft-diagnostics').replaceChildren();note('Unapplied form edits. Apply changes or discard and reload before saving or validating.');controls();},
