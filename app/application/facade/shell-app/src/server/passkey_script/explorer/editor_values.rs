@@ -1,5 +1,6 @@
 pub(super) const SCRIPT: &str = r#"
-function createOntologyValueForm(control, host, changed) {
+function createOntologyValueForm(control, host, changed, label) {
+  host.setAttribute('role','group');host.setAttribute('aria-label',`${label} value declaration`);
   const scalars=['string','integer','double','boolean','date','timestamp'];let root=null,enabled=false;
   const initial=value=>value===null?{kind:'legacy'}:value.shape==='scalar'?{kind:value.kind}:value.shape==='array'?{kind:'array',element:initial(value.element)}:{kind:'struct',fields:value.fields.map(f=>({name:f.name,presence:f.required?'required':'optional',value:initial(f.value_type)}))};
   const scalar=()=>({kind:'string'}),kinds=[...scalars.map(s=>[s,s[0].toUpperCase()+s.slice(1)]),['array','Array'],['struct','Struct']];
@@ -43,7 +44,7 @@ function createOntologyValueForm(control, host, changed) {
         if(shown==='array')return {shape:'array',element:element.read(budget)};
         if(shown!=='struct' || !fields.length || fields.length>256)throw new Error('Choose a supported native value declaration; a struct needs 1 to 256 named fields.');
         const names=new Set();return {shape:'struct',fields:fields.map(f=>{
-          const name=f.name.value;if(!name.trim() || new TextEncoder().encode(name).length>4096 || names.has(name))throw new Error('Struct fields need unique names of at most 4096 bytes.');names.add(name);
+          const name=f.name.value;if(/^\p{White_Space}*$/u.test(name) || new TextEncoder().encode(name).length>4096 || names.has(name))throw new Error('Struct fields need unique names of at most 4096 bytes.');names.add(name);
           if(!['required','optional'].includes(f.presence.value))throw new Error('Choose Required or Optional presence for each struct field.');
           return {name,required:f.presence.value==='required',value_type:f.value.read(budget)};
         })};
@@ -53,10 +54,10 @@ function createOntologyValueForm(control, host, changed) {
   function setEnabled(value){enabled=Boolean(value);for(const tag of ['input','select','button'])for(const child of host.querySelectorAll(tag))child.disabled=!enabled || child.dataset.depthLimit==='true';}
   control.addEventListener('change',()=>{root?.capture();changed();});
   return {
-    write(value){root=node(control,host,initial(value),1,'Property',true);},
+    write(value){root=node(control,host,initial(value),1,label,true);},
     read(){if(!root)throw new Error('Choose a native value declaration.');return root.read({nodes:4096});},
     capture(){let focus=null;for(const tag of ['input','select','button']){const index=Array.from(host.querySelectorAll(tag)).indexOf(document.activeElement);if(index>=0)focus={tag,index};}return {value:root?.capture() || scalar(),focus};},
-    restore(snapshot){root=node(control,host,snapshot.value,1,'Property',true);if(snapshot.focus && document.activeElement===document.body)host.querySelectorAll(snapshot.focus.tag)[snapshot.focus.index]?.focus({preventScroll:true});},
+    restore(snapshot){root=node(control,host,snapshot.value,1,label,true);if(snapshot.focus && document.activeElement===document.body)host.querySelectorAll(snapshot.focus.tag)[snapshot.focus.index]?.focus({preventScroll:true});},
     enable:setEnabled,
     clear(){host.replaceChildren();root=null;},
   };

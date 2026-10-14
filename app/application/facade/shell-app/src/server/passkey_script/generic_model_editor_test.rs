@@ -1,6 +1,85 @@
 use super::explorer_test::check_controller;
 
 #[test]
+fn structured_field_edits_preserve_native_unicode_name_semantics() {
+    check_controller(
+        r#"
+(async()=>{
+  await flush();modelEnabled=true;nativeError='forbidden';statusError=403;session.roles=['foundry-model-author'];
+  modelDocument.entities[0].properties[1].value_type.fields[0].name='\uFEFF';
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
+  find('live-ontology-draft-new').emit('click');await flush();
+  const id=find('live-ontology-draft-choice').value;
+  find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');
+  find('live-ontology-property-display').value='Edited display';find('live-ontology-property-display').emit('input');
+  find('live-ontology-entity-revision').value='2';find('live-ontology-property-edit').emit('submit');find('live-ontology-draft-save').emit('click');await flush();
+  const saved=modelDrafts.get(id).document.entities[0].properties[1];
+  assert.equal(saved.display.display_name,'Edited display','native non-whitespace U+FEFF field is preserved during metadata editing');assert.equal(saved.value_type.fields[0].name,'\uFEFF');
+  const name=find('live-ontology-property-value').querySelectorAll('input')[0];name.value='\u0085';name.emit('input');find('live-ontology-property-edit').emit('submit');
+  assert.match(find('live-ontology-draft-status').textContent,/Struct fields need unique names/,'native White_Space-only field is refused');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"#,
+    );
+}
+
+#[test]
+fn simultaneous_selected_and_new_property_forms_have_distinct_accessible_names() {
+    check_controller(
+        r#"
+(async()=>{
+  await flush();modelEnabled=true;nativeError='forbidden';statusError=403;session.roles=['foundry-model-author'];
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
+  find('live-ontology-draft-new').emit('click');await flush();
+  find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');
+  find('live-ontology-new-property-kind').value='struct';find('live-ontology-new-property-kind').emit('change');
+  const selected=find('live-ontology-property-value'),added=find('live-ontology-new-property-value');
+  added.querySelectorAll('button').find(b=>b.textContent==='Add field').emit('click');
+  const labels=[selected,added].flatMap(host=>['input','select','button'].flatMap(tag=>host.querySelectorAll(tag).map(e=>e.attrs['aria-label'])));
+  assert.equal(new Set(labels).size,labels.length,'simultaneous rich forms distinguish every nested control');
+  for(const [host,label] of [[selected,'Selected property'],[added,'New property']]){
+    assert.equal(host.attrs.role,'group');assert.equal(host.attrs['aria-label'],`${label} value declaration`);
+    assert.equal(host.querySelectorAll('fieldset')[0].attrs['aria-label'],`${label} field 1`);
+    host.querySelectorAll('select')[1].value='array';host.querySelectorAll('select')[1].emit('change');
+    assert.ok(host.querySelectorAll('select').some(e=>e.attrs['aria-label']===`${label} field 1 array element type`));
+  }
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"#,
+    );
+}
+
+#[test]
+fn published_legacy_primary_declarations_preserve_native_tiers_during_metadata_edits() {
+    for tier in [
+        "scalar",
+        "vector",
+        "timeseries",
+        "geo",
+        "ciphertext",
+        "struct",
+    ] {
+        let check = r#"
+(async()=>{
+  await flush();modelEnabled=true;nativeError='forbidden';statusError=403;session.roles=['foundry-model-author'];
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';
+    modelDocument.entities[0].primary_key_property='name';modelDocument.entities[0].properties[0].tier=legacyTier;
+    await restore();find('live-ontology-draft-new').emit('click');await flush();
+    const id=find('live-ontology-draft-choice').value,original=structuredClone(modelDrafts.get(id).document.entities[0]);
+    assert.equal(original.properties[0].value_type,null);assert.equal(find('live-ontology-entity-primary').disabled,true);
+    for(const [field,value] of [['entity-name','Edited Record'],['entity-description','Edited description'],['entity-title','structure'],['entity-revision','2']]){
+      find('live-ontology-'+field).value=value;find('live-ontology-'+field).emit('input');
+    }
+    find('live-ontology-entity-edit').emit('submit');find('live-ontology-draft-save').emit('click');await flush();
+    const saved=modelDrafts.get(id).document.entities[0];
+    assert.equal(saved.display_name,'Edited Record',`existing ${legacyTier} legacy key permits metadata editing`);
+    assert.equal(saved.display.description,'Edited description');assert.equal(saved.title_property,'structure');assert.equal(saved.revision,2);
+    assert.equal(saved.primary_key_property,'name');assert.deepEqual(saved.properties,original.properties);
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"#;
+        check_controller(&format!("const legacyTier={tier:?};\n{check}"));
+    }
+}
+
+#[test]
 fn structured_property_forms_save_native_shapes_and_preserve_untouched_metadata() {
     check_controller(
         r#"

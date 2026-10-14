@@ -13,15 +13,15 @@ function createOntologyDraftForms(context) {
     'link-add':['new-link-id','new-link-from','new-link-to','new-link-cardinality'],
   };
   function input(id){if(context.acceptInput()){dirtyFields.add(id);context.input();}}
-  const propertyValue=createOntologyValueForm(find('property-kind'),find('property-value'),()=>input('property-value'));
-  const newPropertyValue=createOntologyValueForm(find('new-property-kind'),find('new-property-value'),()=>input('new-property-value'));
+  const propertyValue=createOntologyValueForm(find('property-kind'),find('property-value'),()=>input('property-value'),'Selected property');
+  const newPropertyValue=createOntologyValueForm(find('new-property-kind'),find('new-property-value'),()=>input('new-property-value'),'New property');
   const baseline=()=>context.baseline()?.entities.find(e=>e.id===typeId);
   const supported=p=>['scalar','vector','struct'].includes(p.tier) && (p.value_type!==null || p.tier==='scalar');
   const tier=value=>value?.shape==='array'?'vector':value?.shape==='struct'?'struct':'scalar';
   function display(prior,changes){
     if(Object.entries(changes).every(([key,value])=>(prior?.[key] ?? '')===value))return prior;
     const result={display_name:null,description:null,icon:null,color:null,plural_name:null,...prior};
-    for(const [key,value] of Object.entries(changes)){if(new TextEncoder().encode(value).length>4096)throw new Error('Display fields allow at most 4096 bytes.');if(value && !value.trim())throw new Error('Display fields must contain text or be empty.');result[key]=value || null;}
+    for(const [key,value] of Object.entries(changes)){if(new TextEncoder().encode(value).length>4096)throw new Error('Display fields allow at most 4096 bytes.');if(value && /^\p{White_Space}*$/u.test(value))throw new Error('Display fields must contain text or be empty.');result[key]=value || null;}
     return Object.values(result).every(value=>value===null)?null:result;
   }
   const declaration=()=>context.document()?.entities.find(e=>e.id===typeId);
@@ -65,12 +65,12 @@ function createOntologyDraftForms(context) {
     if(held){for(const id of ids)find(id).value=held.values[id];propertyValue.restore(held.propertyValue);newPropertyValue.restore(held.newPropertyValue);held=null;}
   }
   const revision=value=>{const n=Number(value);if(!value || !Number.isInteger(n) || n<1 || n>4294967295)throw new Error('Enter a declaration revision from 1 to 4294967295.');return n;};
-  const named=(value,prefix=null)=>{if(!value.trim() || new TextEncoder().encode(value).length>4096 || prefix && !new RegExp(`^${prefix}[A-Za-z0-9_-]+$`).test(value))throw new Error('Enter a valid bounded declaration name or ID.');return value;};
+  const named=(value,prefix=null)=>{if(/^\p{White_Space}*$/u.test(value) || new TextEncoder().encode(value).length>4096 || prefix && !new RegExp(`^${prefix}[A-Za-z0-9_-]+$`).test(value))throw new Error('Enter a valid bounded declaration name or ID.');return value;};
   function submit(id,work){find(id).addEventListener('submit',event=>{event.preventDefault();if(!context.editable())return;try{const selection={typeId,linkId,propertyIndex};work();for(const field of appliedFields[id])dirtyFields.delete(field);if(dirtyFields.size){typeId=selection.typeId;linkId=selection.linkId;propertyIndex=selection.propertyIndex;}context.changed(dirtyFields.size>0);}catch(error){context.note(error.message);}});}
   submit('entity-edit',()=>{
     const e=declaration();if(!e)return;const name=named(find('entity-name').value),rev=revision(find('entity-revision').value),primary=find('entity-primary').value || null,title=find('entity-title').value || null;
     if(baseline() && primary!==e.primary_key_property)throw new Error('Published primary-key designation is fixed.');
-    if(primary && !e.properties.some(p=>p.name===primary && p.required && p.tier==='scalar' && (p.value_type===null || p.value_type.shape==='scalar')))throw new Error('Choose a required scalar primary-key property.');
+    if(!baseline() && primary && !e.properties.some(p=>p.name===primary && p.required && p.tier==='scalar' && (p.value_type===null || p.value_type.shape==='scalar')))throw new Error('Choose a required scalar primary-key property.');
     if(title && !e.properties.some(p=>p.name===title))throw new Error('Choose a declared title property.');
     const appearance=display(e.display,{description:find('entity-description').value,plural_name:find('entity-plural').value});
     e.display_name=name;e.primary_key_property=primary;e.title_property=title;e.display=appearance;e.revision=rev;
