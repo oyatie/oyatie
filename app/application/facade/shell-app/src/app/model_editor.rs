@@ -30,10 +30,14 @@ pub(super) fn ModelDraftControls() -> impl IntoView {
 pub(super) fn ModelDraftInspector() -> impl IntoView {
     view! {
         <section id="live-ontology-draft-inspector" class="foundry-draft-inspector" aria-labelledby="live-ontology-draft-inspector-title" data-live-results="true" hidden>
-            <h4 id="live-ontology-draft-inspector-title" tabindex="-1">"Draft declaration"</h4>
+            <h4 id="live-ontology-draft-inspector-title" tabindex="-1">"Selected declaration"</h4>
             <p id="live-ontology-draft-selection"></p>
             <form id="live-ontology-entity-edit" class="foundry-editor-form" hidden>
                 <label for="live-ontology-entity-name">"Type display name"</label><input id="live-ontology-entity-name" type="text" maxlength="4096" />
+                <label for="live-ontology-entity-primary">"Primary-key property"</label><select id="live-ontology-entity-primary" aria-describedby="live-ontology-entity-key-help"></select>
+                <p id="live-ontology-entity-key-help"></p>
+                <label for="live-ontology-entity-title">"Title property"</label><select id="live-ontology-entity-title"></select>
+                <details class="foundry-appearance"><summary>"Type appearance"</summary><label for="live-ontology-entity-description">"Description"</label><input id="live-ontology-entity-description" type="text" maxlength="4096" /><label for="live-ontology-entity-plural">"Plural display name"</label><input id="live-ontology-entity-plural" type="text" maxlength="4096" /></details>
                 <label for="live-ontology-entity-revision">"Declaration revision"</label><input id="live-ontology-entity-revision" type="number" min="1" max="4294967295" />
                 <p>"Changed existing declarations need a new revision. Native validation checks compatibility."</p>
                 <button type="submit">"Apply type changes"</button>
@@ -41,13 +45,16 @@ pub(super) fn ModelDraftInspector() -> impl IntoView {
             <label for="live-ontology-property-choice">"Property declaration"</label><select id="live-ontology-property-choice" disabled></select>
             <form id="live-ontology-property-edit" class="foundry-editor-form" hidden>
                 <label for="live-ontology-property-name">"Property name"</label><input id="live-ontology-property-name" type="text" maxlength="4096" />
-                <label for="live-ontology-property-kind">"Value declaration"</label><select id="live-ontology-property-kind"><option value="legacy">"Legacy String (unchanged)"</option><option value="string">"String"</option><option value="integer">"Integer"</option><option value="double">"Double"</option><option value="boolean">"Boolean"</option><option value="date">"Date"</option><option value="timestamp">"Timestamp"</option></select>
+                <label for="live-ontology-property-kind">"Value declaration"</label><select id="live-ontology-property-kind"><option value="legacy">"Legacy String (unchanged)"</option><option value="string">"String"</option><option value="integer">"Integer"</option><option value="double">"Double"</option><option value="boolean">"Boolean"</option><option value="date">"Date"</option><option value="timestamp">"Timestamp"</option><option value="array">"Array"</option><option value="struct">"Struct"</option></select>
+                <div id="live-ontology-property-value" class="foundry-value-form"></div>
                 <label for="live-ontology-property-required">"Presence"</label><select id="live-ontology-property-required"><option value="required">"Required"</option><option value="optional">"Optional"</option></select>
+                <label for="live-ontology-property-display">"Property display name"</label><input id="live-ontology-property-display" type="text" maxlength="4096" />
                 <p id="live-ontology-property-compatibility"></p><button type="submit">"Apply property changes"</button>
             </form>
             <form id="live-ontology-property-add" class="foundry-editor-form" hidden>
                 <label for="live-ontology-new-property-name">"New property name"</label><input id="live-ontology-new-property-name" type="text" maxlength="4096" />
-                <label for="live-ontology-new-property-kind">"New property value declaration"</label><select id="live-ontology-new-property-kind"><option value="string">"String"</option><option value="integer">"Integer"</option><option value="double">"Double"</option><option value="boolean">"Boolean"</option><option value="date">"Date"</option><option value="timestamp">"Timestamp"</option></select>
+                <label for="live-ontology-new-property-kind">"New property value declaration"</label><select id="live-ontology-new-property-kind"><option value="string">"String"</option><option value="integer">"Integer"</option><option value="double">"Double"</option><option value="boolean">"Boolean"</option><option value="date">"Date"</option><option value="timestamp">"Timestamp"</option><option value="array">"Array"</option><option value="struct">"Struct"</option></select>
+                <div id="live-ontology-new-property-value" class="foundry-value-form"></div>
                 <label for="live-ontology-new-property-required">"New property presence"</label><select id="live-ontology-new-property-required"><option value="optional">"Optional"</option><option value="required">"Required"</option></select>
                 <button type="submit">"Add property"</button>
             </form>
@@ -59,10 +66,10 @@ pub(super) fn ModelDraftInspector() -> impl IntoView {
                 <label for="live-ontology-link-revision">"Declaration revision"</label><input id="live-ontology-link-revision" type="number" min="1" max="4294967295" />
                 <p>"Relationship editing stays within this tenant. Cross-tenant intent is preserved as read-only metadata."</p><button type="submit">"Apply relationship changes"</button>
             </form>
-            <fieldset><legend>"Add declarations"</legend>
-                <form id="live-ontology-entity-add" class="foundry-editor-form"><label for="live-ontology-new-entity-id">"New type ID (ety_)"</label><input id="live-ontology-new-entity-id" type="text" maxlength="4096" /><label for="live-ontology-new-entity-name">"Display name"</label><input id="live-ontology-new-entity-name" type="text" maxlength="4096" /><button type="submit">"Add type"</button></form>
+            <details class="foundry-add-declarations"><summary>"Add a declaration"</summary>
+                <form id="live-ontology-entity-add" class="foundry-editor-form"><label for="live-ontology-new-entity-id">"New type ID (ety_)"</label><input id="live-ontology-new-entity-id" type="text" maxlength="4096" /><label for="live-ontology-new-entity-name">"Display name"</label><input id="live-ontology-new-entity-name" type="text" maxlength="4096" /><label for="live-ontology-new-entity-key">"Initial primary-key property"</label><input id="live-ontology-new-entity-key" type="text" maxlength="4096" value="id" /><label for="live-ontology-new-entity-key-kind">"Primary-key value type"</label><select id="live-ontology-new-entity-key-kind"><option value="string">"String"</option><option value="integer">"Integer"</option><option value="double">"Double"</option><option value="boolean">"Boolean"</option><option value="date">"Date"</option><option value="timestamp">"Timestamp"</option></select><label for="live-ontology-new-entity-title">"Initial title property"</label><select id="live-ontology-new-entity-title"><option value="none">"No title property"</option><option value="primary">"Use primary-key property"</option></select><p>"The primary key is required. It becomes fixed when the type is published; draft declarations remain editable."</p><button type="submit">"Add type"</button></form>
                 <form id="live-ontology-link-add" class="foundry-editor-form"><label for="live-ontology-new-link-id">"New relationship ID (lty_)"</label><input id="live-ontology-new-link-id" type="text" maxlength="4096" /><label for="live-ontology-new-link-from">"From type (source)"</label><select id="live-ontology-new-link-from"></select><label for="live-ontology-new-link-to">"To type (target)"</label><select id="live-ontology-new-link-to"></select><label for="live-ontology-new-link-cardinality">"New relationship cardinality"</label><select id="live-ontology-new-link-cardinality" aria-describedby="live-ontology-new-link-cardinality-help"><option value="one_to_many">"One to many"</option><option value="one_to_one">"One to one"</option><option value="many_to_many">"Many to many"</option></select><RelationshipCardinalityHelp id="live-ontology-new-link-cardinality-help" /><button type="submit">"Add relationship"</button></form>
-            </fieldset>
+            </details>
         </section>
     }
 }

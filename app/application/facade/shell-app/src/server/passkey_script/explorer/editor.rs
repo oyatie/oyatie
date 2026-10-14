@@ -2,10 +2,13 @@
 mod editor_codec;
 #[path = "editor_forms.rs"]
 mod editor_forms;
+#[path = "editor_values.rs"]
+mod editor_values;
 pub(super) fn script() -> String {
     format!(
-        "{}\n{}\n{}",
+        "{}\n{}\n{}\n{}",
         editor_codec::SCRIPT,
+        editor_values::SCRIPT,
         editor_forms::SCRIPT,
         SCRIPT
     )
@@ -23,6 +26,7 @@ function createOntologyDraftEditor(lifecycle, view) {
   function controls() {
     const ready=active() && mode==='schema' && !loading && !pending && !blocked;
     const author=ready && workspace.capabilities.author,validator=ready && (workspace.capabilities.author || workspace.capabilities.publish);
+    find('object-type-controls').hidden=active() && mode==='schema';
     find('draft-controls').hidden=!active() || mode!=='schema';find('draft-tray').hidden=!active() || mode!=='schema';
     find('draft-choice').disabled=!active() || loading;find('draft-more').hidden=!next;find('draft-more').disabled=loading;
     find('draft-new').disabled=!author || Boolean(draft) || unsaved();find('draft-save').disabled=!author || !draft || draft.publication!==null || !unsaved() || formDirty;
@@ -60,7 +64,7 @@ function createOntologyDraftEditor(lifecycle, view) {
     find('model-note').textContent=draft ? `Working draft based on generation ${draft.base_generation}. Object reads use published declarations.` : `Coherent published metadata snapshot at generation ${workspace.generation}. Object reads are independent.`;
     if(forms.selectedLink())view.selectLink(forms.selectedLink());diff();controls();
   }
-  const forms=createOntologyDraftForms({find,document:()=>working,editable:()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication && !loading && !pending && !blocked,
+  const forms=createOntologyDraftForms({find,document:()=>working,baseline:()=>workspace?.document,editable:()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication && !loading && !pending && !blocked,
     acceptInput:()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication, dirty:()=>formDirty, input:()=>{formDirty=true;validation=null;find('draft-diagnostics').replaceChildren();note('Unapplied form edits. Apply changes or discard and reload before saving or validating.');controls();},
     changed:unapplied=>{formDirty=unapplied;validation=null;find('draft-diagnostics').replaceChildren();note(unapplied?'Unapplied form edits remain. Apply changes or discard and reload before saving or validating.':'Unsaved local edits. Save the draft before schema validation.');render();},note});
   function hide(preserve=false) {
@@ -101,9 +105,10 @@ function createOntologyDraftEditor(lifecycle, view) {
     ontologyModelWire.page(page,after);summaries=after?[...new Map([...summaries,...page.drafts].map(s=>[s.id,s])).values()].sort((a,b)=>BigInt(a.id)<BigInt(b.id)?-1:1):page.drafts;next=page.next;choices();
   }
   function adopt(value) {
+    const selected=draft?.id===value.id?{type:forms.selection(),link:forms.selectedLink(),property:forms.selectedProperty()}:null;
     formDirty=false;draft=value;working=clone(value.document);pending=null;blocked=false;validation=null;
     if(!summaries.some(s=>s.id===value.id))summaries.push({id:value.id,version:value.version,base_generation:value.base_generation,published_generation:value.publication?.generation || null});
-    summaries=summaries.map(s=>s.id===value.id?{...s,version:value.version,base_generation:value.base_generation}:s);choices(value.id);find('draft-diagnostics').replaceChildren();forms.reset();render();
+    summaries=summaries.map(s=>s.id===value.id?{...s,version:value.version,base_generation:value.base_generation}:s);choices(value.id);find('draft-diagnostics').replaceChildren();forms.reset();if(selected?.link)forms.selectLink(selected.link);else if(selected?.type)forms.selectType(selected.type,selected.property);render();
   }
   async function open(session,version,retaining=false) {
     const same=identity?.tenantId===session.tenantId && identity?.userId===session.userId;

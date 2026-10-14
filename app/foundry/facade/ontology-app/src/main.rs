@@ -1,5 +1,8 @@
 use foundry_ontology_app::human_session::{HttpUserSessionAuthorizer, HumanSessionConfig};
-use foundry_ontology_app::{Config, compose, observability, router, router_with_user_sessions};
+use foundry_ontology_app::model_runtime::{ModelRuntimeConfig, initialize_model};
+use foundry_ontology_app::{
+    Config, compose_with_models, observability, router, router_with_model_control,
+};
 use std::sync::Arc;
 use tracing::{error, info};
 
@@ -42,6 +45,33 @@ async fn main() {
             std::process::exit(1);
         }
     };
+    let models = match ModelRuntimeConfig::from_env() {
+        Ok(models) => models,
+        Err(error) => {
+            error!(error = %error, "model configuration rejected");
+            std::process::exit(1);
+        }
+    };
+    let arguments: Vec<_> = std::env::args().skip(1).collect();
+    if !arguments.is_empty() {
+        if let [command, tenant] = arguments.as_slice()
+            && command == "initialize-model"
+            && let Some(models) = &models
+        {
+            match initialize_model(&config, models, tenant) {
+                Ok(()) => {
+                    info!(tenant, "model initialized offline");
+                    return;
+                }
+                Err(error) => error!(error = %error, "model initialization refused"),
+            }
+        } else {
+            error!(
+                "expected no arguments, or initialize-model TENANT with explicit model configuration"
+            );
+        }
+        std::process::exit(1);
+    }
     let human_sessions = match HumanSessionConfig::from_env()
         .and_then(|config| config.map(HttpUserSessionAuthorizer::new).transpose())
     {
@@ -51,9 +81,13 @@ async fn main() {
             std::process::exit(1);
         }
     };
+    if models.is_some() && human_sessions.is_none() {
+        error!("configured model authoring requires explicit IAM transport");
+        std::process::exit(1);
+    }
     let listen_addr = config.listen_addr.clone();
 
-    let state = match compose(&config) {
+    let state = match compose_with_models(&config, models.as_ref()) {
         Ok(state) => state,
         Err(error) => {
             error!(error = %error, "boot refused");
@@ -81,7 +115,11 @@ async fn main() {
     info!(address = %listen_addr, "serving");
 
     let routes = match human_sessions {
-        Some(sessions) => router_with_user_sessions(Arc::new(state), Arc::new(sessions)),
+        Some(sessions) => router_with_model_control(
+            Arc::new(state),
+            Arc::new(sessions),
+            models.map(|models| models.origin),
+        ),
         None => router(state),
     };
     if let Err(error) = axum::serve(listener, routes)

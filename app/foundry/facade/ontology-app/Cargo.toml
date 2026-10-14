@@ -12,6 +12,7 @@ data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
 data-ontology-kernel = { path = "../../../../data/core/ontology-kernel" }
 foundry-caller-draft = { path = "../../ports/draft/caller" }
 foundry-model-api = { path = "../../ports/model-api" }
+foundry-model-sqlite-draft = { path = "../../adapters/draft/model-sqlite" }
 foundry-edits = { path = "../../core/edits" }
 foundry-projection-draft = { path = "../../ports/draft/projection" }
 foundry-projection-sqlite-draft = { path = "../../adapters/draft/projection-sqlite" }
@@ -40,7 +41,6 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
 [dev-dependencies]
-foundry-model-sqlite-draft = { path = "../../adapters/draft/model-sqlite" }
 # Evolve a composed registry so a migration plan has two revisions to span.
 data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
 data-ontology-kernel = { path = "../../../../data/core/ontology-kernel" }

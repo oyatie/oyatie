@@ -47,6 +47,7 @@ rust_library(
     "//app/foundry/core/ontology-query-usecase:foundry-ontology-query-usecase",
         "//app/foundry/ports/draft/caller:foundry-caller-draft",
         "//app/foundry/ports/model-api:foundry-model-api",
+        "//app/foundry/adapters/draft/model-sqlite:foundry-model-sqlite-draft",
         "//app/foundry/ports/draft/projection:foundry-projection-draft",
         "//app/foundry/ports/draft/records:foundry-records-draft",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
@@ -83,6 +84,11 @@ rust_binary(
 # One row per in-process test crate: the target's name suffix, the crate root's
 # stem under tests/, and its deps.
 FACADE_TESTS = [
+    ("model-browser-fixture", "model_browser_fixture", FACADE_TEST_DEPS + [
+        "//app/foundry/ports/model-api:foundry-model-api",
+        "//app/foundry/adapters/draft/model-sqlite:foundry-model-sqlite-draft",
+        "//iam/ports/identity-user-session:iam-identity-user-session",
+    ]),
     ("human-point-type", "human_point_type_contract", MIGRATION_TEST_DEPS + [
         "//app/foundry/core/edits:foundry-edits",
         "//app/foundry/core/spine:foundry-spine",
@@ -178,6 +184,26 @@ FACADE_TESTS = [
         "//app/foundry/ports/draft/projection:foundry-projection-draft",
     ]),
 ]
+
+rust_test(
+    name = "foundry-ontology-app-model-runtime",
+    srcs = TEST_SRCS,
+    crate = "model_runtime_contract",
+    crate_root = "tests/model_runtime_contract.rs",
+    env = {"CARGO_BIN_EXE_foundry-ontology-app": "$(location :foundry-ontology-app-bin)"},
+    resources = [":foundry-ontology-app-bin"],
+    visibility = ["PUBLIC"],
+    deps = FACADE_TEST_DEPS + [
+        "//app/foundry/ports/model-api:foundry-model-api",
+        "//app/foundry/adapters/draft/model-sqlite:foundry-model-sqlite-draft",
+        "//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+        "//app/foundry/core/spine:foundry-spine",
+        "//app/foundry/core/edits:foundry-edits",
+        "//iam/ports/identity-user-session:iam-identity-user-session",
+        "third-party//:reqwest",
+    ],
+)
 
 [
     rust_test(

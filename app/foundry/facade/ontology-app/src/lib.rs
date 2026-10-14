@@ -14,6 +14,7 @@ mod listing_query;
 pub mod metrics;
 mod migrate;
 pub mod model_control;
+pub mod model_runtime;
 mod object_set;
 mod object_set_body;
 pub mod observability;
@@ -34,7 +35,7 @@ pub mod submit;
 mod type_labels;
 
 pub use authz::PolicyEnforcementPoint;
-pub use composition::{AppState, BootError, TenantState, compose};
+pub use composition::{AppState, BootError, TenantState, compose, compose_with_models};
 pub use config::{Config, ConfigError};
 pub use foundry_caller_draft::{Caller, CallerVerifier, OperatorCredential};
 pub use pdp::{PepError, Surface};

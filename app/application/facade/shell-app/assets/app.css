@@ -13382,3 +13382,17 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-draft-tray h4 { margin:0; }
 .foundry-draft-tray p, .foundry-editor-form p { color:var(--ink-muted); font-size:var(--text-cap); line-height:1.5; }
 .foundry-draft-tray pre { max-height:12rem; overflow:auto; }
+
+.foundry-draft-inspector > h4 { margin:0; font-size:var(--text-md); }
+#live-ontology-draft-selection { margin:.35rem 0 .75rem; padding-bottom:.75rem; border-bottom:1px solid var(--rule); font-family:var(--font-mono); }
+.foundry-editor-form > label { font-size:var(--text-cap); font-weight:600; color:var(--ink-muted); }
+.foundry-value-form fieldset { min-width:0; margin:.5rem 0; padding:.65rem; border:1px solid var(--rule); border-radius:var(--radius-sm); display:grid; gap:.5rem; background:var(--paper); }
+.foundry-value-form legend { font-size:var(--text-cap); font-weight:650; padding:0 .25rem; }
+.foundry-value-form input, .foundry-value-form select { width:100%; }
+.foundry-appearance { margin:.35rem 0; padding:.25rem .5rem; border:1px solid var(--rule); border-radius:var(--radius-sm); }
+.foundry-appearance label { display:block; margin:.5rem 0 .25rem; font-size:var(--text-cap); color:var(--ink-muted); }
+.foundry-add-declarations { margin-top:1rem; padding-top:.5rem; border-top:1px solid var(--rule); }
+@media (min-width:72.001rem) { .foundry-inspector { max-height:55rem; overflow-y:auto; scrollbar-gutter:stable; } }
+
+.foundry-object-type-controls { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; min-width:0; }
+.control-center:has(#foundry-workspace:target) { max-width:none; padding-inline:var(--space-4); }
