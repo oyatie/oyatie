@@ -70,11 +70,11 @@ function createOntologyDraftEditor(lifecycle, view) {
     if (!active() || mode!=='schema') {controls();return;}
     forms.render(working,draft);const rows=ontologyModelRows(working || workspace.document);view.setModel(rows.schemas,rows.links,selected || forms.selection() || rows.schemas[0]?.entity_type || null);
     find('model-note').textContent=draft ? `Working draft based on generation ${draft.base_generation}. Object reads use published declarations.` : `Coherent published metadata snapshot at generation ${workspace.generation}. Object reads are independent.`;
-    if(forms.selectedLink())view.selectLink(forms.selectedLink());diff();controls();
+    if(forms.selectedLink())view.selectLink(forms.selectedLink());forms.describe();diff();controls();
   }
   const forms=createOntologyDraftForms({find,document:()=>working,baseline:()=>workspace?.document,editable:()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication && !loading && !pending && !blocked,
     acceptInput:()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication, dirty:()=>formDirty, input:()=>{formDirty=true;validation=null;find('draft-diagnostics').replaceChildren();note('Unapplied form edits. Apply changes or discard and reload before saving or validating.');controls();},
-    changed:unapplied=>{formDirty=unapplied;validation=null;find('draft-diagnostics').replaceChildren();note(unapplied?'Unapplied form edits remain. Apply changes or discard and reload before saving or validating.':'Unsaved local edits. Save the draft before schema validation.');render();},note});
+    changed:unapplied=>{formDirty=unapplied;validation=null;find('draft-diagnostics').replaceChildren();note(unapplied?'Unapplied form edits remain. Apply changes or discard and reload before saving or validating.':'Unsaved local edits. Save the draft before schema validation.');render();},describe:text=>{if(active() && draft && mode==='schema')find('inspector-context').textContent=text;},note});
   function hide(preserve=false) {
     for(const id of ['draft-controls','draft-inspector','draft-tray'])find(id).hidden=true;
     find('model-note').textContent='';
@@ -181,11 +181,13 @@ function createOntologyDraftEditor(lifecycle, view) {
     const button=document.createElement('button');button.type='button';
     button.textContent=target.kind==='link'?`Inspect relationship ${row.id}`:target.kind==='property'?`Inspect property ${row.properties[target.propertyIndex].name} · ${row.display_name} · ${row.id}`:`Inspect type ${row.display_name} · ${row.id}`;
     button.addEventListener('click',()=>{
-      if(!button.isConnected || !find('explorer').isConnected || !find('draft-diagnostics').contains(button) || validation!==accepted || identity?.tenantId!==owner.tenantId || identity?.userId!==owner.userId || generation!==owner.generation || loading || blocked || pending || !savedMatches(snapshot) || !inspectionControl('draft-inspector-title'))return;
+      if(!button.isConnected || !find('explorer').isConnected || !find('draft-diagnostics').contains(button) || validation!==accepted || identity?.tenantId!==owner.tenantId || identity?.userId!==owner.userId || generation!==owner.generation || loading || blocked || pending || !savedMatches(snapshot))return;
+      const title=find('draft-inspector-title');
+      if(!title?.isConnected || !find('draft-inspector').contains(title) || title.disabled || !revealOntologyDetails(title,find('explorer')) || !inspectionControl('draft-inspector-title'))return;
       if(!(target.kind==='link'?forms.selectLink(target.id):forms.selectType(target.id,target.propertyIndex ?? null)))return;
       render(target.kind==='link'?null:target.id);
       const destinations=workspace.capabilities.author?[target.focus,...(target.kind==='property'?['property-choice']:[]),'draft-inspector-title']:['draft-inspector-title'];
-      for(const id of destinations){const control=inspectionControl(id);if(control){control.focus({preventScroll:true});break;}}
+      for(const id of destinations){const candidate=find(id);if(!candidate?.disabled && find('draft-inspector').contains(candidate) && revealOntologyDetails(candidate,find('explorer'))){const control=inspectionControl(id);if(control){control.focus();break;}}}
     });
     return button;
   }

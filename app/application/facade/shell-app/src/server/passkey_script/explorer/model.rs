@@ -1,4 +1,9 @@
 pub(super) const SCRIPT: &str = r#"
+function revealOntologyDetails(element, root) {
+  if(!element?.isConnected || !root.contains(element) || element.closest('[hidden]'))return false;
+  for(let owner=element;owner && owner!==root;owner=owner.parentElement)if(owner.tagName.toLowerCase()==='details')owner.open=true;
+  return true;
+}
 function createOntologyModelView(selectType, fallback, selectRelationship = () => {}, modeChanged = () => {}) {
   const find = id => document.getElementById(`live-ontology-${id}`);
   let schemas = [], links = [], selectedType = null, selectedLink = null;
@@ -39,13 +44,14 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
       ['Cardinality', `${cardinality(link.cardinality)} (${link.cardinality})`], ['Limits per relationship type and tenant', cardinalityLimits(link.cardinality)],
       ['Cross-tenant intent', String(link.allow_cross_tenant)], ['Declaration revision', link.revision],
     ]));
-    find('link').hidden = false; find('inspector-empty').hidden = true; selection(); selectRelationship(id);
+    find('link').hidden = false; find('inspector-empty').hidden = true;find('inspector-context').textContent=`Relationship · ${link.link_type} · ${typeText(link.from_entity_type)} → ${typeText(link.to_entity_type)}`; selection(); selectRelationship(id);
     if (restore) fallback();
   }
   function typeText(id) { return `${schemas.find(row => row.entity_type === id)?.display_name || id} · ${id}`; }
   function select(id) {
     const restore = find('link').contains(document.activeElement);
     selectedType = id; selectedLink = null; find('link-properties').replaceChildren(); find('link').hidden = true;
+    find('inspector-context').textContent=schemas.some(row=>row.entity_type===id)?`Type · ${typeText(id)}`:'';
     find('inspector-empty').hidden = Boolean(id); selection(); if (restore) fallback();
   }
   function library() {
@@ -149,6 +155,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     for (const id of ['scene','library-types','library-links','model-table','link-properties']) find(id).replaceChildren();
     width = 640; height = 360; find('scene').style.width = `${width}px`; find('scene').style.height = `${height}px`; scale(zoom);
     find('library-summary').textContent = ''; find('model-summary').textContent = ''; find('link').hidden = true; find('inspector-empty').hidden = false;
+    find('inspector-context').textContent='';
     if (restore) fallback();
   }
   function showMode(value) {

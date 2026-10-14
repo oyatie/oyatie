@@ -1,0 +1,118 @@
+use super::explorer_test::check_controller;
+
+#[test]
+fn selected_inspector_context_tracks_applied_source_and_property_choice() {
+    check_controller(
+        r##"
+(async()=>{
+  await flush();modelEnabled=true;session.roles=['foundry-model-author','foundry-operator'];
+  modelDocument.links.push({id:'lty_self',from_entity_type:'ety_record',to_entity_type:'ety_record',cardinality:'one_to_many',allow_cross_tenant:false,revision:1,display:null});
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
+  find('live-ontology-draft-new').emit('click');await flush();
+  const heading=()=>find('live-ontology-inspector-context').textContent;
+  assert.match(heading(),/Record.*ety_record.*name/);
+  find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');
+  assert.match(heading(),/Record.*ety_record.*structure/,'property() updates the applied selected context');
+  const before=heading();find('live-ontology-entity-name').value='Pending rename';find('live-ontology-entity-name').emit('input');
+  assert.equal(heading(),before,'pending text is not applied identity');
+  const rich=()=>find('live-ontology-property-value');rich().querySelectorAll('button').find(button=>button.textContent==='Add field').emit('click');
+  const pendingName=rich().querySelectorAll('input')[1];pendingName.value='pending nested value';pendingName.emit('input');
+  const remove=rich().querySelectorAll('button').find(button=>button.textContent==='Remove field');remove.focus();remove.emit('click');assert.equal(document.activeElement===pendingName,true);
+  find('live-ontology-property-choice').value='0';find('live-ontology-property-choice').emit('change');
+  assert.equal(heading(),before,'dirty property retarget is refused');
+  const objectPin=[find('live-ontology-type').value,find('live-ontology-revision').value];
+  find('live-ontology-mode-objects').emit('click');assert.match(heading(),/Record.*ety_record/);assert.ok(!heading().includes('structure'));
+  await restore();assert.ok(!heading().includes('structure'),'late model controls cannot overwrite Objects context');
+  find('live-ontology-mode-schema').emit('click');assert.equal(heading(),before);assert.equal(find('live-ontology-entity-name').value,'Pending rename');
+  assert.equal(rich().querySelectorAll('input')[0].value,'pending nested value','removed-row pending form survives mode and verified recheck');assert.match(find('live-ontology-draft-state').textContent,/Unapplied form edits/);assert.equal(find('live-ontology-draft-save').disabled,true);
+  assert.deepEqual([find('live-ontology-type').value,find('live-ontology-revision').value],objectPin);
+  find('live-ontology-draft-reload').emit('click');await flush();
+  find('live-ontology-library-links').querySelectorAll('[data-model-link]')[0].emit('click');assert.match(heading(),/lty_self/);
+  find('live-ontology-library-types').querySelectorAll('[data-model-type]')[0].emit('click');assert.match(heading(),/Record.*ety_record/);
+  modelWorkspace.capabilities.author=false;modelWorkspace.capabilities.publish=true;session.roles=['foundry-model-publisher','foundry-operator'];await restore();
+  find('live-ontology-property-choice').value='0';find('live-ontology-property-choice').emit('change');assert.match(heading(),/name/);
+  find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');assert.match(heading(),/structure/);
+  assert.equal(find('live-ontology-property-kind').disabled,true,'readonly property choice grants no editing');
+  find('sign-in-account').value='usr_other';find('sign-in-account').emit('input');assert.equal(heading(),'');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"##,
+    );
+}
+
+#[test]
+fn recursive_removal_retains_survivors_and_owned_next_focus() {
+    check_controller(
+        r##"
+(async()=>{
+  await flush();modelEnabled=true;session.roles=['foundry-model-author'];
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
+  find('live-ontology-draft-new').emit('click');await flush();
+  find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');
+  const fields=['first','middle','last'].map((name,index)=>({name,required:index!==1,value_type:{shape:'scalar',kind:index===1?'integer':'string'}}));
+  for(const prefix of ['property','new-property']){
+    if(prefix==='new-property')find('live-ontology-add-property').open=true;
+    const host=find('live-ontology-'+prefix+'-value'),control=find('live-ontology-'+prefix+'-kind');
+    context.removalControl=control;context.removalHost=host;context.removalValue={shape:'struct',fields};
+    const value=vm.runInNewContext("createOntologyValueForm(removalControl,removalHost,()=>{},'Removal test')",context);
+    function reset(){value.write(context.removalValue);value.enable(true);}
+    const names=()=>host.querySelectorAll('input'),buttons=()=>host.querySelectorAll('button'),remove=index=>buttons().filter(b=>b.textContent==='Remove field')[index],add=()=>buttons().find(b=>b.textContent==='Add field');
+    reset();let next=names()[1];remove(0).focus();remove(0).emit('click');assert.equal(document.activeElement===next,true,'first removal focuses next sibling Name');assert.equal(JSON.stringify(value.read().fields.map(f=>f.name)),JSON.stringify(['middle','last']));
+    reset();next=names()[2];remove(1).focus();remove(1).emit('click');assert.equal(document.activeElement===next,true,'middle removal focuses next sibling Name');
+    reset();remove(2).focus();remove(2).emit('click');assert.equal(document.activeElement===add(),true,'last removal focuses same struct Add');
+    reset();const survivor=names()[2];survivor.value='Pending last';survivor.focus();remove(0).emit('click');assert.equal(document.activeElement===survivor,true,'surviving focus owner remains the same DOM node');assert.equal(names()[1],survivor);assert.equal(survivor.value,'Pending last');
+    reset();const external=find('sign-in-account');external.focus();remove(0).emit('click');assert.equal(document.activeElement===external,true,'external focus is not stolen');
+    reset();value.enable(false);const original=value.capture();remove(0).focus();remove(0).emit('click');assert.deepEqual(value.capture(),original,'disabled removal is inert');
+    value.write({shape:'struct',fields:[fields[0]]});value.enable(true);remove(0).focus();remove(0).emit('click');assert.equal(document.activeElement===add(),true);assert.throws(()=>value.read(),/struct needs 1 to 256 named fields/,'empty pending struct remains refused');add().emit('click');names()[0].value='restored';assert.equal(value.read().fields[0].name,'restored');
+    reset();const name=names()[1],row=name.parentElement;assert.equal(row.tagName,'label','visible implicit label owns Name');assert.ok(text(row).includes('Name'));assert.ok(host.querySelectorAll('label').some(label=>text(label).includes('Type')));assert.ok(host.querySelectorAll('label').some(label=>text(label).includes('Required')));
+  }
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"##,
+    );
+}
+
+#[test]
+fn pane_links_and_saved_diagnostics_reveal_only_current_owners() {
+    check_controller(
+        r##"
+(async()=>{
+  for(const [pane,target] of [['library','library-title'],['workpane','workpane'],['inspector','inspector-title']])assert.ok(input.html.includes(`id="live-ontology-pane-${pane}" href="#live-ontology-${target}"`));
+  assert.equal(input.html.match(/id="live-ontology-property-edit"/g).length,1);
+  assert.ok(input.html.indexOf('id="live-ontology-property-edit"')<input.html.indexOf('id="live-ontology-entity-edit"'),'selected property precedes secondary type settings');
+  assert.ok(input.html.indexOf('id="live-ontology-draft-inspector"')<input.html.indexOf('id="live-ontology-schema"'),'primary editor precedes full readonly metadata');
+  await flush();modelEnabled=true;session.roles=['foundry-model-author','foundry-operator'];
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();find('live-ontology-draft-new').emit('click');await flush();
+  const native=JSON.stringify([...modelDrafts]),objects=[find('live-ontology-type').value,find('live-ontology-revision').value],requests=calls.length;
+  for(const pane of ['library','inspector']){const owner=find('live-ontology-'+pane);owner.open=false;find('live-ontology-pane-'+pane).emit('click');assert.equal(owner.open,true);owner.open=false;context.location.hash='#live-ontology-'+pane+'-title';context.window.emit('hashchange');assert.equal(owner.open,true);}
+  find('live-ontology-mode-objects').emit('click');find('live-ontology-pane-workpane').emit('click');assert.equal(find('live-ontology-model').hidden,true);assert.equal(find('live-ontology-objects').hidden,false,'pane navigation does not switch mode');
+  find('live-ontology-mode-schema').emit('click');find('live-ontology-view-table').emit('click');find('live-ontology-pane-workpane').emit('click');assert.equal(find('live-ontology-graph').hidden,true);assert.equal(find('live-ontology-model-table').hidden,false,'pane navigation does not switch representation');
+  assert.equal(calls.length,requests);assert.equal(JSON.stringify([...modelDrafts]),native);assert.deepEqual([find('live-ontology-type').value,find('live-ontology-revision').value],objects);
+  modelValidation={valid:false,diagnostics:[{code:'revision_not_increased',path:'entities.ety_record.revision',message:'Increase declaration revision'}]};find('live-ontology-draft-validate').emit('click');await flush();
+  const action=find('live-ontology-draft-diagnostics').querySelectorAll('button')[0],inspector=find('live-ontology-inspector'),settings=find('live-ontology-type-settings');
+  inspector.open=false;settings.open=false;find('live-ontology-draft-inspector').hidden=true;action.emit('click');assert.equal(inspector.open,false,'hidden owner cannot be revealed');assert.equal(settings.open,false);find('live-ontology-draft-inspector').hidden=false;
+  find('live-ontology-mode-objects').emit('click');action.emit('click');assert.equal(inspector.open,false,'hidden mode cannot be revealed');find('live-ontology-mode-schema').emit('click');
+  const before=calls.length;action.focus();action.emit('click');assert.equal(inspector.open,true);assert.equal(settings.open,true);assert.equal(document.activeElement===find('live-ontology-entity-revision'),true);assert.equal(calls.length,before,'inspection does not request or submit');
+  inspector.open=false;find('sign-in-account').value='usr_other';find('sign-in-account').emit('input');action.emit('click');find('live-ontology-pane-inspector').emit('click');assert.equal(inspector.open,false,'stale authority cannot reveal panes');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"##,
+    );
+}
+
+#[test]
+fn recursive_nested_removal_preserves_pending_capture_and_new_focus_owner() {
+    check_controller(
+        r##"
+(async()=>{
+  await flush();const host=new Element(),control=new Element('select');panel.append(host,control);for(const kind of ['struct','array','string']){const option=new Element('option');option.value=kind;control.append(option);}
+  context.nestedHost=host;context.nestedControl=control;context.changedOwner=null;
+  const form=vm.runInNewContext("createOntologyValueForm(nestedControl,nestedHost,()=>{if(changedOwner)changedOwner.focus();},'Nested')",context);
+  const field=name=>({name,required:false,value_type:{shape:'scalar',kind:'string'}}),inner={shape:'struct',fields:[field('first'),field('next')]};
+  form.write({shape:'array',element:inner});form.enable(true);
+  let names=host.querySelectorAll('input'),remove=host.querySelectorAll('button').find(b=>b.textContent==='Remove field');names[1].value='surviving pending';remove.focus();remove.emit('click');assert.equal(document.activeElement===names[1],true,'array-contained struct keeps local next Name focus');
+  const snapshot=form.capture();form.clear();form.restore(snapshot);form.enable(true);assert.equal(host.querySelectorAll('input')[0].value,'surviving pending');assert.equal(document.activeElement===host.querySelectorAll('input')[0],true,'capture/restore retains surviving focused field');
+  context.changedOwner=find('sign-in-account');remove=host.querySelectorAll('button').find(b=>b.textContent==='Remove field');remove.focus();remove.emit('click');assert.equal(document.activeElement===context.changedOwner,true,'a synchronous newer callback focus owner is retained');
+  context.changedOwner=null;let deep={shape:'struct',fields:[field('deep')]};for(let i=0;i<6;i++)deep={shape:'array',element:deep};form.write(deep);form.enable(true);remove=host.querySelectorAll('button').find(b=>b.textContent==='Remove field');remove.focus();remove.emit('click');const add=host.querySelectorAll('button').find(b=>b.textContent==='Add field');assert.equal(document.activeElement===add,true);assert.equal(add.disabled,false,'deepest admitted struct still has useful Add fallback');
+  form.write({shape:'struct',fields:Array.from({length:256},(_,i)=>field('f'+i))});form.enable(true);remove=host.querySelectorAll('button').filter(b=>b.textContent==='Remove field').at(-1);remove.focus();remove.emit('click');assert.equal(form.read().fields.length,255);assert.equal(document.activeElement.textContent,'Add field');assert.equal(document.activeElement.disabled,false);
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"##,
+    );
+}
