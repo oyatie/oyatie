@@ -114,6 +114,39 @@ fn native_workspace_composes_registered_model_and_preserves_trust_and_accessibil
     super::check_controller(CHECK);
 }
 
+#[test]
+fn relationship_inspection_explains_the_selected_directed_cardinality() {
+    super::check_controller(
+        r#"
+(async () => {
+  for(const prefix of ['link','new-link']) {
+    const select=input.html.match(new RegExp(`<select\\b[^>]*id="live-ontology-${prefix}-cardinality"[^>]*>`))[0];
+    const help=select.match(/aria-describedby="([^"]+)"/)[1];
+    assert.ok(input.html.includes(`id="${help}"`),'cardinality select refers to rendered accessible help');
+  }
+  nativeLinks=['one_to_one','one_to_many','many_to_many'].map(cardinality=>({link_type:'lty_'+cardinality,from_entity_type:'ety_record',to_entity_type:'ety_profile',cardinality,allow_cross_tenant:false,revision:1}));
+  await flush();find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
+  const expected=[['at most one target','at most one source'],['many targets','at most one source'],['many targets','many sources']];
+  const relations=find('live-ontology-library-links').querySelectorAll('[data-model-link]');
+  for(const [index,button] of relations.entries()) {
+    button.focus();button.emit('click');
+    const rows=find('live-ontology-link-properties').querySelectorAll('tr').slice(1);
+    const value=label=>rows.find(row=>row.children[0].textContent===label).children[1].textContent;
+    assert.equal(value('Relationship type'),nativeLinks[index].link_type,'inspection follows the selected declaration');
+    assert.match(value('From entity type (source)'),/Record · ety_record/);
+    assert.match(value('To entity type (target)'),/직원 <img src=x onerror=alert\(1\)> · ety_profile/,'target label stays literal and direction is preserved');
+    assert.ok(value('Cardinality').includes(`(${nativeLinks[index].cardinality})`),'native enum remains visible');
+    const limits=value('Limits per relationship type and tenant');
+    assert.ok(limits.includes(expected[index][0]) && limits.includes(expected[index][1]));
+    assert.ok(limits.endsWith('No links are required.'));
+    assert.equal(document.activeElement,button,'inspection retains the invoking control focus');
+  }
+  console.log('Selected directed relationship cardinality and accessible authoring guidance PASS');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"#,
+    );
+}
+
 const CHECK_FIT: &str = r##"
 (async () => {
   assert.match(input.css,/\.foundry-type-node \{[^}]*width: 260px; height: 200px;/);

@@ -6,6 +6,11 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   let typeButtons = [], linkButtons = [], graphLabels = [], graphNodes = [], graphEdges = [];
   const arrowSize = 8, arrowRefX = 7, arrowRefY = 4;
   const cardinality = value => ({one_to_one:'one → one',one_to_many:'one → many',many_to_many:'many → many'})[value];
+  const cardinalityLimits = value => ({
+    one_to_one:'Each source can link to at most one target; each target can link from at most one source.',
+    one_to_many:'Each source can link to many targets; each target can link from at most one source.',
+    many_to_many:'Each source can link to many targets; each target can link from many sources.',
+  })[value] + ' No links are required.';
   function node(tag, text = '', className = '') {
     const element = document.createElement(tag); element.textContent = text; element.className = className; return element;
   }
@@ -30,8 +35,9 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     const active = document.activeElement, restore = find('schema').contains(active);
     selectedLink = id; find('schema').hidden = true;
     find('link-properties').replaceChildren(ontologyTable('Relationship declaration', ['Declaration', 'Value'], [
-      ['Relationship type', link.link_type], ['From entity type', typeText(link.from_entity_type)], ['To entity type', typeText(link.to_entity_type)],
-      ['Cardinality', `${cardinality(link.cardinality)} (${link.cardinality})`], ['Cross-tenant intent', String(link.allow_cross_tenant)], ['Declaration revision', link.revision],
+      ['Relationship type', link.link_type], ['From entity type (source)', typeText(link.from_entity_type)], ['To entity type (target)', typeText(link.to_entity_type)],
+      ['Cardinality', `${cardinality(link.cardinality)} (${link.cardinality})`], ['Limits per relationship type and tenant', cardinalityLimits(link.cardinality)],
+      ['Cross-tenant intent', String(link.allow_cross_tenant)], ['Declaration revision', link.revision],
     ]));
     find('link').hidden = false; find('inspector-empty').hidden = true; selection(); selectRelationship(id);
     if (restore) fallback();
