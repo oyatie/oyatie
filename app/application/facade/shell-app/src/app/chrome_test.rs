@@ -26,7 +26,7 @@ fn persistent_chrome_is_anonymous_and_keeps_owned_sample_destinations() {
                 )
             });
             owner.cleanup();
-            assert!(chrome.contains("<strong>Sample workspace</strong>"));
+            assert!(chrome.contains("id=\"shell-account-title\">Sample workspace</strong>"));
             assert!(chrome.contains("id=\"console-title\">Operations samples</h1>"));
             assert!(chrome.contains("Anonymous preview"));
             assert!(chrome.contains(shell_scope_notice_text()));

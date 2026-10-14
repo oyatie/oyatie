@@ -5,18 +5,18 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
     view! {
         <section id="foundry-workspace" class="foundry-workspace" aria-labelledby="foundry-workspace-title" tabindex="-1">
             <header class="foundry-workspace-header">
-                <div><p class="screen-anchor">"FOUNDRY / ONTOLOGY"</p><h2 id="foundry-workspace-title">"Ontology workspace"</h2><p>"Explore your data model and the objects it describes."</p></div>
+                <div><h2 id="foundry-workspace-title">"Ontology workspace"</h2><p id="live-ontology-identity"></p></div>
                 <span id="live-ontology-access-badge" class="foundry-read-label">"Sign-in required"</span>
             </header>
             <p id="live-ontology-access-notice" class="foundry-access-notice">"Sign in to explore your tenant's native model. "<a href="#oyatie-sign-in">"Sign in with a passkey"</a>" or "<a href="#ontology-command-console">"explore the labeled sample graph"</a>"."</p>
             <section id="live-ontology-explorer" class="live-ontology-explorer" aria-labelledby="live-ontology-title" aria-describedby="live-ontology-status" hidden>
-                <div class="foundry-context"><h3 id="live-ontology-title">"Native Ontology explorer"</h3><p id="live-ontology-identity"></p></div>
-                <div class="foundry-mode-bar">
-                    <div role="group" aria-label="Ontology workspace mode"><button type="button" id="live-ontology-mode-schema" aria-pressed="true" aria-controls="live-ontology-model">"Model"</button><button type="button" id="live-ontology-mode-objects" aria-pressed="false" aria-controls="live-ontology-objects">"Objects"</button></div>
+                <h3 id="live-ontology-title" class="sr-only">"Native Ontology explorer"</h3>
+                <div class="foundry-taskbar" role="group" aria-label="Ontology task controls">
+                    <div class="foundry-mode-bar" role="group" aria-label="Ontology workspace mode"><button type="button" id="live-ontology-mode-schema" aria-pressed="true" aria-controls="live-ontology-model">"Model"</button><button type="button" id="live-ontology-mode-objects" aria-pressed="false" aria-controls="live-ontology-objects">"Objects"</button></div>
+                    <super::model_editor::ModelDraftControls />
                     <span id="live-ontology-object-type-controls" class="foundry-object-type-controls"><label for="live-ontology-type">"Object read type"</label><select id="live-ontology-type" required disabled></select></span>
                     <button type="button" id="live-ontology-types-refresh">"Refresh model"</button>
                 </div>
-                <super::model_editor::ModelDraftControls />
                 <p id="live-ontology-status" role="status" aria-live="polite">"Sign in to read your tenant's Ontology."</p>
                 <div class="foundry-workspace-body">
                     <details class="foundry-library" open>

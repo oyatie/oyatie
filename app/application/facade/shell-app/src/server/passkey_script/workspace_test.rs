@@ -226,7 +226,7 @@ fn canvas_fit_uses_occupied_content_and_preserves_manual_viewport_controls() {
 const CHECK_TARGET_HEIGHT: &str = r##"
 const targetSelectors=[
   '.foundry-workspace button, .foundry-workspace summary',
-  '.foundry-mode-bar select',
+  '.foundry-object-type-controls select',
   '.foundry-library input',
   '.live-ontology-query input, .live-ontology-query select',
 ];
