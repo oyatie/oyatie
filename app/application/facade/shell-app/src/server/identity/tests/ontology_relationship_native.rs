@@ -40,7 +40,7 @@ async fn real_human_relationship_proxy_reads_existing_root_and_rechecks_iam() {
     let response = call(
         shell.clone(),
         Method::GET,
-        "/api/ontology/ten_acme/objects/ent_alpha?revision=1",
+        "/api/ontology/ten_acme/objects/ent_alpha?type=ety_record&revision=1",
         headers(),
         Body::empty(),
     )

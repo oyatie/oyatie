@@ -17,7 +17,7 @@ pub const SUFFIXES: [&str; 8] = [
     "/type-labels",
     "/link-types",
     "/objects?type=ety_record&revision=1",
-    "/objects/ent_alpha?revision=1",
+    "/objects/ent_alpha?type=ety_record&revision=1",
     "/objects/ent_alpha/history",
     "/audit",
 ];

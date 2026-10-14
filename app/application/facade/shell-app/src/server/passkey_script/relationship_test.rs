@@ -28,12 +28,13 @@ const CHECK: &str = r#"
   await read();requests=calls.filter(([url])=>url.endsWith('/search-around'));assert.notEqual(JSON.parse(requests[1][1].body).idempotency_key,first.idempotency_key,'explicit refresh gets a new key');
   let neighbor=find('live-ontology-relationship-results').querySelectorAll('[data-live-object]')[0];neighbor.focus();neighbor.emit('click');await flush();
   assert.equal(find('live-ontology-revision').value,'1','source listing pin remains unchanged');
-  assert.ok(calls.some(([url])=>url.endsWith('/objects/ent_profile?revision=3')),'target uses its own written revision');
+  assert.ok(calls.some(([url])=>url.endsWith('/objects/ent_profile?type=ety_profile&revision=3')),'target uses its own written revision');
   assert.match(find('live-ontology-detail-title').textContent,/ent_profile.*ety_profile.*requested schema 3/);
   assert.equal(document.activeElement,find('live-ontology-detail-title'),'owned neighbor activation focuses target heading');
   assert.match(text(find('live-ontology-properties')),/<img onerror=bad>/);
   find('live-ontology-history-read').emit('click');await flush();assert.ok(calls.some(([url])=>url.endsWith('/objects/ent_profile/history')));
   intervals[0]();await flush();assert.ok(calls.at(-1)[0].endsWith('/objects/ent_profile/history'),'same-user refresh keeps cross-type context and history');
+  assert.ok(calls.filter(([url])=>url.includes('/objects/ent_profile?')).every(([url])=>url.endsWith('?type=ety_profile&revision=3')),'neighbor activation and refresh keep its own type and stored pin independent of source controls');
   assert.match(find('live-ontology-detail-title').textContent,/ent_profile.*requested schema 3/);
   find('live-ontology-relationship-direction').value='inbound';find('live-ontology-relationship-direction').emit('input');
   await read();assert.equal(JSON.parse(calls.filter(([url])=>url.endsWith('/search-around')).at(-1)[1].body).direction,'inbound');

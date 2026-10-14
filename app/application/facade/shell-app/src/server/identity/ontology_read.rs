@@ -154,9 +154,7 @@ async fn object(
         async {
             let (source, member) = reader(c, &t, &h).await?;
             Ok((
-                source
-                    .object(&t, &o, query::revision(q.as_deref())?)
-                    .await?,
+                source.object(&t, &query::point(o, q.as_deref())?).await?,
                 member,
             ))
         }

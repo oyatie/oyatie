@@ -35,10 +35,13 @@ pub(super) const SCRIPT: &str = r#"
     if (!page || !valid(token)) return;
     renderPage(page, params, token);
     if (selected) {
-      const detail = await fetchRead(`objects/${encodeURIComponent(selected.object_ref)}?revision=${selected.revision}`, token);
+      const detail = await fetchRead(pointPath(selected), token);
       if (detail) renderDetail(detail, selected, token);
       if (historyShown && valid(token)) await loadHistory(token);
     }
+  }
+  function pointPath(context) {
+    return `objects/${encodeURIComponent(context.object_ref)}?${new URLSearchParams({type:context.entity_type,revision:context.revision})}`;
   }
   function detail(context, trigger) {
     const ownedFocus = trigger && document.activeElement === trigger;
@@ -49,7 +52,7 @@ pub(super) const SCRIPT: &str = r#"
       if (ownedFocus && removedTrigger) focusOwner.focus({preventScroll:true});
       find('detail-title').textContent = 'Object detail';
       find('properties').replaceChildren(); find('history').replaceChildren(); find('detail').hidden = true; historyShown = false;
-      const result = await fetchRead(`objects/${encodeURIComponent(context.object_ref)}?revision=${context.revision}`, token);
+      const result = await fetchRead(pointPath(context), token);
       if (result) { renderDetail(result, context, token, ownedFocus ? focusOwner : null); note('Pinned native object read. History is a separate native log read.'); }
     });
   }

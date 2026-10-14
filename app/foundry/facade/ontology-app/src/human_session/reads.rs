@@ -1,9 +1,13 @@
 use axum::extract::{Path, RawQuery, State};
-use axum::http::HeaderMap;
+use axum::http::{HeaderMap, StatusCode};
 use axum::response::Response;
 
-use super::{HumanReadState, authorized};
+use super::{
+    HumanReadState, authorized, authorized_membership, now_epoch_seconds, session_refusal,
+};
 use crate::reads::TENANT_SCOPED_RESOURCE;
+
+mod point_query;
 
 pub(crate) async fn type_labels(
     State(state): State<HumanReadState>,
@@ -77,12 +81,30 @@ pub(crate) async fn object(
     RawQuery(raw_query): RawQuery,
     headers: HeaderMap,
 ) -> Response {
-    let (caller, tenant) = match authorized(&state, &tenant_id, &headers, &object_ref).await {
-        Ok(authorized) => authorized,
+    let access = match authorized_membership(&state, &tenant_id, &headers, &object_ref).await {
+        Ok(access) => access,
         Err(response) => return *response,
     };
-    crate::reads::object_response(&state.app, &caller.tenant_id, tenant, object_ref, raw_query)
-        .await
+    let Some(query) = point_query::PointQuery::parse(raw_query.as_deref(), &object_ref) else {
+        state.app.metrics.read_refused();
+        return crate::reads::refuse(
+            StatusCode::BAD_REQUEST,
+            "surface",
+            "a point read must name its type and revision: ?type=ety_...&revision=N",
+        );
+    };
+    let viewed = crate::reads::object_view(
+        access.tenant,
+        &access.caller.tenant_id,
+        &object_ref,
+        query.revision,
+        Some(&query.entity_type),
+    )
+    .await;
+    if let Err(error) = now_epoch_seconds().and_then(|now| access.membership.ensure_current(now)) {
+        return session_refusal(&state.app, error);
+    }
+    crate::reads::object_view_response(&state.app, object_ref, viewed)
 }
 
 pub(crate) async fn history(

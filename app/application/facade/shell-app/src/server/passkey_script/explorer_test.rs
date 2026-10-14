@@ -36,7 +36,10 @@ const CHECK: &str = r#"
   find('live-ontology-type').value='ety_record';find('live-ontology-type').emit('input');
   find('live-ontology-query').emit('submit');await flush();
   assert.match(text(find('live-ontology-page')),/ent_alpha/);
-  let row=find('live-ontology-page').querySelectorAll('[data-live-object]')[0];row.focus();row.emit('click');await flush();
+  let row=find('live-ontology-page').querySelectorAll('[data-live-object]')[0];
+  find('live-ontology-type').value='ety_profile';row.focus();row.emit('click');await flush();
+  assert.ok(calls.at(-1)[0].endsWith('/objects/ent_alpha?type=ety_record&revision=1'),'source point uses captured list type rather than mutable dropdown');
+  find('live-ontology-type').value='ety_record';
   assert.equal(document.activeElement,find('live-ontology-detail-title'),'native object activation focuses its heading');
   assert.match(find('live-ontology-detail-title').textContent,/ent_alpha.*requested schema 1.*stored schema 1/);
   assert.match(text(find('live-ontology-properties')),/<script>Ada<\/script>/,'property content is literal text');

@@ -2,6 +2,7 @@ mod failures;
 mod labels;
 mod links;
 mod model;
+mod point;
 mod query;
 mod relationship_limits;
 mod relationships;
@@ -10,7 +11,7 @@ mod support;
 
 use super::HumanOntologyCardSource;
 use application_ontology_read::{
-    AuditDisposition, ObjectListQuery, OntologyReadSource, UpcastState,
+    AuditDisposition, ObjectListQuery, ObjectPointQuery, OntologyReadSource, UpcastState,
 };
 use support::{OBJECT, cookie, source, stub};
 
@@ -40,7 +41,17 @@ async fn all_five_native_routes_preserve_wire_fields_and_separate_the_requested_
     let page = source.objects("ten_acme", &query).await.unwrap();
     assert_eq!(page.requested_revision, 2);
     assert_eq!(page.next.as_deref(), Some("ent_alpha"));
-    let detail = source.object("ten_acme", "ent_alpha", 2).await.unwrap();
+    let detail = source
+        .object(
+            "ten_acme",
+            &ObjectPointQuery {
+                entity_type: "ety_record".into(),
+                object_ref: "ent_alpha".into(),
+                revision: 2,
+            },
+        )
+        .await
+        .unwrap();
     assert_eq!(detail.requested_revision, 2);
     assert_eq!(detail.object, page.objects[0]);
     assert_eq!(detail.object.written_revision, 1);
@@ -61,7 +72,7 @@ async fn all_five_native_routes_preserve_wire_fields_and_separate_the_requested_
     for path in [
         "/types",
         "/objects?type=ety_record&revision=2&limit=1",
-        "/objects/ent_alpha?revision=2",
+        "/objects/ent_alpha?type=ety_record&revision=2",
         "/objects/ent_alpha/history",
         "/audit",
     ] {

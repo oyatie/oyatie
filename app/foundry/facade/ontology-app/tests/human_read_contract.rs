@@ -30,7 +30,7 @@ async fn valid_human_reads_match_the_native_operator_results() {
     for suffix in [
         "/types",
         "/objects?type=ety_record&revision=1&limit=1",
-        "/objects/ent_alpha?revision=1",
+        "/objects/ent_alpha?type=ety_record&revision=1",
         "/objects/ent_alpha/history",
         "/audit",
     ] {
@@ -44,10 +44,15 @@ async fn valid_human_reads_match_the_native_operator_results() {
             StatusCode::OK,
         )
         .await;
+        let operator_suffix = if suffix.starts_with("/objects/") {
+            suffix.replace("?type=ety_record&revision=", "?revision=")
+        } else {
+            suffix.to_owned()
+        };
         let (status, operator) = get(
             &fixture,
             Some(fixture.operator_token()),
-            &format!("/v1{suffix}"),
+            &format!("/v1{operator_suffix}"),
         )
         .await;
         assert_eq!(status, StatusCode::OK);

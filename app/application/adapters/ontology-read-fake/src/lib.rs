@@ -5,7 +5,8 @@
 
 use application_ontology_read::{
     AuditRow, EntitySchema, EntityType, EntityTypeLabel, HistoryRow, LinkSchema, ObjectDetail,
-    ObjectListQuery, ObjectPage, OntologyReadError, OntologyReadSource, UpcastState,
+    ObjectListQuery, ObjectPage, ObjectPointQuery, OntologyReadError, OntologyReadSource,
+    UpcastState,
 };
 mod model;
 pub use model::FixtureOntologyModelSource;
@@ -157,16 +158,19 @@ impl OntologyReadSource for FixtureOntologyReadSource {
     async fn object(
         &self,
         tenant: &str,
-        object_ref: &str,
-        revision: u32,
+        query: &ObjectPointQuery,
     ) -> Result<ObjectDetail, OntologyReadError> {
         self.check(tenant)?;
+        query.validate()?;
+        if query.entity_type != Self::ENTITY_TYPE {
+            return Err(OntologyReadError::AbsentObject);
+        }
         let object = fixture::objects()
             .into_iter()
-            .find(|object| object.object_ref == object_ref)
+            .find(|object| object.object_ref == query.object_ref)
             .ok_or(OntologyReadError::AbsentObject)?;
-        check_revision(revision)?;
-        Ok(pin(object, revision))
+        check_revision(query.revision)?;
+        Ok(pin(object, query.revision))
     }
 
     async fn history(
@@ -189,3 +193,6 @@ mod tests;
 
 #[cfg(test)]
 mod label_tests;
+
+#[cfg(test)]
+mod point_tests;

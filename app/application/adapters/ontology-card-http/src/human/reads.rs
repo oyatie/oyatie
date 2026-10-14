@@ -1,6 +1,7 @@
 use application_ontology_read::{
     AuditRow, EntitySchema, EntityType, EntityTypeLabel, HistoryRow, LinkSchema, ObjectDetail,
-    ObjectListQuery, ObjectPage, OntologyReadError, OntologyReadSource, PinnedObject,
+    ObjectListQuery, ObjectPage, ObjectPointQuery, OntologyReadError, OntologyReadSource,
+    PinnedObject,
 };
 use reqwest::{StatusCode, Url, header::HeaderValue};
 use serde::{Deserialize, de::DeserializeOwned};
@@ -176,13 +177,15 @@ impl OntologyReadSource for HumanOntologyReadSource {
     async fn object(
         &self,
         tenant: &str,
-        object_ref: &str,
-        revision: u32,
+        query: &ObjectPointQuery,
     ) -> Result<ObjectDetail, OntologyReadError> {
-        let mut url = self.object_url(tenant, object_ref, false)?;
-        url.set_query(Some(&format!("revision={revision}")));
+        query.validate()?;
+        let mut url = self.object_url(tenant, &query.object_ref, false)?;
+        url.query_pairs_mut()
+            .append_pair("type", &query.entity_type)
+            .append_pair("revision", &query.revision.to_string());
         Ok(ObjectDetail {
-            requested_revision: revision,
+            requested_revision: query.revision,
             object: self.get(url).await?,
         })
     }
