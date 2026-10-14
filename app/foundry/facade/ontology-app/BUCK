@@ -196,6 +196,10 @@ rust_test(
     deps = FACADE_TEST_DEPS + [
         "//app/foundry/ports/model-api:foundry-model-api",
         "//app/foundry/adapters/draft/model-sqlite:foundry-model-sqlite-draft",
+        "//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+        "//app/foundry/core/spine:foundry-spine",
+        "//app/foundry/core/edits:foundry-edits",
         "//iam/ports/identity-user-session:iam-identity-user-session",
         "third-party//:reqwest",
     ],

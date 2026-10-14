@@ -93,6 +93,17 @@ impl ModelRuntimeConfig {
             ));
         }
         let mut tenants = std::collections::BTreeSet::new();
+        if config
+            .tenants
+            .iter()
+            .collect::<std::collections::BTreeSet<_>>()
+            .len()
+            != config.tenants.len()
+        {
+            return Err(ModelRuntimeConfigError(
+                "the served tenant roster is ambiguous",
+            ));
+        }
         for (index, model) in self.stores.iter().enumerate() {
             model
                 .binding

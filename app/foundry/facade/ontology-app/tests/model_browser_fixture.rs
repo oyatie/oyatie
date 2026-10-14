@@ -167,7 +167,7 @@ async fn serve_real_model_for_browser() {
     let routes =
         router_with_model_control(Arc::new(state), Arc::new(sessions), Some(models.origin));
     let receipt = serde_json::json!({"purpose":"controlled browser fixture; fake IAM only; native durable model metadata and Foundry routes", "fake_iam":true, "native_durable_model":true, "passkey_proof":false, "publication_transport":false,
-        "tenant":TENANT,"account":USER,"shell_origin":shell,"iam_origin":iam_origin,
+        "tenant":TENANT,"account":USER,"process_id":std::process::id(),"shell_origin":shell,"iam_origin":iam_origin,
         "foundry_origin":foundry_origin,"sign_in_url":format!("{iam_origin}/fixture/sign-in"),"directory":directory});
     std::fs::write(
         directory.join("startup.json"),

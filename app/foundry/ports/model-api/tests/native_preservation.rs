@@ -72,6 +72,31 @@ fn native_privacy_alias_identity_survives_capture_wire_and_registry_restore() {
 }
 
 #[test]
+fn metadata_restore_preserves_admitted_prior_revision_ordering() {
+    let mut trusted = baseline().registry("ten_model").unwrap();
+    let record = EntityTypeId::new("ety_record").unwrap();
+    for revision in [2, 3] {
+        let mut next = trusted.entity_type("ten_model", &record).unwrap().clone();
+        next.revision = revision;
+        trusted.evolve_entity_type(next).unwrap();
+    }
+    let mut baseline = ModelBaseline::capture(&trusted, "ten_model").unwrap();
+    assert_eq!(baseline.prior_entity_revisions.len(), 2);
+    baseline.prior_entity_revisions.reverse();
+    assert_eq!(baseline.registry("ten_model").unwrap(), trusted);
+    let history = ModelHistory {
+        binding: binding(),
+        publications: vec![ModelPublication {
+            generation: 1,
+            document: baseline.document.clone(),
+            receipt: None,
+        }],
+        baseline,
+    };
+    assert_eq!(history.registry().unwrap(), trusted);
+}
+
+#[test]
 fn runtime_restore_preserves_trusted_actions_revisions_and_refuses_another_baseline() {
     let mut trusted = baseline().registry("ten_model").unwrap();
     let action_id = ActionTypeId::new("aty_write").unwrap();
