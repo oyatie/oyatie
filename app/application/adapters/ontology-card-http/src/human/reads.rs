@@ -6,6 +6,7 @@ use reqwest::{StatusCode, Url, header::HeaderValue};
 use serde::{Deserialize, de::DeserializeOwned};
 
 use super::{HumanOntologyCardSource, query, transport};
+mod relationships;
 
 const MAXIMUM_READ_BODY: usize = 1024 * 1024;
 
@@ -109,6 +110,14 @@ impl Refusal {
 }
 
 impl OntologyReadSource for HumanOntologyReadSource {
+    async fn search_around(
+        &self,
+        tenant: &str,
+        query: &application_ontology_read::RelationshipQuery,
+    ) -> Result<application_ontology_read::RelationshipGraph, OntologyReadError> {
+        self.relationships(tenant, query).await
+    }
+
     async fn type_labels(&self, tenant: &str) -> Result<Vec<EntityTypeLabel>, OntologyReadError> {
         let labels: Vec<EntityTypeLabel> = self.get(self.url(tenant, &["type-labels"])?).await?;
         let mut ids = std::collections::BTreeSet::new();

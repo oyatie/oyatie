@@ -3,6 +3,8 @@ mod labels;
 mod links;
 mod model;
 mod query;
+mod relationship_limits;
+mod relationships;
 mod schemas;
 mod support;
 

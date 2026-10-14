@@ -47,6 +47,10 @@ for(const id of ['revision','limit','property','from','to'])add('live-ontology-'
 for(const id of ['read','types-refresh','audit-read','history-read','next','first'])add('live-ontology-'+id,'button',root);
 elements['live-ontology-objects'].append(...['query','page','detail','audit','first','next'].map(id=>elements['live-ontology-'+id]));
 elements['live-ontology-detail'].append(...['detail-title','properties','history','history-read'].map(id=>elements['live-ontology-'+id]));
+for(const id of ['relationship-root','relationship-status','relationship-results'])add('live-ontology-'+id,'div',elements['live-ontology-detail']);
+for(const id of ['relationship-direction','relationship-type'])add('live-ontology-'+id,'select',elements['live-ontology-detail']);
+add('live-ontology-relationship-read','button',elements['live-ontology-detail'])._disabled=true;
+for(const value of ['outbound','inbound']){const option=new Element('option');option.value=value;elements['live-ontology-relationship-direction'].append(option);}
 elements['live-ontology-audit'].append(elements['live-ontology-audit-rows']);
 elements['live-ontology-model'].append(...['graph','graph-help','graph-controls','model-table'].map(id=>elements['live-ontology-'+id]));
 for(const id of ['page','detail','audit','schema'])elements['live-ontology-'+id].dataset.liveResults='true';
@@ -70,8 +74,9 @@ const schemaFixture=[
   {entity_type:'ety_profile',revision:3,properties:[{name:'id',tier:'scalar',data_class:'PUBLIC',required:true,value_type:{kind:'integer'}},{name:'<script>label</script>',tier:'scalar',data_class:'PII_IDENTIFYING',required:false,value_type:{kind:'string'}},{name:'profile',tier:'struct',data_class:'INTERNAL_ONLY',required:false,value_type:{kind:'struct',fields:[{name:'flags',required:true,value_type:{kind:'array',element:{kind:'boolean'}}}]}}],primary_key_property:'id',title_property:'<script>label</script>'},
 ];
 const labelFixture=[{entity_type:'ety_record',revision:1,display_name:'Record'}, {entity_type:'ety_profile',revision:3,display_name:'직원 <img src=x onerror=alert(1)>'}];
-let nativeSchemas=schemaFixture, nativeLinks=[], nativeLabels=null;
-function payload(url) {
+let nativeSchemas=schemaFixture, nativeLinks=[], nativeLabels=null, nativeGraph=null, nativeDetails=new Map();
+function payload(url,options={}) {
+  if(url.endsWith('/search-around'))return nativeGraph && {...nativeGraph,observed_at_epoch_seconds:JSON.parse(options.body).observed_at_epoch_seconds};
   if(url.endsWith('identity-config'))return {enabled:true};
   if(url.endsWith('/session'))return session;
   if(url.includes('ontology-status'))return {policyVersion:'p',servedTenants:1,projectionLag:0,poisonedEntries:0};
@@ -82,7 +87,7 @@ function payload(url) {
   if(url.includes('/objects?'))return {requested_revision:Number(new URL('https://shell.invalid'+url).searchParams.get('revision')),objects:pageEmpty?[]:[object],next:null};
   if(url.endsWith('/history'))return [{ordinal:1,object_sequence:1,principal_id:'usr_alice',decision_id:'dec_native',action_type:'aty_record_write',audit_event_type:'record.written',schema_revision:1}];
   if(url.endsWith('/audit'))return [{ordinal:1,object_ref:'ent_alpha',action_type:'aty_record_write',disposition:'applied',poison_reason:null,principal_id:'usr_alice',decision_id:'dec_native'}];
-  if(url.includes('/objects/'))return {requested_revision:Number(new URL('https://shell.invalid'+url).searchParams.get('revision')),object};
+  if(url.includes('/objects/'))return {requested_revision:Number(new URL('https://shell.invalid'+url).searchParams.get('revision')),object:nativeDetails.get(decodeURIComponent(new URL('https://shell.invalid'+url).pathname.split('/').at(-1))) || object};
   return null;
 }
 const modelDocument={entities:[{id:'ety_record',display_name:'Record',properties:[{name:'name',tier:'scalar',data_class:'InternalOnly',required:true,value_type:null,display:null},{name:'structure',tier:'struct',data_class:'InternalOnly',required:false,value_type:{shape:'struct',fields:[{name:'date',required:true,value_type:{shape:'scalar',kind:'date'}}]},display:{display_name:'Untouched',description:null,icon:'native',color:null,plural_name:null}}],revision:1,pillar:null,primary_key_property:null,title_property:'name',display:{display_name:'Record',description:'Preserve this',icon:null,color:null,plural_name:null}}],links:[]};
@@ -104,8 +109,8 @@ function modelReply(url,options){
   body=structuredClone(body);if(modelTamper && options.method==='POST' && body.id){modelTamper=false;body.version='9007199254740995';}
   return {ok:true,status:options.method==='POST' && path.endsWith('/drafts')?201:200,headers:{get:name=>({'x-oyatie-user':headerUser,'x-oyatie-tenant':session.tenantId,'x-oyatie-session-expires':String(session.expiresAt)})[name]??null},json:async()=>body};
 }
-function reply(url,error=nativeError) { const isRead=url.includes('/api/ontology/');if(url.includes('ontology-status') && statusError)return {ok:false,status:statusError,json:async()=>({error:'forbidden'})};return {ok:!isRead||!error,status:url.endsWith('session:logout')?204:isRead&&error?403:200,headers:{get:name=>({'x-oyatie-user':headerUser,'x-oyatie-tenant':session.tenantId,'x-oyatie-session-expires':String(session.expiresAt)})[name]??null},json:async()=>isRead&&error?{error}:payload(url)}; }
-const context={document,Element,URLSearchParams,AbortController,TextEncoder,getComputedStyle:element=>({strokeWidth:String(element.mockStrokeWidth||0)}),window:{isSecureContext:true,PublicKeyCredential:function(){}},navigator:{credentials:{},locks:{request:(_,action)=>action()}},fetch:(url,options)=>{calls.push([url,options]);if(url.includes('ontology-status') && statusError==='network')return Promise.reject(new Error('status transport unavailable'));if(url.includes('/model')){if(holdPath && url.includes(holdPath)){holdPath=null;return new Promise(resolve=>{const captured=modelReply(url,options);held=()=>resolve(captured);});}try{return Promise.resolve(modelReply(url,options));}catch(e){return Promise.reject(e);}}if(holdPath&&url.includes(holdPath)){holdPath=null;return new Promise(resolve=>{held=()=>resolve(reply(url));});}return Promise.resolve(reply(url));},setTimeout:callback=>{timers.push(callback);return timers.length;},clearTimeout(){},setInterval:callback=>intervals.push(callback)};
+function reply(url,error=nativeError,options={}) { const isRead=url.includes('/api/ontology/');if(url.includes('ontology-status') && statusError)return {ok:false,status:statusError,json:async()=>({error:'forbidden'})};return {ok:!isRead||!error,status:url.endsWith('session:logout')?204:isRead&&error?403:200,headers:{get:name=>({'x-oyatie-user':headerUser,'x-oyatie-tenant':session.tenantId,'x-oyatie-session-expires':String(session.expiresAt)})[name]??null},json:async()=>isRead&&error?{error}:payload(url,options)}; }
+const context={crypto:require('node:crypto').webcrypto,document,Element,URLSearchParams,AbortController,TextEncoder,getComputedStyle:element=>({strokeWidth:String(element.mockStrokeWidth||0)}),window:{isSecureContext:true,PublicKeyCredential:function(){}},navigator:{credentials:{},locks:{request:(_,action)=>action()}},fetch:(url,options)=>{calls.push([url,options]);if(url.includes('ontology-status') && statusError==='network')return Promise.reject(new Error('status transport unavailable'));if(url.includes('/model')){if(holdPath && url.includes(holdPath)){holdPath=null;return new Promise(resolve=>{const captured=modelReply(url,options);held=()=>resolve(captured);});}try{return Promise.resolve(modelReply(url,options));}catch(e){return Promise.reject(e);}}if(holdPath&&url.includes(holdPath)){holdPath=null;return new Promise(resolve=>{held=()=>resolve(reply(url,nativeError,options));});}return Promise.resolve(reply(url,nativeError,options));},setTimeout:callback=>{timers.push(callback);return timers.length;},clearTimeout(){},setInterval:callback=>intervals.push(callback)};
 vm.runInNewContext(input.script,context,{timeout:1000});
 const find=id=>elements[id], text=node=>(node.textContent||'')+node.children.map(text).join(' ');
 async function flush() { for(let i=0;i<80;i++)await Promise.resolve(); }

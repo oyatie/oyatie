@@ -5,19 +5,20 @@ use axum::response::Response;
 use data_ontology_kernel::LinkTypeId;
 use foundry_caller_draft::Caller;
 use foundry_ontology_query_domain::KnowledgeGraphQueryResponse;
+use serde::Serialize;
 
 use crate::composition::{AppState, TenantState};
 use crate::pdp::Surface;
 use crate::reads::refuse;
 
-pub(super) enum GraphReadRefusal {
+pub(crate) enum GraphReadRefusal {
     InvalidGraph,
     StoreUnreadable,
     Forbidden,
 }
 
 impl GraphReadRefusal {
-    pub(super) fn response(self) -> Response {
+    pub(crate) fn response(self) -> Response {
         let (status, gate, cause) = match self {
             Self::InvalidGraph => (
                 StatusCode::BAD_REQUEST,
@@ -39,13 +40,20 @@ impl GraphReadRefusal {
     }
 }
 
+#[derive(Serialize)]
+pub(crate) struct AdmittedNode {
+    pub(crate) entity_id: String,      // data_class: INTERNAL_ONLY
+    pub(crate) entity_type_id: String, // data_class: INTERNAL_ONLY
+    pub(crate) written_revision: u32,  // data_class: INTERNAL_ONLY
+}
+
 // Cached query receipts remain unchanged; every disclosure uses current objects and policy.
-pub(super) fn admit(
+pub(crate) fn admit(
     state: &AppState,
     caller: &Caller,
     tenant: &TenantState,
     graph: &KnowledgeGraphQueryResponse,
-) -> Result<(), GraphReadRefusal> {
+) -> Result<Vec<AdmittedNode>, GraphReadRefusal> {
     let tenant_id = &tenant.projection.tenant_id;
     if graph.tenant_id != *tenant_id || caller.tenant_id != *tenant_id {
         return Err(GraphReadRefusal::InvalidGraph);
@@ -57,6 +65,7 @@ pub(super) fn admit(
             .map_err(|_| GraphReadRefusal::Forbidden)?;
     }
     let mut nodes = BTreeMap::new();
+    let mut admitted = Vec::with_capacity(graph.nodes.len());
     for node in &graph.nodes {
         let object = tenant
             .projection_store
@@ -72,6 +81,11 @@ pub(super) fn admit(
         {
             return Err(GraphReadRefusal::InvalidGraph);
         }
+        admitted.push(AdmittedNode {
+            entity_id: object.entity.id,
+            entity_type_id: object.entity.entity_type.value,
+            written_revision: object.schema_revision,
+        });
     }
     let mut links: BTreeMap<&str, BTreeSet<(&str, &str)>> = BTreeMap::new();
     for edge in &graph.edges {
@@ -108,5 +122,5 @@ pub(super) fn admit(
             return Err(GraphReadRefusal::InvalidGraph);
         }
     }
-    Ok(())
+    Ok(admitted)
 }

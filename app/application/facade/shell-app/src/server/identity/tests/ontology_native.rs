@@ -12,13 +12,14 @@ use foundry_ontology_app::{
 use std::{path::PathBuf, sync::Arc};
 use tower::ServiceExt;
 
-struct NativeFixture {
+pub(super) struct NativeFixture {
+    pub(super) state: Arc<foundry_ontology_app::AppState>,
     files: Vec<PathBuf>,
     url: String,
     server: tokio::task::JoinHandle<()>,
 }
 impl NativeFixture {
-    async fn new(iam: &Fixture) -> Self {
+    pub(super) async fn new(iam: &Fixture) -> Self {
         let stamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -52,16 +53,21 @@ impl NativeFixture {
         let sessions =
             HttpUserSessionAuthorizer::new(HumanSessionConfig::loopback_http(&iam.url).unwrap())
                 .unwrap();
-        let router =
-            router_with_user_sessions(Arc::new(compose(&config).unwrap()), Arc::new(sessions));
+        let state = Arc::new(compose(&config).unwrap());
+        let router = router_with_user_sessions(state.clone(), Arc::new(sessions));
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let url = format!("http://{}", listener.local_addr().unwrap());
         let server = tokio::spawn(async move {
             axum::serve(listener, router).await.unwrap();
         });
-        Self { files, url, server }
+        Self {
+            files,
+            url,
+            server,
+            state,
+        }
     }
-    fn shell(&self, iam: &Fixture) -> Router {
+    pub(super) fn shell(&self, iam: &Fixture) -> Router {
         super::super::router(Some(
             super::super::SignInConfig::for_loopback(ORIGIN, &iam.url, &self.url).unwrap(),
         ))

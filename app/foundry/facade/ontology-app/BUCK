@@ -104,6 +104,14 @@ FACADE_TESTS = [
         "//policy/core/pdp-kernel:policy-pdp-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
     ]),
+    ("human-relationships", "human_relationship_contract", FACADE_TEST_DEPS + [
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/ontology-kernel:data-ontology-kernel",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+        "//iam/ports/identity-user-session:iam-identity-user-session",
+        "//policy/core/pdp-kernel:policy-pdp-kernel",
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+    ]),
     ("human-reads", "human_read_contract", FACADE_TEST_DEPS + [
         "//iam/ports/identity-user-session:iam-identity-user-session",
         "//policy/core/pdp-kernel:policy-pdp-kernel",

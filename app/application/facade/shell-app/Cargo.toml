@@ -40,6 +40,9 @@ wasm-bindgen = { version = "=0.2.121", optional = true }
 # explicit `ssr` contract for its test target without broadening production
 # defaults, and add only the Tokio I/O capability used by the live server.
 [dev-dependencies]
+# The human traversal contract composes native model metadata and durable projection fixtures.
+foundry-model-api = { path = "../../../foundry/ports/model-api" }
+foundry-projection-draft = { path = "../../../foundry/ports/draft/projection" }
 foundry-ontology-app = { path = "../../../foundry/facade/ontology-app" }
 application-shell-app = { path = ".", default-features = false, features = ["ssr"] }
 application-ontology-card = { path = "../../ports/ontology-card" }

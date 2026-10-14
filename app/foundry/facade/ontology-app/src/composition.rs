@@ -30,6 +30,9 @@ pub struct TenantState {
     /// authorized on its own before reaching here; this only keeps the evidence
     /// the first attempt was granted, so the intent is the same intent.
     pub query_decisions: BTreeMap<(String, String), String>, // data_class: INTERNAL_ONLY
+    /// Human seed metadata is not in the domain fingerprint; retain it for the same receipt lifetime.
+    pub(crate) human_query_intents:
+        BTreeMap<(String, String), crate::human_session::relationships::HumanRelationshipIntent>, // data_class: INTERNAL_ONLY
     /// Held behind the PORT so a test can install a log that fails on demand.
     pub action_log: Box<dyn RecordsLog + Send>,
     pub denial_log: Box<dyn RecordsLog + Send>,
@@ -204,6 +207,7 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
                 projection,
                 queries: OntologyQueryExecutionUsecase::default(),
                 query_decisions: BTreeMap::new(),
+                human_query_intents: BTreeMap::new(),
                 action_log: Box::new(action_log),
                 denial_log: Box::new(denial_log),
                 projection_store: Box::new(store),

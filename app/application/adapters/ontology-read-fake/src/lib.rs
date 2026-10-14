@@ -12,10 +12,12 @@ pub use model::FixtureOntologyModelSource;
 
 mod filtering;
 mod fixture;
+mod relationships;
 
 #[derive(Clone, Copy, Debug)]
 pub struct FixtureOntologyReadSource {
     refusal: Option<OntologyReadError>,
+    relationships: bool,
 }
 
 impl FixtureOntologyReadSource {
@@ -23,12 +25,23 @@ impl FixtureOntologyReadSource {
     pub const ENTITY_TYPE: &'static str = "ety_fixture_record";
 
     pub const fn sample() -> Self {
-        Self { refusal: None }
+        Self {
+            refusal: None,
+            relationships: false,
+        }
+    }
+
+    pub const fn relationship_sample() -> Self {
+        Self {
+            refusal: None,
+            relationships: true,
+        }
     }
 
     pub const fn refusing(error: OntologyReadError) -> Self {
         Self {
             refusal: Some(error),
+            relationships: false,
         }
     }
 
@@ -67,6 +80,14 @@ fn pin(mut object: application_ontology_read::PinnedObject, revision: u32) -> Ob
 }
 
 impl OntologyReadSource for FixtureOntologyReadSource {
+    async fn search_around(
+        &self,
+        tenant: &str,
+        query: &application_ontology_read::RelationshipQuery,
+    ) -> Result<application_ontology_read::RelationshipGraph, OntologyReadError> {
+        relationships::read(self, tenant, query)
+    }
+
     async fn type_labels(&self, tenant: &str) -> Result<Vec<EntityTypeLabel>, OntologyReadError> {
         self.check(tenant)?;
         Ok(vec![EntityTypeLabel {
@@ -78,7 +99,11 @@ impl OntologyReadSource for FixtureOntologyReadSource {
 
     async fn link_types(&self, tenant: &str) -> Result<Vec<LinkSchema>, OntologyReadError> {
         self.check(tenant)?;
-        Ok(vec![])
+        Ok(if self.relationships {
+            vec![relationships::declaration()]
+        } else {
+            vec![]
+        })
     }
 
     async fn schemas(&self, tenant: &str) -> Result<Vec<EntitySchema>, OntologyReadError> {

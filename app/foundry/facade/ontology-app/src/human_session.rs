@@ -7,7 +7,7 @@ use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode, header::CACHE_CONTROL};
 use axum::response::Response;
 use foundry_caller_draft::Caller;
-use iam_identity_user_session::{SessionRefusal, UserSessionAuthorizer};
+use iam_identity_user_session::{ActiveUserMembership, SessionRefusal, UserSessionAuthorizer};
 
 use crate::composition::{AppState, TenantState};
 use crate::reads::{TENANT_SCOPED_RESOURCE, authorized_caller, refuse};
@@ -17,6 +17,7 @@ mod cookie;
 pub(crate) use cookie::session_token;
 mod http;
 pub(crate) mod reads;
+pub(crate) mod relationships;
 pub use config::{HumanSessionConfig, HumanSessionConfigError};
 pub use http::HttpUserSessionAuthorizer;
 
@@ -52,12 +53,29 @@ async fn status_inner(state: &HumanReadState, tenant_id: &str, headers: &HeaderM
     crate::status::human_status_response(&state.app, &caller.tenant_id, tenant)
 }
 
+struct HumanAuthorization<'a> {
+    caller: Caller,
+    decision: data_ontology_kernel::ActionPolicyDecision,
+    tenant: &'a tokio::sync::Mutex<TenantState>,
+    membership: ActiveUserMembership,
+}
+
 async fn authorized<'a>(
     state: &'a HumanReadState,
     tenant_id: &str,
     headers: &HeaderMap,
     object_ref: &str,
 ) -> Result<(Caller, &'a tokio::sync::Mutex<TenantState>), Box<Response>> {
+    let access = authorized_membership(state, tenant_id, headers, object_ref).await?;
+    Ok((access.caller, access.tenant))
+}
+
+async fn authorized_membership<'a>(
+    state: &'a HumanReadState,
+    tenant_id: &str,
+    headers: &HeaderMap,
+    object_ref: &str,
+) -> Result<HumanAuthorization<'a>, Box<Response>> {
     let token = match cookie::session_token(headers) {
         Ok(token) => token,
         Err(error) => return Err(Box::new(session_refusal(&state.app, error))),
@@ -85,8 +103,13 @@ async fn authorized<'a>(
         principal_id: membership.user_id().to_owned(),
         roles: membership.roles().to_vec(),
     };
-    authorized_caller(&state.app, caller, object_ref)
-        .map(|(caller, _decision, tenant)| (caller, tenant))
+    let (caller, decision, tenant) = authorized_caller(&state.app, caller, object_ref)?;
+    Ok(HumanAuthorization {
+        caller,
+        decision,
+        tenant,
+        membership,
+    })
 }
 
 fn session_refusal(state: &AppState, error: SessionRefusal) -> Response {

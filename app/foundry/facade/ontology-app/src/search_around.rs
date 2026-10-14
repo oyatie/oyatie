@@ -27,7 +27,7 @@ use crate::reads::{TENANT_SCOPED_RESOURCE, authorized, declared_type, refuse};
 use crate::search_around_body::SearchAroundRequest;
 use crate::search_around_refusals::{refuse_denial, refuse_query_error};
 
-mod admission;
+pub(crate) mod admission;
 
 /// The query surface this process serves. The usecase refuses a surface outside
 /// the declared set; this route names its own, so that refusal guards a future
