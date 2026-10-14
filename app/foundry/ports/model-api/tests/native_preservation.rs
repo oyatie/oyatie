@@ -1,6 +1,8 @@
 use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
-    EntityTypeDefinition, EntityTypeId, EntityTypePropertyDefinition, OntologyEngine, PropertyTier,
+    ActionTypeDefinition, ActionTypeId, AutonomyTier, EntityTypeDefinition, EntityTypeId,
+    EntityTypePropertyDefinition, LinkCardinality, LinkTypeDefinition, LinkTypeId, OntologyEngine,
+    PropertyTier,
 };
 use foundry_model_api::{conformance::*, *};
 
@@ -67,6 +69,89 @@ fn native_privacy_alias_identity_survives_capture_wire_and_registry_restore() {
             "{class}"
         );
     }
+}
+
+#[test]
+fn runtime_restore_preserves_trusted_actions_revisions_and_refuses_another_baseline() {
+    let mut trusted = baseline().registry("ten_model").unwrap();
+    let action_id = ActionTypeId::new("aty_write").unwrap();
+    trusted
+        .register_action_type(
+            ActionTypeDefinition::new(
+                "ten_model",
+                action_id.clone(),
+                EntityTypeId::new("ety_record").unwrap(),
+                "ops-console",
+                AutonomyTier::T1Assist,
+                "record.written",
+            )
+            .unwrap(),
+        )
+        .unwrap();
+    let baseline = ModelBaseline::capture(&trusted, "ten_model").unwrap();
+    let mut store = ReferenceModelStore::initialize(binding(), baseline).unwrap();
+    let draft = store.create_draft(&caller(), 1, additive_model()).unwrap();
+    let prepared = store.prepare(&caller(), draft.id, 1, 1).unwrap();
+    store.publish(&caller(), &prepared).unwrap();
+    let history = store.history(&caller()).unwrap();
+    assert!(
+        history
+            .registry()
+            .unwrap()
+            .action_type("ten_model", &action_id)
+            .is_none()
+    );
+    let restored = history.registry_with_runtime_baseline(&trusted).unwrap();
+    assert_eq!(
+        restored.action_type("ten_model", &action_id),
+        trusted.action_type("ten_model", &action_id)
+    );
+    let record = EntityTypeId::new("ety_record").unwrap();
+    assert_eq!(
+        restored.entity_type("ten_model", &record).unwrap().revision,
+        2
+    );
+    assert_eq!(
+        restored.entity_type_at_revision("ten_model", &record, 1),
+        trusted.entity_type("ten_model", &record)
+    );
+    let mut another = trusted.clone();
+    let mut changed = another.entity_type("ten_model", &record).unwrap().clone();
+    changed.revision = 2;
+    another.evolve_entity_type(changed).unwrap();
+    assert_eq!(
+        history.registry_with_runtime_baseline(&another),
+        Err(ModelError::BindingMismatch)
+    );
+}
+
+#[test]
+fn runtime_baseline_cannot_carry_projected_link_instances() {
+    let mut trusted = baseline().registry("ten_model").unwrap();
+    let link = LinkTypeId::new("lty_related").unwrap();
+    trusted
+        .register_link_type(
+            LinkTypeDefinition::new(
+                "ten_model",
+                link.clone(),
+                EntityTypeId::new("ety_record").unwrap(),
+                EntityTypeId::new("ety_record").unwrap(),
+                LinkCardinality::ManyToMany,
+                false,
+            )
+            .unwrap(),
+        )
+        .unwrap();
+    let model = ModelBaseline::capture(&trusted, "ten_model").unwrap();
+    let store = ReferenceModelStore::initialize(binding(), model).unwrap();
+    let history = store.history(&caller()).unwrap();
+    trusted
+        .register_link_instance("ten_model", &link, "ent_from", "ent_to")
+        .unwrap();
+    assert_eq!(
+        history.registry_with_runtime_baseline(&trusted),
+        Err(ModelError::BindingMismatch)
+    );
 }
 
 #[test]

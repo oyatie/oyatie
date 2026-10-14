@@ -3,6 +3,17 @@
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum BootError {
+    ModelConfigurationRefused {
+        detail: &'static str,
+    },
+    ModelStoreRefused {
+        tenant_id: String,
+        detail: String,
+    },
+    ModelRestoreRefused {
+        tenant_id: String,
+        detail: String,
+    },
     ActionLogUnopenable {
         detail: String,
     },
@@ -42,6 +53,21 @@ pub enum BootError {
 impl std::fmt::Display for BootError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::ModelConfigurationRefused { detail } => {
+                write!(formatter, "model configuration refused: {detail}")
+            }
+            Self::ModelStoreRefused { tenant_id, detail } => {
+                write!(
+                    formatter,
+                    "tenant {tenant_id}'s established model refused: {detail}"
+                )
+            }
+            Self::ModelRestoreRefused { tenant_id, detail } => {
+                write!(
+                    formatter,
+                    "tenant {tenant_id}'s model replay refused: {detail}"
+                )
+            }
             Self::ActionLogUnopenable { detail } => {
                 write!(formatter, "the action log could not be opened: {detail}")
             }

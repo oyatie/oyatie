@@ -141,6 +141,18 @@ impl AppState {
 }
 
 pub fn compose(config: &Config) -> Result<AppState, BootError> {
+    compose_with_models(config, None)
+}
+
+pub fn compose_with_models(
+    config: &Config,
+    models: Option<&crate::model_runtime::ModelRuntimeConfig>,
+) -> Result<AppState, BootError> {
+    if let Some(models) = models {
+        models
+            .validate(config)
+            .map_err(|error| BootError::ModelConfigurationRefused { detail: error.0 })?;
+    }
     if config.tenants.is_empty() {
         return Err(BootError::NoTenantsConfigured);
     }
@@ -171,6 +183,11 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
             tenant_id: tenant_id.clone(),
             detail: error.to_string(),
         })?;
+        let (model_store, registry) =
+            match crate::model_runtime::open(models, tenant_id, &registry)? {
+                Some((model, registry)) => (Some(model), registry),
+                None => (None, registry),
+            };
         let entries = action_log
             .replay(tenant_id, 1)
             .map_err(|error| BootError::ReplayFailed {
@@ -182,14 +199,23 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
                 detail: format!("{error:?}"),
             }
         })?;
-        catch_up(tenant_id, &registry, &mut store, &entries).map_err(|error| {
-            BootError::CatchUpRefused {
-                tenant_id: tenant_id.clone(),
-                detail: format!("{error:?}"),
-            }
-        })?;
-        // Folded a second time: catch-up folds to mirror and keeps nothing.
-        let projection = fold_from_scratch(tenant_id, &registry, entries.iter());
+        let projection = if model_store.is_some() {
+            let log_head = action_log
+                .head(tenant_id)
+                .map_err(|error| BootError::ReplayFailed {
+                    tenant_id: tenant_id.clone(),
+                    detail: format!("{error:?}"),
+                })?;
+            crate::model_runtime::projection(tenant_id, &registry, &mut store, &entries, log_head)?
+        } else {
+            catch_up(tenant_id, &registry, &mut store, &entries).map_err(|error| {
+                BootError::CatchUpRefused {
+                    tenant_id: tenant_id.clone(),
+                    detail: format!("{error:?}"),
+                }
+            })?;
+            fold_from_scratch(tenant_id, &registry, entries.iter())
+        };
         drop(entries);
         let action_log = SqliteRecordsLog::open(&config.action_log).map_err(|error| {
             BootError::ActionLogUnopenable {
@@ -211,7 +237,7 @@ pub fn compose(config: &Config) -> Result<AppState, BootError> {
                 action_log: Box::new(action_log),
                 denial_log: Box::new(denial_log),
                 projection_store: Box::new(store),
-                model_store: None,
+                model_store,
             }),
         );
     }

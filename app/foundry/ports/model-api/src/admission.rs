@@ -161,6 +161,23 @@ impl ModelHistory {
 
     pub fn registry(&self) -> Result<OntologyEngine, ModelError> {
         self.binding.validate()?;
+        self.registry_with_runtime_baseline(&self.baseline.registry(&self.binding.tenant_id)?)
+    }
+
+    /// Restore metadata onto the independently trusted runtime's action vocabulary.
+    pub fn registry_with_runtime_baseline(
+        &self,
+        baseline: &OntologyEngine,
+    ) -> Result<OntologyEngine, ModelError> {
+        self.binding.validate()?;
+        if ModelBaseline::capture(baseline, &self.binding.tenant_id)? != self.baseline
+            || baseline
+                .link_instances(&self.binding.tenant_id)
+                .next()
+                .is_some()
+        {
+            return Err(ModelError::BindingMismatch);
+        }
         if self.publications.is_empty() {
             return Err(ModelError::CorruptState);
         }
@@ -171,7 +188,7 @@ impl ModelHistory {
         {
             return Err(ModelError::CorruptState);
         }
-        let mut registry = self.baseline.registry(&self.binding.tenant_id)?;
+        let mut registry = baseline.clone();
         let mut last = 1;
         for publication in self.publications.iter().skip(1) {
             if publication.generation != crate::store::next_model_version(last)? {
