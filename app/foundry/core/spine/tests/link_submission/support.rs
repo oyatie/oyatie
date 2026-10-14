@@ -1,32 +1,44 @@
-use super::{catchup_support::registry, log::MemoryLog};
+use super::{
+    catchup_support::{registry, sealed_link},
+    log::MemoryLog,
+};
 use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
     ActionInvocationRequest, ActionPolicyDecision, ActionTypeDefinition, ActionTypeId,
     AutonomyTier, EntityTypeDefinition, EntityTypeId, EntityTypePropertyDefinition,
     LinkCardinality, LinkTypeDefinition, LinkTypeId, PropertyTier,
 };
-use foundry_edits::{EditSet, OntologyEdit, WireDataClass, WireProperty, WireTier, WireValue};
+use foundry_edits::{
+    EditSet, OntologyEdit, WireDataClass, WireProperty, WireTier, WireValue, decode_action_record,
+    encode_action_record,
+};
 use foundry_projection_draft::{MemoryProjectionStore, ProjectionStore};
 use foundry_records_draft::RecordsLog;
 use foundry_spine::{
     ActionSubmission, ApplyOutcome, Mirrored, ProjectionState, RefusalGate, WriteError,
-    submit_through,
+    project_through, submit_through,
 };
 
 pub(super) fn create(kind: &str, name: &str) -> OntologyEdit {
-    OntologyEdit::create_object(
-        kind,
-        vec![
-            WireProperty::new(
-                "name",
-                WireTier::Scalar,
-                WireDataClass::InternalOnly,
-                WireValue::String(name.into()),
-            )
-            .unwrap(),
-        ],
+    OntologyEdit::create_object(kind, vec![name_property(name)]).unwrap()
+}
+
+pub(super) fn name_property(name: &str) -> WireProperty {
+    WireProperty::new(
+        "name",
+        WireTier::Scalar,
+        WireDataClass::InternalOnly,
+        WireValue::String(name.into()),
     )
     .unwrap()
+}
+
+pub(super) fn retyping(reference: &str, key: &str, kind: &str) -> ActionSubmission {
+    let mut request = submission(reference, key, vec![create(kind, reference)]);
+    if kind == "ety_other" {
+        request.request.action_id = ActionTypeId::new("aty_other").unwrap();
+    }
+    request
 }
 
 pub(super) fn linking(kind: &str, target: &str) -> OntologyEdit {
@@ -162,6 +174,40 @@ impl Fixture {
         let result = self.send(request).unwrap();
         assert!(matches!(result.outcome, ApplyOutcome::Applied { .. }));
         result.mirror.unwrap();
+    }
+
+    pub(super) fn historic_link(&mut self, source: &str, target: &str) {
+        let entry = sealed_link(self.log.head("ten_test").unwrap() + 1, source, target);
+        self.log.seed(entry.clone());
+        project_through(&mut self.state, &mut self.store, &[entry]).unwrap();
+    }
+
+    pub(super) fn historic_retype(&mut self, reference: &str, kind: &str) -> ActionSubmission {
+        let ordinal = self.log.head("ten_test").unwrap() + 1;
+        let request = retyping(reference, &format!("idem_{ordinal}"), kind);
+        let mut entry = sealed_link(ordinal, reference, "ent_placeholder");
+        let mut record = decode_action_record(&entry.envelope.payload).unwrap();
+        record.edits = request.edits.clone();
+        record.audit_event_type = self
+            .state
+            .engine
+            .action_type("ten_test", &request.request.action_id)
+            .unwrap()
+            .audit_event_type
+            .clone();
+        entry.envelope.action_type = request.request.action_id.value.clone();
+        entry.envelope.payload = encode_action_record(&record);
+        entry.receipt.object_sequence = self
+            .log
+            .replay("ten_test", 1)
+            .unwrap()
+            .iter()
+            .filter(|prior| prior.envelope.object_ref == reference)
+            .count() as u64
+            + 1;
+        self.log.seed(entry.clone());
+        project_through(&mut self.state, &mut self.store, &[entry]).unwrap();
+        request
     }
 
     pub(super) fn refused(&mut self, request: ActionSubmission, cause: &str) {
