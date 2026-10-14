@@ -87,7 +87,7 @@ const READS: [&str; 8] = [
     "types",
     "schemas",
     "objects?type=ety_record&revision=1&limit=1",
-    "objects/ent_alpha?revision=1",
+    "objects/ent_alpha?type=ety_record&revision=1",
     "objects/ent_alpha/history",
     "audit",
     "link-types",

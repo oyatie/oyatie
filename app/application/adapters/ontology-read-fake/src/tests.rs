@@ -3,7 +3,7 @@ use application_ontology_read::{
     PropertyFilter, UpcastState,
 };
 
-use super::FixtureOntologyReadSource;
+use super::{FixtureOntologyReadSource, point_tests::point};
 
 const TENANT: &str = FixtureOntologyReadSource::TENANT;
 const ALPHA: &str = "ent_fixture_alpha";
@@ -76,15 +76,18 @@ async fn schema_list_and_detail_use_one_pinned_vocabulary_without_fabricating_an
     assert_eq!(page.objects.len(), 2);
     assert_eq!(page.next, None);
     for object in page.objects {
-        let detail = source.object(TENANT, &object.object_ref, 2).await.unwrap();
+        let detail = source
+            .object(TENANT, &point(&object.object_ref, 2))
+            .await
+            .unwrap();
         assert_eq!(detail.requested_revision, 2);
         assert_eq!(detail.object, object);
     }
-    let old_write = source.object(TENANT, ALPHA, 2).await.unwrap();
+    let old_write = source.object(TENANT, &point(ALPHA, 2)).await.unwrap();
     assert_eq!(old_write.object.written_revision, 1);
     assert_eq!(old_write.object.upcast_state, UpcastState::UpcastPending);
     assert!(!old_write.object.properties.contains_key("note"));
-    let old_pin = source.object(TENANT, BETA, 1).await.unwrap();
+    let old_pin = source.object(TENANT, &point(BETA, 1)).await.unwrap();
     assert_eq!(old_pin.object.written_revision, 2);
     assert_eq!(old_pin.object.upcast_state, UpcastState::Current);
     assert!(!old_pin.object.properties.contains_key("note"));
@@ -180,11 +183,11 @@ async fn native_equality_range_and_absence_have_different_answers() {
 async fn absence_unretained_pins_and_invalid_queries_do_not_become_empty_success() {
     let source = FixtureOntologyReadSource::sample();
     assert_eq!(
-        source.object(TENANT, "ent_missing", 1).await,
+        source.object(TENANT, &point("ent_missing", 1)).await,
         Err(OntologyReadError::AbsentObject)
     );
     assert_eq!(
-        source.object(TENANT, ALPHA, 99).await,
+        source.object(TENANT, &point(ALPHA, 99)).await,
         Err(OntologyReadError::RevisionConflict)
     );
     assert_eq!(
@@ -253,7 +256,7 @@ async fn explicit_refusals_reach_every_read_without_sample_fallback() {
         assert_eq!(source.schemas(TENANT).await, Err(error));
         assert_eq!(source.types(TENANT).await, Err(error));
         assert_eq!(source.objects(TENANT, &query(1)).await, Err(error));
-        assert_eq!(source.object(TENANT, ALPHA, 1).await, Err(error));
+        assert_eq!(source.object(TENANT, &point(ALPHA, 1)).await, Err(error));
         assert_eq!(source.history(TENANT, ALPHA).await, Err(error));
         assert_eq!(source.audit(TENANT).await, Err(error));
     }
@@ -273,11 +276,11 @@ async fn fixture_scope_refusal_precedes_queries_and_object_existence() {
         Err(OntologyReadError::Forbidden)
     );
     assert_eq!(
-        source.object("ten_other", ALPHA, 1).await,
+        source.object("ten_other", &point(ALPHA, 1)).await,
         Err(OntologyReadError::Forbidden)
     );
     assert_eq!(
-        source.object("ten_other", "ent_missing", 99).await,
+        source.object("ten_other", &point("ent_missing", 99)).await,
         Err(OntologyReadError::Forbidden)
     );
     assert_eq!(

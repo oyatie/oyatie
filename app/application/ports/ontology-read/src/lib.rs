@@ -10,6 +10,7 @@ mod labels;
 mod links;
 mod model;
 mod models;
+mod point;
 mod query;
 mod relationships;
 mod schema;
@@ -20,6 +21,7 @@ pub use models::{
     AuditDisposition, AuditRow, EntityType, HistoryRow, ObjectDetail, ObjectPage, PinnedObject,
     Property, UpcastState,
 };
+pub use point::ObjectPointQuery;
 pub use query::{DEFAULT_PAGE_LIMIT, FilterValue, MAX_PAGE_LIMIT, ObjectListQuery, PropertyFilter};
 pub use relationships::{
     MAX_RELATIONSHIP_EDGES, MAX_RELATIONSHIP_NODES, MAX_RELATIONSHIP_REQUEST_BYTES,
@@ -100,8 +102,7 @@ pub trait OntologyReadSource: Send + Sync {
     fn object(
         &self,
         tenant: &str,
-        object_ref: &str,
-        revision: u32,
+        query: &ObjectPointQuery,
     ) -> impl Future<Output = Result<ObjectDetail, OntologyReadError>> + Send;
 
     /// History is the native action log, with each row's own schema revision.

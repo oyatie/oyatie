@@ -83,6 +83,15 @@ rust_binary(
 # One row per in-process test crate: the target's name suffix, the crate root's
 # stem under tests/, and its deps.
 FACADE_TESTS = [
+    ("human-point-type", "human_point_type_contract", MIGRATION_TEST_DEPS + [
+        "//app/foundry/core/edits:foundry-edits",
+        "//app/foundry/core/spine:foundry-spine",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+        "//iam/ports/identity-user-session:iam-identity-user-session",
+        "//policy/core/pdp-kernel:policy-pdp-kernel",
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+        "third-party//:reqwest",
+    ]),
     ("model-control", "model_control_contract", FACADE_TEST_DEPS + [
         "//app/foundry/ports/model-api:foundry-model-api",
         "//app/foundry/adapters/draft/model-sqlite:foundry-model-sqlite-draft",

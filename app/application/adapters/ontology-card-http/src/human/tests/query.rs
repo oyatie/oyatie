@@ -1,6 +1,7 @@
 use super::support::{cookie, source, stub};
 use application_ontology_read::{
-    FilterValue, ObjectListQuery, OntologyReadError, OntologyReadSource, PropertyFilter,
+    FilterValue, ObjectListQuery, ObjectPointQuery, OntologyReadError, OntologyReadSource,
+    PropertyFilter,
 };
 
 #[tokio::test]
@@ -105,7 +106,16 @@ async fn unrepresentable_query_values_and_invalid_shapes_refuse_before_network_i
         Err(OntologyReadError::InvalidQuery)
     );
     assert_eq!(
-        source.object("ten_acme", "..", 1).await,
+        source
+            .object(
+                "ten_acme",
+                &ObjectPointQuery {
+                    entity_type: "ety_record".into(),
+                    object_ref: "..".into(),
+                    revision: 1
+                }
+            )
+            .await,
         Err(OntologyReadError::InvalidQuery)
     );
 }

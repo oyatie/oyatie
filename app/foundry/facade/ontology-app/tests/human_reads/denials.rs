@@ -144,7 +144,7 @@ async fn revoked_roles_and_pdp_fault_refuse_before_query_or_sources() {
     *sessions.answer.lock().unwrap() = Ok(revoked);
     for suffix in SUFFIXES.into_iter().chain([
         "/objects?type=ety_record&revision=invalid",
-        "/objects/ent_alpha?revision=invalid",
+        "/objects/ent_alpha?type=ety_record&revision=invalid",
     ]) {
         let refusal = body(
             request(
@@ -162,7 +162,7 @@ async fn revoked_roles_and_pdp_fault_refuse_before_query_or_sources() {
     pdp.unavailable.store(true, Ordering::SeqCst);
     for suffix in SUFFIXES.into_iter().chain([
         "/objects?type=ety_record&revision=invalid",
-        "/objects/ent_alpha?revision=invalid",
+        "/objects/ent_alpha?type=ety_record&revision=invalid",
     ]) {
         body(
             request(
@@ -212,7 +212,7 @@ async fn foreign_present_and_absent_objects_are_indistinguishable() {
         let present = body(
             request(
                 &router,
-                &format!("/v1/tenants/{tenant}/objects/ent_alpha?revision=1"),
+                &format!("/v1/tenants/{tenant}/objects/ent_alpha?type=ety_record&revision=1"),
                 &[&cookie()],
             )
             .await,
@@ -222,7 +222,7 @@ async fn foreign_present_and_absent_objects_are_indistinguishable() {
         let absent = body(
             request(
                 &router,
-                &format!("/v1/tenants/{tenant}/objects/ent_absent?revision=1"),
+                &format!("/v1/tenants/{tenant}/objects/ent_absent?type=ety_record&revision=1"),
                 &[&cookie()],
             )
             .await,

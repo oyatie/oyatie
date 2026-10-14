@@ -1,5 +1,6 @@
 use application_ontology_read::{
-    DEFAULT_PAGE_LIMIT, FilterValue, ObjectListQuery, OntologyReadError, PropertyFilter,
+    DEFAULT_PAGE_LIMIT, FilterValue, ObjectListQuery, ObjectPointQuery, OntologyReadError,
+    PropertyFilter,
 };
 use std::collections::BTreeMap;
 
@@ -46,9 +47,40 @@ fn literal(raw: &str) -> Result<FilterValue, OntologyReadError> {
         _ => Err(OntologyReadError::InvalidQuery),
     }
 }
-pub(super) fn revision(raw: Option<&str>) -> Result<u32, OntologyReadError> {
-    let values = parameters(raw, &["revision"])?;
-    number(&required(&values, "revision")?)
+pub(super) fn point(
+    object_ref: String,
+    raw: Option<&str>,
+) -> Result<ObjectPointQuery, OntologyReadError> {
+    let raw = raw.ok_or(OntologyReadError::InvalidQuery)?;
+    if raw.len() > 4096 {
+        return Err(OntologyReadError::InvalidQuery);
+    }
+    let parsed = reqwest::Url::parse(&format!("https://query.invalid/?{raw}"))
+        .map_err(|_| OntologyReadError::InvalidQuery)?;
+    let pairs: Vec<_> = parsed.query_pairs().into_owned().collect();
+    let mut canonical = reqwest::Url::parse("https://query.invalid/")
+        .map_err(|_| OntologyReadError::InvalidQuery)?;
+    canonical.query_pairs_mut().extend_pairs(&pairs);
+    if canonical.query() != Some(raw) {
+        return Err(OntologyReadError::InvalidQuery);
+    }
+    let mut values = BTreeMap::new();
+    for (key, value) in pairs {
+        if !matches!(key.as_str(), "type" | "revision") || values.insert(key, value).is_some() {
+            return Err(OntologyReadError::InvalidQuery);
+        }
+    }
+    let revision = required(&values, "revision")?;
+    if revision.is_empty() || !revision.bytes().all(|byte| byte.is_ascii_digit()) {
+        return Err(OntologyReadError::InvalidQuery);
+    }
+    let query = ObjectPointQuery {
+        entity_type: required(&values, "type")?,
+        object_ref,
+        revision: number(&revision)?,
+    };
+    query.validate()?;
+    Ok(query)
 }
 pub(super) fn listing(raw: Option<&str>) -> Result<ObjectListQuery, OntologyReadError> {
     let values = parameters(
@@ -104,7 +136,6 @@ mod tests {
             })
         );
         assert_eq!(q.limit, 100);
-        assert_eq!(revision(Some("revision=2")), Ok(2));
     }
     #[test]
     fn duplicate_unknown_incomplete_and_invalid_queries_refuse() {
@@ -120,7 +151,85 @@ mod tests {
         ] {
             assert!(listing(Some(raw)).is_err(), "{raw}");
         }
-        assert!(revision(Some("revision=1&unknown=x")).is_err());
-        assert!(revision(None).is_err());
+    }
+
+    #[test]
+    fn point_query_binds_exact_form_decoded_type_reference_and_pin() {
+        for entity_type in [
+            "ety_record",
+            "ety_+%&=#/?",
+            "ety_가",
+            "ety_a b",
+            "ety_\u{feff}",
+            &format!("ety_{}", "가".repeat(84)),
+        ] {
+            for revision in [0, u32::MAX] {
+                for reversed in [false, true] {
+                    let mut url = reqwest::Url::parse("https://query.invalid/").unwrap();
+                    let revision = revision.to_string();
+                    let pairs = [("type", entity_type), ("revision", revision.as_str())];
+                    if reversed {
+                        url.query_pairs_mut().extend_pairs(pairs.into_iter().rev());
+                    } else {
+                        url.query_pairs_mut().extend_pairs(pairs);
+                    }
+                    let result = point("ent_+%/가\u{feff}".into(), url.query()).unwrap();
+                    assert_eq!(result.entity_type, entity_type);
+                    assert_eq!(result.object_ref, "ent_+%/가\u{feff}");
+                    assert_eq!(result.revision.to_string(), revision);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn point_query_refuses_ambiguous_lossy_noncanonical_and_unbounded_intent() {
+        for raw in [
+            "",
+            "revision=1",
+            "type=ety_record",
+            "type=&revision=1",
+            "type=ety_&revision=1",
+            "type=ety_record&revision=",
+            "type=ety_record&revision=-1",
+            "type=ety_record&revision=%2B1",
+            "type=ety_record&revision=1.0",
+            "type=ety_record&revision=4294967296",
+            "type=ety_record&revision=1&revision=2",
+            "type=ety_a&type=ety_b&revision=1",
+            "type=ety_a&revision=1&unknown=x",
+            "type=ety_a&revision=1&",
+            "&type=ety_a&revision=1",
+            "%74ype=ety_a&revision=1",
+            "type=ety_%61&revision=1",
+            "type=ety_%2b&revision=1",
+            "type=ety_%&revision=1",
+            "type=ety_%FF&revision=1",
+            "type=ety_%C0%AF&revision=1",
+            "type=ety_a%20b&revision=1",
+            "type=ety_a\tb&revision=1",
+            "type=ety_a&revision=1#x",
+            "type=ety_a%0A&revision=1",
+            "type=ety_a%C2%85&revision=1",
+            "type=ety_a+&revision=1",
+        ] {
+            assert_eq!(
+                point("ent_a".into(), Some(raw)),
+                Err(OntologyReadError::InvalidQuery),
+                "{raw:?}"
+            );
+        }
+        assert_eq!(
+            point("ent_a".into(), None),
+            Err(OntologyReadError::InvalidQuery)
+        );
+        assert_eq!(
+            point("wrong".into(), Some("type=ety_a&revision=1")),
+            Err(OntologyReadError::InvalidQuery)
+        );
+        assert_eq!(
+            point("ent_a".into(), Some(&"x".repeat(4097))),
+            Err(OntologyReadError::InvalidQuery)
+        );
     }
 }

@@ -11,7 +11,9 @@ use axum::extract::{Path, RawQuery, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use foundry_records_draft::SealedEnvelope;
-use foundry_spine::{ViewError, audit_view, object_at_revision_in_store, object_history};
+use foundry_spine::{
+    PinnedObject, ViewError, audit_view, object_at_revision_in_store, object_history,
+};
 
 use crate::composition::{AppState, TenantState};
 use crate::dto::RefusalBody;
@@ -48,18 +50,38 @@ pub(crate) async fn object_response(
             "a read must pin the revision it understands: ?revision=N",
         );
     };
+    let viewed = object_view(tenant, tenant_id, &object_ref, revision, None).await;
+    object_view_response(state, object_ref, viewed)
+}
+
+pub(crate) async fn object_view(
+    tenant: &tokio::sync::Mutex<TenantState>,
+    tenant_id: &str,
+    object_ref: &str,
+    revision: u32,
+    expected_type: Option<&data_ontology_kernel::EntityTypeId>,
+) -> Result<PinnedObject, ViewError> {
     let tenant = tenant.lock().await;
     // The object is the store's: a reader sees its last taken write, and a
     // write the store did not take is lag on the sync surface until a
     // catch-up repairs it. The definitions the pin resolves against are
     // still the fold's registry, which is where revisions are retained.
-    match object_at_revision_in_store(
+    object_at_revision_in_store(
         &*tenant.projection_store,
         &tenant.projection.engine,
         tenant_id,
-        &object_ref,
+        object_ref,
         revision,
-    ) {
+        expected_type,
+    )
+}
+
+pub(crate) fn object_view_response(
+    state: &AppState,
+    object_ref: String,
+    viewed: Result<PinnedObject, ViewError>,
+) -> Response {
+    match viewed {
         Ok(pinned) => {
             state.metrics.read_served();
             Json(pinned_body(object_ref, &pinned)).into_response()

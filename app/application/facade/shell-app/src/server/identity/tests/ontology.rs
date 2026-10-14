@@ -10,7 +10,7 @@ const SUFFIXES: [&str; 8] = [
     "type-labels",
     "link-types",
     "objects?type=ety_record&revision=1",
-    "objects/ent_alpha?revision=1",
+    "objects/ent_alpha?type=ety_record&revision=1",
     "objects/ent_alpha/history",
     "audit",
 ];
@@ -134,7 +134,7 @@ async fn native_typed_errors_do_not_collapse_into_empty_or_sample_success() {
         let r = call(
             iam.shell(&foundry),
             Method::GET,
-            "/api/ontology/ten_acme/objects/ent_alpha?revision=1",
+            "/api/ontology/ten_acme/objects/ent_alpha?type=ety_record&revision=1",
             headers(),
             Body::empty(),
         )
@@ -152,7 +152,7 @@ async fn expired_verified_session_precedes_invalid_or_unrepresentable_query_refu
         "link-types",
         "objects?unknown=x",
         "objects?type=ety_record&revision=1&property=name&equals=text%3AAda%20Lovelace",
-        "objects/ent_alpha?revision=invalid",
+        "objects/ent_alpha?type=ety_record&revision=invalid",
     ] {
         let r = call(
             iam.shell(&foundry),

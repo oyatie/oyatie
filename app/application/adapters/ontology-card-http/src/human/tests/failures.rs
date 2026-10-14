@@ -1,6 +1,6 @@
 use super::super::HumanOntologyCardSource;
 use super::support::{cookie, raw_stub, source, stub};
-use application_ontology_read::{OntologyReadError, OntologyReadSource};
+use application_ontology_read::{ObjectPointQuery, OntologyReadError, OntologyReadSource};
 
 #[test]
 fn origins_and_canonical_native_cookie_are_validated_without_sending_credentials() {
@@ -94,7 +94,14 @@ async fn native_error_status_and_cause_keep_all_seven_typed_refusals_distinct() 
         let (base, _) = stub(vec![(status, body.into(), String::new())]);
         assert_eq!(
             source(&base, &cookie('A'))
-                .object("ten_acme", "ent_alpha", 1)
+                .object(
+                    "ten_acme",
+                    &ObjectPointQuery {
+                        entity_type: "ety_record".into(),
+                        object_ref: "ent_alpha".into(),
+                        revision: 1
+                    }
+                )
                 .await,
             Err(expected)
         );

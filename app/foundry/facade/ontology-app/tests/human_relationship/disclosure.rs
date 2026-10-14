@@ -124,7 +124,7 @@ async fn target_revision_is_the_current_written_revision_not_the_root_pin() {
     );
     let reply = crate::human_support::request(
         &fixture.router,
-        "/v1/tenants/ten_acme/objects/ent_team?revision=2",
+        "/v1/tenants/ten_acme/objects/ent_team?type=ety_team&revision=2",
         &[&crate::human_support::cookie()],
     )
     .await;

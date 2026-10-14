@@ -45,11 +45,17 @@ async fn authorized_human_queries_keep_native_pins_pages_filters_and_refusals() 
     for (suffix, expected) in [
         ("/objects/ent_alpha", StatusCode::BAD_REQUEST),
         (
-            "/objects/ent_alpha?revision=invalid",
+            "/objects/ent_alpha?type=ety_record&revision=invalid",
             StatusCode::BAD_REQUEST,
         ),
-        ("/objects/ent_alpha?revision=9", StatusCode::CONFLICT),
-        ("/objects/ent_missing?revision=1", StatusCode::NOT_FOUND),
+        (
+            "/objects/ent_alpha?type=ety_record&revision=9",
+            StatusCode::CONFLICT,
+        ),
+        (
+            "/objects/ent_missing?type=ety_record&revision=1",
+            StatusCode::NOT_FOUND,
+        ),
         (
             "/objects?type=ety_missing&revision=1",
             StatusCode::BAD_REQUEST,
@@ -104,7 +110,7 @@ async fn human_reads_preserve_store_and_log_faults_and_exact_refusal_metrics() {
     let operator = Session::from_shared(shared.clone());
     let router = router_with_user_sessions(shared, FakeSessions::new(Ok(view())));
     for suffix in [
-        "/objects/ent_alpha?revision=1",
+        "/objects/ent_alpha?type=ety_record&revision=1",
         "/objects?type=ety_record&revision=1",
     ] {
         let before = value_of(&scrape(&operator).await, "foundry_read_refused_total");
@@ -182,7 +188,7 @@ async fn human_detail_uses_last_taken_projection_and_history_uses_live_log() {
     let detail = body(
         request(
             &router,
-            "/v1/tenants/ten_acme/objects/ent_alpha?revision=1",
+            "/v1/tenants/ten_acme/objects/ent_alpha?type=ety_record&revision=1",
             &[&cookie()],
         )
         .await,

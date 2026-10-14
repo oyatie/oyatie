@@ -117,11 +117,15 @@ pub fn object_at_revision_in_store(
     tenant_id: &str,
     object_ref: &str,
     pinned: u32,
+    expected_type: Option<&EntityTypeId>,
 ) -> Result<PinnedObject, ViewError> {
     let projected = store
         .get(tenant_id, object_ref)
         .map_err(ViewError::StoreUnreadable)?
         .ok_or(ViewError::UnknownObject)?;
+    if expected_type.is_some_and(|expected| expected.value != projected.entity.entity_type.value) {
+        return Err(ViewError::UnknownObject);
+    }
     let type_id = EntityTypeId::new(projected.entity.entity_type.value.clone())
         .map_err(|_| ViewError::UnknownObject)?;
     let definition = registry
