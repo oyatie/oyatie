@@ -70,7 +70,7 @@ function createOntologyDraftForms(context) {
   submit('entity-edit',()=>{
     const e=declaration();if(!e)return;const name=named(find('entity-name').value),rev=revision(find('entity-revision').value),primary=find('entity-primary').value || null,title=find('entity-title').value || null;
     if(baseline() && primary!==e.primary_key_property)throw new Error('Published primary-key designation is fixed.');
-    if(!baseline() && primary && !e.properties.some(p=>p.name===primary && p.required && p.tier==='scalar' && (p.value_type===null || p.value_type.shape==='scalar')))throw new Error('Choose a required scalar primary-key property.');
+    if(primary!==e.primary_key_property && primary && !e.properties.some(p=>p.name===primary && p.required && p.tier==='scalar' && (p.value_type===null || p.value_type.shape==='scalar')))throw new Error('Choose a required scalar primary-key property.');
     if(title && !e.properties.some(p=>p.name===title))throw new Error('Choose a declared title property.');
     const appearance=display(e.display,{description:find('entity-description').value,plural_name:find('entity-plural').value});
     e.display_name=name;e.primary_key_property=primary;e.title_property=title;e.display=appearance;e.revision=rev;

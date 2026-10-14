@@ -1,6 +1,34 @@
 use super::explorer_test::check_controller;
 
 #[test]
+fn saved_draft_only_legacy_primary_declarations_allow_metadata_edits() {
+    for tier in [
+        "scalar",
+        "vector",
+        "timeseries",
+        "geo",
+        "ciphertext",
+        "struct",
+    ] {
+        let check = r#"
+(async()=>{
+  await flush();modelEnabled=true;nativeError='forbidden';statusError=403;session.roles=['foundry-model-author'];
+  const doc=structuredClone(modelDocument),legacy=structuredClone(doc.entities[0]);legacy.id='ety_legacy_draft';legacy.primary_key_property='name';legacy.properties[0].tier=legacyTier;doc.entities.push(legacy);
+  const id='9007199254740993';modelDrafts.set(id,{id,tenant_id:'ten_acme',owner:'usr_alice',base_generation:modelWorkspace.generation,version:'1',document:doc,publication:null});
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
+  find('live-ontology-draft-choice').value=id;find('live-ontology-draft-choice').emit('change');await flush();
+  find('live-ontology-library-types').querySelectorAll('[data-model-type]').find(e=>e.dataset.modelType===legacy.id).emit('click');
+  assert.equal(modelWorkspace.document.entities.some(e=>e.id===legacy.id),false);assert.equal(find('live-ontology-entity-primary').value,'name');
+  find('live-ontology-entity-name').value='Edited draft-only type';find('live-ontology-entity-name').emit('input');find('live-ontology-entity-edit').emit('submit');find('live-ontology-draft-save').emit('click');await flush();
+  const saved=modelDrafts.get(id).document.entities.find(e=>e.id===legacy.id);
+  assert.equal(saved.display_name,'Edited draft-only type',`saved ${legacyTier} legacy key permits metadata editing`);assert.equal(saved.primary_key_property,legacy.primary_key_property);assert.deepEqual(saved.properties,legacy.properties);
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"#;
+        check_controller(&format!("const legacyTier={tier:?};\n{check}"));
+    }
+}
+
+#[test]
 fn structured_field_edits_preserve_native_unicode_name_semantics() {
     check_controller(
         r#"
