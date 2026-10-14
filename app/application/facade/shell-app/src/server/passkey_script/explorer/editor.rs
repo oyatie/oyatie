@@ -146,6 +146,7 @@ function createOntologyDraftEditor(lifecycle, view) {
     }else {adopt(value);note('Saved native draft reloaded; local edits discarded.');}
   }));
   find('draft-choice').addEventListener('change',()=>{
+    if(pending?.kind==='save'){choices();note('Reconcile the uncertain submission before changing models.');return;}
     const choice=find('draft-choice').value;if((unsaved() || formDirty) && !pending){choices();note('Save or explicitly discard local edits and reload before changing the selected model.');return;}
     run('Opening selected native model…',async token=>{
       if(choice==='published'){if(pending){choices();note('Reconcile the uncertain submission before changing models.');return;}draft=null;working=null;validation=null;blocked=false;forms.reset();render();return;}

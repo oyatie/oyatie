@@ -70,3 +70,111 @@ fn pending_nonfirst_type_and_link_selection_survive_verified_refresh() {
 "#,
     );
 }
+
+const PENDING_SAVE_CHECK: &str = r#"
+(async()=>{
+  await flush();modelEnabled=true;session.roles=['foundry-model-author'];
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
+  find('live-ontology-draft-new').emit('click');await flush();
+  const first='9007199254740993',second='9007199254740994';
+  const other=structuredClone(modelDrafts.get(first));other.id=second;other.document.entities[0].display_name='Other saved draft';modelDrafts.set(second,other);
+  await restore();
+  function enter(field,value){find('live-ontology-'+field).value=value;find('live-ontology-'+field).emit('input');}
+  enter('entity-name','Submitted change');enter('entity-revision','2');find('live-ontology-entity-edit').emit('submit');
+  const realFetch=context.fetch;let releaseFailure;
+  context.fetch=(url,options)=>{const result=realFetch(url,options);if(url.endsWith('/save'))return new Promise((_,reject)=>releaseFailure=()=>reject(new Error('network disconnected after commit')));return result;};
+  find('live-ontology-draft-save').emit('click');await flush();
+  assert.equal(find('live-ontology-draft-choice').disabled,true,'in-flight selection is unavailable');
+  enter('entity-name','Newer local entity');enter('property-name','newer_local_property');releaseFailure();await flush();context.fetch=realFetch;
+  assert.equal(modelDrafts.get(first).version,'2','save committed before its acknowledgement was lost');
+  const choice=find('live-ontology-draft-choice'),requests=calls.length;
+  assert.equal(choice.disabled,false,'the outcome-unknown selector is reachable');assert.ok(choice.getClientRects().length);
+  choice.focus();choice.value=destination==='same'?first:second;choice.emit('change');await flush();
+  assert.equal(choice.value,first,'an uncertain save cannot change the selected draft');
+  assert.equal(find('live-ontology-entity-name').value,'Newer local entity','reopening cannot discard newer local entity text');assert.equal(find('live-ontology-property-name').value,'newer_local_property');
+  assert.equal(document.activeElement,choice,'refusal retains selector focus');assert.equal(calls.length,requests,'refusal neither reads another draft nor retries the save');
+  assert.match(find('live-ontology-draft-state').textContent,/Outcome unknown.*version 1/);
+  assert.match(find('live-ontology-draft-status').textContent,/Reconcile.*before changing models/);
+  assert.match(text(find('live-ontology-draft-diff')),/Submitted change/,'the submitted working document is retained too');
+  const saves=calls.filter(([url,options])=>url.endsWith('/save') && options.method==='POST').length;
+  find('live-ontology-draft-reload').emit('click');await flush();
+  assert.match(find('live-ontology-draft-status').textContent,/Saved submission recovered; newer local edits remain unsaved/);
+  assert.match(find('live-ontology-draft-state').textContent,/Unsaved.*Unapplied.*version 2/);
+  assert.equal(find('live-ontology-entity-name').value,'Newer local entity');assert.equal(find('live-ontology-property-name').value,'newer_local_property');
+  assert.equal(calls.filter(([url,options])=>url.endsWith('/save') && options.method==='POST').length,saves,'reconciliation never retries the mutation');
+  const reconciledRequests=calls.length;choice.value=second;choice.emit('change');await flush();
+  assert.equal(choice.value,first);assert.equal(calls.length,reconciledRequests);assert.match(find('live-ontology-draft-status').textContent,/Save or explicitly discard/);
+  find('live-ontology-draft-reload').emit('click');await flush();
+  assert.equal(find('live-ontology-entity-name').value,'Submitted change');assert.equal(find('live-ontology-property-name').value,'name');
+  assert.match(find('live-ontology-draft-status').textContent,/local edits discarded/);
+  choice.value=second;choice.emit('change');await flush();
+  assert.equal(choice.value,second);assert.equal(find('live-ontology-entity-name').value,'Other saved draft');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"#;
+
+#[test]
+fn uncertain_save_refuses_switching_to_another_owned_draft() {
+    check_controller(&format!("const destination='other';{PENDING_SAVE_CHECK}"));
+}
+
+#[test]
+fn uncertain_save_refuses_reopening_the_same_owned_draft() {
+    check_controller(&format!("const destination='same';{PENDING_SAVE_CHECK}"));
+}
+
+#[test]
+fn failed_save_before_commit_retains_applied_edits_until_explicit_discard() {
+    check_controller(
+        r#"
+(async()=>{
+  await flush();modelEnabled=true;session.roles=['foundry-model-author'];
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
+  find('live-ontology-draft-new').emit('click');await flush();
+  const first='9007199254740993',second='9007199254740994';
+  const other=structuredClone(modelDrafts.get(first));other.id=second;other.document.entities[0].display_name='Other saved draft';modelDrafts.set(second,other);await restore();
+  assert.equal(find('live-ontology-entity-name').disabled,false);
+  find('live-ontology-entity-name').value='Applied local change';find('live-ontology-entity-revision').value='2';find('live-ontology-entity-edit').emit('submit');
+  const realFetch=context.fetch;let saveAttempts=0;
+  context.fetch=(url,options)=>{if(url.endsWith('/save')){saveAttempts++;return Promise.reject(new Error('network failed before native commit'));}return realFetch(url,options);};
+  find('live-ontology-draft-save').emit('click');await flush();
+  const choice=find('live-ontology-draft-choice'),requests=calls.length;assert.equal(choice.disabled,false);assert.ok(choice.getClientRects().length);
+  assert.equal(modelDrafts.get(first).version,'1');choice.focus();choice.value=second;choice.emit('change');await flush();
+  assert.equal(choice.value,first,'failed save cannot discard applied working edits through draft navigation');
+  assert.equal(find('live-ontology-entity-name').value,'Applied local change');assert.match(text(find('live-ontology-draft-diff')),/Applied local change/);
+  assert.match(find('live-ontology-draft-state').textContent,/Outcome unknown/);assert.equal(calls.length,requests);
+  find('live-ontology-draft-reload').emit('click');await flush();
+  assert.match(find('live-ontology-draft-status').textContent,/does not match.*Local edits are retained/);assert.match(find('live-ontology-draft-state').textContent,/Conflict/);
+  assert.equal(find('live-ontology-entity-name').value,'Applied local change');assert.match(text(find('live-ontology-draft-diff')),/Applied local change/);
+  choice.value=second;choice.emit('change');await flush();assert.equal(choice.value,first);assert.match(find('live-ontology-draft-status').textContent,/Save or explicitly discard/);
+  find('live-ontology-draft-reload').emit('click');await flush();
+  assert.equal(find('live-ontology-entity-name').value,'Record');assert.match(find('live-ontology-draft-status').textContent,/local edits discarded/);
+  choice.value=second;choice.emit('change');await flush();assert.equal(choice.value,second);assert.equal(find('live-ontology-entity-name').value,'Other saved draft');
+  assert.equal(saveAttempts,1,'reconciliation and navigation never retry the save');assert.equal(modelDrafts.get(first).version,'1');context.fetch=realFetch;
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"#,
+    );
+}
+
+#[test]
+fn uncertain_creation_still_allows_explicit_saved_draft_inspection() {
+    check_controller(
+        r#"
+(async()=>{
+  await flush();modelEnabled=true;session.roles=['foundry-model-author'];
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
+  modelLoseAck=true;find('live-ontology-draft-new').emit('click');await flush();
+  assert.match(find('live-ontology-draft-status').textContent,/outcome unknown/);
+  const creates=calls.filter(([url,options])=>url.endsWith('/drafts') && options.method==='POST').length;
+  find('live-ontology-draft-reload').emit('click');await flush();
+  assert.match(find('live-ontology-draft-status').textContent,/Choose an owned draft to inspect/);
+  const choice=find('live-ontology-draft-choice');assert.equal(choice.disabled,false);
+  choice.value='published';choice.emit('change');await flush();
+  assert.match(find('live-ontology-draft-status').textContent,/Reconcile.*before changing models/);
+  choice.value='9007199254740993';choice.emit('change');await flush();
+  assert.match(find('live-ontology-draft-state').textContent,/Draft 9007199254740993.*Saved.*version 1/);
+  assert.match(find('live-ontology-draft-status').textContent,/Saved owned draft opened/);
+  assert.equal(calls.filter(([url,options])=>url.endsWith('/drafts') && options.method==='POST').length,creates,'inspection never retries creation');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"#,
+    );
+}
