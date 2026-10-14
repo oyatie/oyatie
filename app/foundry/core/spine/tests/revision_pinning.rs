@@ -187,26 +187,21 @@ fn the_store_rooted_view_equals_the_fold_rooted_view() {
         "a poisoned fixture would answer UnknownObject on both sides: {:?}",
         state.poison
     );
+    let entity_type = EntityTypeId::new("ety_reading").unwrap();
     let mut compared = 0;
     for object in ["ent_old", "ent_new", "ent_late", "ent_absent"] {
         for pin in [1, 2, 9] {
             let fold = object_at_revision(&state, object, pin, None);
-            let durable =
-                object_at_revision_in_store(&store, &registry, "ten_test", object, pin, None);
-            assert_eq!(fold, durable, "{object} at {pin}");
-            let typed = object_at_revision_in_store(
-                &store,
-                &registry,
-                "ten_test",
-                object,
-                pin,
-                Some(&EntityTypeId::new("ety_reading").unwrap()),
-            );
-            assert_eq!(fold, typed, "typed {object} at {pin}");
-            compared += 1;
+            for expected in [None, Some(&entity_type)] {
+                let durable = object_at_revision_in_store(
+                    &store, &registry, "ten_test", object, pin, expected,
+                );
+                assert_eq!(fold, durable, "{object} at {pin}, expected {expected:?}");
+                compared += 1;
+            }
         }
     }
-    assert_eq!(compared, 12);
+    assert_eq!(compared, 24);
     let late =
         object_at_revision_in_store(&store, &registry, "ten_test", "ent_late", 2, None).unwrap();
     assert_eq!(
