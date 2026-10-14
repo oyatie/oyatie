@@ -43,7 +43,7 @@ function createOntologyExplorer(lifecycle) {
     return root.contains(active) && (active.closest('[data-live-results]') || ['type','read','next','first'].some(id => find(id) === active));
   }
   function focusSchemaControl() {
-    [find('type'), find('types-refresh')].find(control => control && !control.disabled && !control.hidden)?.focus({ preventScroll: true });
+    [find('type'), find('types-refresh')].find(control => control && !control.disabled && !control.hidden && control.getClientRects().length)?.focus({ preventScroll: true });
   }
   function emptySchema() {
     const restoreFocus = find('schema').contains(document.activeElement);
@@ -83,6 +83,7 @@ function createOntologyExplorer(lifecycle) {
     find('revision').value = '1'; find('limit').value = '25';
     for (const id of ['property', 'from', 'to']) find(id).value = '';
     find('comparison').value = 'none'; find('kind').value = 'text';
+    find('access-badge').textContent='Sign-in required';
     find('access-notice').hidden = false;
     find('identity').textContent = ''; root.hidden = true; identity = null; busy(false);
   }
@@ -153,7 +154,7 @@ pub(super) const SCRIPT: &str = r#"
     const selection = retaining && same ? { type: find('type').value, revision: find('revision').value, cursor, activeObject, readPage, auditShown: !find('audit').hidden } : null;
     if (!selection) clear();
     else clearRelationships();
-    identity = session; generation = version; root.hidden = false; find('access-notice').hidden = true;
+    identity = session; generation = version; root.hidden = false;find('access-badge').textContent='Session verified'; find('access-notice').hidden = true;
     find('identity').textContent = `Verified tenant ${session.tenantId} · account ${session.userId}`;
     if (!editor.active()) clearModel();
     const modelAccess=editor.open(session,version,retaining);
@@ -205,6 +206,6 @@ pub(super) const SCRIPT: &str = r#"
     invalidate(); emptyResults(); busy(false);
     note('Read selection changed. Read objects to load this context.');
   });
-  return { clear, open, hold: version => { invalidate(); clearRelationships(); editor.hold(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
+  return { clear, open, hold: version => {find('access-badge').textContent='Checking session'; invalidate(); clearRelationships(); editor.hold(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
 }
 "#;

@@ -253,3 +253,6 @@ mod pending_selection_test;
 
 #[cfg(test)]
 mod validation_navigation_test;
+
+#[cfg(test)]
+mod generic_model_editor_test;
