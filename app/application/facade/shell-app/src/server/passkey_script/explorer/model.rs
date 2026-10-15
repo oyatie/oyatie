@@ -8,6 +8,8 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   const find = id => document.getElementById(`live-ontology-${id}`);
   let schemas = [], links = [], selectedType = null, selectedLink = null, source = 'Published declarations';
   let representation = 'graph', zoom = 1, width = 640, height = 360;
+  let scope='related',context=null,heldViewport=null,heldSelection=null,relatedCount=null,drawn=null,framePending=true;
+  const projection=()=>ontologyModelProjection(schemas,links,{type:selectedType,link:selectedLink},scope);
   let typeButtons = [], linkButtons = [], graphLabels = [], graphNodes = [], graphEdges = [];
   const arrowSize = 8, arrowRefX = 7, arrowRefY = 4;
   const cardinality = value => ({one_to_one:'one → one',one_to_many:'one → many',many_to_many:'many → many'})[value];
@@ -22,44 +24,65 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   function button(text, action, className = '') {
     const element = node('button', text, className); element.type = 'button'; element.addEventListener('click', action); return element;
   }
-  function typeButton(schema, className = '') {
-    const element = button('', () => selectType(schema.entity_type), className);
-    element.append(node('span', schema.display_name), node('small', ` · ${schema.entity_type}`));
-    element.dataset.modelType = schema.entity_type; typeButtons.push([element, schema.entity_type]); return element;
+  function focusedDeclaration() {
+    const element=document.activeElement,surface=['scene','library-types','library-links','model-table'].find(id=>find(id).contains(element));
+    return surface && (element?.dataset.modelType || element?.dataset.modelLink)?{element,surface,type:element.dataset.modelType,link:element.dataset.modelLink}:null;
   }
-  function linkButton(link, className = '') {
-    const element = button(link.link_type, () => {
-      const accepted=selectRelationship(link.link_type);if(accepted===false)return;
-      selectLink(link.link_type);
+  function restoreDeclaration(saved, same=true) {
+    if(!saved || document.activeElement!==document.body && document.activeElement!==saved.element || saved.element.isConnected)return;
+    const buttons=saved.type?typeButtons:linkButtons;
+    const replacement=same?buttons.find(([element,id])=>id===(saved.type || saved.link) && find(saved.surface).contains(element) && !element.disabled && element.getClientRects().length)?.[0]:null;
+    const local=saved.surface.startsWith('library')?find('search'):find(representation==='graph'?'graph':'view-table');
+    (replacement || local)?.focus({preventScroll:true});
+  }
+  function declarationButton(row, type, className) {
+    const id=type?row.entity_type:row.link_type;
+    const element=button('',()=>{
+      if(element.disabled || !element.isConnected || !find('explorer').contains(element))return;
+      const owned=focusedDeclaration(),prior=context,accepted=type?selectType(id):selectRelationship(id);
+      if(accepted===false || type && accepted!==true)return;
+      if(prior!==context)return;
+      if(type)select(id);else selectLink(id);
       if(accepted && typeof accepted==='object')renderOntologySelectedContext(accepted);
-    }, className);
-    element.dataset.modelLink = link.link_type; linkButtons.push([element, link.link_type]); return element;
+      restoreDeclaration(owned);
+    },className);
+    const unique=projection()[type?'typeById':'linkById'].has(id);
+    element.disabled=!unique;
+    if(!unique)element.setAttribute('aria-label',`Missing or ambiguous ${type?'type':'relationship'} ID ${id}; inspect the complete Table and validate the draft.`);
+    if(type){element.append(node('span',row.display_name),node('small',` · ${id}`));element.dataset.modelType=id;typeButtons.push([element,id]);}
+    else{element.textContent=id;element.dataset.modelLink=id;linkButtons.push([element,id]);}
+    return element;
   }
+  const typeButton=(schema,className='')=>declarationButton(schema,true,className);
+  const linkButton=(link,className='')=>declarationButton(link,false,className);
   function selection() {
     for (const [element, id] of typeButtons) element.setAttribute('aria-pressed', String(!selectedLink && selectedType === id));
     for (const [element, id] of linkButtons) element.setAttribute('aria-pressed', String(selectedLink === id));
   }
   function selectLink(id) {
-    const link = links.find(row => row.link_type === id); if (!link) return;
+    const link = projection().linkById.get(id); if (!link) return false;
+    const changed=selectedLink!==id;if(changed){relatedCount=null;zoom=1;framePending=true;}
     const active = document.activeElement, restore = find('schema').contains(active);
-    selectedLink = id; find('schema').hidden = true;
+    selectedLink = id; selectedType=null;if(changed)refreshGraph();find('schema').hidden = true;
     find('link-properties').replaceChildren(ontologyTable('Relationship declaration', ['Declaration', 'Value'], [
       ['Relationship type', link.link_type], ['From entity type (source)', typeText(link.from_entity_type)], ['To entity type (target)', typeText(link.to_entity_type)],
       ['Cardinality', `${cardinality(link.cardinality)} (${link.cardinality})`], ['Limits per relationship type and tenant', cardinalityLimits(link.cardinality)],
       ['Cross-tenant intent', String(link.allow_cross_tenant)], ['Declaration revision', link.revision],
     ]));
     find('link').hidden = false; find('inspector-empty').hidden = true;renderOntologySelectedContext({source,kind:'relationship',linkId:link.link_type,from:typeContext(link.from_entity_type),to:typeContext(link.to_entity_type)}); selection();
-    if (restore) fallback();
+    if (restore) fallback();return true;
   }
-  function typeText(id) { return `${schemas.find(row => row.entity_type === id)?.display_name || id} · ${id}`; }
-  function typeContext(id) { return {id,name:schemas.find(row=>row.entity_type===id)?.display_name || id}; }
+  function typeText(id) { return `${typeContext(id).name} · ${id}`; }
+  function typeContext(id) { return {id,name:projection().typeById.get(id)?.display_name || id}; }
   function select(id) {
+    if(id!==null && !projection().typeById.has(id))return false;
+    const changed=selectedType!==id || selectedLink!==null;if(changed){relatedCount=null;zoom=1;framePending=true;}
     const restore = find('link').contains(document.activeElement);
-    selectedType = id; selectedLink = null; find('link-properties').replaceChildren(); find('link').hidden = true;
+    selectedType = id; selectedLink = null;if(changed)refreshGraph(); find('link-properties').replaceChildren(); find('link').hidden = true;
     renderOntologySelectedContext(schemas.some(row=>row.entity_type===id)?{source,kind:'type',type:typeContext(id)}:null);
-    find('inspector-empty').hidden = Boolean(id); selection(); if (restore) fallback();
+    find('inspector-empty').hidden = Boolean(id); selection(); if (restore) fallback();return true;
   }
-  function library() {
+  function library(retaining=false) {
     const active = document.activeElement;
     const restore = find('library-types').contains(active) || find('library-links').contains(active);
     const search = find('search').value.toLocaleLowerCase();
@@ -70,7 +93,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     find('library-types').replaceChildren(...(types.length ? types.map(row => typeButton(row, 'foundry-library-item')) : [node('p', schemas.length ? 'No matching types.' : 'No type declarations.')]));
     find('library-links').replaceChildren(...(relations.length ? relations.map(row => linkButton(row, 'foundry-library-item')) : [node('p', links.length ? 'No matching relationships.' : 'No relationship declarations.')]));
     find('library-summary').textContent = `${types.length} of ${schemas.length} types · ${relations.length} of ${links.length} relationships`;
-    selection(); if (restore) find('search').focus({preventScroll:true});
+    selection(); if (restore && !retaining) find('search').focus({preventScroll:true});
   }
   function scale(value) {
     const active = document.activeElement;
@@ -82,63 +105,49 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     find('zoom-out').disabled = zoom <= 0.25; find('zoom-in').disabled = zoom >= 2;
     if ([find('zoom-out'),find('zoom-in')].includes(active) && active.disabled) find('fit').focus({preventScroll:true});
   }
-  function fit() {
-    const graph = find('graph');
-    const availableWidth = graph.clientWidth - 32, availableHeight = graph.clientHeight - 32;
-    let value = 1;
-    function limit(right, bottom, fixedWidth = 0, fixedHeight = 0) {
-      if (right > 0) value = Math.min(value, (availableWidth - fixedWidth) / right);
-      if (bottom > 0) value = Math.min(value, (availableHeight - fixedHeight) / bottom);
-    }
-    for (const card of graphNodes) limit(card.offsetLeft + card.offsetWidth, card.offsetTop + card.offsetHeight);
-    for (const edge of graphEdges) {
-      const box = edge.getBBox(), padding = Math.hypot(arrowRefX, arrowRefY) * Number.parseFloat(getComputedStyle(edge).strokeWidth);
-      limit(box.x + box.width + padding, box.y + box.height + padding);
-    }
-    // Inverse-scaled labels keep their screen dimensions when Fit changes the scene zoom.
-    for (const label of graphLabels) limit(label.offsetLeft, label.offsetTop, label.offsetWidth, label.offsetHeight);
-    if (!graphNodes.length) limit(width, height);
-    scale(value);
-    graph.scrollLeft = 0; graph.scrollTop = 0;
+  function occupied(overview=false) {
+    const selected=selectedLink?projection().linkById.get(selectedLink):null;
+    const ids=new Set(selected?[selected.from_entity_type,selected.to_entity_type]:[selectedType]);
+    const cards=overview?graphNodes:graphNodes.filter(card=>ids.has(card.dataset.modelType));
+    const edges=overview?graphEdges:graphEdges.filter(edge=>edge.dataset.modelEdge===selectedLink);
+    const labels=overview?graphLabels:graphLabels.filter(label=>label.dataset.modelLink===selectedLink);
+    const boxes=cards.map(card=>({x:card.offsetLeft,y:card.offsetTop,w:card.offsetWidth,h:card.offsetHeight}));
+    for(const edge of edges){const box=edge.getBBox(),padding=Math.hypot(arrowRefX,arrowRefY)*Number.parseFloat(getComputedStyle(edge).strokeWidth);boxes.push({x:box.x-padding,y:box.y-padding,w:box.width+2*padding,h:box.height+2*padding});}
+    for(const label of labels)boxes.push({x:label.offsetLeft,y:label.offsetTop,w:label.offsetWidth/zoom,h:label.offsetHeight/zoom});
+    if(!boxes.length)return null;
+    const left=Math.min(...boxes.map(box=>box.x)),top=Math.min(...boxes.map(box=>box.y));
+    return {left,top,width:Math.max(...boxes.map(box=>box.x+box.w))-left,height:Math.max(...boxes.map(box=>box.y+box.h))-top};
   }
-  function graph() {
-    const scene = find('scene'); scene.replaceChildren(); graphLabels = []; graphNodes = []; graphEdges = [];
-    const columns = Math.min(3, Math.max(1, Math.ceil(Math.sqrt(schemas.length))));
-    width = Math.max(640, columns * 350 + 100); height = Math.max(360, Math.ceil(schemas.length / columns) * 260 + 100);
-    scene.style.width = `${width}px`; scene.style.height = `${height}px`;
-    const positions = new Map(schemas.map((row, index) => [row.entity_type, {x: 70 + index % columns * 350, y: 60 + Math.floor(index / columns) * 260}]));
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', width); svg.setAttribute('height', height); svg.setAttribute('aria-hidden', 'true'); svg.classList.add('foundry-edges');
-    const defs = document.createElementNS(svg.namespaceURI, 'defs'), marker = document.createElementNS(svg.namespaceURI, 'marker');
-    marker.setAttribute('id', 'foundry-native-arrow'); marker.setAttribute('markerWidth',String(arrowSize)); marker.setAttribute('markerHeight',String(arrowSize)); marker.setAttribute('refX',String(arrowRefX)); marker.setAttribute('refY',String(arrowRefY)); marker.setAttribute('orient','auto');
-    const arrow = document.createElementNS(svg.namespaceURI, 'path'); arrow.setAttribute('d','M 0 0 L 8 4 L 0 8 z'); marker.append(arrow); defs.append(marker); svg.append(defs); scene.append(svg);
-    links.forEach((link, index) => {
-      const from = positions.get(link.from_entity_type), to = positions.get(link.to_entity_type);
-      if (!from || !to) return;
-      const self = link.from_entity_type === link.to_entity_type;
-      const edge = document.createElementNS(svg.namespaceURI, 'path');
-      const startX = from.x + 130, startY = from.y + 200, endX = to.x + 130, endY = to.y;
-      edge.setAttribute('d', self ? `M ${from.x + 260} ${from.y + 40} C ${from.x + 335} ${from.y - 10}, ${from.x + 335} ${from.y + 140}, ${from.x + 260} ${from.y + 115}` : `M ${startX} ${startY} C ${startX} ${startY + 40}, ${endX} ${endY - 40}, ${endX} ${endY}`);
-      edge.setAttribute('marker-end', 'url(#foundry-native-arrow)'); edge.dataset.modelEdge = link.link_type; svg.append(edge); graphEdges.push(edge);
-      const label = linkButton(link, 'foundry-edge-label'); graphLabels.push(label);
-      label.append(node('small', cardinality(link.cardinality)));
-      label.style.left = `${self ? from.x + 265 : (startX + endX) / 2 - 75}px`;
-      label.style.top = `${self ? from.y + 140 : (startY + endY) / 2 + (index % 3) * 22}px`;
-      label.setAttribute('aria-label', `Inspect relationship ${link.link_type}, ${typeText(link.from_entity_type)} to ${typeText(link.to_entity_type)}, ${cardinality(link.cardinality)}`); scene.append(label);
-    });
-    for (const schema of schemas) {
-      const position = positions.get(schema.entity_type), card = typeButton(schema, 'foundry-type-node');
-      card.textContent = ''; card.append(node('span', 'OBJECT TYPE', 'foundry-node-eyebrow'), node('strong', schema.display_name), node('small', `${schema.entity_type} · Declaration revision ${schema.revision}`));
-      for (const property of schema.properties.slice(0,3)) {
-        const row = node('span', '', 'foundry-node-property'); row.append(node('span',property.name),node('small',ontologyDeclarationText(property.value_type)));
-        if (property.name === schema.primary_key_property) row.append(node('em','Primary'));
-        if (property.name === schema.title_property) row.append(node('em','Title'));
-        card.append(row);
+  function frameSelection() {
+    const graph=find('graph'),bounds=occupied();if(!bounds)return;
+    const first=graphNodes.find(card=>card.dataset.modelType===(selectedType || projection().linkById.get(selectedLink)?.from_entity_type));
+    const target=bounds.width*zoom<=graph.clientWidth-32 && bounds.height*zoom<=graph.clientHeight-32?bounds:first?{left:first.offsetLeft,top:first.offsetTop,width:first.offsetWidth,height:first.offsetHeight}:bounds;
+    graph.scrollLeft=Math.max(0,(target.left+target.width/2)*zoom-graph.clientWidth/2);graph.scrollTop=Math.max(0,(target.top+target.height/2)*zoom-graph.clientHeight/2);framePending=false;
+  }
+  function fit(overview=false) {
+    const graph=find('graph');if(!graphNodes.length)return;
+    const fits=()=>{const box=occupied(overview);return box && box.width*zoom<=graph.clientWidth-32 && box.height*zoom<=graph.clientHeight-32;};
+    zoom=1;graphRender();
+    if(!fits()){
+      zoom=.25;graphRender();
+      if(fits()){
+        let fitting=.25,upper=1;
+        for(let attempt=0;attempt<12;attempt++){zoom=(fitting+upper)/2;graphRender();if(fits())fitting=zoom;else upper=zoom;}
+        zoom=fitting;graphRender();
       }
-      card.append(node('small',`${schema.properties.length} declared properties · ${schema.properties.filter(p=>p.required).length} required`));
-      card.style.left = `${position.x}px`; card.style.top = `${position.y}px`; card.setAttribute('aria-label', `Inspect entity type ${schema.display_name}, ${schema.entity_type}, declaration revision ${schema.revision}`); scene.append(card); graphNodes.push(card);
     }
-    if (!schemas.length) scene.append(node('p','No native type declarations.','foundry-graph-empty'));
+    const bounds=occupied(overview);if(!bounds)return;
+    graph.scrollLeft=Math.max(0,(bounds.left+bounds.width/2)*zoom-graph.clientWidth/2);graph.scrollTop=Math.max(0,(bounds.top+bounds.height/2)*zoom-graph.clientHeight/2);framePending=false;
+    const overflow=bounds.width*zoom>graph.clientWidth-31 || bounds.height*zoom>graph.clientHeight-31;
+    find('graph-frame').hidden=false;find('graph-frame').textContent=overview?`Overview at ${Math.round(zoom*100)}%. ${overflow?'Content still overflows; pan or use the complete Table.':'Return to Fit selection for readable inspection.'}`:overflow?'Selection overflows; pan to its remaining declarations.':'Selection framed.';
+  }
+  function graphRender(){const owned=focusedDeclaration(),position=viewport();graph();summary();selection();restoreViewport(position);restoreDeclaration(owned);}
+  function graph() {
+    typeButtons=typeButtons.filter(([element])=>!find('scene').contains(element));linkButtons=linkButtons.filter(([element])=>!find('scene').contains(element));
+    drawn=renderOntologyGraph(find,node,typeButton,linkButton,cardinality,projection(),{type:selectedType,link:selectedLink},scope,zoom,relatedCount);
+    ({width,height}=drawn);graphNodes=drawn.nodes;graphEdges=drawn.edges;graphLabels=drawn.labels;
+    typeButtons=typeButtons.filter(([element])=>element.isConnected);linkButtons=linkButtons.filter(([element])=>element.isConnected);
+    if(scope==='related' && drawn.plan)relatedCount=drawn.plan.neighbors;
     scale(zoom);
   }
   function table() {
@@ -147,18 +156,55 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
       ontologyTable('Relationship declarations', ['Relationship','From','To','Cardinality','Declaration revision'], links.map(row => [linkButton(row),typeText(row.from_entity_type),typeText(row.to_entity_type),cardinality(row.cardinality),row.revision])),
     );
   }
-  function setModel(rows, relations, selected, modelSource = 'Published declarations') {
-    schemas = rows; links = relations; source = modelSource; typeButtons = []; linkButtons = [];
-    selectedType = selected; selectedLink = null;
-    library(); graph(); table(); select(selected);
-    find('model-summary').textContent = `${schemas.length} type declarations · ${links.length} relationship declarations`;
+  function viewport(){return {left:find('graph').scrollLeft,top:find('graph').scrollTop};}
+  function restoreViewport(value){find('graph').scrollLeft=value.left;find('graph').scrollTop=value.top;}
+  function scopeCounts() {
+    const projected=projection(),count=(kind,displayed)=>({total:projected.counts[kind].total,eligible:projected[kind==='types'?'schemas':'links'].length,displayed,remaining:projected[kind==='types'?'schemas':'links'].length-displayed,outsideScope:projected.counts[kind].remaining,undrawn:projected.counts[kind].undrawn});
+    return {types:count('types',graphNodes.length),relationships:count('relationships',graphEdges.length)};
   }
-  function clear() {
+  function summary() {
+    const counts=scopeCounts(),label=value=>`${value.displayed} of ${value.eligible} eligible shown, ${value.remaining} remaining, ${value.outsideScope} outside scope, ${value.undrawn} undrawn`;
+    find('model-summary').textContent=`${schemas.length} type declarations · ${links.length} relationship declarations · ${counts.types.displayed} types and ${counts.relationships.displayed} relationships shown.`;
+    find('graph-counts').textContent=`${scope} graph: ${label(counts.types)} types · ${label(counts.relationships)} relationships. Table retains every declaration.`;
+    for(const value of ['selected','related','all'])find(`scope-${value}`).setAttribute('aria-pressed',String(scope===value));
+    const expand=find('expand'),active=document.activeElement===expand;expand.disabled=scope!=='related' || !drawn?.plan || drawn.plan.neighbors>=drawn.plan.totalNeighbors;expand.hidden=expand.disabled;
+    expand.textContent=`Expand next${drawn?.plan?' ('+(drawn.plan.totalNeighbors-drawn.plan.neighbors)+')':''}`;
+    if(active && expand.disabled && document.activeElement===document.body)find('fit').focus({preventScroll:true});
+  }
+  function refreshGraph() {
+    const owned=focusedDeclaration(),position=viewport();graph();summary();selection();if(framePending && drawn.plan)frameSelection();else restoreViewport(position);restoreDeclaration(owned);
+  }
+  function setScope(value) {
+    if(!context || !['selected','related','all'].includes(value))return false;
+    if(scope!==value){scope=value;zoom=1;framePending=true;refreshGraph();}return true;
+  }
+  function setModel(rows, relations, selected, modelSource = 'Published declarations', modelContext=null) {
+    graphObserver?.observe(find('graph'));
+    const key=ontologyModelSourceKey(modelContext),same=key!==null && key===context;
+    const owned=focusedDeclaration(),position=same?(heldViewport || viewport()):{left:0,top:0};
+    const retained=heldSelection || {type:selectedType,link:selectedLink};
+    selected ??= same && (retained.type || retained.link)?retained:{type:rows[0]?.entity_type || null,link:null};
+    if(!same){scope='related';zoom=1;relatedCount=null;framePending=true;}
+    if(same && (selected?.type!==selectedType || selected?.link!==selectedLink) && !heldSelection){relatedCount=null;zoom=1;framePending=true;}context=key;heldViewport=null;heldSelection=null;
+    schemas = rows; links = relations; source = modelSource; typeButtons = []; linkButtons = [];
+    const projected=ontologyModelProjection(rows,relations,selected,scope);
+    selectedLink=projected.linkById.has(selected?.link)?selected.link:null;
+    selectedType=!selectedLink && projected.typeById.has(selected?.type)?selected.type:null;
+    library(true);graph();table();
+    if(selectedLink)selectLink(selectedLink);else select(selectedType);
+    summary();if(framePending && drawn?.plan)frameSelection();else restoreViewport(position);restoreDeclaration(owned,same);return {type:selectedType,link:selectedLink};
+  }
+  function clear(retaining=false) {
+    graphObserver?.disconnect();find('graph-frame').textContent='';find('graph-frame').hidden=true;find('graph-counts').textContent='';
     const active = document.activeElement;
     const restore = ['scene','library-types','library-links','model-table','link','selection-details'].some(id => find(id).contains(active));
-    schemas = []; links = []; typeButtons = []; linkButtons = []; graphLabels = []; graphNodes = []; graphEdges = []; selectedType = null; selectedLink = null;
+    heldViewport=retaining?(heldViewport || viewport()):null;
+    heldSelection=retaining?(heldSelection || {type:selectedType,link:selectedLink}):null;
+    if(!retaining){context=null;scope='related';zoom=1;relatedCount=null;framePending=true;}
+    schemas = []; links = []; drawn=null;typeButtons = []; linkButtons = []; graphLabels = []; graphNodes = []; graphEdges = []; selectedType = null; selectedLink = null;
     for (const id of ['scene','library-types','library-links','model-table','link-properties']) find(id).replaceChildren();
     width = 640; height = 360; find('scene').style.width = `${width}px`; find('scene').style.height = `${height}px`; scale(zoom);
+    if(!retaining)restoreViewport({left:0,top:0});
     find('library-summary').textContent = ''; find('model-summary').textContent = ''; find('link').hidden = true; find('inspector-empty').hidden = false;
     renderOntologySelectedContext(null);
     if (restore) fallback();
@@ -180,18 +226,28 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     for (const id of ['graph','table']) find(`view-${id}`).setAttribute('aria-pressed', String(value === id));
     if (restore) find(`view-${value}`).focus({preventScroll:true});
   }
-  find('search').addEventListener('input', library);
+  const scopeControls=node('div','','foundry-scope-controls');scopeControls.setAttribute('role','group');scopeControls.setAttribute('aria-label','Declaration scope');
+  for(const value of ['selected','related','all']){const control=button(value[0].toUpperCase()+value.slice(1),()=>setScope(value));control.id=`live-ontology-scope-${value}`;scopeControls.append(control);}
+  const expand=button('Expand next related type',()=>{if(scope==='related' && drawn?.plan){relatedCount=drawn.plan.neighbors+1;framePending=false;refreshGraph();}});expand.id='live-ontology-expand';
+  const overview=button('Overview',()=>fit(true));overview.id='live-ontology-overview';
+  const frame=node('output');frame.id='live-ontology-graph-frame';frame.hidden=true;frame.setAttribute('aria-live','polite');
+  const counts=node('details','','foundry-graph-counts'),countsTitle=node('summary','Counts'),countsBody=node('p');countsBody.id='live-ontology-graph-counts';counts.append(countsTitle,countsBody);
+  find('graph-controls').setAttribute('aria-label','Type graph controls');find('graph-controls').append(scopeControls,expand,counts,overview,frame);find('fit').textContent='Fit selection';
+  find('graph-help').textContent='Arrows follow native from → to direction. Selected shows the accepted declaration; Related adds a measured first neighborhood. Expand deliberately; All and Table retain complete declarations. Pan with scroll or arrow keys. + and − zoom; Home frames selection. Overview may shrink text and still overflow.';
+  const graphObserver=typeof ResizeObserver==='function'?new ResizeObserver(()=>{if(context && find('graph').getClientRects().length)refreshGraph();}):null;
+  graphObserver?.observe(find('graph'));
+  find('search').addEventListener('input', ()=>library());
   for (const value of ['schema','objects']) find(`mode-${value}`).addEventListener('click', () => showMode(value));
   for (const value of ['graph','table']) find(`view-${value}`).addEventListener('click', () => showRepresentation(value));
-  find('zoom-in').addEventListener('click', () => scale(zoom + 0.25));
-  find('zoom-out').addEventListener('click', () => scale(zoom - 0.25));
-  find('fit').addEventListener('click', fit);
+  find('zoom-in').addEventListener('click',()=>{framePending=false;scale(zoom+.25);graphRender();});
+  find('zoom-out').addEventListener('click',()=>{framePending=false;scale(zoom-.25);graphRender();});
+  find('fit').addEventListener('click',()=>fit());
   find('graph').addEventListener('keydown', event => {
     if (event.target !== find('graph')) return;
     const direction = {ArrowLeft:[-80,0],ArrowRight:[80,0],ArrowUp:[0,-80],ArrowDown:[0,80]}[event.key];
-    if (direction) { event.preventDefault(); find('graph').scrollBy({left:direction[0],top:direction[1],behavior:'auto'}); }
-    else if (['+','=','-','Home'].includes(event.key)) { event.preventDefault(); if (event.key === 'Home') fit(); else scale(zoom + (event.key === '-' ? -0.25 : 0.25)); }
+    if (direction) { framePending=false;event.preventDefault(); find('graph').scrollBy({left:direction[0],top:direction[1],behavior:'auto'}); }
+    else if (['+','=','-','Home'].includes(event.key)) { event.preventDefault(); if (event.key === 'Home') fit(); else{framePending=false;scale(zoom + (event.key === '-' ? -0.25 : 0.25));graphRender();} }
   });
-  return {setModel,select,selectLink,clear,reset:()=>{clear();find('search').value='';zoom=1;showMode('schema');showRepresentation('graph');scale(1);}};
+  return {setModel,select,selectLink,setScope,scope:()=>({mode:scope,counts:scopeCounts()}),clear,reset:()=>{clear();find('search').value='';zoom=1;showMode('schema');showRepresentation('graph');scale(1);}};
 }
 "#;

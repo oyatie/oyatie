@@ -13333,22 +13333,23 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-workspace-header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .5rem .75rem; border-bottom: 1px solid var(--rule); }
 .foundry-workspace-header > div { min-width: 0; }
 .foundry-workspace .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
-.foundry-workspace-header #live-ontology-identity { overflow-wrap: anywhere; font-size: var(--text-cap); }
+.foundry-workspace-header #live-ontology-identity { overflow-wrap: anywhere; font-size: .875rem; }
 .foundry-workspace-header h2 { margin: .25rem 0; font-size: var(--text-xl); }
 .foundry-workspace-header p { margin: .25rem 0; color: var(--ink-muted); }
-.foundry-read-label { padding: .4rem .65rem; border: 1px solid var(--accent-border); border-radius: var(--radius-sm); color: var(--accent-deep); background: var(--accent-bg); white-space: nowrap; font-size: var(--text-cap); }
+.foundry-read-label { padding: .4rem .65rem; border: 1px solid var(--accent-border); border-radius: var(--radius-sm); color: var(--accent-deep); background: var(--accent-bg); white-space: nowrap; font-size: .875rem; }
 .foundry-access-notice { padding: 1rem 1.25rem; }
 .foundry-module-strip { position: sticky; top: var(--foundry-header-height); z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; min-width: 0; padding: .5rem .75rem; border-bottom: 1px solid var(--rule); background: var(--paper-raised); }
 .live-ontology-explorer[data-workspace-layout="flow"] .foundry-module-strip { position: static; }
 .foundry-taskbar { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem; min-width: 0; }
 .foundry-mode-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem; }
-.foundry-workspace button, .foundry-workspace summary { min-height: max(44px, 2.75rem); font: inherit; }
+.foundry-workspace button, .foundry-workspace summary { min-height: max(44px, 2.75rem); font: inherit; font-size: 1rem; }
+.foundry-workspace label { font-size: .875rem; }
 .foundry-workspace button { color: var(--ink); background: var(--paper-raised); border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: .45rem .65rem; cursor: pointer; }
 .foundry-workspace button[aria-pressed="true"] { color: var(--accent-deep); border-color: var(--accent); background: var(--accent-bg); }
 .foundry-workspace button:disabled { color: var(--ink-muted); background: var(--paper-sunken); cursor: default; }
 .foundry-workspace :is(button,input,select,summary,[tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .foundry-object-type-controls select { min-height: max(44px, 2.75rem); max-width: 100%; min-width: 0; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: .4rem; font: inherit; color: var(--ink); background: var(--paper-raised); }
-#live-ontology-status { flex: 1 1 18rem; min-width: 0; margin: 0; overflow-wrap: anywhere; color: var(--ink-muted); font-size: var(--text-cap); }
+#live-ontology-status { flex: 1 1 18rem; min-width: 0; margin: 0; overflow-wrap: anywhere; color: var(--ink-muted); font-size: .875rem; }
 .foundry-workspace-body { display: grid; grid-template-columns: 13rem minmax(0, 1fr) minmax(19rem, .7fr); min-height: 34rem; }
 .foundry-library { grid-column: 1; grid-row: 1; }
 .foundry-main { grid-column: 2; grid-row: 1; }
@@ -13358,40 +13359,45 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-library { border-right: 1px solid var(--rule); }
 .foundry-inspector { border-left: 1px solid var(--rule); }
 .foundry-workspace summary { cursor: pointer; font-weight: 650; padding: .65rem 0; }
-.foundry-library label { display: block; color: var(--ink-muted); font-size: var(--text-cap); margin: .5rem 0; }
+.foundry-library label { display: block; color: var(--ink-muted); margin: .5rem 0; }
 .foundry-library input { width: 100%; min-width: 0; min-height: max(44px, 2.75rem); padding: .5rem; font: inherit; border: 1px solid var(--rule); border-radius: var(--radius-sm); background: var(--paper-raised); color: var(--ink); }
-.foundry-library h4 { margin: 1.25rem 0 .4rem; font-size: var(--text-cap); }
+.foundry-library h4 { margin: 1.25rem 0 .4rem; font-size: .875rem; }
 .foundry-library-item { width: 100%; display: block; text-align: left; margin: .25rem 0; overflow-wrap: anywhere; }
-.foundry-library-help, #live-ontology-library-summary, .foundry-model-note, #live-ontology-graph-help { color: var(--ink-muted); font-size: var(--text-cap); line-height: 1.5; }
+.foundry-library-item small, .foundry-model-table small { font-size: .875rem; }
+.foundry-library-help, #live-ontology-library-summary, .foundry-model-note, #live-ontology-graph-help { color: var(--ink-muted); font-size: .875rem; line-height: 1.5; }
 .foundry-model-note { margin: .5rem 0 0; }
+#live-ontology-model-note { margin-top:.25rem; }
 .foundry-main { min-width: 0; padding: .75rem; }
-.foundry-canvas-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .5rem 0 .75rem; }
+.foundry-canvas-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: max(4px, .25rem); padding: 0 0 4px; }
 .foundry-canvas-toolbar > div:first-child { margin-right: auto; }
-.foundry-canvas-toolbar h4 { margin: 0; font-size: var(--text-sm); }
-.foundry-canvas-toolbar p { margin: .3rem 0; font-size: var(--text-cap); color: var(--ink-muted); }
-#live-ontology-graph-controls { display: flex; align-items: center; gap: .25rem; }
+.foundry-canvas-toolbar h4 { margin: 0; font-size: 1rem; }
+.foundry-canvas-toolbar p { margin: .3rem 0; font-size: .875rem; color: var(--ink-muted); }
+#live-ontology-graph-controls { display: flex; flex-wrap:wrap; font-size:1rem; align-items: center; gap: max(4px, .25rem); }
+#live-ontology-graph-controls button { min-width:44px; font:inherit; }
 #live-ontology-zoom { min-width: 3rem; text-align: center; font-variant-numeric: tabular-nums; }
-.foundry-graph { height: 30rem; min-height: 24rem; width: 100%; overflow: auto; border: 1px solid var(--rule); border-radius: var(--radius-sm); background-color: var(--paper); background-image: linear-gradient(var(--rule-faint) 1px, transparent 1px), linear-gradient(90deg, var(--rule-faint) 1px, transparent 1px); background-size: 24px 24px; overscroll-behavior: contain; }
+.foundry-graph { font-size:1rem; scroll-padding:1rem; height: 30rem; min-height: 24rem; width: 100%; overflow: auto; border: 1px solid var(--rule); border-radius: var(--radius-sm); background-color: var(--paper); background-image: linear-gradient(var(--rule-faint) 1px, transparent 1px), linear-gradient(90deg, var(--rule-faint) 1px, transparent 1px); background-size: 24px 24px; overscroll-behavior: contain; }
 .foundry-graph-stage, .foundry-graph-scene { position: relative; }
 .foundry-graph-scene { transform-origin: top left; }
 .foundry-edges { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
 .foundry-edges > path { stroke: var(--ink-muted); stroke-width: 1.5; fill: none; }
 .foundry-edges marker path { fill: var(--ink-muted); }
-.foundry-workspace .foundry-type-node { position: absolute; width: 260px; height: 200px; display: flex; flex-direction: column; align-items: stretch; gap: .35rem; padding: .75rem; text-align: left; box-shadow: var(--shadow-card); }
-.foundry-type-node > strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-md); }
-.foundry-type-node > small { color: var(--ink-muted); font-size: var(--text-cap); }
-.foundry-node-eyebrow { font-size: var(--text-2xs); letter-spacing: .06em; color: var(--ink-muted); }
-.foundry-node-property { display: flex; align-items: center; gap: .35rem; font-family: var(--font-mono); font-size: var(--text-cap); }
-.foundry-node-property > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.foundry-node-property small { max-width: 6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-muted); }
-.foundry-node-property em { font: inherit; font-size: var(--text-2xs); padding: .1rem .2rem; color: var(--accent-deep); background: var(--accent-bg); }
-.foundry-workspace .foundry-edge-label { position: absolute; max-width: 160px; text-align: left; font-size: var(--text-cap); overflow-wrap: anywhere; transform-origin: top left; }
-.foundry-edge-label small { display: block; color: var(--ink-muted); }
+.foundry-workspace .foundry-type-node { position:absolute; width:min(14rem,calc(var(--foundry-graph-width,640px) - 4rem)); height:auto; min-height:max(64px,5.25rem); display:flex; flex-direction:column; align-items:stretch; justify-content:center; gap:.25rem; padding:.65rem; text-align:left; font-size:1rem; box-shadow:var(--shadow-card); }
+.foundry-type-node, .foundry-edge-label { z-index:1; }
+.foundry-type-node > strong { font-size:1rem; line-height:1.3; white-space:normal; overflow-wrap:anywhere; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.foundry-type-node > small { color:var(--ink-muted); font-size:.875rem; line-height:1.4; }
+.foundry-workspace .foundry-edge-label { position:absolute; width:max-content; max-width:min(13rem,calc(var(--foundry-graph-width,640px) - 4rem)); font-size:.875rem; line-height:1.4; text-align:left; overflow-wrap:anywhere; transform-origin:top left; }
+.foundry-edge-label small { display:block; color:var(--ink-muted); font:inherit; }
+.foundry-scope-controls { display:flex; flex-wrap:wrap; align-items:center; gap:max(4px,.25rem); font-size:1rem; }
+.foundry-scope-controls button { font:inherit; min-height:max(44px,2.75rem); }
+.foundry-graph-counts { font-size:.875rem; }
+.foundry-graph-counts summary { padding:.45rem .65rem; }
+.foundry-graph-counts p { max-width:30rem; overflow-wrap:anywhere; }
+.foundry-canvas-toolbar #live-ontology-model-summary { margin:0; font-size:.875rem; }
 .foundry-graph-empty { padding: 2rem; color: var(--ink-muted); }
 .foundry-model-table { overflow-x: auto; }
-.foundry-inspector p { line-height: 1.5; overflow-wrap: anywhere; font-size: var(--text-cap); }
-.foundry-inspector table { font-size: var(--text-cap); }
-.foundry-capability-note { min-width: 0; color: var(--ink-muted); font-size: var(--text-cap); }
+.foundry-inspector p { line-height: 1.5; overflow-wrap: anywhere; font-size: .875rem; }
+.foundry-inspector table { font-size: 1rem; }
+.foundry-capability-note { min-width: 0; color: var(--ink-muted); font-size: .875rem; }
 .foundry-capability-note[open] { flex-basis: 100%; }
 .foundry-capability-note > summary { display: flex; align-items: center; padding: 0 .4rem; }
 .foundry-capability-note p { overflow-wrap: anywhere; }
@@ -13416,10 +13422,10 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 
 .foundry-draft-controls { display:contents; }
 .foundry-model-choice { display:flex; align-items:center; flex-wrap:wrap; gap:.5rem; min-width:0; }
-.foundry-model-choice label { color:var(--ink-muted); font-size:var(--text-cap); }
-.foundry-draft-controls p { order:1; flex-basis:100%; margin:0; overflow-wrap:anywhere; color:var(--ink-muted); font-size:var(--text-cap); }
+.foundry-model-choice label { color:var(--ink-muted); }
+.foundry-draft-controls p { order:1; flex-basis:100%; margin:0; overflow-wrap:anywhere; color:var(--ink-muted); font-size:.875rem; }
 .foundry-editor-form { display:grid; grid-template-columns:minmax(0,1fr); gap:.45rem; margin:.75rem 0; }
-.foundry-workspace .foundry-editor-form input, .foundry-workspace .foundry-editor-form select, .foundry-workspace .foundry-draft-controls select, #live-ontology-property-choice { width:100%; min-width:0; min-height:max(44px,2.75rem); padding:.5rem; font:inherit; border:1px solid var(--rule); border-radius:var(--radius-sm); background:var(--paper-raised); color:var(--ink); box-sizing:border-box; }
+.foundry-workspace .foundry-editor-form input, .foundry-workspace .foundry-editor-form select, .foundry-workspace .foundry-draft-controls select, #live-ontology-property-choice { width:100%; min-width:0; min-height:max(44px,2.75rem); padding:.5rem; font:inherit; font-size:1rem; border:1px solid var(--rule); border-radius:var(--radius-sm); background:var(--paper-raised); color:var(--ink); box-sizing:border-box; }
 .foundry-draft-controls select { max-width:24rem; }
 .foundry-workspace .foundry-model-choice select { width:clamp(12rem,18vw,24rem); max-width:100%; }
 .foundry-draft-tray { min-width:0; border-top:1px solid var(--rule); padding:.5rem .75rem; overflow-wrap:anywhere; }
@@ -13427,17 +13433,17 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-draft-tray > p { margin:.25rem 0; }
 .foundry-draft-review { min-height:4rem; }
 .foundry-draft-tray h4 { margin:0; }
-.foundry-draft-tray p, .foundry-editor-form p { color:var(--ink-muted); font-size:var(--text-cap); line-height:1.5; }
+.foundry-draft-tray p, .foundry-editor-form p { color:var(--ink-muted); font-size:.875rem; line-height:1.5; }
 .foundry-draft-tray pre { max-height:12rem; overflow:auto; }
 
-.foundry-draft-inspector > h4 { margin:0; font-size:var(--text-md); }
+.foundry-draft-inspector > h4 { margin:0; font-size:1rem; }
 #live-ontology-draft-selection { margin:.35rem 0 .75rem; padding-bottom:.75rem; border-bottom:1px solid var(--rule); font-family:var(--font-mono); }
-.foundry-editor-form > label { font-size:var(--text-cap); font-weight:600; color:var(--ink-muted); }
+.foundry-editor-form > label { font-weight:600; color:var(--ink-muted); }
 .foundry-value-form fieldset { min-width:0; margin:.5rem 0; padding:.65rem; border:1px solid var(--rule); border-radius:var(--radius-sm); display:grid; gap:.5rem; background:var(--paper); }
-.foundry-value-form legend { font-size:var(--text-cap); font-weight:650; padding:0 .25rem; }
+.foundry-value-form legend { font-size:.875rem; font-weight:650; padding:0 .25rem; }
 .foundry-value-form input, .foundry-value-form select { width:100%; }
 .foundry-appearance { margin:.35rem 0; padding:.25rem .5rem; border:1px solid var(--rule); border-radius:var(--radius-sm); }
-.foundry-appearance label { display:block; margin:.5rem 0 .25rem; font-size:var(--text-cap); color:var(--ink-muted); }
+.foundry-appearance label { display:block; margin:.5rem 0 .25rem; color:var(--ink-muted); }
 .foundry-add-declarations { margin-top:1rem; padding-top:.5rem; border-top:1px solid var(--rule); }
 @media (min-width:72.001rem) { .foundry-inspector { max-height:55rem; overflow-y:auto; scrollbar-gutter:stable; } }
 
@@ -13450,13 +13456,17 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .console-app[data-shell-frame="foundry"] :is(.foundry-library,.foundry-inspector,.foundry-main,.foundry-draft-tray) { scrollbar-gutter:stable; }
 .console-app[data-shell-frame="foundry"] :is(.foundry-library,.foundry-inspector,.foundry-main,.foundry-draft-tray)::-webkit-scrollbar { width:auto; height:auto; }
 .console-app[data-shell-frame="foundry"] :is(.foundry-library,.foundry-inspector,.foundry-main,.foundry-draft-tray)::-webkit-scrollbar-thumb { background:var(--ink-muted); }
-.console-app[data-shell-frame="foundry"] { grid-template-rows:auto minmax(0,1fr); }
+.console-app[data-shell-frame="foundry"] { grid-template-rows:auto minmax(0,1fr); font-size:1rem; }
 .console-app[data-shell-frame="foundry"] .control-center { max-width:none; padding-inline:0; padding-top:0; }
 .console-app[data-shell-frame="foundry"] .foundry-workspace { border:0; border-radius:0; }
 .console-app[data-shell-frame="foundry"] .header-actions { flex-wrap:wrap; min-width:0; max-width:100%; }
-.console-app[data-shell-frame="foundry"] .header-workspace-identity { display:block; max-width:min(24rem,100%); overflow-wrap:anywhere; font-size:var(--text-cap); }
+.console-app[data-shell-frame="foundry"] .header-workspace-identity { display:block; max-width:min(24rem,100%); overflow-wrap:anywhere; font-size:.875rem; }
 .console-app[data-shell-frame="foundry"] :is(.header-icon,.command-trigger) { min-height:44px; }
-.console-app[data-shell-frame="foundry"] .header-icon { min-width:44px; }
+.console-app[data-shell-frame="foundry"] .header-icon { min-width:44px; font-size:1rem; }
+.console-app[data-shell-frame="foundry"] :is(.rail-group,.rail-nav em,.rail-brand span:not(.rail-mark),.rail-brand code,.workspace-avatar,.workspace-switch span:not(.workspace-avatar),.rail-proof-card p,.rail-proof-card span,.rail-proof-card small,.header-badge,.mobile-nav-bar-inner > a,.mobile-nav-more > summary) { font-size:.875rem; }
+.console-app[data-shell-frame="foundry"] :is(.rail-brand strong,.workspace-switch strong,.rail-proof-card strong,.rail-proof-actions > a) { font-size:1rem; }
+.console-app[data-shell-frame="foundry"] .rail-proof-actions > a { min-height:max(44px,2.75rem); }
+.console-app[data-shell-frame="foundry"] .header-badge { top:0; height:auto; min-height:1rem; }
 .console-app[data-shell-frame="foundry"] .app-header { height:auto; min-height:max(44px,3.25rem); }
 html:has(.console-app[data-shell-frame="foundry"] #live-ontology-explorer[data-workspace-layout="flow"]) { scrollbar-gutter:stable; }
 html:has(.console-app[data-shell-frame="foundry"] #live-ontology-explorer[data-workspace-layout="flow"])::-webkit-scrollbar { width:auto; height:auto; }
@@ -13467,7 +13477,7 @@ html:has(.console-app[data-shell-frame="foundry"] #live-ontology-explorer[data-w
   .console-app[data-shell-frame="foundry"] .rail-brand { justify-content:center; padding:.25rem 0; }
   .console-app[data-shell-frame="foundry"] .rail-brand :is(div,code) { display:none; }
   .console-app[data-shell-frame="foundry"] .rail-primary { display:grid; gap:.5rem; }
-  .console-app[data-shell-frame="foundry"] :is(.rail-primary a,.rail-menu > summary,.workspace-switch) { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.25rem; min-height:max(44px,3rem); padding:.5rem .1rem; text-align:center; font-size:var(--text-cap); color:var(--ink); text-decoration:none; overflow-wrap:anywhere; }
+  .console-app[data-shell-frame="foundry"] :is(.rail-primary a,.rail-menu > summary,.workspace-switch) { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.25rem; min-height:max(44px,3rem); padding:.5rem .1rem; text-align:center; font-size:.875rem; color:var(--ink); text-decoration:none; overflow-wrap:anywhere; }
   .console-app[data-shell-frame="foundry"] .rail-primary a[href="#foundry-workspace"] { color:var(--accent-deep); background:var(--accent-bg); border:1px solid var(--accent-border); border-radius:var(--radius-sm); }
   .console-app[data-shell-frame="foundry"] .rail-primary a > span { font-size:1.25rem; }
   .console-app[data-shell-frame="foundry"] .rail-menu { display:block; }
@@ -13482,7 +13492,10 @@ html:has(.console-app[data-shell-frame="foundry"] #live-ontology-explorer[data-w
 }
 @media (min-width:80rem) {
   .console-app[data-shell-frame="foundry"] .foundry-workspace { display:grid; grid-template-columns:fit-content(26rem) minmax(0,1fr); grid-template-rows:auto auto; }
-  .console-app[data-shell-frame="foundry"] .foundry-workspace-header { grid-column:1; grid-row:1; padding-block:0; }
+  .console-app[data-shell-frame="foundry"] .foundry-workspace-header { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:0 .75rem; grid-column:1; grid-row:1; padding-block:0; }
+  .console-app[data-shell-frame="foundry"] .foundry-workspace-header > div { display:contents; }
+  .console-app[data-shell-frame="foundry"] .foundry-workspace-header #live-ontology-identity { grid-column:1 / -1; grid-row:2; }
+  .console-app[data-shell-frame="foundry"] .foundry-read-label { grid-column:2; grid-row:1; }
   .console-app[data-shell-frame="foundry"] .foundry-workspace-header :is(h2,p) { margin-block:0; }
   .console-app[data-shell-frame="foundry"] .foundry-access-notice { grid-column:1 / -1; grid-row:2; }
   .console-app[data-shell-frame="foundry"] .live-ontology-explorer { display:grid; grid-column:1 / -1; grid-row:1 / 3; grid-template-columns:subgrid; grid-template-rows:subgrid; }
@@ -13522,7 +13535,7 @@ html:has(.console-app[data-shell-frame="foundry"] #live-ontology-explorer[data-w
 .foundry-selection-details dd { margin:0 0 .5rem; }
 .foundry-workspace :is(input,select,button,[tabindex]), #live-ontology-library-title, #live-ontology-inspector-title { scroll-margin-block:calc(var(--foundry-header-height) + var(--foundry-pane-bar-height) + 8rem) calc(max(64px,3.5rem + 19px) + env(safe-area-inset-bottom,0)); }
 .foundry-edit-settings { padding:.25rem .5rem; border:1px solid var(--rule); border-radius:var(--radius-sm); }
-.foundry-edit-settings > label, .foundry-value-form label { display:grid; gap:.35rem; font:inherit; font-weight:600; }
+.foundry-edit-settings > label, .foundry-value-form label { display:grid; gap:.35rem; font-weight:600; }
 .foundry-edit-settings > label { margin:.5rem 0 .25rem; }
 .foundry-value-form label > :is(input,select) { font-weight:400; }
 @media (min-width:72.001rem) { .foundry-inspector { scroll-padding-top:8rem; } .foundry-inspector > summary { top:0; } }

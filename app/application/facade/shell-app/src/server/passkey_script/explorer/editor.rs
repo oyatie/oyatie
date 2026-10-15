@@ -68,7 +68,8 @@ function createOntologyDraftEditor(lifecycle, view) {
   }
   function render(selected=null) {
     if (!active() || mode!=='schema') {controls();return;}
-    forms.render(working,draft);const rows=ontologyModelRows(working || workspace.document);view.setModel(rows.schemas,rows.links,selected || forms.selection() || rows.schemas[0]?.entity_type || null,draft?'Draft':'Published model');
+    forms.render(working,draft);const rows=ontologyModelRows(working || workspace.document),selection=draft?{type:forms.selectedLink()?null:selected || forms.selection() || rows.schemas[0]?.entity_type || null,link:forms.selectedLink()}:selected?{type:selected,link:null}:null;
+    view.setModel(rows.schemas,rows.links,selection,draft?'Draft':'Published model',{tenantId:identity.tenantId,userId:identity.userId,kind:draft?'draft':'published',...(draft?{id:draft.id,base:draft.base_generation}:{generation:workspace.generation})});
     find('model-note').textContent=draft ? `Working draft based on generation ${draft.base_generation}. Object reads use published declarations.` : `Coherent published metadata snapshot at generation ${workspace.generation}. Object reads are independent.`;
     if(forms.selectedLink())view.selectLink(forms.selectedLink());forms.describe();diff();controls();
   }
@@ -201,6 +202,6 @@ function createOntologyDraftEditor(lifecycle, view) {
       note(value.valid?`Saved changes pass schema validation · version ${snapshot.version}. Publishing is not available yet.`:`Saved changes were refused by schema validation · version ${snapshot.version}.`);
     });
   });
-  return {open,clear,active,render,selectType:id=>{if(active()){if(formDirty){note('Apply form edits or discard and reload before changing declaration.');return;}if(working && !forms.selectType(id))return;render(id);}},selectLink:id=>{if(!active())return false;if(formDirty){note('Apply form edits before changing declaration.');return false;}if(!working)return true;const prior=forms.selectedLink();if(!forms.selectLink(id))return false;if(prior!==id)forms.render(working,draft);controls();return forms.describe();},hold:()=>{invalidate();hide(true);},setMode:value=>{cancelSelectionFocus();mode=value;controls();if(value==='schema')render();}};
+  return {open,clear,active,render,selectType:id=>{if(!active() || mode!=='schema')return false;if(formDirty){note('Apply form edits or discard and reload before changing declaration.');return false;}if((working || workspace.document).entities.filter(row=>row.id===id).length!==1 || working && !forms.selectType(id))return false;render(id);return true;},selectLink:id=>{if(!active())return false;if(formDirty){note('Apply form edits before changing declaration.');return false;}if(!working)return true;const prior=forms.selectedLink();if(!forms.selectLink(id))return false;if(prior!==id)forms.render(working,draft);controls();return forms.describe();},hold:()=>{invalidate();hide(true);},setMode:value=>{cancelSelectionFocus();mode=value;controls();if(value==='schema')render();}};
 }
 "#;

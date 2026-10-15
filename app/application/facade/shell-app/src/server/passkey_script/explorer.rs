@@ -1,13 +1,19 @@
 mod editor;
 mod model;
+mod model_geometry;
+mod model_render;
+mod model_scope;
 mod objects;
 mod relationship_codec;
 mod relationships;
 mod render;
 pub(super) fn script() -> String {
     format!(
-        "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
+        "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
         render::SCRIPT,
+        model_scope::SCRIPT,
+        model_geometry::SCRIPT,
+        model_render::SCRIPT,
         model::SCRIPT,
         editor::script(),
         relationship_codec::SCRIPT,
@@ -75,14 +81,16 @@ function createOntologyExplorer(lifecycle) {
   window.addEventListener('hashchange',()=>revealPane(location.hash.slice(1).replace(/^live-ontology-/,''),true));
   let editor;
   const model = createOntologyModelView(id => {
-    if (workspaceMode==='schema' && editor?.active()) { editor.selectType(id); return; }
+    if (workspaceMode==='schema' && editor?.active()) return editor.selectType(id);
+    if(!schemas.some(row=>row.entity_type===id))return false;
     find('type').value = id;
-    changeType();
+    changeType();return true;
   }, focusSchemaControl, id=>workspaceMode!=='schema' || !editor?.active() ? true : editor.selectLink(id), value=>{
     workspaceMode=value;editor?.setMode(value);
-    if(value==='objects' || !editor?.active()) {model.setModel(schemas,links,find('type').value || null);renderSchema();}
+    if(value==='objects' || !editor?.active()) renderCatalogModel();
   });
-  editor=createOntologyDraftEditor(lifecycle,{setModel:(rows,relations,selected,source)=>{model.setModel(rows,relations,selected,source);renderSchemaFor(rows.find(row=>row.entity_type===selected));},selectLink:id=>model.selectLink(id),fallback:()=>{model.setModel(schemas,links,find('type').value || null);renderSchema();}});
+  function renderCatalogModel(){const selected=model.setModel(schemas,links,workspaceMode==='schema'?null:{type:find('type').value || null,link:null},'Published declarations',identity?{tenantId:identity.tenantId,userId:identity.userId,kind:'catalog'}:null);if(!selected.link)renderSchemaFor(schemas.find(row=>row.entity_type===selected.type));}
+  editor=createOntologyDraftEditor(lifecycle,{setModel:(rows,relations,selected,source,context)=>{const current=model.setModel(rows,relations,selected,source,context),matches=rows.filter(row=>row.entity_type===current.type);renderSchemaFor(matches.length===1?matches[0]:null);},selectLink:id=>model.selectLink(id),fallback:renderCatalogModel});
   let next = null, cursor = null, activeObject = null, historyShown = false, readPage = false;
   const queryControls = ['type', 'revision', 'limit', 'property', 'comparison', 'kind', 'from', 'to'];
   const note = text => { find('status').textContent = text; };
@@ -100,8 +108,8 @@ function createOntologyExplorer(lifecycle) {
     find('schema-summary').textContent = ''; find('schema-properties').replaceChildren(); find('schema').hidden = true;
     if (restoreFocus) focusSchemaControl();
   }
-  function clearModel() {
-    schemas = []; links = []; emptySchema(); model.clear();
+  function clearModel(retaining=false) {
+    schemas = []; links = []; emptySchema(); model.clear(retaining);
     find('model-note').textContent='Current schema and relationship declarations are loaded separately. This view is not an atomic model snapshot.';
     for (const option of find('type').children) option.textContent = option.value;
   }
@@ -212,7 +220,7 @@ pub(super) const SCRIPT: &str = r#"
     measurePaneBar();
     revealPane(location.hash.slice(1).replace(/^live-ontology-/,''));
     find('identity').textContent = `Verified tenant ${session.tenantId} · account ${session.userId}`;
-    if (!editor.active()) clearModel();
+    if (!editor.active()) clearModel(retaining && same);
     const modelAccess=editor.open(session,version,retaining);
     await run('Reading native entity schemas…', async token => {
       const rows = await fetchRead('schemas', token);
@@ -229,7 +237,7 @@ pub(super) const SCRIPT: &str = r#"
       find('type').disabled = schemas.length === 0; find('read').disabled = schemas.length === 0;
       if (selection && schemas.some(t => t.entity_type === selection.type)) { find('type').value = selection.type; find('revision').value = selection.revision; }
       else { emptyResults(); if (schemas.length) find('revision').value = schemas[0].revision; }
-      if (!editor.active()) {model.setModel(schemas, links, find('type').value || null); renderSchema();}
+      if (!editor.active()) renderCatalogModel();
       if (restoreFocus && (schemas.length === 0 || active === find('type'))) focusSchemaControl();
       note(schemas.length ? 'Native schemas loaded. Choose a type and requested schema revision, then Read objects.' : 'No entity types are declared for this verified tenant.');
       if (selection?.readPage && find('type').value === selection.type) await loadPage(token, selection.cursor, selection.activeObject);
@@ -262,6 +270,6 @@ pub(super) const SCRIPT: &str = r#"
     invalidate(); emptyResults(); busy(false);
     note('Read selection changed. Read objects to load this context.');
   });
-  return { clear, open, measure:measurePaneBar, hold: version => {paneObserver?.disconnect();find('access-badge').textContent='Checking session';find('identity').textContent=identity?`Checking tenant ${identity.tenantId} · account ${identity.userId}`:''; invalidate(); clearRelationships(); editor.hold(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
+  return { clear, open, measure:measurePaneBar, hold: version => {paneObserver?.disconnect();find('access-badge').textContent='Checking session';find('identity').textContent=identity?`Checking tenant ${identity.tenantId} · account ${identity.userId}`:''; invalidate(); clearRelationships(); editor.hold(); clearModel(true); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
 }
 "#;
