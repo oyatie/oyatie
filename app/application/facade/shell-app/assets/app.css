@@ -13482,10 +13482,11 @@ html:has(.console-app[data-shell-frame="foundry"] #live-ontology-explorer[data-w
 }
 @media (min-width:80rem) {
   .console-app[data-shell-frame="foundry"] .foundry-workspace { display:grid; grid-template-columns:fit-content(26rem) minmax(0,1fr); grid-template-rows:auto auto; }
-  .console-app[data-shell-frame="foundry"] .foundry-workspace-header { grid-column:1; grid-row:1; }
+  .console-app[data-shell-frame="foundry"] .foundry-workspace-header { grid-column:1; grid-row:1; padding-block:0; }
+  .console-app[data-shell-frame="foundry"] .foundry-workspace-header :is(h2,p) { margin-block:0; }
   .console-app[data-shell-frame="foundry"] .foundry-access-notice { grid-column:1 / -1; grid-row:2; }
   .console-app[data-shell-frame="foundry"] .live-ontology-explorer { display:grid; grid-column:1 / -1; grid-row:1 / 3; grid-template-columns:subgrid; grid-template-rows:subgrid; }
-  .console-app[data-shell-frame="foundry"] .foundry-module-strip { grid-column:2; grid-row:1; }
+  .console-app[data-shell-frame="foundry"] .foundry-module-strip { grid-column:2; grid-row:1; padding-block:0; }
   .console-app[data-shell-frame="foundry"] .foundry-workspace-body { grid-column:1 / -1; grid-row:2; }
 }
 @media (min-width:80rem) and (min-height:56rem) {
@@ -13501,7 +13502,7 @@ html:has(.console-app[data-shell-frame="foundry"] #live-ontology-explorer[data-w
   .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] :is(#live-ontology-graph,#live-ontology-model-table) { grid-row:2; height:100%; margin-top:0; }
   .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] #live-ontology-model-table { min-height:0; overflow:auto; }
   .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] #live-ontology-model-note { grid-row:3; }
-  .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] .foundry-draft-tray { max-height:14rem; min-height:0; overflow:auto; scroll-padding-block:.5rem; }
+  .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] .foundry-draft-tray { max-height:15.5rem; min-height:0; overflow:auto; scroll-padding-block:.5rem; }
 }
 
 .foundry-object-type-controls { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; min-width:0; }
