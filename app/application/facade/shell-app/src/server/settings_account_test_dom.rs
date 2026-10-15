@@ -57,8 +57,9 @@ class Element {
   querySelectorAll(selector) { const nodes=[];const visit=node=>{for(const child of node.children){if(child.matches(selector))nodes.push(child);visit(child);}};visit(this);return nodes; }
   querySelector(selector) { return this.querySelectorAll(selector)[0]||null; }
   cloneNode() { const copy=new Element(this.tagName,{...this.attrs});for(const part of this.parts)typeof part==='string'?copy.parts.push(part):copy.append(part.cloneNode(true));if(this.content)copy.content=this.content.cloneNode(true);return copy; }
-  getClientRects() { const panel=this.closest('.identity-panel, .finance-panel, .cockpit-panel, .resource-panel');return this.isConnected&&!this.closest('[hidden]')&&!(panel&&!panel.classList.contains('active'))?[{}]:[]; }
-  focus() { document.activeElement=this;emit('focusin',{target:this}); }
+  getClientRects() { const panel=this.closest('.identity-panel, .finance-panel, .cockpit-panel, .resource-panel');return this.isConnected&&!this.closest('[data-shell-inactive]')&&!this.closest('[hidden], [inert], [aria-hidden="true"]')&&!(panel&&!panel.classList.contains('active'))?[{}]:[]; }
+  dispatchEvent(event) { emit(event.type,{...event,target:this});return true; }
+  focus() { if(this.disabled||!this.getClientRects().length)return;document.activeElement=this;emit('focusin',{target:this}); }
   scrollIntoView() { this.scrolled=true; }
   close() { this.open=false; }
   click() { click(this); }
@@ -102,7 +103,7 @@ const location=new URL('https://preview.invalid/');
 const emit=(name,event)=>(events[name]||[]).forEach(callback=>callback(event));
 function click(target,options={}){const event={target,button:0,isTrusted:false,defaultPrevented:false,...options,preventDefault(){this.defaultPrevented=true;}};for(let node=target;node;node=node.parentElement)for(const callback of node.events.click||[])callback(event);if(target.isConnected)emit('click',event);if(target.tagName==='A'&&!event.defaultPrevented)location.hash=target.getAttribute('href');return event;}
 function enter(target){emit('keydown',{target,key:'Enter',isTrusted:true});return click(target,{detail:0});}
-const context={document,location,Element,NodeFilter,URL,window:{addEventListener:(name,callback)=>(windowEvents[name] ||= []).push(callback)},queueMicrotask:callback=>microtasks.push(callback),requestAnimationFrame:callback=>frames.push(callback),MutationObserver:class{constructor(callback){observers.push(callback);}observe(){}}};
+const context={Event:class{constructor(type){this.type=type;}},document,location,Element,NodeFilter,URL,window:{addEventListener:(name,callback)=>(windowEvents[name] ||= []).push(callback)},queueMicrotask:callback=>microtasks.push(callback),requestAnimationFrame:callback=>frames.push(callback),MutationObserver:class{constructor(callback){observers.push(callback);}observe(){}}};
 vm.runInNewContext(input.tabs,context,{timeout:1000});
 vm.runInNewContext(input.hr,context,{timeout:1000});
 vm.runInNewContext(input.bridge,context,{timeout:1000});

@@ -1,12 +1,13 @@
 mod credentials;
 mod explorer;
+mod shell_frame;
 
 pub(super) fn script() -> String {
     format!(
         "{}\n{}\n{}",
         credentials::SCRIPT,
         explorer::script(),
-        SCRIPT
+        SCRIPT.replace("__SHELL_CONTEXT__\n", shell_frame::SCRIPT)
     )
 }
 
@@ -30,7 +31,7 @@ if (signInPanel) {
   let expiryTimer = null;
   const explorer = createOntologyExplorer({
     valid: (session, version) => stillSelected(session, version) && current?.tenantId === session.tenantId && current?.userId === session.userId && current.expiresAt * 1000 > Date.now(),
-    fallback: () => account.focus(),
+    fallback: () => (account.getClientRects().length ? account : find('shell-session-entry')).focus({ preventScroll: true }),
     expired: text => { generation += 1; clearSession(); message(text, true); },
   });
   const canonical = (value, prefix) => new RegExp(`^${prefix}[A-Za-z0-9_-]+$`).test(value) && value.length <= 256;
@@ -51,32 +52,7 @@ if (signInPanel) {
     find('verified-ontology-updated').textContent = '';
   }
   function clearLive() { explorer.clear(); clearCard(); }
-  function shellContext(phase = sessionPhase) {
-    sessionPhase = phase;
-    const verified = current && current.expiresAt * 1000 > Date.now();
-    let target = null;
-    try { target = find(decodeURIComponent(location.hash.slice(1))); } catch {}
-    const foundry = target && (target.id === 'foundry-workspace' || find('foundry-workspace').contains(target));
-    const accountRoute = target && signInPanel.contains(target);
-    const previews = {'#service-catalog':'Catalog samples','#cloud-ops-cockpit':'Cloud samples','#evidence-spine':'Evidence samples','#work-hub':'Work hub samples'};
-    const write = (id, text) => { const element = find(id); if (element) element.textContent = text; };
-    write('shell-rail-product', foundry ? 'Foundry' : accountRoute ? 'Account & session' : 'Control Center');
-    write('shell-breadcrumb-scope', foundry ? 'Foundry' : accountRoute ? 'Oyatie IAM' : 'Sample views');
-    write('shell-breadcrumb-destination', foundry ? 'Ontology' : accountRoute ? 'Account & session' : previews[location.hash] || 'Control Center');
-    write('shell-session-entry', phase === 'checking' ? 'Checking session' : verified ? 'Account & session' : 'Sign in');
-    write('shell-account-mark', verified ? '◎' : 'S');
-    write('shell-account-title', verified ? current.tenantId : phase === 'checking' ? 'Checking session' : foundry || accountRoute ? 'No verified account' : 'Sample workspace');
-    write('shell-account-detail', verified ? current.userId : phase === 'checking' ? 'Awaiting verification' : foundry || accountRoute ? 'Sign-in required' : 'Anonymous preview');
-    write('shell-rail-scope', foundry ? 'FOUNDRY / ONTOLOGY' : accountRoute ? 'OYATIE IAM' : verified ? 'SAMPLE DESTINATIONS' : 'ANONYMOUS SAMPLE VIEWS');
-    write('shell-rail-title', foundry ? 'Ontology workspace' : accountRoute ? 'Account & session' : 'Explore shell samples');
-    write('shell-rail-description', foundry ? 'Model and object access are checked separately. Sample destinations remain previews.' : accountRoute ? 'Use this account panel to check your session, change IDs or sign out.' : 'Catalog, cloud, evidence and Work Hub samples. Live operations are unavailable.');
-    write('shell-rail-status', phase === 'checking' ? 'Checking session · access not yet verified' : verified ? 'Session verified · access checked per surface' : foundry || accountRoute ? 'Sign-in required · no live data' : 'Navigation only · no live operation');
-    write('shell-route-status', foundry ? 'Access checked per surface' : verified ? 'Sample destinations · preview only' : 'Navigation only · no live operation');
-    find('shell-rail-context')?.setAttribute('aria-label', foundry ? 'Foundry workspace context' : accountRoute ? 'Account and session' : 'Sample destinations');
-    const main = find('console-shell');
-    main?.setAttribute('aria-labelledby', foundry ? 'foundry-workspace-title' : accountRoute ? 'sign-in-title' : 'console-title');
-    main?.setAttribute('aria-describedby', foundry ? (find('live-ontology-explorer').hidden ? 'live-ontology-access-notice' : 'live-ontology-status') : accountRoute ? 'sign-in-status' : 'console-notice');
-  }
+__SHELL_CONTEXT__
   function clearSession() {
     current = null;
     clearTimeout(expiryTimer);
@@ -256,7 +232,26 @@ if (signInPanel) {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && current && !busy) restore();
   });
+  // Existing destination owners reveal the frame synchronously before native focus.
+  document.addEventListener('oyatie-shell-destination', event => {
+    const target = event.target, main = find('console-shell');
+    if (!(target instanceof Element) || !target.isConnected || !target.id || find(target.id) !== target || !main?.contains(target)) return;
+    const owners = ['shell-sample-intro','dashboard-island-root','oyatie-sign-in','foundry-workspace'].map(find);
+    if (target !== main && !owners.some(owner => owner?.parentElement === main && owner.contains(target))) return;
+    shellContext(sessionPhase, target);
+  }, true);
+  document.addEventListener('click', event => {
+    if (event.defaultPrevented || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || !(event.target instanceof Element)) return;
+    const anchor = event.target.closest("a[href^='#']");
+    if (!anchor) return;
+    let target;
+    try { target = find(decodeURIComponent(anchor.getAttribute('href').slice(1))); } catch { return; }
+    target?.dispatchEvent(new Event('oyatie-shell-destination'));
+    const menu = anchor.closest('details');
+    if (menu?.id === 'shell-navigation-menu' && find('oyatie-shell')?.getAttribute('data-shell-frame') === 'foundry' || menu?.classList.contains('mobile-nav-more')) menu.open = false;
+  });
   window.addEventListener('hashchange', () => shellContext());
+  window.addEventListener('popstate', () => shellContext());
   shellContext();
   setInterval(() => { if (current && !busy && document.visibilityState === 'visible') restore(); }, 30000);
   if (!window.isSecureContext || !navigator.credentials || !navigator.locks || !window.PublicKeyCredential) {

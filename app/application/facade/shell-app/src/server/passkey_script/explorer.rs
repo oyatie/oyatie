@@ -23,16 +23,47 @@ function createOntologyExplorer(lifecycle) {
   const root = find('explorer');
   let identity = null, generation = 0, epoch = 0, abort = null;
   let schemas = [], links = [], workspaceMode = 'schema';
-  const paneBar=find('pane-library').parentElement;
+  const paneBar=find('module-strip');
+  const workspace=document.getElementById('foundry-workspace'),shell=document.getElementById('oyatie-shell');
+  const header=shell.querySelector(':scope > .app-header');
+  const contextHeader=workspace.querySelector(':scope > .foundry-workspace-header');
+  const workpane=find('workpane'),toolbar=find('model').querySelector(':scope > .foundry-canvas-toolbar');
+  const tray=find('draft-tray'),trayActions=tray.querySelector(':scope > .foundry-draft-actions');
   let paneGeneration=-1;
+  function measureWorkArea(stripHeight) {
+    if(!header?.isConnected || header.parentElement!==shell || !contextHeader?.isConnected || contextHeader.parentElement!==workspace || !toolbar?.isConnected || !workpane.contains(toolbar) || !trayActions?.isConnected || !tray.contains(trayActions)) {
+      root.setAttribute('data-workspace-layout','flow');return;
+    }
+    const height=node=>{const style=getComputedStyle(node);return node.getClientRects().length?node.getBoundingClientRect().height+Number.parseFloat(style.marginTop)+Number.parseFloat(style.marginBottom):0;};
+    const padding=node=>{const style=getComputedStyle(node);return Number.parseFloat(style.paddingTop)+Number.parseFloat(style.paddingBottom);};
+    const minimum=Number.parseFloat(getComputedStyle(find('graph')).minHeight);
+    const trayHeight=tray.getClientRects().length?height(trayActions)+height(find('draft-status'))+padding(tray)+Number.parseFloat(getComputedStyle(find('draft-review')).minHeight):0;
+    const chrome=height(toolbar)+height(find('model-note'))+padding(workpane);
+    const remaining=window.innerHeight-height(header)-Math.max(stripHeight,height(contextHeader))-trayHeight-chrome;
+    const layout=Number.isFinite(remaining) && Number.isFinite(minimum) && minimum>0 && remaining>=minimum?'panes':'flow';
+    if(root.getAttribute('data-workspace-layout')!==layout)root.setAttribute('data-workspace-layout',layout);
+  }
   function measurePaneBar() {
     if(paneGeneration!==generation || !identity || !lifecycle.valid(identity,generation) || root.hidden || !root.isConnected || !paneBar.isConnected || !root.contains(paneBar) || !paneBar.getClientRects().length)return;
-    const height=paneBar.getBoundingClientRect().height;
+    let height=paneBar.getBoundingClientRect().height;
     if(!Number.isFinite(height) || height<=0)return;
-    const value=`${height}px`;
-    if(root.style.getPropertyValue('--foundry-pane-bar-height')!==value)root.style.setProperty('--foundry-pane-bar-height',value);
+    if(!workspace?.isConnected || !workspace.contains(root) || workspace.parentElement?.parentElement!==shell)return;
+    measureWorkArea(height);
+    height=paneBar.getBoundingClientRect().height;
+    if(!Number.isFinite(height) || height<=0)return;
+    let headerHeight=0;
+    if(shell.getAttribute('data-shell-frame')==='foundry' && header?.parentElement===shell && header.isConnected && header.getClientRects().length && getComputedStyle(header).position==='sticky') {
+      headerHeight=header.getBoundingClientRect().height;
+      if(!Number.isFinite(headerHeight) || headerHeight<=0)return;
+    }
+    const overlayHeight=getComputedStyle(paneBar).position==='sticky'?height:0;
+    for(const [owner,name,value]of [[root,'--foundry-pane-bar-height',overlayHeight],[workspace,'--foundry-header-height',headerHeight]]) {
+      const measured=`${value}px`;
+      if(owner.style.getPropertyValue(name)!==measured)owner.style.setProperty(name,measured);
+    }
   }
   const paneObserver=typeof ResizeObserver==='function'?new ResizeObserver(measurePaneBar):null;
+  window.addEventListener('resize',measurePaneBar);
   function revealPane(id, focus = false) {
     if(!identity || !lifecycle.valid(identity,generation) || root.hidden || !root.isConnected || !['library-title','workpane','inspector-title'].includes(id))return;
     const target=find(id);
@@ -94,9 +125,10 @@ function createOntologyExplorer(lifecycle) {
     next = null; cursor = null; activeObject = null; historyShown = false; readPage = false;
   }
   function clear() {
-    paneObserver?.disconnect();paneGeneration=-1;root.style.removeProperty('--foundry-pane-bar-height');
+    const ownedFocus = root.contains(document.activeElement);
+    paneObserver?.disconnect();paneGeneration=-1;root.style.removeProperty('--foundry-pane-bar-height');workspace?.style.removeProperty('--foundry-header-height');root.removeAttribute('data-workspace-layout');
     invalidate(); editor.clear();
-    if (root.contains(document.activeElement)) lifecycle.fallback();
+    if (ownedFocus && (document.activeElement === document.body || root.contains(document.activeElement))) lifecycle.fallback();
     emptyResults();
     schemas = []; links = []; emptySchema(); model.reset();
     find('type').replaceChildren(); find('type').disabled = true; find('read').disabled = true;
@@ -175,7 +207,9 @@ pub(super) const SCRIPT: &str = r#"
     if (!selection) clear();
     else clearRelationships();
     identity = session; generation = version; root.hidden = false;find('access-badge').textContent='Session verified'; find('access-notice').hidden = true;
-    paneGeneration=version;paneObserver?.observe(paneBar);measurePaneBar();
+    paneGeneration=version;
+    for(const node of [paneBar,header,contextHeader,toolbar,find('model-note'),tray,trayActions,find('draft-status')])if(node?.isConnected)paneObserver?.observe(node);
+    measurePaneBar();
     revealPane(location.hash.slice(1).replace(/^live-ontology-/,''));
     find('identity').textContent = `Verified tenant ${session.tenantId} · account ${session.userId}`;
     if (!editor.active()) clearModel();
@@ -228,6 +262,6 @@ pub(super) const SCRIPT: &str = r#"
     invalidate(); emptyResults(); busy(false);
     note('Read selection changed. Read objects to load this context.');
   });
-  return { clear, open, hold: version => {paneObserver?.disconnect();find('access-badge').textContent='Checking session';find('identity').textContent=identity?`Checking tenant ${identity.tenantId} · account ${identity.userId}`:''; invalidate(); clearRelationships(); editor.hold(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
+  return { clear, open, measure:measurePaneBar, hold: version => {paneObserver?.disconnect();find('access-badge').textContent='Checking session';find('identity').textContent=identity?`Checking tenant ${identity.tenantId} · account ${identity.userId}`:''; invalidate(); clearRelationships(); editor.hold(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
 }
 "#;

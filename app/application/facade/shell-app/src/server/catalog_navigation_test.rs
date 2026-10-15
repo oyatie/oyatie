@@ -19,6 +19,7 @@ class FakeElement {
       toggle: (name, selected) => selected ? this.classes.add(name) : this.classes.delete(name),
     };
   }
+  dispatchEvent(event) { document.emit(event.type,this);return true; }
   get id() { return this.attrs.id || ''; }
   get dataset() {
     return Object.fromEntries(Object.entries(this.attrs)

@@ -30,6 +30,7 @@ function focusPanel(id) {
   const panel = document.getElementById(id);
   if (!panel) return null;
   window.location.hash = `#${panel.id}`;
+  panel.dispatchEvent(new Event('oyatie-shell-destination'));
   panel.scrollIntoView();
   panel.tabIndex = -1;
   panel.focus({ preventScroll: true });

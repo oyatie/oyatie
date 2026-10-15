@@ -23,7 +23,7 @@ pub(super) fn SignInPanel() -> impl IntoView {
                     <button type="button" id="session-logout" disabled>"Sign out"</button>
                 </div>
                 <details class="sign-in-invitation">
-                    <summary>"Add your first passkey"</summary>
+                    <summary id="sign-in-invitation-title">"Add your first passkey"</summary>
                     <p>"Choose the invitation file provided by your administrator. It is used once, only on this page."</p>
                     <label for="passkey-invitation">"Passkey invitation (JSON file)"</label>
                     <input type="file" id="passkey-invitation" accept="application/json,.json" disabled />
