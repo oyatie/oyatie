@@ -9,6 +9,8 @@ use std::{
     process::{Command, Stdio},
 };
 
+static NEXT_FIXTURE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
 pub const TENANT: &str = "ten_model_runtime";
 pub const TOKEN: &str = "v1.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 pub const ORIGIN: &str = "http://localhost:33000";
@@ -20,8 +22,9 @@ pub struct Fixture {
 impl Fixture {
     pub fn new() -> Self {
         let directory = std::env::temp_dir().join(format!(
-            "foundry-model-runtime-{}-{}",
+            "foundry-model-runtime-{}-{}-{}",
             std::process::id(),
+            NEXT_FIXTURE.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()

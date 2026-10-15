@@ -52,32 +52,51 @@ pub struct ApplyReceipt {
 /// poison, because it is not derivable from (log bytes, registry).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ProjectionStoreError {
+    VerificationUnsupported,
     /// Applies are dense per tenant; a gap or skip is refused so a
     /// crashed runner can never silently hole the projection.
-    NonDenseOrdinal { expected: u64, found: u64 },
+    NonDenseOrdinal {
+        expected: u64,
+        found: u64,
+    },
     /// A re-apply at an applied ordinal carried different content.
-    DivergentReplay { ordinal: u64 },
+    DivergentReplay {
+        ordinal: u64,
+    },
     /// The entry is malformed (blank tenant, tenant-mismatched object,
     /// blank poison reason, zero page limit, ...).
-    Entry { detail: &'static str },
+    Entry {
+        detail: &'static str,
+    },
     /// A range predicate met a stored value of a different kind —
     /// schema drift surfaces loudly, never as a silent false.
-    KindMismatch { property: String },
+    KindMismatch {
+        property: String,
+    },
     /// Another object of this entity type already holds this key. The
     /// refusal names the property and the HOLDER — never the key value,
     /// which carries the property's own privacy class.
-    DuplicatePrimaryKey { property: String, held_by: String },
+    DuplicatePrimaryKey {
+        property: String,
+        held_by: String,
+    },
     /// An object of a keyed entity type does not carry its key
     /// property; an unidentifiable object never enters the store.
-    MissingPrimaryKey { property: String },
+    MissingPrimaryKey {
+        property: String,
+    },
     /// A key value is an array or struct. Identity must be a scalar:
     /// composite values have no index affinity, so an adapter could
     /// only compare them by decoding every row — and one that tried to
     /// use its typed columns would collide every composite with every
     /// other. Refused in BOTH planes so they cannot diverge.
-    NonScalarPrimaryKey { property: String },
+    NonScalarPrimaryKey {
+        property: String,
+    },
     /// The backing store failed; the detail is diagnostic.
-    Storage { detail: String },
+    Storage {
+        detail: String,
+    },
 }
 
 /// A typed resume point: pages continue strictly after this object.
@@ -120,6 +139,15 @@ pub struct Page {
 /// Reads are deterministic — `object_ref` ascending — so pages
 /// partition the full result.
 pub trait ProjectionStore {
+    /// Read-only exact comparison; missing entries and differing bytes both refuse.
+    fn verify_entry(&self, _entry: &AppliedEntry) -> Result<(), ProjectionStoreError> {
+        Err(ProjectionStoreError::VerificationUnsupported)
+    }
+
+    fn store_access(&self) -> Option<&foundry_store_access::StoreAccess> {
+        None
+    }
+
     fn apply(
         &mut self,
         entry: AppliedEntry,

@@ -7,6 +7,7 @@
 //! than a second structure that could drift from the log it summarizes.
 #![forbid(unsafe_code)]
 
+use foundry_store_local_draft::{LocalStoreGuard, StoreOpen};
 use std::path::Path;
 
 use foundry_records_draft::{ActionEnvelope, Receipt, RecordsLog, RecordsLogError, SealedEnvelope};
@@ -14,12 +15,30 @@ use rusqlite::{Connection, OptionalExtension, params};
 
 pub struct SqliteRecordsLog {
     connection: Connection,
+    access: LocalStoreGuard,
 }
 
 impl SqliteRecordsLog {
     /// Open (creating if absent) the log at `path`.
     pub fn open(path: &Path) -> Result<Self, RecordsLogError> {
-        let connection = Connection::open(path).map_err(storage)?;
+        let access = LocalStoreGuard::shared(path, StoreOpen::Create).map_err(access_error)?;
+        Self::open_with_access(path, access)
+    }
+
+    pub fn open_with_access(path: &Path, access: LocalStoreGuard) -> Result<Self, RecordsLogError> {
+        access.validate(path).map_err(access_error)?;
+        let connection = Connection::open_with_flags(
+            access.path(),
+            rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE
+                | rusqlite::OpenFlags::SQLITE_OPEN_CREATE
+                | rusqlite::OpenFlags::SQLITE_OPEN_NO_MUTEX,
+        )
+        .map_err(storage)?;
+        access
+            .validate(Path::new(connection.path().ok_or_else(|| {
+                access_error(foundry_store_local_draft::StoreAccessError::IdentityChanged)
+            })?))
+            .map_err(access_error)?;
         connection
             .execute_batch(
                 "PRAGMA journal_mode = WAL;
@@ -43,11 +62,16 @@ impl SqliteRecordsLog {
                      ON action_log (tenant_id, object_ref);",
             )
             .map_err(storage)?;
-        Ok(Self { connection })
+        access.validate(path).map_err(access_error)?;
+        Ok(Self { connection, access })
     }
 }
 
 impl RecordsLog for SqliteRecordsLog {
+    fn store_access(&self) -> Option<&foundry_store_access::StoreAccess> {
+        Some(self.access.access())
+    }
+
     fn append(&mut self, envelope: ActionEnvelope) -> Result<Receipt, RecordsLogError> {
         let transaction = self
             .connection
@@ -197,6 +221,12 @@ fn sealed_from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<SealedEnvelope> 
 }
 
 fn storage(error: rusqlite::Error) -> RecordsLogError {
+    RecordsLogError::Storage {
+        detail: error.to_string(),
+    }
+}
+
+fn access_error(error: foundry_store_local_draft::StoreAccessError) -> RecordsLogError {
     RecordsLogError::Storage {
         detail: error.to_string(),
     }

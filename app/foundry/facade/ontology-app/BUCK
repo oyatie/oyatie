@@ -47,6 +47,8 @@ rust_library(
     "//app/foundry/core/ontology-query-usecase:foundry-ontology-query-usecase",
         "//app/foundry/ports/draft/caller:foundry-caller-draft",
         "//app/foundry/ports/model-api:foundry-model-api",
+        "//app/foundry/ports/store-access:foundry-store-access",
+        "//app/foundry/adapters/draft/store-local:foundry-store-local-draft",
         "//app/foundry/adapters/draft/model-sqlite:foundry-model-sqlite-draft",
         "//app/foundry/ports/draft/projection:foundry-projection-draft",
         "//app/foundry/ports/draft/records:foundry-records-draft",
@@ -253,3 +255,24 @@ DRILLS = [
     )
     for suffix, stem in DRILLS
 ]
+
+rust_test(
+    name = "foundry-ontology-app-store-ownership",
+    srcs = ["tests/store_ownership_contract.rs", "tests/model_runtime/support.rs"],
+    crate = "store_ownership_contract",
+    crate_root = "tests/store_ownership_contract.rs",
+    visibility = ["PUBLIC"],
+    env = {"CARGO_BIN_EXE_foundry-ontology-app": "$(location :foundry-ontology-app-bin)"},
+    resources = [":foundry-ontology-app-bin"],
+    deps = FACADE_TEST_DEPS + [
+        "//app/foundry/ports/store-access:foundry-store-access",
+        "//app/foundry/core/spine:foundry-spine",
+        "//app/foundry/adapters/draft/store-local:foundry-store-local-draft",
+        "//app/foundry/ports/model-api:foundry-model-api",
+        "//app/foundry/adapters/draft/model-sqlite:foundry-model-sqlite-draft",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+        "//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft",
+        "//iam/ports/identity-user-session:iam-identity-user-session",
+        "third-party//:reqwest",
+    ],
+)

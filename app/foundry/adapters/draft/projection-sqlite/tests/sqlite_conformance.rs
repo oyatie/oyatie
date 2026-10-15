@@ -176,3 +176,8 @@ fn reset_survives_reopen() {
 fn reset_refuses_a_blank_tenant() {
     run(check_reset_refuses_a_blank_tenant);
 }
+
+#[test]
+fn exact_entry_verification_is_read_only() {
+    run(foundry_projection_draft::conformance::check_exact_entry_verification_is_read_only);
+}

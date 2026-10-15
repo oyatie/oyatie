@@ -17,6 +17,10 @@ pub enum RecordsLogError {
 /// The executable meaning of this contract is [`crate::conformance`]; an
 /// adapter that passes the suite implements the port.
 pub trait RecordsLog {
+    fn store_access(&self) -> Option<&foundry_store_access::StoreAccess> {
+        None
+    }
+
     /// Append one envelope. Re-appending a byte-identical envelope under the
     /// same idempotency key returns the original receipt marked deduplicated.
     fn append(&mut self, envelope: ActionEnvelope) -> Result<Receipt, RecordsLogError>;

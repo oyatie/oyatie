@@ -5,6 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//app/foundry/ports/store-access:foundry-store-access",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//data/core/ontology-kernel:data-ontology-kernel",
     ],
@@ -17,6 +18,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//app/foundry/ports/store-access:foundry-store-access",
         "//data/core/data-boundary-kernel:data-boundary-kernel",
         "//data/core/ontology-kernel:data-ontology-kernel",
     ],
@@ -28,5 +30,6 @@ rust_test(
     crate = "reference_projection",
     crate_root = "tests/reference_projection.rs",
     visibility = ["PUBLIC"],
-    deps = [":foundry-projection-draft"],
+    deps = [
+        "//app/foundry/ports/store-access:foundry-store-access",":foundry-projection-draft"],
 )

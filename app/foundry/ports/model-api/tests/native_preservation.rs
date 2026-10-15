@@ -117,8 +117,23 @@ fn runtime_restore_preserves_trusted_actions_revisions_and_refuses_another_basel
     let mut store = ReferenceModelStore::initialize(binding(), baseline).unwrap();
     let draft = store.create_draft(&caller(), 1, additive_model()).unwrap();
     let prepared = store.prepare(&caller(), draft.id, 1, 1).unwrap();
+    let before = store.history(&caller()).unwrap();
+    let candidate = prepared.registry_with_runtime_baseline(&trusted).unwrap();
+    assert_eq!(
+        store.history(&caller()).unwrap(),
+        before,
+        "runtime preparation writes no metadata"
+    );
+    assert_eq!(
+        candidate.action_type("ten_model", &action_id),
+        trusted.action_type("ten_model", &action_id)
+    );
     store.publish(&caller(), &prepared).unwrap();
     let history = store.history(&caller()).unwrap();
+    assert_eq!(
+        candidate,
+        history.registry_with_runtime_baseline(&trusted).unwrap()
+    );
     assert!(
         history
             .registry()

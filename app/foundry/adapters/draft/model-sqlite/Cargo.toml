@@ -7,6 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+foundry-store-access = { path = "../../../ports/store-access" }
+foundry-store-local-draft = { path = "../store-local" }
 foundry-model-api = { path = "../../../ports/model-api" }
 rusqlite = { workspace = true }
 serde = { workspace = true }

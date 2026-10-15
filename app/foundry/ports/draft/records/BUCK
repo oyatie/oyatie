@@ -20,5 +20,6 @@ rust_test(
     crate = "reference_records",
     crate_root = "tests/reference_records.rs",
     visibility = ["PUBLIC"],
-    deps = [":foundry-records-draft"],
+    deps = [
+        "//app/foundry/ports/store-access:foundry-store-access",":foundry-records-draft"],
 )

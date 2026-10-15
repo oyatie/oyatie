@@ -1,0 +1,17 @@
+rust_library(
+    name = "foundry-store-local-draft",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_store_local_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = ["//app/foundry/ports/store-access:foundry-store-access", "third-party//:libc"],
+)
+
+rust_test(
+    name = "foundry-store-local-draft-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_store_local_draft",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = ["//app/foundry/ports/store-access:foundry-store-access", "third-party//:libc"],
+)

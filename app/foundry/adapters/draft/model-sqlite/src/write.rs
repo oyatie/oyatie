@@ -19,6 +19,10 @@ impl SqliteModelStore {
 }
 
 impl ModelStore for SqliteModelStore {
+    fn store_access(&self) -> Option<&foundry_store_access::StoreAccess> {
+        Some(self.access.access())
+    }
+
     fn owned_drafts(
         &self,
         caller: &ModelCaller,
