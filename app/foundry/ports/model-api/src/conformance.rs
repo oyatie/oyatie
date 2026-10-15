@@ -29,6 +29,7 @@ pub fn property(name: &str, required: bool) -> ModelProperty {
 pub fn baseline() -> ModelBaseline {
     ModelBaseline {
         document: ModelDocument {
+            named_string_types: vec![],
             entities: vec![ModelEntity {
                 id: "ety_record".into(),
                 display_name: "Record".into(),
@@ -172,3 +173,23 @@ pub fn check_two_handle_conflicts(
 
 mod discovery;
 pub use discovery::check_owned_draft_discovery;
+
+/// A test vocabulary for qualifying reusable allowed strings; never tenant business input.
+pub fn named_string_model() -> ModelDocument {
+    let mut model = additive_model();
+    model.named_string_types.push(ModelNamedStringType {
+        id: "vty_test_status".into(),
+        revision: 1,
+        display_name: "Test status".into(),
+        members: vec!["TestActive".into(), "TestLeave".into()],
+    });
+    for name in ["test_status", "other_test_status"] {
+        let mut row = property(name, false);
+        row.value_type = Some(ModelValueType::NamedString {
+            type_id: "vty_test_status".into(),
+            revision: 1,
+        });
+        model.entities[0].properties.push(row);
+    }
+    model
+}

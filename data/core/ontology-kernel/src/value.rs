@@ -20,6 +20,7 @@ pub enum ValueTypeError {
     },
     /// A declaration nests deeper than the admitted maximum.
     DepthExceeded,
+    NestedNamedString,
 }
 
 /// A finite IEEE-754 double stored as a monotone `u64` key: negatives map

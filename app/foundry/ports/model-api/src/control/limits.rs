@@ -34,6 +34,7 @@ pub fn model_wire_limits() -> Result<ModelWireLimits, ModelError> {
     let context = "\0".repeat(MAX_MODEL_CONTEXT_BYTES);
     let number = ModelNumber::new(MAX_MODEL_VERSION)?;
     let document = ModelDocument {
+        named_string_types: vec![],
         entities: vec![],
         links: vec![],
     };

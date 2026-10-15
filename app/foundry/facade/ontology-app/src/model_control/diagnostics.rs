@@ -3,6 +3,11 @@ use data_ontology_kernel::OntologyEngineError as Native;
 
 pub(super) fn diagnostic(error: ModelError) -> Option<ModelDiagnostic> {
     let (code, path, message) = match error {
+        ModelError::Limit { path } if path == "schemas" => (
+            "schema_response_too_large",
+            path,
+            "Reduce named member metadata or property reuse to fit the schema response limit.",
+        ),
         ModelError::NoChanges => (
             "no_changes",
             "document".into(),
@@ -50,6 +55,34 @@ pub(super) fn diagnostic(error: ModelError) -> Option<ModelDiagnostic> {
 
 fn native(mut path: String, cause: Native) -> ModelDiagnostic {
     let (code, message) = match cause {
+        Native::InvalidNamedStringTypeId => (
+            "invalid_named_string_type_id",
+            "Use a valid named string type identifier.",
+        ),
+        Native::InvalidNamedStringRevision => (
+            "invalid_named_string_revision",
+            "Use a supported exact named string revision.",
+        ),
+        Native::InvalidNamedStringMembers => (
+            "invalid_named_string_members",
+            "Enter 1 to 256 unique nonblank allowed strings.",
+        ),
+        Native::DuplicateNamedStringType => (
+            "duplicate_named_string_type",
+            "Use each named string identifier and revision once.",
+        ),
+        Native::UnknownNamedStringType => (
+            "unknown_named_string_type",
+            "Choose an exact named string definition declared in this tenant.",
+        ),
+        Native::NamedStringDefinitionMismatch => (
+            "frozen_named_string_definition",
+            "Retain the accepted named string definition unchanged.",
+        ),
+        Native::UnsupportedNamedStringPosition => (
+            "unsupported_named_string_position",
+            "Use named strings at the property or parameter root.",
+        ),
         Native::InvalidTypeId => (
             "invalid_entity_type_id",
             "Use a valid entity type identifier.",

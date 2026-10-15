@@ -47,7 +47,8 @@ impl OntologyEngine {
         for property in &definition.properties {
             crate::display::check_display_integrity(property.display.as_ref())?;
         }
-        super::check_value_type_integrity(
+        self.check_value_type_integrity(
+            &definition.tenant_id,
             definition
                 .properties
                 .iter()
@@ -209,7 +210,8 @@ impl OntologyEngine {
                 });
             }
         }
-        super::check_value_type_integrity(
+        self.check_value_type_integrity(
+            &definition.tenant_id,
             definition
                 .parameters
                 .iter()

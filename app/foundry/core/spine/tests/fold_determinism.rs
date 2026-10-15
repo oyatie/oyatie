@@ -190,3 +190,6 @@ fn typed_values_cross_the_boundary_intact() {
     );
     assert_eq!(state.history["ent_r1"], vec![1, 3]);
 }
+
+#[path = "fold_determinism/named_strings.rs"]
+mod named_strings;

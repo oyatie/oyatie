@@ -9,6 +9,7 @@ fn workspace() -> String {
         ModelWorkspace {
             generation: ModelNumber::parse("9007199254740993").unwrap(),
             document: ModelDocument {
+                named_string_types: vec![],
                 entities: vec![],
                 links: vec![],
             },
@@ -100,6 +101,7 @@ async fn model_proxy_preserves_exact_request_ack_and_keeps_closed_malformed_shap
     let create = CreateModelDraft {
         expected_generation: ModelNumber::new(1).unwrap(),
         document: ModelDocument {
+            named_string_types: vec![],
             entities: vec![],
             links: vec![],
         },

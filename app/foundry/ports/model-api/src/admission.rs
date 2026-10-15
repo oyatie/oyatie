@@ -77,6 +77,12 @@ pub(crate) fn normalized(document: &ModelDocument) -> ModelDocument {
     model.entities.sort_by(|a, b| a.id.cmp(&b.id));
     model.links.sort_by(|a, b| a.id.cmp(&b.id));
     model
+        .named_string_types
+        .sort_by(|a, b| (&a.id, a.revision).cmp(&(&b.id, b.revision)));
+    for row in &mut model.named_string_types {
+        row.members.sort();
+    }
+    model
 }
 
 pub(crate) fn stage_document(
@@ -85,6 +91,7 @@ pub(crate) fn stage_document(
     model: &ModelDocument,
 ) -> Result<(), ModelError> {
     model.check_bounds()?;
+    crate::named_strings::stage_named_string_types(registry, tenant, model)?;
     let mut entities = BTreeSet::new();
     for row in &model.entities {
         if !entities.insert(&row.id) {
@@ -120,7 +127,7 @@ pub(crate) fn stage_document(
         }
     }
     for row in &model.entities {
-        let definition = row.native(tenant)?;
+        let definition = row.native(registry, tenant)?;
         if let Some(prior) = registry.entity_type(tenant, &definition.id) {
             if &definition == prior {
                 continue;
@@ -164,6 +171,7 @@ pub(crate) fn stage_document(
                 .map_err(|e| native_error(&format!("links.{}", row.id), e))?;
         }
     }
+    crate::schema::schema_bytes(registry, tenant)?;
     Ok(())
 }
 

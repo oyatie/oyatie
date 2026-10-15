@@ -1,9 +1,11 @@
 //! The tenant-scoped ontology registry engine.
 
 mod conformance;
+mod declarations;
 mod evolution;
 mod invocation;
 mod links;
+mod named_strings;
 mod names;
 mod value_conformance;
 
@@ -23,6 +25,7 @@ use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct OntologyEngine {
+    named_string_types: BTreeMap<crate::NamedStringTypeRef, crate::NamedStringTypeDefinition>,
     entity_types: BTreeMap<OntologyScopedKey, EntityTypeDefinition>,
     link_types: BTreeMap<OntologyScopedKey, LinkTypeDefinition>,
     action_types: BTreeMap<OntologyScopedKey, ActionTypeDefinition>,
@@ -108,7 +111,8 @@ impl OntologyEngine {
         for property in &definition.properties {
             crate::display::check_display_integrity(property.display.as_ref())?;
         }
-        check_value_type_integrity(
+        self.check_value_type_integrity(
+            &definition.tenant_id,
             definition
                 .properties
                 .iter()
@@ -148,7 +152,8 @@ impl OntologyEngine {
         self.registered_endpoint(&definition.tenant_id, &definition.entity_type)?;
         crate::display::check_display_integrity(definition.display.as_ref())?;
         check_parameter_names_unique(&definition)?;
-        check_value_type_integrity(
+        self.check_value_type_integrity(
+            &definition.tenant_id,
             definition
                 .parameters
                 .iter()
@@ -225,35 +230,6 @@ fn check_pillar_consistency(
         && from_pillar != to_pillar
     {
         return Err(OntologyEngineError::CrossPillarLink);
-    }
-    Ok(())
-}
-
-/// Requiring the projection to equal the stated tier rejects a `Some` on
-/// any tier the projection never yields (Timeseries/Geo/Ciphertext).
-pub(crate) fn check_value_type_integrity<'a>(
-    declarations: impl Iterator<
-        Item = (
-            &'a str,
-            &'a crate::PropertyTier,
-            Option<&'a crate::ValueTypeDeclaration>,
-        ),
-    >,
-) -> Result<(), OntologyEngineError> {
-    for (name, tier, value_type) in declarations {
-        if let Some(declaration) = value_type {
-            declaration
-                .validate()
-                .map_err(|cause| OntologyEngineError::InvalidValueType {
-                    name: name.to_string(),
-                    cause,
-                })?;
-            if &declaration.tier() != tier {
-                return Err(OntologyEngineError::ValueTypeTierMismatch {
-                    name: name.to_string(),
-                });
-            }
-        }
     }
     Ok(())
 }

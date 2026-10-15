@@ -22,6 +22,7 @@ fn source(
 #[tokio::test]
 async fn native_fake_save_reopen_versions_owner_and_read_author_are_separate() {
     let document = ModelDocument {
+        named_string_types: vec![],
         entities: vec![],
         links: vec![],
     };
@@ -129,6 +130,7 @@ async fn native_fake_save_reopen_versions_owner_and_read_author_are_separate() {
 #[tokio::test]
 async fn native_fake_validation_refuses_foreign_owner_without_masking_schema_diagnostics() {
     let document = ModelDocument {
+        named_string_types: vec![],
         entities: vec![],
         links: vec![],
     };

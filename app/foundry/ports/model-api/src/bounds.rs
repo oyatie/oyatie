@@ -37,6 +37,7 @@ fn value_bounds(
     *remaining -= 1;
     match value {
         ModelValueType::Scalar { .. } => {}
+        ModelValueType::NamedString { type_id, .. } => text(type_id, path)?,
         ModelValueType::Array { element } => value_bounds(element, depth + 1, remaining, path)?,
         ModelValueType::Struct { fields } => {
             if fields.len() > MAX_MODEL_ITEMS {
@@ -54,12 +55,29 @@ fn value_bounds(
 impl ModelDocument {
     /// Structural admission deliberately permits incomplete semantic drafts.
     pub fn check_bounds(&self) -> Result<(), ModelError> {
-        if self.entities.len() > MAX_MODEL_ITEMS || self.links.len() > MAX_MODEL_ITEMS {
+        if self.entities.len() > MAX_MODEL_ITEMS
+            || self.links.len() > MAX_MODEL_ITEMS
+            || self.named_string_types.len() > MAX_MODEL_ITEMS
+        {
             return Err(ModelError::Limit {
                 path: "document".into(),
             });
         }
         let mut remaining = MAX_MODEL_VALUE_NODES;
+        for (index, row) in self.named_string_types.iter().enumerate() {
+            let path = format!("named_string_types[{index}]");
+            if row.members.len() > data_ontology_kernel::MAX_NAMED_STRING_MEMBERS {
+                return Err(ModelError::Limit { path });
+            }
+            remaining = remaining
+                .checked_sub(1 + row.members.len())
+                .ok_or_else(|| ModelError::Limit { path: path.clone() })?;
+            text(&row.id, &path)?;
+            text(&row.display_name, &path)?;
+            for member in &row.members {
+                text(member, &path)?;
+            }
+        }
         for (index, entity) in self.entities.iter().enumerate() {
             entity.bounds(&format!("entities[{index}]"), &mut remaining)?;
         }

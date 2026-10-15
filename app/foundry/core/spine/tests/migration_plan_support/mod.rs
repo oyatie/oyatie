@@ -102,3 +102,5 @@ pub(crate) fn copy(from: &str, to: &str) -> UpcastTransform {
         to: to.into(),
     }
 }
+
+mod named_strings;
