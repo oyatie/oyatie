@@ -194,6 +194,32 @@ fn pane_history_focuses_current_destination_without_overwriting_later_focus() {
 }
 
 #[test]
+fn pane_height_tracks_only_current_visible_native_geometry() {
+    check_controller(
+        r##"
+(async()=>{
+  await flush();modelEnabled=true;session.roles=['foundry-model-author','foundry-operator'];
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();find('live-ontology-draft-new').emit('click');await flush();
+  const nav=find('live-ontology-pane-library').parentElement,height=()=>root.style.getPropertyValue('--foundry-pane-bar-height');
+  assert.equal(height(),'58px','verified open measures actual pane bar instead of assuming one row');
+  const observer=resizeObservers.find(item=>item.target===nav);assert.ok(observer?.observing,'current pane bar is observed');
+  find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');const field=find('live-ontology-property-name');field.value='Pending measured height';field.emit('input');field.focus();
+  const state=()=>JSON.stringify({value:find('live-ontology-property-name').value,choice:find('live-ontology-property-choice').value,context:['selected','identity','name'].map(id=>find('live-ontology-context-'+id).textContent),pins:[find('live-ontology-type').value,find('live-ontology-revision').value],draft:find('live-ontology-draft-state').textContent});const before=state(),requests=calls.length;
+  nav.mockHeight=183;observer.emit();assert.equal(height(),'183px','native wrapping height reaches existing sticky/scroll-margin variable');assert.equal(document.activeElement===field,true,'resize never steals newer focus');assert.equal(state(),before);assert.equal(calls.length,requests);
+  for(const invalid of [0,-1,NaN,Infinity]){nav.mockHeight=invalid;observer.emit();assert.equal(height(),'183px','zero or invalid geometry cannot replace a valid height');}nav.mockHeight=200;
+  root.hidden=true;observer.emit();assert.equal(height(),'183px');root.hidden=false;root.isConnected=false;observer.emit();assert.equal(height(),'183px');root.isConnected=true;
+  nav.hidden=true;observer.emit();assert.equal(height(),'183px');nav.hidden=false;nav.isConnected=false;observer.emit();assert.equal(height(),'183px');nav.isConnected=true;
+  const parent=nav.parentElement;nav.parentElement=panel;observer.emit();assert.equal(height(),'183px','foreign pane owner refused');nav.parentElement=parent;
+  find('live-ontology-pane-inspector').emit('click');assert.equal(height(),'200px','navigation synchronously measures before destination focus');assert.equal(document.activeElement===find('live-ontology-inspector-title'),true);assert.equal(state(),before);
+  field.focus();nav.mockHeight=121.5;find('session-restore').emit('click');assert.equal(observer.observing,false,'session hold disconnects measurement');observer.emit();assert.equal(height(),'200px','invalid-generation callback cannot change current bar');await flush();assert.equal(observer.observing,true);assert.equal(height(),'121.5px','verified reopen reobserves and measures current owner');assert.equal(find('live-ontology-property-name').value,'Pending measured height');
+  find('sign-in-account').value='usr_other';find('sign-in-account').emit('input');assert.equal(height(),'');assert.equal(observer.observing,false,'clear releases observer and CSS override');nav.mockHeight=250;observer.emit();assert.equal(height(),'','queued stale callback cannot restore cleared geometry');
+  find('sign-in-account').value='usr_alice';await restore();assert.equal(observer.observing,true);assert.equal(height(),'250px','later verified open resumes native measurement');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"##,
+    );
+}
+
+#[test]
 fn recursive_nested_removal_preserves_pending_capture_and_new_focus_owner() {
     check_controller(
         r##"
