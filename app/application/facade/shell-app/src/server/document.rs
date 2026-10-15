@@ -27,6 +27,7 @@ mountDashboardIsland();"#
     );
 
     view! {
+        <!DOCTYPE html>
         <html lang="en">
             <head>
                 <meta charset="utf-8" />
@@ -59,5 +60,61 @@ mountDashboardIsland();"#
                 <script type="module">{island_bootstrap}</script>
             </body>
         </html>
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use axum::{
+        body::{Body, to_bytes},
+        http::{Request, StatusCode, header},
+    };
+    use std::path::PathBuf;
+    use tower::ServiceExt;
+
+    #[tokio::test]
+    async fn served_shell_documents_start_in_html_standards_mode() {
+        let routes =
+            super::super::router_for_package_root(PathBuf::from("target/document-contract-pkg"));
+        for path in ["/", "/index.html"] {
+            let response = routes
+                .clone()
+                .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
+                .await
+                .unwrap();
+            assert_eq!(response.status(), StatusCode::OK, "{path}");
+            assert_eq!(
+                response.headers()[header::CONTENT_TYPE],
+                "text/html; charset=utf-8",
+                "{path}"
+            );
+            let body = to_bytes(response.into_body(), 2 * 1024 * 1024)
+                .await
+                .unwrap();
+            let html = std::str::from_utf8(&body).unwrap();
+            assert!(
+                html.starts_with("<!DOCTYPE html><html lang=\"en\">"),
+                "{path} must begin with the HTML doctype before its document element"
+            );
+            assert_eq!(html.to_ascii_lowercase().matches("<!doctype").count(), 1);
+            for unique in [
+                "<html lang=\"en\">",
+                "<head>",
+                "<body>",
+                "id=\"oyatie-shell\"",
+                "id=\"console-shell\"",
+                "id=\"dashboard-island-root\"",
+                "href=\"/style/tokens.css\"",
+                "href=\"/style/app.css\"",
+                "wasm.mount_dashboard_islands();",
+            ] {
+                assert_eq!(html.matches(unique).count(), 1, "{path}: {unique}");
+            }
+            assert!(html.contains("id=\"foundry-workspace\""), "{path}");
+            assert!(
+                html.contains("import('/pkg/application_shell_app.js')"),
+                "{path}"
+            );
+        }
     }
 }
