@@ -19,6 +19,13 @@ pub(super) struct FaultModel {
     pub inner: Box<dyn ModelStore + Send>,
     pub fault: Arc<Mutex<Fault>>,
     pub attempted: AtomicBool,
+    pub writes: Arc<Mutex<WriteAttempts>>,
+}
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub(super) struct WriteAttempts {
+    pub creates: usize,
+    pub saves: usize,
+    pub publishes: usize,
 }
 fn failure() -> ModelError {
     ModelError::Storage {
@@ -70,6 +77,7 @@ impl ModelStore for FaultModel {
         base: u64,
         document: ModelDocument,
     ) -> Result<ModelDraft, ModelError> {
+        self.writes.lock().unwrap().creates += 1;
         self.inner.create_draft(caller, base, document)
     }
     fn open_draft(&self, caller: &ModelCaller, id: u64) -> Result<ModelDraft, ModelError> {
@@ -84,6 +92,7 @@ impl ModelStore for FaultModel {
         base: u64,
         document: ModelDocument,
     ) -> Result<ModelDraft, ModelError> {
+        self.writes.lock().unwrap().saves += 1;
         self.inner.save_draft(caller, id, version, base, document)
     }
     fn prepare(
@@ -111,6 +120,7 @@ impl ModelStore for FaultModel {
         caller: &ModelCaller,
         prepared: &PreparedPublication,
     ) -> Result<PublicationReceipt, ModelError> {
+        self.writes.lock().unwrap().publishes += 1;
         self.attempted.store(true, Ordering::SeqCst);
         let fault = *self.fault.lock().unwrap();
         if matches!(fault, Fault::RejectCommit | Fault::RejectAndLoseReadback) {

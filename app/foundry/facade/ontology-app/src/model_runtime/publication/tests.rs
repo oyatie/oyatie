@@ -3,6 +3,8 @@
 mod faults;
 #[path = "preflight_tests.rs"]
 mod preflight_tests;
+#[path = "served_mutation_recovery.rs"]
+mod served_mutation_recovery;
 #[path = "served_recovery.rs"]
 mod served_recovery;
 #[path = "support.rs"]

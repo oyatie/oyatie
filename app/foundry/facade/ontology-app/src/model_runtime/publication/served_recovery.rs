@@ -16,7 +16,7 @@ use std::{
 };
 use tower::ServiceExt;
 const TOKEN: &str = "v1.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-struct Sessions(Mutex<Vec<String>>);
+pub(super) struct Sessions(pub(super) Mutex<Vec<String>>);
 impl UserSessionAuthorizer for Sessions {
     fn authorize<'a>(
         &'a self,
@@ -36,7 +36,7 @@ impl UserSessionAuthorizer for Sessions {
         })
     }
 }
-async fn send(
+pub(super) async fn send(
     router: &Router,
     method: &str,
     path: &str,
@@ -59,7 +59,7 @@ async fn send(
         .await
         .unwrap()
 }
-async fn lifecycle(router: &Router) -> ModelLifecycle {
+pub(super) async fn lifecycle(router: &Router) -> ModelLifecycle {
     let response = send(
         router,
         "GET",

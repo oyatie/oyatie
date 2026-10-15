@@ -1,4 +1,4 @@
-use super::faults::{Fault, FaultModel};
+use super::faults::{Fault, FaultModel, WriteAttempts};
 use crate::{
     AppState, Config, compose_with_models,
     model_control::ModelMutationOrigin,
@@ -18,6 +18,7 @@ pub(super) struct Files {
     pub directory: PathBuf,
     pub config: Config,
     pub models: ModelRuntimeConfig,
+    pub writes: Arc<Mutex<WriteAttempts>>,
     cleanup: bool,
 }
 impl Files {
@@ -62,6 +63,7 @@ impl Files {
             directory,
             config,
             models,
+            writes: Arc::new(Mutex::new(WriteAttempts::default())),
             cleanup: false,
         }
     }
@@ -85,6 +87,7 @@ impl Files {
             inner,
             fault: fault.clone(),
             attempted: AtomicBool::new(false),
+            writes: self.writes.clone(),
         });
         (app, fault)
     }
