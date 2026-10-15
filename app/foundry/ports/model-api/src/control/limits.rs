@@ -5,6 +5,7 @@ pub struct ModelWireLimits {
     pub workspace: usize,
     pub draft_page: usize,
     pub draft: usize,
+    pub draft_base: usize,
     pub receipt: usize,
     pub create: usize,
     pub save: usize,
@@ -109,6 +110,15 @@ pub fn model_wire_limits() -> Result<ModelWireLimits, ModelError> {
             next: Some(number),
         })?,
         draft: document_bound(&draft, empty)?,
+        draft_base: document_bound(
+            &ModelDraftBase {
+                draft_id: number,
+                draft_version: number,
+                base_generation: number,
+                document: document.clone(),
+            },
+            empty,
+        )?,
         receipt: encoded_length(&receipt)?,
         create: document_bound(
             &CreateModelDraft {

@@ -24,7 +24,7 @@ use tower::ServiceExt;
 
 #[path = "store.rs"]
 mod store;
-pub use store::CountingStore;
+pub use store::{CountingStore, HistoryFault, publish_next};
 
 pub const TOKEN: &str = "v1.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 pub const TENANT: &str = "ten_acme";
@@ -169,6 +169,7 @@ pub struct Instrumented {
     pub store_calls: Arc<AtomicUsize>,
     pub store_failure: Arc<AtomicBool>,
     pub oversized_response: Arc<AtomicBool>,
+    pub history_fault: Arc<Mutex<Option<HistoryFault>>>,
     pub reference: ReferenceModelStore,
 }
 pub fn instrument(
@@ -180,6 +181,7 @@ pub fn instrument(
     let store_calls = Arc::new(AtomicUsize::new(0));
     let store_failure = Arc::new(AtomicBool::new(false));
     let oversized_response = Arc::new(AtomicBool::new(false));
+    let history_fault = Arc::new(Mutex::new(None));
     app.inject_established_model_store(
         TENANT,
         binding(),
@@ -189,6 +191,7 @@ pub fn instrument(
             calls: store_calls.clone(),
             failure: store_failure.clone(),
             oversized: oversized_response.clone(),
+            history_fault: history_fault.clone(),
         }),
     )
     .unwrap();
@@ -210,6 +213,7 @@ pub fn instrument(
         store_calls,
         store_failure,
         oversized_response,
+        history_fault,
         reference,
     }
 }

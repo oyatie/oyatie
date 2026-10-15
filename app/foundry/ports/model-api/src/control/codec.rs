@@ -38,6 +38,7 @@ macro_rules! codec {
 codec!(ModelWorkspace, workspace);
 codec!(ModelDraftPage, draft_page);
 codec!(ModelDraftWire, draft);
+codec!(ModelDraftBase, draft_base);
 codec!(ModelReceiptWire, receipt);
 codec!(CreateModelDraft, create);
 codec!(SaveModelDraft, save);
@@ -46,6 +47,11 @@ codec!(ModelValidation, validation);
 codec!(ModelRefusal, refusal);
 
 impl ModelWorkspace {
+    pub fn check_bounds(&self) -> Result<(), ModelError> {
+        self.document.check_bounds()
+    }
+}
+impl ModelDraftBase {
     pub fn check_bounds(&self) -> Result<(), ModelError> {
         self.document.check_bounds()
     }

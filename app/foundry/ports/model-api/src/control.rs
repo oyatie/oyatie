@@ -11,6 +11,7 @@ pub use number::ModelNumber;
 pub const MODEL_WORKSPACE_ROUTE: &str = "/v1/tenants/{tenant}/model";
 pub const MODEL_DRAFTS_ROUTE: &str = "/v1/tenants/{tenant}/model/drafts";
 pub const MODEL_DRAFT_ROUTE: &str = "/v1/tenants/{tenant}/model/drafts/{draft_id}";
+pub const MODEL_DRAFT_BASE_ROUTE: &str = "/v1/tenants/{tenant}/model/drafts/{draft_id}/base";
 pub const MODEL_SAVE_ROUTE: &str = "/v1/tenants/{tenant}/model/drafts/{draft_id}/save";
 pub const MODEL_VALIDATE_ROUTE: &str = "/v1/tenants/{tenant}/model/drafts/{draft_id}/validate";
 pub const MODEL_PUBLISH_ROUTE: &str = "/v1/tenants/{tenant}/model/drafts/{draft_id}/publish";
@@ -64,6 +65,12 @@ model_object!(ModelDraftWire {
     document: ModelDocument,
     #[serde(deserialize_with = "required_field")]
     publication: Option<ModelReceiptWire>,
+});
+model_object!(ModelDraftBase {
+    draft_id: ModelNumber,
+    draft_version: ModelNumber,
+    base_generation: ModelNumber,
+    document: ModelDocument
 });
 model_object!(CreateModelDraft {
     expected_generation: ModelNumber,

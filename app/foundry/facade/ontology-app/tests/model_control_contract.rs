@@ -1,3 +1,11 @@
+#[path = "model_control/baseline.rs"]
+mod baseline;
+#[path = "model_control/baseline_access.rs"]
+mod baseline_access;
+#[path = "model_control/baseline_durable.rs"]
+mod baseline_durable;
+#[path = "model_control/baseline_tuple.rs"]
+mod baseline_tuple;
 #[path = "model_control/boundaries.rs"]
 mod boundaries;
 #[path = "model_control/chunked.rs"]
