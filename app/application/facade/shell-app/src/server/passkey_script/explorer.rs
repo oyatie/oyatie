@@ -37,16 +37,17 @@ function createOntologyExplorer(lifecycle) {
   const tray=find('draft-tray'),trayActions=tray.querySelector(':scope > .foundry-draft-actions');
   let paneGeneration=-1;
   function measureWorkArea(stripHeight) {
-    if(!header?.isConnected || header.parentElement!==shell || !contextHeader?.isConnected || contextHeader.parentElement!==workspace || !toolbar?.isConnected || !workpane.contains(toolbar) || !trayActions?.isConnected || !tray.contains(trayActions)) {
+    const graph=find('graph'),modelNote=find('model-note'),draftStatus=find('draft-status'),review=find('draft-review');
+    if(!header?.isConnected || header.parentElement!==shell || !contextHeader?.isConnected || contextHeader.parentElement!==workspace || !workpane?.isConnected || !root.contains(workpane) || !tray?.isConnected || !root.contains(tray) || ![toolbar,graph,modelNote].every(node=>node?.isConnected && workpane.contains(node)) || ![trayActions,draftStatus,review].every(node=>node?.isConnected && tray.contains(node))) {
       root.setAttribute('data-workspace-layout','flow');return;
     }
     const height=node=>{const style=getComputedStyle(node);return node.getClientRects().length?node.getBoundingClientRect().height+Number.parseFloat(style.marginTop)+Number.parseFloat(style.marginBottom):0;};
     const padding=node=>{const style=getComputedStyle(node);return Number.parseFloat(style.paddingTop)+Number.parseFloat(style.paddingBottom);};
-    const minimum=Number.parseFloat(getComputedStyle(find('graph')).minHeight);
-    const trayHeight=tray.getClientRects().length?height(trayActions)+height(find('draft-status'))+padding(tray)+Number.parseFloat(getComputedStyle(find('draft-review')).minHeight):0;
-    const chrome=height(toolbar)+height(find('model-note'))+padding(workpane);
+    const minimum=Number.parseFloat(getComputedStyle(graph).minHeight),trayMinimum=Number.parseFloat(getComputedStyle(tray).minHeight);
+    const trayHeight=tray.getClientRects().length?Math.max(trayMinimum,height(trayActions)+height(draftStatus)+padding(tray)+Number.parseFloat(getComputedStyle(review).minHeight)):0;
+    const chrome=height(toolbar)+height(modelNote)+padding(workpane);
     const remaining=window.innerHeight-height(header)-Math.max(stripHeight,height(contextHeader))-trayHeight-chrome;
-    const layout=Number.isFinite(remaining) && Number.isFinite(minimum) && minimum>0 && remaining>=minimum?'panes':'flow';
+    const layout=Number.isFinite(remaining) && Number.isFinite(minimum) && minimum>0 && Number.isFinite(trayMinimum) && trayMinimum>0 && remaining>=minimum?'panes':'flow';
     if(root.getAttribute('data-workspace-layout')!==layout)root.setAttribute('data-workspace-layout',layout);
   }
   function measurePaneBar() {

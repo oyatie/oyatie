@@ -13503,6 +13503,7 @@ html:has(.console-app[data-shell-frame="foundry"] #live-ontology-explorer[data-w
   .console-app[data-shell-frame="foundry"] .foundry-workspace-body { grid-column:1 / -1; grid-row:2; }
 }
 @media (min-width:80rem) and (min-height:56rem) {
+  .console-app[data-shell-frame="foundry"] .foundry-draft-tray { min-height:15.5rem; }
   .console-app[data-shell-frame="foundry"]:has(#live-ontology-explorer[data-workspace-layout="panes"]) { height:100dvh; min-height:0; overflow:hidden; }
   .console-app[data-shell-frame="foundry"] .control-center { min-height:0; display:block; margin:0; padding:0; }
   .console-app[data-shell-frame="foundry"] .foundry-workspace:has(#live-ontology-explorer[data-workspace-layout="panes"]) { grid-template-rows:auto minmax(0,1fr); height:100%; min-height:0; }
@@ -13515,7 +13516,7 @@ html:has(.console-app[data-shell-frame="foundry"] #live-ontology-explorer[data-w
   .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] :is(#live-ontology-graph,#live-ontology-model-table) { grid-row:2; height:100%; margin-top:0; }
   .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] #live-ontology-model-table { min-height:0; overflow:auto; }
   .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] #live-ontology-model-note { grid-row:3; }
-  .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] .foundry-draft-tray { max-height:15.5rem; min-height:0; overflow:auto; scroll-padding-block:.5rem; }
+  .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] .foundry-draft-tray { max-height:15.5rem; overflow:auto; scroll-padding-block:.5rem; }
 }
 
 .foundry-object-type-controls { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; min-width:0; }
