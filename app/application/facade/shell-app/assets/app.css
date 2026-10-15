@@ -426,6 +426,8 @@ time { color: var(--color-accent-strong); font-weight: 800; }
 }
 
 .interactive-hub {
+  container-name: communications;
+  container-type: inline-size;
   display: grid;
   gap: var(--space-3);
 }
@@ -3968,6 +3970,10 @@ h3 {
   display: grid;
   grid-template-columns: 13rem minmax(16rem, 0.9fr) minmax(24rem, 1.25fr) 15rem;
   gap: var(--space-3);
+}
+
+@container communications (max-width: 70.25rem) {
+  .comms-service-shell { grid-template-columns: minmax(0, 1fr); }
 }
 
 .comms-sidebar,
