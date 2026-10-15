@@ -9,6 +9,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   let schemas = [], links = [], selectedType = null, selectedLink = null, source = 'Published declarations';
   let representation = 'graph', zoom = 1, width = 640, height = 360;
   let scope='related',context=null,heldViewport=null,heldSelection=null,relatedCount=null,drawn=null,framePending=true;
+  let cameraManual=false,pointerScroll=false,cameraViewport=null;
   const projection=()=>ontologyModelProjection(schemas,links,{type:selectedType,link:selectedLink},scope);
   let typeButtons = [], linkButtons = [], graphLabels = [], graphNodes = [], graphEdges = [];
   const arrowSize = 8, arrowRefX = 7, arrowRefY = 4;
@@ -118,14 +119,16 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     const left=Math.min(...boxes.map(box=>box.x)),top=Math.min(...boxes.map(box=>box.y));
     return {left,top,width:Math.max(...boxes.map(box=>box.x+box.w))-left,height:Math.max(...boxes.map(box=>box.y+box.h))-top};
   }
-  function frameSelection() {
+  function frameSelection(onlyIfHidden=false, focused=null) {
     const graph=find('graph'),bounds=occupied();if(!bounds)return;
     const first=graphNodes.find(card=>card.dataset.modelType===(selectedType || projection().linkById.get(selectedLink)?.from_entity_type));
-    const target=bounds.width*zoom<=graph.clientWidth-32 && bounds.height*zoom<=graph.clientHeight-32?bounds:first?{left:first.offsetLeft,top:first.offsetTop,width:first.offsetWidth,height:first.offsetHeight}:bounds;
-    graph.scrollLeft=Math.max(0,(target.left+target.width/2)*zoom-graph.clientWidth/2);graph.scrollTop=Math.max(0,(target.top+target.height/2)*zoom-graph.clientHeight/2);framePending=false;
+    const focus=focused?.surface==='scene'?(focused.type?graphNodes.find(card=>card.dataset.modelType===focused.type):graphLabels.find(label=>label.dataset.modelLink===focused.link)):null;
+    const target=focus?{left:focus.offsetLeft,top:focus.offsetTop,width:focus.offsetWidth/(focused.link?zoom:1),height:focus.offsetHeight/(focused.link?zoom:1)}:bounds.width*zoom<=graph.clientWidth-32 && bounds.height*zoom<=graph.clientHeight-32?bounds:first?{left:first.offsetLeft,top:first.offsetTop,width:first.offsetWidth,height:first.offsetHeight}:bounds;
+    if(!onlyIfHidden || target.left*zoom<graph.scrollLeft || target.top*zoom<graph.scrollTop || (target.left+target.width)*zoom>graph.scrollLeft+graph.clientWidth || (target.top+target.height)*zoom>graph.scrollTop+graph.clientHeight)restoreViewport({left:Math.max(0,(target.left+target.width/2)*zoom-graph.clientWidth/2),top:Math.max(0,(target.top+target.height/2)*zoom-graph.clientHeight/2)});
+    framePending=false;cameraManual=false;
   }
   function fit(overview=false) {
-    const graph=find('graph');if(!graphNodes.length)return;
+    const graph=find('graph');if(!graphNodes.length)return;cameraManual=overview;
     const fits=()=>{const box=occupied(overview);return box && box.width*zoom<=graph.clientWidth-32 && box.height*zoom<=graph.clientHeight-32;};
     zoom=1;graphRender();
     if(!fits()){
@@ -137,7 +140,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
       }
     }
     const bounds=occupied(overview);if(!bounds)return;
-    graph.scrollLeft=Math.max(0,(bounds.left+bounds.width/2)*zoom-graph.clientWidth/2);graph.scrollTop=Math.max(0,(bounds.top+bounds.height/2)*zoom-graph.clientHeight/2);framePending=false;
+    restoreViewport({left:Math.max(0,(bounds.left+bounds.width/2)*zoom-graph.clientWidth/2),top:Math.max(0,(bounds.top+bounds.height/2)*zoom-graph.clientHeight/2)});framePending=false;
     const overflow=bounds.width*zoom>graph.clientWidth-31 || bounds.height*zoom>graph.clientHeight-31;
     find('graph-frame').hidden=false;find('graph-frame').textContent=overview?`Overview at ${Math.round(zoom*100)}%. ${overflow?'Content still overflows; pan or use the complete Table.':'Return to Fit selection for readable inspection.'}`:overflow?'Selection overflows; pan to its remaining declarations.':'Selection framed.';
   }
@@ -157,7 +160,8 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     );
   }
   function viewport(){return {left:find('graph').scrollLeft,top:find('graph').scrollTop};}
-  function restoreViewport(value){find('graph').scrollLeft=value.left;find('graph').scrollTop=value.top;}
+  function restoreViewport(value){find('graph').scrollLeft=value.left;find('graph').scrollTop=value.top;cameraViewport=viewport();}
+  function manualCamera(){cameraManual=true;framePending=false;}
   function scopeCounts() {
     const projected=projection(),count=(kind,displayed)=>({total:projected.counts[kind].total,eligible:projected[kind==='types'?'schemas':'links'].length,displayed,remaining:projected[kind==='types'?'schemas':'links'].length-displayed,outsideScope:projected.counts[kind].remaining,undrawn:projected.counts[kind].undrawn});
     return {types:count('types',graphNodes.length),relationships:count('relationships',graphEdges.length)};
@@ -171,8 +175,8 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     expand.textContent=`Expand next${drawn?.plan?' ('+(drawn.plan.totalNeighbors-drawn.plan.neighbors)+')':''}`;
     if(active && expand.disabled && document.activeElement===document.body)find('fit').focus({preventScroll:true});
   }
-  function refreshGraph() {
-    const owned=focusedDeclaration(),position=viewport();graph();summary();selection();if(framePending && drawn.plan)frameSelection();else restoreViewport(position);restoreDeclaration(owned);
+  function refreshGraph(resized=false) {
+    const owned=focusedDeclaration(),position=viewport();graph();summary();selection();if(framePending && drawn.plan)frameSelection();else{restoreViewport(position);if(resized && !cameraManual && drawn.plan)frameSelection(true,owned);}restoreDeclaration(owned);
   }
   function setScope(value) {
     if(!context || !['selected','related','all'].includes(value))return false;
@@ -200,7 +204,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     const restore = ['scene','library-types','library-links','model-table','link','selection-details'].some(id => find(id).contains(active));
     heldViewport=retaining?(heldViewport || viewport()):null;
     heldSelection=retaining?(heldSelection || {type:selectedType,link:selectedLink}):null;
-    if(!retaining){context=null;scope='related';zoom=1;relatedCount=null;framePending=true;}
+    if(!retaining){context=null;scope='related';zoom=1;relatedCount=null;framePending=true;cameraManual=false;pointerScroll=false;}
     schemas = []; links = []; drawn=null;typeButtons = []; linkButtons = []; graphLabels = []; graphNodes = []; graphEdges = []; selectedType = null; selectedLink = null;
     for (const id of ['scene','library-types','library-links','model-table','link-properties']) find(id).replaceChildren();
     width = 640; height = 360; find('scene').style.width = `${width}px`; find('scene').style.height = `${height}px`; scale(zoom);
@@ -234,19 +238,26 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   const counts=node('details','','foundry-graph-counts'),countsTitle=node('summary','Counts'),countsBody=node('p');countsBody.id='live-ontology-graph-counts';counts.append(countsTitle,countsBody);
   find('graph-controls').setAttribute('aria-label','Type graph controls');find('graph-controls').append(scopeControls,expand,counts,overview,frame);find('fit').textContent='Fit selection';
   find('graph-help').textContent='Arrows follow native from → to direction. Selected shows the accepted declaration; Related adds a measured first neighborhood. Expand deliberately; All and Table retain complete declarations. Pan with scroll or arrow keys. + and − zoom; Home frames selection. Overview may shrink text and still overflow.';
-  const graphObserver=typeof ResizeObserver==='function'?new ResizeObserver(()=>{if(context && find('graph').getClientRects().length)refreshGraph();}):null;
+  const graphObserver=typeof ResizeObserver==='function'?new ResizeObserver(()=>{if(context && find('graph').getClientRects().length)refreshGraph(true);}):null;
   graphObserver?.observe(find('graph'));
   find('search').addEventListener('input', ()=>library());
   for (const value of ['schema','objects']) find(`mode-${value}`).addEventListener('click', () => showMode(value));
   for (const value of ['graph','table']) find(`view-${value}`).addEventListener('click', () => showRepresentation(value));
-  find('zoom-in').addEventListener('click',()=>{framePending=false;scale(zoom+.25);graphRender();});
-  find('zoom-out').addEventListener('click',()=>{framePending=false;scale(zoom-.25);graphRender();});
+  find('zoom-in').addEventListener('click',()=>{manualCamera();scale(zoom+.25);graphRender();});
+  find('zoom-out').addEventListener('click',()=>{manualCamera();scale(zoom-.25);graphRender();});
   find('fit').addEventListener('click',()=>fit());
+  find('graph').addEventListener('wheel',manualCamera,{passive:true});
+  find('graph').addEventListener('touchmove',manualCamera,{passive:true});
+  find('graph').addEventListener('pointerdown',event=>{pointerScroll=event.target===find('graph');});
+  const pointerPan=()=>{const position=viewport();if(pointerScroll && cameraViewport && (position.left!==cameraViewport.left || position.top!==cameraViewport.top))manualCamera();};
+  find('graph').addEventListener('scroll',pointerPan);
+  for(const event of ['pointerup','pointercancel'])window.addEventListener(event,()=>{pointerPan();pointerScroll=false;});
   find('graph').addEventListener('keydown', event => {
     if (event.target !== find('graph')) return;
     const direction = {ArrowLeft:[-80,0],ArrowRight:[80,0],ArrowUp:[0,-80],ArrowDown:[0,80]}[event.key];
-    if (direction) { framePending=false;event.preventDefault(); find('graph').scrollBy({left:direction[0],top:direction[1],behavior:'auto'}); }
-    else if (['+','=','-','Home'].includes(event.key)) { event.preventDefault(); if (event.key === 'Home') fit(); else{framePending=false;scale(zoom + (event.key === '-' ? -0.25 : 0.25));graphRender();} }
+    if (direction) { manualCamera();event.preventDefault(); find('graph').scrollBy({left:direction[0],top:direction[1],behavior:'auto'}); }
+    else if (['+','=','-','Home'].includes(event.key)) { event.preventDefault(); if (event.key === 'Home') fit(); else{manualCamera();scale(zoom + (event.key === '-' ? -0.25 : 0.25));graphRender();} }
+    else if(['PageUp','PageDown','End',' '].includes(event.key))manualCamera();
   });
   return {setModel,select,selectLink,setScope,scope:()=>({mode:scope,counts:scopeCounts()}),clear,reset:()=>{clear();find('search').value='';zoom=1;showMode('schema');showRepresentation('graph');scale(1);}};
 }

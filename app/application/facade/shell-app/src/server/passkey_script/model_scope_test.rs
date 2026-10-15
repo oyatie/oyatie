@@ -217,3 +217,75 @@ fn catalog_all_type_selection_keeps_zoom_and_resize_coherent() {
 "#,
     );
 }
+
+#[test]
+fn selected_camera_reflows_only_when_automatic_and_preserves_focused_declarations() {
+    check_camera_reflow(false);
+}
+
+#[test]
+fn focused_scene_camera_reflow_keeps_the_native_control_physically_visible() {
+    check_camera_reflow(true);
+}
+
+fn check_camera_reflow(focus_only: bool) {
+    let check = r#"
+(async()=>{
+  await flush();root.hidden=false;
+  const graph=find('live-ontology-graph'),scene=find('live-ontology-scene');
+  const source={tenantId:'ten_acme',userId:'usr_alice',kind:'draft',id:'1',base:'2'};
+  const cards=()=>scene.querySelectorAll('[data-model-type]'),card=id=>cards().find(row=>row.dataset.modelType===id);
+  const camera=()=>[scene.style.transform,graph.scrollLeft,graph.scrollTop];
+  const inside=node=>node.offsetLeft>=graph.scrollLeft-.5 && node.offsetLeft+node.offsetWidth<=graph.scrollLeft+graph.clientWidth+.5 && node.offsetTop>=graph.scrollTop-.5 && node.offsetTop+node.offsetHeight<=graph.scrollTop+graph.clientHeight+.5;
+  let observer;
+  const resize=(width,height)=>{graph.clientWidth=width;graph.clientHeight=height;observer.emit();};
+  const view=context.createOntologyModelView(()=>true,()=>find('live-ontology-types-refresh').focus());
+  const ownControl=id=>find('live-ontology-graph-controls').children.filter(row=>row.id==='live-ontology-'+id).at(-1);
+  observer=resizeObservers.filter(row=>row.observing && row.targets.has(graph)).at(-1);
+  assert.ok(observer,'regression drives the native graph ResizeObserver');
+  for(const [index,primary] of ['ety_camera_anchor','ety_other_anchor'].entries()){
+    const rows=Array.from({length:8},(_,i)=>({...schemaFixture[0],entity_type:i?`ety_neighbor_${i}`:primary,display_name:i?'Neighbor '+i:primary}));
+    const links=rows.slice(1).map((row,i)=>({link_type:`lty_camera_${i}`,from_entity_type:primary,to_entity_type:row.entity_type,cardinality:'one_to_many',revision:1,allow_cross_tenant:false}));
+    resize(950,600);view.setModel(rows,links,{type:primary,link:null},'Draft',{...source,id:String(index+1)});
+    assert.equal(view.setScope('related'),true,'the test admits a current native model source identity');
+    for(let attempt=0;attempt<rows.length && cards().length<rows.length && !ownControl('expand').disabled;attempt++)ownControl('expand').emit('click');
+    assert.equal(cards().length,8);assert.ok(inside(card(primary)));
+    if(!__FOCUS_ONLY__){
+    resize(607,468);const middle=camera();assert.ok(inside(card(primary)),'selected card remains visible before height shrink');
+    observer.emit();assert.deepEqual(camera(),middle,'unchanged geometry does not move a visible automatic selection');
+    resize(731,323);console.log(JSON.stringify({primary,camera:camera(),selected:{x:card(primary).offsetLeft,y:card(primary).offsetTop,w:card(primary).offsetWidth,h:card(primary).offsetHeight},viewport:[graph.clientWidth,graph.clientHeight]}));assert.ok(inside(card(primary)),'responsive reflow keeps the automatically selected card completely inside the graph');
+    assert.equal(cards().length,8,'automatic framing never drops retained neighbors');assert.equal(scene.querySelectorAll('[data-model-edge]').length,7);
+    for(const action of ['wheel','touchmove','scrollbar','arrow','zoom','overview']){
+      resize(950,600);find('live-ontology-fit').emit('click');
+      if(action==='wheel')graph.emit('wheel',{deltaY:60});
+      if(action==='touchmove')graph.emit('touchmove');
+      if(action==='scrollbar')graph.emit('pointerdown');
+      if(action==='arrow')graph.emit('keydown',{key:'ArrowDown'});
+      if(action==='zoom')find('live-ontology-zoom-in').emit('click');
+      if(action==='overview')ownControl('overview').emit('click');
+      graph.scrollLeft=13;graph.scrollTop=17;graph.emit('scroll',{isTrusted:true});
+      if(action==='scrollbar')context.window.emit('pointerup');
+      const deliberate=camera();resize(731,323);assert.deepEqual(camera(),deliberate,action+' retains deliberate camera through reflow');
+    }
+    for(const reset of ['fit','Home']){
+      resize(950,600);
+      if(reset==='fit')find('live-ontology-fit').emit('click');else graph.emit('keydown',{key:'Home'});
+      graph.scrollTop=17;graph.emit('scroll',{isTrusted:true});
+      resize(731,323);assert.ok(inside(card(primary)),reset+' restores automatic selected framing; scroll alone does not manufacture manual intent');
+    }
+    }
+    resize(950,600);find('live-ontology-fit').focus();find('live-ontology-fit').emit('click');
+    const other=cards().filter(row=>row.dataset.modelType!==primary).sort((a,b)=>b.offsetTop-a.offsetTop)[0];
+    assert.ok(other && inside(other));const focusedId=other.dataset.modelType;other.focus();
+    resize(607,468);assert.equal(document.activeElement,card(focusedId));assert.ok(inside(card(focusedId)),'three-to-two columns keep the different focused declaration physically visible');
+    resize(731,323);
+    assert.equal(document.activeElement,card(focusedId));assert.ok(inside(card(focusedId)),'height shrink keeps the focused control physically visible, not merely named');
+    assert.equal(document.activeElement.focusOptions?.preventScroll,true);
+    resize(950,600);find('live-ontology-fit').focus();find('live-ontology-fit').emit('click');const external=find('shell-session-entry');external.focus();
+    resize(731,323);assert.ok(inside(card(primary)));assert.equal(document.activeElement,external,'external focus is not stolen by automatic framing');
+  }
+  console.log('Automatic selected reflow, distinct identities, retained topology, explicit manual camera, Fit/Home and physically visible native focus PASS');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"#;
+    check_controller(&check.replace("__FOCUS_ONLY__", if focus_only { "true" } else { "false" }));
+}
