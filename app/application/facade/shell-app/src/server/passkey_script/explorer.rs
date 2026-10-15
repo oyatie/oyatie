@@ -31,7 +31,7 @@ function createOntologyExplorer(lifecycle) {
     if (workspaceMode==='schema' && editor?.active()) { editor.selectType(id); return; }
     find('type').value = id;
     changeType();
-  }, focusSchemaControl, id=>{if(workspaceMode==='schema')editor?.selectLink(id);}, value=>{
+  }, focusSchemaControl, id=>workspaceMode!=='schema' || !editor?.active() ? true : editor.selectLink(id), value=>{
     workspaceMode=value;editor?.setMode(value);
     if(value==='objects' || !editor?.active()) {model.setModel(schemas,links,find('type').value || null);renderSchema();}
   });

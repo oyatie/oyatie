@@ -28,7 +28,11 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     element.dataset.modelType = schema.entity_type; typeButtons.push([element, schema.entity_type]); return element;
   }
   function linkButton(link, className = '') {
-    const element = button(link.link_type, () => selectLink(link.link_type), className);
+    const element = button(link.link_type, () => {
+      const accepted=selectRelationship(link.link_type);if(accepted===false)return;
+      selectLink(link.link_type);
+      if(typeof accepted==='string')find('inspector-context').textContent=accepted;
+    }, className);
     element.dataset.modelLink = link.link_type; linkButtons.push([element, link.link_type]); return element;
   }
   function selection() {
@@ -44,7 +48,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
       ['Cardinality', `${cardinality(link.cardinality)} (${link.cardinality})`], ['Limits per relationship type and tenant', cardinalityLimits(link.cardinality)],
       ['Cross-tenant intent', String(link.allow_cross_tenant)], ['Declaration revision', link.revision],
     ]));
-    find('link').hidden = false; find('inspector-empty').hidden = true;find('inspector-context').textContent=`Relationship · ${link.link_type} · ${typeText(link.from_entity_type)} → ${typeText(link.to_entity_type)}`; selection(); selectRelationship(id);
+    find('link').hidden = false; find('inspector-empty').hidden = true;find('inspector-context').textContent=`Relationship · ${link.link_type} · ${typeText(link.from_entity_type)} → ${typeText(link.to_entity_type)}`; selection();
     if (restore) fallback();
   }
   function typeText(id) { return `${schemas.find(row => row.entity_type === id)?.display_name || id} · ${id}`; }

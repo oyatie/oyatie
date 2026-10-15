@@ -1,6 +1,32 @@
 use super::explorer_test::check_controller;
 
 #[test]
+fn refused_relationship_selection_preserves_the_current_applied_inspector() {
+    check_controller(
+        r##"
+(async()=>{
+  await flush();modelEnabled=true;session.roles=['foundry-model-author','foundry-operator'];
+  modelDocument.links.push({id:'lty_self',from_entity_type:'ety_record',to_entity_type:'ety_record',cardinality:'one_to_many',allow_cross_tenant:false,revision:1,display:null});
+  nativeLinks=[{link_type:'lty_published',from_entity_type:'ety_record',to_entity_type:'ety_profile',cardinality:'one_to_many',allow_cross_tenant:false,revision:1}];
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();find('live-ontology-draft-new').emit('click');await flush();
+  const heading=()=>find('live-ontology-inspector-context').textContent;
+  const state=()=>JSON.stringify({heading:heading(),selection:find('live-ontology-draft-selection').textContent,property:find('live-ontology-property-choice').value,schemaHidden:find('live-ontology-schema').hidden,linkHidden:find('live-ontology-link').hidden,pins:[find('live-ontology-type').value,find('live-ontology-revision').value],pressed:['library-types','library-links','scene','model-table'].flatMap(id=>find('live-ontology-'+id).querySelectorAll('button').filter(button=>button.dataset.modelType||button.dataset.modelLink).map(button=>[button.dataset.modelType||button.dataset.modelLink,button.attrs['aria-pressed']]))});
+  for(const field of ['entity-name','property-name'])for(const surface of ['library-links','scene','model-table']){
+    find('live-ontology-draft-reload').emit('click');await flush();find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');
+    find('live-ontology-'+field).value='Pending retarget '+field;find('live-ontology-'+field).emit('input');const before=state(),requests=calls.length;
+    const button=find('live-ontology-'+surface).querySelectorAll('[data-model-link]')[0];button.focus();button.emit('click');
+    assert.equal(state(),before,'refused dirty relationship click keeps heading, fields, metadata visibility and pressed context');assert.equal(find('live-ontology-'+field).value,'Pending retarget '+field);assert.equal(calls.length,requests);
+  }
+  find('live-ontology-draft-reload').emit('click');await flush();modelWorkspace.capabilities.author=false;modelWorkspace.capabilities.publish=true;session.roles=['foundry-model-publisher','foundry-operator'];await restore();
+  let requests=calls.length;find('live-ontology-library-links').querySelectorAll('[data-model-link]')[0].emit('click');assert.match(heading(),/^Draft relationship.*lty_self/);assert.equal(find('live-ontology-link').hidden,false);assert.equal(find('live-ontology-link-cardinality').disabled,true);assert.equal(calls.length,requests,'owned readonly publisher inspection remains local');
+  find('live-ontology-draft-choice').value='published';find('live-ontology-draft-choice').emit('change');await flush();requests=calls.length;find('live-ontology-library-links').querySelectorAll('[data-model-link]')[0].emit('click');assert.match(heading(),/^Relationship.*lty_self/);assert.equal(find('live-ontology-link').hidden,false);assert.equal(calls.length,requests,'active published no-draft inspection is admitted');
+  find('live-ontology-mode-objects').emit('click');const pins=[find('live-ontology-type').value,find('live-ontology-revision').value];requests=calls.length;find('live-ontology-library-links').querySelectorAll('[data-model-link]')[0].emit('click');assert.match(heading(),/^Relationship.*lty_published/);assert.deepEqual([find('live-ontology-type').value,find('live-ontology-revision').value],pins);assert.equal(calls.length,requests,'Objects declaration inspection preserves independent pins and performs no read');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"##,
+    );
+}
+
+#[test]
 fn selected_inspector_context_tracks_applied_source_and_property_choice() {
     check_controller(
         r##"

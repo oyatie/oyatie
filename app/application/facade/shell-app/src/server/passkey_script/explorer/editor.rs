@@ -201,6 +201,6 @@ function createOntologyDraftEditor(lifecycle, view) {
       note(value.valid?`Saved changes pass schema validation · version ${snapshot.version}. Publishing is not available yet.`:`Saved changes were refused by schema validation · version ${snapshot.version}.`);
     });
   });
-  return {open,clear,active,render,selectType:id=>{if(active()){if(formDirty){note('Apply form edits or discard and reload before changing declaration.');return;}if(working && !forms.selectType(id))return;render(id);}},selectLink:id=>{if(active()){if(formDirty){note('Apply form edits before changing declaration.');return;}const prior=forms.selectedLink();if(!forms.selectLink(id))return;if(prior!==id)forms.render(working,draft);controls();}},hold:()=>{invalidate();hide(true);},setMode:value=>{cancelSelectionFocus();mode=value;controls();if(value==='schema')render();}};
+  return {open,clear,active,render,selectType:id=>{if(active()){if(formDirty){note('Apply form edits or discard and reload before changing declaration.');return;}if(working && !forms.selectType(id))return;render(id);}},selectLink:id=>{if(!active())return false;if(formDirty){note('Apply form edits before changing declaration.');return false;}if(!working)return true;const prior=forms.selectedLink();if(!forms.selectLink(id))return false;if(prior!==id)forms.render(working,draft);controls();return forms.describe();},hold:()=>{invalidate();hide(true);},setMode:value=>{cancelSelectionFocus();mode=value;controls();if(value==='schema')render();}};
 }
 "#;
