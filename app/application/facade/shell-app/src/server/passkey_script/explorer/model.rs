@@ -6,7 +6,7 @@ function revealOntologyDetails(element, root) {
 }
 function createOntologyModelView(selectType, fallback, selectRelationship = () => {}, modeChanged = () => {}) {
   const find = id => document.getElementById(`live-ontology-${id}`);
-  let schemas = [], links = [], selectedType = null, selectedLink = null;
+  let schemas = [], links = [], selectedType = null, selectedLink = null, source = 'Published declarations';
   let representation = 'graph', zoom = 1, width = 640, height = 360;
   let typeButtons = [], linkButtons = [], graphLabels = [], graphNodes = [], graphEdges = [];
   const arrowSize = 8, arrowRefX = 7, arrowRefY = 4;
@@ -31,7 +31,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     const element = button(link.link_type, () => {
       const accepted=selectRelationship(link.link_type);if(accepted===false)return;
       selectLink(link.link_type);
-      if(typeof accepted==='string')find('inspector-context').textContent=accepted;
+      if(accepted && typeof accepted==='object')renderOntologySelectedContext(accepted);
     }, className);
     element.dataset.modelLink = link.link_type; linkButtons.push([element, link.link_type]); return element;
   }
@@ -48,14 +48,15 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
       ['Cardinality', `${cardinality(link.cardinality)} (${link.cardinality})`], ['Limits per relationship type and tenant', cardinalityLimits(link.cardinality)],
       ['Cross-tenant intent', String(link.allow_cross_tenant)], ['Declaration revision', link.revision],
     ]));
-    find('link').hidden = false; find('inspector-empty').hidden = true;find('inspector-context').textContent=`Relationship · ${link.link_type} · ${typeText(link.from_entity_type)} → ${typeText(link.to_entity_type)}`; selection();
+    find('link').hidden = false; find('inspector-empty').hidden = true;renderOntologySelectedContext({source,kind:'relationship',linkId:link.link_type,from:typeContext(link.from_entity_type),to:typeContext(link.to_entity_type)}); selection();
     if (restore) fallback();
   }
   function typeText(id) { return `${schemas.find(row => row.entity_type === id)?.display_name || id} · ${id}`; }
+  function typeContext(id) { return {id,name:schemas.find(row=>row.entity_type===id)?.display_name || id}; }
   function select(id) {
     const restore = find('link').contains(document.activeElement);
     selectedType = id; selectedLink = null; find('link-properties').replaceChildren(); find('link').hidden = true;
-    find('inspector-context').textContent=schemas.some(row=>row.entity_type===id)?`Type · ${typeText(id)}`:'';
+    renderOntologySelectedContext(schemas.some(row=>row.entity_type===id)?{source,kind:'type',type:typeContext(id)}:null);
     find('inspector-empty').hidden = Boolean(id); selection(); if (restore) fallback();
   }
   function library() {
@@ -146,20 +147,20 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
       ontologyTable('Relationship declarations', ['Relationship','From','To','Cardinality','Declaration revision'], links.map(row => [linkButton(row),typeText(row.from_entity_type),typeText(row.to_entity_type),cardinality(row.cardinality),row.revision])),
     );
   }
-  function setModel(rows, relations, selected) {
-    schemas = rows; links = relations; typeButtons = []; linkButtons = [];
+  function setModel(rows, relations, selected, modelSource = 'Published declarations') {
+    schemas = rows; links = relations; source = modelSource; typeButtons = []; linkButtons = [];
     selectedType = selected; selectedLink = null;
     library(); graph(); table(); select(selected);
     find('model-summary').textContent = `${schemas.length} type declarations · ${links.length} relationship declarations`;
   }
   function clear() {
     const active = document.activeElement;
-    const restore = ['scene','library-types','library-links','model-table','link'].some(id => find(id).contains(active));
+    const restore = ['scene','library-types','library-links','model-table','link','selection-details'].some(id => find(id).contains(active));
     schemas = []; links = []; typeButtons = []; linkButtons = []; graphLabels = []; graphNodes = []; graphEdges = []; selectedType = null; selectedLink = null;
     for (const id of ['scene','library-types','library-links','model-table','link-properties']) find(id).replaceChildren();
     width = 640; height = 360; find('scene').style.width = `${width}px`; find('scene').style.height = `${height}px`; scale(zoom);
     find('library-summary').textContent = ''; find('model-summary').textContent = ''; find('link').hidden = true; find('inspector-empty').hidden = false;
-    find('inspector-context').textContent='';
+    renderOntologySelectedContext(null);
     if (restore) fallback();
   }
   function showMode(value) {

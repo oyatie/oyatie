@@ -35,7 +35,7 @@ function createOntologyExplorer(lifecycle) {
     workspaceMode=value;editor?.setMode(value);
     if(value==='objects' || !editor?.active()) {model.setModel(schemas,links,find('type').value || null);renderSchema();}
   });
-  editor=createOntologyDraftEditor(lifecycle,{setModel:(rows,relations,selected)=>{model.setModel(rows,relations,selected);renderSchemaFor(rows.find(row=>row.entity_type===selected));},selectLink:id=>model.selectLink(id),fallback:()=>{model.setModel(schemas,links,find('type').value || null);renderSchema();}});
+  editor=createOntologyDraftEditor(lifecycle,{setModel:(rows,relations,selected,source)=>{model.setModel(rows,relations,selected,source);renderSchemaFor(rows.find(row=>row.entity_type===selected));},selectLink:id=>model.selectLink(id),fallback:()=>{model.setModel(schemas,links,find('type').value || null);renderSchema();}});
   let next = null, cursor = null, activeObject = null, historyShown = false, readPage = false;
   const queryControls = ['type', 'revision', 'limit', 'property', 'comparison', 'kind', 'from', 'to'];
   const note = text => { find('status').textContent = text; };

@@ -1,4 +1,14 @@
 pub(super) const SCRIPT: &str = r#"
+function renderOntologySelectedContext(value) {
+  const find=id=>document.getElementById(`live-ontology-${id}`),relationship=value?.kind==='relationship';
+  const selected=!value?'':relationship?`Relationship · ${value.linkId}`:value.kind==='property'?`Property · ${value.propertyName}`:`Type · ${value.type.id}`;
+  const identity=!value?'':relationship?`${value.source} · ${value.from.id} → ${value.to.id}`:value.kind==='property'?`${value.source} · ${value.type.id}`:value.source;
+  const name=!value?'':relationship?`${value.from.name} → ${value.to.name}`:value.type.name;
+  for(const [id,text] of [['selected',selected],['identity',identity],['name',name]])find(`context-${id}`).textContent=text;
+  const details=find('selection-details');details.hidden=!value;if(!value)details.open=false;
+  const rows=!value?[]:relationship?[['Source',value.source],['Relationship ID',value.linkId],['From type ID',value.from.id],['From type name',value.from.name],['To type ID',value.to.id],['To type name',value.to.name]]:[['Source',value.source],['Type ID',value.type.id],['Type name',value.type.name],...(value.kind==='property'?[['Property name',value.propertyName]]:[])];
+  find('selection-values').replaceChildren(...rows.flatMap(([label,text])=>{const term=document.createElement('dt'),definition=document.createElement('dd');term.textContent=label;definition.textContent=text;return [term,definition];}));
+}
 function ontologyTable(caption, columns, rows) {
   const table = document.createElement('table');
   const title = document.createElement('caption'); title.textContent = caption; table.append(title);

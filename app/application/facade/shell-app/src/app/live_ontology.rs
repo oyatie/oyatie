@@ -71,7 +71,8 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
             <section id="live-ontology-audit" aria-labelledby="live-ontology-audit-title" data-live-results="true" hidden><h4 id="live-ontology-audit-title">"Native tenant audit"</h4><div id="live-ontology-audit-rows"></div></section>
                         </section>
                     </div>
-                    <details id="live-ontology-inspector" class="foundry-inspector" open><summary id="live-ontology-inspector-title">"Inspector"<span id="live-ontology-inspector-context"></span></summary>
+                    <details id="live-ontology-inspector" class="foundry-inspector" open><summary id="live-ontology-inspector-title">"Inspector"<span id="live-ontology-inspector-context"><span id="live-ontology-context-selected"></span><span id="live-ontology-context-identity"></span><span id="live-ontology-context-name"></span></span></summary>
+                        <details id="live-ontology-selection-details" class="foundry-selection-details" hidden><summary>"Full selection details"</summary><dl id="live-ontology-selection-values"></dl></details>
                         <super::model_editor::ModelDraftInspector />
             <section id="live-ontology-schema" aria-labelledby="live-ontology-schema-title" data-live-results="true" hidden>
                 <h4 id="live-ontology-schema-title">"Native entity schema"</h4>

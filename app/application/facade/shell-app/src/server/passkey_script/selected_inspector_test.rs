@@ -1,6 +1,36 @@
 use super::explorer_test::check_controller;
 
 #[test]
+fn selected_context_keeps_long_literal_parts_and_exact_details_distinguishable() {
+    check_controller(
+        r##"
+(async()=>{
+  await flush();modelEnabled=true;session.roles=['foundry-model-author','foundry-operator'];
+  const typeName='Employee · Property → 人事と勤務先の管理 · Équipe internationale',propertyName='勤務先 · Draft relationship → work_address';
+  const idA='ety_'+ 'x'.repeat(4079)+'A_shared_tail',idB='ety_'+ 'x'.repeat(4079)+'B_shared_tail';
+  assert.equal(new TextEncoder().encode(idA).length,4096);assert.equal(idA.slice(0,64),idB.slice(0,64));assert.equal(idA.slice(-8),idB.slice(-8));
+  modelDocument.entities[0].display_name=typeName;modelDocument.entities[0].properties[1].name=propertyName;
+  const longName='名'.repeat(1365)+'x',longProperty='p'.repeat(4096);assert.equal(new TextEncoder().encode(longName).length,4096);
+  for(const id of [idA,idB]){const entity={...JSON.parse(JSON.stringify(modelDocument.entities[0])),id,display_name:longName};entity.properties[1].name=longProperty;modelDocument.entities.push(entity);}
+  const longLink='lty_'+ 'y'.repeat(4092);modelDocument.links.push({id:longLink,from_entity_type:idA,to_entity_type:idB,cardinality:'many_to_many',allow_cross_tenant:false,revision:1,display:null});
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();find('live-ontology-draft-new').emit('click');await flush();
+  const parts=()=>['selected','identity','name'].map(id=>find('live-ontology-context-'+id).textContent),details=()=>text(find('live-ontology-selection-values'));
+  find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');
+  assert.equal(parts()[0],'Property · '+propertyName,'selected property has its own literal bounded row');assert.equal(parts()[1],'Draft · ety_record');assert.equal(parts()[2],typeName);assert.ok(details().includes(propertyName)&&details().includes(typeName));
+  const before=JSON.stringify({parts:parts(),details:details()});find('live-ontology-property-name').value='Pending · Property → rename';find('live-ontology-property-name').emit('input');find('live-ontology-library-links').querySelectorAll('[data-model-link]')[0].emit('click');assert.equal(JSON.stringify({parts:parts(),details:details()}),before,'pending name and refused relationship do not retarget any context part');
+  find('live-ontology-draft-reload').emit('click');await flush();const buttons=()=>find('live-ontology-library-types').querySelectorAll('[data-model-type]');
+  for(const id of [idA,idB]){buttons().find(b=>b.dataset.modelType===id).emit('click');find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');assert.equal(parts()[0],'Property · '+longProperty);assert.equal(parts()[1],'Draft · '+id);assert.equal(parts()[2],longName);assert.ok(details().includes(id)&&details().includes(longProperty)&&details().includes(longName),'exact full admitted values stay inspectable even for identical abbreviated prefixes/suffixes');}
+  find('live-ontology-library-links').querySelectorAll('[data-model-link]')[0].emit('click');assert.equal(parts()[0],'Relationship · '+longLink);assert.equal(parts()[1],'Draft · '+idA+' → '+idB);assert.ok(details().includes(longLink)&&details().includes(idA)&&details().includes(idB));
+  modelWorkspace.capabilities.author=false;modelWorkspace.capabilities.publish=true;session.roles=['foundry-model-publisher','foundry-operator'];await restore();assert.equal(find('live-ontology-link-cardinality').disabled,true);assert.ok(details().includes(longLink),'readonly publisher retains exact applied relationship context');
+  find('live-ontology-draft-choice').value='published';find('live-ontology-draft-choice').emit('change');await flush();buttons()[0].emit('click');assert.equal(parts()[0],'Type · ety_record');assert.equal(parts()[1],'Published model');assert.equal(parts()[2],typeName);
+  find('sign-in-account').value='usr_other';find('sign-in-account').emit('input');assert.deepEqual(parts(),['','','']);assert.equal(details(),'');assert.equal(find('live-ontology-selection-details').hidden,true,'identity clearing removes exact context too');
+  const start=input.html.indexOf('id="live-ontology-inspector-title"'),end=input.html.indexOf('</summary>',start),full=input.html.indexOf('id="live-ontology-selection-details"');assert.ok(start>=0&&full>end,'ordinary exact-context disclosure is outside the sticky interactive summary');assert.ok(input.html.includes('Full selection details'));
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"##,
+    );
+}
+
+#[test]
 fn refused_relationship_selection_preserves_the_current_applied_inspector() {
     check_controller(
         r##"
@@ -9,7 +39,7 @@ fn refused_relationship_selection_preserves_the_current_applied_inspector() {
   modelDocument.links.push({id:'lty_self',from_entity_type:'ety_record',to_entity_type:'ety_record',cardinality:'one_to_many',allow_cross_tenant:false,revision:1,display:null});
   nativeLinks=[{link_type:'lty_published',from_entity_type:'ety_record',to_entity_type:'ety_profile',cardinality:'one_to_many',allow_cross_tenant:false,revision:1}];
   find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();find('live-ontology-draft-new').emit('click');await flush();
-  const heading=()=>find('live-ontology-inspector-context').textContent;
+  const heading=()=>['selected','identity','name'].map(id=>find('live-ontology-context-'+id).textContent).filter(Boolean).join(' · ');
   const state=()=>JSON.stringify({heading:heading(),selection:find('live-ontology-draft-selection').textContent,property:find('live-ontology-property-choice').value,schemaHidden:find('live-ontology-schema').hidden,linkHidden:find('live-ontology-link').hidden,pins:[find('live-ontology-type').value,find('live-ontology-revision').value],pressed:['library-types','library-links','scene','model-table'].flatMap(id=>find('live-ontology-'+id).querySelectorAll('button').filter(button=>button.dataset.modelType||button.dataset.modelLink).map(button=>[button.dataset.modelType||button.dataset.modelLink,button.attrs['aria-pressed']]))});
   for(const field of ['entity-name','property-name'])for(const surface of ['library-links','scene','model-table']){
     find('live-ontology-draft-reload').emit('click');await flush();find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');
@@ -18,7 +48,7 @@ fn refused_relationship_selection_preserves_the_current_applied_inspector() {
     assert.equal(state(),before,'refused dirty relationship click keeps heading, fields, metadata visibility and pressed context');assert.equal(find('live-ontology-'+field).value,'Pending retarget '+field);assert.equal(calls.length,requests);
   }
   find('live-ontology-draft-reload').emit('click');await flush();modelWorkspace.capabilities.author=false;modelWorkspace.capabilities.publish=true;session.roles=['foundry-model-publisher','foundry-operator'];await restore();
-  let requests=calls.length;find('live-ontology-library-links').querySelectorAll('[data-model-link]')[0].emit('click');assert.match(heading(),/^Draft relationship.*lty_self/);assert.equal(find('live-ontology-link').hidden,false);assert.equal(find('live-ontology-link-cardinality').disabled,true);assert.equal(calls.length,requests,'owned readonly publisher inspection remains local');
+  let requests=calls.length;find('live-ontology-library-links').querySelectorAll('[data-model-link]')[0].emit('click');assert.match(heading(),/^Relationship.*lty_self.*Draft/);assert.equal(find('live-ontology-link').hidden,false);assert.equal(find('live-ontology-link-cardinality').disabled,true);assert.equal(calls.length,requests,'owned readonly publisher inspection remains local');
   find('live-ontology-draft-choice').value='published';find('live-ontology-draft-choice').emit('change');await flush();requests=calls.length;find('live-ontology-library-links').querySelectorAll('[data-model-link]')[0].emit('click');assert.match(heading(),/^Relationship.*lty_self/);assert.equal(find('live-ontology-link').hidden,false);assert.equal(calls.length,requests,'active published no-draft inspection is admitted');
   find('live-ontology-mode-objects').emit('click');const pins=[find('live-ontology-type').value,find('live-ontology-revision').value];requests=calls.length;find('live-ontology-library-links').querySelectorAll('[data-model-link]')[0].emit('click');assert.match(heading(),/^Relationship.*lty_published/);assert.deepEqual([find('live-ontology-type').value,find('live-ontology-revision').value],pins);assert.equal(calls.length,requests,'Objects declaration inspection preserves independent pins and performs no read');
 })().catch(error=>{console.error(error);process.exitCode=1;});
@@ -35,10 +65,10 @@ fn selected_inspector_context_tracks_applied_source_and_property_choice() {
   modelDocument.links.push({id:'lty_self',from_entity_type:'ety_record',to_entity_type:'ety_record',cardinality:'one_to_many',allow_cross_tenant:false,revision:1,display:null});
   find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
   find('live-ontology-draft-new').emit('click');await flush();
-  const heading=()=>find('live-ontology-inspector-context').textContent;
-  assert.match(heading(),/Record.*ety_record.*name/);
+  const heading=()=>['selected','identity','name'].map(id=>find('live-ontology-context-'+id).textContent).filter(Boolean).join(' · ');
+  assert.match(heading(),/name.*ety_record.*Record/);
   find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');
-  assert.match(heading(),/Record.*ety_record.*structure/,'property() updates the applied selected context');
+  assert.match(heading(),/structure.*ety_record.*Record/,'property() updates the applied selected context');
   const before=heading();find('live-ontology-entity-name').value='Pending rename';find('live-ontology-entity-name').emit('input');
   assert.equal(heading(),before,'pending text is not applied identity');
   const rich=()=>find('live-ontology-property-value');rich().querySelectorAll('button').find(button=>button.textContent==='Add field').emit('click');
@@ -47,14 +77,14 @@ fn selected_inspector_context_tracks_applied_source_and_property_choice() {
   find('live-ontology-property-choice').value='0';find('live-ontology-property-choice').emit('change');
   assert.equal(heading(),before,'dirty property retarget is refused');
   const objectPin=[find('live-ontology-type').value,find('live-ontology-revision').value];
-  find('live-ontology-mode-objects').emit('click');assert.match(heading(),/Record.*ety_record/);assert.ok(!heading().includes('structure'));
+  find('live-ontology-mode-objects').emit('click');assert.match(heading(),/ety_record.*Record/);assert.ok(!heading().includes('structure'));
   await restore();assert.ok(!heading().includes('structure'),'late model controls cannot overwrite Objects context');
   find('live-ontology-mode-schema').emit('click');assert.equal(heading(),before);assert.equal(find('live-ontology-entity-name').value,'Pending rename');
   assert.equal(rich().querySelectorAll('input')[0].value,'pending nested value','removed-row pending form survives mode and verified recheck');assert.match(find('live-ontology-draft-state').textContent,/Unapplied form edits/);assert.equal(find('live-ontology-draft-save').disabled,true);
   assert.deepEqual([find('live-ontology-type').value,find('live-ontology-revision').value],objectPin);
   find('live-ontology-draft-reload').emit('click');await flush();
   find('live-ontology-library-links').querySelectorAll('[data-model-link]')[0].emit('click');assert.match(heading(),/lty_self/);
-  find('live-ontology-library-types').querySelectorAll('[data-model-type]')[0].emit('click');assert.match(heading(),/Record.*ety_record/);
+  find('live-ontology-library-types').querySelectorAll('[data-model-type]')[0].emit('click');assert.match(heading(),/ety_record.*Record/);
   modelWorkspace.capabilities.author=false;modelWorkspace.capabilities.publish=true;session.roles=['foundry-model-publisher','foundry-operator'];await restore();
   find('live-ontology-property-choice').value='0';find('live-ontology-property-choice').emit('change');assert.match(heading(),/name/);
   find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');assert.match(heading(),/structure/);

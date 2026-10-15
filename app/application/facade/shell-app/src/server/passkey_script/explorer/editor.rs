@@ -68,13 +68,13 @@ function createOntologyDraftEditor(lifecycle, view) {
   }
   function render(selected=null) {
     if (!active() || mode!=='schema') {controls();return;}
-    forms.render(working,draft);const rows=ontologyModelRows(working || workspace.document);view.setModel(rows.schemas,rows.links,selected || forms.selection() || rows.schemas[0]?.entity_type || null);
+    forms.render(working,draft);const rows=ontologyModelRows(working || workspace.document);view.setModel(rows.schemas,rows.links,selected || forms.selection() || rows.schemas[0]?.entity_type || null,draft?'Draft':'Published model');
     find('model-note').textContent=draft ? `Working draft based on generation ${draft.base_generation}. Object reads use published declarations.` : `Coherent published metadata snapshot at generation ${workspace.generation}. Object reads are independent.`;
     if(forms.selectedLink())view.selectLink(forms.selectedLink());forms.describe();diff();controls();
   }
   const forms=createOntologyDraftForms({find,document:()=>working,baseline:()=>workspace?.document,editable:()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication && !loading && !pending && !blocked,
     acceptInput:()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication, dirty:()=>formDirty, input:()=>{formDirty=true;validation=null;find('draft-diagnostics').replaceChildren();note('Unapplied form edits. Apply changes or discard and reload before saving or validating.');controls();},
-    changed:unapplied=>{formDirty=unapplied;validation=null;find('draft-diagnostics').replaceChildren();note(unapplied?'Unapplied form edits remain. Apply changes or discard and reload before saving or validating.':'Unsaved local edits. Save the draft before schema validation.');render();},describe:text=>{if(active() && draft && mode==='schema')find('inspector-context').textContent=text;},note});
+    changed:unapplied=>{formDirty=unapplied;validation=null;find('draft-diagnostics').replaceChildren();note(unapplied?'Unapplied form edits remain. Apply changes or discard and reload before saving or validating.':'Unsaved local edits. Save the draft before schema validation.');render();},describe:value=>{if(active() && draft && mode==='schema')renderOntologySelectedContext(value);},note});
   function hide(preserve=false) {
     for(const id of ['draft-controls','draft-inspector','draft-tray'])find(id).hidden=true;
     find('model-note').textContent='';
