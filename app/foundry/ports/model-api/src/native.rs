@@ -189,7 +189,7 @@ impl ModelBaseline {
     pub fn registry(&self, tenant: &str) -> Result<OntologyEngine, ModelError> {
         self.document.check_bounds()?;
         let mut registry = OntologyEngine::default();
-        crate::admission::stage_named_string_types(&mut registry, tenant, &self.document)?;
+        crate::named_strings::stage_named_string_types(&mut registry, tenant, &self.document)?;
         let mut rows: Vec<&ModelEntity> = self
             .prior_entity_revisions
             .iter()

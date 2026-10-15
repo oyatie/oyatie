@@ -10,6 +10,7 @@ mod discovery;
 mod document;
 mod integrity;
 mod ledger;
+mod named_strings;
 mod native;
 mod reference;
 mod schema;
