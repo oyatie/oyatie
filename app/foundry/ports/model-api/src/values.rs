@@ -61,6 +61,7 @@ model_object!(ModelStructField {
 #[serde(tag = "shape", rename_all = "snake_case", deny_unknown_fields)]
 pub enum ModelValueType {
     Scalar { kind: ModelScalar },
+    NamedString { type_id: String, revision: u32 },
     Array { element: Box<ModelValueType> },
     Struct { fields: Vec<ModelStructField> },
 }

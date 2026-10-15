@@ -45,29 +45,78 @@ native_enum!(
 use data_ontology_kernel::{LinkCardinality, OntologyPillar};
 
 impl ModelValueType {
-    pub(crate) fn native(&self) -> ValueTypeDeclaration {
-        match self {
+    pub(crate) fn native(
+        &self,
+        registry: &data_ontology_kernel::OntologyEngine,
+        tenant: &str,
+        path: &str,
+    ) -> Result<ValueTypeDeclaration, ModelError> {
+        self.native_at_depth(registry, tenant, path, 1)
+    }
+
+    fn native_at_depth(
+        &self,
+        registry: &data_ontology_kernel::OntologyEngine,
+        tenant: &str,
+        path: &str,
+        depth: usize,
+    ) -> Result<ValueTypeDeclaration, ModelError> {
+        Ok(match self {
             Self::Scalar { kind } => ValueTypeDeclaration::Scalar((*kind).into()),
+            Self::NamedString { type_id, revision } => {
+                if depth != 1 {
+                    return Err(crate::native::native_error(
+                        path,
+                        data_ontology_kernel::OntologyEngineError::UnsupportedNamedStringPosition,
+                    ));
+                }
+                let reference = data_ontology_kernel::NamedStringTypeRef::new(
+                    tenant,
+                    data_ontology_kernel::NamedStringTypeId::new(type_id)
+                        .map_err(|e| crate::native::native_error(path, e))?,
+                    *revision,
+                )
+                .map_err(|e| crate::native::native_error(path, e))?;
+                registry
+                    .named_string_declaration(&reference)
+                    .map_err(|e| crate::native::native_error(path, e))?
+            }
             Self::Array { element } => ValueTypeDeclaration::Array {
-                element: Box::new(element.native()),
+                element: Box::new(element.native_at_depth(
+                    registry,
+                    tenant,
+                    &format!("{path}.element"),
+                    depth + 1,
+                )?),
             },
             Self::Struct { fields } => ValueTypeDeclaration::Struct(StructSchema {
                 fields: fields
                     .iter()
-                    .map(|field| StructFieldDeclaration {
-                        name: field.name.clone(),
-                        required: field.required,
-                        value_type: field.value_type.native(),
+                    .map(|field| {
+                        Ok(StructFieldDeclaration {
+                            name: field.name.clone(),
+                            required: field.required,
+                            value_type: field.value_type.native_at_depth(
+                                registry,
+                                tenant,
+                                &format!("{path}.fields.{}.value_type", field.name),
+                                depth + 1,
+                            )?,
+                        })
                     })
-                    .collect(),
+                    .collect::<Result<Vec<_>, ModelError>>()?,
             }),
-        }
+        })
     }
 }
 
 impl From<&ValueTypeDeclaration> for ModelValueType {
     fn from(value: &ValueTypeDeclaration) -> Self {
         match value {
+            ValueTypeDeclaration::NamedString(definition) => Self::NamedString {
+                type_id: definition.reference().id().as_str().into(),
+                revision: definition.reference().revision(),
+            },
             ValueTypeDeclaration::Scalar(kind) => Self::Scalar {
                 kind: (*kind).into(),
             },

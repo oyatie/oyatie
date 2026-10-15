@@ -43,10 +43,53 @@ model_object!(ModelLink {
     display: Option<ModelDisplay>,
 });
 
-model_object!(ModelDocument {
-    entities: Vec<ModelEntity>,
-    links: Vec<ModelLink>,
+model_object!(ModelNamedStringType {
+    id: String,
+    revision: u32,
+    display_name: String,
+    members: Vec<String>,
 });
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
+pub struct ModelDocument {
+    pub entities: Vec<ModelEntity>,
+    pub links: Vec<ModelLink>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub named_string_types: Vec<ModelNamedStringType>,
+}
+impl<'de> serde::Deserialize<'de> for ModelDocument {
+    fn deserialize<D: serde::Deserializer<'de>>(decoder: D) -> Result<Self, D::Error> {
+        #[derive(serde::Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct Fields {
+            entities: Vec<ModelEntity>,
+            links: Vec<ModelLink>,
+            #[serde(default)]
+            named_string_types: Vec<ModelNamedStringType>,
+        }
+        struct Object;
+        impl<'de> serde::de::Visitor<'de> for Object {
+            type Value = ModelDocument;
+            fn expecting(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.write_str("a ModelDocument object")
+            }
+            fn visit_map<A: serde::de::MapAccess<'de>>(
+                self,
+                map: A,
+            ) -> Result<Self::Value, A::Error> {
+                let fields = <Fields as serde::Deserialize>::deserialize(
+                    serde::de::value::MapAccessDeserializer::new(map),
+                )?;
+                Ok(ModelDocument {
+                    entities: fields.entities,
+                    links: fields.links,
+                    named_string_types: fields.named_string_types,
+                })
+            }
+        }
+        decoder.deserialize_map(Object)
+    }
+}
 
 model_object!(ModelBaseline {
     document: ModelDocument,

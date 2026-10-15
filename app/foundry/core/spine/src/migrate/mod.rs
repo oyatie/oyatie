@@ -230,7 +230,9 @@ pub(super) fn declared<'a>(
 fn scalar_of(declaration: &ValueTypeDeclaration) -> Option<ScalarType> {
     match declaration {
         ValueTypeDeclaration::Scalar(scalar) => Some(*scalar),
-        ValueTypeDeclaration::Array { .. } | ValueTypeDeclaration::Struct(_) => None,
+        ValueTypeDeclaration::NamedString(_)
+        | ValueTypeDeclaration::Array { .. }
+        | ValueTypeDeclaration::Struct(_) => None,
     }
 }
 

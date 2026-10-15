@@ -10,6 +10,7 @@ mod definitions;
 mod display;
 mod engine;
 mod error;
+mod named_string;
 mod object_graph;
 mod property;
 mod revisioning;
@@ -37,4 +38,9 @@ pub use value::{CalendarDate, FiniteDouble, PropertyValue, StorageClass, ValueTy
 pub use value_type::{
     MAX_VALUE_TYPE_DEPTH, ScalarType, StructFieldDeclaration, StructSchema, ValueTypeDeclaration,
     ValueTypeViolation,
+};
+
+pub use named_string::{
+    MAX_NAMED_STRING_MEMBERS, MAX_NAMED_STRING_TEXT_BYTES, NamedStringTypeDefinition,
+    NamedStringTypeId, NamedStringTypeRef,
 };

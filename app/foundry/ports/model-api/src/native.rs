@@ -40,7 +40,11 @@ impl From<&DisplayMetadata> for ModelDisplay {
 }
 
 impl ModelEntity {
-    pub(crate) fn native(&self, tenant: &str) -> Result<EntityTypeDefinition, ModelError> {
+    pub(crate) fn native(
+        &self,
+        registry: &OntologyEngine,
+        tenant: &str,
+    ) -> Result<EntityTypeDefinition, ModelError> {
         let path = format!("entities.{}", self.id);
         let properties = self
             .properties
@@ -53,7 +57,17 @@ impl ModelEntity {
                     row.required,
                 )
                 .map_err(|e| native_error(&path, e))?;
-                property.value_type = row.value_type.as_ref().map(ModelValueType::native);
+                property.value_type = row
+                    .value_type
+                    .as_ref()
+                    .map(|kind| {
+                        kind.native(
+                            registry,
+                            tenant,
+                            &format!("{path}.properties.{}.value_type", row.name),
+                        )
+                    })
+                    .transpose()?;
                 property.display = row.display.as_ref().map(ModelDisplay::native);
                 Ok(property)
             })
@@ -137,6 +151,15 @@ impl ModelDocument {
                 .map(ModelEntity::capture)
                 .collect::<Result<Vec<_>, _>>()?,
             links: engine.link_types(tenant).map(ModelLink::capture).collect(),
+            named_string_types: engine
+                .named_string_types(tenant)
+                .map(|row| ModelNamedStringType {
+                    id: row.reference().id().as_str().into(),
+                    revision: row.reference().revision(),
+                    display_name: row.display_name().value.clone(),
+                    members: row.members().iter().cloned().collect(),
+                })
+                .collect(),
         };
         document.check_bounds()?;
         Ok(document)
@@ -166,6 +189,7 @@ impl ModelBaseline {
     pub fn registry(&self, tenant: &str) -> Result<OntologyEngine, ModelError> {
         self.document.check_bounds()?;
         let mut registry = OntologyEngine::default();
+        crate::admission::stage_named_string_types(&mut registry, tenant, &self.document)?;
         let mut rows: Vec<&ModelEntity> = self
             .prior_entity_revisions
             .iter()
@@ -185,7 +209,7 @@ impl ModelBaseline {
                 return Err(ModelError::CorruptState);
             }
             registry
-                .evolve_entity_type(row.native(tenant)?)
+                .evolve_entity_type(row.native(&registry, tenant)?)
                 .map_err(|e| native_error("baseline.entity_revisions", e))?;
         }
         for row in &self.document.links {
@@ -193,6 +217,7 @@ impl ModelBaseline {
                 .register_link_type(row.native(tenant)?)
                 .map_err(|e| native_error("baseline.links", e))?;
         }
+        crate::schema::schema_bytes(&registry, tenant)?;
         if ModelDocument::capture(&registry, tenant)? != self.document {
             return Err(ModelError::CorruptState);
         }

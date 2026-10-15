@@ -12,6 +12,7 @@ mod integrity;
 mod ledger;
 mod native;
 mod reference;
+mod schema;
 mod store;
 mod transitions;
 mod value_native;
@@ -26,3 +27,8 @@ pub use ledger::ModelLedger;
 pub use reference::ReferenceModelStore;
 pub use store::*;
 pub use values::*;
+
+pub use schema::{MAX_ONTOLOGY_SCHEMA_BYTES, schema_bytes};
+
+#[cfg(test)]
+mod named_strings_tests;

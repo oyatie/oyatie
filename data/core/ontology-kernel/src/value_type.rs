@@ -50,11 +50,12 @@ pub struct StructSchema {
     pub fields: Vec<StructFieldDeclaration>,
 }
 
-/// What a value must be. V1 covers exactly the Scalar/Array/Struct shapes;
+/// What a value must be. Named strings retain an exact canonical definition;
 /// typed Timeseries/Geo/Ciphertext are reserved loosen-only widenings.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ValueTypeDeclaration {
     Scalar(ScalarType),
+    NamedString(crate::NamedStringTypeDefinition),
     Array { element: Box<ValueTypeDeclaration> },
     Struct(StructSchema),
 }
@@ -78,7 +79,7 @@ impl ValueTypeDeclaration {
     /// derived, never stated, so tier/type incoherence is unrepresentable.
     pub const fn tier(&self) -> PropertyTier {
         match self {
-            Self::Scalar(_) => PropertyTier::Scalar,
+            Self::Scalar(_) | Self::NamedString(_) => PropertyTier::Scalar,
             Self::Array { .. } => PropertyTier::Vector,
             Self::Struct(_) => PropertyTier::Struct,
         }
@@ -89,6 +90,7 @@ impl ValueTypeDeclaration {
     pub const fn type_label(&self) -> &'static str {
         match self {
             Self::Scalar(scalar) => scalar.type_label(),
+            Self::NamedString(_) => "named_string",
             Self::Array { .. } => "array",
             Self::Struct(_) => "struct",
         }
@@ -106,6 +108,8 @@ impl ValueTypeDeclaration {
         }
         match self {
             Self::Scalar(_) => Ok(()),
+            Self::NamedString(_) if depth == 1 => Ok(()),
+            Self::NamedString(_) => Err(ValueTypeError::NestedNamedString),
             Self::Array { element } => element.validate_at_depth(depth + 1),
             Self::Struct(schema) => {
                 if schema.fields.is_empty() {
@@ -162,6 +166,10 @@ impl ValueTypeDeclaration {
                     Err(mismatch(scalar.type_label()))
                 }
             }
+            Self::NamedString(definition) => match value {
+                PropertyValue::String(member) if definition.members().contains(member) => Ok(()),
+                _ => Err(mismatch("named_string")),
+            },
             Self::Array { element } => match value {
                 PropertyValue::Array(items) => {
                     for (index, item) in items.iter().enumerate() {

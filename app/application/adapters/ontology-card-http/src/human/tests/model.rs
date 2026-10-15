@@ -6,6 +6,7 @@ use application_ontology_read::*;
 use std::time::Duration;
 fn document() -> ModelDocument {
     ModelDocument {
+        named_string_types: vec![],
         entities: vec![],
         links: vec![],
     }

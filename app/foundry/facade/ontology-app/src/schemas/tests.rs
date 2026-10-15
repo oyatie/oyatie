@@ -6,6 +6,9 @@ use data_ontology_kernel::{
 use serde_json::json;
 
 use super::*;
+fn rows(engine: &OntologyEngine, tenant: &str) -> Vec<serde_json::Value> {
+    serde_json::from_slice(&foundry_model_api::schema_bytes(engine, tenant).unwrap()).unwrap()
+}
 
 #[test]
 fn current_schemas_preserve_native_types_designations_order_and_tenant_scope() {
@@ -106,7 +109,7 @@ fn current_schemas_preserve_native_types_designations_order_and_tenant_scope() {
             .unwrap(),
     );
     engine.evolve_entity_type(evolved).unwrap();
-    assert_eq!(rows(&engine, "ten_a")[0].revision, 2);
+    assert_eq!(rows(&engine, "ten_a")[0]["revision"], 2);
     assert!(rows(&engine, "ten_absent").is_empty());
 }
 

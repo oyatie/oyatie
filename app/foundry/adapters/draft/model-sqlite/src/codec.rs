@@ -11,6 +11,7 @@ pub(crate) fn row_bounds() -> Result<RowBounds, ModelError> {
     // NUL encodes to six JSON bytes per source byte, the maximal string expansion.
     let context = "\0".repeat(MAX_MODEL_CONTEXT_BYTES);
     let document = ModelDocument {
+        named_string_types: vec![],
         entities: Vec::new(),
         links: Vec::new(),
     };

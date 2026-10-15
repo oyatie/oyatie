@@ -3,6 +3,8 @@ use foundry_model_api::{control::*, *};
 use reqwest::{Method, StatusCode};
 #[path = "model_runtime/hot_publish.rs"]
 mod hot_publish;
+#[path = "model_runtime/named_strings.rs"]
+mod named_strings;
 #[path = "model_runtime/refusals.rs"]
 mod refusals;
 #[path = "model_runtime/replay.rs"]

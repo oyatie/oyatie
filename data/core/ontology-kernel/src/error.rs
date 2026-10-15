@@ -5,6 +5,13 @@ use crate::definitions::LinkCardinality;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum OntologyEngineError {
     InvalidTenantId,
+    InvalidNamedStringTypeId,
+    UnsupportedNamedStringPosition,
+    InvalidNamedStringRevision,
+    InvalidNamedStringMembers,
+    DuplicateNamedStringType,
+    UnknownNamedStringType,
+    NamedStringDefinitionMismatch,
     InvalidTypeId,
     InvalidLinkTypeId,
     InvalidActionTypeId,

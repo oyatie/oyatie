@@ -7,6 +7,7 @@ use std::sync::{
 
 mod encoded_boundaries;
 mod history_capacity;
+mod named_strings;
 mod refusal;
 mod rollback;
 
