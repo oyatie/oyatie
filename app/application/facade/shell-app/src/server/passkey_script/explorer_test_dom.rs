@@ -2,11 +2,15 @@ pub(super) const SCRIPT: &str = r#"
 const assert = require('node:assert/strict'), vm = require('node:vm');
 const input = JSON.parse(require('node:fs').readFileSync(0, 'utf8'));
 class Element {
-  constructor(tag='div') { this.tagName=tag; this.textContent=''; this.children=[]; this.dataset={}; this.events={}; this.attrs={}; this.hidden=false; this._value=''; this.isConnected=true; this.style={setProperty(name,value){this[name]=String(value);},removeProperty(name){delete this[name];},getPropertyValue(name){return this[name]||'';}};this.classList={add(){}};this.clientWidth=640;this.clientHeight=480;this.scrollLeft=0;this.scrollTop=0; if(['input','select','button'].includes(tag))this.disabled=false; }
+  constructor(tag='div') { this.tagName=tag; this.textContent=''; this.children=[]; this.dataset={}; this.events={}; this.attrs={}; this.hidden=false; this._value=''; this.isConnected=true; this.style={setProperty(name,value){this[name]=String(value);},removeProperty(name){delete this[name];},getPropertyValue(name){return this[name]||'';}};this.classList={add(){},contains(){return false;}};this.clientWidth=640;this.clientHeight=480;this.scrollLeft=0;this.scrollTop=0; if(['input','select','button'].includes(tag))this.disabled=false; }
   append(...children) { for (const child of children) { if(child.parentElement)child.parentElement.children=child.parentElement.children.filter(node=>node!==child); child.parentElement=this; const connect=node=>{node.isConnected=this.isConnected;for(const nested of node.children)connect(nested);};connect(child);this.children.push(child); } }
   removeChild(child) { if(!this.children.includes(child))throw new Error('Not a child');if(child.contains(document.activeElement))document.activeElement=document.body;this.children=this.children.filter(node=>node!==child);child.parentElement=null;const disconnect=node=>{node.isConnected=false;for(const nested of node.children)disconnect(nested);};disconnect(child);return child; }
   replaceChildren(...children) { for(const child of [...this.children])this.removeChild(child);this.append(...children); }
   setAttribute(name,value) { this.attrs[name]=String(value); }
+  getAttribute(name) { return this.attrs[name] ?? null; }
+  hasAttribute(name) { return Object.hasOwn(this.attrs,name); }
+  removeAttribute(name) { delete this.attrs[name]; }
+  dispatchEvent(event) { document.emit(event.type,{...event,target:this});return true; }
   get value() { return this.tagName==='select' ? (this.children.some(c=>c.value===this._value) ? this._value : this.children[0]?.value || '') : this._value; }
   set value(value) { this._value=String(value); }
   get selectedOptions() { return this.children.filter(c=>c.value===this.value); }
@@ -22,21 +26,27 @@ class Element {
   getBBox() {return this.mockBounds||{x:0,y:0,width:0,height:0};}
   getBoundingClientRect() {return {height:this.mockHeight??0,width:this.clientWidth};}
   contains(target) { for(let node=target;node;node=node.parentElement) if(node===this)return true;return false; }
-  closest(selector) { for(let node=this;node;node=node.parentElement)if(selector==='[data-live-results]'&&node.dataset.liveResults||selector==='[hidden]'&&node.hidden)return node;return null; }
-  getClientRects() { if(!this.isConnected || this.closest('[hidden]'))return [];for(let child=this,parent=this.parentElement;parent;child=parent,parent=parent.parentElement)if(parent.tagName==='details'&&!parent.open&&child!==parent.children.find(node=>node.tagName==='summary'))return [];return [{}]; }
+  closest(selector) { for(let node=this;node;node=node.parentElement)if(selector==='[data-live-results]'&&node.dataset.liveResults||selector==='[hidden]'&&node.hidden||selector==='[data-shell-inactive]'&&node.hasAttribute('data-shell-inactive')||selector==='details'&&node.tagName==='details'||selector==="a[href^='#']"&&node.tagName==='a'&&node.getAttribute('href')?.startsWith('#'))return node;return null; }
+  getClientRects() { if(!this.isConnected || this.closest('[hidden]') || this.closest('[data-shell-inactive]'))return [];for(let child=this,parent=this.parentElement;parent;child=parent,parent=parent.parentElement)if(parent.tagName==='details'&&!parent.open&&child!==parent.children.find(node=>node.tagName==='summary'))return [];return [{}]; }
   querySelectorAll(selector) { const result=[];for(const child of this.children){if(selector===child.tagName||selector==='[data-live-object]'&&child.dataset.liveObject||selector==='[data-live-fact]'&&child.dataset.liveFact||selector==='[data-model-type]'&&child.dataset.modelType||selector==='[data-model-link]'&&child.dataset.modelLink||selector==='[data-model-edge]'&&child.dataset.modelEdge)result.push(child);result.push(...child.querySelectorAll(selector));}return result; }
-  focus(options) { if(this.disabled)return;this.focusOptions=options;document.activeElement=this;document.emit('focusin',{target:this}); }
+  focus(options) { if(this.disabled || !this.getClientRects().length)return;this.focusOptions=options;document.activeElement=this;document.emit('focusin',{target:this}); }
 }
 const elements={}, panel=new Element('section');
 function add(id,tag='div',parent=panel) { const e=new Element(tag);e.id=id;elements[id]=e;parent.append(e);return e; }
-add('oyatie-sign-in');
-add('console-shell','main');
-add('foundry-workspace','section',panel);
-for(const [id,label] of Object.entries({'shell-rail-product':'Control Center','shell-rail-scope':'ANONYMOUS SAMPLE VIEWS','shell-rail-title':'Explore shell samples','shell-rail-description':'Catalog, cloud, evidence and Work Hub samples. Live operations are unavailable.','shell-rail-status':'Navigation only · no live operation','shell-account-title':'Sample workspace','shell-account-detail':'Anonymous preview','shell-breadcrumb-scope':'Sample views','shell-breadcrumb-destination':'Control Center','shell-session-entry':'Sign in','sign-in-title':'Sign in with a passkey'}))add(id).textContent=label;
-for(const id of ['tenant','account'])add('sign-in-'+id,'input');
+const shell=add('oyatie-shell','div');
+const main=add('console-shell','main',shell);
+add('shell-sample-intro','section',main);
+add('dashboard-island-root','div',main);
+add('oyatie-sign-in','section',main);
+add('foundry-workspace','section',main);
+add('shell-skip-link','a',shell).setAttribute('href','#console-shell');
+add('shell-navigation-menu','details',shell).open=true;
+add('service-catalog','section',elements['dashboard-island-root']);
+for(const [id,label] of Object.entries({'shell-rail-product':'Control Center','shell-rail-scope':'ANONYMOUS SAMPLE VIEWS','shell-rail-title':'Explore shell samples','shell-rail-description':'Catalog, cloud, evidence and Work Hub samples. Live operations are unavailable.','shell-rail-status':'Navigation only · no live operation','shell-account-title':'Sample workspace','shell-account-detail':'Anonymous preview','shell-breadcrumb-scope':'Sample views','shell-breadcrumb-destination':'Control Center','shell-session-entry':'Sign in','shell-header-identity':'Anonymous preview','sign-in-title':'Sign in with a passkey'}))add(id).textContent=label;
+for(const id of ['tenant','account'])add('sign-in-'+id,'input',elements['oyatie-sign-in']);
 for(const id of ['status'])add('sign-in-'+id);
 for(const id of ['passkey-sign-in','session-restore','passkey-enroll','session-logout','passkey-cancel','ontology-refresh'])add(id,'button');
-for(const id of ['passkey-form','passkey-invitation','verified-ontology-identity','verified-ontology-updated'])add(id);
+for(const id of ['passkey-form','passkey-invitation','verified-ontology-identity','verified-ontology-updated'])add(id,'div',elements['oyatie-sign-in']);
 const card=add('verified-ontology-card');for(const key of ['policyVersion','servedTenants','projectionLag','poisonedEntries']){const e=new Element();e.dataset.liveFact=key;card.append(e);}
 const root=add('live-ontology-explorer','section',elements['foundry-workspace']);root.hidden=true;
 for(const id of ['identity','query','status','page','detail','detail-title','properties','history','audit','audit-rows'])add('live-ontology-'+id,'div',root);
@@ -125,7 +135,7 @@ function modelReply(url,options){
 function reply(url,error=nativeError,options={}) { const isRead=url.includes('/api/ontology/');if(url.includes('ontology-status') && statusError)return {ok:false,status:statusError,json:async()=>({error:'forbidden'})};return {ok:!isRead||!error,status:url.endsWith('session:logout')?204:isRead&&error?403:200,headers:{get:name=>({'x-oyatie-user':headerUser,'x-oyatie-tenant':session.tenantId,'x-oyatie-session-expires':String(session.expiresAt)})[name]??null},json:async()=>isRead&&error?{error}:payload(url,options)}; }
 const resizeObservers=[];
 class ResizeObserver { constructor(callback){this.callback=callback;resizeObservers.push(this);}observe(target){this.target=target;this.observing=true;}disconnect(){this.observing=false;}emit(){this.callback([{target:this.target}]);} }
-const context={ResizeObserver,crypto:require('node:crypto').webcrypto,document,Element,URLSearchParams,AbortController,TextEncoder,location:{hash:'',hostname:'shell.invalid'},getComputedStyle:element=>({strokeWidth:String(element.mockStrokeWidth||0)}),window:{isSecureContext:true,PublicKeyCredential:function(){},events:{},addEventListener(name,action){(this.events[name] ||= []).push(action);},emit(name){for(const action of this.events[name] || [])action();}},navigator:{credentials:{},locks:{request:(_,action)=>action()}},fetch:(url,options)=>{calls.push([url,options]);if(url.includes('ontology-status') && statusError==='network')return Promise.reject(new Error('status transport unavailable'));if(url.includes('/model')){if(holdPath && url.includes(holdPath)){holdPath=null;return new Promise(resolve=>{const captured=modelReply(url,options);held=()=>resolve(captured);});}try{return Promise.resolve(modelReply(url,options));}catch(e){return Promise.reject(e);}}if(holdPath&&url.includes(holdPath)){holdPath=null;return new Promise(resolve=>{held=()=>resolve(reply(url,nativeError,options));});}return Promise.resolve(reply(url,nativeError,options));},setTimeout:callback=>{timers.push(callback);return timers.length;},clearTimeout(){},setInterval:callback=>intervals.push(callback)};
+const context={Event:class {constructor(type){this.type=type;}},ResizeObserver,crypto:require('node:crypto').webcrypto,document,Element,URLSearchParams,AbortController,TextEncoder,location:{hash:'',hostname:'shell.invalid'},getComputedStyle:element=>({strokeWidth:String(element.mockStrokeWidth||0)}),window:{isSecureContext:true,PublicKeyCredential:function(){},events:{},addEventListener(name,action){(this.events[name] ||= []).push(action);},emit(name){for(const action of this.events[name] || [])action();}},navigator:{credentials:{},locks:{request:(_,action)=>action()}},fetch:(url,options)=>{calls.push([url,options]);if(url.includes('ontology-status') && statusError==='network')return Promise.reject(new Error('status transport unavailable'));if(url.includes('/model')){if(holdPath && url.includes(holdPath)){holdPath=null;return new Promise(resolve=>{const captured=modelReply(url,options);held=()=>resolve(captured);});}try{return Promise.resolve(modelReply(url,options));}catch(e){return Promise.reject(e);}}if(holdPath&&url.includes(holdPath)){holdPath=null;return new Promise(resolve=>{held=()=>resolve(reply(url,nativeError,options));});}return Promise.resolve(reply(url,nativeError,options));},setTimeout:callback=>{timers.push(callback);return timers.length;},clearTimeout(){},setInterval:callback=>intervals.push(callback)};
 vm.runInNewContext(input.script,context,{timeout:1000});
 const find=id=>elements[id], text=node=>(node.textContent||'')+node.children.map(text).join(' ');
 async function flush() { for(let i=0;i<80;i++)await Promise.resolve(); }

@@ -177,7 +177,7 @@ fn pane_history_focuses_current_destination_without_overwriting_later_focus() {
   find('live-ontology-mode-objects').emit('click');navigate('workpane');assert.equal(find('live-ontology-model').hidden,true);assert.equal(find('live-ontology-objects').hidden,false);
   find('live-ontology-mode-schema').emit('click');find('live-ontology-view-table').emit('click');navigate('workpane');assert.equal(find('live-ontology-graph').hidden,true);assert.equal(find('live-ontology-model-table').hidden,false);
   search.focus();await restore();assert.equal(document.activeElement===search,true,'verified same-session refresh may reveal its hash but does not steal later user focus');assert.equal(pending.value,'Pending history edit');
-  const target=find('live-ontology-inspector-title'),owner=find('live-ontology-inspector'),external=find('sign-in-account');
+  const target=find('live-ontology-inspector-title'),owner=find('live-ontology-inspector'),external=find('shell-session-entry');
   function refused(message){owner.open=false;external.focus();navigate('inspector-title');assert.equal(owner.open,false,message);assert.equal(document.activeElement===external,true,message);}
   root.hidden=true;refused('hidden root refuses navigation');root.hidden=false;
   root.isConnected=false;refused('disconnected root refuses navigation');root.isConnected=true;

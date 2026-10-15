@@ -827,6 +827,11 @@ textarea {
   font: inherit;
 }
 
+.console-app > .control-center > [data-shell-inactive] { display:none !important; }
+.rail-primary, .header-workspace-identity { display:none; }
+.rail-menu, .rail-menu-content { display:contents; }
+.rail-menu > summary { display:none; }
+
 .console-app {
   display: grid;
   grid-template-columns: 14.5rem minmax(0, 1fr);
@@ -13415,8 +13420,58 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-add-declarations { margin-top:1rem; padding-top:.5rem; border-top:1px solid var(--rule); }
 @media (min-width:72.001rem) { .foundry-inspector { max-height:55rem; overflow-y:auto; scrollbar-gutter:stable; } }
 
+.foundry-draft-actions { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin-bottom:.75rem; }
+.console-app[data-shell-frame="foundry"] .control-center { max-width:none; padding-inline:0; padding-top:0; }
+.console-app[data-shell-frame="foundry"] .foundry-workspace { border:0; border-radius:0; }
+.console-app[data-shell-frame="foundry"] .header-actions { flex-wrap:wrap; min-width:0; max-width:100%; }
+.console-app[data-shell-frame="foundry"] .header-workspace-identity { display:block; max-width:min(24rem,100%); overflow-wrap:anywhere; font-size:var(--text-cap); }
+.console-app[data-shell-frame="foundry"] :is(.header-icon,.command-trigger) { min-height:44px; }
+.console-app[data-shell-frame="foundry"] .header-icon { min-width:44px; }
+@media (min-width:72.001rem) {
+  .console-app[data-shell-frame="foundry"] { grid-template-columns:max(72px,4.5rem) minmax(0,1fr); }
+  .console-app[data-shell-frame="foundry"] .app-rail { align-items:stretch; gap:.75rem; padding:.75rem .25rem; z-index:10; }
+  .console-app[data-shell-frame="foundry"] .rail-brand { justify-content:center; padding:.25rem 0; }
+  .console-app[data-shell-frame="foundry"] .rail-brand :is(div,code) { display:none; }
+  .console-app[data-shell-frame="foundry"] .rail-primary { display:grid; gap:.5rem; }
+  .console-app[data-shell-frame="foundry"] :is(.rail-primary a,.rail-menu > summary,.workspace-switch) { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.25rem; min-height:max(44px,3rem); padding:.5rem .1rem; text-align:center; font-size:var(--text-cap); color:var(--ink); text-decoration:none; overflow-wrap:anywhere; }
+  .console-app[data-shell-frame="foundry"] .rail-primary a[href="#foundry-workspace"] { color:var(--accent-deep); background:var(--accent-bg); border:1px solid var(--accent-border); border-radius:var(--radius-sm); }
+  .console-app[data-shell-frame="foundry"] .rail-primary a > span { font-size:1.25rem; }
+  .console-app[data-shell-frame="foundry"] .rail-menu { display:block; }
+  .console-app[data-shell-frame="foundry"] .rail-menu > summary { cursor:pointer; }
+  .console-app[data-shell-frame="foundry"] .rail-menu-content { position:fixed; display:block; left:max(72px,4.5rem); top:4rem; bottom:1rem; z-index:11; width:min(26rem,calc(100vw - max(72px,4.5rem) - 1rem)); overflow:auto; padding:1rem; border:1px solid var(--rule); border-radius:var(--radius); background:var(--paper-raised); box-shadow:var(--shadow-card); }
+  .console-app[data-shell-frame="foundry"] .rail-menu:not([open]) > .rail-menu-content { display:none; }
+  .console-app[data-shell-frame="foundry"] .workspace-switch { margin-top:auto; }
+  .console-app[data-shell-frame="foundry"] .workspace-switch > div { display:none; }
+  .console-app[data-shell-frame="foundry"] .header-route-strip { display:none; }
+  .console-app[data-shell-frame="foundry"] .app-header { height:auto; min-height:max(44px,3.25rem); }
+  .console-app[data-shell-frame="foundry"] .header-sign-in { display:inline-flex; align-items:center; min-height:44px; }
+  .console-app[data-shell-frame="foundry"] .foundry-workspace-body { grid-template-columns:clamp(12rem,15vw,19rem) minmax(0,1fr) clamp(22rem,29vw,36rem); }
+}
+@media (min-width:80rem) and (min-height:56rem) {
+  .console-app[data-shell-frame="foundry"] { height:100dvh; min-height:0; overflow:hidden; grid-template-rows:auto minmax(0,1fr); }
+  .console-app[data-shell-frame="foundry"] .control-center { min-height:0; display:block; margin:0; padding:0; }
+  .console-app[data-shell-frame="foundry"] .foundry-workspace { display:grid; grid-template-rows:auto minmax(0,1fr); height:100%; min-height:0; }
+  .console-app[data-shell-frame="foundry"] :is(.foundry-access-notice,.live-ontology-explorer) { grid-row:2; min-height:0; }
+  .console-app[data-shell-frame="foundry"] .live-ontology-explorer { display:grid; grid-template-rows:auto auto auto minmax(0,1fr) auto auto; }
+  .console-app[data-shell-frame="foundry"] .foundry-taskbar { grid-row:1; }
+  .console-app[data-shell-frame="foundry"] #live-ontology-status { grid-row:2; }
+  .console-app[data-shell-frame="foundry"] .foundry-pane-nav { grid-row:3; position:static; }
+  .console-app[data-shell-frame="foundry"] .foundry-workspace-body { grid-row:4; min-height:0; }
+  .console-app[data-shell-frame="foundry"] :is(.foundry-library,.foundry-inspector,.foundry-main) { min-height:0; max-height:none; overflow:auto; overscroll-behavior:contain; }
+  .console-app[data-shell-frame="foundry"] .foundry-inspector { scroll-padding-block:8rem .5rem; }
+  .console-app[data-shell-frame="foundry"] .foundry-inspector > summary { top:0; }
+  .console-app[data-shell-frame="foundry"] :is(.foundry-library,.foundry-inspector,.foundry-draft-tray) :is(input,select,button,[tabindex]) { scroll-margin-block:.5rem; }
+  .console-app[data-shell-frame="foundry"] #live-ontology-model { display:grid; grid-template-rows:auto minmax(12rem,1fr) auto auto; min-height:100%; }
+  .console-app[data-shell-frame="foundry"] :is(#live-ontology-graph,#live-ontology-model-table) { grid-row:2; }
+  .console-app[data-shell-frame="foundry"] #live-ontology-graph { height:auto; min-height:12rem; }
+  .console-app[data-shell-frame="foundry"] #live-ontology-graph-help { grid-row:3; }
+  .console-app[data-shell-frame="foundry"] #live-ontology-model-note { grid-row:4; }
+  .console-app[data-shell-frame="foundry"] .foundry-draft-tray { grid-row:5; max-height:26dvh; min-height:0; overflow:auto; scroll-padding-block:.5rem; }
+  .console-app[data-shell-frame="foundry"] .foundry-capability-note { grid-row:6; }
+}
+
 .foundry-object-type-controls { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; min-width:0; }
-.control-center:has(#foundry-workspace:target, #foundry-workspace :target) { max-width:none; padding-inline:var(--space-4); }
+.console-app:not([data-shell-frame="foundry"]) .control-center:has(#foundry-workspace:target, #foundry-workspace :target) { max-width:none; padding-inline:var(--space-4); }
 
 .foundry-pane-nav { position:sticky; top:0; z-index:3; display:flex; flex-wrap:wrap; gap:.5rem; padding:.5rem .75rem; border-bottom:1px solid var(--rule); background:var(--paper-raised); }
 .foundry-pane-nav a { display:flex; flex:1 1 max-content; align-items:center; justify-content:center; min-width:0; min-height:max(44px,2.75rem); padding:0 .4rem; border:1px solid var(--rule); border-radius:var(--radius-sm); color:var(--ink); background:var(--paper-raised); font:inherit; white-space:normal; overflow-wrap:anywhere; }

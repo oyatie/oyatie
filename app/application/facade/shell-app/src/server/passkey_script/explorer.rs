@@ -94,9 +94,10 @@ function createOntologyExplorer(lifecycle) {
     next = null; cursor = null; activeObject = null; historyShown = false; readPage = false;
   }
   function clear() {
+    const ownedFocus = root.contains(document.activeElement);
     paneObserver?.disconnect();paneGeneration=-1;root.style.removeProperty('--foundry-pane-bar-height');
     invalidate(); editor.clear();
-    if (root.contains(document.activeElement)) lifecycle.fallback();
+    if (ownedFocus && (document.activeElement === document.body || root.contains(document.activeElement))) lifecycle.fallback();
     emptyResults();
     schemas = []; links = []; emptySchema(); model.reset();
     find('type').replaceChildren(); find('type').disabled = true; find('read').disabled = true;

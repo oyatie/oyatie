@@ -11,8 +11,8 @@ pub fn shell_landmark_label() -> &'static str {
 #[component]
 pub fn App() -> impl IntoView {
     view! {
-        <div class="console-app">
-            <a class="skip-link" href="#console-shell">"Skip to dashboard"</a>
+        <div id="oyatie-shell" class="console-app">
+            <a id="shell-skip-link" class="skip-link" href="#console-shell">"Skip to main content"</a>
             <ShellRail />
             // R-1: bottom tab bar replaces rail navigation at ≤72rem breakpoint
             <MobileNavBar />
@@ -86,6 +86,14 @@ pub(super) fn ShellRail() -> impl IntoView {
                 </div>
                 <code>"v0.1"</code>
             </div>
+            <nav class="rail-primary" aria-label="Primary destinations">
+                <a href="#console-shell"><span aria-hidden="true">"⌂"</span>"Samples"</a>
+                <a href="#foundry-workspace"><span aria-hidden="true">"◎"</span>"Foundry"</a>
+                <a href="#service-catalog"><span aria-hidden="true">"▦"</span>"Catalog samples"</a>
+            </nav>
+            <details id="shell-navigation-menu" class="rail-menu" open>
+                <summary><span aria-hidden="true">"⋯"</span>"All views"</summary>
+                <div class="rail-menu-content">
             <section id="shell-rail-context" class="rail-proof-card" aria-label="Anonymous sample destinations">
                 <p id="shell-rail-scope">"ANONYMOUS SAMPLE VIEWS"</p>
                 <strong id="shell-rail-title">"Explore shell samples"</strong>
@@ -99,6 +107,8 @@ pub(super) fn ShellRail() -> impl IntoView {
                 </div>
             </section>
             <ShellNavigation />
+                </div>
+            </details>
             <a class="workspace-switch" href="#oyatie-sign-in" aria-label="Account and session">
                 <span id="shell-account-mark" class="workspace-avatar" aria-hidden="true">"S"</span>
                 <div>
@@ -180,6 +190,7 @@ pub(super) fn ShellHeader() -> impl IntoView {
                 <span>"Search Catalog samples"</span>
             </a>
             <div class="header-actions" aria-label="Shell tools">
+                <span id="shell-header-identity" class="header-workspace-identity">"Anonymous preview"</span>
                 <a id="shell-session-entry" class="header-sign-in" href="#oyatie-sign-in">"Sign in"</a>
                 <button type="button" class="header-icon" data-header-action="notifications" aria-label=format!("Open sample notifications, {} unread", notification_unread_count()) aria-controls="notification-center" aria-haspopup="dialog" commandfor="notification-center" command="show-modal">
                     "◔"
@@ -194,7 +205,7 @@ pub(super) fn ShellHeader() -> impl IntoView {
 #[component]
 pub(super) fn HeroPanel() -> impl IntoView {
     view! {
-        <section class="hero-panel" aria-labelledby="console-title">
+        <section id="shell-sample-intro" class="hero-panel" aria-labelledby="console-title">
             <div class="hero-main">
                 <div class="page-title-copy">
                     <p class="screen-anchor">"01 / Command Center"</p>
