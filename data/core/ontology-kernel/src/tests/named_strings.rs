@@ -201,3 +201,47 @@ fn invalid_sets_revisions_and_nested_positions_are_refused_without_normalizing_m
     };
     assert_eq!(nested.validate(), Err(ValueTypeError::NestedNamedString));
 }
+
+#[test]
+fn canonical_materializations_and_registry_clones_share_the_immutable_member_allocation() {
+    let accepted = definition("ten_test", "vty_test_status", &["TestActive", "TestLeave"]);
+    let reference = accepted.reference().clone();
+    let mut engine = OntologyEngine::default();
+    engine.register_named_string_type(accepted).unwrap();
+    let ValueTypeDeclaration::NamedString(first) =
+        engine.named_string_declaration(&reference).unwrap()
+    else {
+        panic!("expected named string");
+    };
+    assert!(
+        std::ptr::eq(
+            first.members(),
+            engine.named_string_type(&reference).unwrap().members()
+        ),
+        "a materialization must borrow the canonical member allocation through shared immutable ownership"
+    );
+    for _ in 0..8 {
+        let ValueTypeDeclaration::NamedString(next) =
+            engine.named_string_declaration(&reference).unwrap()
+        else {
+            panic!("expected named string");
+        };
+        assert!(std::ptr::eq(first.members(), next.members()));
+        assert_eq!(first, next);
+    }
+    let cloned = engine.clone();
+    assert!(std::ptr::eq(
+        first.members(),
+        cloned.named_string_type(&reference).unwrap().members()
+    ));
+    let separately_constructed =
+        definition("ten_test", "vty_test_status", &["TestActive", "TestLeave"]);
+    assert!(!std::ptr::eq(
+        first.members(),
+        separately_constructed.members()
+    ));
+    assert_eq!(
+        first, separately_constructed,
+        "canonical admission compares semantic content, never pointer identity alone"
+    );
+}

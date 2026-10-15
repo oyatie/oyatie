@@ -1,6 +1,6 @@
 use crate::{OntologyEngineError, definitions::validate_ontology_tenant};
 use data_boundary_kernel::{Classified, DataClass};
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, sync::Arc};
 
 pub const MAX_NAMED_STRING_MEMBERS: usize = 256;
 pub const MAX_NAMED_STRING_TEXT_BYTES: usize = 4096;
@@ -58,7 +58,10 @@ impl NamedStringTypeRef {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct NamedStringTypeDefinition {
+pub struct NamedStringTypeDefinition(Arc<NamedStringTypeContents>);
+
+#[derive(Debug, Eq, PartialEq)]
+struct NamedStringTypeContents {
     reference: NamedStringTypeRef,
     display_name: Classified<String>,
     members: BTreeSet<String>,
@@ -85,19 +88,19 @@ impl NamedStringTypeDefinition {
                 return Err(OntologyEngineError::InvalidNamedStringMembers);
             }
         }
-        Ok(Self {
+        Ok(Self(Arc::new(NamedStringTypeContents {
             reference,
             display_name: Classified::new(display_name, DataClass::InternalOnly),
             members: unique,
-        })
+        })))
     }
     pub fn reference(&self) -> &NamedStringTypeRef {
-        &self.reference
+        &self.0.reference
     }
     pub fn display_name(&self) -> &Classified<String> {
-        &self.display_name
+        &self.0.display_name
     }
     pub fn members(&self) -> &BTreeSet<String> {
-        &self.members
+        &self.0.members
     }
 }

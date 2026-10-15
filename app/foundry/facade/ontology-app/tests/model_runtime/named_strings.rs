@@ -292,3 +292,6 @@ async fn invalid_named_drafts_reopen_with_precise_native_diagnostics_and_never_p
     .unwrap();
     assert_eq!(workspace.generation.get(), 1);
 }
+
+#[path = "named_strings/capacity.rs"]
+mod capacity;
