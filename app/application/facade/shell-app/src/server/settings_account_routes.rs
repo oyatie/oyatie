@@ -19,12 +19,14 @@ pub(super) const SCRIPT: &str = r##"  function targetBinding(boundary, name) {
       return true;
     } catch { return false; }
   }
-  function destination(route) {
+  function destination(route, preparing = false) {
     const id = kinds.includes(route) || route === 'employees' ? accountPanel(route)?.id : destinations[route];
     const target = id && unique(document, `#${id}`);
     if (!target || !sameView(current.root, target)) return null;
     const panel = target.closest('[role="tabpanel"]'), tab = panel && tabTarget(panel);
-    if (target.closest('[hidden], [inert], [aria-hidden="true"]') || panel && (!tab || !visible(tab)) || !panel && !visible(target)) return null;
+    const frame = target.closest('[data-shell-inactive]');
+    const preparingFrame = preparing && frame === host && frame?.parentElement?.id === 'console-shell' && frame.parentElement.parentElement?.id === 'oyatie-shell';
+    if (target.closest('[hidden], [inert], [aria-hidden="true"]') || panel && (!tab || tab.closest('[hidden], [inert], [aria-hidden="true"]') || !preparingFrame && !visible(tab)) || !panel && !preparingFrame && !visible(target)) return null;
     if (['evidence','audit'].includes(route) && !targetBinding(target.closest('#evidence-spine, #resource-audit-console'), 'ae')) return null;
     const bindings = [['[data-workflow-source]','workflow'], ['[data-daily-source]','daily'], ['[data-ae-source]','ae'], ['[data-cloud-source]','cloud'], ['[data-catalog-source]','catalog']];
     for (const [selector,name] of bindings) {
@@ -36,8 +38,8 @@ pub(super) const SCRIPT: &str = r##"  function targetBinding(boundary, name) {
     if (route === 'payroll' || route === 'finance') { if (!target.classList.contains('payroll-card')) return null; }
     return target;
   }
-  function workspace() {
-    const hub = destination('mail'), root = unique(hub, '.communications-hub[data-hub-source]');
+  function workspace(preparing = false) {
+    const hub = destination('mail', preparing), root = unique(hub, '.communications-hub[data-hub-source]');
     return root?.dataset.hubSource === current.source[2] && root.dataset.hubContext === current.source[0] && root.dataset.hubMode === current.mode ? root : null;
   }
   function channelReady(root, channel) {
@@ -52,7 +54,7 @@ pub(super) const SCRIPT: &str = r##"  function targetBinding(boundary, name) {
         && card.querySelector('h4')?.textContent === active[0].querySelector('strong')?.textContent : !card));
   }
   function chooseChannel(channel) {
-    const root = workspace(); if (!root) return false;
+    const root = workspace(true); if (!root) return false;
     if (!channelReady(root, root.querySelector('.hub-tabs [aria-selected="true"]')?.textContent.trim())) return false;
     if (channelReady(root, channel)) return true;
     if (current.mode === 'island') {
@@ -68,7 +70,9 @@ pub(super) const SCRIPT: &str = r##"  function targetBinding(boundary, name) {
   function report(message) { current.message = message; setText(current.root.querySelector('[data-identity-status]'), message); setText(drawer()?.querySelector('[data-settings-status]'), message); }
   function openRoute(action) {
     if (!current?.available || pending !== action || action.key !== current.key || location.href !== action.url) return;
-    const target = destination(action.route), channel = {mail:'Mail',community:'Community'}[action.route];
+    const candidate = destination(action.route, true), channel = {mail:'Mail',community:'Community'}[action.route];
+    if (!candidate) { pending = null; report('Existing sample destination unavailable or incomplete; no output created.'); return; }
+    const target = candidate;
     if (!target || channel && !chooseChannel(channel)) { pending = null; report('Existing sample destination unavailable or incomplete; no output created.'); return; }
     const panel = target.closest('[role="tabpanel"]'), tab = panel && tabTarget(panel);
     if (tab) {
@@ -78,6 +82,10 @@ pub(super) const SCRIPT: &str = r##"  function targetBinding(boundary, name) {
     requestAnimationFrame(() => {
       const observed = validate(owner());
       if (pending !== action || observed?.key !== action.key || !observed.available || location.href !== action.url) return;
+      if (destination(action.route, true) !== target || channel && !channelReady(workspace(true), channel)) {
+        pending = null; report('Existing sample destination unavailable; no full consumer confirmed.'); return;
+      }
+      target.dispatchEvent(new Event('oyatie-shell-destination'));
       if (destination(action.route) !== target || !visible(target) || channel && !channelReady(workspace(), channel)
         || panel && (!panel.classList.contains('active') || tab.getAttribute('aria-selected') !== 'true')) {
         pending = null; report('Existing sample destination unavailable; no full consumer confirmed.'); return;
@@ -104,6 +112,8 @@ pub(super) const SCRIPT: &str = r##"  function targetBinding(boundary, name) {
     if (!panel?.isConnected || host.contains(panel) || !invitation || !summary || panel.getAttribute('aria-busy') === 'true' || panel.querySelector('[aria-busy="true"]') || panel.contains(document.activeElement)) {
       report('Real passkey invitation unavailable or an IAM ceremony is active; no credential action performed.'); return;
     }
+    location.hash = summary.id;
+    summary.dispatchEvent(new Event('oyatie-shell-destination'));
     invitation.open = true; summary.focus({preventScroll:true}); panel.scrollIntoView({block:'start'});
     report('Existing Oyatie IAM invitation opened. Use administrator-provided IDs and invitation there; no enrollment started.');
   }

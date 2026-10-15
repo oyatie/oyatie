@@ -141,6 +141,10 @@ pub(super) fn reveal_fragment_destination(target: web_sys::Element, move_focus: 
         return;
     };
 
+    if let Ok(event) = web_sys::Event::new("oyatie-shell-destination") {
+        let _ = target.dispatch_event(&event);
+    }
+
     if let Ok(Some(panel)) = target.closest("[role=\"tabpanel\"]") {
         if let Some(tab) = panel
             .get_attribute("aria-labelledby")

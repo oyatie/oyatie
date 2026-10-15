@@ -13,7 +13,6 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
                 <h3 id="live-ontology-title" class="sr-only">"Native Ontology explorer"</h3>
                 <div class="foundry-taskbar" role="group" aria-label="Ontology task controls">
                     <div class="foundry-mode-bar" role="group" aria-label="Ontology workspace mode"><button type="button" id="live-ontology-mode-schema" aria-pressed="true" aria-controls="live-ontology-model">"Model"</button><button type="button" id="live-ontology-mode-objects" aria-pressed="false" aria-controls="live-ontology-objects">"Objects"</button></div>
-                    <super::model_editor::ModelDraftControls />
                     <span id="live-ontology-object-type-controls" class="foundry-object-type-controls"><label for="live-ontology-type">"Object read type"</label><select id="live-ontology-type" required disabled></select></span>
                     <button type="button" id="live-ontology-types-refresh">"Refresh model"</button>
                 </div>

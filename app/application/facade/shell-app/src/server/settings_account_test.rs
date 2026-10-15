@@ -1,5 +1,7 @@
 #[path = "settings_account_test_dom.rs"]
 mod dom;
+#[path = "settings_account_frame_test.rs"]
+mod frame;
 
 use leptos::prelude::*;
 use std::io::Write;
@@ -241,11 +243,15 @@ console.log('Settings/account native source controls, progress, tabs, complete c
 
 #[test]
 fn settings_account_native_source_controls_refusal_and_lifetime() {
+    check_bridge(CHECK);
+}
+
+pub(super) fn check_bridge(check: &str) {
     let owner = Owner::new();
     let html = owner.with(|| super::super::document::ServerShell().into_view().to_html());
     owner.cleanup();
     let input = serde_json::json!({"html": html, "tabs": crate::app::ssr_tab_navigation_script(), "bridge": super::script(), "hr": super::super::hr_directory::SCRIPT});
-    let check = format!("{}{CHECK}", dom::SCRIPT);
+    let check = format!("{}{check}", dom::SCRIPT);
     let mut child = Command::new("node")
         .args(["-e", check.as_str()])
         .stdin(Stdio::piped())

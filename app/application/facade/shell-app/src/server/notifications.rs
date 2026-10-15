@@ -103,18 +103,18 @@ const SCRIPT: &str = r##"
     else all(document, '#notification-center').forEach(node => apply(node, null));
     return view;
   }
-  function tabFor(target, view) {
+  function tabFor(target, view, preparingFrame = false) {
     const panel = target.closest('[role="tabpanel"]'); if (!panel) return null;
     const tab = unique(view.dashboard, '#' + panel.getAttribute('aria-labelledby')), list = tab?.closest('[role="tablist"]');
     const tabs = all(list, '[role="tab"]');
-    if (!tab || tab.disabled || tab.parentElement !== list || !tab.getClientRects().length || tabs.filter(node => node.getAttribute('aria-selected') === 'true').length !== 1
+    if (!tab || tab.disabled || tab.parentElement !== list || tab.closest('[hidden], [inert], [aria-hidden="true"]') || !preparingFrame && !tab.getClientRects().length || tabs.filter(node => node.getAttribute('aria-selected') === 'true').length !== 1
       || tabs.some(node => { const controlled = unique(view.dashboard, '#' + node.getAttribute('aria-controls'));
         return node.parentElement !== list || unique(view.dashboard, '#' + node.id) !== node || !controlled
           || controlled.getAttribute('role') !== 'tabpanel' || controlled.getAttribute('aria-labelledby') !== node.id; })
       || tab.getAttribute('aria-controls') !== panel.id) return false;
     return tab;
   }
-  function destination(route, view) {
+  function destination(route, view, preparing = false) {
     try {
       const target = unique(view.dashboard, '#' + routes[route]);
       if (!target || target.closest('[hidden], [inert], [aria-hidden="true"]')) return null;
@@ -132,25 +132,31 @@ const SCRIPT: &str = r##"
             || root.dataset[name + 'Context'] !== view.id || root.dataset[name + 'Mode'] !== view.mode
             || name === 'ae' && (root.dataset.aeSourceAvailable !== 'true' || root.dataset.aeAvailable !== 'true'))) return null;
       }
-      const tab = tabFor(target, view);
-      if (tab === false || !tab && !target.getClientRects().length) return null;
+      const frame = target.closest('[data-shell-inactive]');
+      const preparingFrame = preparing && frame === unique(document, '#dashboard-island-root') && frame?.parentElement?.id === 'console-shell' && frame.parentElement.parentElement?.id === 'oyatie-shell';
+      const tab = tabFor(target, view, preparingFrame);
+      if (tab === false || !preparingFrame && !tab && !target.getClientRects().length) return null;
       return { target, tab };
     } catch { return null; }
   }
   function report(message) { state.message = message; text(bound?.querySelector('[data-activity-status]'), message); }
   function route(name, view) {
-    if (!destination(name, view)) { report('Existing sample destination unavailable or mismatched; navigation refused.'); return; }
+    const candidate = destination(name, view, true);
+    if (!candidate) { report('Existing sample destination unavailable or mismatched; navigation refused.'); return; }
     bound.close();
     const action = {key:view.key, name, url:location.href, root:bound}; pending = action;
     requestAnimationFrame(() => {
       const current = synchronize();
       if (!current || pending !== action || current.key !== action.key || action.root !== bound || location.href !== action.url || !document.hasFocus()) return;
-      const next = destination(name, current);
+      const next = destination(name, current, true);
       if (!next) { pending = null; return; }
       if (next.tab) next.tab.click();
       requestAnimationFrame(() => {
         const current = synchronize();
         if (!current || pending !== action || current.key !== action.key || action.root !== bound || location.href !== action.url || !document.hasFocus()) return;
+        const prepared = destination(name, current, true);
+        if (!prepared) { pending = null; return; }
+        prepared.target.dispatchEvent(new Event('oyatie-shell-destination'));
         const next = destination(name, current); pending = null;
         if (!next || !next.target.getClientRects().length || next.tab && next.tab.getAttribute('aria-selected') !== 'true') return;
         if (!next.target.hasAttribute('tabindex')) next.target.setAttribute('tabindex', '-1');

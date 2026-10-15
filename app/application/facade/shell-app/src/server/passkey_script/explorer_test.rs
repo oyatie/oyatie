@@ -11,6 +11,7 @@ use std::{
 };
 const CHECK: &str = r#"
 (async () => {
+  async function restoreObjects(){await restore();find('live-ontology-mode-objects').emit('click');}
   for(const id of ['type','revision','limit','property','comparison','kind','from','to']) {
     assert.ok(input.html.includes(`id="live-ontology-${id}"`));
     assert.ok(input.html.includes(`for="live-ontology-${id}"`), 'native input has a label');
@@ -22,7 +23,7 @@ const CHECK: &str = r#"
   assert.ok(input.html.includes('Requested object revisions are set separately.'));
   assert.ok(input.html.includes('Native Ontology explorer'));
   assert.ok(input.html.includes('Sample dashboard'));
-  await flush();find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
+  await flush();find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restoreObjects();
   assert.equal(root.hidden,false);assert.match(find('live-ontology-identity').textContent,/ten_acme.*usr_alice/);
   assert.equal(find('live-ontology-schema').hidden,false);
   assert.match(find('live-ontology-schema-summary').textContent,/ety_record.*declaration revision 1.*Primary-key property: none declared.*Title property: name/);
@@ -84,7 +85,7 @@ const CHECK: &str = r#"
   assert.equal(root.hidden,true);assert.equal(find('live-ontology-page').children.length,0);held();await flush();
   assert.equal(find('live-ontology-schema').hidden,true);assert.equal(find('live-ontology-schema-properties').children.length,0,'account change clears declarations');
   assert.equal(root.hidden,true,'late previous-account rows stay absent');assert.equal(document.activeElement,find('sign-in-account'));
-  find('sign-in-account').value='usr_alice';await restore();
+  find('sign-in-account').value='usr_alice';await restoreObjects();
   holdPath='/objects?';find('live-ontology-query').emit('submit');await flush();
   find('live-ontology-revision').value='3';find('live-ontology-revision').emit('input');held();await flush();
   assert.equal(find('live-ontology-page').children.length,0,'late previous-pin rows stay absent');
@@ -95,27 +96,27 @@ const CHECK: &str = r#"
   assert.match(find('live-ontology-status').textContent,/access refused/);assert.equal(find('live-ontology-page').children.length,0);
   assert.equal(find('live-ontology-detail-title').textContent,'Object detail','read refusal clears the prior object identifier and revisions');
   assert.equal(find('live-ontology-schema').hidden,true);assert.equal(find('live-ontology-schema-summary').textContent,'');
-  nativeError=null;await restore();assert.equal(find('live-ontology-schema').hidden,false);
+  nativeError=null;await restoreObjects();assert.equal(find('live-ontology-schema').hidden,false);
   nativeError='source_unavailable';find('live-ontology-types-refresh').emit('click');await flush();
   assert.match(find('live-ontology-status').textContent,/unavailable/);assert.equal(find('live-ontology-type').children.length,0,'unavailable read does not retain native type rows');
   assert.equal(find('live-ontology-schema').hidden,true);assert.equal(find('live-ontology-schema-properties').children.length,0);
-  nativeError=null;await restore();nativeError='source_unavailable';holdPath='/objects?';find('live-ontology-query').emit('submit');await flush();
+  nativeError=null;await restoreObjects();nativeError='source_unavailable';holdPath='/objects?';find('live-ontology-query').emit('submit');await flush();
   find('live-ontology-schema').focus();held();await flush();
   assert.equal(find('live-ontology-schema').hidden,true);assert.equal(document.activeElement,find('live-ontology-types-refresh'),'failed object read retains schema focus ownership through clearing and native disable blur');assert.equal(document.activeElement.disabled,false);
-  nativeError=null;await restore();holdPath='/objects?';find('live-ontology-query').emit('submit');await flush();
+  nativeError=null;await restoreObjects();holdPath='/objects?';find('live-ontology-query').emit('submit');await flush();
   find('session-logout').emit('click');assert.equal(root.hidden,true,'logout clears synchronously');held();await flush();
   assert.equal(root.hidden,true);assert.equal(find('live-ontology-page').children.length,0,'late logout reply cannot restore data');
   assert.equal(find('live-ontology-schema').hidden,true);assert.equal(find('live-ontology-schema-properties').children.length,0,'logout clears declarations');
-  await restore();headerUser='usr_other';find('live-ontology-query').emit('submit');await flush();
+  await restoreObjects();headerUser='usr_other';find('live-ontology-query').emit('submit');await flush();
   assert.equal(root.hidden,true,'cookie identity from another tab cannot retain old labels/data');
   assert.equal(find('live-ontology-schema').hidden,true);
-  headerUser='usr_alice';await restore();find('live-ontology-query').emit('submit');await flush();
+  headerUser='usr_alice';await restoreObjects();find('live-ontology-query').emit('submit');await flush();
   row=find('live-ontology-page').querySelectorAll('[data-live-object]')[0];row.focus();row.emit('click');await flush();
   assert.match(find('live-ontology-detail-title').textContent,/ent_alpha.*requested schema/);timers.at(-1)();
   assert.equal(root.hidden,true);assert.equal(document.activeElement,find('sign-in-account'),'expiry moves focus to the stable account input');
   assert.equal(find('live-ontology-detail-title').textContent,'Object detail','session expiry clears the prior object identifier and revisions');
   assert.equal(find('live-ontology-schema').hidden,true);
-  await restore();find('live-ontology-schema').focus();holdPath='/schemas';find('live-ontology-types-refresh').emit('click');await flush();
+  await restoreObjects();find('live-ontology-schema').focus();holdPath='/schemas';find('live-ontology-types-refresh').emit('click');await flush();
   assert.equal(document.activeElement,find('live-ontology-type'),'clearing a focused schema moves to the enabled type control');assert.equal(document.activeElement.disabled,false);
   find('sign-in-account').focus();held();await flush();assert.equal(document.activeElement,find('sign-in-account'),'late schema refresh does not steal newer outside focus');
   find('live-ontology-schema').focus();holdPath='/schemas';intervals[0]();
@@ -124,14 +125,14 @@ const CHECK: &str = r#"
   await flush();assert.equal(find('live-ontology-schema').hidden,true,'schema refresh never retains stale declarations while pending');
   find('sign-in-tenant').value='ten_other';find('sign-in-tenant').emit('input');held();await flush();
   assert.equal(root.hidden,true);assert.equal(find('live-ontology-schema-properties').children.length,0,'late previous-tenant schema cannot repopulate');
-  find('sign-in-tenant').value='ten_acme';await restore();holdPath='/schemas';find('live-ontology-types-refresh').emit('click');await flush();
+  find('sign-in-tenant').value='ten_acme';await restoreObjects();holdPath='/schemas';find('live-ontology-types-refresh').emit('click');await flush();
   find('session-logout').emit('click');held();await flush();assert.equal(root.hidden,true);assert.equal(find('live-ontology-schema-summary').textContent,'','late schemas after logout stay cleared');
-  await restore();headerUser='usr_other';find('live-ontology-types-refresh').emit('click');await flush();
+  await restoreObjects();headerUser='usr_other';find('live-ontology-types-refresh').emit('click');await flush();
   assert.equal(root.hidden,true,'schema response bound to another account expires current view');headerUser='usr_alice';
-  await restore();nativeError='unauthenticated';find('live-ontology-types-refresh').emit('click');await flush();
+  await restoreObjects();nativeError='unauthenticated';find('live-ontology-types-refresh').emit('click');await flush();
   assert.equal(root.hidden,true);assert.equal(find('live-ontology-schema-properties').children.length,0,'revoked schema read clears native declarations');nativeError=null;
   for (const malformed of [null, [{entity_type:'ety_record',revision:1,properties:['name']}], [{...schemaFixture[0],primary_key_property:'absent'}]]) {
-    nativeSchemas=schemaFixture;await restore();assert.equal(find('live-ontology-schema').hidden,false);
+    nativeSchemas=schemaFixture;await restoreObjects();assert.equal(find('live-ontology-schema').hidden,false);
     nativeSchemas=malformed;find('live-ontology-types-refresh').emit('click');await flush();
     assert.match(find('live-ontology-status').textContent,/unavailable/);assert.equal(find('live-ontology-type').children.length,0);
     assert.equal(find('live-ontology-schema').hidden,true);assert.equal(find('live-ontology-schema-summary').textContent,'');assert.equal(find('live-ontology-schema-properties').children.length,0,'malformed schemas clear all declarations');
@@ -152,14 +153,14 @@ const CHECK: &str = r#"
   for(const [tier,value_type] of [['vector',{kind:'array',element:{kind:'string'}}],['struct',{kind:'struct',fields:[{name:'code',required:true,value_type:{kind:'integer'}}]}]]) {
     const composite=changed(s=>{s.primary_key_property='name';s.properties[0].tier=tier;s.properties[0].value_type=value_type;});
     assert.throws(()=>decodeSchemas(composite),/source_unavailable/,'required valid composite primary key refuses');
-    nativeSchemas=schemaFixture;await restore();find('live-ontology-query').emit('submit');await flush();
+    nativeSchemas=schemaFixture;await restoreObjects();find('live-ontology-query').emit('submit');await flush();
     nativeSchemas=composite;find('live-ontology-types-refresh').emit('click');await flush();
     assert.match(find('live-ontology-status').textContent,/unavailable/);
     for(const id of ['scene','library-types','schema-properties','page','properties','history'])assert.equal(find('live-ontology-'+id).children.length,0,'composite key refusal clears prior native rows');
     assert.equal(find('live-ontology-schema-summary').textContent,'');
     assert.equal(find('live-ontology-type').children.length,0);
   }
-  nativeSchemas=schemaFixture;await restore();
+  nativeSchemas=schemaFixture;await restoreObjects();
   for(const tier of ['scalar','vector','timeseries','geo','ciphertext','struct'])assert.doesNotThrow(()=>decodeSchemas(changed(s=>{s.primary_key_property='name';s.properties[0].tier=tier;})),'legacy null primary key retains every native tier');
   for(const kind of ['string','integer','double','boolean','date','timestamp'])assert.doesNotThrow(()=>decodeSchemas(changed(s=>{s.primary_key_property='name';s.properties[0].value_type={kind};})),'all native scalar primary keys remain admitted');
   assert.doesNotThrow(()=>decodeSchemas(changed(s=>s.revision=0)),'native declaration revision zero remains inspectable');
