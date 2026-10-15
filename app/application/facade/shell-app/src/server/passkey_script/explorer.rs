@@ -24,15 +24,26 @@ function createOntologyExplorer(lifecycle) {
   let identity = null, generation = 0, epoch = 0, abort = null;
   let schemas = [], links = [], workspaceMode = 'schema';
   const paneBar=find('pane-library').parentElement;
+  const workspace=document.getElementById('foundry-workspace'),shell=document.getElementById('oyatie-shell');
+  const header=shell.querySelector(':scope > .app-header');
   let paneGeneration=-1;
   function measurePaneBar() {
     if(paneGeneration!==generation || !identity || !lifecycle.valid(identity,generation) || root.hidden || !root.isConnected || !paneBar.isConnected || !root.contains(paneBar) || !paneBar.getClientRects().length)return;
     const height=paneBar.getBoundingClientRect().height;
     if(!Number.isFinite(height) || height<=0)return;
-    const value=`${height}px`;
-    if(root.style.getPropertyValue('--foundry-pane-bar-height')!==value)root.style.setProperty('--foundry-pane-bar-height',value);
+    if(!workspace?.isConnected || !workspace.contains(root) || workspace.parentElement?.parentElement!==shell)return;
+    let headerHeight=0;
+    if(shell.getAttribute('data-shell-frame')==='foundry' && header?.parentElement===shell && header.isConnected && header.getClientRects().length && getComputedStyle(header).position==='sticky') {
+      headerHeight=header.getBoundingClientRect().height;
+      if(!Number.isFinite(headerHeight) || headerHeight<=0)return;
+    }
+    for(const [owner,name,value]of [[root,'--foundry-pane-bar-height',height],[workspace,'--foundry-header-height',headerHeight]]) {
+      const measured=`${value}px`;
+      if(owner.style.getPropertyValue(name)!==measured)owner.style.setProperty(name,measured);
+    }
   }
   const paneObserver=typeof ResizeObserver==='function'?new ResizeObserver(measurePaneBar):null;
+  window.addEventListener('resize',measurePaneBar);
   function revealPane(id, focus = false) {
     if(!identity || !lifecycle.valid(identity,generation) || root.hidden || !root.isConnected || !['library-title','workpane','inspector-title'].includes(id))return;
     const target=find(id);
@@ -95,7 +106,7 @@ function createOntologyExplorer(lifecycle) {
   }
   function clear() {
     const ownedFocus = root.contains(document.activeElement);
-    paneObserver?.disconnect();paneGeneration=-1;root.style.removeProperty('--foundry-pane-bar-height');
+    paneObserver?.disconnect();paneGeneration=-1;root.style.removeProperty('--foundry-pane-bar-height');workspace?.style.removeProperty('--foundry-header-height');
     invalidate(); editor.clear();
     if (ownedFocus && (document.activeElement === document.body || root.contains(document.activeElement))) lifecycle.fallback();
     emptyResults();
@@ -176,7 +187,7 @@ pub(super) const SCRIPT: &str = r#"
     if (!selection) clear();
     else clearRelationships();
     identity = session; generation = version; root.hidden = false;find('access-badge').textContent='Session verified'; find('access-notice').hidden = true;
-    paneGeneration=version;paneObserver?.observe(paneBar);measurePaneBar();
+    paneGeneration=version;paneObserver?.observe(paneBar);if(header?.parentElement===shell)paneObserver?.observe(header);measurePaneBar();
     revealPane(location.hash.slice(1).replace(/^live-ontology-/,''));
     find('identity').textContent = `Verified tenant ${session.tenantId} · account ${session.userId}`;
     if (!editor.active()) clearModel();
@@ -229,6 +240,6 @@ pub(super) const SCRIPT: &str = r#"
     invalidate(); emptyResults(); busy(false);
     note('Read selection changed. Read objects to load this context.');
   });
-  return { clear, open, hold: version => {paneObserver?.disconnect();find('access-badge').textContent='Checking session';find('identity').textContent=identity?`Checking tenant ${identity.tenantId} · account ${identity.userId}`:''; invalidate(); clearRelationships(); editor.hold(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
+  return { clear, open, measure:measurePaneBar, hold: version => {paneObserver?.disconnect();find('access-badge').textContent='Checking session';find('identity').textContent=identity?`Checking tenant ${identity.tenantId} · account ${identity.userId}`:''; invalidate(); clearRelationships(); editor.hold(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
 }
 "#;

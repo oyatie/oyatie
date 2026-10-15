@@ -37,5 +37,6 @@ pub(super) const SCRIPT: &str = r#"  function shellContext(phase = sessionPhase,
     const main = find('console-shell');
     main?.setAttribute('aria-labelledby', foundry ? 'foundry-workspace-title' : accountRoute ? 'sign-in-title' : 'console-title');
     main?.setAttribute('aria-describedby', foundry ? (find('live-ontology-explorer').hidden ? 'live-ontology-access-notice' : 'live-ontology-status') : accountRoute ? 'sign-in-status' : 'console-notice');
+    explorer.measure();
   }
 "#;
