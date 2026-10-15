@@ -10,6 +10,7 @@ use iam_identity_user_session::UserSessionAuthorizer;
 use std::sync::Arc;
 
 mod authorization;
+mod baseline;
 mod diagnostics;
 mod lifecycle;
 mod mutations;
@@ -87,6 +88,7 @@ pub(crate) fn router(
             get(reads::drafts).post(mutations::create),
         )
         .route(MODEL_DRAFT_ROUTE, get(reads::draft))
+        .route(MODEL_DRAFT_BASE_ROUTE, get(baseline::read))
         .route(MODEL_SAVE_ROUTE, post(mutations::save))
         .route(MODEL_VALIDATE_ROUTE, post(mutations::validate))
         .route(MODEL_PUBLISH_ROUTE, post(publication::publish))

@@ -123,6 +123,25 @@ async fn check_metadata_freeze(mode: Fault, committed: bool) {
         ModelDraftWire::decode(&read.into_body().collect().await.unwrap().to_bytes()).unwrap(),
         ModelDraftWire::try_from(&before_saved).unwrap()
     );
+    let read = send(
+        &second_client,
+        "GET",
+        &format!(
+            "{detail}/base?expected_version={}&expected_base={}",
+            saved.version, saved.base_generation
+        ),
+        Body::empty(),
+        false,
+    )
+    .await;
+    assert_eq!(read.status(), StatusCode::OK);
+    assert_eq!(read.headers()["cache-control"], "no-store");
+    let exact_base =
+        ModelDraftBase::decode(&read.into_body().collect().await.unwrap().to_bytes()).unwrap();
+    assert_eq!(exact_base.draft_id.get(), saved.id);
+    assert_eq!(exact_base.draft_version.get(), saved.version);
+    assert_eq!(exact_base.base_generation.get(), saved.base_generation);
+    assert_eq!(exact_base.document, history.publications[0].document);
     let validation = send(
         &second_client,
         "POST",

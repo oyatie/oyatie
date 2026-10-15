@@ -1,10 +1,22 @@
 use super::*;
 
+#[derive(Clone, Copy)]
+pub enum HistoryFault {
+    Rebound,
+    MissingBase,
+    Duplicate,
+    InvalidDocument,
+    Oversized,
+    Failure,
+    Append,
+}
+
 pub struct CountingStore {
     pub inner: ReferenceModelStore,
     pub calls: Arc<AtomicUsize>,
     pub failure: Arc<AtomicBool>,
     pub oversized: Arc<AtomicBool>,
+    pub history_fault: Arc<Mutex<Option<HistoryFault>>>,
 }
 impl CountingStore {
     fn enter(&self) -> Result<(), ModelError> {
@@ -37,7 +49,32 @@ impl ModelStore for CountingStore {
     }
     fn history(&self, caller: &ModelCaller) -> Result<ModelHistory, ModelError> {
         self.enter()?;
-        self.inner.history(caller)
+        let fault = *self.history_fault.lock().unwrap();
+        if matches!(fault, Some(HistoryFault::Append)) {
+            publish_next(&mut self.inner.clone(), caller);
+        }
+        let mut history = self.inner.history(caller)?;
+        match fault {
+            Some(HistoryFault::Rebound) => history.binding.store_id.push_str("-wrong"),
+            Some(HistoryFault::MissingBase) => {
+                history.publications.remove(0);
+            }
+            Some(HistoryFault::Duplicate) => {
+                history.publications.push(history.publications[0].clone())
+            }
+            Some(HistoryFault::InvalidDocument | HistoryFault::Oversized) => {
+                history.baseline.document.entities[0].display_name =
+                    if matches!(fault, Some(HistoryFault::Oversized)) {
+                        "x".repeat(MAX_MODEL_TEXT_BYTES + 1)
+                    } else {
+                        String::new()
+                    };
+                history.publications[0].document = history.baseline.document.clone();
+            }
+            Some(HistoryFault::Failure) => return Err(ModelError::MalformedDocument),
+            _ => {}
+        }
+        Ok(history)
     }
     fn create_draft(
         &mut self,
@@ -80,4 +117,18 @@ impl ModelStore for CountingStore {
     ) -> Result<PublicationReceipt, ModelError> {
         panic!("human draft routes must never publish")
     }
+}
+
+pub fn publish_next(store: &mut dyn ModelStore, caller: &ModelCaller) {
+    let head = store.head(caller).unwrap();
+    let mut document = head.document;
+    document.entities[0].revision += 1;
+    document.entities[0].display_name.push_str(" next");
+    let draft = store
+        .create_draft(caller, head.generation, document)
+        .unwrap();
+    let prepared = store
+        .prepare(caller, draft.id, draft.version, draft.base_generation)
+        .unwrap();
+    store.publish(caller, &prepared).unwrap();
 }
