@@ -23,9 +23,14 @@ function createOntologyExplorer(lifecycle) {
   const root = find('explorer');
   let identity = null, generation = 0, epoch = 0, abort = null;
   let schemas = [], links = [], workspaceMode = 'schema';
-  function revealPane(id){if(identity && lifecycle.valid(identity,generation) && !root.hidden && root.isConnected && ['library-title','workpane','inspector-title'].includes(id))revealOntologyDetails(find(id),root);}
-  for(const [pane,target] of [['library','library-title'],['workpane','workpane'],['inspector','inspector-title']])find(`pane-${pane}`).addEventListener('click',()=>revealPane(target));
-  window.addEventListener('hashchange',()=>revealPane(location.hash.slice(1).replace(/^live-ontology-/,'')));
+  function revealPane(id, focus = false) {
+    if(!identity || !lifecycle.valid(identity,generation) || root.hidden || !root.isConnected || !['library-title','workpane','inspector-title'].includes(id))return;
+    const target=find(id);
+    if(target?.disabled || !revealOntologyDetails(target,root))return;
+    if(focus && target.getClientRects().length)target.focus();
+  }
+  for(const [pane,target] of [['library','library-title'],['workpane','workpane'],['inspector','inspector-title']])find(`pane-${pane}`).addEventListener('click',()=>revealPane(target,true));
+  window.addEventListener('hashchange',()=>revealPane(location.hash.slice(1).replace(/^live-ontology-/,''),true));
   let editor;
   const model = createOntologyModelView(id => {
     if (workspaceMode==='schema' && editor?.active()) { editor.selectType(id); return; }

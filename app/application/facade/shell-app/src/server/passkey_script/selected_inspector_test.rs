@@ -154,6 +154,46 @@ fn pane_links_and_saved_diagnostics_reveal_only_current_owners() {
 }
 
 #[test]
+fn pane_history_focuses_current_destination_without_overwriting_later_focus() {
+    check_controller(
+        r##"
+(async()=>{
+  await flush();modelEnabled=true;session.roles=['foundry-model-author','foundry-operator'];
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();find('live-ontology-draft-new').emit('click');await flush();
+  find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');
+  const pending=find('live-ontology-property-name');pending.value='Pending history edit';pending.emit('input');
+  const state=()=>JSON.stringify({drafts:[...modelDrafts],choice:find('live-ontology-property-choice').value,context:['selected','identity','name'].map(id=>find('live-ontology-context-'+id).textContent),pins:[find('live-ontology-type').value,find('live-ontology-revision').value],version:find('live-ontology-draft-state').textContent,pending:pending.value});
+  const before=state(),requests=calls.length,search=find('live-ontology-search');
+  function navigate(id){context.location.hash='#live-ontology-'+id;context.window.emit('hashchange');}
+  for(const [pane,id] of [['library','library-title'],['inspector','inspector-title'],['workpane','workpane']]){
+    const target=find('live-ontology-'+id),owner=find('live-ontology-'+pane);
+    search.focus();if(pane!=='workpane')owner.open=false;navigate(id);
+    assert.equal(document.activeElement===target,true,'history must focus its current '+pane+' destination rather than keep earlier search focus');
+    if(pane!=='workpane')assert.equal(owner.open,true);
+    pending.focus();await flush();assert.equal(document.activeElement===pending,true,'later user focus survives synchronous history navigation');
+    search.focus();find('live-ontology-pane-'+pane).emit('click');assert.equal(document.activeElement===target,true,'same-fragment pane activation also focuses its destination');
+  }
+  assert.equal(state(),before,'history retains pending edits, applied selection, version and object read pins');assert.equal(calls.length,requests,'pane navigation makes no requests');
+  find('live-ontology-mode-objects').emit('click');navigate('workpane');assert.equal(find('live-ontology-model').hidden,true);assert.equal(find('live-ontology-objects').hidden,false);
+  find('live-ontology-mode-schema').emit('click');find('live-ontology-view-table').emit('click');navigate('workpane');assert.equal(find('live-ontology-graph').hidden,true);assert.equal(find('live-ontology-model-table').hidden,false);
+  search.focus();await restore();assert.equal(document.activeElement===search,true,'verified same-session refresh may reveal its hash but does not steal later user focus');assert.equal(pending.value,'Pending history edit');
+  const target=find('live-ontology-inspector-title'),owner=find('live-ontology-inspector'),external=find('sign-in-account');
+  function refused(message){owner.open=false;external.focus();navigate('inspector-title');assert.equal(owner.open,false,message);assert.equal(document.activeElement===external,true,message);}
+  root.hidden=true;refused('hidden root refuses navigation');root.hidden=false;
+  root.isConnected=false;refused('disconnected root refuses navigation');root.isConnected=true;
+  owner.hidden=true;refused('hidden pane refuses navigation');owner.hidden=false;
+  target.disabled=true;refused('disabled destination refuses navigation');target.disabled=false;
+  const parent=target.parentElement;target.parentElement=panel;refused('foreign destination refuses navigation');target.parentElement=parent;
+  target.isConnected=false;refused('disconnected destination refuses navigation');target.isConnected=true;
+  const rects=target.getClientRects;target.getClientRects=()=>[];external.focus();navigate('inspector-title');assert.equal(document.activeElement===external,true,'nonphysical destination receives no focus');target.getClientRects=rects;
+  external.focus();navigate('property-name');assert.equal(document.activeElement===external,true,'non-pane hash cannot steal focus');
+  find('sign-in-account').value='usr_other';find('sign-in-account').emit('input');refused('stale account refuses navigation');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"##,
+    );
+}
+
+#[test]
 fn recursive_nested_removal_preserves_pending_capture_and_new_focus_owner() {
     check_controller(
         r##"

@@ -4,7 +4,7 @@
 
 body {
   margin: 0;
-  min-width: 20rem;
+  min-width: min(20rem, 100%);
   background:
     radial-gradient(circle at 12% -10%, rgb(10 90 143 / 0.10), transparent 28rem),
     var(--color-canvas);
@@ -94,6 +94,8 @@ h4 { margin-top: 0; }
 
 .control-center {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: var(--space-4);
   max-width: 104rem;
   margin: 0 auto;
@@ -152,6 +154,8 @@ h4 { margin-top: 0; }
 
 .dashboard-island {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: var(--space-4);
 }
 
@@ -12836,6 +12840,8 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 /* Topfold substrate proof: make the product thesis visible before the operational queue. */
 .substrate-proof-command {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: var(--space-3);
   border-color: color-mix(in oklch, var(--accent) 24%, var(--rule));
   background:
