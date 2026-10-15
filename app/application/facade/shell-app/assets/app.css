@@ -13426,11 +13426,11 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 #live-ontology-inspector-context > span { display:block; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 #live-ontology-context-name { font-weight:400; }
 .foundry-selection-details { min-width:0; margin-bottom:.75rem; }
-.foundry-selection-details > summary { min-height:max(44px,2.75rem); padding:.5rem 0; scroll-margin-block:calc(var(--foundry-pane-bar-height) + 8rem); }
+.foundry-selection-details > summary { min-height:max(44px,2.75rem); padding:.5rem 0; scroll-margin-block:calc(var(--foundry-pane-bar-height) + 8rem) calc(max(64px,3.5rem + 19px) + env(safe-area-inset-bottom,0)); }
 .foundry-selection-details dl { min-width:0; margin:.5rem 0; overflow-wrap:anywhere; }
 .foundry-selection-details dt { font-weight:600; }
 .foundry-selection-details dd { margin:0 0 .5rem; }
-.foundry-workspace :is(input,select,button,[tabindex]), #live-ontology-library-title, #live-ontology-inspector-title { scroll-margin-block:calc(var(--foundry-pane-bar-height) + 8rem); }
+.foundry-workspace :is(input,select,button,[tabindex]), #live-ontology-library-title, #live-ontology-inspector-title { scroll-margin-block:calc(var(--foundry-pane-bar-height) + 8rem) calc(max(64px,3.5rem + 19px) + env(safe-area-inset-bottom,0)); }
 .foundry-edit-settings { padding:.25rem .5rem; border:1px solid var(--rule); border-radius:var(--radius-sm); }
 .foundry-edit-settings > label, .foundry-value-form label { display:grid; gap:.35rem; font:inherit; font-weight:600; }
 .foundry-edit-settings > label { margin:.5rem 0 .25rem; }
