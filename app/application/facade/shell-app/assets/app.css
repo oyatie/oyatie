@@ -8226,6 +8226,7 @@ dialog:is(.settings-center, .activity-center)::backdrop {
   width: min(24rem, calc(100% - 2 * var(--space-2)));
   max-height: min(60vh, 28rem);
   overflow-y: auto;
+  scrollbar-gutter: stable;
   scroll-padding-block: var(--space-2);
   border: 1px solid var(--rule);
   border-radius: var(--radius-sm);
@@ -8233,6 +8234,9 @@ dialog:is(.settings-center, .activity-center)::backdrop {
   padding: var(--space-2);
   box-shadow: var(--shadow-peek);
 }
+
+.mobile-nav-menu::-webkit-scrollbar { width: auto; height: auto; }
+.mobile-nav-menu::-webkit-scrollbar-thumb { background: var(--ink-muted); }
 
 .mobile-nav-menu .rail-nav {
   min-height: max(44px, 2.75rem);
