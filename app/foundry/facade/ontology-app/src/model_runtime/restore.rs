@@ -46,7 +46,8 @@ pub(crate) fn open(
     models: Option<&ModelRuntimeConfig>,
     tenant: &str,
     baseline: &OntologyEngine,
-) -> Result<Option<(EstablishedModelStore, OntologyEngine)>, BootError> {
+    access: Option<foundry_store_local_draft::LocalStoreGuard>,
+) -> Result<Option<(EstablishedModelStore, OntologyEngine, u64)>, BootError> {
     let Some(model) =
         models.and_then(|models| models.stores.iter().find(|m| m.binding.tenant_id == tenant))
     else {
@@ -54,8 +55,14 @@ pub(crate) fn open(
     };
     let expected =
         ModelBaseline::capture(baseline, tenant).map_err(|error| refused(tenant, error))?;
-    let store = SqliteModelStore::open_existing(&model.path, model.binding.clone(), expected)
-        .map_err(|error| refused(tenant, error))?;
+    let access = access.ok_or_else(|| refused(tenant, "exclusive model ownership is absent"))?;
+    let store = SqliteModelStore::open_existing_with_access(
+        &model.path,
+        model.binding.clone(),
+        expected,
+        access,
+    )
+    .map_err(|error| refused(tenant, error))?;
     let history = store
         .history(&ModelCaller {
             tenant_id: tenant.into(),
@@ -71,6 +78,10 @@ pub(crate) fn open(
             store: Box::new(store),
         },
         registry,
+        history
+            .head()
+            .map_err(|error| refused(tenant, error))?
+            .generation,
     )))
 }
 

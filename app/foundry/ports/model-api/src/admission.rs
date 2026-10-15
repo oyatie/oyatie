@@ -21,6 +21,19 @@ impl PreparedPublication {
     pub fn model_registry(&self) -> &OntologyEngine {
         &self.registry
     }
+
+    pub fn registry_with_runtime_baseline(
+        &self,
+        baseline: &OntologyEngine,
+    ) -> Result<OntologyEngine, ModelError> {
+        let mut registry = self.base.registry_with_runtime_baseline(baseline)?;
+        stage_document(
+            &mut registry,
+            &self.base.binding.tenant_id,
+            &self.draft.document,
+        )?;
+        Ok(registry)
+    }
 }
 
 pub(crate) fn prepare_publication(

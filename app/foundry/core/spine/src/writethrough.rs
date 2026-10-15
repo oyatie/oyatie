@@ -78,6 +78,19 @@ pub fn mirror_folded(
     fold: &FoldOutcome,
 ) -> Result<(), WriteThroughError> {
     let ordinal = sealed.receipt.ordinal;
+    let entry = folded_entry(state, sealed, fold);
+    store
+        .apply(entry, &designations(state, &sealed.envelope.object_ref))
+        .map_err(|error| WriteThroughError::Store { ordinal, error })?;
+    Ok(())
+}
+
+pub(crate) fn folded_entry(
+    state: &ProjectionState,
+    sealed: &SealedEnvelope,
+    fold: &FoldOutcome,
+) -> AppliedEntry {
+    let ordinal = sealed.receipt.ordinal;
     let object_ref = sealed.envelope.object_ref.as_str();
     let outcome = match fold {
         FoldOutcome::Applied => EntryOutcome::Applied {
@@ -92,15 +105,11 @@ pub fn mirror_folded(
             reason: poison_label(reason).to_owned(),
         },
     };
-    let entry = AppliedEntry {
+    AppliedEntry {
         tenant_id: state.tenant_id.clone(),
         ordinal,
         outcome,
-    };
-    store
-        .apply(entry, &designations(state, object_ref))
-        .map_err(|error| WriteThroughError::Store { ordinal, error })?;
-    Ok(())
+    }
 }
 
 /// A submission's outcome, and separately whether the durable store took
@@ -195,7 +204,7 @@ fn projected(state: &ProjectionState, object_ref: &str) -> Option<ProjectedObjec
 /// Stamp the registry's key designation for the type this entry touched.
 /// The store owns no definitions, so identity law reaches it only
 /// because the projector — which DOES hold the registry — passes it in.
-fn designations(state: &ProjectionState, object_ref: &str) -> KeyDesignations {
+pub(crate) fn designations(state: &ProjectionState, object_ref: &str) -> KeyDesignations {
     let keys = KeyDesignations::default();
     let Some(binding) = state.bindings.get(object_ref) else {
         return keys;

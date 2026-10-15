@@ -4,6 +4,7 @@ rust_library(
     crate = "foundry_records_draft",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = ["//app/foundry/ports/store-access:foundry-store-access"],
 )
 
 rust_test(
@@ -12,6 +13,7 @@ rust_test(
     crate = "foundry_records_draft",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = ["//app/foundry/ports/store-access:foundry-store-access"],
 )
 
 rust_test(
@@ -20,5 +22,6 @@ rust_test(
     crate = "reference_records",
     crate_root = "tests/reference_records.rs",
     visibility = ["PUBLIC"],
-    deps = [":foundry-records-draft"],
+    deps = [
+        "//app/foundry/ports/store-access:foundry-store-access",":foundry-records-draft"],
 )

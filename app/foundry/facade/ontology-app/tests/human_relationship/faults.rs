@@ -7,10 +7,12 @@ use crate::support::{HumanGraph, request};
 #[tokio::test]
 async fn unreadable_projection_is_unavailable_and_never_successful_empty() {
     let fixture = HumanGraph::new("human-store-fault");
-    fixture.state.tenants[TENANT].lock().await.projection_store =
-        Box::new(crate::failing_store::AlwaysFailingStore {
+    fixture.state.tenants[TENANT]
+        .lock()
+        .await
+        .replace_projection_store(Box::new(crate::failing_store::AlwaysFailingStore {
             detail: "injected storage failure",
-        });
+        }));
     let refusal = fixture
         .walk(&request("store-fault"), StatusCode::SERVICE_UNAVAILABLE)
         .await;
@@ -26,14 +28,13 @@ async fn expiry_after_node_admission_refuses_before_emitting_any_graph() {
     *fixture.sessions.answer.lock().unwrap() = Ok(membership);
     {
         let mut tenant = fixture.state.tenants[TENANT].lock().await;
-        let inner = std::mem::replace(
-            &mut tenant.projection_store,
-            Box::new(foundry_projection_draft::MemoryProjectionStore::default()),
-        );
-        tenant.projection_store = Box::new(SlowNeighbor {
+        let inner = tenant.replace_projection_store(Box::new(
+            foundry_projection_draft::MemoryProjectionStore::default(),
+        ));
+        tenant.replace_projection_store(Box::new(SlowNeighbor {
             inner,
             waited: std::sync::atomic::AtomicBool::new(false),
-        });
+        }));
     }
     let refusal = fixture
         .walk(&request("expiry"), StatusCode::UNAUTHORIZED)

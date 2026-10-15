@@ -31,6 +31,37 @@ LIBRARY_MAPPED_SRCS = {src: FACADE_ROOT + "/" + src for src in glob(["src/**/*.r
 LIBRARY_MAPPED_SRCS["//app/foundry/cedar:foundry.cedarschema"] = "app/foundry/cedar/foundry.cedarschema"
 LIBRARY_MAPPED_SRCS["//app/foundry/cedar:foundry-policies.cedar"] = "app/foundry/cedar/foundry-policies.cedar"
 
+LIBRARY_DEPS = [
+    "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
+    "//app/foundry/core/edits:foundry-edits",
+    "//app/foundry/core/spine:foundry-spine",
+    "//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft",
+    "//app/foundry/core/ontology-query-domain:foundry-ontology-query-domain",
+    "//app/foundry/core/ontology-query-usecase:foundry-ontology-query-usecase",
+    "//app/foundry/ports/draft/caller:foundry-caller-draft",
+    "//app/foundry/ports/model-api:foundry-model-api",
+    "//app/foundry/ports/store-access:foundry-store-access",
+    "//app/foundry/adapters/draft/store-local:foundry-store-local-draft",
+    "//app/foundry/adapters/draft/model-sqlite:foundry-model-sqlite-draft",
+    "//app/foundry/ports/draft/projection:foundry-projection-draft",
+    "//app/foundry/ports/draft/records:foundry-records-draft",
+    "//data/core/data-boundary-kernel:data-boundary-kernel",
+    "//data/core/ontology-kernel:data-ontology-kernel",
+    "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
+    "//policy/adapters/pdp-cedar:policy-pdp-cedar",
+    "//policy/core/pdp-kernel:policy-pdp-kernel",
+    "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
+    "//iam/ports/identity-user-session:iam-identity-user-session",
+    "third-party//:reqwest",
+    "third-party//:axum",
+    "third-party//:http-body-util",
+    "third-party//:serde",
+    "third-party//:serde_json",
+    "third-party//:tokio",
+    "third-party//:tracing",
+    "third-party//:tracing-subscriber",
+]
+
 rust_library(
     name = "foundry-ontology-app",
     srcs = [],
@@ -38,34 +69,17 @@ rust_library(
     crate_root = FACADE_ROOT + "/src/lib.rs",
     mapped_srcs = LIBRARY_MAPPED_SRCS,
     visibility = ["PUBLIC"],
-    deps = [
-        "//app/foundry/adapters/draft/records-sqlite:foundry-records-sqlite-draft",
-        "//app/foundry/core/edits:foundry-edits",
-        "//app/foundry/core/spine:foundry-spine",
-        "//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft",
-    "//app/foundry/core/ontology-query-domain:foundry-ontology-query-domain",
-    "//app/foundry/core/ontology-query-usecase:foundry-ontology-query-usecase",
-        "//app/foundry/ports/draft/caller:foundry-caller-draft",
-        "//app/foundry/ports/model-api:foundry-model-api",
-        "//app/foundry/adapters/draft/model-sqlite:foundry-model-sqlite-draft",
-        "//app/foundry/ports/draft/projection:foundry-projection-draft",
-        "//app/foundry/ports/draft/records:foundry-records-draft",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
-        "//data/core/ontology-kernel:data-ontology-kernel",
-        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
-        "//policy/adapters/pdp-cedar:policy-pdp-cedar",
-        "//policy/core/pdp-kernel:policy-pdp-kernel",
-        "//data/core/ulid-id-kernel:shared-ulid-id-kernel",
-        "//iam/ports/identity-user-session:iam-identity-user-session",
-        "third-party//:reqwest",
-        "third-party//:axum",
-        "third-party//:http-body-util",
-        "third-party//:serde",
-        "third-party//:serde_json",
-        "third-party//:tokio",
-        "third-party//:tracing",
-        "third-party//:tracing-subscriber",
-    ],
+    deps = LIBRARY_DEPS,
+)
+
+rust_test(
+    name = "foundry-ontology-app-unittest",
+    srcs = [],
+    crate = "foundry_ontology_app",
+    crate_root = FACADE_ROOT + "/src/lib.rs",
+    mapped_srcs = LIBRARY_MAPPED_SRCS,
+    visibility = ["PUBLIC"],
+    deps = LIBRARY_DEPS + ["third-party//:tower"],
 )
 
 rust_binary(
@@ -105,6 +119,13 @@ FACADE_TESTS = [
         "//policy/core/pdp-kernel:policy-pdp-kernel",
         "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
         "//app/foundry/ports/draft/caller:foundry-caller-draft",
+    ]),
+    ("model-publication", "model_publication_contract", FACADE_TEST_DEPS + [
+        "//app/foundry/ports/model-api:foundry-model-api",
+        "//app/foundry/adapters/draft/model-sqlite:foundry-model-sqlite-draft",
+        "//iam/ports/identity-user-session:iam-identity-user-session",
+        "//policy/core/pdp-kernel:policy-pdp-kernel",
+        "//iam/core/platform-contracts-kernel:shared-platform-contracts-kernel",
     ]),
     ("boot", "boot_refuses_on_unopenable_log", [":foundry-ontology-app"]),
     ("probes", "probes_report_honest_readiness", FACADE_TEST_DEPS),
@@ -253,3 +274,24 @@ DRILLS = [
     )
     for suffix, stem in DRILLS
 ]
+
+[rust_test(
+    name = "foundry-ontology-app-" + suffix,
+    srcs = ["tests/" + stem + ".rs", "tests/model_runtime/support.rs"],
+    crate = stem,
+    crate_root = "tests/" + stem + ".rs",
+    visibility = ["PUBLIC"],
+    env = {"CARGO_BIN_EXE_foundry-ontology-app": "$(location :foundry-ontology-app-bin)"},
+    resources = [":foundry-ontology-app-bin"],
+    deps = FACADE_TEST_DEPS + [
+        "//app/foundry/ports/store-access:foundry-store-access",
+        "//app/foundry/core/spine:foundry-spine",
+        "//app/foundry/adapters/draft/store-local:foundry-store-local-draft",
+        "//app/foundry/ports/model-api:foundry-model-api",
+        "//app/foundry/adapters/draft/model-sqlite:foundry-model-sqlite-draft",
+        "//app/foundry/ports/draft/projection:foundry-projection-draft",
+        "//app/foundry/adapters/draft/projection-sqlite:foundry-projection-sqlite-draft",
+        "//iam/ports/identity-user-session:iam-identity-user-session",
+        "third-party//:reqwest",
+    ],
+) for suffix, stem in [("store-ownership", "store_ownership_contract"), ("model-serving-ownership", "model_serving_ownership")]]

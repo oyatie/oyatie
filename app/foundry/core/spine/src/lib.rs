@@ -13,6 +13,7 @@ mod error;
 mod fold;
 mod history;
 mod migrate;
+mod preflight;
 mod retry;
 mod revision;
 mod sets;
@@ -35,6 +36,7 @@ pub use migrate::{
     PendingUpcast, PlanError, UpcastTransform, ValueConversion, migration_attestation,
     pending_objects, run_to_fixpoint, upcast_idempotency_key,
 };
+pub use preflight::{ProjectionPreflightError, preflight_projection};
 pub use retry::same_request;
 pub use revision::{
     PageError, PinnedObject, PinnedPage, UpcastState, ViewError, object_at_revision,

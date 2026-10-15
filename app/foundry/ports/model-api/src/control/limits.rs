@@ -11,6 +11,8 @@ pub struct ModelWireLimits {
     pub prepare: usize,
     pub validation: usize,
     pub refusal: usize,
+    pub lifecycle: usize,
+    pub published: usize,
 }
 
 fn encoded_length<T: serde::Serialize>(value: &T) -> Result<usize, ModelError> {
@@ -41,6 +43,13 @@ pub fn model_wire_limits() -> Result<ModelWireLimits, ModelError> {
         draft_id: number,
         draft_version: number,
         owner: context.clone(),
+    };
+    let lifecycle = ModelLifecycle {
+        desired_generation: number,
+        observed_generation: Some(number),
+        phase: ModelLifecyclePhase::CommitUnknown,
+        ready: false,
+        scope: ModelObservationScope::RespondingInstance,
     };
     let draft = ModelDraftWire {
         id: number,
@@ -128,5 +137,7 @@ pub fn model_wire_limits() -> Result<ModelWireLimits, ModelError> {
             diagnostics,
         })?,
         refusal,
+        lifecycle: encoded_length(&lifecycle)?,
+        published: encoded_length(&ModelPublished { receipt, lifecycle })?,
     })
 }

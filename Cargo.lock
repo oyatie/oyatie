@@ -2537,6 +2537,7 @@ version = "0.1.0"
 dependencies = [
  "data-boundary-kernel",
  "data-ontology-kernel",
+ "foundry-store-access",
  "serde",
  "serde_json",
 ]
@@ -2546,6 +2547,8 @@ name = "foundry-model-sqlite-draft"
 version = "0.1.0"
 dependencies = [
  "foundry-model-api",
+ "foundry-store-access",
+ "foundry-store-local-draft",
  "rusqlite",
  "serde",
  "serde_json",
@@ -2569,6 +2572,8 @@ dependencies = [
  "foundry-records-draft",
  "foundry-records-sqlite-draft",
  "foundry-spine",
+ "foundry-store-access",
+ "foundry-store-local-draft",
  "http-body-util",
  "iam-identity-user-session",
  "policy-pdp-cedar",
@@ -2609,6 +2614,7 @@ version = "0.1.0"
 dependencies = [
  "data-boundary-kernel",
  "data-ontology-kernel",
+ "foundry-store-access",
 ]
 
 [[package]]
@@ -2618,18 +2624,25 @@ dependencies = [
  "data-boundary-kernel",
  "data-ontology-kernel",
  "foundry-projection-draft",
+ "foundry-store-access",
+ "foundry-store-local-draft",
  "rusqlite",
 ]
 
 [[package]]
 name = "foundry-records-draft"
 version = "0.1.0"
+dependencies = [
+ "foundry-store-access",
+]
 
 [[package]]
 name = "foundry-records-sqlite-draft"
 version = "0.1.0"
 dependencies = [
  "foundry-records-draft",
+ "foundry-store-access",
+ "foundry-store-local-draft",
  "rusqlite",
 ]
 
@@ -2646,6 +2659,18 @@ dependencies = [
  "foundry-projection-sqlite-draft",
  "foundry-records-draft",
  "foundry-records-sqlite-draft",
+]
+
+[[package]]
+name = "foundry-store-access"
+version = "0.1.0"
+
+[[package]]
+name = "foundry-store-local-draft"
+version = "0.1.0"
+dependencies = [
+ "foundry-store-access",
+ "libc",
 ]
 
 [[package]]

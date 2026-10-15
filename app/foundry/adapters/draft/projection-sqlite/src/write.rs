@@ -27,24 +27,11 @@ pub(crate) fn apply(
         .map_err(storage)?
         .unwrap_or(0);
     if entry.ordinal <= head {
-        let stored: Option<Vec<u8>> = transaction
-            .query_row(
-                "SELECT entry_bytes FROM projection_entries
-                     WHERE tenant_id = ?1 AND ordinal = ?2",
-                params![entry.tenant_id, entry.ordinal],
-                |row| row.get(0),
-            )
-            .optional()
-            .map_err(storage)?;
-        return match stored {
-            Some(bytes) if bytes == entry_bytes => Ok(ApplyReceipt {
-                ordinal: entry.ordinal,
-                deduplicated: true,
-            }),
-            _ => Err(ProjectionStoreError::DivergentReplay {
-                ordinal: entry.ordinal,
-            }),
-        };
+        verify_bytes(&transaction, &entry, &entry_bytes)?;
+        return Ok(ApplyReceipt {
+            ordinal: entry.ordinal,
+            deduplicated: true,
+        });
     }
     if entry.ordinal != head + 1 {
         return Err(ProjectionStoreError::NonDenseOrdinal {
@@ -180,4 +167,34 @@ fn write_object(
             .map_err(storage)?;
     }
     Ok(())
+}
+
+pub(crate) fn verify(
+    connection: &Connection,
+    entry: &AppliedEntry,
+) -> Result<(), ProjectionStoreError> {
+    validate(entry)?;
+    let bytes = encode_entry(entry).map_err(codec_error)?;
+    verify_bytes(connection, entry, &bytes)
+}
+
+fn verify_bytes(
+    connection: &Connection,
+    entry: &AppliedEntry,
+    bytes: &[u8],
+) -> Result<(), ProjectionStoreError> {
+    let stored: Option<Vec<u8>> = connection
+        .query_row(
+            "SELECT entry_bytes FROM projection_entries WHERE tenant_id = ?1 AND ordinal = ?2",
+            params![entry.tenant_id, entry.ordinal],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(storage)?;
+    match stored {
+        Some(stored) if stored == bytes => Ok(()),
+        _ => Err(ProjectionStoreError::DivergentReplay {
+            ordinal: entry.ordinal,
+        }),
+    }
 }

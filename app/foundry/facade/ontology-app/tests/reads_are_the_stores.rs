@@ -17,7 +17,9 @@ fn with_store(fixture: &Fixture, taken: usize, refusals: usize) -> Session {
         .get_mut(TENANT)
         .expect("served")
         .get_mut()
-        .projection_store = Box::new(ApplyRefusingStore::taking_then_refusing(taken, refusals));
+        .replace_projection_store(Box::new(ApplyRefusingStore::taking_then_refusing(
+            taken, refusals,
+        )));
     Session::from_state(state)
 }
 
@@ -48,9 +50,9 @@ async fn an_object_read_answers_from_the_store_not_the_fold() {
         .get_mut(TENANT)
         .expect("served")
         .get_mut()
-        .projection_store = Box::new(AlwaysFailingStore {
-        detail: "the store is gone",
-    });
+        .replace_projection_store(Box::new(AlwaysFailingStore {
+            detail: "the store is gone",
+        }));
     let session = Session::from_state(state);
     let (status, body) = session
         .get(

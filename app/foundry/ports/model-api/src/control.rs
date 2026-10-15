@@ -1,8 +1,10 @@
 use crate::*;
 
 mod codec;
+mod lifecycle;
 mod limits;
 mod number;
+pub use lifecycle::*;
 pub use limits::{ModelWireLimits, model_wire_limits};
 pub use number::ModelNumber;
 
@@ -11,6 +13,8 @@ pub const MODEL_DRAFTS_ROUTE: &str = "/v1/tenants/{tenant}/model/drafts";
 pub const MODEL_DRAFT_ROUTE: &str = "/v1/tenants/{tenant}/model/drafts/{draft_id}";
 pub const MODEL_SAVE_ROUTE: &str = "/v1/tenants/{tenant}/model/drafts/{draft_id}/save";
 pub const MODEL_VALIDATE_ROUTE: &str = "/v1/tenants/{tenant}/model/drafts/{draft_id}/validate";
+pub const MODEL_PUBLISH_ROUTE: &str = "/v1/tenants/{tenant}/model/drafts/{draft_id}/publish";
+pub const MODEL_LIFECYCLE_ROUTE: &str = "/v1/tenants/{tenant}/model/lifecycle";
 
 pub const MAX_MODEL_DIAGNOSTICS: usize = 1;
 pub const MAX_MODEL_DIAGNOSTIC_CODE_BYTES: usize = 64;

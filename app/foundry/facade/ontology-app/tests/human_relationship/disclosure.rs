@@ -92,7 +92,7 @@ async fn target_revision_is_the_current_written_revision_not_the_root_pin() {
     {
         let mut tenant = fixture.state.tenants[TENANT].lock().await;
         let mut definition = tenant
-            .projection
+            .projection()
             .engine
             .entity_type(
                 TENANT,
@@ -102,7 +102,7 @@ async fn target_revision_is_the_current_written_revision_not_the_root_pin() {
             .clone();
         definition.revision = 2;
         tenant
-            .projection
+            .projection_for_injection()
             .engine
             .evolve_entity_type(definition)
             .unwrap();
@@ -192,14 +192,14 @@ async fn human_seed_pin_and_type_are_bound_to_the_same_process_local_query_inten
         let mut tenant = fixture.state.tenants[TENANT].lock().await;
         let id = data_ontology_kernel::EntityTypeId::new("ety_record").unwrap();
         let mut definition = tenant
-            .projection
+            .projection()
             .engine
             .entity_type(TENANT, &id)
             .unwrap()
             .clone();
         definition.revision = 2;
         tenant
-            .projection
+            .projection_for_injection()
             .engine
             .evolve_entity_type(definition)
             .unwrap();

@@ -4,7 +4,7 @@ use crate::model_support::*;
 async fn real_owner_create_save_reopen_prepare_keeps_published_projection_and_logs_unchanged() {
     let fixture = crate::facade_support::Fixture::new("model-lifecycle");
     let state = instrument(fixture.state(), &["foundry-model-author"], Some(origin()));
-    let before = state.app.tenants[TENANT].lock().await.projection.clone();
+    let before = state.app.tenants[TENANT].lock().await.projection().clone();
     let created = create(&state.router).await;
     assert_eq!(created.owner, "usr_alice");
     assert_eq!(created.tenant_id, TENANT);
@@ -118,7 +118,7 @@ async fn real_owner_create_save_reopen_prepare_keeps_published_projection_and_lo
     .unwrap();
     assert_eq!(published.document, baseline().document);
     assert_eq!(published.generation, number(1));
-    assert_eq!(state.app.tenants[TENANT].lock().await.projection, before);
+    assert_eq!(state.app.tenants[TENANT].lock().await.projection(), &before);
     assert_eq!(fixture.log_head(), 0);
     assert_eq!(fixture.denial_head(), 0);
     assert_eq!(
@@ -208,6 +208,6 @@ async fn real_owner_create_save_reopen_prepare_keeps_published_projection_and_lo
         )
         .await
         .status(),
-        StatusCode::NOT_FOUND
+        StatusCode::BAD_REQUEST
     );
 }

@@ -218,3 +218,24 @@ fn a_store_that_cannot_reset_refuses_rather_than_reporting_success() {
         "{refused:?}"
     );
 }
+
+#[test]
+fn exact_entry_verification_is_read_only() {
+    run(foundry_projection_draft::conformance::check_exact_entry_verification_is_read_only);
+}
+
+#[test]
+fn unsupported_entry_verification_is_a_typed_refusal() {
+    let store = WithoutReset::default();
+    let entry = AppliedEntry {
+        tenant_id: "ten_a".into(),
+        ordinal: 1,
+        outcome: foundry_projection_draft::EntryOutcome::Poisoned {
+            reason: "test".into(),
+        },
+    };
+    assert_eq!(
+        store.verify_entry(&entry),
+        Err(ProjectionStoreError::VerificationUnsupported)
+    );
+}

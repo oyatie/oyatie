@@ -114,6 +114,16 @@ impl MemoryProjectionStore {
 }
 
 impl ProjectionStore for MemoryProjectionStore {
+    fn verify_entry(&self, entry: &AppliedEntry) -> Result<(), ProjectionStoreError> {
+        Self::validate(entry)?;
+        match self.entries.get(&(entry.tenant_id.clone(), entry.ordinal)) {
+            Some(stored) if stored == entry => Ok(()),
+            _ => Err(ProjectionStoreError::DivergentReplay {
+                ordinal: entry.ordinal,
+            }),
+        }
+    }
+
     fn apply(
         &mut self,
         entry: AppliedEntry,

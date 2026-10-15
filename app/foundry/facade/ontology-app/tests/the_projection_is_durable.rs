@@ -152,7 +152,7 @@ async fn a_mirror_the_store_refuses_is_lag_the_store_reports() {
         .get_mut(TENANT)
         .expect("served")
         .get_mut()
-        .projection_store = Box::new(ApplyRefusingStore::refusing_the_first(1));
+        .replace_projection_store(Box::new(ApplyRefusingStore::refusing_the_first(1)));
     let session = Session::from_state(state);
     let (status, body) = session.post(Some(fixture.operator_token()), WRITE).await;
     assert_eq!(status, StatusCode::OK, "the log took it: {body}");
@@ -204,9 +204,9 @@ async fn an_unreadable_store_nulls_the_sync_facts_and_still_serves_the_registry(
             .get_mut(id)
             .expect("served")
             .get_mut()
-            .projection_store = Box::new(AlwaysFailingStore {
-            detail: "the store is gone",
-        });
+            .replace_projection_store(Box::new(AlwaysFailingStore {
+                detail: "the store is gone",
+            }));
     }
     let session = Session::from_state(state);
     let (_, body) = session

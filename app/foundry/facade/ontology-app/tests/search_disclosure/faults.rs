@@ -86,15 +86,12 @@ async fn cached_endpoint_or_edge_storage_fault_is_not_an_empty_graph_or_success(
         assert_eq!(fixture.walk(&request).await.0, StatusCode::OK);
         let before = {
             let mut tenant = fixture.state.tenants[TENANT].lock().await;
-            let inner = std::mem::replace(
-                &mut tenant.projection_store,
-                Box::new(MemoryProjectionStore::default()),
-            );
-            tenant.projection_store = Box::new(ReadFault { inner, fail_links });
+            let inner = tenant.replace_projection_store(Box::new(MemoryProjectionStore::default()));
+            tenant.replace_projection_store(Box::new(ReadFault { inner, fail_links }));
             (
                 tenant.queries.clone(),
                 tenant.query_decisions.clone(),
-                tenant.projection.clone(),
+                tenant.projection().clone(),
             )
         };
         let (status, reply) = fixture.walk(&request).await;
@@ -110,7 +107,7 @@ async fn cached_endpoint_or_edge_storage_fault_is_not_an_empty_graph_or_success(
             (
                 tenant.queries.clone(),
                 tenant.query_decisions.clone(),
-                tenant.projection.clone()
+                tenant.projection().clone()
             ),
             before
         );

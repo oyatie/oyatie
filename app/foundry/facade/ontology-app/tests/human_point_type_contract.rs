@@ -141,7 +141,7 @@ async fn type_and_fields_are_derived_from_the_same_single_store_value() {
     let original = state.tenants[TENANT]
         .lock()
         .await
-        .projection_store
+        .projection_store()
         .get(TENANT, "ent_alpha")
         .unwrap()
         .unwrap();

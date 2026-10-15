@@ -19,10 +19,8 @@ use crate::facade_support::TENANT;
 
 pub fn declare(state: &mut AppState, kind: &str, action: &str, property: &str) {
     let tenant = state.tenants.get_mut(TENANT).unwrap().get_mut();
-    for registry in [
-        &mut tenant.projection.engine,
-        &mut tenant.projection.registry_input,
-    ] {
+    let projection = tenant.projection_for_injection();
+    for registry in [&mut projection.engine, &mut projection.registry_input] {
         let entity_type = EntityTypeId::new(kind).unwrap();
         registry
             .register_entity_type(
@@ -106,7 +104,7 @@ pub async fn send(
         .unwrap(),
     };
     let mut tenant = state.tenants[TENANT].lock().await;
-    let (log, denials, projection, store) = tenant.write_handles();
+    let (log, denials, projection, store) = tenant.injected_write_handles().unwrap();
     let accepted = submit_through(submission, log, denials, projection, store).unwrap();
     assert!(matches!(accepted.outcome, ApplyOutcome::Applied { .. }));
     accepted.mirror.unwrap();
@@ -137,17 +135,16 @@ impl ChangingStore {
         delay: Duration,
     ) -> Arc<AtomicUsize> {
         let tenant = state.tenants.get_mut(TENANT).unwrap().get_mut();
-        let inner = std::mem::replace(
-            &mut tenant.projection_store,
-            Box::new(foundry_projection_draft::MemoryProjectionStore::default()),
-        );
+        let inner = tenant.replace_projection_store(Box::new(
+            foundry_projection_draft::MemoryProjectionStore::default(),
+        ));
         let reads = Arc::new(AtomicUsize::new(0));
-        tenant.projection_store = Box::new(Self {
+        tenant.replace_projection_store(Box::new(Self {
             inner,
             first,
             reads: reads.clone(),
             delay,
-        });
+        }));
         reads
     }
 }

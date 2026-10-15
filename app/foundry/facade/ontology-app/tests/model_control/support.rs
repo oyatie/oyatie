@@ -82,6 +82,7 @@ pub struct FakeSessions {
     pub calls: AtomicUsize,
     pub delay: Mutex<std::time::Duration>,
     pub changed: tokio::sync::Notify,
+    pub after_call: Mutex<Option<(usize, Result<SessionView, SessionRefusal>)>>,
 }
 impl FakeSessions {
     pub fn new(answer: Result<SessionView, SessionRefusal>) -> Arc<Self> {
@@ -90,6 +91,7 @@ impl FakeSessions {
             calls: AtomicUsize::new(0),
             delay: Mutex::new(std::time::Duration::ZERO),
             changed: tokio::sync::Notify::new(),
+            after_call: Mutex::new(None),
         })
     }
 }
@@ -103,9 +105,16 @@ impl UserSessionAuthorizer for FakeSessions {
     {
         Box::pin(async move {
             assert_eq!(presented, Some(TOKEN));
-            let answer = self.answer.lock().unwrap().clone();
+            let call = self.calls.fetch_add(1, Ordering::SeqCst) + 1;
+            let answer = self
+                .after_call
+                .lock()
+                .unwrap()
+                .as_ref()
+                .filter(|(after, _)| call >= *after)
+                .map(|(_, answer)| answer.clone())
+                .unwrap_or_else(|| self.answer.lock().unwrap().clone());
             let delay = *self.delay.lock().unwrap();
-            self.calls.fetch_add(1, Ordering::SeqCst);
             self.changed.notify_one();
             tokio::time::sleep(delay).await;
             answer?.into_active_membership(tenant, instant)

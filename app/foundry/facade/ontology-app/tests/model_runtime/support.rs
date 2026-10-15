@@ -9,6 +9,8 @@ use std::{
     process::{Command, Stdio},
 };
 
+static NEXT_FIXTURE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
 pub const TENANT: &str = "ten_model_runtime";
 pub const TOKEN: &str = "v1.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 pub const ORIGIN: &str = "http://localhost:33000";
@@ -20,8 +22,9 @@ pub struct Fixture {
 impl Fixture {
     pub fn new() -> Self {
         let directory = std::env::temp_dir().join(format!(
-            "foundry-model-runtime-{}-{}",
+            "foundry-model-runtime-{}-{}-{}",
             std::process::id(),
+            NEXT_FIXTURE.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
@@ -189,6 +192,10 @@ pub struct Iam {
 }
 impl Iam {
     pub async fn start() -> Self {
+        Self::start_with_roles(&["foundry-model-author", "foundry-operator"]).await
+    }
+    pub async fn start_with_roles(roles: &[&str]) -> Self {
+        let roles: Vec<String> = roles.iter().map(|role| (*role).into()).collect();
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let origin = format!("http://{}", listener.local_addr().unwrap());
         let task = tokio::spawn(async move {
@@ -196,13 +203,16 @@ impl Iam {
                 listener,
                 Router::new().route(
                     "/identity/v1/{tenant}/session",
-                    get(|| async {
-                        axum::Json(SessionView {
-                            tenant_id: TENANT.into(),
-                            user_id: "usr_designer".into(),
-                            expires_at: i64::MAX,
-                            roles: vec!["foundry-model-author".into(), "foundry-operator".into()],
-                        })
+                    get(move || {
+                        let roles = roles.clone();
+                        async move {
+                            axum::Json(SessionView {
+                                tenant_id: TENANT.into(),
+                                user_id: "usr_designer".into(),
+                                expires_at: i64::MAX,
+                                roles,
+                            })
+                        }
                     }),
                 ),
             )

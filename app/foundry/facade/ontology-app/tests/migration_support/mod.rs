@@ -62,12 +62,12 @@ pub(crate) fn state_with_two_revisions_for(config: &Config, tenants: &[&str]) ->
 
 fn evolve_to_revision_two(state: &mut AppState, tenant_id: &str) {
     let internal = PrivacyDataClass::try_from(DataClass::InternalOnly).expect("a privacy class");
-    let projection = &mut state
+    let projection = state
         .tenants
         .get_mut(tenant_id)
         .expect("the served tenant")
         .get_mut()
-        .projection;
+        .projection_for_injection();
     // BOTH engines. `registry_input` is the untouched fold input the runner
     // validates against and the writer stamps from; `engine` is that seed plus
     // link instances. A real evolution re-folds, seeding both from one
@@ -153,19 +153,19 @@ pub(crate) fn plan_for(tenant_id: &str) -> String {
 /// and a fixture that evolves both cannot see the difference at all.
 pub(crate) fn state_with_engine_only_evolved(config: &Config) -> AppState {
     let mut state = state_with_two_revisions(config);
-    let projection = &mut state
+    let projection = state
         .tenants
         .get_mut("ten_acme")
         .expect("the served tenant")
         .get_mut()
-        .projection;
+        .projection_for_injection();
     projection.registry_input = compose(config)
         .expect("boots")
         .tenants
         .get_mut("ten_acme")
         .expect("the served tenant")
         .get_mut()
-        .projection
+        .projection()
         .registry_input
         .clone();
     state

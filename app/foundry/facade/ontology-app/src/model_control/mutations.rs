@@ -104,6 +104,9 @@ async fn run(
         .lock()
         .await;
     let authorization = after_wait(state, tenant, &headers, grant, &first).await?;
+    if handle.publication_unknown.is_some() && !matches!(mutation, Mutation::Validate) {
+        return Err(unavailable());
+    }
     let model = model(&mut handle, &authorization)?;
     let caller = &authorization.caller;
     let (status, draft) = match input {

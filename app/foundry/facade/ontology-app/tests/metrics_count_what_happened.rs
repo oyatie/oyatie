@@ -154,9 +154,9 @@ async fn each_read_refusal_site_counts_exactly_once() {
         .get_mut(TENANT)
         .expect("served")
         .get_mut()
-        .projection_store = Box::new(AlwaysFailingStore {
-        detail: "the store is gone",
-    });
+        .replace_projection_store(Box::new(AlwaysFailingStore {
+            detail: "the store is gone",
+        }));
     let wedged = Session::from_state(state);
     for (label, path) in [
         ("unreadable projection store", path),

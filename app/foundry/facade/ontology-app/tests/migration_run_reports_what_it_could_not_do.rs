@@ -29,9 +29,12 @@ async fn a_run_that_cannot_write_reports_the_work_it_could_not_do() {
     let token = Some(fixture.operator_token());
     write_owing(&session, token, "ent_alpha", "idem_1").await;
     for tenant in state.tenants.values() {
-        tenant.lock().await.action_log = Box::new(AlwaysFailingLog {
-            detail: "the store went away mid-migration",
-        });
+        tenant
+            .lock()
+            .await
+            .replace_action_log(Box::new(AlwaysFailingLog {
+                detail: "the store went away mid-migration",
+            }));
     }
 
     let (status, body) = run(&session, token, &plan_for("ten_acme")).await;

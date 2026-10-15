@@ -166,3 +166,15 @@ fn native_version_overflow_is_refused_without_changing_saved_document() {
     );
     assert_eq!(store.open_draft(&caller(), draft.id).unwrap(), draft);
 }
+
+#[test]
+fn invalid_initial_binding_never_creates_a_store_file() {
+    let database = Database::new();
+    let mut invalid = binding();
+    invalid.tenant_id = "foreign".into();
+    assert!(matches!(
+        SqliteModelStore::initialize(&database.path(), invalid, baseline()),
+        Err(ModelError::InvalidContext)
+    ));
+    assert!(!database.path().exists());
+}

@@ -20,12 +20,12 @@ const RECORDED: &str = "foundry_denial_recorded_total";
 /// so every upcast a run submits under it is refused by the writer's
 /// authorization gate.
 fn with_a_foreign_surface_action(mut state: AppState) -> AppState {
-    let projection = &mut state
+    let projection = state
         .tenants
         .get_mut(TENANT)
         .expect("served")
         .get_mut()
-        .projection;
+        .projection_for_injection();
     for engine in [&mut projection.registry_input, &mut projection.engine] {
         engine
             .register_action_type(
@@ -104,9 +104,9 @@ async fn a_runs_refusals_the_trail_could_not_take_are_issued_and_not_recorded() 
         .get_mut(TENANT)
         .expect("served")
         .get_mut()
-        .denial_log = Box::new(AlwaysFailingLog {
-        detail: "the trail is unwritable",
-    });
+        .replace_denial_log(Box::new(AlwaysFailingLog {
+            detail: "the trail is unwritable",
+        }));
     let session = Session::from_state(state);
     write_owing(
         &session,

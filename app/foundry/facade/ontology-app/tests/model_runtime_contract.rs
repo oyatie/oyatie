@@ -1,6 +1,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 use foundry_model_api::{control::*, *};
 use reqwest::{Method, StatusCode};
+#[path = "model_runtime/hot_publish.rs"]
+mod hot_publish;
 #[path = "model_runtime/refusals.rs"]
 mod refusals;
 #[path = "model_runtime/replay.rs"]
@@ -145,7 +147,7 @@ async fn standard_process_opens_established_model_through_real_human_routes() {
             .await
             .unwrap()
             .status(),
-        StatusCode::NOT_FOUND
+        StatusCode::FORBIDDEN
     );
 }
 
@@ -225,6 +227,7 @@ async fn configured_origin_and_session_are_required_by_standard_model_routes() {
         }
         bytes(send.send().await.unwrap(), StatusCode::FORBIDDEN).await;
     }
+    drop(process);
     assert!(
         fixture
             .open()

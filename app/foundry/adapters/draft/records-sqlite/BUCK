@@ -5,6 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//app/foundry/ports/store-access:foundry-store-access",
+        "//app/foundry/adapters/draft/store-local:foundry-store-local-draft",
         "//app/foundry/ports/draft/records:foundry-records-draft",
         "third-party//:rusqlite",
     ],
@@ -17,6 +19,8 @@ rust_test(
     crate_root = "tests/sqlite_records.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//app/foundry/ports/store-access:foundry-store-access",
+        "//app/foundry/adapters/draft/store-local:foundry-store-local-draft",
         ":foundry-records-sqlite-draft",
         "//app/foundry/ports/draft/records:foundry-records-draft",
         "third-party//:rusqlite",

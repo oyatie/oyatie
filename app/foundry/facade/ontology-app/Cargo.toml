@@ -8,6 +8,8 @@ license = "Apache-2.0"
 description = "Runnable Foundry ontology service: composes the governed M3 write spine (records + denial logs, the ActionWriter, the projector fold) behind an HTTP surface with liveness, readiness and metrics. Fail-closed boot — an unopenable durable store is a boot refusal, never an in-memory fallback — and deny-by-default on every operator surface until the policy decision point is composed."
 
 [dependencies]
+foundry-store-access = { path = "../../ports/store-access" }
+foundry-store-local-draft = { path = "../../adapters/draft/store-local" }
 data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
 data-ontology-kernel = { path = "../../../../data/core/ontology-kernel" }
 foundry-caller-draft = { path = "../../ports/draft/caller" }

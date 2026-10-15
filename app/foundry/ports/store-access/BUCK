@@ -1,0 +1,15 @@
+rust_library(
+    name = "foundry-store-access",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_store_access",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "foundry-store-access-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "foundry_store_access",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

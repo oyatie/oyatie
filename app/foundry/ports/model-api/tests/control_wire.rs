@@ -1,6 +1,8 @@
 use foundry_model_api::{conformance::*, control::*, *};
 use serde::{Serialize, de::DeserializeOwned};
 
+#[path = "control_wire/lifecycle.rs"]
+mod lifecycle;
 #[path = "control_wire/maximum.rs"]
 mod maximum;
 use maximum::maximum_document;

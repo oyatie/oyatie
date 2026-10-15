@@ -205,9 +205,9 @@ async fn an_unreadable_log_nulls_the_sync_facts_and_still_serves_the_registry() 
         .get_mut("ten_zzz")
         .expect("the last served tenant")
         .get_mut()
-        .action_log = Box::new(failing_log::AlwaysFailingLog {
-        detail: "the head is gone",
-    });
+        .replace_action_log(Box::new(failing_log::AlwaysFailingLog {
+            detail: "the head is gone",
+        }));
     let session = Session::from_state(state);
 
     let (_, body) = session

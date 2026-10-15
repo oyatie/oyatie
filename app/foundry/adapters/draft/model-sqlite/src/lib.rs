@@ -8,11 +8,13 @@ mod tests;
 mod write;
 
 use foundry_model_api::*;
+use foundry_store_local_draft::{LocalStoreGuard, StoreOpen};
 use rusqlite::{Connection, OpenFlags, params};
 use std::path::Path;
 
 pub struct SqliteModelStore {
     connection: Connection,
+    access: LocalStoreGuard,
     binding: ModelBinding,
     baseline: ModelBaseline,
 }
@@ -42,7 +44,20 @@ impl SqliteModelStore {
         baseline: ModelBaseline,
     ) -> Result<Self, ModelError> {
         let ledger = ModelLedger::initialize(binding.clone(), baseline.clone())?;
-        let mut connection = Connection::open(path).map_err(storage)?;
+        let access = LocalStoreGuard::shared(path, StoreOpen::Create).map_err(access_error)?;
+        access.validate(path).map_err(access_error)?;
+        let mut connection = Connection::open_with_flags(
+            access.path(),
+            rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE
+                | rusqlite::OpenFlags::SQLITE_OPEN_CREATE
+                | rusqlite::OpenFlags::SQLITE_OPEN_NO_MUTEX,
+        )
+        .map_err(storage)?;
+        access
+            .validate(Path::new(connection.path().ok_or_else(|| {
+                access_error(foundry_store_local_draft::StoreAccessError::IdentityChanged)
+            })?))
+            .map_err(access_error)?;
         configure(&connection)?;
         let transaction = connection
             .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
@@ -76,6 +91,7 @@ impl SqliteModelStore {
         transaction.commit().map_err(storage)?;
         Ok(Self {
             connection,
+            access,
             binding,
             baseline,
         })
@@ -88,14 +104,41 @@ impl SqliteModelStore {
     ) -> Result<Self, ModelError> {
         binding.validate()?;
         baseline.check_bounds()?;
-        let connection = Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_WRITE)
-            .map_err(|error| {
-                if !path.exists() {
-                    ModelError::Uninitialized
-                } else {
-                    storage(error)
-                }
-            })?;
+        let access = LocalStoreGuard::shared(path, StoreOpen::Existing).map_err(|error| {
+            if !path.exists() {
+                ModelError::Uninitialized
+            } else {
+                access_error(error)
+            }
+        })?;
+        Self::open_existing_with_access(path, binding, baseline, access)
+    }
+
+    pub fn open_existing_with_access(
+        path: &Path,
+        binding: ModelBinding,
+        baseline: ModelBaseline,
+        access: LocalStoreGuard,
+    ) -> Result<Self, ModelError> {
+        access.validate(path).map_err(access_error)?;
+        binding.validate()?;
+        baseline.check_bounds()?;
+        let connection = Connection::open_with_flags(
+            access.path(),
+            OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_NO_MUTEX,
+        )
+        .map_err(|error| {
+            if !path.exists() {
+                ModelError::Uninitialized
+            } else {
+                storage(error)
+            }
+        })?;
+        access
+            .validate(Path::new(connection.path().ok_or_else(|| {
+                access_error(foundry_store_local_draft::StoreAccessError::IdentityChanged)
+            })?))
+            .map_err(access_error)?;
         configure(&connection)?;
         match model_table_count(&connection)? {
             0 => return Err(ModelError::Uninitialized),
@@ -104,6 +147,7 @@ impl SqliteModelStore {
         }
         let store = Self {
             connection,
+            access,
             binding,
             baseline,
         };
@@ -150,6 +194,12 @@ pub(crate) fn encode<T: serde::Serialize>(value: &T) -> Result<Vec<u8>, ModelErr
 }
 
 pub(crate) fn storage(error: rusqlite::Error) -> ModelError {
+    ModelError::Storage {
+        detail: error.to_string(),
+    }
+}
+
+fn access_error(error: foundry_store_local_draft::StoreAccessError) -> ModelError {
     ModelError::Storage {
         detail: error.to_string(),
     }

@@ -11,6 +11,7 @@ pub(super) enum Grant {
     Read,
     Author,
     Validate,
+    Publish,
 }
 
 pub(super) struct Authorization {
@@ -77,6 +78,7 @@ pub(super) async fn authorize(
     let decision = match grant {
         Grant::Read => decide(ModelOperation::Read),
         Grant::Author => decide(ModelOperation::Author),
+        Grant::Publish => decide(ModelOperation::Publish),
         Grant::Validate => match decide(ModelOperation::Author) {
             Err(ModelPepError::Denied) => decide(ModelOperation::Publish),
             result => result,

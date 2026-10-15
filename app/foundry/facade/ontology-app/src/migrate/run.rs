@@ -122,7 +122,14 @@ pub async fn run(State(state): State<Arc<AppState>>, headers: HeaderMap, body: S
     };
 
     let mut tenant = tenant.lock().await;
-    let (log, denial_log, projection, store) = tenant.write_handles();
+    let Ok((log, denial_log, projection, store)) = tenant.write_handles() else {
+        state.metrics.submit_refused();
+        return refuse(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "model",
+            "model publication outcome is unresolved",
+        );
+    };
     match run_to_fixpoint(&plan, &authority, log, denial_log, projection) {
         Ok(status) => {
             // A run is many writes; the store is caught up once, afterwards.

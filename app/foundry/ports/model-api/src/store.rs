@@ -96,6 +96,10 @@ model_object!(ModelHistory {
 });
 
 pub trait ModelStore {
+    fn store_access(&self) -> Option<&foundry_store_access::StoreAccess> {
+        None
+    }
+
     fn head(&self, caller: &ModelCaller) -> Result<ModelPublication, ModelError> {
         self.history(caller)?.head().cloned()
     }

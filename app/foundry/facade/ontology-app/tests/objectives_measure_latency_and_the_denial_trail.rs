@@ -242,9 +242,9 @@ async fn a_denial_the_trail_could_not_take_is_issued_and_not_recorded() {
         .get_mut(TENANT)
         .expect("served")
         .get_mut()
-        .denial_log = Box::new(AlwaysFailingLog {
-        detail: "the trail is unwritable",
-    });
+        .replace_denial_log(Box::new(AlwaysFailingLog {
+            detail: "the trail is unwritable",
+        }));
     let session = Session::from_state(state);
     let (status, body) = session
         .post(Some(fixture.operator_token()), NAMELESS_WRITE)

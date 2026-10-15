@@ -70,21 +70,21 @@ impl UserSessionAuthorizer for FakeSessions {
 }
 
 struct CountingLog {
-    inner: Box<dyn RecordsLog + Send>,
+    inner: Option<Box<dyn RecordsLog + Send>>,
     reads: Arc<AtomicUsize>,
 }
 
 impl RecordsLog for CountingLog {
     fn append(&mut self, envelope: ActionEnvelope) -> Result<Receipt, RecordsLogError> {
-        self.inner.append(envelope)
+        self.inner.as_mut().unwrap().append(envelope)
     }
     fn replay(&self, tenant: &str, from: u64) -> Result<Vec<SealedEnvelope>, RecordsLogError> {
         self.reads.fetch_add(1, Ordering::SeqCst);
-        self.inner.replay(tenant, from)
+        self.inner.as_ref().unwrap().replay(tenant, from)
     }
     fn head(&self, tenant: &str) -> Result<u64, RecordsLogError> {
         self.reads.fetch_add(1, Ordering::SeqCst);
-        self.inner.head(tenant)
+        self.inner.as_ref().unwrap().head(tenant)
     }
 }
 
@@ -123,19 +123,14 @@ pub fn instrument(
     let reads = Arc::new(AtomicUsize::new(0));
     for tenant in state.tenants.values_mut() {
         let tenant = tenant.get_mut();
-        let inner = std::mem::replace(
-            &mut tenant.action_log,
-            Box::new(
-                foundry_records_sqlite_draft::SqliteRecordsLog::open(std::path::Path::new(
-                    ":memory:",
-                ))
-                .unwrap(),
-            ),
-        );
-        tenant.action_log = Box::new(CountingLog {
-            inner,
+        let inner = tenant.replace_action_log(Box::new(CountingLog {
+            inner: None,
             reads: reads.clone(),
-        });
+        }));
+        tenant.replace_action_log(Box::new(CountingLog {
+            inner: Some(inner),
+            reads: reads.clone(),
+        }));
     }
     let pdp = Arc::new(TrackingPdp {
         calls: AtomicUsize::new(0),

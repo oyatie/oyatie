@@ -32,7 +32,7 @@ async fn a_migration_run_repairs_a_wedged_store() {
         .get_mut(TENANT)
         .expect("served")
         .get_mut()
-        .projection_store = Box::new(ApplyRefusingStore::refusing_the_first(1));
+        .replace_projection_store(Box::new(ApplyRefusingStore::refusing_the_first(1)));
     let session = Session::from_state(state);
     write_owing(
         &session,
@@ -126,7 +126,7 @@ async fn a_run_that_owes_nothing_still_repairs_a_wedged_store() {
         .get_mut(TENANT)
         .expect("served")
         .get_mut()
-        .projection_store = Box::new(ApplyRefusingStore::refusing_the_first(1));
+        .replace_projection_store(Box::new(ApplyRefusingStore::refusing_the_first(1)));
     let session = Session::from_state(state);
     write_settled(
         &session,
