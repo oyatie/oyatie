@@ -29,14 +29,13 @@ pub fn instrument_reads(
     let store_reads = Arc::new(AtomicUsize::new(0));
     for tenant in state.tenants.values_mut() {
         let tenant = tenant.get_mut();
-        let inner = std::mem::replace(
-            &mut tenant.projection_store,
-            Box::new(foundry_projection_draft::MemoryProjectionStore::default()),
-        );
-        tenant.projection_store = Box::new(CountingStore {
+        let inner = tenant.replace_projection_store(Box::new(
+            foundry_projection_draft::MemoryProjectionStore::default(),
+        ));
+        tenant.replace_projection_store(Box::new(CountingStore {
             inner,
             reads: store_reads.clone(),
-        });
+        }));
     }
     let (router, log_reads, pdp) = instrument(state, sessions);
     (router, log_reads, store_reads, pdp)

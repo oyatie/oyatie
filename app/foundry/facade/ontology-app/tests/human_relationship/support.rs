@@ -110,9 +110,12 @@ impl HumanGraph {
     }
     pub async fn replace(&self, objects: Vec<ProjectedObject>, links: Vec<ProjectedLink>) {
         let mut tenant = self.state.tenants[TENANT].lock().await;
-        tenant.projection_store.reset_tenant(TENANT).unwrap();
         tenant
-            .projection_store
+            .projection_store_for_injection()
+            .reset_tenant(TENANT)
+            .unwrap();
+        tenant
+            .projection_store_for_injection()
             .apply(
                 AppliedEntry {
                     tenant_id: TENANT.into(),

@@ -27,10 +27,8 @@ async fn assert_cycle_refusal() {
     let config = fixture.config();
     let mut state = state_with_two_revisions(&config);
     let tenant = state.tenants.get_mut("ten_acme").unwrap().get_mut();
-    for engine in [
-        &mut tenant.projection.registry_input,
-        &mut tenant.projection.engine,
-    ] {
+    let projection = tenant.projection_for_injection();
+    for engine in [&mut projection.registry_input, &mut projection.engine] {
         let id = data_ontology_kernel::EntityTypeId::new("ety_record").unwrap();
         let mut definition = engine.entity_type("ten_acme", &id).unwrap().clone();
         definition.revision = 3;

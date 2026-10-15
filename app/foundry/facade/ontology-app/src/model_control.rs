@@ -11,7 +11,9 @@ use std::sync::Arc;
 
 mod authorization;
 mod diagnostics;
+mod lifecycle;
 mod mutations;
+mod publication;
 mod reads;
 mod transport;
 
@@ -49,6 +51,7 @@ impl AppState {
             return Err(ModelError::BindingMismatch);
         }
         history.registry()?;
+        tenant.invalidate_model_installation();
         tenant.model_store = Some(EstablishedModelStore { binding, store });
         Ok(())
     }
@@ -86,6 +89,8 @@ pub(crate) fn router(
         .route(MODEL_DRAFT_ROUTE, get(reads::draft))
         .route(MODEL_SAVE_ROUTE, post(mutations::save))
         .route(MODEL_VALIDATE_ROUTE, post(mutations::validate))
+        .route(MODEL_PUBLISH_ROUTE, post(publication::publish))
+        .route(MODEL_LIFECYCLE_ROUTE, get(lifecycle::read))
         .layer(middleware::map_response(|response| async {
             crate::human_session::no_store(response)
         }))

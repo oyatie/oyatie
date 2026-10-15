@@ -3,6 +3,9 @@
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum BootError {
+    StoreOwnershipRefused {
+        detail: String,
+    },
     ModelConfigurationRefused {
         detail: &'static str,
     },
@@ -53,6 +56,9 @@ pub enum BootError {
 impl std::fmt::Display for BootError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::StoreOwnershipRefused { detail } => {
+                write!(formatter, "exclusive store ownership refused: {detail}")
+            }
             Self::ModelConfigurationRefused { detail } => {
                 write!(formatter, "model configuration refused: {detail}")
             }

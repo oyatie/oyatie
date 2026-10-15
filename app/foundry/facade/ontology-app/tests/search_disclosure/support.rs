@@ -79,7 +79,7 @@ impl GraphFixture {
         let mut state = fixture.state();
         let tenant = state.tenants.get_mut(TENANT).unwrap().get_mut();
         tenant
-            .projection
+            .projection_for_injection()
             .engine
             .register_entity_type(
                 EntityTypeDefinition::new(
@@ -106,7 +106,7 @@ impl GraphFixture {
             ("lty_peer", "ety_record", "ety_record"),
         ] {
             tenant
-                .projection
+                .projection_for_injection()
                 .engine
                 .register_link_type(
                     LinkTypeDefinition::new(
@@ -122,7 +122,7 @@ impl GraphFixture {
                 .unwrap();
         }
         tenant
-            .projection_store
+            .projection_store_for_injection()
             .apply(
                 AppliedEntry {
                     tenant_id: TENANT.into(),
@@ -146,9 +146,12 @@ impl GraphFixture {
 
     pub async fn replace(&self, objects: Vec<ProjectedObject>, links: Vec<ProjectedLink>) {
         let mut tenant = self.state.tenants[TENANT].lock().await;
-        tenant.projection_store.reset_tenant(TENANT).unwrap();
         tenant
-            .projection_store
+            .projection_store_for_injection()
+            .reset_tenant(TENANT)
+            .unwrap();
+        tenant
+            .projection_store_for_injection()
             .apply(
                 AppliedEntry {
                     tenant_id: TENANT.into(),

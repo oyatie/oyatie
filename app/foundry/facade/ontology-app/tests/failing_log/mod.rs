@@ -50,7 +50,9 @@ pub fn state_with_a_failing_log_from(
 ) -> AppState {
     let mut state = compose(&config).expect("boots");
     for tenant in state.tenants.values_mut() {
-        tenant.get_mut().action_log = Box::new(AlwaysFailingLog { detail });
+        tenant
+            .get_mut()
+            .replace_action_log(Box::new(AlwaysFailingLog { detail }));
     }
     state
 }
@@ -109,7 +111,9 @@ pub fn state_with_a_transiently_failing_head(
 ) -> AppState {
     let mut state = compose(config).expect("boots");
     for tenant in state.tenants.values_mut() {
-        tenant.get_mut().action_log = Box::new(HeadFailsOnceLog::new(head_ordinal));
+        tenant
+            .get_mut()
+            .replace_action_log(Box::new(HeadFailsOnceLog::new(head_ordinal)));
     }
     state
 }
@@ -129,6 +133,8 @@ pub fn state_with_one_failing_tenant(
         .tenants
         .get_mut(tenant_id)
         .expect("the tenant to fault must be served");
-    tenant.get_mut().action_log = Box::new(AlwaysFailingLog { detail });
+    tenant
+        .get_mut()
+        .replace_action_log(Box::new(AlwaysFailingLog { detail }));
     state
 }

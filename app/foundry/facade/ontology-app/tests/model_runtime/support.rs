@@ -192,6 +192,10 @@ pub struct Iam {
 }
 impl Iam {
     pub async fn start() -> Self {
+        Self::start_with_roles(&["foundry-model-author", "foundry-operator"]).await
+    }
+    pub async fn start_with_roles(roles: &[&str]) -> Self {
+        let roles: Vec<String> = roles.iter().map(|role| (*role).into()).collect();
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let origin = format!("http://{}", listener.local_addr().unwrap());
         let task = tokio::spawn(async move {
@@ -199,13 +203,16 @@ impl Iam {
                 listener,
                 Router::new().route(
                     "/identity/v1/{tenant}/session",
-                    get(|| async {
-                        axum::Json(SessionView {
-                            tenant_id: TENANT.into(),
-                            user_id: "usr_designer".into(),
-                            expires_at: i64::MAX,
-                            roles: vec!["foundry-model-author".into(), "foundry-operator".into()],
-                        })
+                    get(move || {
+                        let roles = roles.clone();
+                        async move {
+                            axum::Json(SessionView {
+                                tenant_id: TENANT.into(),
+                                user_id: "usr_designer".into(),
+                                expires_at: i64::MAX,
+                                roles,
+                            })
+                        }
                     }),
                 ),
             )

@@ -16,7 +16,7 @@ async fn cached_receipt_rechecks_endpoint_policy_without_rewriting_query_or_proj
         (
             tenant.queries.clone(),
             tenant.query_decisions.clone(),
-            tenant.projection.clone(),
+            tenant.projection().clone(),
         )
     };
     *fixture.policy.denied.lock().unwrap() = Some("ent_team");
@@ -32,7 +32,7 @@ async fn cached_receipt_rechecks_endpoint_policy_without_rewriting_query_or_proj
         (
             tenant.queries.clone(),
             tenant.query_decisions.clone(),
-            tenant.projection.clone()
+            tenant.projection().clone()
         ),
         before
     );
@@ -54,7 +54,7 @@ async fn cached_graph_rechecks_nonroot_existence_type_and_current_canonical_edge
             (
                 tenant.queries.clone(),
                 tenant.query_decisions.clone(),
-                tenant.projection.clone(),
+                tenant.projection().clone(),
             )
         };
         let mut current = objects();
@@ -82,7 +82,7 @@ async fn cached_graph_rechecks_nonroot_existence_type_and_current_canonical_edge
             (
                 tenant.queries.clone(),
                 tenant.query_decisions.clone(),
-                tenant.projection.clone()
+                tenant.projection().clone()
             ),
             before
         );
@@ -104,7 +104,7 @@ async fn foreign_only_endpoint_cannot_satisfy_a_cached_tenant_graph() {
     {
         let mut tenant = fixture.state.tenants[TENANT].lock().await;
         tenant
-            .projection_store
+            .projection_store_for_injection()
             .apply(
                 AppliedEntry {
                     tenant_id: "ten_other".into(),
@@ -119,7 +119,7 @@ async fn foreign_only_endpoint_cannot_satisfy_a_cached_tenant_graph() {
             .unwrap();
         assert!(
             tenant
-                .projection_store
+                .projection_store()
                 .get("ten_other", "ent_team")
                 .unwrap()
                 .is_some()

@@ -3,8 +3,14 @@ use foundry_model_api::ModelBinding;
 use serde::Deserialize;
 use std::path::PathBuf;
 
+mod installed;
 mod paths;
+pub(crate) use installed::RuntimeInstallation;
+mod lifecycle;
+mod publication;
 mod restore;
+pub(crate) use lifecycle::lifecycle;
+pub(crate) use publication::{StagedPublication, StagedRecovery};
 
 pub use restore::initialize_model;
 pub(crate) use restore::{open, projection};

@@ -103,9 +103,9 @@ async fn human_reads_preserve_store_and_log_faults_and_exact_refusal_metrics() {
         .get_mut(TENANT)
         .unwrap()
         .get_mut()
-        .projection_store = Box::new(AlwaysFailingStore {
-        detail: "projection unreadable",
-    });
+        .replace_projection_store(Box::new(AlwaysFailingStore {
+            detail: "projection unreadable",
+        }));
     let shared = Arc::new(state);
     let operator = Session::from_shared(shared.clone());
     let router = router_with_user_sessions(shared, FakeSessions::new(Ok(view())));
@@ -166,7 +166,7 @@ async fn human_detail_uses_last_taken_projection_and_history_uses_live_log() {
         .get_mut(TENANT)
         .unwrap()
         .get_mut()
-        .projection_store = Box::new(ApplyRefusingStore::taking_then_refusing(1, 1));
+        .replace_projection_store(Box::new(ApplyRefusingStore::taking_then_refusing(1, 1)));
     let shared = Arc::new(state);
     let operator = Session::from_shared(shared.clone());
     let router = router_with_user_sessions(shared, FakeSessions::new(Ok(view())));

@@ -106,7 +106,14 @@ pub async fn submit_action(
         edits,
     };
 
-    let (log, denial_log, projection, store) = tenant.write_handles();
+    let Ok((log, denial_log, projection, store)) = tenant.write_handles() else {
+        state.metrics.submit_refused();
+        return refuse(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "model",
+            "model publication outcome is unresolved",
+        );
+    };
     // The write is accepted once the log holds it and the fold applied it. A
     // mirror the store refused leaves the durable projection behind, which
     // the sync status reports as lag until catch-up repairs it.
