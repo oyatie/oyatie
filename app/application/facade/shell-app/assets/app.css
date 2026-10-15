@@ -13326,7 +13326,7 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 @media (max-width: 40rem) { .live-ontology-query { grid-template-columns: minmax(0, 1fr); } }
 
 .foundry-workspace { --foundry-header-height:0px; --foundry-pane-bar-height:calc(max(44px,2.75rem) + 1rem + 1px); grid-column: 1 / -1; min-width: 0; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-raised); color: var(--ink); scroll-margin-top: calc(var(--foundry-header-height) + 5rem); }
-.foundry-workspace-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 1rem; border-bottom: 1px solid var(--rule); }
+.foundry-workspace-header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .5rem .75rem; border-bottom: 1px solid var(--rule); }
 .foundry-workspace-header > div { min-width: 0; }
 .foundry-workspace .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
 .foundry-workspace-header #live-ontology-identity { overflow-wrap: anywhere; font-size: var(--text-cap); }
@@ -13334,7 +13334,9 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-workspace-header p { margin: .25rem 0; color: var(--ink-muted); }
 .foundry-read-label { padding: .4rem .65rem; border: 1px solid var(--accent-border); border-radius: var(--radius-sm); color: var(--accent-deep); background: var(--accent-bg); white-space: nowrap; font-size: var(--text-cap); }
 .foundry-access-notice { padding: 1rem 1.25rem; }
-.foundry-taskbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .75rem 1rem; border-bottom: 1px solid var(--rule); }
+.foundry-module-strip { position: sticky; top: var(--foundry-header-height); z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; min-width: 0; padding: .5rem .75rem; border-bottom: 1px solid var(--rule); background: var(--paper-raised); }
+.live-ontology-explorer[data-workspace-layout="flow"] .foundry-module-strip { position: static; }
+.foundry-taskbar { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem; min-width: 0; }
 .foundry-mode-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem; }
 .foundry-workspace button, .foundry-workspace summary { min-height: max(44px, 2.75rem); font: inherit; }
 .foundry-workspace button { color: var(--ink); background: var(--paper-raised); border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: .45rem .65rem; cursor: pointer; }
@@ -13342,8 +13344,12 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-workspace button:disabled { color: var(--ink-muted); background: var(--paper-sunken); cursor: default; }
 .foundry-workspace :is(button,input,select,summary,[tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .foundry-object-type-controls select { min-height: max(44px, 2.75rem); max-width: 100%; min-width: 0; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: .4rem; font: inherit; color: var(--ink); background: var(--paper-raised); }
-#live-ontology-status { margin: 0; padding: .65rem 1rem; border-bottom: 1px solid var(--rule); color: var(--ink-muted); font-size: var(--text-cap); }
+#live-ontology-status { flex: 1 1 18rem; min-width: 0; margin: 0; overflow-wrap: anywhere; color: var(--ink-muted); font-size: var(--text-cap); }
 .foundry-workspace-body { display: grid; grid-template-columns: 13rem minmax(0, 1fr) minmax(19rem, .7fr); min-height: 34rem; }
+.foundry-library { grid-column: 1; grid-row: 1; }
+.foundry-main { grid-column: 2; grid-row: 1; }
+.foundry-inspector { grid-column: 3; grid-row: 1 / 3; }
+.foundry-draft-tray { grid-column: 1 / 3; grid-row: 2; }
 .foundry-library, .foundry-inspector { min-width: 0; padding: .75rem; background: var(--paper-sunken); }
 .foundry-library { border-right: 1px solid var(--rule); }
 .foundry-inspector { border-left: 1px solid var(--rule); }
@@ -13353,6 +13359,7 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-library h4 { margin: 1.25rem 0 .4rem; font-size: var(--text-cap); }
 .foundry-library-item { width: 100%; display: block; text-align: left; margin: .25rem 0; overflow-wrap: anywhere; }
 .foundry-library-help, #live-ontology-library-summary, .foundry-model-note, #live-ontology-graph-help { color: var(--ink-muted); font-size: var(--text-cap); line-height: 1.5; }
+.foundry-model-note { margin: .5rem 0 0; }
 .foundry-main { min-width: 0; padding: .75rem; }
 .foundry-canvas-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .5rem 0 .75rem; }
 .foundry-canvas-toolbar > div:first-child { margin-right: auto; }
@@ -13360,7 +13367,7 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-canvas-toolbar p { margin: .3rem 0; font-size: var(--text-cap); color: var(--ink-muted); }
 #live-ontology-graph-controls { display: flex; align-items: center; gap: .25rem; }
 #live-ontology-zoom { min-width: 3rem; text-align: center; font-variant-numeric: tabular-nums; }
-.foundry-graph { height: 30rem; width: 100%; overflow: auto; border: 1px solid var(--rule); border-radius: var(--radius-sm); background-color: var(--paper); background-image: linear-gradient(var(--rule-faint) 1px, transparent 1px), linear-gradient(90deg, var(--rule-faint) 1px, transparent 1px); background-size: 24px 24px; overscroll-behavior: contain; }
+.foundry-graph { height: 30rem; min-height: 24rem; width: 100%; overflow: auto; border: 1px solid var(--rule); border-radius: var(--radius-sm); background-color: var(--paper); background-image: linear-gradient(var(--rule-faint) 1px, transparent 1px), linear-gradient(90deg, var(--rule-faint) 1px, transparent 1px); background-size: 24px 24px; overscroll-behavior: contain; }
 .foundry-graph-stage, .foundry-graph-scene { position: relative; }
 .foundry-graph-scene { transform-origin: top left; }
 .foundry-edges { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
@@ -13380,15 +13387,22 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-model-table { overflow-x: auto; }
 .foundry-inspector p { line-height: 1.5; overflow-wrap: anywhere; font-size: var(--text-cap); }
 .foundry-inspector table { font-size: var(--text-cap); }
-.foundry-capability-note { border-top: 1px solid var(--rule); padding: .5rem 1rem; color: var(--ink-muted); font-size: var(--text-cap); }
+.foundry-capability-note { min-width: 0; color: var(--ink-muted); font-size: var(--text-cap); }
+.foundry-capability-note[open] { flex-basis: 100%; }
+.foundry-capability-note > summary { display: flex; align-items: center; padding: 0 .4rem; }
+.foundry-capability-note p { overflow-wrap: anywhere; }
 .foundry-workspace [hidden] { display: none !important; }
 @media (max-width: 72rem) {
   .foundry-workspace-body { grid-template-columns: 11rem minmax(0, 1fr); }
-  .foundry-inspector { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--rule); }
+  .foundry-inspector { grid-column: 1 / -1; grid-row: 2; border-left: 0; border-top: 1px solid var(--rule); }
+  .foundry-draft-tray { grid-column: 1 / -1; grid-row: 3; }
 }
 @media (max-width: 60rem) {
   .foundry-workspace-body { grid-template-columns: minmax(0, 1fr); }
   .foundry-library { border-right: 0; border-bottom: 1px solid var(--rule); }
+  .foundry-main { grid-column: 1; grid-row: 2; }
+  .foundry-inspector { grid-row: 3; }
+  .foundry-draft-tray { grid-row: 4; }
   .foundry-workspace-header { align-items: flex-start; padding: .75rem; }
   .foundry-workspace-header h2 { font-size: var(--text-lg); }
   .foundry-read-label { white-space: normal; }
@@ -13404,7 +13418,10 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-workspace .foundry-editor-form input, .foundry-workspace .foundry-editor-form select, .foundry-workspace .foundry-draft-controls select, #live-ontology-property-choice { width:100%; min-width:0; min-height:max(44px,2.75rem); padding:.5rem; font:inherit; border:1px solid var(--rule); border-radius:var(--radius-sm); background:var(--paper-raised); color:var(--ink); box-sizing:border-box; }
 .foundry-draft-controls select { max-width:24rem; }
 .foundry-workspace .foundry-model-choice select { width:clamp(12rem,18vw,24rem); max-width:100%; }
-.foundry-draft-tray { border-top:1px solid var(--rule); padding:1rem; overflow-wrap:anywhere; }
+.foundry-draft-tray { min-width:0; border-top:1px solid var(--rule); padding:.5rem .75rem; overflow-wrap:anywhere; }
+.live-ontology-explorer .foundry-draft-tray { margin-top:0; }
+.foundry-draft-tray > p { margin:.25rem 0; }
+.foundry-draft-review { min-height:4rem; }
 .foundry-draft-tray h4 { margin:0; }
 .foundry-draft-tray p, .foundry-editor-form p { color:var(--ink-muted); font-size:var(--text-cap); line-height:1.5; }
 .foundry-draft-tray pre { max-height:12rem; overflow:auto; }
@@ -13420,7 +13437,7 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-add-declarations { margin-top:1rem; padding-top:.5rem; border-top:1px solid var(--rule); }
 @media (min-width:72.001rem) { .foundry-inspector { max-height:55rem; overflow-y:auto; scrollbar-gutter:stable; } }
 
-.foundry-draft-actions { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin-bottom:.75rem; }
+.foundry-draft-actions { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin-bottom:.25rem; }
 @media (width < 80rem), (height < 56rem) {
   html:has(.console-app[data-shell-frame="foundry"]) { scrollbar-gutter:stable; }
   html:has(.console-app[data-shell-frame="foundry"])::-webkit-scrollbar { width:auto; height:auto; }
@@ -13437,6 +13454,9 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .console-app[data-shell-frame="foundry"] :is(.header-icon,.command-trigger) { min-height:44px; }
 .console-app[data-shell-frame="foundry"] .header-icon { min-width:44px; }
 .console-app[data-shell-frame="foundry"] .app-header { height:auto; min-height:max(44px,3.25rem); }
+html:has(.console-app[data-shell-frame="foundry"] #live-ontology-explorer[data-workspace-layout="flow"]) { scrollbar-gutter:stable; }
+html:has(.console-app[data-shell-frame="foundry"] #live-ontology-explorer[data-workspace-layout="flow"])::-webkit-scrollbar { width:auto; height:auto; }
+html:has(.console-app[data-shell-frame="foundry"] #live-ontology-explorer[data-workspace-layout="flow"])::-webkit-scrollbar-thumb { background:var(--ink-muted); }
 @media (min-width:72.001rem) {
   .console-app[data-shell-frame="foundry"] { grid-template-columns:max(72px,4.5rem) minmax(0,1fr); }
   .console-app[data-shell-frame="foundry"] .app-rail { align-items:stretch; gap:.75rem; padding:.75rem .25rem; z-index:10; }
@@ -13456,33 +13476,34 @@ dialog:is(.settings-center, .activity-center)::backdrop {
   .console-app[data-shell-frame="foundry"] .header-sign-in { display:inline-flex; align-items:center; min-height:44px; }
   .console-app[data-shell-frame="foundry"] .foundry-workspace-body { grid-template-columns:clamp(12rem,15vw,19rem) minmax(0,1fr) clamp(22rem,29vw,36rem); }
 }
+@media (min-width:80rem) {
+  .console-app[data-shell-frame="foundry"] .foundry-workspace { display:grid; grid-template-columns:fit-content(26rem) minmax(0,1fr); grid-template-rows:auto auto; }
+  .console-app[data-shell-frame="foundry"] .foundry-workspace-header { grid-column:1; grid-row:1; }
+  .console-app[data-shell-frame="foundry"] .foundry-access-notice { grid-column:1 / -1; grid-row:2; }
+  .console-app[data-shell-frame="foundry"] .live-ontology-explorer { display:grid; grid-column:1 / -1; grid-row:1 / 3; grid-template-columns:subgrid; grid-template-rows:subgrid; }
+  .console-app[data-shell-frame="foundry"] .foundry-module-strip { grid-column:2; grid-row:1; }
+  .console-app[data-shell-frame="foundry"] .foundry-workspace-body { grid-column:1 / -1; grid-row:2; }
+}
 @media (min-width:80rem) and (min-height:56rem) {
-  .console-app[data-shell-frame="foundry"] { height:100dvh; min-height:0; overflow:hidden; }
+  .console-app[data-shell-frame="foundry"]:has(#live-ontology-explorer[data-workspace-layout="panes"]) { height:100dvh; min-height:0; overflow:hidden; }
   .console-app[data-shell-frame="foundry"] .control-center { min-height:0; display:block; margin:0; padding:0; }
-  .console-app[data-shell-frame="foundry"] .foundry-workspace { display:grid; grid-template-rows:auto minmax(0,1fr); height:100%; min-height:0; }
-  .console-app[data-shell-frame="foundry"] :is(.foundry-access-notice,.live-ontology-explorer) { grid-row:2; min-height:0; }
-  .console-app[data-shell-frame="foundry"] .live-ontology-explorer { display:grid; grid-template-rows:auto auto auto minmax(0,1fr) auto auto; }
-  .console-app[data-shell-frame="foundry"] .foundry-taskbar { grid-row:1; }
-  .console-app[data-shell-frame="foundry"] #live-ontology-status { grid-row:2; }
-  .console-app[data-shell-frame="foundry"] .foundry-pane-nav { grid-row:3; position:static; }
-  .console-app[data-shell-frame="foundry"] .foundry-workspace-body { grid-row:4; min-height:0; }
-  .console-app[data-shell-frame="foundry"] :is(.foundry-library,.foundry-inspector,.foundry-main) { min-height:0; max-height:none; overflow:auto; overscroll-behavior:contain; }
-  .console-app[data-shell-frame="foundry"] .foundry-inspector { scroll-padding-block:8rem .5rem; }
-  .console-app[data-shell-frame="foundry"] .foundry-inspector > summary { top:0; }
-  .console-app[data-shell-frame="foundry"] :is(.foundry-library,.foundry-inspector,.foundry-draft-tray) :is(input,select,button,[tabindex]) { scroll-margin-block:.5rem; }
-  .console-app[data-shell-frame="foundry"] #live-ontology-model { display:grid; grid-template-rows:auto minmax(12rem,1fr) auto auto; min-height:100%; }
-  .console-app[data-shell-frame="foundry"] :is(#live-ontology-graph,#live-ontology-model-table) { grid-row:2; }
-  .console-app[data-shell-frame="foundry"] #live-ontology-graph { height:auto; min-height:12rem; }
-  .console-app[data-shell-frame="foundry"] #live-ontology-graph-help { grid-row:3; }
-  .console-app[data-shell-frame="foundry"] #live-ontology-model-note { grid-row:4; }
-  .console-app[data-shell-frame="foundry"] .foundry-draft-tray { grid-row:5; max-height:26dvh; min-height:0; overflow:auto; scroll-padding-block:.5rem; }
-  .console-app[data-shell-frame="foundry"] .foundry-capability-note { grid-row:6; }
+  .console-app[data-shell-frame="foundry"] .foundry-workspace:has(#live-ontology-explorer[data-workspace-layout="panes"]) { grid-template-rows:auto minmax(0,1fr); height:100%; min-height:0; }
+  .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] { min-height:0; }
+  .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] .foundry-workspace-body { min-height:0; grid-template-rows:minmax(0,1fr) auto; }
+  .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] :is(.foundry-library,.foundry-inspector,.foundry-main) { min-height:0; max-height:none; overflow:auto; overscroll-behavior:contain; }
+  .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] .foundry-inspector { scroll-padding-block:8rem .5rem; }
+  .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] :is(.foundry-library,.foundry-inspector,.foundry-draft-tray) :is(input,select,button,[tabindex]) { scroll-margin-block:.5rem; }
+  .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] #live-ontology-model { display:grid; grid-template-rows:auto minmax(24rem,1fr) auto; height:100%; min-height:0; }
+  .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] :is(#live-ontology-graph,#live-ontology-model-table) { grid-row:2; height:100%; margin-top:0; }
+  .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] #live-ontology-model-table { min-height:0; overflow:auto; }
+  .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] #live-ontology-model-note { grid-row:3; }
+  .console-app[data-shell-frame="foundry"] .live-ontology-explorer[data-workspace-layout="panes"] .foundry-draft-tray { max-height:14rem; min-height:0; overflow:auto; scroll-padding-block:.5rem; }
 }
 
 .foundry-object-type-controls { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; min-width:0; }
 .console-app:not([data-shell-frame="foundry"]) .control-center:has(#foundry-workspace:target, #foundry-workspace :target) { max-width:none; padding-inline:var(--space-4); }
 
-.foundry-pane-nav { position:sticky; top:var(--foundry-header-height); z-index:3; display:flex; flex-wrap:wrap; gap:.5rem; padding:.5rem .75rem; border-bottom:1px solid var(--rule); background:var(--paper-raised); }
+.foundry-pane-nav { display:flex; flex-wrap:wrap; gap:.25rem; min-width:0; }
 .foundry-pane-nav a { display:flex; flex:1 1 max-content; align-items:center; justify-content:center; min-width:0; min-height:max(44px,2.75rem); padding:0 .4rem; border:1px solid var(--rule); border-radius:var(--radius-sm); color:var(--ink); background:var(--paper-raised); font:inherit; white-space:normal; overflow-wrap:anywhere; }
 .foundry-pane-nav a:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .foundry-inspector > summary { position:sticky; top:calc(var(--foundry-header-height) + var(--foundry-pane-bar-height)); z-index:2; margin:-.75rem -.75rem .75rem; padding:.65rem .75rem; border-bottom:1px solid var(--rule); background:var(--paper-sunken); }

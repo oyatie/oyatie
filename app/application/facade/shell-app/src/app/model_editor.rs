@@ -81,10 +81,9 @@ pub(super) fn ModelDraftInspector() -> impl IntoView {
 pub(super) fn ModelDraftTray() -> impl IntoView {
     view! {
         <section id="live-ontology-draft-tray" class="foundry-draft-tray" aria-labelledby="live-ontology-draft-tray-title" data-live-results="true" hidden>
-            <div class="foundry-draft-actions"><ModelDraftControls /></div>
-            <h4 id="live-ontology-draft-tray-title">"Draft changes"</h4><p id="live-ontology-draft-status" role="status" aria-live="polite"></p>
-            <div id="live-ontology-draft-diff"></div><div id="live-ontology-draft-diagnostics"></div>
-            <p>"Draft edits do not change object records. Schema validation checks the exact saved draft. Publishing is not available yet."</p>
+            <div class="foundry-draft-actions"><h4 id="live-ontology-draft-tray-title">"Draft changes"</h4><ModelDraftControls /></div>
+            <p id="live-ontology-draft-status" role="status" aria-live="polite"></p>
+            <div id="live-ontology-draft-review" class="foundry-draft-review"><div id="live-ontology-draft-diff"></div><div id="live-ontology-draft-diagnostics"></div></div>
         </section>
     }
 }

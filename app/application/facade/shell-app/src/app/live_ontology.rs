@@ -11,13 +11,20 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
             <p id="live-ontology-access-notice" class="foundry-access-notice">"Sign in to explore your tenant's native model. "<a href="#oyatie-sign-in">"Sign in with a passkey"</a>" or "<a href="#ontology-command-console">"explore the labeled sample graph"</a>"."</p>
             <section id="live-ontology-explorer" class="live-ontology-explorer" aria-labelledby="live-ontology-title" aria-describedby="live-ontology-status" hidden>
                 <h3 id="live-ontology-title" class="sr-only">"Native Ontology explorer"</h3>
-                <div class="foundry-taskbar" role="group" aria-label="Ontology task controls">
+                <div id="live-ontology-module-strip" class="foundry-module-strip">
+                    <div class="foundry-taskbar" role="group" aria-label="Ontology task controls">
                     <div class="foundry-mode-bar" role="group" aria-label="Ontology workspace mode"><button type="button" id="live-ontology-mode-schema" aria-pressed="true" aria-controls="live-ontology-model">"Model"</button><button type="button" id="live-ontology-mode-objects" aria-pressed="false" aria-controls="live-ontology-objects">"Objects"</button></div>
                     <span id="live-ontology-object-type-controls" class="foundry-object-type-controls"><label for="live-ontology-type">"Object read type"</label><select id="live-ontology-type" required disabled></select></span>
                     <button type="button" id="live-ontology-types-refresh">"Refresh model"</button>
+                    </div>
+                    <p id="live-ontology-status" role="status" aria-live="polite">"Sign in to read your tenant's Ontology."</p>
+                    <nav class="foundry-pane-nav" aria-label="Ontology panes"><a id="live-ontology-pane-library" href="#live-ontology-library-title">"Library"</a><a id="live-ontology-pane-workpane" href="#live-ontology-workpane">"Workspace"</a><a id="live-ontology-pane-inspector" href="#live-ontology-inspector-title">"Inspector"</a></nav>
+                    <details class="foundry-capability-note"><summary>"Workspace capabilities"</summary>
+                        <p>"Available now: type and relationship declarations, object reads, selected relationship traversal in a one-hop table, object history and tenant audit. Owned model drafts require separate native model access. Source mappings, publication, an instance graph canvas, multi-hop exploration and scenarios require their native workflows."</p>
+                        <p id="live-ontology-graph-help">"Arrows follow the declared from → to direction. Select a type or relationship to inspect it. Scroll or swipe to pan; use arrow keys when the canvas is focused. + and − zoom; Home fits the model."</p>
+                        <p>"Draft edits do not change object records. Schema validation checks the exact saved draft. Publishing is not available yet."</p>
+                    </details>
                 </div>
-                <p id="live-ontology-status" role="status" aria-live="polite">"Sign in to read your tenant's Ontology."</p>
-                <nav class="foundry-pane-nav" aria-label="Ontology panes"><a id="live-ontology-pane-library" href="#live-ontology-library-title">"Library"</a><a id="live-ontology-pane-workpane" href="#live-ontology-workpane">"Workspace"</a><a id="live-ontology-pane-inspector" href="#live-ontology-inspector-title">"Inspector"</a></nav>
                 <div class="foundry-workspace-body">
                     <details id="live-ontology-library" class="foundry-library" open>
                         <summary id="live-ontology-library-title">"Model library"</summary>
@@ -34,7 +41,6 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
                                 <div id="live-ontology-graph-controls" role="group" aria-label="Type graph zoom"><button type="button" id="live-ontology-zoom-out" aria-label="Zoom out">"−"</button><output id="live-ontology-zoom" aria-live="polite">"100%"</output><button type="button" id="live-ontology-zoom-in" aria-label="Zoom in">"+"</button><button type="button" id="live-ontology-fit">"Fit to view"</button></div>
                             </div>
                             <div id="live-ontology-graph" class="foundry-graph" tabindex="0" aria-label="Native object type graph" aria-describedby="live-ontology-graph-help" data-live-results="true"><div id="live-ontology-stage" class="foundry-graph-stage"><div id="live-ontology-scene" class="foundry-graph-scene"></div></div></div>
-                            <p id="live-ontology-graph-help">"Arrows follow the declared from → to direction. Select a type or relationship to inspect it. Scroll or swipe to pan; use arrow keys when the canvas is focused. + and − zoom; Home fits the model."</p>
                             <div id="live-ontology-model-table" class="foundry-model-table" data-live-results="true" hidden></div>
                             <p id="live-ontology-model-note" class="foundry-model-note">"Current schema and relationship declarations are loaded separately. This view is not an atomic model snapshot."</p>
                         </section>
@@ -81,9 +87,8 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
                         <section id="live-ontology-link" aria-labelledby="live-ontology-link-title" data-live-results="true" hidden><h4 id="live-ontology-link-title">"Native relationship declaration"</h4><div id="live-ontology-link-properties"></div><p>"Cross-tenant intent describes the model. It does not grant permission to read another tenant."</p></section>
                         <p id="live-ontology-inspector-empty">"Select a type or relationship to inspect its declaration."</p>
                     </details>
+                    <super::model_editor::ModelDraftTray />
                 </div>
-                <super::model_editor::ModelDraftTray />
-                <details class="foundry-capability-note"><summary>"Workspace capabilities"</summary><p>"Available now: type and relationship declarations, object reads, selected relationship traversal in a one-hop table, object history and tenant audit. Owned model drafts require separate native model access. Source mappings, publication, an instance graph canvas, multi-hop exploration and scenarios require their native workflows."</p></details>
             </section>
         </section>
     }
