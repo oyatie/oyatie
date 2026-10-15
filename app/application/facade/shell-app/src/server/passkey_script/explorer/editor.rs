@@ -2,13 +2,16 @@
 mod editor_codec;
 #[path = "editor_forms.rs"]
 mod editor_forms;
+#[path = "editor_members.rs"]
+mod editor_members;
 #[path = "editor_values.rs"]
 mod editor_values;
 pub(super) fn script() -> String {
     format!(
-        "{}\n{}\n{}\n{}",
+        "{}\n{}\n{}\n{}\n{}",
         editor_codec::SCRIPT,
         editor_values::SCRIPT,
+        editor_members::SCRIPT,
         editor_forms::SCRIPT,
         SCRIPT
     )
@@ -68,8 +71,8 @@ function createOntologyDraftEditor(lifecycle, view) {
   }
   function render(selected=null) {
     if (!active() || mode!=='schema') {controls();return;}
-    forms.render(working,draft);const rows=ontologyModelRows(working || workspace.document),selection=draft?{type:forms.selectedLink()?null:selected || forms.selection() || rows.schemas[0]?.entity_type || null,link:forms.selectedLink()}:selected?{type:selected,link:null}:null;
-    view.setModel(rows.schemas,rows.links,selection,draft?'Draft':'Published model',{tenantId:identity.tenantId,userId:identity.userId,kind:draft?'draft':'published',...(draft?{id:draft.id,base:draft.base_generation}:{generation:workspace.generation})});
+    forms.render(working,draft);const rows=ontologyModelRows(working || workspace.document),selection=draft?{type:forms.selectedLink() || forms.selectedValue()!==null?null:selected || forms.selection() || rows.schemas[0]?.entity_type || null,link:forms.selectedLink(),value:forms.selectedValue()}:selected?{type:selected,link:null,value:null}:null;
+    view.setModel(rows.schemas,rows.links,selection,draft?'Draft':'Published model',{tenantId:identity.tenantId,userId:identity.userId,kind:draft?'draft':'published',...(draft?{id:draft.id,base:draft.base_generation}:{generation:workspace.generation})},rows.values);
     find('model-note').textContent=draft ? `Working draft based on generation ${draft.base_generation}. Object reads use published declarations.` : `Coherent published metadata snapshot at generation ${workspace.generation}. Object reads are independent.`;
     if(forms.selectedLink())view.selectLink(forms.selectedLink());forms.describe();diff();controls();
   }
@@ -120,10 +123,10 @@ function createOntologyDraftEditor(lifecycle, view) {
     ontologyModelWire.page(page,after);summaries=after?[...new Map([...summaries,...page.drafts].map(s=>[s.id,s])).values()].sort((a,b)=>BigInt(a.id)<BigInt(b.id)?-1:1):page.drafts;next=page.next;choices();
   }
   function adopt(value) {
-    const selected=draft?.id===value.id?{type:forms.selection(),link:forms.selectedLink(),property:forms.selectedProperty()}:null;
+    const selected=draft?.id===value.id?{type:forms.selection(),link:forms.selectedLink(),property:forms.selectedProperty(),value:forms.selectedValue()}:null;
     formDirty=false;draft=value;working=clone(value.document);pending=null;blocked=false;validation=null;
     if(!summaries.some(s=>s.id===value.id))summaries.push({id:value.id,version:value.version,base_generation:value.base_generation,published_generation:value.publication?.generation || null});
-    summaries=summaries.map(s=>s.id===value.id?{...s,version:value.version,base_generation:value.base_generation}:s);choices(value.id);find('draft-diagnostics').replaceChildren();forms.reset();if(selected?.link)forms.selectLink(selected.link);else if(selected?.type)forms.selectType(selected.type,selected.property);render();
+    summaries=summaries.map(s=>s.id===value.id?{...s,version:value.version,base_generation:value.base_generation}:s);choices(value.id);find('draft-diagnostics').replaceChildren();forms.reset();if(selected?.value!==null && selected?.value!==undefined)forms.selectValue(selected.value);else if(selected?.link)forms.selectLink(selected.link);else if(selected?.type)forms.selectType(selected.type,selected.property);render();
   }
   async function open(session,version,retaining=false) {
     const same=identity?.tenantId===session.tenantId && identity?.userId===session.userId;
@@ -175,18 +178,18 @@ function createOntologyDraftEditor(lifecycle, view) {
   });
   find('draft-more').addEventListener('click',()=>{if(next)run('Discovering more owned drafts…',token=>discover(token,next));});
   function savedMatches(snapshot){return active() && mode==='schema' && draft && !draft.publication && !formDirty && draft.id===snapshot.id && draft.version===snapshot.version && draft.base_generation===snapshot.base_generation && ontologyModelEqual(draft.document,snapshot.document) && ontologyModelEqual(working,snapshot.document);}
-  function inspectionControl(id){const element=find(id);return element?.isConnected && find('draft-inspector').contains(element) && !element.disabled && element.getClientRects().length ? element : null;}
+  function inspectionControl(id){const host=find(id),element=id==='value-members'?[...host.querySelectorAll('textarea'),...host.querySelectorAll('button')].find(control=>!control.disabled):host;return element?.isConnected && find('draft-inspector').contains(element) && !element.disabled && element.getClientRects().length ? element : null;}
   function inspectionAction(diagnostic,snapshot,accepted,owner){
     const target=ontologyModelDiagnosticTarget(snapshot.document,diagnostic);if(!target)return '';
-    const row=(target.kind==='link'?snapshot.document.links:snapshot.document.entities).find(row=>row.id===target.id);
+    const row=target.kind==='value'?snapshot.document.named_string_types[target.index]:(target.kind==='link'?snapshot.document.links:snapshot.document.entities).find(row=>row.id===target.id);
     const button=document.createElement('button');button.type='button';
-    button.textContent=target.kind==='link'?`Inspect relationship ${row.id}`:target.kind==='property'?`Inspect property ${row.properties[target.propertyIndex].name} · ${row.display_name} · ${row.id}`:`Inspect type ${row.display_name} · ${row.id}`;
+    button.textContent=target.kind==='value'?`Inspect reusable value ${row.display_name} · ${row.id} · revision ${row.revision} · row ${target.index+1}`:target.kind==='link'?`Inspect relationship ${row.id}`:target.kind==='property'?`Inspect property ${row.properties[target.propertyIndex].name} · ${row.display_name} · ${row.id}`:`Inspect type ${row.display_name} · ${row.id}`;
     button.addEventListener('click',()=>{
       if(!button.isConnected || !find('explorer').isConnected || !find('draft-diagnostics').contains(button) || validation!==accepted || identity?.tenantId!==owner.tenantId || identity?.userId!==owner.userId || generation!==owner.generation || loading || blocked || pending || !savedMatches(snapshot))return;
       const title=find('draft-inspector-title');
       if(!title?.isConnected || !find('draft-inspector').contains(title) || title.disabled || !revealOntologyDetails(title,find('explorer')) || !inspectionControl('draft-inspector-title'))return;
-      if(!(target.kind==='link'?forms.selectLink(target.id):forms.selectType(target.id,target.propertyIndex ?? null)))return;
-      render(target.kind==='link'?null:target.id);
+      if(!(target.kind==='value'?forms.selectValue(target.index):target.kind==='link'?forms.selectLink(target.id):forms.selectType(target.id,target.propertyIndex ?? null)))return;
+      render(['link','value'].includes(target.kind)?null:target.id);
       const destinations=workspace.capabilities.author?[target.focus,...(target.kind==='property'?['property-choice']:[]),'draft-inspector-title']:['draft-inspector-title'];
       for(const id of destinations){const candidate=find(id);if(!candidate?.disabled && find('draft-inspector').contains(candidate) && revealOntologyDetails(candidate,find('explorer'))){const control=inspectionControl(id);if(control){control.focus();break;}}}
     });
@@ -202,6 +205,6 @@ function createOntologyDraftEditor(lifecycle, view) {
       note(value.valid?`Saved changes pass schema validation · version ${snapshot.version}. Publishing is not available yet.`:`Saved changes were refused by schema validation · version ${snapshot.version}.`);
     });
   });
-  return {open,clear,active,render,selectType:id=>{if(!active() || mode!=='schema')return false;if(formDirty){note('Apply form edits or discard and reload before changing declaration.');return false;}if((working || workspace.document).entities.filter(row=>row.id===id).length!==1 || working && !forms.selectType(id))return false;render(id);return true;},selectLink:id=>{if(!active())return false;if(formDirty){note('Apply form edits before changing declaration.');return false;}if(!working)return true;const prior=forms.selectedLink();if(!forms.selectLink(id))return false;if(prior!==id)forms.render(working,draft);controls();return forms.describe();},hold:()=>{invalidate();hide(true);},setMode:value=>{cancelSelectionFocus();mode=value;controls();if(value==='schema')render();}};
+  return {open,clear,active,render,selectValue:index=>{if(!active() || mode!=='schema')return false;if(formDirty){note('Apply form edits or discard and reload before changing declaration.');return false;}if(!Number.isInteger(index) || index<0 || !(working || workspace.document).named_string_types?.[index])return false;if(!working)return true;if(!forms.selectValue(index))return false;render();return true;},selectType:id=>{if(!active() || mode!=='schema')return false;if(formDirty){note('Apply form edits or discard and reload before changing declaration.');return false;}if((working || workspace.document).entities.filter(row=>row.id===id).length!==1 || working && !forms.selectType(id))return false;render(id);return true;},selectLink:id=>{if(!active())return false;if(formDirty){note('Apply form edits before changing declaration.');return false;}if(!working)return true;const prior=forms.selectedLink();if(!forms.selectLink(id))return false;if(prior!==id)forms.render(working,draft);controls();return forms.describe();},hold:()=>{invalidate();hide(true);},setMode:value=>{cancelSelectionFocus();mode=value;controls();if(value==='schema')render();}};
 }
 "#;

@@ -101,3 +101,29 @@ async fn required_typed_composite_primary_keys_are_unavailable() {
         );
     }
 }
+
+#[tokio::test]
+async fn named_schema_reads_preserve_exact_materialized_members_and_refuse_semantic_failures() {
+    let mut expected = wire();
+    expected[0]["properties"][0]["value_type"] = json!({"kind":"named_string", "type_id":"vty_status", "revision":1, "display_name":"Status", "members":[" Active ","A\nB","\u{feff}"]});
+    let (base, seen) = stub(vec![(200, expected.to_string(), String::new())]);
+    let schemas = source(&base, &cookie('A'))
+        .schemas("ten_acme")
+        .await
+        .unwrap();
+    assert_eq!(serde_json::to_value(schemas).unwrap(), expected);
+    assert!(
+        seen.recv()
+            .unwrap()
+            .contains(&format!("cookie: {}\r\n", cookie('A')))
+    );
+    for members in [json!([]), json!(["a", "a"]), json!(["\u{85}"]), json!([3])] {
+        let mut invalid = expected.clone();
+        invalid[0]["properties"][0]["value_type"]["members"] = members;
+        let (base, _) = stub(vec![(200, invalid.to_string(), String::new())]);
+        assert_eq!(
+            source(&base, &cookie('A')).schemas("ten_acme").await,
+            Err(OntologyReadError::SourceUnavailable)
+        );
+    }
+}

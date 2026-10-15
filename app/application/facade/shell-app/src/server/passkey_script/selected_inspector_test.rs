@@ -63,8 +63,9 @@ fn selected_inspector_context_tracks_applied_source_and_property_choice() {
 (async()=>{
   await flush();modelEnabled=true;session.roles=['foundry-model-author','foundry-operator'];
   modelDocument.links.push({id:'lty_self',from_entity_type:'ety_record',to_entity_type:'ety_record',cardinality:'one_to_many',allow_cross_tenant:false,revision:1,display:null});
+  const draftProperty=structuredClone(modelDocument.entities[0].properties.pop());
   find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
-  find('live-ontology-draft-new').emit('click');await flush();
+  find('live-ontology-draft-new').emit('click');await flush();const id=find('live-ontology-draft-choice').value;modelDrafts.get(id).document.entities[0].properties.push(draftProperty);find('live-ontology-draft-reload').emit('click');await flush();
   const heading=()=>['selected','identity','name'].map(id=>find('live-ontology-context-'+id).textContent).filter(Boolean).join(' · ');
   assert.match(heading(),/name.*ety_record.*Record/);
   find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');

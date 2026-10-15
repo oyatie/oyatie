@@ -20,7 +20,7 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
                     <p id="live-ontology-status" role="status" aria-live="polite">"Sign in to read your tenant's Ontology."</p>
                     <nav class="foundry-pane-nav" aria-label="Ontology panes"><a id="live-ontology-pane-library" href="#live-ontology-library-title">"Library"</a><a id="live-ontology-pane-workpane" href="#live-ontology-workpane">"Workspace"</a><a id="live-ontology-pane-inspector" href="#live-ontology-inspector-title">"Inspector"</a></nav>
                     <details class="foundry-capability-note"><summary>"Workspace capabilities"</summary>
-                        <p>"Available now: type and relationship declarations, object reads, selected relationship traversal in a one-hop table, object history and tenant audit. Owned model drafts require separate native model access. Source mappings, publication, an instance graph canvas, multi-hop exploration and scenarios require their native workflows."</p>
+                        <p>"Available now: type, relationship and reusable string declarations, object reads, selected relationship traversal in a one-hop table, object history and tenant audit. Owned model drafts require separate native model access. Source mappings, publication, an instance graph canvas, multi-hop exploration and scenarios require their native workflows."</p>
                         <p id="live-ontology-graph-help">"Arrows follow the declared from → to direction. Select a type or relationship to inspect it. Scroll or swipe to pan; use arrow keys when the canvas is focused. + and − zoom; Home fits the model."</p>
                         <p>"Draft edits do not change object records. Schema validation checks the exact saved draft. Publishing is not available yet."</p>
                     </details>
@@ -28,10 +28,11 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
                 <div class="foundry-workspace-body">
                     <details id="live-ontology-library" class="foundry-library" open>
                         <summary id="live-ontology-library-title">"Model library"</summary>
-                        <label for="live-ontology-search">"Search types, properties and relationships"</label><input id="live-ontology-search" type="search" autocomplete="off" placeholder="Search model library" />
+                        <label for="live-ontology-search">"Search types, properties, relationships and value types"</label><input id="live-ontology-search" type="search" autocomplete="off" placeholder="Search model library" />
                         <p id="live-ontology-library-summary" role="status" aria-live="polite"></p>
                         <h4>"Object types"</h4><div id="live-ontology-library-types" data-live-results="true"></div>
                         <h4>"Relationships"</h4><div id="live-ontology-library-links" data-live-results="true"></div>
+                        <h4>"Reusable value types"</h4><p id="live-ontology-values-note"></p><div id="live-ontology-library-values" data-live-results="true"></div>
                         <p class="foundry-library-help">"The graph shows type declarations. Objects are instances; source lineage is a separate view."</p>
                     </details>
                     <div id="live-ontology-workpane" class="foundry-main" role="region" aria-label="Current Ontology workpane" tabindex="-1">
@@ -79,6 +80,7 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
                     <details id="live-ontology-inspector" class="foundry-inspector" open><summary id="live-ontology-inspector-title">"Inspector"<span id="live-ontology-inspector-context"><span id="live-ontology-context-selected"></span><span id="live-ontology-context-identity"></span><span id="live-ontology-context-name"></span></span></summary>
                         <details id="live-ontology-selection-details" class="foundry-selection-details" hidden><summary>"Full selection details"</summary><dl id="live-ontology-selection-values"></dl></details>
                         <super::model_editor::ModelDraftInspector />
+                        <super::named_values::NamedValueInspector />
             <section id="live-ontology-schema" aria-labelledby="live-ontology-schema-title" data-live-results="true" hidden>
                 <h4 id="live-ontology-schema-title">"Native entity schema"</h4>
                 <p>"The selected type declaration is shown. Requested object revisions are set separately."</p>

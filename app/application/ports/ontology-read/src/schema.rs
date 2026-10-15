@@ -48,8 +48,18 @@ pub enum ValueTypeDeclaration {
     Boolean {},
     Date {},
     Timestamp {},
-    Array { element: Box<Self> },
-    Struct { fields: Vec<StructFieldDeclaration> },
+    NamedString {
+        type_id: String,      // data_class: INTERNAL_ONLY
+        revision: u32,        // data_class: INTERNAL_ONLY
+        display_name: String, // data_class: INTERNAL_ONLY
+        members: Vec<String>, // data_class: INTERNAL_ONLY
+    },
+    Array {
+        element: Box<Self>,
+    },
+    Struct {
+        fields: Vec<StructFieldDeclaration>,
+    },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -114,7 +124,8 @@ impl ValueTypeDeclaration {
         match self {
             Self::Array { .. } => PropertyTier::Vector,
             Self::Struct { .. } => PropertyTier::Struct,
-            Self::String {}
+            Self::NamedString { .. }
+            | Self::String {}
             | Self::Integer {}
             | Self::Double {}
             | Self::Boolean {}
@@ -128,6 +139,26 @@ impl ValueTypeDeclaration {
             return false;
         }
         match self {
+            Self::NamedString {
+                type_id,
+                revision,
+                display_name,
+                members,
+            } => {
+                let mut unique = BTreeSet::new();
+                depth == 1
+                    && type_id.starts_with("vty_")
+                    && type_id.len() > 4
+                    && type_id.len() <= 4096
+                    && *revision > 0
+                    && !display_name.trim().is_empty()
+                    && display_name.len() <= 4096
+                    && !members.is_empty()
+                    && members.len() <= 256
+                    && members.iter().all(|member| {
+                        !member.trim().is_empty() && member.len() <= 4096 && unique.insert(member)
+                    })
+            }
             Self::Array { element } => element.valid_at_depth(depth + 1),
             Self::Struct { fields } => {
                 let mut names = BTreeSet::new();

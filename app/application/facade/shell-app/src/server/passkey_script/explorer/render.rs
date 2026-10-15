@@ -1,12 +1,12 @@
 pub(super) const SCRIPT: &str = r#"
 function renderOntologySelectedContext(value) {
-  const find=id=>document.getElementById(`live-ontology-${id}`),relationship=value?.kind==='relationship';
-  const selected=!value?'':relationship?`Relationship · ${value.linkId}`:value.kind==='property'?`Property · ${value.propertyName}`:`Type · ${value.type.id}`;
-  const identity=!value?'':relationship?`${value.source} · ${value.from.id} → ${value.to.id}`:value.kind==='property'?`${value.source} · ${value.type.id}`:value.source;
-  const name=!value?'':relationship?`${value.from.name} → ${value.to.name}`:value.type.name;
+  const find=id=>document.getElementById(`live-ontology-${id}`),relationship=value?.kind==='relationship',named=value?.kind==='value';
+  const selected=!value?'':relationship?`Relationship · ${value.linkId}`:named?`Reusable value · ${value.value.id}`:value.kind==='property'?`Property · ${value.propertyName}`:`Type · ${value.type.id}`;
+  const identity=!value?'':relationship?`${value.source} · ${value.from.id} → ${value.to.id}`:named?`${value.source} · revision ${value.value.revision}`:value.kind==='property'?`${value.source} · ${value.type.id}`:value.source;
+  const name=!value?'':relationship?`${value.from.name} → ${value.to.name}`:named?value.value.display_name:value.type.name;
   for(const [id,text] of [['selected',selected],['identity',identity],['name',name]])find(`context-${id}`).textContent=text;
   const details=find('selection-details');details.hidden=!value;if(!value)details.open=false;
-  const rows=!value?[]:relationship?[['Source',value.source],['Relationship ID',value.linkId],['From type ID',value.from.id],['From type name',value.from.name],['To type ID',value.to.id],['To type name',value.to.name]]:[['Source',value.source],['Type ID',value.type.id],['Type name',value.type.name],...(value.kind==='property'?[['Property name',value.propertyName]]:[])];
+  const rows=!value?[]:named?[['Source',value.source],['Value type ID',value.value.id],['Revision',value.value.revision],['Display name',value.value.display_name]]:relationship?[['Source',value.source],['Relationship ID',value.linkId],['From type ID',value.from.id],['From type name',value.from.name],['To type ID',value.to.id],['To type name',value.to.name]]:[['Source',value.source],['Type ID',value.type.id],['Type name',value.type.name],...(value.kind==='property'?[['Property name',value.propertyName]]:[])];
   find('selection-values').replaceChildren(...rows.flatMap(([label,text])=>{const term=document.createElement('dt'),definition=document.createElement('dd');term.textContent=label;definition.textContent=text;return [term,definition];}));
 }
 function ontologyTable(caption, columns, rows) {
@@ -26,22 +26,33 @@ function ontologyTable(caption, columns, rows) {
 }
 function ontologyDeclarationText(value) {
   if (value === null) return 'Legacy string contract';
+  if (value.kind === 'named_string') return `${value.display_name ?? 'Unresolved reusable string'} · ${value.type_id} · revision ${value.revision}`;
   if (value.kind === 'array') return `array of ${ontologyDeclarationText(value.element)}`;
   if (value.kind === 'struct') return `struct { ${value.fields.map(field => `${field.name} (${field.required ? 'required' : 'optional'}): ${ontologyDeclarationText(field.value_type)}`).join('; ')} }`;
   return value.kind;
+}
+function renderOntologyValueDefinition(row,source) {
+  const find=id=>document.getElementById(`live-ontology-${id}`);
+  find('value').hidden=!row;find('value-properties').replaceChildren();
+  if(!row)return;
+  find('value-properties').append(ontologyTable('Reusable string definition',['Declaration','Value'],[['ID',row.id],['Revision',row.revision],['Display name',row.display_name],['Allowed values',row.members.length]]));
+  find('value-properties').append(ontologyTable('Allowed values',['Exact value'],row.members.map(member=>{const literal=document.createElement('span');literal.className='foundry-value-member-text';literal.textContent=member;return [literal];})));
+  renderOntologySelectedContext({kind:'value',source,value:row});
 }
 const ontologyDecode = (() => {
   const object = v => v !== null && typeof v === 'object' && !Array.isArray(v);
   const integer = v => Number.isSafeInteger(v) && v >= 0;
   const string = v => typeof v === 'string';
   const nullable = v => v === null || string(v);
-  const named = v => string(v) && !/^\p{White_Space}*$/u.test(v);
+  const bounded = v => string(v) && new TextEncoder().encode(v).length<=4096;
+  const named = v => bounded(v) && !/^\p{White_Space}*$/u.test(v);
   const shape = (v, keys) => object(v) && Object.keys(v).length === keys.length && keys.every(key => Object.hasOwn(v, key));
   const uniqueNames = v => new Set(v.map(row => row.name)).size === v.length;
   const privacyClasses = ['INTERNAL_ONLY','PHI','PII_IDENTIFYING','PII_QUASI_IDENTIFIER','PCI','FINANCIAL','FINANCIAL_REGULATED_CREDIT','BEHAVIORAL_TENANT_PRODUCT','BEHAVIORAL_ADS','DECLARED_PREFERENCE','SEARCH_QUERY','PUBLIC','SENSITIVE_PIPA_ART23'];
   const tiers = ['scalar','vector','timeseries','geo','ciphertext','struct'];
   function declaration(v, depth = 1) {
     if (!object(v) || depth > 8) return false;
+    if (v.kind==='named_string')return depth===1 && shape(v,['kind','type_id','revision','display_name','members']) && bounded(v.type_id) && v.type_id.startsWith('vty_') && v.type_id.length>4 && integer(v.revision) && v.revision>0 && v.revision<=4294967295 && named(v.display_name) && Array.isArray(v.members) && v.members.length>0 && v.members.length<=256 && v.members.every(named) && new Set(v.members).size===v.members.length;
     if (['string','integer','double','boolean','date','timestamp'].includes(v.kind)) return shape(v, ['kind']);
     if (v.kind === 'array') return shape(v, ['kind','element']) && declaration(v.element, depth + 1);
     return v.kind === 'struct' && shape(v, ['kind','fields']) && Array.isArray(v.fields) && v.fields.length > 0
@@ -61,7 +72,7 @@ const ontologyDecode = (() => {
     && ['current', 'upcast_pending'].includes(v.upcast_state) && object(v.properties)
     && Object.values(v.properties).every(p => object(p) && string(p.value_type) && string(p.data_class) && Object.hasOwn(p, 'value'));
   return {
-    schemas: v => { rows(v, schema); if (new Set(v.map(s => s.entity_type)).size !== v.length) throw new Error('source_unavailable'); },
+    schemas: v => { if(new TextEncoder().encode(JSON.stringify(v)).length>1048576)throw new Error('source_unavailable');rows(v, schema); if (new Set(v.map(s => s.entity_type)).size !== v.length) throw new Error('source_unavailable'); },
     labels: (v, schemas) => {
       rows(v, row => shape(row, ['entity_type','revision','display_name']) && string(row.entity_type)
         && row.entity_type.startsWith('ety_') && row.entity_type.length > 4 && integer(row.revision)

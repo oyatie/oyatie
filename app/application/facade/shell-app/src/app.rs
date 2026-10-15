@@ -53,6 +53,7 @@ use island_listeners::*;
 
 mod live_ontology;
 mod model_editor;
+mod named_values;
 mod sign_in;
 use sign_in::*;
 

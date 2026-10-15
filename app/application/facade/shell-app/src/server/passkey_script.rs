@@ -293,3 +293,6 @@ mod workbench_context_test;
 
 #[cfg(test)]
 mod selected_inspector_test;
+
+#[cfg(test)]
+mod named_value_ui_test;

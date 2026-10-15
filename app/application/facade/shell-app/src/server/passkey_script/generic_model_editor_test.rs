@@ -113,9 +113,11 @@ fn structured_property_forms_save_native_shapes_and_preserve_untouched_metadata(
         r#"
 (async()=>{
   await flush();assert.match(input.html,/id="live-ontology-access-badge"[^>]*>Sign-in required<\/span>/);assert.equal(find('live-ontology-access-badge').textContent,'Sign-in required');modelEnabled=true;nativeError='forbidden';statusError=403;session.roles=['foundry-model-author'];
+  const draftProperty=structuredClone(modelDocument.entities[0].properties.pop());
   find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
   assert.equal(find('live-ontology-access-badge').textContent,'Session verified');find('live-ontology-draft-new').emit('click');await flush();
-  const id='9007199254740993',original=structuredClone(modelDrafts.get(id).document.entities[0]);
+  const id='9007199254740993';modelDrafts.get(id).document.entities[0].properties.push(draftProperty);find('live-ontology-draft-reload').emit('click');await flush();
+  const original=structuredClone(modelDrafts.get(id).document.entities[0]);
   find('live-ontology-property-choice').value='1';find('live-ontology-property-choice').emit('change');
   assert.equal(find('live-ontology-property-name').disabled,false,'native struct editing is available');
   assert.equal(find('live-ontology-property-kind').value,'struct');
@@ -143,6 +145,8 @@ fn structured_property_forms_save_native_shapes_and_preserve_untouched_metadata(
   const native=structuredClone(modelDrafts.get(id).document);
   find('live-ontology-property-value').querySelectorAll('input')[0].value='';find('live-ontology-property-edit').emit('submit');
   assert.match(find('live-ontology-draft-status').textContent,/Struct fields need unique names/);assert.deepEqual(modelDrafts.get(id).document,native);
+  find('live-ontology-property-kind').value='array';find('live-ontology-property-kind').emit('change');find('live-ontology-property-edit').emit('submit');find('live-ontology-draft-save').emit('click');await flush();
+  const carrier=modelDrafts.get(id).document.entities[0].properties[1];assert.equal(carrier.tier,'vector','an explicit draft-only struct to array change recomputes its native carrier');assert.deepEqual(carrier.value_type,{shape:'array',element:{shape:'scalar',kind:'string'}});
   find('sign-in-account').value='usr_other';find('sign-in-account').emit('input');
   assert.equal(root.hidden,true);assert.equal(find('live-ontology-access-badge').textContent,'Sign-in required');assert.equal(find('live-ontology-property-value').children.length,0,'identity loss clears nested classified declaration state');
 })().catch(error=>{console.error(error);process.exitCode=1;});

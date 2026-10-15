@@ -4,12 +4,13 @@ function revealOntologyDetails(element, root) {
   for(let owner=element;owner && owner!==root;owner=owner.parentElement)if(owner.tagName.toLowerCase()==='details')owner.open=true;
   return true;
 }
-function createOntologyModelView(selectType, fallback, selectRelationship = () => {}, modeChanged = () => {}) {
+function createOntologyModelView(selectType, fallback, selectRelationship = () => {}, modeChanged = () => {}, selectValueType = () => false) {
   const find = id => document.getElementById(`live-ontology-${id}`);
+  let values=[],valueButtons=[],selectedValue=null;
   let schemas = [], links = [], selectedType = null, selectedLink = null, source = 'Published declarations';
   let representation = 'graph', zoom = 1, width = 640, height = 360;
   let scope='related',context=null,heldViewport=null,heldSelection=null,relatedCount=null,drawn=null,framePending=true;
-  const projection=()=>ontologyModelProjection(schemas,links,{type:selectedType,link:selectedLink},scope);
+  const projection=()=>ontologyModelProjection(schemas,links,{type:selectedType,link:selectedLink,value:selectedValue},scope);
   let typeButtons = [], linkButtons = [], graphLabels = [], graphNodes = [], graphEdges = [];
   const arrowSize = 8, arrowRefX = 7, arrowRefY = 4;
   const cardinality = value => ({one_to_one:'one → one',one_to_many:'one → many',many_to_many:'many → many'})[value];
@@ -25,13 +26,13 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     const element = node('button', text, className); element.type = 'button'; element.addEventListener('click', action); return element;
   }
   function focusedDeclaration() {
-    const element=document.activeElement,surface=['scene','library-types','library-links','model-table'].find(id=>find(id).contains(element));
-    return surface && (element?.dataset.modelType || element?.dataset.modelLink)?{element,surface,type:element.dataset.modelType,link:element.dataset.modelLink}:null;
+    const element=document.activeElement,surface=['scene','library-types','library-links','library-values','model-table'].find(id=>find(id).contains(element));
+    return surface && (element?.dataset.modelType || element?.dataset.modelLink || element?.dataset.modelValue)?{element,surface,type:element.dataset.modelType,link:element.dataset.modelLink,value:element.dataset.modelValue}:null;
   }
   function restoreDeclaration(saved, same=true) {
     if(!saved || document.activeElement!==document.body && document.activeElement!==saved.element || saved.element.isConnected)return;
-    const buttons=saved.type?typeButtons:linkButtons;
-    const replacement=same?buttons.find(([element,id])=>id===(saved.type || saved.link) && find(saved.surface).contains(element) && !element.disabled && element.getClientRects().length)?.[0]:null;
+    const buttons=saved.value!==undefined?valueButtons:saved.type?typeButtons:linkButtons;
+    const replacement=same?buttons.find(([element,id])=>id===(saved.value ?? saved.type ?? saved.link) && find(saved.surface).contains(element) && !element.disabled && element.getClientRects().length)?.[0]:null;
     const local=saved.surface.startsWith('library')?find('search'):find(representation==='graph'?'graph':'view-table');
     (replacement || local)?.focus({preventScroll:true});
   }
@@ -55,11 +56,26 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   }
   const typeButton=(schema,className='')=>declarationButton(schema,true,className);
   const linkButton=(link,className='')=>declarationButton(link,false,className);
+  function valueButton(row,index,className=''){
+    const duplicate=values.filter(other=>other.id===row.id && other.revision===row.revision).length>1;
+    const element=button(`${row.display_name} · ${row.id} · revision ${row.revision}${duplicate?' · duplicate row '+(index+1):''}`,()=>{
+      if(element.disabled || !element.isConnected || !find('explorer').contains(element))return;
+      const owned=focusedDeclaration(),prior=context;if(selectValueType(index)!==true || prior!==context)return;
+      selectValue(index);restoreDeclaration(owned);
+    },className);element.dataset.modelValue=String(index);valueButtons.push([element,String(index)]);return element;
+  }
+  function selectValue(index){
+    if(!Number.isInteger(index) || !values[index])return false;selectedValue=index;
+    find('schema').hidden=true;find('link').hidden=true;find('inspector-empty').hidden=true;
+    renderOntologyValueDefinition(values[index],source);selection();return true;
+  }
   function selection() {
-    for (const [element, id] of typeButtons) element.setAttribute('aria-pressed', String(!selectedLink && selectedType === id));
-    for (const [element, id] of linkButtons) element.setAttribute('aria-pressed', String(selectedLink === id));
+    for(const [element,index] of valueButtons)element.setAttribute('aria-pressed',String(selectedValue===Number(index)));
+    for (const [element, id] of typeButtons) element.setAttribute('aria-pressed', String(selectedValue===null && !selectedLink && selectedType === id));
+    for (const [element, id] of linkButtons) element.setAttribute('aria-pressed', String(selectedValue===null && selectedLink === id));
   }
   function selectLink(id) {
+    selectedValue=null;renderOntologyValueDefinition(null,source);
     const link = projection().linkById.get(id); if (!link) return false;
     const changed=selectedLink!==id;if(changed){relatedCount=null;zoom=1;framePending=true;}
     const active = document.activeElement, restore = find('schema').contains(active);
@@ -75,6 +91,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   function typeText(id) { return `${typeContext(id).name} · ${id}`; }
   function typeContext(id) { return {id,name:projection().typeById.get(id)?.display_name || id}; }
   function select(id) {
+    selectedValue=null;renderOntologyValueDefinition(null,source);
     if(id!==null && !projection().typeById.has(id))return false;
     const changed=selectedType!==id || selectedLink!==null;if(changed){relatedCount=null;zoom=1;framePending=true;}
     const restore = find('link').contains(document.activeElement);
@@ -84,7 +101,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   }
   function library(retaining=false) {
     const active = document.activeElement;
-    const restore = find('library-types').contains(active) || find('library-links').contains(active);
+    const restore = ['library-types','library-links','library-values'].some(id=>find(id).contains(active));
     const search = find('search').value.toLocaleLowerCase();
     const types = schemas.filter(row => [row.display_name, row.entity_type, ...row.properties.flatMap(p => [p.name, ontologyDeclarationText(p.value_type)])].some(value => value.toLocaleLowerCase().includes(search)));
     const relations = links.filter(row => [row.link_type,typeText(row.from_entity_type),typeText(row.to_entity_type)].some(value => value.toLocaleLowerCase().includes(search)));
@@ -92,7 +109,10 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     linkButtons = linkButtons.filter(([element]) => !find('library-links').contains(element));
     find('library-types').replaceChildren(...(types.length ? types.map(row => typeButton(row, 'foundry-library-item')) : [node('p', schemas.length ? 'No matching types.' : 'No type declarations.')]));
     find('library-links').replaceChildren(...(relations.length ? relations.map(row => linkButton(row, 'foundry-library-item')) : [node('p', links.length ? 'No matching relationships.' : 'No relationship declarations.')]));
-    find('library-summary').textContent = `${types.length} of ${schemas.length} types · ${relations.length} of ${links.length} relationships`;
+    valueButtons=valueButtons.filter(([element])=>!find('library-values').contains(element));
+    const filtered=values.map((row,index)=>({row,index})).filter(({row})=>[row.id,row.display_name,String(row.revision)].some(value=>value.toLocaleLowerCase().includes(search)));
+    find('library-values').replaceChildren(...filtered.map(({row,index})=>valueButton(row,index,'foundry-library-item')));
+    find('library-summary').textContent = `${types.length} of ${schemas.length} types · ${relations.length} of ${links.length} relationships · ${filtered.length} of ${values.length} reusable value types`;
     selection(); if (restore && !retaining) find('search').focus({preventScroll:true});
   }
   function scale(value) {
@@ -144,7 +164,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   function graphRender(){const owned=focusedDeclaration(),position=viewport();graph();summary();selection();restoreViewport(position);restoreDeclaration(owned);}
   function graph() {
     typeButtons=typeButtons.filter(([element])=>!find('scene').contains(element));linkButtons=linkButtons.filter(([element])=>!find('scene').contains(element));
-    drawn=renderOntologyGraph(find,node,typeButton,linkButton,cardinality,projection(),{type:selectedType,link:selectedLink},scope,zoom,relatedCount);
+    drawn=renderOntologyGraph(find,node,typeButton,linkButton,cardinality,projection(),{type:selectedType,link:selectedLink,value:selectedValue},scope,zoom,relatedCount);
     ({width,height}=drawn);graphNodes=drawn.nodes;graphEdges=drawn.edges;graphLabels=drawn.labels;
     typeButtons=typeButtons.filter(([element])=>element.isConnected);linkButtons=linkButtons.filter(([element])=>element.isConnected);
     if(scope==='related' && drawn.plan)relatedCount=drawn.plan.neighbors;
@@ -153,6 +173,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   function table() {
     find('model-table').replaceChildren(
       ontologyTable('Object type declarations', ['Object type','Declaration revision','Properties'], schemas.map(row => [typeButton(row),row.revision,row.properties.length])),
+      ontologyTable('Reusable value types',['Value type','Members'],values.map((row,index)=>[valueButton(row,index),row.members.length])),
       ontologyTable('Relationship declarations', ['Relationship','From','To','Cardinality','Declaration revision'], links.map(row => [linkButton(row),typeText(row.from_entity_type),typeText(row.to_entity_type),cardinality(row.cardinality),row.revision])),
     );
   }
@@ -178,33 +199,39 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     if(!context || !['selected','related','all'].includes(value))return false;
     if(scope!==value){scope=value;zoom=1;framePending=true;refreshGraph();}return true;
   }
-  function setModel(rows, relations, selected, modelSource = 'Published declarations', modelContext=null) {
+  function setModel(rows, relations, selected, modelSource = 'Published declarations', modelContext=null,catalog=null) {
     graphObserver?.observe(find('graph'));
     const key=ontologyModelSourceKey(modelContext),same=key!==null && key===context;
     const owned=focusedDeclaration(),position=same?(heldViewport || viewport()):{left:0,top:0};
-    const retained=heldSelection || {type:selectedType,link:selectedLink};
+    const retained=heldSelection || {type:selectedType,link:selectedLink,value:selectedValue};
     selected ??= same && (retained.type || retained.link)?retained:{type:rows[0]?.entity_type || null,link:null};
+    const valueSelection=selected && Object.hasOwn(selected,'value')?selected.value:same?(heldSelection?.value ?? selectedValue):null;
+    if(valueSelection!==null)selected={type:selectedType,link:selectedLink,value:valueSelection};
     if(!same){scope='related';zoom=1;relatedCount=null;framePending=true;}
     if(same && (selected?.type!==selectedType || selected?.link!==selectedLink) && !heldSelection){relatedCount=null;zoom=1;framePending=true;}context=key;heldViewport=null;heldSelection=null;
-    schemas = rows; links = relations; source = modelSource; typeButtons = []; linkButtons = [];
+    schemas = rows; links = relations;values=catalog || [];valueButtons=[];selectedValue=null;find('values-note').textContent=catalog===null?'Complete reusable catalog requires native model access. Object schemas contain used definitions only.':'Complete reusable catalog from this authorized model snapshot.';source = modelSource; typeButtons = []; linkButtons = [];
     const projected=ontologyModelProjection(rows,relations,selected,scope);
     selectedLink=projected.linkById.has(selected?.link)?selected.link:null;
     selectedType=!selectedLink && projected.typeById.has(selected?.type)?selected.type:null;
     library(true);graph();table();
     if(selectedLink)selectLink(selectedLink);else select(selectedType);
-    summary();if(framePending && drawn?.plan)frameSelection();else restoreViewport(position);restoreDeclaration(owned,same);return {type:selectedType,link:selectedLink};
+    if(valueSelection!==null && values[valueSelection])selectValue(valueSelection);
+    summary();if(framePending && drawn?.plan)frameSelection();else restoreViewport(position);restoreDeclaration(owned,same);return selectedValue!==null?{type:null,link:null,value:selectedValue}:{type:selectedType,link:selectedLink,value:null};
   }
   function clear(retaining=false) {
     graphObserver?.disconnect();find('graph-frame').textContent='';find('graph-frame').hidden=true;find('graph-counts').textContent='';
     const active = document.activeElement;
-    const restore = ['scene','library-types','library-links','model-table','link','selection-details'].some(id => find(id).contains(active));
+    const restore = ['scene','library-types','library-links','library-values','model-table','link','value','selection-details'].some(id => find(id).contains(active));
     heldViewport=retaining?(heldViewport || viewport()):null;
-    heldSelection=retaining?(heldSelection || {type:selectedType,link:selectedLink}):null;
+    heldSelection=retaining?(heldSelection || {type:selectedType,link:selectedLink,value:selectedValue}):null;
     if(!retaining){context=null;scope='related';zoom=1;relatedCount=null;framePending=true;}
-    schemas = []; links = []; drawn=null;typeButtons = []; linkButtons = []; graphLabels = []; graphNodes = []; graphEdges = []; selectedType = null; selectedLink = null;
-    for (const id of ['scene','library-types','library-links','model-table','link-properties']) find(id).replaceChildren();
+    values=[];valueButtons=[];selectedValue=null;renderOntologyValueDefinition(null,source);find('values-note').textContent='';schemas = []; links = []; drawn=null;typeButtons = []; linkButtons = []; graphLabels = []; graphNodes = []; graphEdges = []; selectedType = null; selectedLink = null;
+    for (const id of ['scene','library-types','library-links','library-values','model-table','link-properties']) find(id).replaceChildren();
     width = 640; height = 360; find('scene').style.width = `${width}px`; find('scene').style.height = `${height}px`; scale(zoom);
     if(!retaining)restoreViewport({left:0,top:0});
+    valueButtons=valueButtons.filter(([element])=>!find('library-values').contains(element));
+    const filtered=values.map((row,index)=>({row,index})).filter(({row})=>[row.id,row.display_name,String(row.revision)].some(value=>value.toLocaleLowerCase().includes(search)));
+    find('library-values').replaceChildren(...filtered.map(({row,index})=>valueButton(row,index,'foundry-library-item')));
     find('library-summary').textContent = ''; find('model-summary').textContent = ''; find('link').hidden = true; find('inspector-empty').hidden = false;
     renderOntologySelectedContext(null);
     if (restore) fallback();
@@ -248,6 +275,6 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
     if (direction) { framePending=false;event.preventDefault(); find('graph').scrollBy({left:direction[0],top:direction[1],behavior:'auto'}); }
     else if (['+','=','-','Home'].includes(event.key)) { event.preventDefault(); if (event.key === 'Home') fit(); else{framePending=false;scale(zoom + (event.key === '-' ? -0.25 : 0.25));graphRender();} }
   });
-  return {setModel,select,selectLink,setScope,scope:()=>({mode:scope,counts:scopeCounts()}),clear,reset:()=>{clear();find('search').value='';zoom=1;showMode('schema');showRepresentation('graph');scale(1);}};
+  return {setModel,select,selectLink,selectValue,setScope,scope:()=>({mode:scope,counts:scopeCounts()}),clear,reset:()=>{clear();find('search').value='';zoom=1;showMode('schema');showRepresentation('graph');scale(1);}};
 }
 "#;

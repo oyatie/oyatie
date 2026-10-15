@@ -51,7 +51,7 @@ const CHECK: &str = r#"
   assert.deepEqual(created.properties.slice(1).map(p=>[p.name,p.value_type,p.required,p.data_class]),[['birth_date',{shape:'scalar',kind:'date'},true,'InternalOnly'],['recorded_at',{shape:'scalar',kind:'timestamp'},false,'InternalOnly']],'creation saves the chosen native shapes without intermediate default declarations');
   assert.equal(created.properties.length,3);assert.equal(created.revision,1,'creation keeps the explicitly selected revision');
   assert.equal(modelDrafts.get(firstId).document.links[0].cardinality,'many_to_many');assert.equal(modelDrafts.get(firstId).document.links[0].allow_cross_tenant,false);
-  for(const [field,values] of [['new-property-kind',['string','integer','double','boolean','date','timestamp','array','struct']],['new-property-required',['optional','required']],['new-link-cardinality',['one_to_many','one_to_one','many_to_many']]]){
+  for(const [field,values] of [['new-property-kind',['string','integer','double','boolean','date','timestamp','array','struct','named_string']],['new-property-required',['optional','required']],['new-link-cardinality',['one_to_many','one_to_one','many_to_many']]]){
     assert.ok(input.html.includes(`for="live-ontology-${field}"`),'each creation choice has an associated label');
     const select=input.html.match(new RegExp(`<select\\b[^>]*id="live-ontology-${field}"[^>]*>(.*?)</select>`));assert.ok(select,'creation select is in the rendered shell');
     assert.deepEqual([...select[1].matchAll(/<option\b[^>]*value="([^"]+)"/g)].map(match=>match[1]),values,'only native creation choices are exposed');
@@ -108,7 +108,7 @@ fn pending_property_form_keeps_its_target_until_applied_or_discarded() {
     check_controller(
         r#"
 (async()=>{
-  await flush();modelDocument.entities[0].properties[0].value_type={shape:'scalar',kind:'string'};
+  await flush();modelDocument.entities[0].properties[0].value_type={shape:'scalar',kind:'timestamp'};
   modelEnabled=true;nativeError='forbidden';statusError=403;session.roles=['foundry-model-author'];
   find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
   find('live-ontology-draft-new').emit('click');await flush();
@@ -220,14 +220,14 @@ fn independently_pending_forms_survive_partial_apply_and_lifecycle() {
   assert.equal(saved.entities.find(e=>e.id==='ety_added').display_name,'Added type');assert.deepEqual(saved.entities[0].properties[1],original.properties[1]);assert.deepEqual(saved.entities[0].display,original.display);
   assert.equal(saved.entities[0].properties[2].value_type.kind,'string');assert.equal(saved.entities[0].properties[2].required,false,'untouched creation settings preserve optional String');
   enter('entity-revision','3');find('live-ontology-entity-edit').emit('submit');holdPath='/save';find('live-ontology-draft-save').emit('click');await flush();
-  const choices=[['new-property-name','birth_choice'],['new-property-kind','date'],['new-property-required','required'],['new-link-id','lty_choice'],['new-link-cardinality','many_to_many']];
+  const choices=[['new-property-name','birth_choice'],['new-property-kind','date'],['new-property-required','optional'],['new-link-id','lty_choice'],['new-link-cardinality','many_to_many']];
   for(const [field,value] of choices)enter(field,value);held();await flush();pending();
   function heldChoices(){for(const [field,value] of choices)assert.equal(find('live-ontology-'+field).value,value,'pending creation settings survive unrelated lifecycle work');}heldChoices();
   find('live-ontology-entity-edit').emit('submit');pending();heldChoices();intervals[0]();await flush();pending();heldChoices();
   find('live-ontology-property-add').emit('submit');pending();assert.equal(find('live-ontology-new-link-cardinality').value,'many_to_many','property Apply cannot clear relationship choices');
   enter('new-link-from','ety_record');enter('new-link-to','ety_added');find('live-ontology-link-add').emit('submit');assert.doesNotMatch(find('live-ontology-draft-state').textContent,/Unapplied/);
   find('live-ontology-draft-save').emit('click');await flush();saved=structuredClone(modelDrafts.get(id).document);
-  assert.deepEqual(saved.entities[0].properties[3],{name:'birth_choice',tier:'scalar',data_class:'InternalOnly',required:true,value_type:{shape:'scalar',kind:'date'},display:null});
+  assert.deepEqual(saved.entities[0].properties[3],{name:'birth_choice',tier:'scalar',data_class:'InternalOnly',required:false,value_type:{shape:'scalar',kind:'date'},display:null});
   assert.equal(saved.entities[0].revision,3);assert.equal(saved.links[0].cardinality,'many_to_many');assert.equal(saved.links[0].allow_cross_tenant,false);defaultChoices();
   find('live-ontology-library-types').querySelectorAll('[data-model-type]').find(e=>e.dataset.modelType==='ety_record').emit('click');
   for(const [field,bad,message] of [['new-property-kind','enum',/supported native value declaration/],['new-property-required','sometimes',/Required or Optional/],['new-link-cardinality','many_to_one',/native cardinality/]]){

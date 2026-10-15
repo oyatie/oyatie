@@ -89,9 +89,9 @@ function createOntologyExplorer(lifecycle) {
   }, focusSchemaControl, id=>workspaceMode!=='schema' || !editor?.active() ? true : editor.selectLink(id), value=>{
     workspaceMode=value;editor?.setMode(value);
     if(value==='objects' || !editor?.active()) renderCatalogModel();
-  });
+  },index=>workspaceMode==='schema' && editor?.active()?editor.selectValue(index):false);
   function renderCatalogModel(){const selected=model.setModel(schemas,links,workspaceMode==='schema'?null:{type:find('type').value || null,link:null},'Published declarations',identity?{tenantId:identity.tenantId,userId:identity.userId,kind:'catalog'}:null);if(!selected.link)renderSchemaFor(schemas.find(row=>row.entity_type===selected.type));}
-  editor=createOntologyDraftEditor(lifecycle,{setModel:(rows,relations,selected,source,context)=>{const current=model.setModel(rows,relations,selected,source,context),matches=rows.filter(row=>row.entity_type===current.type);renderSchemaFor(matches.length===1?matches[0]:null);},selectLink:id=>model.selectLink(id),fallback:renderCatalogModel});
+  editor=createOntologyDraftEditor(lifecycle,{setModel:(rows,relations,selected,source,context,values)=>{const current=model.setModel(rows,relations,selected,source,context,values),matches=rows.filter(row=>row.entity_type===current.type);renderSchemaFor(matches.length===1?matches[0]:null);},selectLink:id=>model.selectLink(id),fallback:renderCatalogModel});
   let next = null, cursor = null, activeObject = null, historyShown = false, readPage = false;
   const queryControls = ['type', 'revision', 'limit', 'property', 'comparison', 'kind', 'from', 'to'];
   const note = text => { find('status').textContent = text; };

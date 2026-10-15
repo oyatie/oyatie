@@ -129,3 +129,6 @@ mod link_tests;
 
 #[cfg(test)]
 mod relationship_tests;
+
+#[cfg(test)]
+mod named_schema_tests;
