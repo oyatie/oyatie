@@ -23,16 +23,35 @@ function createOntologyExplorer(lifecycle) {
   const root = find('explorer');
   let identity = null, generation = 0, epoch = 0, abort = null;
   let schemas = [], links = [], workspaceMode = 'schema';
+  const paneBar=find('pane-library').parentElement;
+  let paneGeneration=-1;
+  function measurePaneBar() {
+    if(paneGeneration!==generation || !identity || !lifecycle.valid(identity,generation) || root.hidden || !root.isConnected || !paneBar.isConnected || !root.contains(paneBar) || !paneBar.getClientRects().length)return;
+    const height=paneBar.getBoundingClientRect().height;
+    if(!Number.isFinite(height) || height<=0)return;
+    const value=`${height}px`;
+    if(root.style.getPropertyValue('--foundry-pane-bar-height')!==value)root.style.setProperty('--foundry-pane-bar-height',value);
+  }
+  const paneObserver=typeof ResizeObserver==='function'?new ResizeObserver(measurePaneBar):null;
+  function revealPane(id, focus = false) {
+    if(!identity || !lifecycle.valid(identity,generation) || root.hidden || !root.isConnected || !['library-title','workpane','inspector-title'].includes(id))return;
+    const target=find(id);
+    if(target?.disabled || !revealOntologyDetails(target,root))return;
+    measurePaneBar();
+    if(focus && target.getClientRects().length)target.focus();
+  }
+  for(const [pane,target] of [['library','library-title'],['workpane','workpane'],['inspector','inspector-title']])find(`pane-${pane}`).addEventListener('click',()=>revealPane(target,true));
+  window.addEventListener('hashchange',()=>revealPane(location.hash.slice(1).replace(/^live-ontology-/,''),true));
   let editor;
   const model = createOntologyModelView(id => {
     if (workspaceMode==='schema' && editor?.active()) { editor.selectType(id); return; }
     find('type').value = id;
     changeType();
-  }, focusSchemaControl, id=>{if(workspaceMode==='schema')editor?.selectLink(id);}, value=>{
+  }, focusSchemaControl, id=>workspaceMode!=='schema' || !editor?.active() ? true : editor.selectLink(id), value=>{
     workspaceMode=value;editor?.setMode(value);
     if(value==='objects' || !editor?.active()) {model.setModel(schemas,links,find('type').value || null);renderSchema();}
   });
-  editor=createOntologyDraftEditor(lifecycle,{setModel:(rows,relations,selected)=>{model.setModel(rows,relations,selected);renderSchemaFor(rows.find(row=>row.entity_type===selected));},selectLink:id=>model.selectLink(id),fallback:()=>{model.setModel(schemas,links,find('type').value || null);renderSchema();}});
+  editor=createOntologyDraftEditor(lifecycle,{setModel:(rows,relations,selected,source)=>{model.setModel(rows,relations,selected,source);renderSchemaFor(rows.find(row=>row.entity_type===selected));},selectLink:id=>model.selectLink(id),fallback:()=>{model.setModel(schemas,links,find('type').value || null);renderSchema();}});
   let next = null, cursor = null, activeObject = null, historyShown = false, readPage = false;
   const queryControls = ['type', 'revision', 'limit', 'property', 'comparison', 'kind', 'from', 'to'];
   const note = text => { find('status').textContent = text; };
@@ -75,6 +94,7 @@ function createOntologyExplorer(lifecycle) {
     next = null; cursor = null; activeObject = null; historyShown = false; readPage = false;
   }
   function clear() {
+    paneObserver?.disconnect();paneGeneration=-1;root.style.removeProperty('--foundry-pane-bar-height');
     invalidate(); editor.clear();
     if (root.contains(document.activeElement)) lifecycle.fallback();
     emptyResults();
@@ -155,6 +175,8 @@ pub(super) const SCRIPT: &str = r#"
     if (!selection) clear();
     else clearRelationships();
     identity = session; generation = version; root.hidden = false;find('access-badge').textContent='Session verified'; find('access-notice').hidden = true;
+    paneGeneration=version;paneObserver?.observe(paneBar);measurePaneBar();
+    revealPane(location.hash.slice(1).replace(/^live-ontology-/,''));
     find('identity').textContent = `Verified tenant ${session.tenantId} · account ${session.userId}`;
     if (!editor.active()) clearModel();
     const modelAccess=editor.open(session,version,retaining);
@@ -206,6 +228,6 @@ pub(super) const SCRIPT: &str = r#"
     invalidate(); emptyResults(); busy(false);
     note('Read selection changed. Read objects to load this context.');
   });
-  return { clear, open, hold: version => {find('access-badge').textContent='Checking session';find('identity').textContent=identity?`Checking tenant ${identity.tenantId} · account ${identity.userId}`:''; invalidate(); clearRelationships(); editor.hold(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
+  return { clear, open, hold: version => {paneObserver?.disconnect();find('access-badge').textContent='Checking session';find('identity').textContent=identity?`Checking tenant ${identity.tenantId} · account ${identity.userId}`:''; invalidate(); clearRelationships(); editor.hold(); clearModel(); generation = version; busy(true); note('Checking current session and Ontology access…'); } };
 }
 "#;

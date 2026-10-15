@@ -26,11 +26,16 @@ function createOntologyDraftForms(context) {
   }
   const declaration=()=>context.document()?.entities.find(e=>e.id===typeId);
   const relationship=()=>context.document()?.links.find(l=>l.id===linkId);
+  function describe(){
+    const e=declaration(),l=relationship(),p=e?.properties[propertyIndex],type=id=>({id,name:context.document()?.entities.find(e=>e.id===id)?.display_name || id});
+    const value=e?{source:'Draft',kind:p?'property':'type',type:{id:e.id,name:e.display_name},...(p?{propertyName:p.name}:{})}:l?{source:'Draft',kind:'relationship',linkId:l.id,from:type(l.from_entity_type),to:type(l.to_entity_type)}:null;
+    context.describe?.(value);return value;
+  }
   function enable(value){enabled=Boolean(value);for(const id of ids)find(id).disabled=!enabled;find('property-choice').disabled=!declaration();for(const id of formIds)for(const control of find(id).querySelectorAll('button'))control.disabled=!enabled;find('entity-primary').disabled=!enabled || Boolean(baseline());propertyValue.enable(enabled);newPropertyValue.enable(enabled);}
   function reset(){held=null;typeId=null;linkId=null;propertyIndex=0;dirtyFields.clear();for(const id of ids)find(id).value='';find('new-property-kind').value='string';find('new-property-required').value='optional';find('new-link-cardinality').value='one_to_many';find('new-entity-key').value='id';find('new-entity-key-kind').value='string';find('new-entity-title').value='none';propertyValue.clear();newPropertyValue.write({shape:'scalar',kind:'string'});}
   function clear(){reset();find('property-choice').replaceChildren();for(const id of ['link-from','link-to','new-link-from','new-link-to'])find(id).replaceChildren();for(const id of ['entity-edit','property-edit','property-add','link-edit'])find(id).hidden=true;find('property-compatibility').textContent='';find('entity-key-help').textContent='';enable(false);}
   function property(){
-    const e=declaration(),p=e?.properties[propertyIndex];find('property-edit').hidden=!p;
+    const e=declaration(),p=e?.properties[propertyIndex];find('property-edit').hidden=!p;describe();
     if(!p)return;
     if(!context.dirty()){find('property-name').value=p.name;propertyValue.write(p.value_type);find('property-required').value=p.required?'required':'optional';find('property-display').value=p.display?.display_name ?? '';}
     const editable=supported(p);
@@ -117,6 +122,6 @@ function createOntologyDraftForms(context) {
     typeId=id;linkId=null;propertyIndex=index ?? 0;return true;
   }
   function selectLink(id){if(context.dirty() || context.document()?.links.filter(l=>l.id===id).length!==1)return false;linkId=id;typeId=null;return true;}
-  return {capture,restore:snapshot=>{held=snapshot;render(context.document(),true);},suspend:()=>{const snapshot=capture();snapshot.propertyValue.focus=null;snapshot.newPropertyValue.focus=null;clear();held=snapshot;},enable:value=>{enable(value);property();},clear,render,selection:()=>typeId,selectedLink:()=>linkId,selectedProperty:()=>propertyIndex,reset,selectType,selectLink};
+  return {capture,restore:snapshot=>{held=snapshot;render(context.document(),true);},suspend:()=>{const snapshot=capture();snapshot.propertyValue.focus=null;snapshot.newPropertyValue.focus=null;clear();held=snapshot;},enable:value=>{enable(value);property();},clear,render,describe,selection:()=>typeId,selectedLink:()=>linkId,selectedProperty:()=>propertyIndex,reset,selectType,selectLink};
 }
 "#;

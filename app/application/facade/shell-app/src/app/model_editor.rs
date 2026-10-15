@@ -32,16 +32,6 @@ pub(super) fn ModelDraftInspector() -> impl IntoView {
         <section id="live-ontology-draft-inspector" class="foundry-draft-inspector" aria-labelledby="live-ontology-draft-inspector-title" data-live-results="true" hidden>
             <h4 id="live-ontology-draft-inspector-title" tabindex="-1">"Selected declaration"</h4>
             <p id="live-ontology-draft-selection"></p>
-            <form id="live-ontology-entity-edit" class="foundry-editor-form" hidden>
-                <label for="live-ontology-entity-name">"Type display name"</label><input id="live-ontology-entity-name" type="text" maxlength="4096" />
-                <label for="live-ontology-entity-primary">"Primary-key property"</label><select id="live-ontology-entity-primary" aria-describedby="live-ontology-entity-key-help"></select>
-                <p id="live-ontology-entity-key-help"></p>
-                <label for="live-ontology-entity-title">"Title property"</label><select id="live-ontology-entity-title"></select>
-                <details class="foundry-appearance"><summary>"Type appearance"</summary><label for="live-ontology-entity-description">"Description"</label><input id="live-ontology-entity-description" type="text" maxlength="4096" /><label for="live-ontology-entity-plural">"Plural display name"</label><input id="live-ontology-entity-plural" type="text" maxlength="4096" /></details>
-                <label for="live-ontology-entity-revision">"Declaration revision"</label><input id="live-ontology-entity-revision" type="number" min="1" max="4294967295" />
-                <p>"Changed existing declarations need a new revision. Native validation checks compatibility."</p>
-                <button type="submit">"Apply type changes"</button>
-            </form>
             <label for="live-ontology-property-choice">"Property declaration"</label><select id="live-ontology-property-choice" disabled></select>
             <form id="live-ontology-property-edit" class="foundry-editor-form" hidden>
                 <label for="live-ontology-property-name">"Property name"</label><input id="live-ontology-property-name" type="text" maxlength="4096" />
@@ -51,12 +41,26 @@ pub(super) fn ModelDraftInspector() -> impl IntoView {
                 <label for="live-ontology-property-display">"Property display name"</label><input id="live-ontology-property-display" type="text" maxlength="4096" />
                 <p id="live-ontology-property-compatibility"></p><button type="submit">"Apply property changes"</button>
             </form>
+            <form id="live-ontology-entity-edit" class="foundry-editor-form" hidden>
+                <details id="live-ontology-type-settings" class="foundry-edit-settings"><summary>"Type settings"</summary>
+                <label for="live-ontology-entity-name">"Type display name"</label><input id="live-ontology-entity-name" type="text" maxlength="4096" />
+                <label for="live-ontology-entity-primary">"Primary-key property"</label><select id="live-ontology-entity-primary" aria-describedby="live-ontology-entity-key-help"></select>
+                <p id="live-ontology-entity-key-help"></p>
+                <label for="live-ontology-entity-title">"Title property"</label><select id="live-ontology-entity-title"></select>
+                <details class="foundry-appearance"><summary>"Type appearance"</summary><label for="live-ontology-entity-description">"Description"</label><input id="live-ontology-entity-description" type="text" maxlength="4096" /><label for="live-ontology-entity-plural">"Plural display name"</label><input id="live-ontology-entity-plural" type="text" maxlength="4096" /></details>
+                <label for="live-ontology-entity-revision">"Declaration revision"</label><input id="live-ontology-entity-revision" type="number" min="1" max="4294967295" />
+                <p>"Changed existing declarations need a new revision. Native validation checks compatibility."</p>
+                <button type="submit">"Apply type changes"</button>
+                </details>
+            </form>
             <form id="live-ontology-property-add" class="foundry-editor-form" hidden>
+                <details id="live-ontology-add-property" class="foundry-edit-settings"><summary>"Add property"</summary>
                 <label for="live-ontology-new-property-name">"New property name"</label><input id="live-ontology-new-property-name" type="text" maxlength="4096" />
                 <label for="live-ontology-new-property-kind">"New property value declaration"</label><select id="live-ontology-new-property-kind"><option value="string">"String"</option><option value="integer">"Integer"</option><option value="double">"Double"</option><option value="boolean">"Boolean"</option><option value="date">"Date"</option><option value="timestamp">"Timestamp"</option><option value="array">"Array"</option><option value="struct">"Struct"</option></select>
                 <div id="live-ontology-new-property-value" class="foundry-value-form"></div>
                 <label for="live-ontology-new-property-required">"New property presence"</label><select id="live-ontology-new-property-required"><option value="optional">"Optional"</option><option value="required">"Required"</option></select>
                 <button type="submit">"Add property"</button>
+                </details>
             </form>
             <form id="live-ontology-link-edit" class="foundry-editor-form" hidden>
                 <label for="live-ontology-link-from">"From type (source)"</label><select id="live-ontology-link-from"></select>

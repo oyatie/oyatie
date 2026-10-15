@@ -18,16 +18,17 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
                     <button type="button" id="live-ontology-types-refresh">"Refresh model"</button>
                 </div>
                 <p id="live-ontology-status" role="status" aria-live="polite">"Sign in to read your tenant's Ontology."</p>
+                <nav class="foundry-pane-nav" aria-label="Ontology panes"><a id="live-ontology-pane-library" href="#live-ontology-library-title">"Library"</a><a id="live-ontology-pane-workpane" href="#live-ontology-workpane">"Workspace"</a><a id="live-ontology-pane-inspector" href="#live-ontology-inspector-title">"Inspector"</a></nav>
                 <div class="foundry-workspace-body">
-                    <details class="foundry-library" open>
-                        <summary>"Model library"</summary>
+                    <details id="live-ontology-library" class="foundry-library" open>
+                        <summary id="live-ontology-library-title">"Model library"</summary>
                         <label for="live-ontology-search">"Search types, properties and relationships"</label><input id="live-ontology-search" type="search" autocomplete="off" placeholder="Search model library" />
                         <p id="live-ontology-library-summary" role="status" aria-live="polite"></p>
                         <h4>"Object types"</h4><div id="live-ontology-library-types" data-live-results="true"></div>
                         <h4>"Relationships"</h4><div id="live-ontology-library-links" data-live-results="true"></div>
                         <p class="foundry-library-help">"The graph shows type declarations. Objects are instances; source lineage is a separate view."</p>
                     </details>
-                    <div class="foundry-main">
+                    <div id="live-ontology-workpane" class="foundry-main" role="region" aria-label="Current Ontology workpane" tabindex="-1">
                         <section id="live-ontology-model" aria-labelledby="live-ontology-model-title">
                             <div class="foundry-canvas-toolbar"><div><h4 id="live-ontology-model-title">"Type graph"</h4><p id="live-ontology-model-summary"></p></div>
                                 <div role="group" aria-label="Model representation"><button type="button" id="live-ontology-view-graph" aria-pressed="true" aria-controls="live-ontology-graph">"Graph"</button><button type="button" id="live-ontology-view-table" aria-pressed="false" aria-controls="live-ontology-model-table">"Table"</button></div>
@@ -70,14 +71,15 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
             <section id="live-ontology-audit" aria-labelledby="live-ontology-audit-title" data-live-results="true" hidden><h4 id="live-ontology-audit-title">"Native tenant audit"</h4><div id="live-ontology-audit-rows"></div></section>
                         </section>
                     </div>
-                    <details class="foundry-inspector" open><summary>"Inspector"</summary>
+                    <details id="live-ontology-inspector" class="foundry-inspector" open><summary id="live-ontology-inspector-title">"Inspector"<span id="live-ontology-inspector-context"><span id="live-ontology-context-selected"></span><span id="live-ontology-context-identity"></span><span id="live-ontology-context-name"></span></span></summary>
+                        <details id="live-ontology-selection-details" class="foundry-selection-details" hidden><summary>"Full selection details"</summary><dl id="live-ontology-selection-values"></dl></details>
+                        <super::model_editor::ModelDraftInspector />
             <section id="live-ontology-schema" aria-labelledby="live-ontology-schema-title" data-live-results="true" hidden>
                 <h4 id="live-ontology-schema-title">"Native entity schema"</h4>
                 <p>"The selected type declaration is shown. Requested object revisions are set separately."</p>
                 <p id="live-ontology-schema-summary"></p><div id="live-ontology-schema-properties"></div>
             </section>
                         <section id="live-ontology-link" aria-labelledby="live-ontology-link-title" data-live-results="true" hidden><h4 id="live-ontology-link-title">"Native relationship declaration"</h4><div id="live-ontology-link-properties"></div><p>"Cross-tenant intent describes the model. It does not grant permission to read another tenant."</p></section>
-                        <super::model_editor::ModelDraftInspector />
                         <p id="live-ontology-inspector-empty">"Select a type or relationship to inspect its declaration."</p>
                     </details>
                 </div>

@@ -291,3 +291,6 @@ mod generic_model_editor_test;
 
 #[cfg(test)]
 mod workbench_context_test;
+
+#[cfg(test)]
+mod selected_inspector_test;
