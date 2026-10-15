@@ -13421,6 +13421,9 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 @media (min-width:72.001rem) { .foundry-inspector { max-height:55rem; overflow-y:auto; scrollbar-gutter:stable; } }
 
 .foundry-draft-actions { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin-bottom:.75rem; }
+.console-app[data-shell-frame="foundry"] :is(.foundry-library,.foundry-inspector,.foundry-main,.foundry-draft-tray) { scrollbar-gutter:stable; }
+.console-app[data-shell-frame="foundry"] :is(.foundry-library,.foundry-inspector,.foundry-main,.foundry-draft-tray)::-webkit-scrollbar { width:auto; height:auto; }
+.console-app[data-shell-frame="foundry"] :is(.foundry-library,.foundry-inspector,.foundry-main,.foundry-draft-tray)::-webkit-scrollbar-thumb { background:var(--ink-muted); }
 .console-app[data-shell-frame="foundry"] .control-center { max-width:none; padding-inline:0; padding-top:0; }
 .console-app[data-shell-frame="foundry"] .foundry-workspace { border:0; border-radius:0; }
 .console-app[data-shell-frame="foundry"] .header-actions { flex-wrap:wrap; min-width:0; max-width:100%; }
