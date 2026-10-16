@@ -36,7 +36,7 @@ function createOntologyDefaultForm(host, changed, label, catalog=()=>[], readTyp
   const controls=()=>['input','textarea','select','button'].flatMap(tag=>Array.from(host.querySelectorAll(tag)));
   const make=(tag,name)=>{const node=document.createElement(tag);node.setAttribute('aria-label',name);return node;};
   const labeled=(name,node)=>{const label=document.createElement('label');label.textContent=name;label.append(node);return label;};
-  const button=(text,action)=>{const node=make('button',`${label} ${text.toLowerCase()}`);node.type='button';node.textContent=text;node.addEventListener('click',()=>{if(enabled)try{action();}catch(problem){error(problem.message);}});return node;};
+  const button=(text,action)=>{const node=make('button',`${label} ${text}`);node.type='button';node.textContent=text;node.addEventListener('click',()=>{if(enabled)try{action();}catch(problem){error(problem.message);}});return node;};
   const kind=type=>type===null || type?.shape==='named_string'?'string':type?.shape==='scalar'?type.kind:type?.shape;
   function initial(type,depth=1){
     if(depth>8)throw new Error('Defaults allow at most 8 levels.');
