@@ -97,10 +97,37 @@ pub(super) fn canonical_tenant(tenant: &str) -> bool {
     AuthenticatedSubject::new("usr_shell", tenant, i64::MAX).is_ok()
 }
 
+#[cfg(test)]
+tokio::task_local! {
+    pub(super) static TEST_CLOCK: std::sync::Arc<std::sync::atomic::AtomicI64>;
+}
+
 pub(super) fn now() -> i64 {
+    #[cfg(test)]
+    if let Ok(now) = TEST_CLOCK.try_with(|clock| clock.load(std::sync::atomic::Ordering::SeqCst)) {
+        return now;
+    }
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .ok()
         .and_then(|d| i64::try_from(d.as_secs()).ok())
         .unwrap_or(i64::MAX)
+}
+
+#[cfg(test)]
+#[tokio::test]
+async fn scoped_test_clocks_are_isolated_and_restored() {
+    use std::sync::{Arc, atomic::AtomicI64};
+    let first = TEST_CLOCK.scope(Arc::new(AtomicI64::new(11)), async {
+        tokio::task::yield_now().await;
+        assert_eq!(now(), 11);
+    });
+    let second = TEST_CLOCK.scope(Arc::new(AtomicI64::new(22)), async {
+        tokio::task::yield_now().await;
+        assert_eq!(now(), 22);
+    });
+    tokio::join!(first, second);
+    assert!(TEST_CLOCK.try_with(|_| ()).is_err());
+    assert_ne!(now(), 11);
+    assert_ne!(now(), 22);
 }

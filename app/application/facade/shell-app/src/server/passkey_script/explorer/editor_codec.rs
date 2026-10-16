@@ -8,16 +8,27 @@ const ontologyModelWire = (() => {
   const revision = v => Number.isInteger(v) && v >= 0 && v <= 4294967295;
   const list = v => Array.isArray(v) && v.length <= 256;
   const display = v => v === null || shape(v,['display_name','description','icon','color','plural_name']) && Object.values(v).every(nullable);
+  let remaining=0;
   function value(v, depth=1) {
-    if (!object(v) || depth > 8) return false;
+    if (!object(v) || depth > 8 || --remaining<0) return false;
+    if (v.shape === 'named_string') return shape(v,['shape','type_id','revision']) && text(v.type_id) && revision(v.revision);
     if (v.shape === 'scalar') return shape(v,['shape','kind']) && ['string','integer','double','boolean','date','timestamp'].includes(v.kind);
     if (v.shape === 'array') return shape(v,['shape','element']) && value(v.element,depth+1);
     return v.shape === 'struct' && shape(v,['shape','fields']) && list(v.fields) && v.fields.every(f => shape(f,['name','value_type','required']) && text(f.name) && typeof f.required === 'boolean' && value(f.value_type,depth+1));
   }
-  const property = p => shape(p,['name','tier','data_class','required','value_type','display']) && text(p.name) && ['scalar','vector','timeseries','geo','ciphertext','struct'].includes(p.tier) && text(p.data_class) && typeof p.required === 'boolean' && (p.value_type === null || value(p.value_type)) && display(p.display);
+  const constant = v => {const budget={nodes:remaining},valid=ontologyDefaultConstant(v,budget);remaining=budget.nodes;return valid;};
+  const property = p => (shape(p,['name','tier','data_class','required','value_type','display']) || shape(p,['name','tier','data_class','required','value_type','display','default_value']) && constant(p.default_value)) && text(p.name) && ['scalar','vector','timeseries','geo','ciphertext','struct'].includes(p.tier) && text(p.data_class) && typeof p.required === 'boolean' && (p.value_type === null || value(p.value_type)) && display(p.display);
   const entity = e => shape(e,['id','display_name','properties','revision','pillar','primary_key_property','title_property','display']) && text(e.id) && text(e.display_name) && list(e.properties) && e.properties.every(property) && revision(e.revision) && [null,'org','person'].includes(e.pillar) && nullable(e.primary_key_property) && nullable(e.title_property) && display(e.display);
   const link = l => shape(l,['id','from_entity_type','to_entity_type','cardinality','allow_cross_tenant','revision','display']) && [l.id,l.from_entity_type,l.to_entity_type].every(v=>text(v)) && ['one_to_one','one_to_many','many_to_many'].includes(l.cardinality) && typeof l.allow_cross_tenant === 'boolean' && revision(l.revision) && display(l.display);
-  const document = d => shape(d,['entities','links']) && list(d.entities) && d.entities.every(entity) && list(d.links) && d.links.every(link) && new TextEncoder().encode(JSON.stringify(d)).length <= 1048576;
+  function document(d) {
+    remaining=4096;
+    if(!(shape(d,['entities','links']) || shape(d,['entities','links','named_string_types'])))return false;
+    if(Object.hasOwn(d,'named_string_types') && (!list(d.named_string_types) || !d.named_string_types.every(row=>{
+      if(!shape(row,['id','revision','display_name','members']) || !text(row.id) || !revision(row.revision) || !text(row.display_name) || !list(row.members) || !row.members.every(v=>text(v)))return false;
+      remaining-=1+row.members.length;return remaining>=0;
+    })))return false;
+    return list(d.entities) && d.entities.every(entity) && list(d.links) && d.links.every(link) && new TextEncoder().encode(JSON.stringify(d)).length <= 1048576;
+  }
   const receipt = r => shape(r,['generation','prior_generation','draft_id','draft_version','owner']) && ['generation','prior_generation','draft_id','draft_version'].every(k=>decimal(r[k])) && BigInt(r.generation) === BigInt(r.prior_generation)+1n && text(r.owner,256);
   const assert = valid => { if (!valid) throw new Error('model_unavailable'); };
   function draft(d, identity, id=null) {
@@ -37,8 +48,8 @@ function ontologyModelEqual(a,b) {
   const keys=Object.keys(a); return keys.length===Object.keys(b).length && keys.every(k=>Object.hasOwn(b,k) && ontologyModelEqual(a[k],b[k]));
 }
 function ontologyModelRows(document) {
-  const declaration = v => v===null ? null : v.shape==='scalar' ? {kind:v.kind} : v.shape==='array' ? {kind:'array',element:declaration(v.element)} : {kind:'struct',fields:v.fields.map(f=>({...f,value_type:declaration(f.value_type)}))};
-  return {schemas:document.entities.map(e=>({entity_type:e.id,display_name:e.display_name,revision:e.revision,properties:e.properties.map(p=>({...p,value_type:declaration(p.value_type)})),primary_key_property:e.primary_key_property,title_property:e.title_property})),links:document.links.map(l=>({...l,link_type:l.id}))};
+  const declaration = v => v===null ? null : v.shape==='scalar' ? {kind:v.kind} : v.shape==='array' ? {kind:'array',element:declaration(v.element)} : v.shape==='named_string' ? {kind:'named_string',type_id:v.type_id,revision:v.revision,display_name:(document.named_string_types || []).filter(t=>t.id===v.type_id && t.revision===v.revision).length===1?(document.named_string_types || []).find(t=>t.id===v.type_id && t.revision===v.revision).display_name:null} : {kind:'struct',fields:v.fields.map(f=>({...f,value_type:declaration(f.value_type)}))};
+  return {values:document.named_string_types || [],schemas:document.entities.map(e=>({entity_type:e.id,display_name:e.display_name,revision:e.revision,properties:e.properties.map(p=>({...p,value_type:declaration(p.value_type)})),primary_key_property:e.primary_key_property,title_property:e.title_property})),links:document.links.map(l=>({...l,link_type:l.id}))};
 }
 function ontologyModelDiagnosticTarget(document, diagnostic) {
   const matches=[];
@@ -57,6 +68,13 @@ function ontologyModelDiagnosticTarget(document, diagnostic) {
       add(['unsupported_data_class'],propertyPath,target('property-choice'));
       add(['invalid_value_type','value_type_tier_mismatch','primary_key_not_scalar'],propertyPath,target('property-kind'));
       add(['primary_key_not_required'],propertyPath,target('property-required'));
+      add(['invalid_property_default'],`${propertyPath}.default_value`,target('property-default-value'));
+      function references(value,path){
+        if(value?.shape==='named_string')add(['unknown_named_string_type','invalid_named_string_type_id','invalid_named_string_revision','unsupported_named_string_position'],path,target('property-kind'));
+        if(value?.shape==='array')references(value.element,`${path}.element`);
+        if(value?.shape==='struct')for(const field of value.fields)references(field.value_type,`${path}.fields.${field.name}.value_type`);
+      }
+      references(property.value_type,`${propertyPath}.value_type`);
     });
   }
   for(const link of document.links){

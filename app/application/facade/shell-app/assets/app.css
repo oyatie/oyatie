@@ -13425,7 +13425,7 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-model-choice label { color:var(--ink-muted); }
 .foundry-draft-controls p { order:1; flex-basis:100%; margin:0; overflow-wrap:anywhere; color:var(--ink-muted); font-size:.875rem; }
 .foundry-editor-form { display:grid; grid-template-columns:minmax(0,1fr); gap:.45rem; margin:.75rem 0; }
-.foundry-workspace .foundry-editor-form input, .foundry-workspace .foundry-editor-form select, .foundry-workspace .foundry-draft-controls select, #live-ontology-property-choice { width:100%; min-width:0; min-height:max(44px,2.75rem); padding:.5rem; font:inherit; font-size:1rem; border:1px solid var(--rule); border-radius:var(--radius-sm); background:var(--paper-raised); color:var(--ink); box-sizing:border-box; }
+.foundry-workspace .foundry-editor-form input, .foundry-workspace .foundry-default-form textarea, .foundry-workspace .foundry-editor-form select, .foundry-workspace .foundry-draft-controls select, #live-ontology-property-choice { width:100%; min-width:0; min-height:max(44px,2.75rem); padding:.5rem; font:inherit; font-size:1rem; border:1px solid var(--rule); border-radius:var(--radius-sm); background:var(--paper-raised); color:var(--ink); box-sizing:border-box; }
 .foundry-draft-controls select { max-width:24rem; }
 .foundry-workspace .foundry-model-choice select { width:clamp(12rem,18vw,24rem); max-width:100%; }
 .foundry-draft-tray { min-width:0; border-top:1px solid var(--rule); padding:.5rem .75rem; overflow-wrap:anywhere; }
@@ -13540,3 +13540,9 @@ html:has(.console-app[data-shell-frame="foundry"] #live-ontology-explorer[data-w
 .foundry-edit-settings > label { margin:.5rem 0 .25rem; }
 .foundry-value-form label > :is(input,select) { font-weight:400; }
 @media (min-width:72.001rem) { .foundry-inspector { scroll-padding-top:8rem; } .foundry-inspector > summary { top:0; } }
+
+.foundry-default-form { display:grid; gap:.5rem; min-width:0; }
+.foundry-default-form label { display:grid; gap:.35rem; }
+.foundry-default-form fieldset { min-width:0; margin:.5rem 0; padding:.65rem; border:1px solid var(--rule); border-radius:var(--radius-sm); }
+.foundry-default-form [aria-invalid="true"] { border:2px solid var(--danger, #b42318); }
+.foundry-default-form .foundry-default-error { color:var(--danger, #b42318); }

@@ -169,13 +169,8 @@ pub async fn submit_action(
     }
 }
 
-/// The edit set is a PURE FUNCTION OF THE REQUEST, and that is the retry
-/// contract, not a simplification. An earlier version chose the edit kind
-/// by asking whether the projection already held the object — which made
-/// the same request produce different bytes before and after it landed, so
-/// a retry arrived as divergent content under a spent key and conflicted
-/// instead of deduplicating. Nothing about how the payload is built may
-/// depend on state the request cannot see.
+/// Keep submitted edits stable; the writer retains them separately when
+/// creation defaults expand the effective edits.
 fn edits_for(request: &SubmitRequest) -> Result<EditSet, ()> {
     let properties: Vec<WireProperty> = request
         .properties

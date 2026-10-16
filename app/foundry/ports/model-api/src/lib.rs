@@ -10,6 +10,8 @@ mod discovery;
 mod document;
 mod integrity;
 mod ledger;
+mod literal;
+mod literal_native;
 mod named_strings;
 mod native;
 mod reference;
@@ -25,6 +27,7 @@ pub use admission::PreparedPublication;
 pub use discovery::{DraftPage, DraftPageRequest, DraftSummary};
 pub use document::*;
 pub use ledger::ModelLedger;
+pub use literal::{ModelValue, ModelValueField};
 pub use reference::ReferenceModelStore;
 pub use store::*;
 pub use values::*;
@@ -33,3 +36,6 @@ pub use schema::{MAX_ONTOLOGY_SCHEMA_BYTES, schema_bytes};
 
 #[cfg(test)]
 mod named_strings_tests;
+
+#[cfg(test)]
+mod defaults_tests;

@@ -22,5 +22,7 @@ pub use edit::{
 };
 pub use encode::{encode_action_record, encode_denial_record};
 pub use property::{WireDataClass, WireProperty, WirePropertyError, WireTier};
-pub use record::{ActionRecord, DenialRecord, RecordError, WIRE_FORMAT_VERSION};
+pub use record::{
+    ActionRecord, DEFAULTED_ACTION_FORMAT_VERSION, DenialRecord, RecordError, WIRE_FORMAT_VERSION,
+};
 pub use value::{WireDate, WireDouble, WireValue, WireValueError};

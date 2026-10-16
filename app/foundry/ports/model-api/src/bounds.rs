@@ -119,6 +119,52 @@ impl ModelEntity {
             if let Some(kind) = &property.value_type {
                 value_bounds(kind, 1, remaining, path)?;
             }
+            if let Some(value) = &property.default_value {
+                value.bounds(1, remaining, path)?;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl ModelValue {
+    pub(crate) fn bounds(
+        &self,
+        depth: usize,
+        remaining: &mut usize,
+        path: &str,
+    ) -> Result<(), ModelError> {
+        if depth > data_ontology_kernel::MAX_VALUE_TYPE_DEPTH || *remaining == 0 {
+            return Err(ModelError::Limit { path: path.into() });
+        }
+        *remaining -= 1;
+        match self {
+            Self::String { value } => text(value, path)?,
+            Self::Date { year, month, day } => {
+                data_ontology_kernel::CalendarDate::new(*year, *month, *day)
+                    .map_err(|_| ModelError::MalformedDocument)?;
+            }
+            Self::Array { items } => {
+                if items.len() > MAX_MODEL_ITEMS {
+                    return Err(ModelError::Limit { path: path.into() });
+                }
+                for item in items {
+                    item.bounds(depth + 1, remaining, path)?;
+                }
+            }
+            Self::Struct { fields } => {
+                if fields.len() > MAX_MODEL_ITEMS {
+                    return Err(ModelError::Limit { path: path.into() });
+                }
+                for (name, value) in fields {
+                    text(name, path)?;
+                    value.bounds(depth + 1, remaining, path)?;
+                }
+            }
+            Self::Integer { .. }
+            | Self::Double { .. }
+            | Self::Boolean { .. }
+            | Self::Timestamp { .. } => {}
         }
         Ok(())
     }

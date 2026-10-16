@@ -54,6 +54,7 @@ impl OntologyEngine {
                 .iter()
                 .map(|p| (p.name.as_str(), &p.tier, p.value_type.as_ref())),
         )?;
+        self.check_property_defaults(&definition)?;
         let key = ontology_scoped_key(&definition.tenant_id, &definition.id.value);
         match self.entity_types.get(&key) {
             None => {

@@ -10,6 +10,7 @@ mod link_action_versioning;
 mod link_instances;
 mod object_graph;
 mod pillar_links;
+mod property_defaults;
 mod registry_names;
 mod revision_retention;
 mod schema_evolution;

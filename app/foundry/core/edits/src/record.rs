@@ -1,33 +1,35 @@
 //! The payload roots: what an appended envelope's bytes describe.
 
-use crate::edit::EditSet;
+use crate::edit::{EditSet, OntologyEdit};
 use crate::property::WireProperty;
 
 pub const WIRE_FORMAT_VERSION: u16 = 1;
+pub const DEFAULTED_ACTION_FORMAT_VERSION: u16 = 2;
 
 /// Why a payload root was refused at construction.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RecordError {
     Empty { field: &'static str },
     NotTrimmed { field: &'static str },
+    UnchangedSubmittedEdits,
+    InvalidDefaultEdits,
 }
 
 /// One applied Action, as its payload bytes describe it.
 ///
-/// Every field is a pure function of (request, decision, edit): the spine
-/// never reads a clock or mints an id, so `occurred_at_epoch_ms` derives
-/// from the caller's request — that determinism is what makes the
-/// byte-identical retry contract hold.
+/// Version 2 retains submitted edits alongside materialized creation defaults,
+/// so retries compare original input while replay applies explicit values.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ActionRecord {
-    pub wire_format_version: u16,      // data_class: INTERNAL_ONLY
-    pub principal_id: String,          // data_class: INTERNAL_ONLY
-    pub decision_id: String,           // data_class: INTERNAL_ONLY
-    pub audit_event_type: String,      // data_class: INTERNAL_ONLY
-    pub idempotency_key: String,       // data_class: INTERNAL_ONLY
-    pub occurred_at_epoch_ms: u64,     // data_class: INTERNAL_ONLY
-    pub parameters: Vec<WireProperty>, // data_class: PII_IDENTIFYING
-    pub edits: EditSet,                // data_class: PII_IDENTIFYING
+    pub wire_format_version: u16,         // data_class: INTERNAL_ONLY
+    pub principal_id: String,             // data_class: INTERNAL_ONLY
+    pub decision_id: String,              // data_class: INTERNAL_ONLY
+    pub audit_event_type: String,         // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,          // data_class: INTERNAL_ONLY
+    pub occurred_at_epoch_ms: u64,        // data_class: INTERNAL_ONLY
+    pub parameters: Vec<WireProperty>,    // data_class: PII_IDENTIFYING
+    pub edits: EditSet,                   // data_class: PII_IDENTIFYING
+    pub submitted_edits: Option<EditSet>, // data_class: PII_IDENTIFYING
 }
 
 impl ActionRecord {
@@ -49,6 +51,7 @@ impl ActionRecord {
             occurred_at_epoch_ms,
             parameters,
             edits,
+            submitted_edits: None,
         };
         validate_identity_fields([
             ("principal_id", &record.principal_id),
@@ -58,6 +61,50 @@ impl ActionRecord {
         ])?;
         Ok(record)
     }
+
+    pub fn with_submitted_edits(mut self, edits: EditSet) -> Result<Self, RecordError> {
+        if edits == self.edits {
+            return Err(RecordError::UnchangedSubmittedEdits);
+        }
+        if !default_extension(&edits, &self.edits) {
+            return Err(RecordError::InvalidDefaultEdits);
+        }
+        self.wire_format_version = DEFAULTED_ACTION_FORMAT_VERSION;
+        self.submitted_edits = Some(edits);
+        Ok(self)
+    }
+}
+
+fn default_extension(submitted: &EditSet, effective: &EditSet) -> bool {
+    submitted.edits().len() == effective.edits().len()
+        && submitted
+            .edits()
+            .iter()
+            .zip(effective.edits())
+            .all(|(before, after)| match (before, after) {
+                (
+                    OntologyEdit::CreateObject {
+                        entity_type: original_type,
+                        properties: original,
+                    },
+                    OntologyEdit::CreateObject {
+                        entity_type,
+                        properties,
+                    },
+                ) => {
+                    if original_type != entity_type || !properties.starts_with(original) {
+                        return false;
+                    }
+                    let mut names: std::collections::BTreeSet<_> = original
+                        .iter()
+                        .map(|property| property.name.as_str())
+                        .collect();
+                    properties[original.len()..]
+                        .iter()
+                        .all(|property| names.insert(property.name.as_str()))
+                }
+                _ => before == after,
+            })
 }
 
 /// One refused Action, as the SEPARATE audit log's payload bytes describe

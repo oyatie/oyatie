@@ -1,9 +1,7 @@
 //! The writer's retry contract: a retry of the same request deduplicates
 //! to the original outcome whether or not its decision is fresh (the log
-//! keeps the first decision; this overturns the earlier conflict pin, since
-//! the decision point mints a decision per request), divergent content
-//! under a spent key conflicts, and a dedup onto a poisoned ordinal reports
-//! Poisoned.
+//! keeps the first decision), divergent input conflicts, and poisoned
+//! ordinals retain their original outcome.
 
 use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
@@ -16,6 +14,9 @@ use foundry_records_draft::{ActionEnvelope, Receipt, RecordsLog, RecordsLogError
 use foundry_spine::{
     ActionSubmission, ApplyOutcome, ProjectionState, RefusalGate, WriteError, submit,
 };
+
+#[path = "writer_retry/defaults.rs"]
+mod defaults;
 
 fn internal() -> PrivacyDataClass {
     PrivacyDataClass::try_from(DataClass::InternalOnly).unwrap()
