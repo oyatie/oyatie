@@ -11,10 +11,10 @@ use super::identifiers::{EntityTypeId, validate_ontology_tenant};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EntityTypePropertyDefinition {
-    pub name: String,
+    pub name: String, // data_class: INTERNAL_ONLY
     pub tier: PropertyTier,
     pub data_class: PrivacyDataClass,
-    pub required: bool,
+    pub required: bool, // data_class: INTERNAL_ONLY
     /// Declared value type; `None` is the legacy string contract. Once
     /// `Some`, immutable across revisions (see `check_property_compatibility`).
     pub value_type: Option<ValueTypeDeclaration>,
@@ -23,11 +23,11 @@ pub struct EntityTypePropertyDefinition {
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EntityTypeDefinition {
-    pub tenant_id: String,
+    pub tenant_id: String, // data_class: INTERNAL_ONLY
     pub id: EntityTypeId,
     pub display_name: Classified<String>,
     pub properties: Vec<EntityTypePropertyDefinition>,
-    pub revision: u32,
+    pub revision: u32, // data_class: INTERNAL_ONLY
     /// Optional pillar annotation for org/person isolation (Bominal-ADR-0132).
     /// `None` means the entity type is pillar-agnostic and does not
     /// participate in cross-pillar link rejection.
