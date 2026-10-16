@@ -51,7 +51,7 @@ const CHECK: &str = r#"
   assert.deepEqual(created.properties.slice(1).map(p=>[p.name,p.value_type,p.required,p.data_class]),[['birth_date',{shape:'scalar',kind:'date'},true,'InternalOnly'],['recorded_at',{shape:'scalar',kind:'timestamp'},false,'InternalOnly']],'creation saves the chosen native shapes without intermediate default declarations');
   assert.equal(created.properties.length,3);assert.equal(created.revision,1,'creation keeps the explicitly selected revision');
   assert.equal(modelDrafts.get(firstId).document.links[0].cardinality,'many_to_many');assert.equal(modelDrafts.get(firstId).document.links[0].allow_cross_tenant,false);
-  for(const [field,values] of [['new-property-kind',['string','integer','double','boolean','date','timestamp','array','struct']],['new-property-required',['optional','required']],['new-link-cardinality',['one_to_many','one_to_one','many_to_many']]]){
+  for(const [field,values] of [['new-property-kind',['string','integer','double','boolean','date','timestamp','array','struct','named_string']],['new-property-required',['optional','required']],['new-link-cardinality',['one_to_many','one_to_one','many_to_many']]]){
     assert.ok(input.html.includes(`for="live-ontology-${field}"`),'each creation choice has an associated label');
     const select=input.html.match(new RegExp(`<select\\b[^>]*id="live-ontology-${field}"[^>]*>(.*?)</select>`));assert.ok(select,'creation select is in the rendered shell');
     assert.deepEqual([...select[1].matchAll(/<option\b[^>]*value="([^"]+)"/g)].map(match=>match[1]),values,'only native creation choices are exposed');

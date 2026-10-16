@@ -1,12 +1,15 @@
 #[path = "editor_codec.rs"]
 mod editor_codec;
+#[path = "editor_defaults.rs"]
+mod editor_defaults;
 #[path = "editor_forms.rs"]
 mod editor_forms;
 #[path = "editor_values.rs"]
 mod editor_values;
 pub(super) fn script() -> String {
     format!(
-        "{}\n{}\n{}\n{}",
+        "{}\n{}\n{}\n{}\n{}",
+        editor_defaults::SCRIPT,
         editor_codec::SCRIPT,
         editor_values::SCRIPT,
         editor_forms::SCRIPT,
@@ -74,7 +77,7 @@ function createOntologyDraftEditor(lifecycle, view) {
     if(forms.selectedLink())view.selectLink(forms.selectedLink());forms.describe();diff();controls();
   }
   const forms=createOntologyDraftForms({find,document:()=>working,baseline:()=>workspace?.document,editable:()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication && !loading && !pending && !blocked,
-    acceptInput:()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication, dirty:()=>formDirty, input:()=>{formDirty=true;validation=null;find('draft-diagnostics').replaceChildren();note('Unapplied form edits. Apply changes or discard and reload before saving or validating.');controls();},
+    acceptInput:()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication, dirty:()=>formDirty, input:()=>{forms.diagnostics([]);formDirty=true;validation=null;find('draft-diagnostics').replaceChildren();note('Unapplied form edits. Apply changes or discard and reload before saving or validating.');controls();},
     changed:unapplied=>{formDirty=unapplied;validation=null;find('draft-diagnostics').replaceChildren();note(unapplied?'Unapplied form edits remain. Apply changes or discard and reload before saving or validating.':'Unsaved local edits. Save the draft before schema validation.');render();},describe:value=>{if(active() && draft && mode==='schema')renderOntologySelectedContext(value);},note});
   function hide(preserve=false) {
     for(const id of ['draft-controls','draft-inspector','draft-tray'])find(id).hidden=true;
@@ -196,7 +199,7 @@ function createOntologyDraftEditor(lifecycle, view) {
     if(!draft || unsaved() || formDirty || pending || blocked || loading)return;
     run('Validating saved changes…',async token=>{
       if(!await freshCapability(token,'validate'))return;const snapshot=clone(draft);const value=await request(`/drafts/${snapshot.id}/validate`,token,{expected_version:snapshot.version,expected_base:snapshot.base_generation});if(!value || !valid(token))return;
-      ontologyModelWire.validation(value,snapshot);if(!savedMatches(snapshot))return;validation=value;
+      ontologyModelWire.validation(value,snapshot);if(!savedMatches(snapshot))return;validation=value;forms.diagnostics(value.diagnostics);
       const owner={tenantId:identity.tenantId,userId:identity.userId,generation};
       find('draft-diagnostics').replaceChildren(ontologyTable('Schema validation',['Code','Field path','Message','Inspect declaration'],value.diagnostics.map(d=>[d.code,d.path,d.message,inspectionAction(d,snapshot,value,owner)])));
       note(value.valid?`Saved changes pass schema validation · version ${snapshot.version}. Publishing is not available yet.`:`Saved changes were refused by schema validation · version ${snapshot.version}.`);

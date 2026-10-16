@@ -179,6 +179,53 @@ fn now() -> i64 {
 }
 
 #[tokio::test]
+async fn model_default_proxy_preserves_lossless_values_and_refuses_malformed_metadata_locally() {
+    let iam = Fixture::new(&session()).await;
+    let document = serde_json::json!({"entities":[{"id":"ety_count","display_name":"Count","properties":[{"name":"count","tier":"scalar","data_class":"InternalOnly","required":false,"value_type":{"shape":"scalar","kind":"integer"},"display":null,"default_value":{"kind":"integer","value":"9223372036854775807"}}],"revision":1,"pillar":null,"primary_key_property":null,"title_property":null,"display":null}],"links":[]});
+    let draft = serde_json::json!({"id":"1","tenant_id":"ten_acme","owner":"usr_alice","base_generation":"1","version":"1","document":document,"publication":null});
+    let foundry = Fixture::new(&draft.to_string()).await;
+    foundry.reply.lock().unwrap().status = StatusCode::CREATED;
+    let shell = iam.shell(&foundry);
+    let request = serde_json::json!({"expected_generation":"1","document":document});
+    let response = call(
+        shell.clone(),
+        Method::POST,
+        "/api/ontology/ten_acme/model/drafts",
+        headers(),
+        request.to_string(),
+    )
+    .await;
+    expect_no_store(&response, StatusCode::CREATED);
+    assert_eq!(json(response).await, draft);
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&foundry.calls.lock().unwrap()[0].2).unwrap(),
+        request
+    );
+    for malformed in [
+        serde_json::Value::Null,
+        serde_json::json!({"kind":"integer","value":9223372036854775807_i64}),
+        serde_json::json!({"kind":"integer","value":"01"}),
+        serde_json::json!({"kind":"integer","value":"9223372036854775808"}),
+        serde_json::json!({"kind":"integer","value":"0","future":true}),
+        serde_json::json!(["integer", "0"]),
+    ] {
+        let mut invalid = request.clone();
+        invalid["document"]["entities"][0]["properties"][0]["default_value"] = malformed;
+        let response = call(
+            shell.clone(),
+            Method::POST,
+            "/api/ontology/ten_acme/model/drafts",
+            headers(),
+            invalid.to_string(),
+        )
+        .await;
+        expect_no_store(&response, StatusCode::BAD_REQUEST);
+        assert_eq!(json(response).await["error"], "malformed_request");
+    }
+    assert_eq!(foundry.calls.lock().unwrap().len(), 1);
+}
+
+#[tokio::test]
 async fn model_extractor_refusals_keep_closed_semantic_bodies_and_no_store() {
     let iam = Fixture::new(&session()).await;
     let foundry = Fixture::new("{}").await;

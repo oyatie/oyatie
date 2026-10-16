@@ -145,6 +145,13 @@ fn native(mut path: String, cause: Native) -> ModelDiagnostic {
                 "Use a valid scalar, array or struct declaration.",
             )
         }
+        Native::InvalidPropertyDefault { name, .. } => {
+            path.push_str(&format!(".properties.{name}.default_value"));
+            (
+                "invalid_property_default",
+                "Use a default value that matches the declared property type and allowed values.",
+            )
+        }
         Native::ValueTypeTierMismatch { name } => {
             path.push_str(&format!(".properties.{name}"));
             (

@@ -5,12 +5,9 @@ use super::{
 use application_ontology_read::*;
 use std::time::Duration;
 fn document() -> ModelDocument {
-    ModelDocument {
-        named_string_types: vec![],
-        entities: vec![],
-        links: vec![],
-    }
+    ModelDocument::decode(br#"{"entities":[{"id":"ety_counter","display_name":"Counter","properties":[{"name":"count","tier":"scalar","data_class":"InternalOnly","required":false,"value_type":{"shape":"scalar","kind":"integer"},"display":null,"default_value":{"kind":"integer","value":"9223372036854775807"}}],"revision":1,"pillar":null,"primary_key_property":null,"title_property":null,"display":null}],"links":[]}"#).unwrap()
 }
+
 fn draft(id: &str, version: &str) -> ModelDraftWire {
     ModelDraftWire::decode(serde_json::json!({"id":id,"tenant_id":"ten_acme","owner":"usr_alice","base_generation":"9007199254740993","version":version,"document":document(),"publication":null}).to_string().as_bytes()).unwrap()
 }

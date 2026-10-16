@@ -1,6 +1,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 use foundry_model_api::{control::*, *};
 use reqwest::{Method, StatusCode};
+#[path = "model_runtime/defaults.rs"]
+mod defaults;
 #[path = "model_runtime/hot_publish.rs"]
 mod hot_publish;
 #[path = "model_runtime/named_strings.rs"]
@@ -60,6 +62,7 @@ async fn standard_process_opens_established_model_through_real_human_routes() {
         data_class: ModelPrivacy::internal_only(),
         required: false,
         display: None,
+        default_value: None,
         value_type: Some(ModelValueType::Array {
             element: Box::new(ModelValueType::Scalar {
                 kind: ModelScalar::String,

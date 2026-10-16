@@ -5,7 +5,7 @@
 //! first carries one. An existing version's layout is NEVER mutated;
 //! evolution mints the next version.
 
-use crate::edit::OntologyEdit;
+use crate::edit::{EditSet, OntologyEdit};
 use crate::property::WireProperty;
 use crate::record::{ActionRecord, DenialRecord};
 use crate::value::WireValue;
@@ -20,12 +20,18 @@ pub fn encode_action_record(record: &ActionRecord) -> Vec<u8> {
     string(&mut out, &record.idempotency_key);
     out.extend(record.occurred_at_epoch_ms.to_le_bytes());
     properties(&mut out, &record.parameters);
-    let edits = record.edits.edits();
-    count(&mut out, edits.len());
-    for item in edits {
-        edit(&mut out, item);
+    edits(&mut out, &record.edits);
+    if let Some(submitted) = &record.submitted_edits {
+        edits(&mut out, submitted);
     }
     out
+}
+
+fn edits(out: &mut Vec<u8>, set: &EditSet) {
+    count(out, set.edits().len());
+    for item in set.edits() {
+        edit(out, item);
+    }
 }
 
 /// The canonical bytes of a [`DenialRecord`].

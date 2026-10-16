@@ -24,6 +24,7 @@ pub fn property(name: &str, required: bool) -> ModelProperty {
             kind: ModelScalar::String,
         }),
         display: None,
+        default_value: None,
     }
 }
 pub fn baseline() -> ModelBaseline {
