@@ -19,6 +19,85 @@ fn source(
         },
     )
 }
+
+#[tokio::test]
+async fn native_fake_keeps_invalid_default_drafts_repairable_and_lossless() {
+    let baseline = ModelDocument::decode(br#"{"entities":[],"links":[]}"#).unwrap();
+    let store = ReferenceModelStore::initialize(
+        ModelBinding {
+            tenant_id: "ten_acme".into(),
+            store_id: "defaults".into(),
+            baseline_id: "initial".into(),
+        },
+        ModelBaseline {
+            document: baseline,
+            prior_entity_revisions: vec![],
+        },
+    )
+    .unwrap();
+    let author = source(true, true, &store, "usr_author");
+    let document = ModelDocument::decode(br#"{"entities":[{"id":"ety_counter","display_name":"Counter","properties":[{"name":"count","tier":"scalar","data_class":"InternalOnly","required":false,"value_type":{"shape":"scalar","kind":"integer"},"display":null,"default_value":{"kind":"string","value":"invalid carrier"}}],"revision":1,"pillar":null,"primary_key_property":null,"title_property":null,"display":null}],"links":[]}"#).unwrap();
+    let draft = author
+        .create_draft(
+            "ten_acme",
+            &CreateModelDraft {
+                expected_generation: ModelNumber::new(1).unwrap(),
+                document: document.clone(),
+            },
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        author.draft("ten_acme", draft.id).await.unwrap().document,
+        document
+    );
+    let validation = author
+        .validate_draft(
+            "ten_acme",
+            draft.id,
+            &PrepareModelDraft {
+                expected_version: draft.version,
+                expected_base: draft.base_generation,
+            },
+        )
+        .await
+        .unwrap();
+    assert!(!validation.valid);
+    let mut repaired = serde_json::to_value(document).unwrap();
+    repaired["entities"][0]["properties"][0]["default_value"] =
+        serde_json::json!({"kind":"integer","value":"9223372036854775807"});
+    let document = ModelDocument::decode(&serde_json::to_vec(&repaired).unwrap()).unwrap();
+    let saved = author
+        .save_draft(
+            "ten_acme",
+            draft.id,
+            &SaveModelDraft {
+                expected_version: draft.version,
+                expected_base: draft.base_generation,
+                document: document.clone(),
+            },
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        author.draft("ten_acme", draft.id).await.unwrap().document,
+        document
+    );
+    assert!(
+        author
+            .validate_draft(
+                "ten_acme",
+                saved.id,
+                &PrepareModelDraft {
+                    expected_version: saved.version,
+                    expected_base: saved.base_generation,
+                },
+            )
+            .await
+            .unwrap()
+            .valid
+    );
+}
 #[tokio::test]
 async fn native_fake_save_reopen_versions_owner_and_read_author_are_separate() {
     let document = ModelDocument {

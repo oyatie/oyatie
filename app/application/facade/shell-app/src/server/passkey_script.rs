@@ -289,3 +289,6 @@ mod workbench_context_test;
 
 #[cfg(test)]
 mod selected_inspector_test;
+
+#[cfg(test)]
+mod property_defaults_test;
