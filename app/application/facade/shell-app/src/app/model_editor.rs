@@ -40,7 +40,7 @@ pub(super) fn ModelDraftInspector() -> impl IntoView {
                 <label for="live-ontology-property-required">"Presence"</label><select id="live-ontology-property-required"><option value="required">"Required"</option><option value="optional">"Optional"</option></select>
                 <div id="live-ontology-property-default" class="foundry-default-form"></div>
                 <label for="live-ontology-property-display">"Property display name"</label><input id="live-ontology-property-display" type="text" maxlength="4096" />
-                <p id="live-ontology-property-compatibility"></p><button type="submit">"Apply property changes"</button>
+                <p id="live-ontology-property-compatibility"></p><button id="live-ontology-property-restore" type="button" hidden>"Restore published value declaration"</button><button type="submit">"Apply property changes"</button>
             </form>
             <form id="live-ontology-entity-edit" class="foundry-editor-form" hidden>
                 <details id="live-ontology-type-settings" class="foundry-edit-settings"><summary>"Type settings"</summary>

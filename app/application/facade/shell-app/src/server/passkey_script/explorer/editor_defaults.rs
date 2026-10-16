@@ -16,6 +16,12 @@ function ontologyDefaultConstant(value, budget={nodes:4096}, depth=1) {
   if(value.kind==='array')return shape(value,['kind','items']) && Array.isArray(value.items) && value.items.length<=256 && value.items.every(item=>ontologyDefaultConstant(item,budget,depth+1));
   return value.kind==='struct' && shape(value,['kind','fields']) && Array.isArray(value.fields) && value.fields.length<=256 && new Set(value.fields.map(field=>field?.name)).size===value.fields.length && value.fields.every(field=>shape(field,['name','value']) && text(field.name) && ontologyDefaultConstant(field.value,budget,depth+1));
 }
+function ontologyDefaultCanonical(value){
+  if(value.kind==='array')return {kind:'array',items:value.items.map(ontologyDefaultCanonical)};
+  if(value.kind!=='struct')return value;
+  const compare=(a,b)=>{const left=Array.from(a.name),right=Array.from(b.name);for(let i=0;i<Math.min(left.length,right.length);i++){const order=left[i].codePointAt(0)-right[i].codePointAt(0);if(order)return order;}return left.length-right.length;};
+  return {kind:'struct',fields:value.fields.map(field=>({name:field.name,value:ontologyDefaultCanonical(field.value)})).sort(compare)};
+}
 function ontologyDefaultText(value){
   if(value===undefined)return 'No default';
   if(value.kind==='array')return `[${value.items.map(ontologyDefaultText).join(', ')}]`;
@@ -79,7 +85,7 @@ function createOntologyDefaultForm(host, changed, label, catalog=()=>[], readTyp
       if(['integer','double','timestamp'].includes(value.kind))input.inputMode=value.kind==='double'?'decimal':'numeric';
       read=()=>{if(value.kind==='double' && !/^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/.test(input.value))throw new Error('Enter a finite decimal number.');return value.kind==='timestamp'?{kind:value.kind,epoch_millis:input.value}:{kind:value.kind,value:value.kind==='double'?Number(input.value):input.value};};capture=()=>value.kind==='timestamp'?{kind:value.kind,epoch_millis:input.value}:{kind:value.kind,value:input.value};
     }
-    const target=inputs[0] || host;if(!inputs.length)target.setAttribute('tabindex','-1');
+    const target=inputs[0] || host;if(!inputs.length){target.setAttribute('role','group');target.setAttribute('tabindex','-1');}
     return {host,target,read,capture};
   }
   function enable(value){enabled=Boolean(value);for(const control of controls())control.disabled=!enabled || control.dataset.depthLimit==='true';if(root)root.target.disabled=!enabled;}
@@ -97,7 +103,7 @@ function createOntologyDefaultForm(host, changed, label, catalog=()=>[], readTyp
   }
   return {
     write(type,value){declaration=type;present=value!==undefined;original=value;problem='';render(value);originalState=root?.capture() ?? null;},
-    read(){if(!present)return undefined;try{const result=ontologyModelEqual(root.capture(),originalState)?original:root.read();if(!ontologyDefaultConstant(result)){error('Enter a valid default value within the native type and size limits.');throw new Error('Enter a valid default value within the native type and size limits.');}return result;}catch(problem){error(problem.message);throw problem;}},
+    read(){if(!present)return undefined;try{const result=ontologyModelEqual(root.capture(),originalState)?original:root.read();if(!ontologyDefaultConstant(result)){error('Enter a valid default value within the native type and size limits.');throw new Error('Enter a valid default value within the native type and size limits.');}return ontologyDefaultCanonical(result);}catch(problem){error(problem.message);throw problem;}},
     capture(){return {declaration,present,original,originalState,value:root?.capture(),problem,focus:controls().indexOf(document.activeElement)};},
     restore(snapshot){declaration=snapshot.declaration;present=snapshot.present;original=snapshot.original;originalState=snapshot.originalState;problem=snapshot.problem;render(snapshot.value);if(snapshot.focus>=0 && document.activeElement===document.body)controls()[snapshot.focus]?.focus({preventScroll:true});},
     enable,error,clear(){declaration=null;present=false;original=undefined;originalState=null;problem='';host.replaceChildren();},

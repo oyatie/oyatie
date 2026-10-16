@@ -21,6 +21,7 @@ function createOntologyDraftForms(context) {
   function diagnostics(rows){issues=rows;const selected=declaration()?.properties[propertyIndex],match=selected && rows.find(row=>{const target=ontologyModelDiagnosticTarget(context.document(),row);return target?.kind==='property' && target.id===typeId && target.propertyIndex===propertyIndex && target.focus==='property-default-value';});propertyDefault.error(match?.message || '');newPropertyDefault.error('');}
   const baseline=()=>context.baseline()?.entities.find(e=>e.id===typeId);
   const supported=p=>['scalar','vector','struct'].includes(p.tier) && (p.value_type!==null || p.tier==='scalar');
+  const namedReference=value=>value?.shape==='named_string';
   const tier=value=>value?.shape==='array'?'vector':value?.shape==='struct'?'struct':'scalar';
   function display(prior,changes){
     if(Object.entries(changes).every(([key,value])=>(prior?.[key] ?? '')===value))return prior;
@@ -42,11 +43,12 @@ function createOntologyDraftForms(context) {
     const e=declaration(),p=e?.properties[propertyIndex];find('property-edit').hidden=!p;describe();
     if(!p)return;
     if(!context.dirty()){find('property-name').value=p.name;propertyValue.write(p.value_type);find('property-required').value=p.required?'required':'optional';find('property-display').value=p.display?.display_name ?? '';propertyDefault.write(p.value_type,p.default_value);}
-    const editable=supported(p);
+    const editable=supported(p),prior=baseline()?.properties.find(row=>row.name===p.name),fixed=Boolean(prior && (namedReference(p.value_type) || namedReference(prior.value_type)));
+    find('property-restore').hidden=!fixed || ontologyModelEqual(prior.value_type,p.value_type) && prior.tier===p.tier;
     find('property-compatibility').textContent=`${p.tier} · ${p.data_class}. ${editable?'Scalar, array and struct declarations use native validation. Untouched privacy and appearance metadata is preserved.':'This reserved native declaration is read-only; its complete metadata is preserved.'}`;
     for(const id of ['property-name','property-kind','property-required','property-display'])find(id).disabled=!enabled || !editable;
-    propertyValue.enable(enabled && editable);diagnostics(issues);
-    for(const button of find('property-edit').querySelectorAll('button'))button.disabled=!enabled || !editable;propertyDefault.enable(enabled && editable);
+    propertyValue.enable(enabled && editable && !fixed);find('property-kind').disabled=!enabled || !editable || fixed;diagnostics(issues);
+    for(const button of find('property-edit').querySelectorAll('button'))button.disabled=!enabled || !editable;find('property-restore').disabled=!enabled || context.dirty();propertyDefault.enable(enabled && editable);
   }
 
   function render(modelDocument,draft){
@@ -88,6 +90,7 @@ function createOntologyDraftForms(context) {
     const e=declaration(),p=e?.properties[propertyIndex];if(!p || !supported(p))return;
     const name=named(find('property-name').value),next=propertyValue.read(),presence=find('property-required').value;
     if(e.properties.some((other,i)=>i!==propertyIndex && other.name===name))throw new Error('A property with this name already exists.');
+    if(baseline()?.properties.some(prior=>prior.name===p.name) && (namedReference(p.value_type) || namedReference(next)) && !ontologyModelEqual(p.value_type,next))throw new Error('Published property value types are immutable. Add a new optional property to adopt a reusable type.');
     if(next===null && p.value_type!==null)throw new Error('Legacy String preserves an existing untyped declaration only.');
     if(!['required','optional'].includes(presence))throw new Error('Choose Required or Optional presence.');
     if(baseline()?.primary_key_property===p.name && name!==p.name)throw new Error('A published primary-key property cannot be renamed.');
@@ -114,6 +117,12 @@ function createOntologyDraftForms(context) {
   });
   submit('link-edit',()=>{const l=relationship();if(!l)return;if(l.allow_cross_tenant)throw new Error('Cross-tenant relationship editing requires its native security workflow.');const from=find('link-from').value,to=find('link-to').value,cardinality=find('link-cardinality').value,rev=revision(find('link-revision').value);if(!context.document().entities.some(e=>e.id===from) || !context.document().entities.some(e=>e.id===to) || !cardinalities.includes(cardinality))throw new Error('Choose declared same-tenant endpoints and native cardinality.');l.from_entity_type=from;l.to_entity_type=to;l.cardinality=cardinality;l.revision=rev;});
   submit('link-add',()=>{const d=context.document(),id=named(find('new-link-id').value,'lty_'),from=find('new-link-from').value,to=find('new-link-to').value,cardinality=find('new-link-cardinality').value;if(d.links.length>=256 || d.links.some(l=>l.id===id) || !d.entities.some(e=>e.id===from) || !d.entities.some(e=>e.id===to) || !cardinalities.includes(cardinality))throw new Error('Choose unique relationship ID, declared same-tenant endpoints and native cardinality.');d.links.push({id,from_entity_type:from,to_entity_type:to,cardinality,allow_cross_tenant:false,revision:1,display:null});linkId=id;typeId=null;find('new-link-id').value='';});
+  find('property-restore').addEventListener('click',()=>{
+    if(!context.editable() || context.dirty())return;
+    const e=declaration(),p=e?.properties[propertyIndex],prior=baseline()?.properties.find(row=>row.name===p?.name);if(!p || !prior || !(namedReference(p.value_type) || namedReference(prior.value_type)) || ontologyModelEqual(p.value_type,prior.value_type) && p.tier===prior.tier)return;
+    const owned=document.activeElement===find('property-restore');p.value_type=JSON.parse(JSON.stringify(prior.value_type));p.tier=prior.tier;context.changed(false);
+    const choice=find('property-choice');if(owned && [document.body,find('property-restore')].includes(document.activeElement) && !choice.disabled && choice.getClientRects().length)choice.focus({preventScroll:true});
+  });
   for(const id of ids.filter(id=>id!=='property-choice'))find(id).addEventListener('input',()=>input(id));
   find('property-choice').addEventListener('change',()=>{
     if(context.dirty()){find('property-choice').value=String(propertyIndex);context.note('Apply form edits or discard and reload before changing property.');return;}

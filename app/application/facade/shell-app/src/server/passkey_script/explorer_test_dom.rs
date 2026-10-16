@@ -82,6 +82,7 @@ for(const id of ['draft-more','draft-new','draft-save','draft-reload','draft-val
 for(const id of ['entity-edit','property-edit','property-add','link-edit','entity-add','link-add']){const form=add('live-ontology-'+id,'form',findEditorParent());form.append(new Element('button'));}
 function findEditorParent(){return elements['live-ontology-draft-inspector'];}
 add('live-ontology-draft-inspector-title','h4',findEditorParent()).setAttribute('tabindex','-1');findEditorParent().append(elements['live-ontology-property-choice']);
+add('live-ontology-property-restore','button',elements['live-ontology-property-edit']);
 for(const id of ['property-default','new-property-default'])add('live-ontology-'+id,'div',findEditorParent());
 for(const [form,fields] of [['entity-edit',['entity-name','entity-primary','entity-title','entity-description','entity-plural','entity-revision']],['property-edit',['property-name','property-kind','property-required','property-display','property-value','property-default']],['property-add',['new-property-name','new-property-kind','new-property-required','new-property-value','new-property-default']],['link-edit',['link-from','link-to','link-cardinality','link-revision']]])elements['live-ontology-'+form].append(...fields.map(id=>elements['live-ontology-'+id]));
 const libraryPane=add('live-ontology-library','details',root);libraryPane.open=true;add('live-ontology-library-title','summary',libraryPane);libraryPane.append(...['search','library-summary','library-types','library-links'].map(id=>elements['live-ontology-'+id]));
