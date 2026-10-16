@@ -190,24 +190,70 @@ async fn upstream_refusals_and_malformed_graphs_do_not_become_empty_rows() {
 
 #[tokio::test]
 async fn membership_expiring_during_upstream_read_cannot_emit_identity_or_graph() {
-    let expires = super::super::config::now() + 1;
+    let response = membership_after_graph_read(true).await;
+    expect_no_store(&response, StatusCode::UNAUTHORIZED);
+    for name in [
+        "x-oyatie-user",
+        "x-oyatie-tenant",
+        "x-oyatie-session-expires",
+    ] {
+        assert!(!response.headers().contains_key(name));
+    }
+    assert_eq!(json(response).await, json!({"error": "unauthenticated"}));
+}
+
+#[tokio::test]
+async fn unexpired_membership_after_upstream_read_emits_identity_and_graph() {
+    let response = membership_after_graph_read(false).await;
+    expect_no_store(&response, StatusCode::OK);
+    assert_eq!(response.headers()["x-oyatie-user"], "usr_alice");
+    assert_eq!(response.headers()["x-oyatie-tenant"], "ten_acme");
+    assert_eq!(response.headers()["x-oyatie-session-expires"], "200");
+    assert_eq!(json(response).await, graph());
+}
+
+async fn membership_after_graph_read(expire: bool) -> axum::response::Response {
+    use std::sync::{
+        Arc,
+        atomic::{AtomicI64, Ordering},
+    };
+    let expires = 200;
+    let clock = Arc::new(AtomicI64::new(expires - 1));
     let iam=Fixture::new(&format!(r#"{{"tenantId":"ten_acme","userId":"usr_alice","expiresAt":{expires},"roles":["foundry-operator"]}}"#)).await;
     let native = Backend::new().await;
-    native.reply.lock().unwrap().delay_ms = 1100;
-    let response = call(
-        native.shell(&iam),
-        Method::POST,
-        PATH,
-        headers(),
-        query().to_string(),
-    )
-    .await;
-    expect_no_store(&response, StatusCode::UNAUTHORIZED);
-    assert!(!response.headers().contains_key("x-oyatie-user"));
-    assert_eq!(json(response).await["error"], "unauthenticated");
+    let (reached, release) = native.hold_graph();
+    let request = super::super::config::TEST_CLOCK.scope(
+        clock.clone(),
+        call(
+            native.shell(&iam),
+            Method::POST,
+            PATH,
+            headers(),
+            query().to_string(),
+        ),
+    );
+    tokio::pin!(request);
+    tokio::select! {
+        reached = reached => reached.unwrap(),
+        response = &mut request => panic!("request finished before graph read: {}", response.status()),
+    }
+    {
+        let calls = native.calls.lock().unwrap();
+        assert_eq!(calls.len(), 2);
+        assert_eq!(calls[0].0, Method::GET);
+        assert_eq!(calls[0].1, "/v1/tenants/ten_acme/link-types");
+        assert_eq!(calls[1].0, Method::POST);
+        assert_eq!(calls[1].1, "/v1/tenants/ten_acme/search-around");
+    }
+    if expire {
+        clock.store(expires, Ordering::SeqCst);
+    }
+    release.send(()).unwrap();
+    let response = request.await;
     assert_eq!(
         native.calls.lock().unwrap().len(),
         2,
         "expiry follows the catalog and graph reads"
     );
+    response
 }
