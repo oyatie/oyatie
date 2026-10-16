@@ -257,6 +257,9 @@ fn scale_document_is_native_admitted() {
     let mut expected = model.clone();
     expected.entities.sort_by(|a, b| a.id.cmp(&b.id));
     expected.links.sort_by(|a, b| a.id.cmp(&b.id));
+    for value_type in &mut expected.named_string_types {
+        value_type.members.sort();
+    }
     assert_eq!(
         ModelBaseline::capture(prepared.model_registry(), super::TENANT)
             .unwrap()
