@@ -100,3 +100,104 @@ fn amplified_schema_metadata_refuses_before_publication_and_keeps_all_rows_ident
     assert_eq!(blobs(&store), before);
     assert_eq!(store.head(&caller()).unwrap().generation, 1);
 }
+
+#[test]
+fn default_publication_add_change_and_remove_preserve_legacy_blobs_and_retained_revisions() {
+    use foundry_model_api::ModelValue;
+    let database = Database::new();
+    let mut store = database.initialize();
+    let legacy = blobs(&store);
+    let mut model = additive_model();
+    for (generation, value) in [(1, Some("")), (2, Some("changed")), (3, None)] {
+        model.entities[0].revision = generation as u32 + 1;
+        model.entities[0].properties[1].default_value = value.map(|value| ModelValue::String {
+            value: value.into(),
+        });
+        let saved = store
+            .create_draft(&caller(), generation, model.clone())
+            .unwrap();
+        let prepared = store.prepare(&caller(), saved.id, 1, generation).unwrap();
+        let receipt = store.publish(&caller(), &prepared).unwrap();
+        let before = blobs(&store);
+        assert_eq!(&before[..2], &legacy[..2]);
+        assert!(before.contains(&legacy[2]));
+        drop(store);
+        store = database.open();
+        assert_eq!(
+            store.open_draft(&caller(), saved.id).unwrap().document,
+            model
+        );
+        assert_eq!(
+            store.receipt(&caller(), saved.id, 1, generation).unwrap(),
+            Some(receipt)
+        );
+        assert_eq!(blobs(&store), before);
+    }
+    let registry = store.history(&caller()).unwrap().registry().unwrap();
+    let id = registry
+        .entity_types("ten_model")
+        .next()
+        .unwrap()
+        .id
+        .clone();
+    for (revision, value) in [(2, Some("")), (3, Some("changed")), (4, None)] {
+        let expected = value.map(|value| ModelValue::String {
+            value: value.into(),
+        });
+        let actual = registry
+            .entity_type_at_revision("ten_model", &id, revision)
+            .unwrap()
+            .properties[1]
+            .default_value
+            .as_ref()
+            .map(ModelValue::from);
+        assert_eq!(actual, expected);
+    }
+}
+
+#[test]
+fn invalid_member_default_draft_reopens_exactly_prepare_never_writes_and_repair_persists() {
+    use foundry_model_api::ModelValue;
+    let database = Database::new();
+    let mut store = database.initialize();
+    let mut model = named_string_model();
+    model.entities[0].properties[2].default_value = Some(ModelValue::String {
+        value: "testactive".into(),
+    });
+    let saved = store.create_draft(&caller(), 1, model.clone()).unwrap();
+    let original = blobs(&store);
+    drop(store);
+    store = database.open();
+    assert_eq!(blobs(&store), original);
+    assert_eq!(
+        store.open_draft(&caller(), saved.id).unwrap().document,
+        model
+    );
+    assert!(matches!(
+        store.prepare(&caller(), saved.id, 1, 1),
+        Err(ModelError::Native { .. })
+    ));
+    assert_eq!(blobs(&store), original);
+    assert_eq!(store.head(&caller()).unwrap().generation, 1);
+    model.entities[0].properties[2].default_value = Some(ModelValue::String {
+        value: "TestActive".into(),
+    });
+    let repaired = store
+        .save_draft(&caller(), saved.id, 1, 1, model.clone())
+        .unwrap();
+    let repaired_bytes = blobs(&store);
+    drop(store);
+    store = database.open();
+    assert_eq!(store.open_draft(&caller(), saved.id).unwrap(), repaired);
+    assert_eq!(blobs(&store), repaired_bytes);
+    let prepared = store.prepare(&caller(), saved.id, 2, 1).unwrap();
+    assert_eq!(blobs(&store), repaired_bytes);
+    store.publish(&caller(), &prepared).unwrap();
+    drop(store);
+    let reopened = database.open();
+    assert_eq!(
+        reopened.open_draft(&caller(), saved.id).unwrap().document,
+        model
+    );
+    assert_eq!(reopened.head(&caller()).unwrap().generation, 2);
+}

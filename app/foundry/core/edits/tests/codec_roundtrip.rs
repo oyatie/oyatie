@@ -190,3 +190,92 @@ fn unknown_value_and_tag_bytes_are_refused() {
     });
     assert_eq!(decode_action_record(&bytes), Err(DecodeError::InvalidDate));
 }
+
+fn defaulted_record() -> ActionRecord {
+    let mut record = kitchen_sink();
+    let submitted = record.edits.clone();
+    let mut edits = record.edits.edits().to_vec();
+    let OntologyEdit::CreateObject { properties, .. } = &mut edits[0] else {
+        unreachable!();
+    };
+    properties.push(prop("default", WireTier::Scalar, WireValue::Boolean(false)));
+    record.edits = EditSet::new(edits).unwrap();
+    record.with_submitted_edits(submitted).unwrap()
+}
+
+#[test]
+fn defaulted_action_retains_exact_input_and_explicit_effect_with_canonical_v2_bytes() {
+    let record = defaulted_record();
+    assert_eq!(record.wire_format_version, 2);
+    assert_eq!(record.submitted_edits.as_ref(), Some(&kitchen_sink().edits));
+    let bytes = encode_action_record(&record);
+    assert_eq!(decode_action_record(&bytes).unwrap(), record);
+    assert_eq!(
+        encode_action_record(&decode_action_record(&bytes).unwrap()),
+        bytes
+    );
+    for cut in 0..bytes.len() {
+        assert!(decode_action_record(&bytes[..cut]).is_err(), "cut {cut}");
+    }
+    let mut trailing = bytes.clone();
+    trailing.push(0);
+    assert_eq!(
+        decode_action_record(&trailing),
+        Err(DecodeError::TrailingBytes)
+    );
+
+    let mut renamed = record.clone();
+    let mut edits = renamed.edits.edits().to_vec();
+    let OntologyEdit::CreateObject { properties, .. } = &mut edits[0] else {
+        unreachable!();
+    };
+    properties[0].name = "replaced-input".into();
+    renamed.edits = EditSet::new(edits).unwrap();
+    assert_eq!(
+        decode_action_record(&encode_action_record(&renamed)),
+        Err(DecodeError::InvalidRecord(
+            foundry_edits::RecordError::InvalidDefaultEdits
+        ))
+    );
+}
+
+#[test]
+fn default_provenance_cannot_change_submitted_values_type_class_order_or_other_edits() {
+    let original = kitchen_sink();
+    assert_eq!(
+        original
+            .clone()
+            .with_submitted_edits(original.edits.clone()),
+        Err(foundry_edits::RecordError::UnchangedSubmittedEdits)
+    );
+    for variation in 0..7 {
+        let mut record = defaulted_record();
+        let mut edits = record.edits.edits().to_vec();
+        if let OntologyEdit::CreateObject {
+            properties,
+            entity_type,
+        } = &mut edits[0]
+        {
+            match variation {
+                0 => properties[0].value = WireValue::Integer(9),
+                1 => properties[0].tier = WireTier::Geo,
+                2 => properties[0].data_class = WireDataClass::InternalOnly,
+                3 => *entity_type = "ety_other".into(),
+                4 => properties.swap(0, 1),
+                5 => properties[1].name = properties[0].name.clone(),
+                _ => {}
+            }
+        }
+        if variation == 6 {
+            edits[1] = OntologyEdit::create_link("lty_other", "ent_target_1").unwrap();
+        }
+        record.edits = EditSet::new(edits).unwrap();
+        assert_eq!(
+            decode_action_record(&encode_action_record(&record)),
+            Err(DecodeError::InvalidRecord(
+                foundry_edits::RecordError::InvalidDefaultEdits
+            )),
+            "variation {variation}"
+        );
+    }
+}

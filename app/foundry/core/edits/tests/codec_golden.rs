@@ -85,10 +85,10 @@ fn denial_record_golden_vector_is_frozen() {
 #[test]
 fn unsupported_version_is_refused() {
     let mut bytes = minimal_action_golden();
-    bytes[0] = 0x02;
+    bytes[0] = 0x03;
     assert_eq!(
         decode_action_record(&bytes),
-        Err(DecodeError::UnsupportedWireVersion { found: 2 })
+        Err(DecodeError::UnsupportedWireVersion { found: 3 })
     );
 }
 

@@ -31,6 +31,7 @@ pub fn document(mut document: ModelDocument) -> ModelDocument {
         data_class: ModelPrivacy::internal_only(),
         required: false,
         display: None,
+        default_value: None,
         value_type: Some(ModelValueType::Array {
             element: Box::new(ModelValueType::Scalar {
                 kind: ModelScalar::String,
@@ -43,6 +44,7 @@ pub fn document(mut document: ModelDocument) -> ModelDocument {
         data_class: ModelPrivacy::internal_only(),
         required: false,
         display: None,
+        default_value: None,
         value_type: Some(ModelValueType::Struct {
             fields: vec![
                 ModelStructField {
@@ -62,9 +64,22 @@ pub fn document(mut document: ModelDocument) -> ModelDocument {
             ],
         }),
     };
-    document
-        .entities
-        .push(entity("ety_employee", "Employee", vec![tags, address]));
+    document.named_string_types.push(ModelNamedStringType {
+        id: "vty_employment_status".into(),
+        revision: 1,
+        display_name: "EmploymentStatus".into(),
+        members: vec!["active".into(), "onLeave".into(), "ended".into()],
+    });
+    let mut status = conformance::property("employment_status", false);
+    status.value_type = Some(ModelValueType::NamedString {
+        type_id: "vty_employment_status".into(),
+        revision: 1,
+    });
+    document.entities.push(entity(
+        "ety_employee",
+        "Employee",
+        vec![tags, address, status],
+    ));
     document
         .entities
         .push(entity("ety_department", "Department", vec![]));

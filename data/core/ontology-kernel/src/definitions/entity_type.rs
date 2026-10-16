@@ -19,6 +19,7 @@ pub struct EntityTypePropertyDefinition {
     /// `Some`, immutable across revisions (see `check_property_compatibility`).
     pub value_type: Option<ValueTypeDeclaration>,
     pub display: Option<crate::display::DisplayMetadata>,
+    pub default_value: Option<crate::PropertyValue>,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EntityTypeDefinition {
@@ -60,6 +61,7 @@ impl EntityTypePropertyDefinition {
             required,
             value_type: None,
             display: None,
+            default_value: None,
         })
     }
 

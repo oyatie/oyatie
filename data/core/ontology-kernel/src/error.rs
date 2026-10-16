@@ -87,6 +87,10 @@ pub enum OntologyEngineError {
         /// The precise structural cause.
         cause: crate::value::ValueTypeError,
     },
+    InvalidPropertyDefault {
+        name: String,
+        cause: crate::ValueTypeViolation,
+    },
     /// A literal-built definition states a tier that differs from its value
     /// type's projection (or declares a value type on a tier the projection
     /// never yields — the exotic tiers stay untyped in V1).

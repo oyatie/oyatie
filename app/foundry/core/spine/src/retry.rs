@@ -36,4 +36,42 @@ pub fn same_request(stored: &ActionEnvelope, fresh: &ActionEnvelope) -> bool {
         && theirs.occurred_at_epoch_ms == ours.occurred_at_epoch_ms
         && theirs.parameters == ours.parameters
         && theirs.edits == ours.edits
+        && theirs.submitted_edits == ours.submitted_edits
+}
+
+pub(crate) fn same_submission(
+    registry: &data_ontology_kernel::OntologyEngine,
+    stored: &ActionEnvelope,
+    submission: &crate::writer::ActionSubmission,
+    receipt: &data_ontology_kernel::ActionInvocationReceipt,
+) -> bool {
+    let request = &submission.request;
+    let retained = registry
+        .action_type(&request.tenant_id, &request.action_id)
+        .and_then(|action| {
+            registry.entity_type_at_revision(
+                &request.tenant_id,
+                &action.entity_type,
+                stored.schema_revision,
+            )
+        })
+        .is_some();
+    if !retained
+        || stored.tenant_id != request.tenant_id
+        || stored.object_ref != request.entity_id
+        || stored.action_type != request.action_id.value
+        || stored.idempotency_key != request.idempotency_key
+        || stored.observed_at_epoch_ms != receipt.occurred_at_epoch_seconds.saturating_mul(1000)
+    {
+        return false;
+    }
+    let Ok(record) = decode_action_record(&stored.payload) else {
+        return false;
+    };
+    record.principal_id == receipt.principal_id
+        && record.audit_event_type == receipt.audit_event_type
+        && record.idempotency_key == request.idempotency_key
+        && record.occurred_at_epoch_ms == stored.observed_at_epoch_ms
+        && record.parameters == submission.parameters
+        && record.submitted_edits.as_ref().unwrap_or(&record.edits) == &submission.edits
 }

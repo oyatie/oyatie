@@ -1,16 +1,14 @@
 //! Strict canonical decoding: exactly one byte string decodes to any value,
 //! and no non-canonical byte string decodes at all — the property that
 //! makes whole-envelope byte-equality dedup honest.
-//!
-//! Decoding reconstructs through the validating constructors, so a corrupt
-//! entry surfaces a typed [`DecodeError`] (the fold's poison reason) and an
-//! invalid shape can never materialize.
 
 use std::collections::BTreeMap;
 
 use crate::edit::{EditError, EditSet, EditTag, OntologyEdit};
 use crate::property::{WireDataClass, WireProperty, WirePropertyError, WireTier};
-use crate::record::{ActionRecord, DenialRecord, RecordError, WIRE_FORMAT_VERSION};
+use crate::record::{
+    ActionRecord, DEFAULTED_ACTION_FORMAT_VERSION, DenialRecord, RecordError, WIRE_FORMAT_VERSION,
+};
 use crate::value::{WireDate, WireDouble, WireValue};
 
 /// Why a byte string was refused. Every variant is a fold poison reason.
@@ -225,6 +223,15 @@ impl<'a> Cursor<'a> {
         Ok(())
     }
 
+    fn edits(&mut self) -> Result<EditSet, DecodeError> {
+        let count = self.len()?;
+        let mut edits = Vec::new();
+        for _ in 0..count {
+            edits.push(self.edit()?);
+        }
+        EditSet::new(edits).map_err(DecodeError::InvalidEdit)
+    }
+
     fn finish(self) -> Result<(), DecodeError> {
         if self.at != self.bytes.len() {
             return Err(DecodeError::TrailingBytes);
@@ -236,20 +243,18 @@ impl<'a> Cursor<'a> {
 /// Decode a canonical [`ActionRecord`]; refuses every non-canonical input.
 pub fn decode_action_record(bytes: &[u8]) -> Result<ActionRecord, DecodeError> {
     let mut cursor = Cursor { bytes, at: 0 };
-    cursor.version()?;
+    let version = cursor.u16()?;
+    if version != WIRE_FORMAT_VERSION && version != DEFAULTED_ACTION_FORMAT_VERSION {
+        return Err(DecodeError::UnsupportedWireVersion { found: version });
+    }
     let principal_id = cursor.string()?;
     let decision_id = cursor.string()?;
     let audit_event_type = cursor.string()?;
     let idempotency_key = cursor.string()?;
     let occurred_at_epoch_ms = cursor.u64()?;
     let parameters = cursor.properties()?;
-    let count = cursor.len()?;
-    let mut edits = Vec::new();
-    for _ in 0..count {
-        edits.push(cursor.edit()?);
-    }
-    let edits = EditSet::new(edits).map_err(DecodeError::InvalidEdit)?;
-    let record = ActionRecord::new(
+    let edits = cursor.edits()?;
+    let mut record = ActionRecord::new(
         principal_id,
         decision_id,
         audit_event_type,
@@ -259,6 +264,11 @@ pub fn decode_action_record(bytes: &[u8]) -> Result<ActionRecord, DecodeError> {
         edits,
     )
     .map_err(DecodeError::InvalidRecord)?;
+    if version == DEFAULTED_ACTION_FORMAT_VERSION {
+        record = record
+            .with_submitted_edits(cursor.edits()?)
+            .map_err(DecodeError::InvalidRecord)?;
+    }
     cursor.finish()?;
     Ok(record)
 }

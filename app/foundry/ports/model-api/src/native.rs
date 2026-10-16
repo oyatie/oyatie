@@ -69,6 +69,11 @@ impl ModelEntity {
                     })
                     .transpose()?;
                 property.display = row.display.as_ref().map(ModelDisplay::native);
+                property.default_value = row
+                    .default_value
+                    .as_ref()
+                    .map(ModelValue::native)
+                    .transpose()?;
                 Ok(property)
             })
             .collect::<Result<Vec<_>, ModelError>>()?;
@@ -98,6 +103,7 @@ impl ModelEntity {
                     required: property.required,
                     value_type: property.value_type.as_ref().map(Into::into),
                     display: property.display.as_ref().map(Into::into),
+                    default_value: property.default_value.as_ref().map(Into::into),
                 })
             })
             .collect::<Result<Vec<_>, ModelError>>()?;
