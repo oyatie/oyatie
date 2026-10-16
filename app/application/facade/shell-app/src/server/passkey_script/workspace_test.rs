@@ -25,7 +25,7 @@ const CHECK: &str = r##"
   const cards = () => find('live-ontology-scene').querySelectorAll('[data-model-type]');
   const edges = () => find('live-ontology-scene').querySelectorAll('[data-model-edge]');
   const link = {link_type:'lty_reports',from_entity_type:'ety_profile',to_entity_type:'ety_profile',cardinality:'one_to_many',allow_cross_tenant:false,revision:0};
-  assert.equal(types().length,2); assert.equal(cards().length,2); assert.equal(edges().length,0);
+  find('live-ontology-scope-all').emit('click');assert.equal(types().length,2); assert.equal(cards().length,2); assert.equal(edges().length,0);
   assert.equal(cards()[0].children.find(child=>child.tagName==='strong').textContent,'Record','native display name is the primary node heading');
   assert.match(text(types()[0]),/Record.*ety_record/,'stable type ID remains secondary');
   assert.match(find('live-ontology-type').children[0].textContent,/Record · ety_record/);
@@ -39,10 +39,11 @@ const CHECK: &str = r##"
   nativeLinks=[link,{...link,link_type:'lty_has',from_entity_type:'ety_record',cardinality:'many_to_many',revision:3,allow_cross_tenant:true}];
   find('live-ontology-types-refresh').emit('click');await flush();
   assert.equal(edges().length,2);assert.equal(relations().length,2);
-  const self=edges().find(edge=>edge.dataset.modelEdge==='lty_reports'); assert.match(self.attrs.d,/ C /,'self-relationship has a curved native edge');
+  const self=edges().find(edge=>edge.dataset.modelEdge==='lty_reports'); assert.match(self.attrs.d,/ L /,'self-relationship has a routed native edge');
   const profile=cards().find(card=>card.dataset.modelType==='ety_profile');profile.focus();profile.emit('click');
-  assert.equal(find('live-ontology-type').value,'ety_profile');assert.equal(document.activeElement,profile,'selection keeps its invoking canvas control');
-  assert.equal(profile.attrs['aria-pressed'],'true');
+  const selectedProfile=cards().find(card=>card.dataset.modelType==='ety_profile');
+  assert.equal(find('live-ontology-type').value,'ety_profile');assert.equal(document.activeElement,selectedProfile,'selection keeps its current semantic canvas control');assert.equal(selectedProfile.disabled,false);
+  assert.equal(selectedProfile.attrs['aria-pressed'],'true');
   assert.match(text(find('live-ontology-schema-properties')),/PII_IDENTIFYING/);
   assert.match(find('live-ontology-schema-summary').textContent,/Primary-key property: id.*Title property: <script>label/);
   relations()[0].focus();relations()[0].emit('click');
@@ -102,7 +103,7 @@ const CHECK: &str = r##"
   assert.equal(root.hidden,true);assert.equal(cards().length,0);assert.equal(types().length,0);assert.equal(find('live-ontology-schema-summary').textContent,'','late old-account labels cannot repopulate the inspector');
   find('sign-in-account').value='usr_alice';
   await flush();nativeSchemas=[schemaFixture[0]];nativeLinks=[];await restore();
-  assert.equal(cards().length,1);assert.equal(edges().length,0);assert.match(text(find('live-ontology-scene')),/ety_record.*Legacy string contract/,'served Record-only model needs no fictional nodes');
+  assert.equal(cards().length,1);assert.equal(edges().length,0);assert.match(cards()[0].getAttribute('aria-label'),/ety_record/);assert.match(text(find('live-ontology-schema-properties')),/Legacy string contract/,'compact graph retains complete native declarations in Inspector');
   nativeSchemas=[{...schemaFixture[0],revision:0}];find('live-ontology-types-refresh').emit('click');await flush();assert.match(find('live-ontology-schema-summary').textContent,/declaration revision 0/);
   assert.ok(calls.filter(([url])=>url.endsWith('/link-types')||url.endsWith('/type-labels')).every(([,options])=>options.credentials==='same-origin'&&options.cache==='no-store'&&options.redirect==='error'));
   console.log('Native workspace schema/link library, graph/table/viewport, inspector, focus and session refusal contracts PASS');
@@ -148,73 +149,38 @@ fn relationship_inspection_explains_the_selected_directed_cardinality() {
 }
 
 const CHECK_FIT: &str = r##"
-(async () => {
-  assert.match(input.css,/\.foundry-type-node \{[^}]*width: 260px; height: 200px;/);
-  assert.match(input.css,/\.foundry-edges > path \{[^}]*stroke-width: 1\.5;/);
-  assert.match(input.css,/\.foundry-edge-label \{[^}]*max-width: 160px;/);
-  await flush();find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';
-  const viewport=find('live-ontology-graph'),scene=find('live-ontology-scene'),stage=find('live-ontology-stage');
-  const cards=()=>scene.querySelectorAll('[data-model-type]'),labels=()=>scene.querySelectorAll('[data-model-link]'),edges=()=>scene.querySelectorAll('[data-model-edge]');
-  const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-10,`${actual} ≠ ${expected}`);
-  const zoom=()=>Number(scene.style.transform.match(/^scale\(([^)]+)\)$/)[1]);
-  async function model(rows,relations=[]) {
-    nativeSchemas=rows;nativeLabels=rows.map(row=>({entity_type:row.entity_type,revision:row.revision,display_name:row.entity_type}));nativeLinks=relations;await restore();
-    for(const card of cards()){card.mockWidth=260;card.mockHeight=200;}
-    for(const label of labels()){label.mockWidth=160;label.mockHeight=60;}
-    for(const edge of edges())edge.mockStrokeWidth=1.5;
+(async()=>{
+  await flush();find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
+  const graph=find('live-ontology-graph'),scene=find('live-ontology-scene'),zoom=()=>Number(scene.style.transform.match(/scale\(([^)]+)\)/)[1]);
+  const cards=()=>scene.querySelectorAll('[data-model-type]');find('live-ontology-scope-all').emit('click');
+  let selected=cards()[0];selected.focus();find('live-ontology-fit').emit('click');assert.equal(zoom(),1);assert.ok(document.activeElement.dataset.modelType===selected.dataset.modelType,'framing retains current semantic focus');
+  for(let i=0;i<10;i++)find('live-ontology-zoom-in').emit('click');assert.equal(zoom(),2);assert.equal(find('live-ontology-zoom-in').disabled,true);
+  graph.scrollLeft=0;graph.scrollTop=0;graph.focus();graph.emit('keydown',{key:'ArrowRight'});graph.emit('keydown',{key:'ArrowDown'});assert.deepEqual([graph.scrollLeft,graph.scrollTop],[80,80]);
+  graph.emit('keydown',{key:'Home'});assert.equal(zoom(),1);assert.ok(document.activeElement===graph);
+  for(let i=0;i<10;i++)find('live-ontology-zoom-out').emit('click');assert.equal(zoom(),.25);assert.equal(find('live-ontology-zoom-out').disabled,true);
+  const label={link_type:'lty_self',from_entity_type:'ety_record',to_entity_type:'ety_record',cardinality:'one_to_many',allow_cross_tenant:false,revision:1};nativeLinks=[label];await restore();
+  find('live-ontology-library-links').querySelectorAll('[data-model-link]')[0].emit('click');
+  const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<.001,`${actual} ≠ ${expected}`);
+  function occupiedFits(){
+    const padding=Math.hypot(7,4)*1.5,boxes=cards().filter(e=>e.dataset.modelType==='ety_record').map(e=>({x:e.offsetLeft,y:e.offsetTop,w:e.offsetWidth,h:e.offsetHeight}));
+    for(const e of scene.querySelectorAll('[data-model-edge]')){const b=e.getBBox();boxes.push({x:b.x-padding,y:b.y-padding,w:b.width+2*padding,h:b.height+2*padding});}
+    for(const e of scene.querySelectorAll('[data-model-link]'))boxes.push({x:e.offsetLeft,y:e.offsetTop,w:e.offsetWidth/zoom(),h:e.offsetHeight/zoom()});
+    const width=Math.max(...boxes.map(b=>b.x+b.w))-Math.min(...boxes.map(b=>b.x)),height=Math.max(...boxes.map(b=>b.y+b.h))-Math.min(...boxes.map(b=>b.y));
+    assert.ok(width*zoom()<=graph.clientWidth-31.5 && height*zoom()<=graph.clientHeight-31.5,'Fit contains the complete occupied card, fixed-screen label and native bbox plus marker guard');
   }
-  function fit(width,height,expected) {
-    viewport.clientWidth=width;viewport.clientHeight=height;viewport.scrollLeft=80;viewport.scrollTop=80;
-    find('live-ontology-fit').emit('click');close(zoom(),expected);
-    assert.equal(viewport.scrollLeft,0);assert.equal(viewport.scrollTop,0);
-    close(Number.parseFloat(stage.style.width),Number.parseFloat(scene.style.width)*expected);
-    close(Number.parseFloat(stage.style.height),Number.parseFloat(scene.style.height)*expected);
-  }
-  const record=schemaFixture[0];await model([record]);
-  assert.equal(scene.style.width,'640px');assert.equal(scene.style.height,'360px');
-  assert.equal(cards()[0].style.left,'70px');assert.equal(cards()[0].style.top,'60px');
-  cards()[0].focus();cards()[0].emit('click');const selected=cards()[0];
-  fit(390,400,1);assert.equal(document.activeElement,selected);assert.equal(selected.attrs['aria-pressed'],'true');
-  fit(360,400,328/330);fit(200,400,168/330);fit(390,200,168/260);fit(80,400,.25);
-  assert.equal(find('live-ontology-zoom-out').disabled,true);
-  for(let i=0;i<10;i++)find('live-ontology-zoom-in').emit('click');close(zoom(),2);
-  assert.equal(stage.style.width,'1280px');assert.equal(stage.style.height,'720px');
-  assert.equal(find('live-ontology-zoom-in').disabled,true);
-  viewport.focus();viewport.emit('keydown',{key:'ArrowRight'});viewport.emit('keydown',{key:'ArrowDown'});
-  assert.equal(viewport.scrollLeft,80);assert.equal(viewport.scrollTop,80);
-  viewport.clientWidth=390;viewport.clientHeight=400;viewport.emit('keydown',{key:'Home'});close(zoom(),1);
-  assert.equal(viewport.scrollLeft,0);assert.equal(viewport.scrollTop,0);assert.equal(document.activeElement,viewport);
-  assert.equal(selected.attrs['aria-pressed'],'true');assert.equal(selected.style.transform,undefined);
-  const rows=Array.from({length:4},(_,index)=>({...record,entity_type:`ety_card${index}`}));await model(rows);
-  assert.equal(scene.style.width,'800px');assert.equal(scene.style.height,'620px');
-  assert.deepEqual(cards().map(card=>[card.style.left,card.style.top]),[['70px','60px'],['420px','60px'],['70px','320px'],['420px','320px']]);
-  fit(720,600,1);fit(390,400,358/680);
-  cards()[3].mockHeight=300;fit(1000,600,568/620);
-  const self={link_type:'lty_self',from_entity_type:record.entity_type,to_entity_type:record.entity_type,cardinality:'one_to_many',allow_cross_tenant:false,revision:1};
-  await model([record],[self]);
-  // Explicit platform bounding-box input for the generated cubic; no CSS layout is simulated.
-  edges()[0].mockBounds={x:330,y:89.72169679450217,width:56.25,height:88.11216196655123};
-  assert.equal(edges()[0].attrs.d,'M 330 100 C 405 50, 405 200, 330 175');
-  assert.equal(labels()[0].style.left,'335px');assert.equal(labels()[0].style.top,'200px');
-  for(let i=0;i<10;i++)find('live-ontology-zoom-in').emit('click');close(zoom(),2);
-  const labelFit=(358-160)/335;fit(390,400,labelFit);
-  close(335*zoom()+labels()[0].offsetWidth,358);assert.equal(labels()[0].style.transform,`scale(${1/labelFit})`);
-  for(let i=0;i<10;i++)find('live-ontology-zoom-out').emit('click');close(zoom(),.25);
-  fit(390,400,labelFit);fit(530,400,1);
-  labels()[0].mockHeight=220;fit(1000,400,(368-220)/200);
-  close(200*zoom()+labels()[0].offsetHeight,368);
-  const reverse={...self,link_type:'lty_reverse',from_entity_type:'ety_card2',to_entity_type:'ety_card0'};await model(rows,[reverse]);
-  edges()[0].mockBounds={x:200,y:57.88082727868517,width:0,height:464.2383454426297};
-  assert.equal(edges()[0].attrs.d,'M 200 520 C 200 560, 200 20, 200 60');
-  const pathBottom=522.1191727213148+Math.hypot(7,4)*1.5;fit(1024,560,528/pathBottom);
-  assert.ok(zoom()<1,'stroke/marker room below a reverse path affects Fit even when every node and label fits');
-  await model([]);fit(390,400,358/640);
-  assert.equal(cards().length,0);assert.equal(edges().length,0);assert.equal(labels().length,0);
-  nativeSchemas=[record];nativeLabels=[{entity_type:record.entity_type,revision:record.revision,display_name:'Record'}];nativeLinks=[];await restore();
-  cards()[0].mockWidth=260;cards()[0].mockHeight=200;fit(390,400,1);
-  find('session-logout').emit('click');await flush();fit(390,400,358/640);
-  assert.equal(cards().length,0);assert.equal(edges().length,0);assert.equal(labels().length,0,'clearing discards all occupied-content measurements');
-  console.log('Content Fit, target-zoom labels, path bounds and unchanged scene/zoom/pan/selection contracts PASS; explicit mock geometry only');
+  const ordinary=context.Element.prototype.getBBox;
+  for(const bounds of [{x:330,y:89.72169679450217,width:56.25,height:88.11216196655123},{x:200,y:57.88082727868517,width:0,height:464.2383454426297}]){context.Element.prototype.getBBox=function(){return this.dataset.modelEdge?bounds:ordinary.call(this);};graph.clientWidth=390;graph.clientHeight=400;find('live-ontology-fit').emit('click');assert.ok(zoom()<=1 && zoom()>=.25,'self and reverse native cubic-extrema inputs retain stroke/marker bounds');occupiedFits();}
+  context.Element.prototype.getBBox=ordinary;
+  context.Element.prototype.getBBox=function(){return this.dataset.modelEdge?{x:-80,y:-60,width:1000,height:700}:ordinary.call(this);};
+  graph.clientWidth=640;graph.clientHeight=480;find('live-ontology-fit').emit('click');assert.ok(zoom()<1 && zoom()>.25,'native path extrema plus marker guard constrain selection Fit');
+  close(zoom(),608/(1000+2*Math.hypot(7,4)*1.5));occupiedFits();
+  const currentLabel=scene.querySelectorAll('[data-model-link]')[0];assert.equal(currentLabel.style.transform,`scale(${1/zoom()})`,'relationship labels retain fixed screen scale');
+  context.Element.prototype.getBBox=ordinary;find('live-ontology-fit').emit('click');assert.equal(zoom(),1);
+  const offsetHeight=Object.getOwnPropertyDescriptor(context.Element.prototype,'offsetHeight');Object.defineProperty(context.Element.prototype,'offsetHeight',{configurable:true,get(){return this.className==='foundry-edge-label'?320:offsetHeight.get.call(this);}});
+  graph.clientHeight=400;find('live-ontology-fit').emit('click');assert.ok(zoom()<1 && zoom()>.25,'large fixed-screen labels constrain Fit without a false overflow refusal');occupiedFits();assert.equal(find('live-ontology-graph-frame').textContent,'Selection framed.');
+  Object.defineProperty(context.Element.prototype,'offsetHeight',offsetHeight);
+  find('session-logout').emit('click');await flush();assert.equal(cards().length,0);assert.equal(scene.querySelectorAll('[data-model-edge]').length,0);
+  console.log('Occupied native path/marker and fixed-screen label Fit, explicit selection, quarter-step bounds, keyboard pan/Home and clear PASS; mock platform bounds only');
 })().catch(error=>{console.error(error);process.exitCode=1;});
 "##;
 

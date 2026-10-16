@@ -276,6 +276,10 @@ mod explorer_test;
 mod draft_editor_test;
 
 #[cfg(test)]
+mod model_geometry_test;
+#[cfg(test)]
+mod model_scope_test;
+#[cfg(test)]
 mod pending_selection_test;
 
 #[cfg(test)]
