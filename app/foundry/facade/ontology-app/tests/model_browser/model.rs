@@ -1,5 +1,6 @@
 use foundry_model_api::*;
 
+#[path = "model/entity.rs"]
 mod entity;
 use entity::entity;
 
