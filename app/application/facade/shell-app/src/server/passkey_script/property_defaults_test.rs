@@ -103,3 +103,23 @@ fn structured_defaults_keep_all_carriers_and_picker_refusals_without_coercion() 
 "#,
     );
 }
+
+#[test]
+fn string_defaults_render_edit_and_restore_with_readonly_textarea_type() {
+    check_controller(
+        r#"
+(async()=>{
+  await flush();
+  const host=new Element('div');host.id='string-default-test';panel.append(host);let changes=0;context.stringHost=host;context.changed=()=>changes++;
+  const form=vm.runInNewContext("createOntologyDefaultForm(stringHost,changed,'String')",context),type={shape:'scalar',kind:'string'};
+  form.write(type,undefined);form.enable(true);host.querySelectorAll('button').find(button=>button.textContent==='Add default').emit('click');
+  const textarea=host.querySelector('textarea');assert.ok(textarea,'Add default renders a string textarea');assert.equal(textarea.type,'textarea');assert.equal(Object.getOwnPropertyDescriptor(textarea,'type').set,undefined);assert.deepEqual(JSON.parse(JSON.stringify(form.read())),{kind:'string',value:''});
+  const literal='<script>alert("text")</script>\n한글 & <b>literal</b>';textarea.value=literal;textarea.emit('input');assert.deepEqual(JSON.parse(JSON.stringify(form.read())),{kind:'string',value:literal});assert.equal(host.querySelectorAll('script').length,0,'string defaults remain text');
+  const pending=form.capture();form.write(type,undefined);form.restore(pending);assert.equal(host.querySelector('textarea').value,literal);assert.deepEqual(JSON.parse(JSON.stringify(form.read())),{kind:'string',value:literal});
+  const nested={kind:'struct',fields:[{name:'items',value:{kind:'array',items:[{kind:'string',value:''},{kind:'string',value:literal}]}},{name:'title',value:{kind:'string',value:'Saved title'}}]};
+  form.write({shape:'struct',fields:[]},nested);assert.deepEqual(JSON.parse(JSON.stringify(form.read())),nested);assert.deepEqual(host.querySelectorAll('textarea').map(field=>field.value),['',literal,'Saved title']);
+  host.querySelectorAll('textarea')[0].value='Edited item';host.querySelectorAll('textarea')[0].emit('input');const edited=structuredClone(nested);edited.fields[0].value.items[0].value='Edited item';assert.deepEqual(JSON.parse(JSON.stringify(form.read())),edited);assert.ok(changes>=3);
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"#,
+    );
+}

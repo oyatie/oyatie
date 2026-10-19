@@ -48,7 +48,7 @@ function createOntologyDefaultForm(host, changed, label, catalog=()=>[], readTyp
   }
   function node(type,value,name,depth=1){
     const host=make('div',`${name} default value`),inputs=[];
-    const field=(text,raw,inputType='text',tag='input')=>{const control=make(tag,text);control.type=inputType;control.value=String(raw);control.maxLength=4096;control.addEventListener('input',()=>changed());inputs.push(control);host.append(labeled(text,control));return control;};
+    const field=(text,raw,inputType='text',tag='input')=>{const control=make(tag,text);if(tag==='input')control.type=inputType;control.value=String(raw);control.maxLength=4096;control.addEventListener('input',()=>changed());inputs.push(control);host.append(labeled(text,control));return control;};
     let read,capture;
     if(value.kind==='array'){
       const rows=document.createElement('div');host.append(rows);let items=[],serial=0;
