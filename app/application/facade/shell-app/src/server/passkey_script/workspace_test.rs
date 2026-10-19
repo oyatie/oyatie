@@ -128,7 +128,7 @@ fn relationship_inspection_explains_the_selected_directed_cardinality() {
   nativeLinks=['one_to_one','one_to_many','many_to_many'].map(cardinality=>({link_type:'lty_'+cardinality,from_entity_type:'ety_record',to_entity_type:'ety_profile',cardinality,allow_cross_tenant:false,revision:1}));
   await flush();find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
   const expected=[['at most one target','at most one source'],['many targets','at most one source'],['many targets','many sources']];
-  const relations=find('live-ontology-library-links').querySelectorAll('[data-model-link]');
+  find('live-ontology-library-link-group').open=true;const relations=find('live-ontology-library-links').querySelectorAll('[data-model-link]');
   for(const [index,button] of relations.entries()) {
     button.focus();button.emit('click');
     const rows=find('live-ontology-link-properties').querySelectorAll('tr').slice(1);
