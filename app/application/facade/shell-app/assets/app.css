@@ -13387,17 +13387,22 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 #live-ontology-graph-controls { display: flex; flex-wrap:wrap; font-size:1rem; align-items: center; gap: max(4px, .25rem); }
 #live-ontology-graph-controls button { min-width:44px; font:inherit; }
 #live-ontology-zoom { min-width: 3rem; text-align: center; font-variant-numeric: tabular-nums; }
-.foundry-graph { font-size:1rem; scroll-padding:1rem; height: 30rem; min-height: 24rem; width: 100%; overflow: auto; border: 1px solid var(--rule); border-radius: var(--radius-sm); background-color: var(--paper); background-image: linear-gradient(var(--rule-faint) 1px, transparent 1px), linear-gradient(90deg, var(--rule-faint) 1px, transparent 1px); background-size: 24px 24px; overscroll-behavior: contain; }
+.foundry-graph { font-size:1rem; scroll-padding:1rem; height: 30rem; min-height: 24rem; width: 100%; overflow: auto; border: 1px solid var(--rule); border-radius: var(--radius-sm); background-color: var(--paper); overscroll-behavior: contain; }
 .foundry-graph-stage, .foundry-graph-scene { position: relative; }
 .foundry-graph-scene { transform-origin: top left; }
 .foundry-edges { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
 .foundry-edges > path { stroke: var(--ink-muted); stroke-width: 1.5; fill: none; }
 .foundry-edges marker path { fill: var(--ink-muted); }
+.foundry-edges > path[data-model-reading="true"] { stroke:var(--accent); }
+.foundry-edges marker path[data-model-reading="true"] { fill:var(--accent); }
 .foundry-workspace .foundry-type-node { position:absolute; width:min(14rem,calc(var(--foundry-graph-width,640px) - 4rem)); height:auto; min-height:max(64px,5.25rem); display:flex; flex-direction:column; align-items:stretch; justify-content:center; gap:.25rem; padding:.65rem; text-align:left; font-size:1rem; box-shadow:var(--shadow-card); }
+.foundry-workspace .foundry-type-node[aria-pressed="true"] { box-shadow:0 0 0 1px var(--accent),var(--shadow-card); }
 .foundry-type-node, .foundry-edge-label { z-index:1; }
 .foundry-type-node > strong { font-size:1rem; line-height:1.3; white-space:normal; overflow-wrap:anywhere; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 .foundry-type-node > small { color:var(--ink-muted); font-size:.875rem; line-height:1.4; }
-.foundry-workspace .foundry-edge-label { position:absolute; width:max-content; max-width:min(13rem,calc(var(--foundry-graph-width,640px) - 4rem)); font-size:.875rem; line-height:1.4; text-align:left; overflow-wrap:anywhere; transform-origin:top left; }
+.foundry-workspace .foundry-edge-label { position:absolute; width:max-content; max-width:min(13rem,calc(var(--foundry-graph-width,640px) - 4rem)); font-size:.875rem; line-height:1.4; text-align:left; overflow-wrap:anywhere; transform-origin:top left; border-color:transparent; background:transparent; }
+.foundry-edge-text { display:block; background:var(--paper); }
+.foundry-edge-label[aria-pressed="true"] .foundry-edge-text { background:var(--accent-bg); }
 .foundry-edge-label small { display:block; color:var(--ink-muted); font:inherit; }
 .foundry-scope-controls { display:flex; flex-wrap:wrap; align-items:center; gap:max(4px,.25rem); font-size:1rem; }
 .foundry-scope-controls button { font:inherit; min-height:max(44px,2.75rem); }
