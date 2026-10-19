@@ -22,18 +22,7 @@ pub(crate) fn check_declared_value(
     carrier: &ObjectProperty,
     subject: ValueCheckSubject,
 ) -> Result<(), OntologyEngineError> {
-    let violation = match declared {
-        Some(declaration) => declaration.admits_value(&carrier.value.value).err(),
-        None => match &carrier.value.value {
-            PropertyValue::String(_) => None,
-            other => Some(ValueTypeViolation {
-                path: String::new(),
-                expected: "string",
-                found: other.type_label(),
-            }),
-        },
-    };
-    let Some(violation) = violation else {
+    let Err(violation) = admits_declared_value(declared, &carrier.value.value) else {
         return Ok(());
     };
     Err(match subject {
@@ -50,4 +39,19 @@ pub(crate) fn check_declared_value(
             found: violation.found,
         },
     })
+}
+
+pub(super) fn admits_declared_value(
+    declared: Option<&ValueTypeDeclaration>,
+    value: &PropertyValue,
+) -> Result<(), ValueTypeViolation> {
+    match declared {
+        Some(declaration) => declaration.admits_value(value),
+        None if matches!(value, PropertyValue::String(_)) => Ok(()),
+        None => Err(ValueTypeViolation {
+            path: String::new(),
+            expected: "string",
+            found: value.type_label(),
+        }),
+    }
 }

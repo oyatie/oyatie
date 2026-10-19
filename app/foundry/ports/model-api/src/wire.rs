@@ -2,7 +2,7 @@
 macro_rules! model_object {
     ($name:ident { $($(#[$field_meta:meta])* $field:ident: $ty:ty),* $(,)? }) => {
         #[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
-        pub struct $name { $(pub $field: $ty),* }
+        pub struct $name { $($(#[$field_meta])* pub $field: $ty),* }
 
         impl<'de> serde::Deserialize<'de> for $name {
             fn deserialize<D: serde::Deserializer<'de>>(decoder: D) -> Result<Self, D::Error> {
@@ -26,4 +26,10 @@ macro_rules! model_object {
             }
         }
     };
+}
+
+pub(crate) fn present_default<'de, D: serde::Deserializer<'de>>(
+    decoder: D,
+) -> Result<Option<crate::ModelValue>, D::Error> {
+    <crate::ModelValue as serde::Deserialize>::deserialize(decoder).map(Some)
 }

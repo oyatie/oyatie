@@ -1,7 +1,7 @@
 //! The ActionWriter: the ONE way anything becomes a log entry.
 
 use data_ontology_kernel::{ActionInvocationReceipt, OntologyEngine};
-use foundry_edits::{ActionRecord, OntologyEdit, encode_action_record};
+use foundry_edits::{ActionRecord, EditSet, OntologyEdit, encode_action_record};
 use foundry_records_draft::{ActionEnvelope, Receipt, RecordsLog, RecordsLogError, SealedEnvelope};
 
 use crate::boundary;
@@ -9,6 +9,7 @@ use crate::error::{RefusalGate, Refused};
 use crate::fold::{FoldOutcome, PoisonReason, apply_sealed};
 use crate::state::ProjectionState;
 
+mod creation_defaults;
 mod link_admission;
 
 /// One caller submission: what the Action wants to do, and the policy
@@ -69,29 +70,26 @@ fn submit_gated(
 ) -> Result<ApplyOutcome, WriteError> {
     let registry = projection.registry_input.clone();
     let receipt = authorize_invocation(&registry, submission)?;
+    let spent = log
+        .spent(
+            &submission.request.tenant_id,
+            &submission.request.idempotency_key,
+        )
+        .map_err(WriteError::Log)?;
+    if let Some(stored) = &spent
+        && crate::retry::same_submission(&registry, &stored.envelope, submission, &receipt)
+    {
+        let mut log_receipt = stored.receipt.clone();
+        log_receipt.deduplicated = true;
+        return Ok(outcome_of_deduplicated_append(projection, log_receipt));
+    }
     check_parameter_conformance(&registry, submission)?;
     let schema_revision = admit_edits_and_stamp_registered_revision(&registry, submission)?;
-    let envelope = encode_envelope(submission, &receipt, schema_revision)?;
+    let edits = creation_defaults::materialize(projection, submission)?;
+    let envelope = encode_envelope(submission, &receipt, schema_revision, edits)?;
     let scratch = advisory_dry_run_against_scratch_fold(projection, &envelope)?;
-    // A retry under a fresh decision is the same request: the log keeps the
-    // first decision and this appends nothing.
-    match log
-        .spent(&envelope.tenant_id, &envelope.idempotency_key)
-        .map_err(WriteError::Log)?
-    {
-        Some(stored) if crate::retry::same_request(&stored.envelope, &envelope) => {
-            let mut log_receipt = stored.receipt;
-            log_receipt.deduplicated = true;
-            return Ok(outcome_of_deduplicated_append(projection, log_receipt));
-        }
-        // The real append owns divergent-key conflicts and storage failures.
-        Some(_) => {}
-        None => link_admission::admit_link_endpoints(
-            projection,
-            &scratch,
-            &envelope,
-            &submission.edits,
-        )?,
+    if spent.is_none() {
+        link_admission::admit_link_endpoints(projection, &scratch, &envelope, &submission.edits)?;
     }
     let log_receipt =
         append_with_receipt(receipt, log, envelope.clone()).map_err(WriteError::Log)?;
@@ -177,18 +175,25 @@ fn encode_envelope(
     submission: &ActionSubmission,
     receipt: &ActionInvocationReceipt,
     schema_revision: u32,
+    edits: EditSet,
 ) -> Result<ActionEnvelope, WriteError> {
     let occurred_at_epoch_ms = receipt.occurred_at_epoch_seconds.saturating_mul(1000);
-    let record = ActionRecord::new(
+    let changed = edits != submission.edits;
+    let mut record = ActionRecord::new(
         receipt.principal_id.clone(),
         receipt.decision_id.clone(),
         receipt.audit_event_type.clone(),
         receipt.idempotency_key.clone(),
         occurred_at_epoch_ms,
         submission.parameters.clone(),
-        submission.edits.clone(),
+        edits,
     )
     .map_err(|_| refuse(RefusalGate::Admission, "record identity fields refused"))?;
+    if changed {
+        record = record
+            .with_submitted_edits(submission.edits.clone())
+            .map_err(|_| refuse(RefusalGate::Admission, "submitted edits refused"))?;
+    }
     ActionEnvelope::new(
         receipt.tenant_id.clone(),
         receipt.entity_id.clone(),

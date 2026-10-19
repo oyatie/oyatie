@@ -1,4 +1,4 @@
-use crate::{ModelError, ModelPrivacy, ModelTier, ModelValueType};
+use crate::{ModelError, ModelPrivacy, ModelTier, ModelValue, ModelValueType};
 
 pub const MAX_MODEL_BYTES: usize = 1_048_576;
 pub const MAX_MODEL_ITEMS: usize = 256;
@@ -20,6 +20,8 @@ model_object!(ModelProperty {
     required: bool,
     value_type: Option<ModelValueType>,
     display: Option<ModelDisplay>,
+    #[serde(default, skip_serializing_if = "Option::is_none", deserialize_with = "crate::wire::present_default")]
+    default_value: Option<ModelValue>,
 });
 
 model_object!(ModelEntity {

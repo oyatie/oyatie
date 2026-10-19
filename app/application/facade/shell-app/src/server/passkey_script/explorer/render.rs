@@ -26,6 +26,7 @@ function ontologyTable(caption, columns, rows) {
 }
 function ontologyDeclarationText(value) {
   if (value === null) return 'Legacy string contract';
+  if (value.kind === 'named_string') return `${value.display_name || value.type_id} · ${value.type_id} · revision ${value.revision}`;
   if (value.kind === 'array') return `array of ${ontologyDeclarationText(value.element)}`;
   if (value.kind === 'struct') return `struct { ${value.fields.map(field => `${field.name} (${field.required ? 'required' : 'optional'}): ${ontologyDeclarationText(field.value_type)}`).join('; ')} }`;
   return value.kind;

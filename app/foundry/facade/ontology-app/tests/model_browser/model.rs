@@ -1,28 +1,8 @@
 use foundry_model_api::*;
 
-fn entity(id: &str, name: &str, extra: Vec<ModelProperty>) -> ModelEntity {
-    let mut properties = vec![
-        conformance::property("id", true),
-        conformance::property("name", true),
-    ];
-    properties.extend(extra);
-    ModelEntity {
-        id: id.into(),
-        display_name: name.into(),
-        properties,
-        revision: 1,
-        pillar: None,
-        primary_key_property: Some("id".into()),
-        title_property: Some("name".into()),
-        display: Some(ModelDisplay {
-            display_name: Some(name.into()),
-            description: Some(format!("{name} declaration for controlled authoring proof")),
-            icon: None,
-            color: None,
-            plural_name: Some(format!("{name}s")),
-        }),
-    }
-}
+#[path = "model/entity.rs"]
+mod entity;
+use entity::entity;
 
 pub fn document(mut document: ModelDocument) -> ModelDocument {
     let tags = ModelProperty {
@@ -31,6 +11,7 @@ pub fn document(mut document: ModelDocument) -> ModelDocument {
         data_class: ModelPrivacy::internal_only(),
         required: false,
         display: None,
+        default_value: None,
         value_type: Some(ModelValueType::Array {
             element: Box::new(ModelValueType::Scalar {
                 kind: ModelScalar::String,
@@ -43,6 +24,7 @@ pub fn document(mut document: ModelDocument) -> ModelDocument {
         data_class: ModelPrivacy::internal_only(),
         required: false,
         display: None,
+        default_value: None,
         value_type: Some(ModelValueType::Struct {
             fields: vec![
                 ModelStructField {
@@ -62,9 +44,22 @@ pub fn document(mut document: ModelDocument) -> ModelDocument {
             ],
         }),
     };
-    document
-        .entities
-        .push(entity("ety_employee", "Employee", vec![tags, address]));
+    document.named_string_types.push(ModelNamedStringType {
+        id: "vty_employment_status".into(),
+        revision: 1,
+        display_name: "EmploymentStatus".into(),
+        members: vec!["active".into(), "onLeave".into(), "ended".into()],
+    });
+    let mut status = conformance::property("employment_status", false);
+    status.value_type = Some(ModelValueType::NamedString {
+        type_id: "vty_employment_status".into(),
+        revision: 1,
+    });
+    document.entities.push(entity(
+        "ety_employee",
+        "Employee",
+        vec![tags, address, status],
+    ));
     document
         .entities
         .push(entity("ety_department", "Department", vec![]));
@@ -242,6 +237,9 @@ fn scale_document_is_native_admitted() {
     let mut expected = model.clone();
     expected.entities.sort_by(|a, b| a.id.cmp(&b.id));
     expected.links.sort_by(|a, b| a.id.cmp(&b.id));
+    for value_type in &mut expected.named_string_types {
+        value_type.members.sort();
+    }
     assert_eq!(
         ModelBaseline::capture(prepared.model_registry(), super::TENANT)
             .unwrap()

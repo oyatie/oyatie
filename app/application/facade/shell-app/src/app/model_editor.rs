@@ -35,11 +35,12 @@ pub(super) fn ModelDraftInspector() -> impl IntoView {
             <label for="live-ontology-property-choice">"Property declaration"</label><select id="live-ontology-property-choice" disabled></select>
             <form id="live-ontology-property-edit" class="foundry-editor-form" hidden>
                 <label for="live-ontology-property-name">"Property name"</label><input id="live-ontology-property-name" type="text" maxlength="4096" />
-                <label for="live-ontology-property-kind">"Value declaration"</label><select id="live-ontology-property-kind"><option value="legacy">"Legacy String (unchanged)"</option><option value="string">"String"</option><option value="integer">"Integer"</option><option value="double">"Double"</option><option value="boolean">"Boolean"</option><option value="date">"Date"</option><option value="timestamp">"Timestamp"</option><option value="array">"Array"</option><option value="struct">"Struct"</option></select>
+                <label for="live-ontology-property-kind">"Value declaration"</label><select id="live-ontology-property-kind"><option value="legacy">"Legacy String (unchanged)"</option><option value="string">"String"</option><option value="integer">"Integer"</option><option value="double">"Double"</option><option value="boolean">"Boolean"</option><option value="date">"Date"</option><option value="timestamp">"Timestamp"</option><option value="array">"Array"</option><option value="struct">"Struct"</option><option value="named_string">"Reusable string type"</option></select>
                 <div id="live-ontology-property-value" class="foundry-value-form"></div>
                 <label for="live-ontology-property-required">"Presence"</label><select id="live-ontology-property-required"><option value="required">"Required"</option><option value="optional">"Optional"</option></select>
+                <div id="live-ontology-property-default" class="foundry-default-form"></div>
                 <label for="live-ontology-property-display">"Property display name"</label><input id="live-ontology-property-display" type="text" maxlength="4096" />
-                <p id="live-ontology-property-compatibility"></p><button type="submit">"Apply property changes"</button>
+                <p id="live-ontology-property-compatibility"></p><button id="live-ontology-property-restore" type="button" hidden>"Restore published value declaration"</button><button type="submit">"Apply property changes"</button>
             </form>
             <form id="live-ontology-entity-edit" class="foundry-editor-form" hidden>
                 <details id="live-ontology-type-settings" class="foundry-edit-settings"><summary>"Type settings"</summary>
@@ -56,9 +57,10 @@ pub(super) fn ModelDraftInspector() -> impl IntoView {
             <form id="live-ontology-property-add" class="foundry-editor-form" hidden>
                 <details id="live-ontology-add-property" class="foundry-edit-settings"><summary>"Add property"</summary>
                 <label for="live-ontology-new-property-name">"New property name"</label><input id="live-ontology-new-property-name" type="text" maxlength="4096" />
-                <label for="live-ontology-new-property-kind">"New property value declaration"</label><select id="live-ontology-new-property-kind"><option value="string">"String"</option><option value="integer">"Integer"</option><option value="double">"Double"</option><option value="boolean">"Boolean"</option><option value="date">"Date"</option><option value="timestamp">"Timestamp"</option><option value="array">"Array"</option><option value="struct">"Struct"</option></select>
+                <label for="live-ontology-new-property-kind">"New property value declaration"</label><select id="live-ontology-new-property-kind"><option value="string">"String"</option><option value="integer">"Integer"</option><option value="double">"Double"</option><option value="boolean">"Boolean"</option><option value="date">"Date"</option><option value="timestamp">"Timestamp"</option><option value="array">"Array"</option><option value="struct">"Struct"</option><option value="named_string">"Reusable string type"</option></select>
                 <div id="live-ontology-new-property-value" class="foundry-value-form"></div>
                 <label for="live-ontology-new-property-required">"New property presence"</label><select id="live-ontology-new-property-required"><option value="optional">"Optional"</option><option value="required">"Required"</option></select>
+                <div id="live-ontology-new-property-default" class="foundry-default-form"></div>
                 <button type="submit">"Add property"</button>
                 </details>
             </form>
