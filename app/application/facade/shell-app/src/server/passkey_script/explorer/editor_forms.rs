@@ -123,7 +123,7 @@ function createOntologyDraftForms(context) {
     if(!context.editable() || context.dirty())return;
     const e=declaration(),p=e?.properties[propertyIndex],prior=baseline()?.properties.find(row=>row.name===p?.name);if(!p || !prior || !(namedReference(p.value_type) || namedReference(prior.value_type)) || ontologyModelEqual(p.value_type,prior.value_type) && p.tier===prior.tier)return;
     const owned=document.activeElement===find('property-restore');p.value_type=JSON.parse(JSON.stringify(prior.value_type));p.tier=prior.tier;context.changed(false);
-    const choice=find('property-choice');if(owned && [document.body,find('property-restore')].includes(document.activeElement) && !choice.disabled && choice.getClientRects().length)choice.focus({preventScroll:true});
+    const target=find('property-name');if(owned && [document.body,find('property-restore')].includes(document.activeElement) && target.isConnected && !target.disabled && target.getClientRects().length)target.focus({preventScroll:true});
   });
   for(const id of ids.filter(id=>id!=='property-choice'))find(id).addEventListener('input',()=>input(id));
   function selectProperty(index){

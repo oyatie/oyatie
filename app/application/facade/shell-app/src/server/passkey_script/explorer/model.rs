@@ -35,7 +35,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   function restoreDeclaration(saved, same=true) {
     if(!saved || document.activeElement!==document.body && document.activeElement!==saved.element || saved.element.isConnected)return;
     const buttons=saved.type?typeButtons:linkButtons;
-    const candidate=same?(saved.valueKey?JSON.stringify(values[saved.valueIndex])===saved.valueKey?find('library-values').querySelectorAll('[data-model-value]').find(row=>Number(row.dataset.modelValue)===saved.valueIndex)?.querySelector('summary'):null:saved.disclosure?find(saved.disclosure)?.querySelector('summary'):buttons.find(([element,id])=>id===(saved.type ?? saved.link) && find(saved.surface).contains(element))?.[0]):null;
+    const candidate=same?(saved.valueKey?JSON.stringify(values[saved.valueIndex])===saved.valueKey?Array.from(find('library-values').querySelectorAll('[data-model-value]')).find(row=>Number(row.dataset.modelValue)===saved.valueIndex)?.querySelector('summary'):null:saved.disclosure?find(saved.disclosure)?.querySelector('summary'):buttons.find(([element,id])=>id===(saved.type ?? saved.link) && find(saved.surface).contains(element))?.[0]):null;
     const replacement=candidate?.isConnected && !candidate.disabled && candidate.getClientRects().length?candidate:null;
     const local=saved.surface.startsWith('library')?find('search'):find(representation==='graph'?'graph':'view-table');
     (replacement || local)?.focus({preventScroll:true});
