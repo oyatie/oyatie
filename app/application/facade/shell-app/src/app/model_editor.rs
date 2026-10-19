@@ -30,15 +30,14 @@ pub(super) fn ModelDraftControls() -> impl IntoView {
 pub(super) fn ModelDraftInspector() -> impl IntoView {
     view! {
         <section id="live-ontology-draft-inspector" class="foundry-draft-inspector" aria-labelledby="live-ontology-draft-inspector-title" data-live-results="true" hidden>
-            <h4 id="live-ontology-draft-inspector-title" tabindex="-1">"Selected declaration"</h4>
-            <p id="live-ontology-draft-selection"></p>
+            <div class="foundry-property-heading"><div id="live-ontology-properties-title"><h4 id="live-ontology-draft-inspector-title" tabindex="-1">"Selected declaration"</h4></div><p id="live-ontology-property-count" role="status" aria-live="polite" hidden></p></div>
             <section id="live-ontology-property-overview" class="foundry-property-overview" aria-labelledby="live-ontology-properties-title" hidden>
-                <div class="foundry-property-heading"><h4 id="live-ontology-properties-title">"Properties"</h4><p id="live-ontology-property-count" role="status" aria-live="polite"></p></div>
                 <label class="sr-only" for="live-ontology-property-search">"Search properties"</label><input id="live-ontology-property-search" type="search" placeholder="Search properties…" aria-controls="live-ontology-property-rows" disabled />
                 <div id="live-ontology-property-rows" class="foundry-property-rows"></div>
             </section>
             <select id="live-ontology-property-choice" aria-label="Property declaration" hidden disabled></select>
-            <form id="live-ontology-property-edit" class="foundry-editor-form" hidden>
+            <form id="live-ontology-property-edit" class="foundry-editor-form" aria-labelledby="live-ontology-property-edit-title" hidden>
+                <h4 id="live-ontology-property-edit-title">"Property details"</h4>
                 <label for="live-ontology-property-name">"Property name"</label><input id="live-ontology-property-name" type="text" maxlength="4096" />
                 <label for="live-ontology-property-kind">"Value declaration"</label><select id="live-ontology-property-kind"><option value="legacy">"Legacy String (unchanged)"</option><option value="string">"String"</option><option value="integer">"Integer"</option><option value="double">"Double"</option><option value="boolean">"Boolean"</option><option value="date">"Date"</option><option value="timestamp">"Timestamp"</option><option value="array">"Array"</option><option value="struct">"Struct"</option><option value="named_string">"Reusable string type"</option></select>
                 <div id="live-ontology-property-value" class="foundry-value-form"></div>

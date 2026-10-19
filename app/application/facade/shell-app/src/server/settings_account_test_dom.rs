@@ -55,7 +55,7 @@ class Element {
   };if(!match(node,terms.pop()))return false;while(terms.length){const term=terms.pop();do{node=node.parentElement;}while(node&&!match(node,term));if(!node)return false;}return true;}); }
   closest(selector) { for(let node=this;node;node=node.parentElement)if(node.matches(selector))return node;return null; }
   querySelectorAll(selector) { const nodes=[];const visit=node=>{for(const child of node.children){if(child.matches(selector))nodes.push(child);visit(child);}};visit(this);return nodes; }
-  querySelector(selector) { return this.querySelectorAll(selector)[0]||null; }
+  querySelector(selector) { const visit=node=>{for(const child of node.children){if(child.matches(selector))return child;const found=visit(child);if(found)return found;}return null;};return visit(this); }
   cloneNode() { const copy=new Element(this.tagName,{...this.attrs});for(const part of this.parts)typeof part==='string'?copy.parts.push(part):copy.append(part.cloneNode(true));if(this.content)copy.content=this.content.cloneNode(true);return copy; }
   getClientRects() { const panel=this.closest('.identity-panel, .finance-panel, .cockpit-panel, .resource-panel');return this.isConnected&&!this.closest('[data-shell-inactive]')&&!this.closest('[hidden], [inert], [aria-hidden="true"]')&&!(panel&&!panel.classList.contains('active'))?[{}]:[]; }
   dispatchEvent(event) { emit(event.type,{...event,target:this});return true; }

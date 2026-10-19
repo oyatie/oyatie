@@ -1,6 +1,33 @@
 use super::explorer_test::check_controller;
 
 #[test]
+fn partial_apply_refreshes_metadata_without_replacing_pending_controls() {
+    check_controller(
+        r##"
+(async()=>{
+  await flush();modelEnabled=true;session.roles=['foundry-model-author','foundry-operator'];
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();
+  find('live-ontology-draft-new').emit('click');await flush();
+  const property=find('live-ontology-property-name'),kind=find('live-ontology-property-kind'),value=find('live-ontology-property-value'),defaults=find('live-ontology-property-default');
+  property.value='Pending property name';property.emit('input');
+  find('live-ontology-entity-name').value='Applied entity name';find('live-ontology-entity-name').emit('input');
+  property.focus();const selection=find('live-ontology-property-choice').value,requests=calls.length,saved=JSON.stringify([...modelDrafts]),valueChildren=[...value.children],defaultChildren=[...defaults.children];
+  find('live-ontology-entity-edit').emit('submit');
+  assert.equal(find('live-ontology-context-name').textContent,'Applied entity name');
+  assert.ok(text(find('live-ontology-selection-values')).includes('Applied entity name'));
+  assert.match(find('live-ontology-draft-selection').textContent,/^Applied entity name · ety_record/,'technical metadata uses the current applied declaration while another form is pending');
+  assert.equal(find('live-ontology-context-selected').textContent,'Property · name','pending property text is not applied identity');
+  assert.equal(find('live-ontology-property-name'),property);assert.equal(property.value,'Pending property name');assert.equal(find('live-ontology-property-kind'),kind);
+  assert.deepEqual([...value.children],valueChildren);assert.deepEqual([...defaults.children],defaultChildren);
+  assert.equal(find('live-ontology-property-choice').value,selection);assert.equal(document.activeElement,property,'metadata refresh retains the surviving focus owner');
+  assert.match(find('live-ontology-draft-state').textContent,/Unapplied form edits/);assert.equal(find('live-ontology-draft-save').disabled,true);assert.equal(find('live-ontology-draft-validate').disabled,true);
+  assert.equal(calls.length,requests,'partial Apply and metadata refresh issue no HTTP');assert.equal(JSON.stringify([...modelDrafts]),saved,'the persisted draft is unchanged');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"##,
+    );
+}
+
+#[test]
 fn selected_context_keeps_long_literal_parts_and_exact_details_distinguishable() {
     check_controller(
         r##"

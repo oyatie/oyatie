@@ -34,12 +34,15 @@ function createOntologyDraftForms(context) {
   const relationship=()=>context.document()?.links.find(l=>l.id===linkId);
   function describe(){
     const e=declaration(),l=relationship(),p=e?.properties[propertyIndex],type=id=>({id,name:context.document()?.entities.find(e=>e.id===id)?.display_name || id});
+    const metadata=find('draft-selection'),inspectable=Boolean(context.inspectable() && (e || l));
+    find('draft-inspector-title').textContent=e?'Properties':l?'Relationship details':'Selected declaration';find('property-count').hidden=!inspectable || !e;
+    metadata.hidden=!inspectable;metadata.textContent=!inspectable?'':e?`${e.display_name} · ${e.id} · pillar ${e.pillar ?? 'none'} · primary key ${e.primary_key_property ?? 'none'} · title ${e.title_property ?? 'none'}`:`${l.id} · cross-tenant intent ${l.allow_cross_tenant}`;
     const value=e?{source:'Draft',kind:p?'property':'type',type:{id:e.id,name:e.display_name},...(p?{propertyName:p.name}:{})}:l?{source:'Draft',kind:'relationship',linkId:l.id,from:type(l.from_entity_type),to:type(l.to_entity_type)}:null;
     context.describe?.(value);return value;
   }
   function enable(value){enabled=Boolean(value);for(const id of ids)find(id).disabled=!enabled;find('property-choice').disabled=!declaration() || !context.inspectable();overview.enable(Boolean(declaration()) && context.inspectable());for(const id of formIds)for(const control of find(id).querySelectorAll('button'))control.disabled=!enabled;find('entity-primary').disabled=!enabled || Boolean(baseline());propertyValue.enable(enabled);newPropertyValue.enable(enabled);propertyDefault.enable(enabled);newPropertyDefault.enable(enabled);}
-  function reset(){held=null;typeId=null;linkId=null;propertyIndex=0;dirtyFields.clear();overview.clear();for(const id of ids)find(id).value='';find('new-property-kind').value='string';find('new-property-required').value='optional';find('new-link-cardinality').value='one_to_many';find('new-entity-key').value='id';find('new-entity-key-kind').value='string';find('new-entity-title').value='none';propertyValue.clear();newPropertyValue.write({shape:'scalar',kind:'string'});propertyDefault.clear();newPropertyDefault.write({shape:'scalar',kind:'string'},undefined);issues=[];}
-  function clear(){reset();find('property-choice').replaceChildren();for(const id of ['link-from','link-to','new-link-from','new-link-to'])find(id).replaceChildren();for(const id of ['entity-edit','property-edit','property-add','link-edit'])find(id).hidden=true;find('property-compatibility').textContent='';find('entity-key-help').textContent='';enable(false);}
+  function reset(){held=null;typeId=null;linkId=null;propertyIndex=0;dirtyFields.clear();overview.clear();find('draft-inspector-title').textContent='Selected declaration';find('property-count').hidden=true;for(const id of ids)find(id).value='';find('new-property-kind').value='string';find('new-property-required').value='optional';find('new-link-cardinality').value='one_to_many';find('new-entity-key').value='id';find('new-entity-key-kind').value='string';find('new-entity-title').value='none';propertyValue.clear();newPropertyValue.write({shape:'scalar',kind:'string'});propertyDefault.clear();newPropertyDefault.write({shape:'scalar',kind:'string'},undefined);issues=[];}
+  function clear(){reset();find('draft-selection').hidden=true;find('draft-selection').textContent='';find('property-choice').replaceChildren();for(const id of ['link-from','link-to','new-link-from','new-link-to'])find(id).replaceChildren();for(const id of ['entity-edit','property-edit','property-add','link-edit'])find(id).hidden=true;find('property-compatibility').textContent='';find('entity-key-help').textContent='';enable(false);}
   function property(){
     const e=declaration(),p=e?.properties[propertyIndex];find('property-edit').hidden=!p;overview.selected();describe();
     if(!p)return;
@@ -55,10 +58,9 @@ function createOntologyDraftForms(context) {
   function render(modelDocument,draft){
     if(!modelDocument || !draft){clear();return;}
     if(held){typeId=held.typeId;linkId=held.linkId;propertyIndex=held.propertyIndex;dirtyFields.clear();for(const id of held.dirtyFields)dirtyFields.add(id);}
-    else if(context.dirty()){overview.render();return;}
+    else if(context.dirty()){describe();overview.render();return;}
     if(!modelDocument.entities.some(e=>e.id===typeId) && !modelDocument.links.some(l=>l.id===linkId)){typeId=modelDocument.entities[0]?.id || null;linkId=null;}
     const e=declaration(),l=relationship();
-    find('draft-selection').textContent=e?`${e.display_name} · ${e.id} · pillar ${e.pillar ?? 'none'} · primary key ${e.primary_key_property ?? 'none'} · title ${e.title_property ?? 'none'}`:l?`${l.id} · cross-tenant intent ${l.allow_cross_tenant}`:'Select a declaration or add a type.';
     find('entity-edit').hidden=!e;find('property-add').hidden=!e;find('link-edit').hidden=!l;
     const option=(id,label)=>{const o=document.createElement('option');o.value=id;o.textContent=label;return o;};
     for(const id of ['link-from','link-to','new-link-from','new-link-to']){const prior=find(id).value;find(id).replaceChildren(...modelDocument.entities.map(e=>option(e.id,`${e.display_name} · ${e.id}`)));if(modelDocument.entities.some(e=>e.id===prior))find(id).value=prior;}
