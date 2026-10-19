@@ -30,17 +30,18 @@ function createOntologyDraftForms(context) {
     return Object.values(result).every(value=>value===null)?null:result;
   }
   const declaration=()=>context.document()?.entities.find(e=>e.id===typeId);
+  const overview=createOntologyPropertyOverview({find,declaration,document:context.document,selected:()=>propertyIndex,select:selectProperty});
   const relationship=()=>context.document()?.links.find(l=>l.id===linkId);
   function describe(){
     const e=declaration(),l=relationship(),p=e?.properties[propertyIndex],type=id=>({id,name:context.document()?.entities.find(e=>e.id===id)?.display_name || id});
     const value=e?{source:'Draft',kind:p?'property':'type',type:{id:e.id,name:e.display_name},...(p?{propertyName:p.name}:{})}:l?{source:'Draft',kind:'relationship',linkId:l.id,from:type(l.from_entity_type),to:type(l.to_entity_type)}:null;
     context.describe?.(value);return value;
   }
-  function enable(value){enabled=Boolean(value);for(const id of ids)find(id).disabled=!enabled;find('property-choice').disabled=!declaration();for(const id of formIds)for(const control of find(id).querySelectorAll('button'))control.disabled=!enabled;find('entity-primary').disabled=!enabled || Boolean(baseline());propertyValue.enable(enabled);newPropertyValue.enable(enabled);propertyDefault.enable(enabled);newPropertyDefault.enable(enabled);}
-  function reset(){held=null;typeId=null;linkId=null;propertyIndex=0;dirtyFields.clear();for(const id of ids)find(id).value='';find('new-property-kind').value='string';find('new-property-required').value='optional';find('new-link-cardinality').value='one_to_many';find('new-entity-key').value='id';find('new-entity-key-kind').value='string';find('new-entity-title').value='none';propertyValue.clear();newPropertyValue.write({shape:'scalar',kind:'string'});propertyDefault.clear();newPropertyDefault.write({shape:'scalar',kind:'string'},undefined);issues=[];}
+  function enable(value){enabled=Boolean(value);for(const id of ids)find(id).disabled=!enabled;find('property-choice').disabled=!declaration() || !context.inspectable();overview.enable(Boolean(declaration()) && context.inspectable());for(const id of formIds)for(const control of find(id).querySelectorAll('button'))control.disabled=!enabled;find('entity-primary').disabled=!enabled || Boolean(baseline());propertyValue.enable(enabled);newPropertyValue.enable(enabled);propertyDefault.enable(enabled);newPropertyDefault.enable(enabled);}
+  function reset(){held=null;typeId=null;linkId=null;propertyIndex=0;dirtyFields.clear();overview.clear();for(const id of ids)find(id).value='';find('new-property-kind').value='string';find('new-property-required').value='optional';find('new-link-cardinality').value='one_to_many';find('new-entity-key').value='id';find('new-entity-key-kind').value='string';find('new-entity-title').value='none';propertyValue.clear();newPropertyValue.write({shape:'scalar',kind:'string'});propertyDefault.clear();newPropertyDefault.write({shape:'scalar',kind:'string'},undefined);issues=[];}
   function clear(){reset();find('property-choice').replaceChildren();for(const id of ['link-from','link-to','new-link-from','new-link-to'])find(id).replaceChildren();for(const id of ['entity-edit','property-edit','property-add','link-edit'])find(id).hidden=true;find('property-compatibility').textContent='';find('entity-key-help').textContent='';enable(false);}
   function property(){
-    const e=declaration(),p=e?.properties[propertyIndex];find('property-edit').hidden=!p;describe();
+    const e=declaration(),p=e?.properties[propertyIndex];find('property-edit').hidden=!p;overview.selected();describe();
     if(!p)return;
     if(!context.dirty()){find('property-name').value=p.name;propertyValue.write(p.value_type);find('property-required').value=p.required?'required':'optional';find('property-display').value=p.display?.display_name ?? '';propertyDefault.write(p.value_type,p.default_value);}
     const editable=supported(p),prior=baseline()?.properties.find(row=>row.name===p.name),fixed=Boolean(prior && (namedReference(p.value_type) || namedReference(prior.value_type)));
@@ -54,7 +55,7 @@ function createOntologyDraftForms(context) {
   function render(modelDocument,draft){
     if(!modelDocument || !draft){clear();return;}
     if(held){typeId=held.typeId;linkId=held.linkId;propertyIndex=held.propertyIndex;dirtyFields.clear();for(const id of held.dirtyFields)dirtyFields.add(id);}
-    else if(context.dirty())return;
+    else if(context.dirty()){overview.render();return;}
     if(!modelDocument.entities.some(e=>e.id===typeId) && !modelDocument.links.some(l=>l.id===linkId)){typeId=modelDocument.entities[0]?.id || null;linkId=null;}
     const e=declaration(),l=relationship();
     find('draft-selection').textContent=e?`${e.display_name} · ${e.id} · pillar ${e.pillar ?? 'none'} · primary key ${e.primary_key_property ?? 'none'} · title ${e.title_property ?? 'none'}`:l?`${l.id} · cross-tenant intent ${l.allow_cross_tenant}`:'Select a declaration or add a type.';
@@ -72,7 +73,8 @@ function createOntologyDraftForms(context) {
       find('entity-description').value=e.display?.description ?? '';find('entity-plural').value=e.display?.plural_name ?? '';
       find('entity-name').value=e.display_name;find('entity-revision').value=e.revision;propertyIndex=Math.min(propertyIndex,Math.max(0,e.properties.length-1));find('property-choice').value=String(propertyIndex);}
     if(l){find('link-from').value=l.from_entity_type;find('link-to').value=l.to_entity_type;find('link-cardinality').value=l.cardinality;find('link-revision').value=l.revision;}
-    property();
+    if(held)find('property-search').value=held.propertySearch;
+    overview.render();property();
     if(held){for(const id of ids)find(id).value=held.values[id];propertyValue.restore(held.propertyValue);newPropertyValue.restore(held.newPropertyValue);propertyDefault.restore(held.propertyDefault);newPropertyDefault.restore(held.newPropertyDefault);held=null;}
   }
   const revision=value=>{const n=Number(value);if(!value || !Number.isInteger(n) || n<1 || n>4294967295)throw new Error('Enter a declaration revision from 1 to 4294967295.');return n;};
@@ -121,14 +123,15 @@ function createOntologyDraftForms(context) {
     if(!context.editable() || context.dirty())return;
     const e=declaration(),p=e?.properties[propertyIndex],prior=baseline()?.properties.find(row=>row.name===p?.name);if(!p || !prior || !(namedReference(p.value_type) || namedReference(prior.value_type)) || ontologyModelEqual(p.value_type,prior.value_type) && p.tier===prior.tier)return;
     const owned=document.activeElement===find('property-restore');p.value_type=JSON.parse(JSON.stringify(prior.value_type));p.tier=prior.tier;context.changed(false);
-    const choice=find('property-choice');if(owned && [document.body,find('property-restore')].includes(document.activeElement) && !choice.disabled && choice.getClientRects().length)choice.focus({preventScroll:true});
+    const target=find('property-name');if(owned && [document.body,find('property-restore')].includes(document.activeElement) && target.isConnected && !target.disabled && target.getClientRects().length)target.focus({preventScroll:true});
   });
   for(const id of ids.filter(id=>id!=='property-choice'))find(id).addEventListener('input',()=>input(id));
-  find('property-choice').addEventListener('change',()=>{
-    if(context.dirty()){find('property-choice').value=String(propertyIndex);context.note('Apply form edits or discard and reload before changing property.');return;}
-    propertyIndex=Number(find('property-choice').value);property();
-  });
-  const capture=()=>({typeId,linkId,propertyIndex,dirtyFields:[...dirtyFields],values:Object.fromEntries(ids.map(id=>[id,find(id).value])),propertyValue:propertyValue.capture(),newPropertyValue:newPropertyValue.capture(),propertyDefault:propertyDefault.capture(),newPropertyDefault:newPropertyDefault.capture()});
+  function selectProperty(index){
+    if(!context.inspectable() || !Number.isInteger(index) || !selectType(typeId,index)){find('property-choice').value=String(propertyIndex);if(context.dirty())context.note('Apply form edits or discard and reload before changing property.');return false;}
+    find('property-choice').value=String(propertyIndex);property();return true;
+  }
+  find('property-choice').addEventListener('change',()=>{const choice=find('property-choice').value;selectProperty(choice===''?NaN:Number(choice));});
+  const capture=()=>({typeId,linkId,propertyIndex,propertySearch:find('property-search').value,dirtyFields:[...dirtyFields],values:Object.fromEntries(ids.map(id=>[id,find(id).value])),propertyValue:propertyValue.capture(),newPropertyValue:newPropertyValue.capture(),propertyDefault:propertyDefault.capture(),newPropertyDefault:newPropertyDefault.capture()});
   function selectType(id,index=null){
     const rows=context.document()?.entities.filter(e=>e.id===id) || [];
     if(context.dirty() || rows.length!==1 || index!==null && (!Number.isInteger(index) || index<0 || !rows[0].properties[index] || rows[0].properties.filter(p=>p.name===rows[0].properties[index].name).length!==1))return false;

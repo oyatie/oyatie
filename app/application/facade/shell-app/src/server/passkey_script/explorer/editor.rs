@@ -4,14 +4,17 @@ mod editor_codec;
 mod editor_defaults;
 #[path = "editor_forms.rs"]
 mod editor_forms;
+#[path = "editor_properties.rs"]
+mod editor_properties;
 #[path = "editor_values.rs"]
 mod editor_values;
 pub(super) fn script() -> String {
     format!(
-        "{}\n{}\n{}\n{}\n{}",
+        "{}\n{}\n{}\n{}\n{}\n{}",
         editor_defaults::SCRIPT,
         editor_codec::SCRIPT,
         editor_values::SCRIPT,
+        editor_properties::SCRIPT,
         editor_forms::SCRIPT,
         SCRIPT
     )
@@ -25,6 +28,18 @@ function createOntologyDraftEditor(lifecycle, view) {
   const active=()=>Boolean(workspace && identity && lifecycle.valid(identity,generation));
   const valid=token=>token===epoch && identity && lifecycle.valid(identity,generation) && find('explorer').isConnected;
   const unsaved=()=>draft && working && !ontologyModelEqual(working,draft.document);
+  const editable=()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication && !loading && !pending && !blocked;
+  function creationRefusal(){
+    if(editable())return formDirty?'Apply form edits or discard and reload before starting another declaration.':null;
+    if(!active())return 'Verify your session and load the native model to author declarations.';
+    if(mode!=='schema')return 'Choose Model to author declarations.';
+    if(loading)return 'Wait for the current model request to finish.';
+    if(pending)return 'Reconcile saved state before authoring declarations.';
+    if(blocked)return 'Reload and reconcile the draft before authoring declarations.';
+    if(!workspace.capabilities.author)return 'Model author access is required. Ask your administrator to check access.';
+    if(!draft)return 'Create or open an owned draft using Model version before adding a declaration.';
+    return 'This draft is published and closed. Open an editable owned draft to add declarations.';
+  }
   const note=text=>{find('draft-status').textContent=text;};
   function cancelSelectionFocus() {selectionFocus=null;}
   document.addEventListener('focusin',event=>{if(event.target!==find('draft-choice'))cancelSelectionFocus();});
@@ -46,6 +61,7 @@ function createOntologyDraftEditor(lifecycle, view) {
     find('draft-reload').textContent=pending ? 'Reconcile saved state' : unsaved() || formDirty ? 'Discard edits and reload saved' : 'Reload saved';
     find('draft-inspector').hidden=!active() || !draft || mode!=='schema';
     forms.enable(author && draft && draft.publication===null);
+    const creation=creationRefusal(),creationStatus=find('library-new-status'),message=creation || 'Choose a declaration. Its existing form will open; nothing is created until you submit it.';for(const kind of ['type','link'])find(`library-new-${kind}`).disabled=Boolean(creation);if(creationStatus.textContent!==message)creationStatus.textContent=message;
     find('draft-state').textContent=!active() ? '' : !draft ? `Published model · generation ${workspace.generation}` : `Draft ${draft.id} · ${pending ? 'Outcome unknown' : blocked ? 'Conflict — reload required' : formDirty ? 'Unsaved · Unapplied form edits' : unsaved() ? 'Unsaved' : 'Saved'} · saved version ${draft.version} · base generation ${draft.base_generation}${draft.publication ? ` · published as generation ${draft.publication.generation}` : ''}`;
   }
   function choices(selected=draft?.id || 'published') {
@@ -72,14 +88,16 @@ function createOntologyDraftEditor(lifecycle, view) {
   function render(selected=null) {
     if (!active() || mode!=='schema') {controls();return;}
     forms.render(working,draft);const rows=ontologyModelRows(working || workspace.document),selection=draft?{type:forms.selectedLink()?null:selected || forms.selection() || rows.schemas[0]?.entity_type || null,link:forms.selectedLink()}:selected?{type:selected,link:null}:null;
-    view.setModel(rows.schemas,rows.links,selection,draft?'Draft':'Published model',{tenantId:identity.tenantId,userId:identity.userId,kind:draft?'draft':'published',...(draft?{id:draft.id,base:draft.base_generation}:{generation:workspace.generation})});
+    view.setModel(rows.schemas,rows.links,selection,draft?'Draft':'Published model',{tenantId:identity.tenantId,userId:identity.userId,kind:draft?'draft':'published',...(draft?{id:draft.id,base:draft.base_generation}:{generation:workspace.generation})},rows.values);
     find('model-note').textContent=draft ? `Working draft based on generation ${draft.base_generation}. Object reads use published declarations.` : `Coherent published metadata snapshot at generation ${workspace.generation}. Object reads are independent.`;
     if(forms.selectedLink())view.selectLink(forms.selectedLink());forms.describe();diff();controls();
   }
-  const forms=createOntologyDraftForms({find,document:()=>working,baseline:()=>workspace?.document,editable:()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication && !loading && !pending && !blocked,
+  const forms=createOntologyDraftForms({find,document:()=>working,baseline:()=>workspace?.document,inspectable:()=>mode==='schema' && active() && draft && !loading && !pending && !blocked,editable,
     acceptInput:()=>mode==='schema' && active() && workspace.capabilities.author && draft && !draft.publication, dirty:()=>formDirty, input:()=>{forms.diagnostics([]);formDirty=true;validation=null;find('draft-diagnostics').replaceChildren();note('Unapplied form edits. Apply changes or discard and reload before saving or validating.');controls();},
     changed:unapplied=>{formDirty=unapplied;validation=null;find('draft-diagnostics').replaceChildren();note(unapplied?'Unapplied form edits remain. Apply changes or discard and reload before saving or validating.':'Unsaved local edits. Save the draft before schema validation.');render();},describe:value=>{if(active() && draft && mode==='schema')renderOntologySelectedContext(value);},note});
   function hide(preserve=false) {
+    for(const kind of ['type','link'])find(`library-new-${kind}`).disabled=true;if(!preserve)find('library-new').open=false;
+    find('library-new-status').textContent=preserve?'Checking the current session and model access…':'Verify your session and load the native model to author declarations.';
     for(const id of ['draft-controls','draft-inspector','draft-tray'])find(id).hidden=true;
     find('model-note').textContent='';
     for(const id of ['draft-state','draft-status','draft-selection'])find(id).textContent='';
@@ -87,6 +105,14 @@ function createOntologyDraftEditor(lifecycle, view) {
     if(preserve)forms.suspend();else forms.clear();
   }
   function clear() {invalidate();identity=null;workspace=null;draft=null;working=null;validation=null;summaries=[];next=null;pending=null;blocked=false;loading=false;formDirty=false;hide();}
+  for(const [kind,id] of [['type','new-entity-id'],['link','new-link-id']]){
+    const button=find(`library-new-${kind}`);button.addEventListener('click',()=>{
+      const refusal=creationRefusal();if(refusal){find('library-new-status').textContent=refusal;return;}
+      const root=find('explorer'),target=find(id),owned=document.activeElement===button;
+      if(!button.isConnected || !root.contains(button) || !button.getClientRects().length || !target?.isConnected || target.disabled || !find('draft-inspector').contains(target) || !revealOntologyDetails(target,root) || !target.getClientRects().length)return;
+      find('library-new').open=false;if(owned && [button,document.body].includes(document.activeElement))target.focus();
+    });
+  }
   async function request(path, token, body=undefined) {
     const mutation=body!==undefined;
     let response;

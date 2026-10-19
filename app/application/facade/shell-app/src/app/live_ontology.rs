@@ -28,10 +28,12 @@ pub(super) fn FoundryWorkspace() -> impl IntoView {
                 <div class="foundry-workspace-body">
                     <details id="live-ontology-library" class="foundry-library" open>
                         <summary id="live-ontology-library-title">"Model library"</summary>
-                        <label for="live-ontology-search">"Search types, properties and relationships"</label><input id="live-ontology-search" type="search" autocomplete="off" placeholder="Search model library" />
+                        <details id="live-ontology-library-new" class="foundry-library-new"><summary>"+ New"</summary><div class="foundry-library-create"><button id="live-ontology-library-new-type" type="button" disabled>"Object type"</button><button id="live-ontology-library-new-link" type="button" disabled>"Relationship"</button><p id="live-ontology-library-new-status" role="status" aria-live="polite">"Verify your session and load the native model to author declarations."</p></div></details>
+                        <label for="live-ontology-search">"Search types, properties, relationships and value types"</label><input id="live-ontology-search" type="search" autocomplete="off" placeholder="Search model library" />
                         <p id="live-ontology-library-summary" role="status" aria-live="polite"></p>
-                        <h4>"Object types"</h4><div id="live-ontology-library-types" data-live-results="true"></div>
-                        <h4>"Relationships"</h4><div id="live-ontology-library-links" data-live-results="true"></div>
+                        <details id="live-ontology-library-type-group" class="foundry-library-group" open><summary id="live-ontology-library-type-heading">"Object types"</summary><p id="live-ontology-library-scope"></p><div id="live-ontology-library-types" data-live-results="true"></div></details>
+                        <details id="live-ontology-library-link-group" class="foundry-library-group"><summary id="live-ontology-library-link-heading">"Relationships"</summary><div id="live-ontology-library-links" data-live-results="true"></div></details>
+                        <details id="live-ontology-library-value-group" class="foundry-library-group"><summary id="live-ontology-library-value-heading">"Reusable string types"</summary><p id="live-ontology-values-note"></p><div id="live-ontology-library-values" data-live-results="true"></div></details>
                         <p class="foundry-library-help">"The graph shows type declarations. Objects are instances; source lineage is a separate view."</p>
                     </details>
                     <div id="live-ontology-workpane" class="foundry-main" role="region" aria-label="Current Ontology workpane" tabindex="-1">

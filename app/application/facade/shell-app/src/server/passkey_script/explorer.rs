@@ -1,6 +1,7 @@
 mod editor;
 mod model;
 mod model_geometry;
+mod model_library;
 mod model_render;
 mod model_scope;
 mod objects;
@@ -9,11 +10,12 @@ mod relationships;
 mod render;
 pub(super) fn script() -> String {
     format!(
-        "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
+        "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
         render::SCRIPT,
         model_scope::SCRIPT,
         model_geometry::SCRIPT,
         model_render::SCRIPT,
+        model_library::SCRIPT,
         model::SCRIPT,
         editor::script(),
         relationship_codec::SCRIPT,
@@ -91,7 +93,7 @@ function createOntologyExplorer(lifecycle) {
     if(value==='objects' || !editor?.active()) renderCatalogModel();
   });
   function renderCatalogModel(){const selected=model.setModel(schemas,links,workspaceMode==='schema'?null:{type:find('type').value || null,link:null},'Published declarations',identity?{tenantId:identity.tenantId,userId:identity.userId,kind:'catalog'}:null);if(!selected.link)renderSchemaFor(schemas.find(row=>row.entity_type===selected.type));}
-  editor=createOntologyDraftEditor(lifecycle,{setModel:(rows,relations,selected,source,context)=>{const current=model.setModel(rows,relations,selected,source,context),matches=rows.filter(row=>row.entity_type===current.type);renderSchemaFor(matches.length===1?matches[0]:null);},selectLink:id=>model.selectLink(id),fallback:renderCatalogModel});
+  editor=createOntologyDraftEditor(lifecycle,{setModel:(rows,relations,selected,source,context,catalog)=>{const current=model.setModel(rows,relations,selected,source,context,catalog),matches=rows.filter(row=>row.entity_type===current.type);renderSchemaFor(matches.length===1?matches[0]:null);},selectLink:id=>model.selectLink(id),fallback:renderCatalogModel});
   let next = null, cursor = null, activeObject = null, historyShown = false, readPage = false;
   const queryControls = ['type', 'revision', 'limit', 'property', 'comparison', 'kind', 'from', 'to'];
   const note = text => { find('status').textContent = text; };

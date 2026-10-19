@@ -1,5 +1,8 @@
 use super::explorer_test::check_controller;
 
+#[path = "library_navigation_test.rs"]
+mod library_navigation;
+
 #[test]
 fn declaration_scope_keeps_exact_membership_and_invalid_draft_counts() {
     check_controller(
@@ -155,6 +158,7 @@ fn check_all_camera(variant: &str, action: &str) {
   find('live-ontology-scope-all').emit('click');
   const graph=find('live-ontology-graph'),scene=find('live-ontology-scene');
   const invoke=()=>find('live-ontology-library-links').querySelectorAll('[data-model-link]').find(row=>row.dataset.modelLink==='lty_forward');
+  find('live-ontology-library-link-group').open=true;
   const snapshot=()=>({scale:scene.style.transform,text:find('live-ontology-zoom').textContent,scroll:[graph.scrollLeft,graph.scrollTop]});
   const resize=()=>{const observer=resizeObservers.find(row=>row.observing && row.targets.has(graph));assert.ok(observer,'production graph ResizeObserver remains connected');observer.emit();};
   find('live-ontology-zoom-out').emit('click');find('live-ontology-zoom-out').emit('click');graph.scrollLeft=83;graph.scrollTop=71;
