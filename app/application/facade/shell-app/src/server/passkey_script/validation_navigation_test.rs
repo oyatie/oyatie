@@ -1,6 +1,37 @@
 use super::explorer_test::check_controller;
 
 #[test]
+fn selected_inspector_metadata_follows_current_inspection_authority() {
+    check_controller(
+        r##"
+(async()=>{
+  const metadata=find('live-ontology-draft-selection');
+  assert.equal(input.html.match(/id="live-ontology-draft-selection"/g).length,1);assert.match(input.html,/<details[^>]*id="live-ontology-selection-details"[^>]*>[\s\S]*?<p[^>]*id="live-ontology-draft-selection"[^>]*hidden[^>]*><\/p><\/details>/,'technical metadata belongs to the ordinary exact-selection disclosure');
+  const contextStart=input.html.indexOf('id="live-ontology-inspector-context"'),name=input.html.indexOf('id="live-ontology-context-name"',contextStart),selected=input.html.indexOf('id="live-ontology-context-selected"',contextStart),identity=input.html.indexOf('id="live-ontology-context-identity"',contextStart);
+  assert.ok(contextStart<name && name<selected && selected<identity,'resource name leads the literal secondary context in DOM order');
+  assert.match(input.html,/<form[^>]*id="live-ontology-property-edit"[^>]*aria-labelledby="live-ontology-property-edit-title"[^>]*>\s*<h4[^>]*id="live-ontology-property-edit-title"[^>]*>Property details<\/h4>/);
+  assert.match(input.html,/<section[^>]*id="live-ontology-draft-inspector"[^>]*>\s*<h4[^>]*id="live-ontology-draft-inspector-title"[^>]*tabindex="-1"[^>]*>Selected declaration<\/h4>/,'diagnostic fallback stays visible and focusable inside its authorized editor');
+  const cleared=()=>{assert.equal(metadata.hidden,true);assert.equal(metadata.textContent,'');};
+  await flush();assert.equal(metadata.textContent,'');modelEnabled=true;session.roles=['foundry-model-author','foundry-operator'];
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();cleared();
+  find('live-ontology-draft-new').emit('click');await flush();assert.equal(metadata.hidden,false);assert.match(metadata.textContent,/^Record · ety_record/);const applied=metadata.textContent;
+  find('live-ontology-mode-objects').emit('click');cleared();find('live-ontology-mode-schema').emit('click');assert.equal(metadata.hidden,false);assert.equal(metadata.textContent,applied);
+  holdPath='/validate';find('live-ontology-draft-validate').emit('click');await flush();cleared();held();await flush();assert.equal(metadata.hidden,false);assert.equal(metadata.textContent,applied);
+  modelWorkspace.capabilities.author=false;modelWorkspace.capabilities.publish=true;session.roles=['foundry-model-publisher','foundry-operator'];
+  holdPath='/model';const recheck=restore();await flush();cleared();held();await recheck;await flush();assert.equal(metadata.hidden,false);assert.equal(metadata.textContent,applied);assert.equal(find('live-ontology-property-name').disabled,true,'readonly inspection retains metadata without editing');
+  find('live-ontology-draft-choice').value='published';find('live-ontology-draft-choice').emit('change');await flush();cleared();
+  find('live-ontology-draft-choice').value='9007199254740993';find('live-ontology-draft-choice').emit('change');await flush();assert.equal(metadata.hidden,false);
+  modelWorkspace.capabilities.author=true;modelWorkspace.capabilities.publish=false;session.roles=['foundry-model-author','foundry-operator'];await restore();
+  find('live-ontology-entity-name').value='Applied before uncertain save';find('live-ontology-entity-name').emit('input');find('live-ontology-entity-edit').emit('submit');
+  modelLoseAck=true;find('live-ontology-draft-save').emit('click');await flush();cleared();assert.match(find('live-ontology-draft-state').textContent,/Outcome unknown/);
+  find('live-ontology-draft-reload').emit('click');await flush();assert.equal(metadata.hidden,false);assert.match(metadata.textContent,/^Applied before uncertain save · ety_record/,'explicit reconciliation restores current technical metadata');
+  find('sign-in-account').value='usr_other';find('sign-in-account').emit('input');cleared();
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"##,
+    );
+}
+
+#[test]
 fn saved_diagnostic_targets_match_native_complete_paths_uniquely() {
     check_controller(
         r##"
