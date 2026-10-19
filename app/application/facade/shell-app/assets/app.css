@@ -13448,7 +13448,7 @@ dialog:is(.settings-center, .activity-center)::backdrop {
 .foundry-draft-tray p, .foundry-editor-form p { color:var(--ink-muted); font-size:.875rem; line-height:1.5; }
 .foundry-draft-tray pre { max-height:12rem; overflow:auto; }
 
-.foundry-draft-inspector > h4 { margin:0; font-size:1rem; }
+.live-ontology-explorer .foundry-draft-inspector { margin-top:0; }
 #live-ontology-draft-selection { margin:.5rem 0; font-family:var(--font-mono); }
 .foundry-editor-form > label { font-weight:600; color:var(--ink-muted); }
 .foundry-property-overview { min-width:0; margin:.5rem 0; }
@@ -13559,9 +13559,9 @@ html:has(.console-app[data-shell-frame="foundry"] #live-ontology-explorer[data-w
 .foundry-pane-nav a { display:flex; flex:1 1 max-content; align-items:center; justify-content:center; min-width:0; min-height:max(44px,2.75rem); padding:0 .4rem; border:1px solid var(--rule); border-radius:var(--radius-sm); color:var(--ink); background:var(--paper-raised); font:inherit; white-space:normal; overflow-wrap:anywhere; }
 .foundry-pane-nav a:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .foundry-inspector > summary { position:sticky; top:calc(var(--foundry-header-height) + var(--foundry-pane-bar-height)); z-index:2; margin:-.75rem -.75rem .75rem; padding:.65rem .75rem; border-bottom:1px solid var(--rule); background:var(--paper-sunken); }
-#live-ontology-inspector-context { display:grid; min-width:0; margin-top:.25rem; gap:.1rem; font-size:.875rem; font-weight:400; line-height:1.4; color:var(--ink-muted); }
-#live-ontology-inspector-context > span { display:block; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-#live-ontology-context-name { font-size:1.25rem; font-weight:650; color:var(--ink); }
+#live-ontology-inspector-context { display:flex; flex-wrap:wrap; min-width:0; margin-top:.25rem; gap:.1rem .65rem; font-size:.875rem; font-weight:400; line-height:1.4; color:var(--ink-muted); }
+#live-ontology-inspector-context > span { display:block; min-width:0; max-width:100%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+#live-ontology-context-name { flex-basis:100%; font-size:1.25rem; font-weight:650; color:var(--ink); }
 .foundry-selection-details { min-width:0; margin-bottom:.25rem; }
 .foundry-selection-details > summary { min-height:max(44px,2.75rem); padding:.5rem 0; scroll-margin-block:calc(var(--foundry-header-height) + var(--foundry-pane-bar-height) + 8rem) calc(max(64px,3.5rem + 19px) + env(safe-area-inset-bottom,0)); }
 .foundry-selection-details dl { min-width:0; margin:.5rem 0; overflow-wrap:anywhere; }

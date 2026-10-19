@@ -1,6 +1,31 @@
 use super::explorer_test::check_controller;
 
 #[test]
+fn shared_inspector_heading_and_count_follow_the_current_declaration() {
+    check_controller(
+        r##"
+(async()=>{
+  await flush();modelEnabled=true;session.roles=['foundry-model-author','foundry-operator'];
+  modelDocument.links.push({id:'lty_self',from_entity_type:'ety_record',to_entity_type:'ety_record',cardinality:'one_to_many',allow_cross_tenant:false,revision:1,display:null});
+  find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();find('live-ontology-draft-new').emit('click');await flush();
+  const title=find('live-ontology-draft-inspector-title'),count=find('live-ontology-property-count');
+  assert.equal(title.textContent,'Properties');assert.equal(count.hidden,false);assert.equal(count.textContent,'2 of 2 properties');
+  find('live-ontology-library-links').querySelectorAll('[data-model-link]')[0].emit('click');
+  assert.equal(title.textContent,'Relationship details');assert.equal(count.hidden,true,'a link never exposes the preceding entity count');assert.equal(title.getClientRects().length,1,'the link diagnostic fallback remains visible outside the hidden property overview');
+  modelWorkspace.capabilities.author=false;modelWorkspace.capabilities.publish=true;session.roles=['foundry-model-publisher','foundry-operator'];await restore();
+  assert.equal(title.textContent,'Relationship details');assert.equal(count.hidden,true);assert.equal(find('live-ontology-link-cardinality').disabled,true);
+  modelValidation={valid:false,diagnostics:[{code:'unknown_endpoint',path:'links.lty_self',message:'Inspect this relationship'}]};find('live-ontology-draft-validate').emit('click');await flush();
+  const action=find('live-ontology-draft-diagnostics').querySelectorAll('button')[0],requests=calls.length;action.focus();action.emit('click');assert.equal(document.activeElement,title);assert.equal(title.textContent,'Relationship details');assert.equal(calls.length,requests,'readonly fallback inspection makes no request');
+  find('live-ontology-library-types').querySelectorAll('[data-model-type]')[0].emit('click');assert.equal(title.textContent,'Properties');assert.equal(count.hidden,false);assert.equal(count.textContent,'2 of 2 properties');assert.equal(find('live-ontology-property-name').disabled,true);
+  find('live-ontology-mode-objects').emit('click');assert.equal(count.hidden,true);find('live-ontology-mode-schema').emit('click');assert.equal(count.hidden,false);
+  holdPath='/session';find('session-restore').emit('click');await flush();assert.equal(count.hidden,true);assert.equal(count.textContent,'');assert.equal(title.textContent,'Selected declaration','session suspension clears applied heading text');held();await flush();assert.equal(count.hidden,false);assert.equal(title.textContent,'Properties');
+  find('sign-in-account').value='usr_other';find('sign-in-account').emit('input');assert.equal(count.hidden,true);assert.equal(count.textContent,'');assert.equal(title.textContent,'Selected declaration');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"##,
+    );
+}
+
+#[test]
 fn selected_inspector_metadata_follows_current_inspection_authority() {
     check_controller(
         r##"
@@ -10,7 +35,8 @@ fn selected_inspector_metadata_follows_current_inspection_authority() {
   const contextStart=input.html.indexOf('id="live-ontology-inspector-context"'),name=input.html.indexOf('id="live-ontology-context-name"',contextStart),selected=input.html.indexOf('id="live-ontology-context-selected"',contextStart),identity=input.html.indexOf('id="live-ontology-context-identity"',contextStart);
   assert.ok(contextStart<name && name<selected && selected<identity,'resource name leads the literal secondary context in DOM order');
   assert.match(input.html,/<form[^>]*id="live-ontology-property-edit"[^>]*aria-labelledby="live-ontology-property-edit-title"[^>]*>\s*<h4[^>]*id="live-ontology-property-edit-title"[^>]*>Property details<\/h4>/);
-  assert.match(input.html,/<section[^>]*id="live-ontology-draft-inspector"[^>]*>\s*<h4[^>]*id="live-ontology-draft-inspector-title"[^>]*tabindex="-1"[^>]*>Selected declaration<\/h4>/,'diagnostic fallback stays visible and focusable inside its authorized editor');
+  assert.match(input.html,/<section[^>]*id="live-ontology-draft-inspector"[^>]*>\s*<div[^>]*class="foundry-property-heading"[^>]*><div[^>]*id="live-ontology-properties-title"[^>]*><h4[^>]*id="live-ontology-draft-inspector-title"[^>]*tabindex="-1"[^>]*>Selected declaration<\/h4><\/div>/,'the shared title retains the visible diagnostic H4 and property-overview label outside the hidden overview');
+  for(const id of ['draft-inspector-title','properties-title','property-count'])assert.equal(input.html.match(new RegExp('id="live-ontology-'+id+'"','g')).length,1,'shared title/count IDs remain unique');
   const cleared=()=>{assert.equal(metadata.hidden,true);assert.equal(metadata.textContent,'');};
   await flush();assert.equal(metadata.textContent,'');modelEnabled=true;session.roles=['foundry-model-author','foundry-operator'];
   find('sign-in-tenant').value='ten_acme';find('sign-in-account').value='usr_alice';await restore();cleared();

@@ -30,9 +30,8 @@ pub(super) fn ModelDraftControls() -> impl IntoView {
 pub(super) fn ModelDraftInspector() -> impl IntoView {
     view! {
         <section id="live-ontology-draft-inspector" class="foundry-draft-inspector" aria-labelledby="live-ontology-draft-inspector-title" data-live-results="true" hidden>
-            <h4 id="live-ontology-draft-inspector-title" tabindex="-1">"Selected declaration"</h4>
+            <div class="foundry-property-heading"><div id="live-ontology-properties-title"><h4 id="live-ontology-draft-inspector-title" tabindex="-1">"Selected declaration"</h4></div><p id="live-ontology-property-count" role="status" aria-live="polite" hidden></p></div>
             <section id="live-ontology-property-overview" class="foundry-property-overview" aria-labelledby="live-ontology-properties-title" hidden>
-                <div class="foundry-property-heading"><h4 id="live-ontology-properties-title">"Properties"</h4><p id="live-ontology-property-count" role="status" aria-live="polite"></p></div>
                 <label class="sr-only" for="live-ontology-property-search">"Search properties"</label><input id="live-ontology-property-search" type="search" placeholder="Search properties…" aria-controls="live-ontology-property-rows" disabled />
                 <div id="live-ontology-property-rows" class="foundry-property-rows"></div>
             </section>
