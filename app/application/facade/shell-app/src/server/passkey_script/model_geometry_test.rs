@@ -1,6 +1,56 @@
 use super::explorer_test::check_controller;
 
 #[test]
+fn fixed_incident_routes_preserve_every_link_without_shared_interior_segments() {
+    check_controller(
+        r#"
+(async()=>{
+  await flush();
+  const types=Array.from({length:8},(_,i)=>({...schemaFixture[0],entity_type:`ety_${i}`,display_name:'Type '+i}));
+  const rows=[['direct_0',0,1],['direct_1',0,2],['direct_2',0,3],['direct_3',4,0],['direct_4',0,5],['parallel',0,1],['reverse',1,0],['self',0,0],['induced',2,3],['unrelated',6,7],['unrelated_reverse',7,6]];
+  const links=rows.map(([link_type,from,to])=>({link_type,from_entity_type:`ety_${from}`,to_entity_type:`ety_${to}`,cardinality:'one_to_many',revision:1,allow_cross_tenant:false}));
+  const sizes={types:new Map(types.map(row=>[row.entity_type,{w:182,h:68}])),links:new Map(links.map(row=>[row.link_type,{w:96,h:44}]))};
+  const plan=context.ontologyGraphPlan(types,links,{type:'ety_0',link:null},sizes,{width:1800,height:1600,padding:13},'all');
+  assert.ok(plan);assert.deepEqual(Array.from(plan.nodes,row=>row.id).sort(),types.map(row=>row.entity_type).sort());
+  assert.deepEqual(Array.from(plan.edges,row=>row.id).sort(),links.map(row=>row.link_type).sort(),'all eleven native links have exactly one route');
+  const epsilon=1e-6,segments=edge=>edge.points.slice(1).map((b,i)=>[edge.points[i],b]).filter(([a,b])=>Math.hypot(b[0]-a[0],b[1]-a[1])>epsilon);
+  const cards=new Map(plan.nodes.map(row=>[row.id,row])),overlap=(a,b)=>a.x<b.x+b.w-epsilon && b.x<a.x+a.w-epsilon && a.y<b.y+b.h-epsilon && b.y<a.y+a.h-epsilon;
+  for(const edge of plan.edges){
+    const native=links.find(row=>row.link_type===edge.id),from=cards.get(native.from_entity_type),to=cards.get(native.to_entity_type),first=edge.points[0],last=edge.points.at(-1);
+    assert.equal(edge.from,native.from_entity_type);assert.equal(edge.to,native.to_entity_type);
+    const onCard=(point,card)=>point && point[0]>=card.x-epsilon && point[0]<=card.x+card.w+epsilon && point[1]>=card.y-epsilon && point[1]<=card.y+card.h+epsilon;
+    assert.ok(onCard(first,from) && onCard(last,to),'source and directed arrow retain native endpoints');
+    const y=edge.label.y+edge.label.h/2;
+    assert.ok(segments(edge).some(([a,b])=>Math.abs(a[1]-y)<epsilon && Math.abs(b[1]-y)<epsilon && Math.min(a[0],b[0])<=edge.label.x+epsilon && Math.max(a[0],b[0])>=edge.label.x+edge.label.w-epsilon),'label stays on its own route');
+    for(const point of edge.points)assert.ok(point.every(Number.isFinite) && point[0]>=0 && point[0]<=plan.width && point[1]>=0 && point[1]<=plan.height,'finite route stays in scene bounds');
+    for(const card of plan.nodes){
+      assert.ok(!overlap(edge.label,card),'label avoids cards');
+      for(const[a,b]of segments(edge)){
+        assert.ok(Math.abs(a[0]-b[0])<epsilon || Math.abs(a[1]-b[1])<epsilon,'route is orthogonal');
+        const crosses=Math.abs(a[0]-b[0])<epsilon?a[0]>card.x+epsilon && a[0]<card.x+card.w-epsilon && Math.max(a[1],b[1])>card.y+epsilon && Math.min(a[1],b[1])<card.y+card.h-epsilon:a[1]>card.y+epsilon && a[1]<card.y+card.h-epsilon && Math.max(a[0],b[0])>card.x+epsilon && Math.min(a[0],b[0])<card.x+card.w-epsilon;
+        assert.ok(!crosses,'route avoids card interiors');
+      }
+    }
+  }
+  let pairs=0;
+  for(let i=0;i<plan.edges.length;i++)for(let j=i+1;j<plan.edges.length;j++){
+    pairs++;
+    assert.ok(!overlap(plan.edges[i].label,plan.edges[j].label),'route labels retain separate lanes');
+    for(const[a,b]of segments(plan.edges[i]))for(const[c,d]of segments(plan.edges[j])){
+      const horizontal=Math.abs(a[1]-b[1])<epsilon && Math.abs(c[1]-d[1])<epsilon && Math.abs(a[1]-c[1])<epsilon;
+      const vertical=Math.abs(a[0]-b[0])<epsilon && Math.abs(c[0]-d[0])<epsilon && Math.abs(a[0]-c[0])<epsilon;
+      const axis=horizontal?0:vertical?1:null;
+      if(axis!==null)assert.ok(Math.min(Math.max(a[axis],b[axis]),Math.max(c[axis],d[axis]))-Math.max(Math.min(a[axis],b[axis]),Math.min(c[axis],d[axis]))<=epsilon,`${plan.edges[i].id}/${plan.edges[j].id} share an interior segment: ${JSON.stringify([a,b,c,d])}`);
+    }
+  }
+  assert.equal(pairs,55,'every fixed input-derived pair is checked without an availability skip');
+  console.log('Fixed8nodes/11links/55unconditional route pairs: singleton,parallel,reverse,self,induced,unrelated PASS');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"#,
+    );
+}
+
+#[test]
 fn measured_scope_routes_keep_identity_direction_label_association_and_capacity() {
     check_controller(
         r#"
@@ -28,6 +78,27 @@ fn measured_scope_routes_keep_identity_direction_label_association_and_capacity(
   }
   let p=plan(projected.schemas,projected.links,{type:'ety_0',link:null},sizes,{width:849.5,height:534.53125,padding:13},'related');verify(p,links);assert.equal(p.nodes.length,8);assert.equal(p.edges.length,9);assert.ok(p.width<=849.5 && p.height<=534.53125,'eight-node composition is a measured result, not a fixed limit');
   for(const width of [849.5,506,720,342]){p=plan(projected.schemas,projected.links,{type:'ety_0',link:null},sizes,{width,height:323,padding:13},'related');verify(p,links);assert.ok(p.height<=323 || p.neighbors===0);}
+  // Native Employee neighborhood topology; dimensions are synthetic canonical fixture sizes, not saved DOM measurements.
+  const nativeIds=['employee','department','employment_contract','leave_balance','leave_policy','leave_request','position','team'].map(id=>'ety_'+id);
+  const nativeTypes=nativeIds.map(entity_type=>({...schemaFixture[0],entity_type}));
+  const nativeRows=[['member_of',0,1],['employee_contract',0,2],['employee_balance',0,3],['employee_policy',0,4],['employee_request',0,5],['employee_position',0,6],['employee_team',0,7],['employee_manages',0,0],['employee_assignment',0,1],['department_employs',1,0],['contract_governs',2,4]];
+  const nativeLinks=nativeRows.map(([id,from,to])=>link('lty_'+id,nativeIds[from],nativeIds[to]));
+  const nativeSizes={types:new Map(nativeIds.map(id=>[id,{w:182,h:68}])),links:new Map(nativeLinks.map(row=>[row.link_type,{w:96,h:44}]))};
+  const nativeScope=context.ontologyModelProjection(nativeTypes,nativeLinks,{type:'ety_employee',link:null},'related');
+  assert.deepEqual(Array.from(nativeScope.schemas,row=>row.entity_type),nativeIds);assert.deepEqual(Array.from(nativeScope.links,row=>row.link_type),nativeLinks.map(row=>row.link_type));
+  for(const height of [534.53125,511])for(const mode of ['related','all']){
+    const nativePlan=plan(nativeScope.schemas,nativeScope.links,{type:'ety_employee',link:null},nativeSizes,{width:849.5,height,padding:13},mode);verify(nativePlan,nativeLinks);
+    assert.deepEqual(Array.from(nativePlan.nodes,row=>row.id).sort(),[...nativeIds].sort(),'retain all eight native types including Team');
+    assert.deepEqual(Array.from(nativePlan.edges,row=>row.id),nativeLinks.map(row=>row.link_type),'retain all eleven native relationships');
+    assert.equal(nativePlan.columns,3);assert.ok(nativePlan.width<=849.5 && nativePlan.height<=height,'native topology fits both synthetic viewport heights');
+  }
+  nativeSizes.types=new Map(nativeIds.map((id,index)=>[id,{w:182-index*7,h:68}]));
+  const varied=plan(nativeTypes,nativeLinks,{type:'ety_employee',link:null},nativeSizes,{width:849.5,height:511,padding:13},'all');verify(varied,nativeLinks);
+  const laneGroups=new Map(),variedCards=new Map(varied.nodes.map(card=>[card.id,card]));
+  for(const edge of varied.edges)for(const [id,point] of [[edge.from,edge.points[1]],[edge.to,edge.points.at(-2)]]){
+    const card=variedCards.get(id),key=JSON.stringify([card.x,point[0]<card.x?'left':'right']);if(!laneGroups.has(key))laneGroups.set(key,[]);laneGroups.get(key).push(point[0]);
+  }
+  for(const lanes of laneGroups.values()){lanes.sort((a,b)=>a-b);for(let index=1;index<lanes.length;index++)assert.ok(lanes[index]-lanes[index-1]>=2-1e-6,'unequal card widths retain two scene pixels between competing column-side lanes');}
   p=plan(types,links,{type:'ety_0',link:null},sizes,{width:849.5,height:534.53125,padding:13},'all');verify(p,links);assert.equal(p.nodes.length,52);assert.equal(p.edges.length,148);
   const hub=Array.from({length:148},(_,i)=>link('hub_'+i,i%2?'ety_0':`ety_${i%51+1}`,i%2?`ety_${i%51+1}`:'ety_0'));sizes.links=new Map(hub.map(l=>[l.link_type,{w:104,h:44}]));
   p=plan(types,hub,{type:'ety_0',link:null},sizes,{width:342,height:323,padding:13},'related');verify(p,hub);assert.equal(p.totalNeighbors,51);assert.ok(p.neighbors<51);const initial=p.neighbors;
