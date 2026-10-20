@@ -258,3 +258,6 @@ fn independently_pending_forms_survive_partial_apply_and_lifecycle() {
 "#,
     );
 }
+
+#[path = "draft_base_test.rs"]
+mod draft_base;

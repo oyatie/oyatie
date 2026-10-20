@@ -22,7 +22,8 @@ pub(super) fn script() -> String {
 const SCRIPT: &str = r#"
 function createOntologyDraftEditor(lifecycle, view) {
   const find=id=>document.getElementById(`live-ontology-${id}`), clone=v=>JSON.parse(JSON.stringify(v));
-  let identity=null,generation=0,epoch=0,abort=null,workspace=null,draft=null,working=null,validation=null;
+  let identity=null,generation=0,epoch=0,abort=null,workspace=null,draft=null,working=null,validation=null,base=null;
+  let baseStatus='Exact draft base unavailable.';
   let summaries=[],next=null,pending=null,blocked=false,loading=false,formDirty=false,mode='schema';
   let selectionFocus=null;
   const active=()=>Boolean(workspace && identity && lifecycle.valid(identity,generation));
@@ -73,6 +74,7 @@ function createOntologyDraftEditor(lifecycle, view) {
   function diff() {
     find('draft-diff').replaceChildren();
     if (!working || !draft) return;
+    if(!base){find('draft-diff').textContent=baseStatus;return;}
     const rows=[];
     function compare(a,b,path='document') {
       if (ontologyModelEqual(a,b)) return;
@@ -82,8 +84,8 @@ function createOntologyDraftEditor(lifecycle, view) {
         else compare(a[key],b[key],`${path}.${key}`);
       }
     }
-    compare(workspace.document,working);
-    find('draft-diff').append(ontologyTable('Actual metadata changes from published model',['Field path','Published','Working draft'],rows));
+    compare(base.document,working);
+    find('draft-diff').append(ontologyTable(`Changes from this draft base · generation ${base.base_generation}${workspace.generation!==base.base_generation ? ` · current published generation ${workspace.generation} differs` : ''}`,['Field path','Draft base','Working draft'],rows));
   }
   function render(selected=null) {
     if (!active() || mode!=='schema') {controls();return;}
@@ -104,7 +106,7 @@ function createOntologyDraftEditor(lifecycle, view) {
     for(const id of ['draft-diff','draft-diagnostics','draft-choice'])find(id).replaceChildren();
     if(preserve)forms.suspend();else forms.clear();
   }
-  function clear() {invalidate();identity=null;workspace=null;draft=null;working=null;validation=null;summaries=[];next=null;pending=null;blocked=false;loading=false;formDirty=false;hide();}
+  function clear() {invalidate();base=null;identity=null;workspace=null;draft=null;working=null;validation=null;summaries=[];next=null;pending=null;blocked=false;loading=false;formDirty=false;hide();}
   for(const [kind,id] of [['type','new-entity-id'],['link','new-link-id']]){
     const button=find(`library-new-${kind}`);button.addEventListener('click',()=>{
       const refusal=creationRefusal();if(refusal){find('library-new-status').textContent=refusal;return;}
@@ -119,6 +121,7 @@ function createOntologyDraftEditor(lifecycle, view) {
     try {response=await fetch(`/api/ontology/${encodeURIComponent(identity.tenantId)}/model${path}`,{method:mutation?'POST':'GET',credentials:'same-origin',cache:'no-store',redirect:'error',signal:abort.signal,headers:mutation?{'content-type':'application/json'}:{},body:mutation?JSON.stringify(body):undefined});}
     catch(e) {if(mutation && valid(token))throw new Error('outcome_unknown');throw e;}
     if(!valid(token))return null;
+    if(response.status===401 || response.status===403)throw new Error(response.status===401?'unauthenticated':'forbidden');
     if(response.ok && (response.headers.get('x-oyatie-tenant')!==identity.tenantId || response.headers.get('x-oyatie-user')!==identity.userId || !Number.isSafeInteger(Number(response.headers.get('x-oyatie-session-expires'))) || Number(response.headers.get('x-oyatie-session-expires'))*1000<=Date.now()))throw new Error('unauthenticated');
     let bodyValue;try {bodyValue=await response.json();} catch {throw new Error(mutation?'outcome_unknown':'model_unavailable');}
     if(!valid(token))return null;
@@ -138,11 +141,25 @@ function createOntologyDraftEditor(lifecycle, view) {
     if(!identity || !lifecycle.valid(identity,generation)) {clear();return;}
     const choice=find('draft-choice'),owned=restoreChoice && document.activeElement===choice;
     invalidate();abort=new AbortController();const token=epoch;selectionFocus=owned?token:null;loading=true;controls();note(label);
-    try {await work(token);}catch(error){failure(error,token,mutation);}finally{if(valid(token)){
+    try {await work(token);if(valid(token) && draft && !pending && !base)await readBase(token);}catch(error){failure(error,token,mutation);}finally{if(valid(token)){
       loading=false;controls();
       if(selectionFocus===token && mode==='schema' && !pending && !blocked && choice.isConnected && !choice.disabled && choice.getClientRects().length && [choice,document.body].includes(document.activeElement))choice.focus({preventScroll:true});
       if(selectionFocus===token)cancelSelectionFocus();
     }}
+  }
+  async function readBase(token) {
+    const snapshot={id:draft.id,version:draft.version,base_generation:draft.base_generation};
+    const matches=()=>valid(token) && draft?.id===snapshot.id && draft.version===snapshot.version && draft.base_generation===snapshot.base_generation;
+    base=null;baseStatus='Loading exact draft base…';diff();
+    try {
+      const value=await request(`/drafts/${snapshot.id}/base?expected_version=${snapshot.version}&expected_base=${snapshot.base_generation}`,token);
+      if(!value || !matches())return;ontologyModelWire.base(value,snapshot);base=value;
+    } catch(error) {
+      if(!matches() || error.name==='AbortError')return;
+      if(['unauthenticated','forbidden'].includes(error.message)){failure(error,token);return;}
+      baseStatus='Exact draft base unavailable. Changes cannot be compared; local edits are retained.';
+    }
+    if(matches())diff();
   }
   async function discover(token,after=null) {
     const page=await request(`/drafts?limit=25${after?`&after=${encodeURIComponent(after)}`:''}`,token);if(!page || !valid(token))return;
@@ -150,7 +167,7 @@ function createOntologyDraftEditor(lifecycle, view) {
   }
   function adopt(value) {
     const selected=draft?.id===value.id?{type:forms.selection(),link:forms.selectedLink(),property:forms.selectedProperty()}:null;
-    formDirty=false;draft=value;working=clone(value.document);pending=null;blocked=false;validation=null;
+    base=null;formDirty=false;draft=value;working=clone(value.document);pending=null;blocked=false;validation=null;
     if(!summaries.some(s=>s.id===value.id))summaries.push({id:value.id,version:value.version,base_generation:value.base_generation,published_generation:value.publication?.generation || null});
     summaries=summaries.map(s=>s.id===value.id?{...s,version:value.version,base_generation:value.base_generation}:s);choices(value.id);find('draft-diagnostics').replaceChildren();forms.reset();if(selected?.link)forms.selectLink(selected.link);else if(selected?.type)forms.selectType(selected.type,selected.property);render();
   }
@@ -198,7 +215,7 @@ function createOntologyDraftEditor(lifecycle, view) {
     if(pending?.kind==='save'){choices();note('Reconcile the uncertain submission before changing models.');return;}
     const choice=find('draft-choice').value;if((unsaved() || formDirty) && !pending){choices();note('Save or explicitly discard local edits and reload before changing the selected model.');return;}
     run('Opening selected native model…',async token=>{
-      if(choice==='published'){if(pending){choices();note('Reconcile the uncertain submission before changing models.');return;}draft=null;working=null;validation=null;blocked=false;forms.reset();render();return;}
+      if(choice==='published'){if(pending){choices();note('Reconcile the uncertain submission before changing models.');return;}base=null;draft=null;working=null;validation=null;blocked=false;forms.reset();render();return;}
       if(!ontologyModelWire.decimal(choice))throw new Error('model_unavailable');const value=await request(`/drafts/${choice}`,token);if(value && valid(token)){ontologyModelWire.draft(value,identity,choice);adopt(value);note('Saved owned draft opened.');}
     },false,true);
   });
@@ -231,6 +248,6 @@ function createOntologyDraftEditor(lifecycle, view) {
       note(value.valid?`Saved changes pass schema validation · version ${snapshot.version}. Publishing is not available yet.`:`Saved changes were refused by schema validation · version ${snapshot.version}.`);
     });
   });
-  return {open,clear,active,render,selectType:id=>{if(!active() || mode!=='schema')return false;if(formDirty){note('Apply form edits or discard and reload before changing declaration.');return false;}if((working || workspace.document).entities.filter(row=>row.id===id).length!==1 || working && !forms.selectType(id))return false;render(id);return true;},selectLink:id=>{if(!active())return false;if(formDirty){note('Apply form edits before changing declaration.');return false;}if(!working)return true;const prior=forms.selectedLink();if(!forms.selectLink(id))return false;if(prior!==id)forms.render(working,draft);controls();return forms.describe();},hold:()=>{invalidate();hide(true);},setMode:value=>{cancelSelectionFocus();mode=value;controls();if(value==='schema')render();}};
+  return {open,clear,active,render,selectType:id=>{if(!active() || mode!=='schema')return false;if(formDirty){note('Apply form edits or discard and reload before changing declaration.');return false;}if((working || workspace.document).entities.filter(row=>row.id===id).length!==1 || working && !forms.selectType(id))return false;render(id);return true;},selectLink:id=>{if(!active())return false;if(formDirty){note('Apply form edits before changing declaration.');return false;}if(!working)return true;const prior=forms.selectedLink();if(!forms.selectLink(id))return false;if(prior!==id)forms.render(working,draft);controls();return forms.describe();},hold:()=>{invalidate();base=null;hide(true);},setMode:value=>{cancelSelectionFocus();mode=value;controls();if(value==='schema')render();}};
 }
 "#;
