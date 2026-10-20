@@ -25,18 +25,18 @@ function ontologyGraphPlan(types, links, selected, sizes, viewport, mode, retain
       const column=new Map([[primary,columns===3?1:0]]);
       shown.forEach((id,index)=>column.set(id,columns===1?0:columns===3?index%2*2:1));
       ends=new Map();ports=new Map();lanes=new Map();
-      const endpoint=(id,side)=>{
-        const point={id,side,portKey:JSON.stringify([id,side]),laneKey:JSON.stringify([column.get(id),side])};
+      const endpoint=(id,side,link,role,ordinal)=>{
+        const point={id,side,link,role,ordinal,portKey:JSON.stringify([id,side]),laneKey:JSON.stringify([column.get(id),side])};
         for(const[group,key]of [[ports,point.portKey],[lanes,point.laneKey]]){if(!group.has(key))group.set(key,[]);group.get(key).push(point);}
         return point;
       };
-      for(const row of visibleLinks){
+      for(const [ordinal,row] of visibleLinks.entries()){
         const a=row.from_entity_type,b=row.to_entity_type,directLink=[a,b].includes(primary);
         let fromSide,toSide;
         if(a===b){fromSide='left';toSide='right';}
         else if(directLink && column.get(a)!==column.get(b)){fromSide=column.get(a)<column.get(b)?'right':'left';toSide=fromSide==='left'?'right':'left';}
         else{const first=directLink?primary:column.get(a)>column.get(b)?b:a;fromSide=first===a?'left':'right';toSide=first===a?'right':'left';}
-        ends.set(row.link_type,[endpoint(a,fromSide),endpoint(b,toSide)]);
+        ends.set(row.link_type,[endpoint(a,fromSide,row.link_type,'source',ordinal),endpoint(b,toSide,row.link_type,'target',ordinal)]);
       }
       // Reserve two scene pixels per competing lane without shrinking native targets.
       clearance=(index,side)=>Math.max(p,2*((lanes.get(JSON.stringify([index,side]))?.length ?? 0)+1));
@@ -70,10 +70,26 @@ function ontologyGraphPlan(types, links, selected, sizes, viewport, mode, retain
     });
     let footer=margin+body;
     for(const row of induced){const size=sizes.links.get(row.link_type),a=positions.get(row.from_entity_type),b=positions.get(row.to_entity_type),left=Math.min(a.x,b.x)-p/2,right=Math.max(a.x+a.w,b.x+b.w)+p/2;footer+=p;labelPositions.set(row.link_type,{x:(left+right-size.w)/2,y:footer});footer+=size.h;}
+    for(const incident of ports.values()){
+      const node=positions.get(incident[0].id);
+      incident.forEach((point,index)=>{const ratio=(index+1)/(incident.length+1);point.y=node.y+p/2+Math.max(0,node.h-p)*ratio;point.labelY=labelPositions.get(point.link).y+sizes.links.get(point.link).h/2;});
+      const targets=incident.filter(point=>point.role==='target'),sources=incident.filter(point=>point.role==='source');
+      // shortcut: preserve unsupported packing; qualify multiple targets or taller real cards in a separate allocator/capacity change.
+      if(targets.length!==1 || !sources.length)continue;
+      const target=targets[0],sourceHalf=.75,targetHalf=6,gap=2;
+      if(sources.every(point=>point.labelY<=point.y && point.y+sourceHalf+gap<=target.y-targetHalf || point.labelY>=point.y && point.y-sourceHalf-gap>=target.y+targetHalf))continue;
+      const minimum=p+2*(sources.length*sourceHalf+targetHalf)+gap*(incident.length-1);
+      if(minimum>node.h)continue;
+      const upper=sources.filter(point=>point.labelY<=node.y+node.h/2),lower=sources.filter(point=>point.labelY>node.y+node.h/2),ordered=[...upper,target,...lower];
+      const spare=(node.h-minimum)/(incident.length+1);let y=node.y+p/2+spare;
+      for(const point of ordered){const half=point.role==='target'?targetHalf:sourceHalf;point.proposedY=y+half;y+=2*half+gap+spare;}
+      if(upper.some(point=>point.labelY>point.proposedY) || lower.some(point=>point.labelY<point.proposedY))continue;
+      for(const point of ordered)point.y=point.proposedY;
+    }
     const endpoint=point=>{
-      const node=positions.get(point.id),incident=ports.get(point.portKey),competing=lanes.get(point.laneKey);
-      const ratio=(incident.indexOf(point)+1)/(incident.length+1),lane=clearance(columnX.indexOf(node.x),point.side)*(competing.indexOf(point)+1)/(competing.length+1);
-      return {x:node.x+(point.side==='left'?0:node.w),y:node.y+p/2+Math.max(0,node.h-p)*ratio,lane:node.x+(point.side==='left'?-lane:cardW+lane)};
+      const node=positions.get(point.id),competing=lanes.get(point.laneKey);
+      const lane=clearance(columnX.indexOf(node.x),point.side)*(competing.indexOf(point)+1)/(competing.length+1);
+      return {x:node.x+(point.side==='left'?0:node.w),y:point.y,lane:node.x+(point.side==='left'?-lane:cardW+lane)};
     };
     const edges=visibleLinks.map(row=>{
       const label=labelPositions.get(row.link_type),size=sizes.links.get(row.link_type),[from,to]=ends.get(row.link_type).map(endpoint),y=label.y+size.h/2;
