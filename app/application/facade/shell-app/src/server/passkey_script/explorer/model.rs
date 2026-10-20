@@ -10,7 +10,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   let schemas = [], links = [], selectedType = null, selectedLink = null, source = 'Published declarations';
   let representation = 'graph', zoom = 1, width = 640, height = 360;
   let scope='related',context=null,heldViewport=null,heldSelection=null,relatedCount=null,drawn=null,framePending=true;
-  let cameraManual=false,pointerScroll=false,cameraViewport=null;
+  let cameraManual=false,pointerScroll=false,cameraViewport=null,revealEpoch=0;
   const projection=()=>ontologyModelProjection(schemas,links,{type:selectedType,link:selectedLink},scope);
   let typeButtons = [], linkButtons = [], graphLabels = [], graphNodes = [], graphEdges = [];
   const arrowSize = 8, arrowRefX = 7, arrowRefY = 4;
@@ -149,6 +149,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   }
   function graphRender(){const owned=focusedDeclaration(),position=viewport();graph();summary();selection();restoreViewport(position);restoreDeclaration(owned);}
   function graph() {
+    ++revealEpoch;
     typeButtons=typeButtons.filter(([element])=>!find('scene').contains(element));linkButtons=linkButtons.filter(([element])=>!find('scene').contains(element));
     drawn=renderOntologyGraph(find,node,typeButton,linkButton,cardinality,projection(),{type:selectedType,link:selectedLink},scope,zoom,relatedCount);
     ({width,height}=drawn);graphNodes=drawn.nodes;graphEdges=drawn.edges;graphLabels=drawn.labels;
@@ -251,10 +252,22 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   find('fit').addEventListener('click',()=>fit());
   find('graph').addEventListener('wheel',manualCamera,{passive:true});
   find('graph').addEventListener('touchmove',manualCamera,{passive:true});
-  find('graph').addEventListener('pointerdown',event=>{pointerScroll=event.target===find('graph');});
+  find('graph').addEventListener('pointerdown',event=>{++revealEpoch;pointerScroll=event.target===find('graph');});
   const pointerPan=()=>{const position=viewport();if(pointerScroll && cameraViewport && (position.left!==cameraViewport.left || position.top!==cameraViewport.top))manualCamera();};
   find('graph').addEventListener('scroll',pointerPan);
   for(const event of ['pointerup','pointercancel'])window.addEventListener(event,()=>{pointerPan();pointerScroll=false;});
+  document.addEventListener('keydown',event=>{
+    const ticket=++revealEpoch,source=context,prior=document.activeElement;
+    if(event.key!=='Tab' || !event.isTrusted || event.defaultPrevented || !source)return;
+    requestAnimationFrame(()=>{
+      const active=document.activeElement,graph=find('graph');
+      if(ticket!==revealEpoch || event.defaultPrevented || source!==context || active===prior || !active?.isConnected || active.disabled || !graph.isConnected || !graph.getClientRects().length || !active.getClientRects().length || !graphNodes.includes(active) && !graphLabels.includes(active))return;
+      const box=graph.getBoundingClientRect(),rect=active.getBoundingClientRect(),left=box.left+graph.clientLeft,top=box.top+graph.clientTop;
+      const shift=(start,end,min,max)=>end-start>max-min?0:start<min?Math.floor(start-min):end>max?Math.ceil(end-max):0;
+      const x=shift(rect.left,rect.right,left,left+graph.clientWidth),y=shift(rect.top,rect.bottom,top,top+graph.clientHeight);
+      if(x || y)restoreViewport({left:graph.scrollLeft+x,top:graph.scrollTop+y});
+    });
+  });
   find('graph').addEventListener('keydown', event => {
     if (event.target !== find('graph')) return;
     const direction = {ArrowLeft:[-80,0],ArrowRight:[80,0],ArrowUp:[0,-80],ArrowDown:[0,80]}[event.key];
