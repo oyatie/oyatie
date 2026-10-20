@@ -3,6 +3,11 @@ use super::explorer_test::check_controller;
 #[path = "library_navigation_test.rs"]
 mod library_navigation;
 
+#[path = "graph_focus_test.rs"]
+mod graph_focus;
+#[path = "graph_reading_test.rs"]
+mod graph_reading;
+
 #[test]
 fn declaration_scope_keeps_exact_membership_and_invalid_draft_counts() {
     check_controller(
