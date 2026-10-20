@@ -835,7 +835,7 @@ textarea {
 .console-app {
   display: grid;
   grid-template-columns: 14.5rem minmax(0, 1fr);
-  grid-template-rows: 3.25rem 1fr;
+  grid-template-rows: auto 1fr;
   min-height: 100vh;
   background: var(--paper);
 }
@@ -1110,7 +1110,8 @@ textarea {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  height: 3.25rem;
+  height: auto;
+  min-height: max(44px, 3.25rem);
   border-bottom: 1px solid var(--rule);
   background: var(--paper);
   padding: 0 var(--space-5);
