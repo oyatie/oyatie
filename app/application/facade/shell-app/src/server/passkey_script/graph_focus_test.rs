@@ -80,6 +80,11 @@ fn pending_keyboard_reveal_refuses_stale_foreign_and_newer_intent() {
   const event=navigate(external,card);event.defaultPrevented=true;drain();assert.deepEqual(camera(),[83,71],'late cancellation is respected');
   navigate(external,card);external.focus();drain();assert.deepEqual(camera(),[83,71],'newer outside focus is not moved or stolen');assert.equal(document.activeElement,external);
   navigate(external,card);graph.emit('pointerdown',{target:card});drain();assert.deepEqual(camera(),[83,71],'newer pointer intent cancels pending keyboard pan');
+  for(const intent of ['wheel','touchmove']){
+    navigate(external,card);graph.emit(intent,{deltaX:37,deltaY:29});graph.scrollLeft=120;graph.scrollTop=100;drain();
+    assert.deepEqual(camera(),[120,100],intent+' manual pan cancels the earlier keyboard reveal');
+    graph.scrollLeft=83;graph.scrollTop=71;
+  }
   navigate(external,card);card.isConnected=false;drain();assert.deepEqual(camera(),[83,71],'disconnected target is refused');card.isConnected=true;
   const foreign=new Element('button');foreign.dataset.modelType='ety_foreign';scene.append(foreign);position(foreign,889.90625,494.40625,364,136.5);navigate(external,foreign);drain();assert.deepEqual(camera(),[83,71],'unowned scene node is refused');scene.removeChild(foreign);
   navigate(external,card);load();drain();assert.deepEqual(camera(),[83,71],'intervening render cancels the old navigation ticket');

@@ -165,7 +165,7 @@ function createOntologyModelView(selectType, fallback, selectRelationship = () =
   }
   function viewport(){return {left:find('graph').scrollLeft,top:find('graph').scrollTop};}
   function restoreViewport(value){find('graph').scrollLeft=value.left;find('graph').scrollTop=value.top;cameraViewport=viewport();}
-  function manualCamera(){cameraManual=true;framePending=false;}
+  function manualCamera(){++revealEpoch;cameraManual=true;framePending=false;}
   function scopeCounts() {
     const projected=projection(),count=(kind,displayed)=>({total:projected.counts[kind].total,eligible:projected[kind==='types'?'schemas':'links'].length,displayed,remaining:projected[kind==='types'?'schemas':'links'].length-displayed,outsideScope:projected.counts[kind].remaining,undrawn:projected.counts[kind].undrawn});
     return {types:count('types',graphNodes.length),relationships:count('relationships',graphEdges.length)};
