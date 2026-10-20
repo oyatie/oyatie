@@ -2,6 +2,7 @@ mod failures;
 mod labels;
 mod links;
 mod model;
+mod model_base;
 mod point;
 mod query;
 mod relationship_limits;

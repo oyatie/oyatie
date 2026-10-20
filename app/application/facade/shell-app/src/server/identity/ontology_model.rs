@@ -18,6 +18,8 @@ use axum::{
 };
 use iam_identity_user_session::ActiveUserMembership;
 use serde::Serialize;
+#[path = "ontology_model_reads.rs"]
+mod reads;
 
 pub(super) fn router() -> Router<Configuration> {
     let maximum = model_wire_limits()
@@ -27,9 +29,13 @@ pub(super) fn router() -> Router<Configuration> {
         .route("/api/ontology/{tenant}/model", get(workspace))
         .route(
             "/api/ontology/{tenant}/model/drafts",
-            get(drafts).post(create),
+            get(reads::drafts).post(create),
         )
         .route("/api/ontology/{tenant}/model/drafts/{draft_id}", get(draft))
+        .route(
+            "/api/ontology/{tenant}/model/drafts/{draft_id}/base",
+            get(reads::base),
+        )
         .route(
             "/api/ontology/{tenant}/model/drafts/{draft_id}/save",
             post(save),
@@ -178,43 +184,6 @@ async fn workspace(
             let t = extract_path(path)?;
             let (s, m) = source(c, &t, &h, false).await?;
             Ok((s.workspace(&t).await?, m))
-        }
-        .await,
-        StatusCode::OK,
-    )
-}
-async fn drafts(
-    State(c): State<Configuration>,
-    path: ModelPath<String>,
-    RawQuery(q): RawQuery,
-    h: HeaderMap,
-) -> Response {
-    response(
-        async {
-            let t = extract_path(path)?;
-            let (s, m) = source(c, &t, &h, false).await?;
-            let url =
-                reqwest::Url::parse(&format!("https://query.invalid/?{}", q.unwrap_or_default()))
-                    .map_err(|_| refused(ModelRefusalCode::MalformedRequest))?;
-            let mut after = None;
-            let mut limit = None;
-            for (k, v) in url.query_pairs() {
-                match k.as_ref() {
-                    "after" if after.is_none() => after = Some(number(&v)?),
-                    "limit"
-                        if limit.is_none()
-                            && !v.starts_with('0')
-                            && v.bytes().all(|b| b.is_ascii_digit()) =>
-                    {
-                        limit = Some(
-                            v.parse::<usize>()
-                                .map_err(|_| refused(ModelRefusalCode::MalformedRequest))?,
-                        )
-                    }
-                    _ => return Err(refused(ModelRefusalCode::MalformedRequest)),
-                }
-            }
-            Ok((s.owned_drafts(&t, after, limit.unwrap_or(25)).await?, m))
         }
         .await,
         StatusCode::OK,

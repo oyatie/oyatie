@@ -290,3 +290,6 @@ async fn native_fake_validation_refuses_foreign_owner_without_masking_schema_dia
         Err(ModelSourceError::Refused(ModelRefusalCode::DraftConflict))
     );
 }
+
+#[path = "model_base_tests.rs"]
+mod draft_base;

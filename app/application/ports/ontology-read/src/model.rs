@@ -27,6 +27,12 @@ pub trait OntologyModelSource: Send + Sync {
         tenant: &str,
         id: ModelNumber,
     ) -> impl Future<Output = Result<ModelDraftWire, ModelSourceError>> + Send;
+    fn draft_base(
+        &self,
+        tenant: &str,
+        id: ModelNumber,
+        request: &PrepareModelDraft,
+    ) -> impl Future<Output = Result<ModelDraftBase, ModelSourceError>> + Send;
     fn create_draft(
         &self,
         tenant: &str,

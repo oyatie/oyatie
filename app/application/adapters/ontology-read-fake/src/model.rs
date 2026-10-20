@@ -1,7 +1,7 @@
 use application_ontology_read::{
-    CreateModelDraft, ModelCapabilities, ModelDiagnostic, ModelDraftPage, ModelDraftWire,
-    ModelNumber, ModelRefusalCode, ModelSourceError, ModelValidation, ModelWorkspace,
-    OntologyModelSource, PrepareModelDraft, SaveModelDraft,
+    CreateModelDraft, ModelCapabilities, ModelDiagnostic, ModelDraftBase, ModelDraftPage,
+    ModelDraftWire, ModelNumber, ModelRefusalCode, ModelSourceError, ModelValidation,
+    ModelWorkspace, OntologyModelSource, PrepareModelDraft, SaveModelDraft,
 };
 use foundry_model_api::{
     DraftPageRequest, ModelCaller, ModelError, ModelStore, ReferenceModelStore,
@@ -93,6 +93,41 @@ impl OntologyModelSource for FixtureOntologyModelSource {
                 .map_err(refusal)?,
         )
         .map_err(refusal)
+    }
+    async fn draft_base(
+        &self,
+        tenant: &str,
+        id: ModelNumber,
+        request: &PrepareModelDraft,
+    ) -> Result<ModelDraftBase, ModelSourceError> {
+        self.check(tenant, false)?;
+        let draft = self
+            .store
+            .open_draft(&self.caller, id.get())
+            .map_err(refusal)?;
+        if draft.version != request.expected_version.get() {
+            return Err(ModelSourceError::Refused(ModelRefusalCode::DraftConflict));
+        }
+        if draft.base_generation != request.expected_base.get() {
+            return Err(ModelSourceError::Refused(ModelRefusalCode::HeadConflict));
+        }
+        let unavailable = || ModelSourceError::Refused(ModelRefusalCode::ModelUnavailable);
+        let history = self
+            .store
+            .history(&self.caller)
+            .map_err(|_| unavailable())?;
+        draft.check_record(&history).map_err(|_| unavailable())?;
+        let publication = history
+            .publications
+            .into_iter()
+            .find(|row| row.generation == draft.base_generation)
+            .ok_or_else(unavailable)?;
+        Ok(ModelDraftBase {
+            draft_id: id,
+            draft_version: request.expected_version,
+            base_generation: request.expected_base,
+            document: publication.document,
+        })
     }
     async fn create_draft(
         &self,

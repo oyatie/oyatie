@@ -11,3 +11,4 @@ mod ontology_relationship_native;
 mod ontology_relationships;
 
 mod model;
+mod model_base;
