@@ -78,6 +78,27 @@ fn measured_scope_routes_keep_identity_direction_label_association_and_capacity(
   }
   let p=plan(projected.schemas,projected.links,{type:'ety_0',link:null},sizes,{width:849.5,height:534.53125,padding:13},'related');verify(p,links);assert.equal(p.nodes.length,8);assert.equal(p.edges.length,9);assert.ok(p.width<=849.5 && p.height<=534.53125,'eight-node composition is a measured result, not a fixed limit');
   for(const width of [849.5,506,720,342]){p=plan(projected.schemas,projected.links,{type:'ety_0',link:null},sizes,{width,height:323,padding:13},'related');verify(p,links);assert.ok(p.height<=323 || p.neighbors===0);}
+  // Native Employee neighborhood topology; dimensions are synthetic canonical fixture sizes, not saved DOM measurements.
+  const nativeIds=['employee','department','employment_contract','leave_balance','leave_policy','leave_request','position','team'].map(id=>'ety_'+id);
+  const nativeTypes=nativeIds.map(entity_type=>({...schemaFixture[0],entity_type}));
+  const nativeRows=[['member_of',0,1],['employee_contract',0,2],['employee_balance',0,3],['employee_policy',0,4],['employee_request',0,5],['employee_position',0,6],['employee_team',0,7],['employee_manages',0,0],['employee_assignment',0,1],['department_employs',1,0],['contract_governs',2,4]];
+  const nativeLinks=nativeRows.map(([id,from,to])=>link('lty_'+id,nativeIds[from],nativeIds[to]));
+  const nativeSizes={types:new Map(nativeIds.map(id=>[id,{w:182,h:68}])),links:new Map(nativeLinks.map(row=>[row.link_type,{w:96,h:44}]))};
+  const nativeScope=context.ontologyModelProjection(nativeTypes,nativeLinks,{type:'ety_employee',link:null},'related');
+  assert.deepEqual(Array.from(nativeScope.schemas,row=>row.entity_type),nativeIds);assert.deepEqual(Array.from(nativeScope.links,row=>row.link_type),nativeLinks.map(row=>row.link_type));
+  for(const height of [534.53125,511])for(const mode of ['related','all']){
+    const nativePlan=plan(nativeScope.schemas,nativeScope.links,{type:'ety_employee',link:null},nativeSizes,{width:849.5,height,padding:13},mode);verify(nativePlan,nativeLinks);
+    assert.deepEqual(Array.from(nativePlan.nodes,row=>row.id).sort(),[...nativeIds].sort(),'retain all eight native types including Team');
+    assert.deepEqual(Array.from(nativePlan.edges,row=>row.id),nativeLinks.map(row=>row.link_type),'retain all eleven native relationships');
+    assert.equal(nativePlan.columns,3);assert.ok(nativePlan.width<=849.5 && nativePlan.height<=height,'native topology fits both synthetic viewport heights');
+  }
+  nativeSizes.types=new Map(nativeIds.map((id,index)=>[id,{w:182-index*7,h:68}]));
+  const varied=plan(nativeTypes,nativeLinks,{type:'ety_employee',link:null},nativeSizes,{width:849.5,height:511,padding:13},'all');verify(varied,nativeLinks);
+  const laneGroups=new Map(),variedCards=new Map(varied.nodes.map(card=>[card.id,card]));
+  for(const edge of varied.edges)for(const [id,point] of [[edge.from,edge.points[1]],[edge.to,edge.points.at(-2)]]){
+    const card=variedCards.get(id),key=JSON.stringify([card.x,point[0]<card.x?'left':'right']);if(!laneGroups.has(key))laneGroups.set(key,[]);laneGroups.get(key).push(point[0]);
+  }
+  for(const lanes of laneGroups.values()){lanes.sort((a,b)=>a-b);for(let index=1;index<lanes.length;index++)assert.ok(lanes[index]-lanes[index-1]>=2-1e-6,'unequal card widths retain two scene pixels between competing column-side lanes');}
   p=plan(types,links,{type:'ety_0',link:null},sizes,{width:849.5,height:534.53125,padding:13},'all');verify(p,links);assert.equal(p.nodes.length,52);assert.equal(p.edges.length,148);
   const hub=Array.from({length:148},(_,i)=>link('hub_'+i,i%2?'ety_0':`ety_${i%51+1}`,i%2?`ety_${i%51+1}`:'ety_0'));sizes.links=new Map(hub.map(l=>[l.link_type,{w:104,h:44}]));
   p=plan(types,hub,{type:'ety_0',link:null},sizes,{width:342,height:323,padding:13},'related');verify(p,hub);assert.equal(p.totalNeighbors,51);assert.ok(p.neighbors<51);const initial=p.neighbors;

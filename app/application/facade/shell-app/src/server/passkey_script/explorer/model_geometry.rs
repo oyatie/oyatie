@@ -10,7 +10,7 @@ function ontologyGraphPlan(types, links, selected, sizes, viewport, mode, retain
   const neighbors=[...forced,...types.map(row=>row.entity_type).filter(id=>id!==primary && !forced.includes(id)).sort()];
   const cardW=Math.max(...types.map(row=>sizes.types.get(row.entity_type).w));
   const direct=links.filter(row=>row.from_entity_type!==row.to_entity_type && [row.from_entity_type,row.to_entity_type].includes(primary));
-  const corridor=Math.max(44,...direct.map(row=>sizes.links.get(row.link_type).w))+2*p;
+  const labelW=Math.max(44,...direct.map(row=>sizes.links.get(row.link_type).w)),corridor=labelW+2*p;
   const maximumColumns=3*cardW+2*corridor+2*margin<=viewport.width?3:2*cardW+corridor+2*margin<=viewport.width?2:1;
   const stack=rows=>rows.reduce((height,row)=>height+sizes.links.get(row.link_type).h+p/2,0)-(rows.length?p/2:0);
   const self=id=>links.filter(row=>row.from_entity_type===id && row.to_entity_type===id);
@@ -20,7 +20,7 @@ function ontologyGraphPlan(types, links, selected, sizes, viewport, mode, retain
     const shown=neighbors.slice(0,count),visible=new Set([primary,...shown]);
     const visibleLinks=links.filter(row=>visible.has(row.from_entity_type) && visible.has(row.to_entity_type));
     const induced=visibleLinks.filter(row=>row.from_entity_type!==row.to_entity_type && ![row.from_entity_type,row.to_entity_type].includes(primary));
-    let columns=maximumColumns,clearance,margin,corridor,ends,ports,lanes;
+    let columns=maximumColumns,clearance,columnX,width,ends,ports,lanes;
     while(true){
       const column=new Map([[primary,columns===3?1:0]]);
       shown.forEach((id,index)=>column.set(id,columns===1?0:columns===3?index%2*2:1));
@@ -39,9 +39,11 @@ function ontologyGraphPlan(types, links, selected, sizes, viewport, mode, retain
         ends.set(row.link_type,[endpoint(a,fromSide),endpoint(b,toSide)]);
       }
       // Reserve two scene pixels per competing lane without shrinking native targets.
-      clearance=Math.max(p,2*(Math.max(0,...[...lanes.values()].map(rows=>rows.length))+1));
-      margin=clearance+Math.hypot(7,4)*1.5;corridor=Math.max(44,...direct.map(row=>sizes.links.get(row.link_type).w))+2*clearance;
-      if(columns===1 || columns*cardW+(columns-1)*corridor+2*margin<=viewport.width)break;
+      clearance=(index,side)=>Math.max(p,2*((lanes.get(JSON.stringify([index,side]))?.length ?? 0)+1));
+      columnX=[clearance(0,'left')+Math.hypot(7,4)*1.5];
+      for(let index=1;index<columns;index++)columnX.push(columnX[index-1]+cardW+clearance(index-1,'right')+labelW+clearance(index,'left'));
+      width=columnX.at(-1)+cardW+clearance(columns-1,'right')+Math.hypot(7,4)*1.5;
+      if(columns===1 || width<=viewport.width)break;
       columns--;
     }
     const rowHeight=id=>columns===1?groupHeight(id)+stack(connections(id))+(connections(id).length?p:0):Math.max(groupHeight(id),stack(connections(id)));
@@ -49,20 +51,20 @@ function ontologyGraphPlan(types, links, selected, sizes, viewport, mode, retain
     shown.forEach((id,index)=>rails[index%rails.length].push(id));
     const railHeights=rails.map(rows=>rows.reduce((height,id)=>height+rowHeight(id)+p,0)-(rows.length?p:0));
     const baseHeight=groupHeight(primary),body=columns===1?baseHeight+(shown.length?p:0)+railHeights[0]:Math.max(baseHeight,...railHeights);
-    const width=columns*cardW+(columns-1)*corridor+2*margin,height=2*margin+body+induced.reduce((sum,row)=>sum+sizes.links.get(row.link_type).h+p,0);
+    const height=2*margin+body+induced.reduce((sum,row)=>sum+sizes.links.get(row.link_type).h+p,0);
     const positions=new Map(),labelPositions=new Map();
     function place(id,x,y) {
       for(const row of self(id)){const size=sizes.links.get(row.link_type);labelPositions.set(row.link_type,{x:x+(cardW-size.w)/2,y});y+=size.h+p/2;}
       if(self(id).length)y+=p/2;
       const size=sizes.types.get(id);positions.set(id,{id,x,y,w:size.w,h:size.h});
     }
-    place(primary,margin+(columns===3?1:0)*(cardW+corridor),margin+(columns===1?0:(body-baseHeight)/2));
+    place(primary,columnX[columns===3?1:0],margin+(columns===1?0:(body-baseHeight)/2));
     rails.forEach((rows,index)=>{
       let y=columns===1?margin+baseHeight+(shown.length?p:0):margin+(body-railHeights[index])/2;
       for(const id of rows){
-        const rows=connections(id),labels=stack(rows),row=rowHeight(id),x=margin+(columns===1?0:columns===3?index===0?0:2:1)*(cardW+corridor);
+        const rows=connections(id),labels=stack(rows),row=rowHeight(id),x=columnX[columns===1?0:columns===3?index===0?0:2:1];
         let labelY=columns===1?y:y+(row-labels)/2;
-        for(const link of rows){const size=sizes.links.get(link.link_type),left=columns===1?margin+(cardW-size.w)/2:Math.min(x,positions.get(primary).x)+cardW+(corridor-size.w)/2;labelPositions.set(link.link_type,{x:left,y:labelY});labelY+=size.h+p/2;}
+        for(const link of rows){const size=sizes.links.get(link.link_type),left=columns===1?columnX[0]+(cardW-size.w)/2:columnX[index]+cardW+clearance(index,'right')+(labelW-size.w)/2;labelPositions.set(link.link_type,{x:left,y:labelY});labelY+=size.h+p/2;}
         place(id,x,columns===1?y+labels+(rows.length?p:0):y+(row-groupHeight(id))/2);y+=row+p;
       }
     });
@@ -70,7 +72,7 @@ function ontologyGraphPlan(types, links, selected, sizes, viewport, mode, retain
     for(const row of induced){const size=sizes.links.get(row.link_type),a=positions.get(row.from_entity_type),b=positions.get(row.to_entity_type),left=Math.min(a.x,b.x)-p/2,right=Math.max(a.x+a.w,b.x+b.w)+p/2;footer+=p;labelPositions.set(row.link_type,{x:(left+right-size.w)/2,y:footer});footer+=size.h;}
     const endpoint=point=>{
       const node=positions.get(point.id),incident=ports.get(point.portKey),competing=lanes.get(point.laneKey);
-      const ratio=(incident.indexOf(point)+1)/(incident.length+1),lane=clearance*(competing.indexOf(point)+1)/(competing.length+1);
+      const ratio=(incident.indexOf(point)+1)/(incident.length+1),lane=clearance(columnX.indexOf(node.x),point.side)*(competing.indexOf(point)+1)/(competing.length+1);
       return {x:node.x+(point.side==='left'?0:node.w),y:node.y+p/2+Math.max(0,node.h-p)*ratio,lane:node.x+(point.side==='left'?-lane:cardW+lane)};
     };
     const edges=visibleLinks.map(row=>{
